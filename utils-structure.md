@@ -6,6 +6,30 @@ This needs access only to the database.
 
 Question: should this be the level of handling permissions?
 
+## AdminUtils
+
+This set of subroutines handle all administration level (currently everything in the admin course):
+
+* `createCourse`
+* `renameCourse`
+* `deleteCourse`
+* `upgradeCourse`
+* `archiveCourse`
+* `unarchiveCourse`
+
+## UserUtils
+
+Plans are to allow a server to setup with a global level of users. These utils will handle the global users instead of the course Users:
+
+* `getUsers` -- get all user data
+* `getCourses(user_id)` -- get the courses that user `user_id` is enrolled.
+* `createUser`
+* `updateUser`
+* `deleteUser`
+*  handle password for users (could be handled in `updateUser`)
+
+
+
 ## CourseUtils
 
 * `getAllSets`
@@ -14,7 +38,7 @@ Question: should this be the level of handling permissions?
 * `updateCourseSettings`
 * student progress/stats/scoring tools
 * email utils
-* get files in course directory
+* file management (get/put files, move) in course directory
 * 
 
 
@@ -71,8 +95,15 @@ Question: should this be the level of handling permissions?
 
 Maybe we put these in a separate file in order to more easily upgrade this at a later time
 
+## Achievements
 
-## UserUtils
+* `getAllAchivementBadges`
+* `getAllAchivementRewards`
+* `getAchievementBadge`
+* `getAchievementReward`
+
+
+## CourseUserUtils
 
 * `getUser`
 * `updateUser`
