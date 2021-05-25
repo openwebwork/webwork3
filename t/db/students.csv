@@ -1,0 +1,14 @@
+first_name,last_name,email,login,course_name,student_id,recitation,section,comment,roles
+Homer,Simpson,homer@aol.com,homer,Precalculus,12,,,,student
+Lisa,Simpson,lisa@google.com,lisa,"Abstract Algebra",23,,,,student
+Lisa,Simpson,lisa@google.com,lisa,Arithmetic,23,,,,student
+Bart,Simpson,bart@aol.com,bart,Precalculus,132,,,,student
+Marge,Simpson,marge@juno.com,marge,Calculus,234,,,,student
+Barney,Gumble,barney@google.com,barney,Precalculus,492,,,,student
+Moe,Szyslak,moe@msn.com,moe,Arithmetic,023,,,,student
+Ned,Flanders,ned@msn.com,ned,Precalculus,0983,,,,student
+Apu,Nahasapeemapetilon,apu@google.com,apu,Abstract Algebra,8939,,,,student
+Waylon,Smithers,smithers@google.com,smithers,Calculus,3298,,,,student
+Ralph,Wiggum,ralph@ralph.com,ralph,Arithmetic,038,,,,student
+Otto,Mann,otto@msn.com,otto,Precalculus,284,,,,student
+Jonathan,Frink,frink@frink.com,frink,Precalculus,,,,,instructor
