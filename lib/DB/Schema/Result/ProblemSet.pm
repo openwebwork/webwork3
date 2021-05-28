@@ -1,8 +1,10 @@
 package DB::Schema::Result::ProblemSet;
 use base qw/DBIx::Class::Core/;
+
 use strict;
 use warnings; 
-
+use Data::Dump qw/dd/;
+use JSON; 
 
 __PACKAGE__->table('problem_set');
 
@@ -23,7 +25,7 @@ __PACKAGE__->add_columns(
 								course_id  =>
 									{ 
 										data_type => 'integer',
-                    size => 16,   
+										size => 16,   
 										is_nullable => 1,
 									},
 								open_date  =>
@@ -35,13 +37,13 @@ __PACKAGE__->add_columns(
 								reduced_scoring_date  =>
 									{ 
 										data_type => 'integer',
-                    size => 16,   
+										size => 16,   
 										is_nullable => 0,
 									},
 								due_date  =>
 									{ 
 										data_type => 'integer',
-                    size => 16,   
+										size => 16,   
 										is_nullable => 0,
 									},
 								answer_date  =>
@@ -50,11 +52,36 @@ __PACKAGE__->add_columns(
 										size => 16,   
 										is_nullable => 0,
 									},
+								type => 
+									{
+										data_type => 'text',
+										size => 256,
+										is_nullable => 1
+									},
+								params => 
+									{
+										data_type => 'text',
+										size => 256,
+										is_nullable => 1
+									}
 								);
 
 __PACKAGE__->set_primary_key('set_id');
 __PACKAGE__->belongs_to(courses => 'DB::Schema::Result::Course','course_id');
 __PACKAGE__->has_many(problems => 'DB::Schema::Result::Problem','set_id');
 __PACKAGE__->has_many(user_sets => 'DB::Schema::Result::UserSet','set_id');
+
+### Handle the params column using JSON. 
+
+__PACKAGE__->inflate_column('params', {
+	inflate => sub {
+		my ($raw_value_from_db, $result_object) = @_;
+		decode_json $raw_value_from_db;
+	},
+	deflate => sub {
+		my ($inflated_value_from_user, $result_object) = @_;
+		encode_json $inflated_value_from_user;
+	},
+});
 
 1;

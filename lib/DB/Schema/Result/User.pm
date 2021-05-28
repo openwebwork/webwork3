@@ -47,6 +47,4 @@ __PACKAGE__->add_unique_constraint([ qw/login/ ]);
 __PACKAGE__->has_many( course_users => 'DB::Schema::Result::CourseUser','user_id');
 __PACKAGE__->many_to_many( courses => 'course_users', 'course_id' );
 
-__PACKAGE__->has_many( user_params => 'DB::Schema::Result::UserParam','user_id');
-
 1;

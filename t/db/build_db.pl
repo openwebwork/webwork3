@@ -11,12 +11,14 @@ use lib "../../lib";
 use Text::CSV qw/csv/;
 use Data::Dump qw/dd/;
 use Text::Table;
+use Carp;
 
 use DB::Schema; 
 use DB; 
 
 # set up the database
 my $db_file = "sample_db.sqlite";
+
 
 ## first delete the file
 unlink $db_file; 
@@ -28,11 +30,12 @@ if (not -e $db_file) {
 
 my $course_rs = $schema->resultset('Course');
 my $user_rs = $schema->resultset('User');
+my $course_user_rs = $schema->resultset('CourseUser');
 
 sub addUsers {
 	# add some users
 
-	my $students = csv (in => "students.csv", headers => "lc");
+	my $students = csv (in => "students.csv", headers => "lc", blank_is_undef => 1);
 
 	for my $student (@$students) {
 		my $course = $course_rs->find_or_create({course_name => $student->{course_name}});
@@ -43,19 +46,28 @@ sub addUsers {
 		$course->add_to_users($stud_info);
 
 		my $user = $user_rs->find({login => $student->{login}});
-		my $params = {course_id=> $course->course_id};
+		my $params = {user_id=> $user->user_id, course_id=> $course->course_id};
+		my $course_user = $course_user_rs->find($params);
 		for my $key (qw/section recitation comment roles/) {
 			$params->{$key} = $student->{$key};
 		}
-		$user->add_to_user_params($params);
+		$course_user->update($params);
 	}
 	return;
 }
 
+my @problem_set_params = qw/timed time_length/; 
+
 sub addSets {
 	## add some problem sets
-	my $sets = csv(in => "problem_sets.csv", headers => "lc");
+	my $sets = csv(in => "problem_sets.csv", headers => "lc", blank_is_undef => 1);
 	for my $set (@$sets) {
+		$set->{params} = {};
+		for my $param (@problem_set_params){
+			$set->{params}->{$param} = $set->{$param} if defined($set->{$param});
+			delete $set->{$param};
+		}
+		# dd $sets; 
 		my $course = $schema->resultset('Course')->search({course_name => $set->{course_name}})->single; 
 		if (! defined($course)){
 			croak "The course ". $set->{course_name} ." does not exist"; 
@@ -68,7 +80,7 @@ sub addSets {
 
 sub addProblems {
 	## add some problems 
-	my $problems = csv(in => "problems.csv", headers => "lc");
+	my $problems = csv(in => "problems.csv", headers => "lc", blank_is_undef => 1);
 	for my $prob (@$problems){
 		# check if the course_name/set_name exists
 		my $set = $schema->resultset('ProblemSet')->search(
@@ -100,7 +112,7 @@ sub addProblems {
 
 sub addUserSets {
 	## add some users to problem sets
-	my $user_sets = csv(in => "user_sets.csv", headers => "lc");
+	my $user_sets = csv(in => "user_sets.csv", headers => "lc", blank_is_undef => 1);
 	for my $user_set (@$user_sets){
 		# check if the course_name/set_name/user_name exists
 		my $course = $schema->resultset('Course')->find({ course_name=>$user_set->{course_name}});

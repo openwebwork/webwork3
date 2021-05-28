@@ -8,7 +8,7 @@ use lib "../../lib";
 
 use Text::CSV qw/csv/;
 use Data::Dump qw/dd/;
-use List::MoreUtils qw(uniq);
+use List::Util qw(uniq);
 use Test::More; 
 use Test::Exception;
 
@@ -25,38 +25,47 @@ my $user_rs = $schema->resultset("User");
 
 ## load the csvfile of the users
 
-my $students = csv (in => "students.csv", headers => "lc");
+my $students = csv (in => "students.csv", headers => "lc", blank_is_undef => 1);
 
 ## filter only precalc students
 my @precalc_students = grep { $_->{course_name} eq "Precalculus" } @$students;
 for my $student (@precalc_students) {
-  delete $student->{course_name};
+	delete $student->{course_name};
 }
 @precalc_students = sort {$a->{login} cmp $b->{login}} @precalc_students; 
 
 ## test getUsers
 
-my @users = $course_rs->getUsers("Precalculus");
+my @users = $course_rs->getUsers({course_name => "Precalculus"});
 my @precalc_students_from_db = sort {$a->{login} cmp $b->{login}} @users; 
-for my $student (@precalc_students_from_db){
-	for my $key (qw/course_id user_id user_param_id/){
-		delete $student->{$key};
+my $precalc_students_from_db = removeCourseUserIDs(\@precalc_students_from_db); 
+
+sub removeCourseUserIDs {
+	my $users = shift; 
+	for my $user (@$users){
+		for my $key (qw/course_id user_id course_user_id/){
+			delete $user->{$key};
+		}
 	}
 }
-@precalc_students_from_db = sort {$a->{login} cmp $b->{login}} @precalc_students_from_db; 
 
-is_deeply(\@precalc_students,\@precalc_students_from_db,"get users from a course");
+
+is_deeply(\@precalc_students,\@precalc_students_from_db,"getUsers: get users from a course");
 
 ## getUsers: test that an unknown course results in an error
 
 dies_ok {
-  my @users = $course_rs->getUsers("unknown_course");
-} "getUser: undefined course";
+	my @users = $course_rs->getUsers({course_name => "unknown_course"});
+} "getUsers: undefined course_name";
+dies_ok {
+	my @users = $course_rs->getUsers({course_id => -3});
+} "getUsers: undefined course_id";
+
 
 ## test getUser
 
 my $user = $course_rs->getUser({course_name=>"Precalculus",login=>$precalc_students[0]->{login}});
-for my $key (qw/course_id user_id user_param_id/){
+for my $key (qw/course_id user_id course_user_id/){
 	delete $user->{$key};
 }
 
@@ -65,13 +74,13 @@ is_deeply($precalc_students[0],$user,"get one user");
 ## getUser: test that an unknown course results in an error
 
 dies_ok {
-  my @users = $course_rs->getUsers({course_name => "unknown_course", login=>"barney"});
+	my @users = $course_rs->getUsers({course_name => "unknown_course", login=>"barney"});
 } "getUser: undefined course";
 
 ## getUser: test that an unknown user results in an error
 
 dies_ok {
-  my @users = $course_rs->getUsers({course_name => "Precalculus", login=>"unknown_user"});
+	my @users = $course_rs->getUsers({course_name => "Precalculus", login=>"unknown_user"});
 } "getUser: undefined user";
 
 ## addUser:  add a user to a course
@@ -89,15 +98,18 @@ my $user_params = {
 	comment => undef,
 };
 
-$user = $course_rs->addUser($user_params);
+$user = $course_rs->addUser(
+	{
+		course_name => "Arithmetic",
+	},
+		$user_params);
 
-for my $key (qw/course_id user_id user_param_id/){
+for my $key (qw/course_id user_id course_user_id/){
 	delete $user->{$key};
 }
 delete $user_params->{course_name};
 
 is_deeply($user_params,$user,"addUser: add a user succeeds");
-# dd {$user->get_columns};
 
 ## addUser: check that if the course doesn't exist, an error is thrown:
 dies_ok {
@@ -117,7 +129,7 @@ $updated_user->{comment} = 'Mayor Joe is the best!!';
 $updated_user->{course_name} = 'Arithmetic';
 my $user_from_db = $course_rs->updateUser($updated_user);
 delete $updated_user->{course_name};
-for my $key (qw/course_id user_id user_param_id/){
+for my $key (qw/course_id user_id course_user_id/){
 	delete $user_from_db->{$key};
 }
 
@@ -137,7 +149,7 @@ dies_ok {
 ## deleteUser: delete a single user from a course
 
 my $deleted_user = $course_rs->deleteUser({course_name => "Arithmetic", login => "quimby"});
-for my $key (qw/course_id user_id user_param_id/){
+for my $key (qw/course_id user_id course_user_id/){
 	delete $deleted_user->{$key};
 }
 
