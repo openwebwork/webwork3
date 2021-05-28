@@ -1,4 +1,17 @@
-# webwork-common
+# webwork3
 
-This repository will store all of the common functionality of webwork to facilitate a split of user interfaces (webwork2 and webwork3) as well as including webservices (like the standalone renderer)
+There are three main parts of this repository:
+* webwork-common: basic functionality (database and other utils)
+* webwork-api: mojolicious server backend to handle api requests.
+* webwork-front-end: new webwork interface. 
 
+
+## webwork-common
+
+This is code to handle a new database structure for webwork and other utilities needed for non-gui webwork functionality.
+
+See docs/db.md for more information on the database.
+
+## webwork-api
+
+## webwork-front-end
