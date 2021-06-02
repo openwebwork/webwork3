@@ -18,12 +18,13 @@ use DB::Schema;
 # load the database
 my $db_file = "sample_db.sqlite";
 my $schema = DB::Schema->connect("dbi:SQLite:$db_file");
+# $schema->storage->debug(1);  # print out the SQL commands.
 
 my $courses = $schema->resultset("Course");
 
 ## get a list of courses from the CSV file
 
-my $students = csv (in => "students.csv", headers => "lc");
+my $students = csv (in => "sample_data/students.csv", headers => "lc");
 my @known_courses = uniq map { $_->{course_name}; } @$students; 
 @known_courses = map { {course_name => $_};} (sort @known_courses);
 
@@ -63,6 +64,12 @@ my $known_courses = sortByCourseName(\@known_courses);
 $courses_from_db = sortByCourseName(removeCourseID(\@courses_from_db)); 
 
 is_deeply($known_courses,$courses_from_db,"addCourse: add a new course");
+
+## add a course that already exists
+
+dies_ok {
+  my $another_new_course = $courses->addCourse("Geometry");
+} "addCourse: course already exists";
 
 ## update a course 
 

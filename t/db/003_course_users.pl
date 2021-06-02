@@ -25,7 +25,7 @@ my $user_rs = $schema->resultset("User");
 
 ## load the csvfile of the users
 
-my $students = csv (in => "students.csv", headers => "lc", blank_is_undef => 1);
+my $students = csv (in => "sample_data/students.csv", headers => "lc", blank_is_undef => 1);
 
 ## filter only precalc students
 my @precalc_students = grep { $_->{course_name} eq "Precalculus" } @$students;
@@ -36,9 +36,11 @@ for my $student (@precalc_students) {
 
 ## test getUsers
 
-my @users = $course_rs->getUsers({course_name => "Precalculus"});
+my @users = $user_rs->getUsers({course_name => "Precalculus"});
 my @precalc_students_from_db = sort {$a->{login} cmp $b->{login}} @users; 
 my $precalc_students_from_db = removeCourseUserIDs(\@precalc_students_from_db); 
+
+# dd $precalc_students_from_db;
 
 sub removeCourseUserIDs {
 	my $users = shift; 
@@ -64,12 +66,12 @@ dies_ok {
 
 ## test getUser
 
-my $user = $course_rs->getUser({course_name=>"Precalculus",login=>$precalc_students[0]->{login}});
+my $user = $user_rs->getUser({course_name=>"Precalculus",login=>$precalc_students[0]->{login}});
 for my $key (qw/course_id user_id course_user_id/){
 	delete $user->{$key};
 }
 
-is_deeply($precalc_students[0],$user,"get one user");
+is_deeply($precalc_students[0],$user,"getUser: get one user");
 
 ## getUser: test that an unknown course results in an error
 
@@ -98,11 +100,7 @@ my $user_params = {
 	comment => undef,
 };
 
-$user = $course_rs->addUser(
-	{
-		course_name => "Arithmetic",
-	},
-		$user_params);
+$user = $user_rs->addUser({course_name => "Arithmetic"},$user_params);
 
 for my $key (qw/course_id user_id course_user_id/){
 	delete $user->{$key};
@@ -126,9 +124,8 @@ dies_ok {
 my $updated_user = { %$user_params };  # make a copy of $user;
 $updated_user->{email} = 'joe_the_mayor@juno.com';
 $updated_user->{comment} = 'Mayor Joe is the best!!';
-$updated_user->{course_name} = 'Arithmetic';
-my $user_from_db = $course_rs->updateUser($updated_user);
-delete $updated_user->{course_name};
+my $user_from_db = $user_rs->updateUser({course_name => 'Arithmetic', login=>'quimby'},$updated_user);
+
 for my $key (qw/course_id user_id course_user_id/){
 	delete $user_from_db->{$key};
 }
@@ -148,7 +145,7 @@ dies_ok {
 
 ## deleteUser: delete a single user from a course
 
-my $deleted_user = $course_rs->deleteUser({course_name => "Arithmetic", login => "quimby"});
+my $deleted_user = $user_rs->deleteUser({course_name => "Arithmetic", login => "quimby"});
 for my $key (qw/course_id user_id course_user_id/){
 	delete $deleted_user->{$key};
 }

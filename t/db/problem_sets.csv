@@ -1,8 +1,0 @@
-course_name,set_name,type,open_date,reduced_scoring_date,due_date,answer_date,timed,time_length
-Precalculus,"HW #1",HW,1,1,10,10,,
-Precalculus,"HW #2",HW,21,21,30,30,,
-Precalculus,"HW #3",HW,31,31,40,40,,
-"Abstract Algebra","HW #1",HW,1,1,10,10,,
-"Abstract Algebra","HW #2",HW,21,21,30,30,,
-"Abstract Algebra","HW #3",HW,31,31,40,40,,
-Precalculus,"Quiz #1",QUIZ,1,1,10,10,Y,30

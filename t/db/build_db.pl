@@ -32,10 +32,20 @@ my $course_rs = $schema->resultset('Course');
 my $user_rs = $schema->resultset('User');
 my $course_user_rs = $schema->resultset('CourseUser');
 
+sub buildHash {
+	my ($hash,$param_names,$name) = @_; 
+	my $new_hash = {}; 
+	for my $param (@$param_names) {
+		$new_hash->{$param} = $hash->{$param} if defined($hash->{$param});
+	}
+	return $new_hash; 
+}
+
+
 sub addUsers {
 	# add some users
 
-	my $students = csv (in => "students.csv", headers => "lc", blank_is_undef => 1);
+	my $students = csv (in => "sample_data/students.csv", headers => "lc", blank_is_undef => 1);
 
 	for my $student (@$students) {
 		my $course = $course_rs->find_or_create({course_name => $student->{course_name}});
@@ -56,36 +66,61 @@ sub addUsers {
 	return;
 }
 
-my @problem_set_params = qw/timed time_length/; 
+my @hw_dates = @DB::Schema::Result::ProblemSet::HWSet::VALID_DATES;
+my @hw_params = @DB::Schema::Result::ProblemSet::HWSet::VALID_PARAMS; 
+
+my @quiz_dates = @DB::Schema::Result::ProblemSet::HWSet::VALID_DATES; 
+my @quiz_params = @DB::Schema::Result::ProblemSet::HWSet::VALID_PARAMS; 
+
 
 sub addSets {
 	## add some problem sets
-	my $sets = csv(in => "problem_sets.csv", headers => "lc", blank_is_undef => 1);
-	for my $set (@$sets) {
-		$set->{params} = {};
-		for my $param (@problem_set_params){
-			$set->{params}->{$param} = $set->{$param} if defined($set->{$param});
-			delete $set->{$param};
-		}
-		# dd $sets; 
+	my $hw_sets = csv(in => "sample_data/hw_sets.csv", headers => "lc", blank_is_undef => 1);
+	for my $set (@$hw_sets) {
+		my $hw_set_for_db = {
+			name => $set->{name},
+			type => 1, # type number for a "HW"
+			params => buildHash($set,\@hw_params,"params"),
+			dates => buildHash($set,\@hw_dates,"dates")
+		};
+
 		my $course = $schema->resultset('Course')->search({course_name => $set->{course_name}})->single; 
 		if (! defined($course)){
 			croak "The course ". $set->{course_name} ." does not exist"; 
 		}
-		delete $set->{course_name};
-		$course->add_to_problem_sets($set);
+		$course->add_to_problem_sets($hw_set_for_db);
 	}
+
+	## add quizzes
+
+	my $quizzes = csv(in => "sample_data/quizzes.csv", headers => "lc", blank_is_undef => 1);
+	for my $quiz (@$quizzes) {
+		my $quiz_for_db = {
+			name => $quiz->{name},
+			type => 2, # type number for a "QUIZ"
+			params => buildHash($quiz,\@quiz_params,"params"),
+			dates => buildHash($quiz,\@quiz_dates,"dates")
+		};
+
+		my $course = $schema->resultset('Course')->search({course_name => $quiz->{course_name}})->single; 
+		if (! defined($course)){
+			croak "The course ". $quiz->{course_name} ." does not exist"; 
+		}
+		
+		$course->add_to_problem_sets($quiz_for_db);
+	}
+
 	return;
 }
 
 sub addProblems {
 	## add some problems 
-	my $problems = csv(in => "problems.csv", headers => "lc", blank_is_undef => 1);
+	my $problems = csv(in => "sample_data/problems.csv", headers => "lc", blank_is_undef => 1);
 	for my $prob (@$problems){
 		# check if the course_name/set_name exists
 		my $set = $schema->resultset('ProblemSet')->search(
 				{
-					'me.set_name' => $prob->{set_name}, 
+					'me.name' => $prob->{set_name}, 
 					'courses.course_name' => $prob->{course_name}
 				},
 				{
@@ -93,7 +128,7 @@ sub addProblems {
 				}
 			)->single; 
 		if (! defined($set)){
-			croak "The course ". $set->{course_name} ." with set name " . $set->{set_name} . " is not defined"; 
+			croak "The course ". $set->{course_name} ." with set name " . $set->{name} . " is not defined"; 
 		}
 		delete $prob->{course_name};
 		delete $prob->{set_name};
@@ -112,13 +147,13 @@ sub addProblems {
 
 sub addUserSets {
 	## add some users to problem sets
-	my $user_sets = csv(in => "user_sets.csv", headers => "lc", blank_is_undef => 1);
+	my $user_sets = csv(in => "sample_data/user_sets.csv", headers => "lc", blank_is_undef => 1);
 	for my $user_set (@$user_sets){
 		# check if the course_name/set_name/user_name exists
 		my $course = $schema->resultset('Course')->find({ course_name=>$user_set->{course_name}});
 		my $user_course = $course->users->find({login=>$user_set->{login}});
 		if( defined $user_course) {
-			my $problem_set = $schema->resultset('ProblemSet')->find({ course_id => $course->course_id, set_name => $user_set->{set_name} });
+			my $problem_set = $schema->resultset('ProblemSet')->find({ course_id => $course->course_id, name => $user_set->{set_name} });
 			for my $key (qw/course_name set_name login/) { 
 				delete $user_set->{$key};
 			}
@@ -138,21 +173,6 @@ addUsers;
 addSets;
 addProblems;
 addUserSets;
-
-# # get column names for the Album table
-# my @cols   = $schema->resultset("User")->result_source->columns;
-
-# # create header with these column names
-# my $table  = Text::Table->new( header( @cols ) );
-
-# @rows = $schema->resultset('User')->find({ login=>"homer" })->courses; 
-
-# for my $row (@rows) {
-# 	# $table->add( map { $row->get_column($_)} @cols);
-# 	dd $row->get_columns;
-# }
-
-# # print $table;
 
 
 1; 

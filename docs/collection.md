@@ -8,9 +8,10 @@ This is a data structure that is a bunch of problems.  There are a number of exi
 - showMeAnother (?)
 
 
-Each one of these is separate although there is some common structure.  If we create an `AbstractProblemSet` class, then each of these can inherit a lot of the structure from the top class. 
+Each one of these is separate although there is some common structure.  If we create an `ProblemSet` class, then each of these can inherit a lot of the structure from the top class. 
 
 This will also allow the generation of other structures more easily including
+
 
 
 ### New Collections
