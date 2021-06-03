@@ -2,11 +2,12 @@ package DB::Utils;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw/parseCourseInfo parseUserInfo getCourseInfo getUserInfo getSetInfo/; 
+our @EXPORT_OK = qw/parseCourseInfo parseUserInfo getCourseInfo getUserInfo getSetInfo updateAllFields/; 
 
 use Carp; 
 use Data::Dump qw/dd/;
 use List::Util qw/first/;
+use Scalar::Util qw/reftype/;
 
 ## checks if the course info is correct and then parses the result to be passed 
 # to a database search.
@@ -67,10 +68,41 @@ sub getUserInfo {
 sub getSetInfo {
 	my $course_set_info = shift; 
 	my $set_info = {};
-	for my $key (qw/set_id name/) {
+	for my $key (qw/set_id set_name/) {
 		$set_info->{$key} = $course_set_info->{$key} if defined($course_set_info->{$key});
 	}
 	return $set_info; 
+}
+
+=pod
+
+=head1 updateAllFields
+
+This method updates the fields of the first argument with any from the second argument. 
+This returns the hashref with both the original and any replacements.  
+
+=cut 
+
+sub updateAllFields {
+	my ($current_fields,$updated_fields) = @_; 
+	dd $current_fields; 
+	dd $updated_fields; 
+	my $fields_to_return = {};  ## make a copy of the hashref $current_fields
+	dd keys %$current_fields; 
+	for my $key (keys %$current_fields) {
+		dd $key; 
+		dd reftype $updated_fields->{$key};
+		if (reftype($updated_fields->{$key}) eq "HASH") {
+			$fields_to_return->{$key} = updateAllFields($current_fields->{$key} || {},$updated_fields->{$key});
+		} else {
+			$fields_to_return->{$key} = defined($updated_fields->{$key}) ?
+																		$updated_fields->{$key} :
+																		$current_fields->{$key};
+		}
+	}
+	dd "returning the following:";
+	dd $fields_to_return; 
+	return $fields_to_return;
 }
 
 1; 

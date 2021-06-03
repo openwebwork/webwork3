@@ -3,9 +3,6 @@ use base qw/DB::Schema::Result::ProblemSet/;
 use strict;
 use warnings; 
 
-our @valid_dates = 
-our @valid_params = qw/timed time_length/;
-
 our @VALID_DATES = qw/open due answer/;
 our @REQUIRED_DATES = qw/open due answer/; 
 our %VALID_PARAMS = (
@@ -14,14 +11,10 @@ our %VALID_PARAMS = (
 	);
 our @REQUIRED_PARAMS = qw//;
 
-sub getValidDates {
-	return join($self::SUPER->valid_dates, @valid_dates);
+sub setParamsAndDates {
+	my $self = shift; 
+	$self->setParamInfo(\%VALID_PARAMS,\@REQUIRED_PARAMS);
+	$self->setDateInfo(\@VALID_DATES,\@REQUIRED_DATES);
 }
-
-sub getValidParams {
-	return join($self::SUPER->valid_params, @valid_params);
-}
-
-
 
 1;

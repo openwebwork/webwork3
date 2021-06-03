@@ -12,10 +12,12 @@ use List::MoreUtils qw(uniq);
 use Test::More; 
 use Test::Exception;
 use Clone qw/clone/;
+use Carp; 
 
 use Array::Utils qw/array_minus intersect/;
 
 use DB::Schema; 
+use DB::CSVUtils qw/loadCSV/; 
 
 # load the database
 my $db_file = "sample_db.sqlite";
@@ -32,17 +34,20 @@ my $user_rs = $schema->resultset("User");
 
 my @all_problem_sets;   # stores all problem_sets
 
-loadSetsFromCSV();
+my @quizzes = loadCSV("sample_data/quizzes.csv");
+for my $quiz (@quizzes) {
+	$quiz->{type} = 2; 
+}
 
 
 ## test: get all quizzes from one course
-my @precalc_quizzes = filterBySetType(\@all_problem_sets,"QUIZ","Precalculus");
+my @precalc_quizzes = filterBySetType(\@quizzes,"QUIZ","Precalculus");
 @precalc_quizzes = cloneSets(\@precalc_quizzes);
 
 for my $quiz (@precalc_quizzes) {
 	delete $quiz->{course_name};
 }
-@precalc_quizzes = sort {$a->{name} cmp $b->{name}} @precalc_quizzes;
+@precalc_quizzes = sort {$a->{set_name} cmp $b->{set_name}} @precalc_quizzes;
 my @precalc_quizzes_from_db = $problem_set_rs->getQuizzes({course_name => "Precalculus"});
 
 
@@ -70,25 +75,10 @@ sub cloneSets {
 	return @$sets; 
 }
 
-sub buildHash {
-	my ($hash,$param_names,$name) = @_; 
-	my $new_hash = {}; 
-	for my $param (@$param_names) {
-		$new_hash->{$param} = $hash->{$param} if defined($hash->{$param});
-	}
-	return $new_hash; 
-}
-
-## This takes the array (as arrayref) of all problem sets in all courses, and filters by 
-## set type, course name or both
-
-
 
 sub filterBySetType {
 	my ($all_sets,$type,$course_name) = @_; 
-
 	my $type_hash = $DB::Schema::ResultSet::ProblemSet::SET_TYPES;
-
 	my @filtered_sets = @$all_sets; 
 
 	if (defined($course_name)){
@@ -101,36 +91,5 @@ sub filterBySetType {
 	return @filtered_sets;
 }
 
-sub loadSetsFromCSV {
-	# load the csv file:
-	my $hw_sets_from_csv = csv (in => "sample_data/hw_sets.csv", headers => "lc", blank_is_undef => 1);
-	
-
-	## load HW sets
-	for my $set (@$hw_sets_from_csv) {
-		my $hw_set = {
-			name => $set->{name},
-			course_name => $set->{course_name},
-			type => 1, # this is the type number for a "HW"
-			params => buildHash($set,\@hw_params,"params"),
-			dates => buildHash($set,\@hw_dates,"dates")
-		};
-		push(@all_problem_sets,$hw_set);
-	}
-
-	## load Quizzes
-
-	my $quizzes_from_csv = csv (in => "sample_data/quizzes.csv", headers => "lc", blank_is_undef => 1);
-	for my $quiz (@$quizzes_from_csv) {
-		my $quiz2 = {
-			name => $quiz->{name},
-			course_name => $quiz->{course_name},
-			type => 2, # this is the type number for a "QUIZ"
-			params => buildHash($quiz,\@hw_params,"params"),
-			dates => buildHash($quiz,\@hw_dates,"dates")
-		};
-		push(@all_problem_sets,$quiz2);
-	}
-}
 
 1;

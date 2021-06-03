@@ -6,7 +6,7 @@ use base 'DBIx::Class::ResultSet';
 use Carp;
 use Data::Dump qw/dd dump/;
 
-use DB::Utils qw/getCourseInfo parseCourseInfo getUserInfo parseUserInfo getSetInfo/;
+use DB::Utils qw/getCourseInfo parseCourseInfo getUserInfo parseUserInfo getSetInfo updateAllFields/;
 
 our $SET_TYPES = {
 		"HW" => 1,
@@ -66,8 +66,6 @@ sub getProblemSets {
 	my @sets = $self->search($search_params,{ prefetch => ["courses"] });
 	return map { {$_->get_inflated_columns}; } @sets; 
 }
-
-
 
 =pod
 =head2 getHWSets
@@ -148,25 +146,58 @@ sub addProblemSet {
 	my $course = $course_rs->getCourse($course_info,1);
 
 	## check to make sure that the set_name is defined. TODO: check other params
-	croak "You must defined the field name in the 2nd argument" unless defined($set_params->{name}); 
+	croak "You must defined the field name in the 2nd argument" unless defined($set_params->{set_name}); 
 
 	## check if the set exists. 
-	my $search_params = {course_id=>$course->course_id,name => $set_params->{name}}; 
-	
+	my $search_params = {course_id=>$course->course_id,set_name => $set_params->{set_name}}; 
+
 	my $set = $self->find($search_params,prefetch => 'courses');
-	croak "The Problem set with name " . $set_params->{name} . " already exists." if defined($set);
+	croak "The Problem set with name " . $set_params->{set_name} . " already exists." if defined($set);
 
 	$set_params->{type} = $SET_TYPES->{$set_params->{set_type}};
 	delete $set_params->{set_type};
 
+
 	my $set_obj = $self->new($set_params);
 	## check the parameters are valid. 
-	$set_obj->isValid(); 
+	$set_obj->setParamsAndDates;
+	$set_obj->validDates(); 
+	$set_obj->validParams();
 	
 	my $new_set = $course->add_to_problem_sets($set_params,1);
 
 	return $new_set if $as_result_set;
 	return {$new_set->get_inflated_columns};
+}
+
+=pod
+=head2 updateProblemSet
+
+Update a problem set (HW, Quiz, etc.) for a given course
+
+
+=cut
+
+sub updateProblemSet {
+	my ($self,$course_set_info,$updated_params,$as_result_set) = @_;
+
+	my $set = $self->getProblemSet($course_set_info);
+	
+	## check to make sure that the params are valid;
+
+	dd "calling updateAllFields";
+	my $params = updateAllFields($set,$updated_params);
+	dd $params; 
+	my $set_obj = $self->new($params);
+	## check the parameters are valid. 
+	$set_obj->setParamsAndDates;
+	$set_obj->validDates(); 
+	$set_obj->validParams();
+	dd {$set_obj->get_inflated_columns};
+	my $updated_set = $set->update({$set_obj->get_inflated_columns});
+	dd {$updated_set->get_inflated_columns};
+
+	return $updated_set; 
 }
 
 1;

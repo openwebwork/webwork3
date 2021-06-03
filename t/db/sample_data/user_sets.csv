@@ -1,4 +1,4 @@
-course_name,login,set_name,open_date,reduced_scoring_date,due_date,answer_date
+course_name,login,set_name,DATE_open,DATE_reduced_scoring,DATE_due,DATE_answer
 Precalculus,homer,"HW #1",,,,
 Precalculus,bart,"HW #1",,,,
 Precalculus,ned,"HW #1",,,,

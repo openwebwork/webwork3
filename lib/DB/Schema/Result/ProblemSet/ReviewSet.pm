@@ -3,17 +3,17 @@ use base qw/DB::Schema::Result::ProblemSet/;
 use strict;
 use warnings; 
 
-our @valid_dates = qw/open due answer/;
-our @valid_params = qw//;
+use Carp;
 
-sub getValidDates {
-	return join($self::SUPER->valid_dates, @valid_dates);
+our @VALID_DATES = qw/open closed/;
+our @REQUIRED_DATES = qw/open closed/; 
+our %VALID_PARAMS = ();
+our @REQUIRED_PARAMS = qw//;
+
+sub setParamsAndDates {
+	my $self = shift; 
+	$self->setParamInfo(\%VALID_PARAMS,\@REQUIRED_PARAMS);
+	$self->setDateInfo(\@VALID_DATES,\@REQUIRED_DATES);
 }
-
-sub getValidParams {
-	return join($self::SUPER->valid_params, @valid_params);
-}
-
-
 
 1;

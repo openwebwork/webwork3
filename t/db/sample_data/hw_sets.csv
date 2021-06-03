@@ -1,4 +1,4 @@
-course_name,name,open,reduced_scoring,due,answer
+course_name,set_name,DATE_open,DATE_reduced_scoring,DATE_due,DATE_answer
 Precalculus,"HW #1",1,1,10,10
 Precalculus,"HW #2",21,21,30,30
 Precalculus,"HW #3",31,31,40,40

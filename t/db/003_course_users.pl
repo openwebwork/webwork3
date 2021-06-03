@@ -13,7 +13,7 @@ use Test::More;
 use Test::Exception;
 
 use DB::Schema; 
-
+use DB::CSVUtils qw/loadCSV/;
 
 # load the database
 my $db_file = "sample_db.sqlite";
@@ -23,12 +23,11 @@ my $schema = DB::Schema->connect("dbi:SQLite:$db_file");
 my $course_rs = $schema->resultset("Course");
 my $user_rs = $schema->resultset("User");
 
-## load the csvfile of the users
-
-my $students = csv (in => "sample_data/students.csv", headers => "lc", blank_is_undef => 1);
+## get a list of users from the CSV file
+my @students = loadCSV("sample_data/students.csv");
 
 ## filter only precalc students
-my @precalc_students = grep { $_->{course_name} eq "Precalculus" } @$students;
+my @precalc_students = grep { $_->{course_name} eq "Precalculus" } @students;
 for my $student (@precalc_students) {
 	delete $student->{course_name};
 }
@@ -40,7 +39,6 @@ my @users = $user_rs->getUsers({course_name => "Precalculus"});
 my @precalc_students_from_db = sort {$a->{login} cmp $b->{login}} @users; 
 my $precalc_students_from_db = removeCourseUserIDs(\@precalc_students_from_db); 
 
-# dd $precalc_students_from_db;
 
 sub removeCourseUserIDs {
 	my $users = shift; 
@@ -50,7 +48,6 @@ sub removeCourseUserIDs {
 		}
 	}
 }
-
 
 is_deeply(\@precalc_students,\@precalc_students_from_db,"getUsers: get users from a course");
 
@@ -95,9 +92,11 @@ my $user_params = {
 	email => 'mayor_joe@springfield.gov',
 	student_id => "12345",
 	roles => "student",
-	recitation => undef,
-	section => undef,
-	comment => undef,
+	params => {
+		recitation => undef,
+		section => undef,
+		comment => undef,
+	}
 };
 
 $user = $user_rs->addUser({course_name => "Arithmetic"},$user_params);
@@ -122,8 +121,8 @@ dies_ok {
 ## updateUser: check that the user updates.  
 
 my $updated_user = { %$user_params };  # make a copy of $user;
-$updated_user->{email} = 'joe_the_mayor@juno.com';
-$updated_user->{comment} = 'Mayor Joe is the best!!';
+$updated_user->{params}->{email} = 'joe_the_mayor@juno.com';
+$updated_user->{params}->{comment} = 'Mayor Joe is the best!!';
 my $user_from_db = $user_rs->updateUser({course_name => 'Arithmetic', login=>'quimby'},$updated_user);
 
 for my $key (qw/course_id user_id course_user_id/){

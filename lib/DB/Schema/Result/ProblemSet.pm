@@ -4,7 +4,6 @@ use base qw/DBIx::Class::Core/;
 use strict;
 use warnings; 
 use Data::Dump qw/dd/;
-use Array::Utils qw/array_minus intersect/;
 use JSON; 
 use Carp; 
 
@@ -20,7 +19,7 @@ __PACKAGE__->add_columns(
 										is_nullable => 0,
 										is_auto_increment => 1,
 									},
-								name =>
+								set_name =>
 									{ 
 										data_type => 'text',
 										size      => 256,
@@ -32,23 +31,25 @@ __PACKAGE__->add_columns(
 										size => 16,   
 										is_nullable => 1,
 									},
-								dates => # store dates as a JSON object
-									{
-										data_type => 'text',
-										size => 256,
-										is_nullable => 1
-									},
 								type => 
 									{
 										data_type => "int",
 										default_value => 1,
 										size => 16
 									},
+								dates => # store dates as a JSON object
+									{
+										data_type => 'text',
+										size => 256,
+										is_nullable => 0,
+										default_value => '{}'
+									},
 								params => # store params as a JSON object
 									{
 										data_type => 'text',
 										size => 256,
-										is_nullable => 1
+										is_nullable => 0,
+										default_value => '{}'
 									}
 								);
 
@@ -87,61 +88,5 @@ __PACKAGE__->inflate_column('dates', {
 		encode_json shift; 
 	}
 });
-
-sub validDateFields {
-	my ($self,$valid_date_fields) = @_;
-	my @fields = keys %{$self->dates}; 
-	my @bad_fields = array_minus(@fields, @$valid_date_fields);  # if this is not empty, there are illegal fields
-	if (scalar(@bad_fields) != 0) {
-		croak "The field(s):  " . join(", ",@bad_fields) . " are not valid";
-	}
-	return 1;
-}
-
-# check that the value of each date field is valid.
-
-sub validDateValues {
-	my ($self,$valid_date_fields) = @_;
-	for my $key (@$valid_date_fields) {
-		next unless defined($self->dates->{$key});
-		die "The date $key is not in the proper form." unless $self->dates->{$key} =~ /^\d+$/; 
-	}
-	return 1; 
-}
-
-sub hasRequiredDateFields {
-	my ($self,$req_date_fields) = @_;
-	my @fields = keys %{$self->dates}; 
-	my @bad_fields = array_minus(@$req_date_fields,@fields);  
-	if (scalar(@bad_fields) != 0) {
-		croak "The field(s): " . join(", ",@bad_fields) . " are required for this.";
-	}
-	return 1; 
-}
-
-# check if the param fields are valid (depending on the type of ProblemSet)
-
-sub validParamFields {
-	my ($self,$valid_param_fields) = @_; 
-	return 1 unless defined($self->params);
-	my @valid_fields = keys %$valid_param_fields;
-	my @fields = keys %{$self->params};
-	my @inter = intersect(@fields,@valid_fields);
-	if (scalar(@inter) != scalar(@fields)) {
-		my @bad_fields = array_minus(@fields, @valid_fields); 
-		croak "The field(s):  " . join(", ",@bad_fields) . " are not valid";
-	}
-	return 1;
-}
-
-sub validateParams {
-	my ($self,$valid_params) = @_;
-	return 1 unless defined $self->params; 
-	for my $key (keys %{$self->params}){
-		my $re = $valid_params->{$key};
-		croak "The field $key of params is not valid" unless $self->params->{$key} =~ qr/^$re$/; 
-	} 
-	return 1; 
-}
 
 1;

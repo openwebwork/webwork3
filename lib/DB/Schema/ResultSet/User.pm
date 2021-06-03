@@ -39,8 +39,9 @@ An array of courses as a <code>DBIx::Class::ResultSet::Course</code> object.
 
 sub getAllGlobalUsers {
 	my ($self,$as_result_set) = @_;
-	return $self->search({}) if $as_result_set; 
-	return  $self->search({},{result_class => 'DBIx::Class::ResultClass::HashRefInflator'});
+	my @users = $self->search({});
+	return \@users if $as_result_set; 
+	return map { {$_->get_inflated_columns}; } @users;
 } 
 
 =pod
@@ -202,7 +203,7 @@ sub getUsers {
 	my $course = $course_rs->getCourse($course_info,1);
 	my @users = $self->search({'course_users.course_id'=>$course->course_id},{ prefetch => ['course_users'] });
 	return \@users if $as_result_set; 
-	return map { {$_->get_columns,$_->course_users->first->get_columns}; } @users; 
+	return map { {$_->get_columns,$_->course_users->first->get_inflated_columns}; } @users; 
 }
 
 ###
@@ -246,7 +247,7 @@ sub getUser {
 	my $user_info = getUserInfo($course_user_info);
 	my $user = $self->find($user_info,prefetch => ["course_user"]);
 	return $user if $as_result_set;
-	return {$user->get_columns,$user->course_users->first->get_columns};
+	return {$user->get_columns,$user->course_users->first->get_inflated_columns};
 }
 
 
@@ -318,7 +319,7 @@ sub addUser {
 	my $updated_user = $self->updateUser($user_course_ids,$params);
 
 	return $new_user if $as_result_set;
-	return {$new_user->get_columns, %{$updated_user}};
+	return {$new_user->get_inflated_columns, %{$updated_user}};
 }
 
 =pod
@@ -390,7 +391,7 @@ sub updateUser {
 											->update($user_course_params);
 	
 	return $user if $as_result_set;
-	return {$user->get_columns,$course_user->get_columns};
+	return {$user->get_columns,$course_user->get_inflated_columns};
 }
 
 =pod
@@ -444,7 +445,7 @@ sub deleteUser {
 	# my $deleted_course_user = $course_user_db->delete; 
 
 	return $deleted_course_user if $as_result_set; 
-	return {$user->get_columns,$deleted_course_user->get_columns}; 
+	return {$user->get_columns,$deleted_course_user->get_inflated_columns}; 
 	
 
 }

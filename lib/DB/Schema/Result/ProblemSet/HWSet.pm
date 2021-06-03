@@ -1,5 +1,5 @@
 package DB::Schema::Result::ProblemSet::HWSet;
-use base qw/DB::Schema::Result::ProblemSet/;
+@ISA = qw(DB::Schema::Result::ProblemSet DB::WithParams DB::WithDates);
 use strict;
 use warnings; 
 
@@ -15,51 +15,10 @@ our %VALID_PARAMS = (
 	);
 our @REQUIRED_PARAMS = qw//;
 
-
-sub isValid {
+sub setParamsAndDates {
 	my $self = shift; 
-	$self->validParamFields();
-	$self->validateParams();
-	$self->validDateFields();
-	$self->hasRequiredDateFields();
-	$self->validDateValues();
-	croak "The dates are invalid. " unless $self->checkDates();
-	return 1;
-}
-
-sub validDateFields {
-	my $self = shift;
-	return $self->SUPER::validDateFields(\@VALID_DATES);
-}
-
-sub hasRequiredDateFields {
-	my $self = shift;
-	return $self->SUPER::hasRequiredDateFields(\@REQUIRED_DATES);
-}
-
-sub validDateValues {
-	my $self = shift; 
-	return $self->SUPER::validDateValues(\@VALID_DATES);
-}
-
-sub checkDates { 
-	my $self = shift; 
-	return (defined($self->dates->{reduced_scoring}) &&
-			$self->dates->{open} <= $self->dates->{reduced_scoring} &&
-			$self->dates->{reduced_scoring} <= $self->dates->{due} &&
-			$self->dates->{due} <= $self->dates->{answer}) 
-		|| ($self->dates->{open} <= $self->dates->{due} &&
-				$self->dates->{due} <= $self->dates->{answer}); 
-}
-
-sub validParamFields {
-	my $self = shift; 
-	return $self->SUPER::validParamFields(\%VALID_PARAMS);
-}
-
-sub validateParams {
-	my $self = shift; 
-	return $self->SUPER::validateParams(\%VALID_PARAMS);
+	$self->setParamInfo(\%VALID_PARAMS,\@REQUIRED_PARAMS);
+	$self->setDateInfo(\@VALID_DATES,\@REQUIRED_DATES);
 }
 
 1;
