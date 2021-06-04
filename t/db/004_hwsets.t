@@ -201,10 +201,53 @@ dies_ok {
 ## update a set
 
 $new_set_params->{set_name} = "HW #8";
+$new_set_params->{params} = {has_reduced_scoring => 1};
+$new_set_params->{type} = 1; 
 
-$problem_set_rs->updateProblemSet({course_name => "Precalculus", set_id => $new_set_id},
-		{set_name => $new_set_params->{set_name}, params=>{has_reduced_scoring => 1}});
+my $updated_set = $problem_set_rs->updateProblemSet(
+			{course_name => "Precalculus", set_id => $new_set_id},
+			{set_name => $new_set_params->{set_name}, params=>{has_reduced_scoring => 1}});
+removeIDs($updated_set);
 
+is_deeply($new_set_params,$updated_set,"updateSet: change the set parameters");
+
+## try to update a set with an illegal field
+
+dies_ok {
+	$problem_set_rs->updateProblemSet(
+				{ course_name => "Precalculus", set_id => $new_set_id},
+				{ bad_field => 0 }
+			);
+} "updateProblemSet: use a non-existing field";
+
+
+## try to update a set with an illegal date field
+
+dies_ok {
+ $problem_set_rs->updateProblemSet(
+			{ course_name => "Precalculus", set_id => $new_set_id},
+			{ dates => {open => "abc"}}
+		);
+} "updateSet: illegal date set";
+
+## try to update a set with an dates in a bad order
+
+dies_ok {
+ $problem_set_rs->updateProblemSet(
+			{ course_name => "Precalculus", set_id => $new_set_id},
+			{ dates => {open => 999, answer => 100}}
+		);
+} "updateSet: dates in bad order";
+
+
+## delete a set
+
+my $deleted_set = $problem_set_rs->deleteProblemSet(
+				{course_name => "Precalculus", set_name => "HW #8"}
+			);
+removeIDs($deleted_set);
+
+is_deeply($new_set_params,$deleted_set,"deleteProblemSet: delete a set"); 
 
 done_testing;
 

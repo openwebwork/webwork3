@@ -119,7 +119,6 @@ sub getProblemSet {
 	my $course_rs = $self->result_source->schema->resultset("Course");
 	my $course = $course_rs->getCourse($course_info,1);
 
-
 	my $search_params = {course_id=>$course->course_id,%{getSetInfo($course_set_info)}}; 
 	
 	my $set = $self->find($search_params,prefetch => 'courses');
@@ -160,7 +159,7 @@ sub addProblemSet {
 
 	my $set_obj = $self->new($set_params);
 	## check the parameters are valid. 
-	$set_obj->setParamsAndDates;
+	# $set_obj->setParamsAndDates;
 	$set_obj->validDates(); 
 	$set_obj->validParams();
 	
@@ -181,23 +180,38 @@ Update a problem set (HW, Quiz, etc.) for a given course
 sub updateProblemSet {
 	my ($self,$course_set_info,$updated_params,$as_result_set) = @_;
 
-	my $set = $self->getProblemSet($course_set_info);
-	
-	## check to make sure that the params are valid;
+	my $set = $self->getProblemSet($course_set_info,1);
+	my $set_params = {$set->get_inflated_columns};
 
-	dd "calling updateAllFields";
-	my $params = updateAllFields($set,$updated_params);
-	dd $params; 
+	my $params = updateAllFields($set_params,$updated_params);
 	my $set_obj = $self->new($params);
+
 	## check the parameters are valid. 
-	$set_obj->setParamsAndDates;
 	$set_obj->validDates(); 
 	$set_obj->validParams();
-	dd {$set_obj->get_inflated_columns};
 	my $updated_set = $set->update({$set_obj->get_inflated_columns});
-	dd {$updated_set->get_inflated_columns};
-
-	return $updated_set; 
+	return $updated_set if $as_result_set;
+	return {$updated_set->get_inflated_columns};
 }
+
+
+=pod
+=head2 deleteProblemSet
+
+Delete a problem set (HW, Quiz, etc.) for a given course
+
+
+=cut
+
+sub deleteProblemSet {
+	my ($self,$course_set_info,$as_result_set) = @_;
+
+	my $set_to_delete = $self->getProblemSet($course_set_info,1);
+	$set_to_delete->delete; 
+
+	return $set_to_delete if $as_result_set;
+	return {$set_to_delete->get_inflated_columns};
+}
+
 
 1;

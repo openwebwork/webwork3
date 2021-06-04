@@ -8,6 +8,7 @@ use Carp;
 use Data::Dump qw/dd/;
 use List::Util qw/first/;
 use Scalar::Util qw/reftype/;
+use Clone qw/clone/;
 
 ## checks if the course info is correct and then parses the result to be passed 
 # to a database search.
@@ -85,13 +86,8 @@ This returns the hashref with both the original and any replacements.
 
 sub updateAllFields {
 	my ($current_fields,$updated_fields) = @_; 
-	dd $current_fields; 
-	dd $updated_fields; 
-	my $fields_to_return = {};  ## make a copy of the hashref $current_fields
-	dd keys %$current_fields; 
-	for my $key (keys %$current_fields) {
-		dd $key; 
-		dd reftype $updated_fields->{$key};
+	my $fields_to_return = clone($current_fields);  ## make a copy of the hashref $current_fields
+	for my $key (keys %$updated_fields) {
 		if (reftype($updated_fields->{$key}) eq "HASH") {
 			$fields_to_return->{$key} = updateAllFields($current_fields->{$key} || {},$updated_fields->{$key});
 		} else {
@@ -100,8 +96,6 @@ sub updateAllFields {
 																		$current_fields->{$key};
 		}
 	}
-	dd "returning the following:";
-	dd $fields_to_return; 
 	return $fields_to_return;
 }
 

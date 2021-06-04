@@ -6,6 +6,13 @@ use JSON;
 
 __PACKAGE__->table('course_user');
 
+our %VALID_PARAMS = (
+	comment => '.*',
+	section => '.*',
+	recitation => '.*'
+	);
+our @REQUIRED_PARAMS = qw//;
+
 __PACKAGE__->add_columns(
 								course_user_id =>
 									{ 
@@ -20,7 +27,7 @@ __PACKAGE__->add_columns(
 										size      => 16,
 										is_nullable => 0,
 									},
-                user_id =>
+								user_id =>
 									{ 
 										data_type => 'integer',
 										size      => 16,

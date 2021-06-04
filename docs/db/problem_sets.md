@@ -7,6 +7,7 @@ A `ProblemSet` will be the top-most class that all other classes will inherit fr
 - `problem_set_id`: (PK, auto_increment)
 - `course_id`: course that the set is in
 - `name`: Name of the Problem set   (course_id + name needs to be unique)
+- `set_version`: version of the set (default = 1)
 - `type`: type of ProblemSet (Homework, Quiz, Gateway Quiz, etc. )
 - `dates`: hash of dates (due, open, reduced_scoring, answer), store as JSON
 - `params`: hash of other parameters depending on type

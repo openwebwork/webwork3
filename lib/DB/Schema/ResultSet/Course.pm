@@ -4,7 +4,7 @@ use warnings;
 use base 'DBIx::Class::ResultSet';
 
 use Carp;
-use Data::Dump qw/dd/;
+use Data::Dump qw/dd dump/;
 use List::Util qw/first/;
 
 use DB::Utils qw/parseCourseInfo/;
@@ -65,7 +65,7 @@ sub getCourse {
 	my ($self,$course_info,$as_result_set) = @_;
   parseCourseInfo($course_info);
 	my $course = $self->find($course_info);
-	die "The course with $course_info is not defined" unless $course; 
+	die "The course " . dump($course_info) . " is not defined" unless $course; 
 	return $course if $as_result_set; 
 	return {$course->get_columns}; 
 }

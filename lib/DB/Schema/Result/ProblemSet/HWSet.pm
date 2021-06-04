@@ -15,10 +15,10 @@ our %VALID_PARAMS = (
 	);
 our @REQUIRED_PARAMS = qw//;
 
-sub setParamsAndDates {
-	my $self = shift; 
-	$self->setParamInfo(\%VALID_PARAMS,\@REQUIRED_PARAMS);
-	$self->setDateInfo(\@VALID_DATES,\@REQUIRED_DATES);
-}
+# sub setParamsAndDates {
+# 	my $self = shift; 
+# 	$self->setParamInfo(\%VALID_PARAMS,\@REQUIRED_PARAMS);
+# 	$self->setDateInfo(\@VALID_DATES,\@REQUIRED_DATES);
+# }
 
 1;
