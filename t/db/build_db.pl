@@ -6,7 +6,14 @@
 use warnings;
 use strict;
 
-use lib "../../lib";
+BEGIN {
+    use File::Basename qw/dirname/;
+    use Cwd qw/abs_path/;
+    $main::test_dir = abs_path( dirname(__FILE__) );
+    $main::lib_dir  = dirname( dirname($main::test_dir) ) . '/lib';
+}
+
+use lib "$main::lib_dir";
 
 use Text::CSV qw/csv/;
 use Data::Dump qw/dd/;
@@ -21,7 +28,7 @@ use DB::WithParams;
 use DB::WithDates;
 
 # set up the database
-my $db_file = "sample_db.sqlite";
+my $db_file = "$main::test_dir/sample_db.sqlite";
 
 
 ## first delete the file
@@ -39,7 +46,7 @@ my $course_user_rs = $schema->resultset('CourseUser');
 sub addUsers {
 	# add some users
 
-	my @all_students = loadCSV("sample_data/students.csv");
+	my @all_students = loadCSV("$main::test_dir/sample_data/students.csv");
 
 	for my $student (@all_students) {
 		my $course = $course_rs->find_or_create({course_name => $student->{course_name}});
@@ -69,7 +76,7 @@ my @quiz_params = @DB::Schema::Result::ProblemSet::HWSet::VALID_PARAMS;
 
 sub addSets {
 	## add some problem sets
-	my @hw_sets = loadCSV("sample_data/hw_sets.csv");
+	my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
 	for my $set (@hw_sets) {
 		my $course = $schema->resultset('Course')->search({course_name => $set->{course_name}})->single; 
 		if (! defined($course)){
@@ -81,7 +88,7 @@ sub addSets {
 
 	## add quizzes
 
-	my @quizzes = loadCSV("sample_data/quizzes.csv");
+	my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
 	for my $quiz (@quizzes) {
 		my $course = $schema->resultset('Course')->search({course_name => $quiz->{course_name}})->single; 
 		if (! defined($course)){
@@ -92,7 +99,7 @@ sub addSets {
 		$course->add_to_problem_sets($quiz);
 	}
 
-	my @review_sets = loadCSV("sample_data/review_sets.csv");
+	my @review_sets = loadCSV("$main::test_dir/sample_data/review_sets.csv");
 	for my $set (@review_sets) {
 		my $course = $schema->resultset('Course')->find({course_name => $set->{course_name}}); 
 		if (! defined($course)){
@@ -109,7 +116,7 @@ sub addSets {
 
 sub addProblems {
 	## add some problems 
-	my @problems = loadCSV("sample_data/problems.csv");
+	my @problems = loadCSV("$main::test_dir/sample_data/problems.csv");
 	for my $prob (@problems){
 		# check if the course_name/set_name exists
 		my $set = $schema->resultset('ProblemSet')->search(
@@ -141,7 +148,7 @@ sub addProblems {
 
 sub addUserSets {
 	## add some users to problem sets
-	my @user_sets = loadCSV("sample_data/user_sets.csv");
+	my @user_sets = loadCSV("$main::test_dir/sample_data/user_sets.csv");
 	for my $user_set (@user_sets){
 		# check if the course_name/set_name/user_name exists
 		my $course = $schema->resultset('Course')->find({ course_name=>$user_set->{course_name}});

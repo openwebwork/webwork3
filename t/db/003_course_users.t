@@ -4,7 +4,14 @@
 use warnings;
 use strict;
 
-use lib "../../lib";
+BEGIN {
+    use File::Basename qw/dirname/;
+    use Cwd qw/abs_path/;
+    $main::test_dir = abs_path( dirname(__FILE__) );
+    $main::lib_dir  = dirname( dirname($main::test_dir) ) . '/lib';
+}
+
+use lib "$main::lib_dir";
 
 use Text::CSV qw/csv/;
 use Data::Dump qw/dd/;
@@ -16,7 +23,7 @@ use DB::Schema;
 use DB::CSVUtils qw/loadCSV/;
 
 # load the database
-my $db_file = "sample_db.sqlite";
+my $db_file = "$main::test_dir/sample_db.sqlite";
 my $schema = DB::Schema->connect("dbi:SQLite:$db_file");
 # $schema->storage->debug(1);  # print out the SQL commands. 
 
@@ -24,7 +31,7 @@ my $course_rs = $schema->resultset("Course");
 my $user_rs = $schema->resultset("User");
 
 ## get a list of users from the CSV file
-my @students = loadCSV("sample_data/students.csv");
+my @students = loadCSV("$main::test_dir/sample_data/students.csv");
 
 ## filter only precalc students
 my @precalc_students = grep { $_->{course_name} eq "Precalculus" } @students;
