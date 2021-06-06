@@ -4,7 +4,14 @@
 use warnings;
 use strict;
 
-use lib "../../lib";
+BEGIN {
+    use File::Basename qw/dirname/;
+    use Cwd qw/abs_path/;
+    $main::test_dir = abs_path( dirname(__FILE__) );
+    $main::lib_dir  = dirname( dirname($main::test_dir) ) . '/lib';
+}
+
+use lib "$main::lib_dir";
 
 use Text::CSV qw/csv/;
 use Data::Dump qw/dd/;
@@ -21,7 +28,7 @@ use DB::WithDates;
 use DB::CSVUtils qw/loadCSV/;
 
 # load the database
-my $db_file = "sample_db.sqlite";
+my $db_file = "$main::test_dir/sample_db.sqlite";
 my $schema = DB::Schema->connect("dbi:SQLite:$db_file");
 # $schema->storage->debug(1);  # print out the SQL commands. 
 
@@ -36,15 +43,15 @@ my $user_rs = $schema->resultset("User");
 
 
 # load HW sets from CSV file
-my @hw_sets = loadCSV("sample_data/hw_sets.csv");
+my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
 for my $set (@hw_sets) {
 	$set->{type} = 1; 
 }
-my @quizzes = loadCSV("sample_data/quizzes.csv");
+my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
 	$quiz->{type} = 2; 
 }
-my @review_sets = loadCSV("sample_data/review_sets.csv");
+my @review_sets = loadCSV("$main::test_dir/sample_data/review_sets.csv");
 for my $set (@review_sets) {
 	$set->{type} = 4; 
 }
