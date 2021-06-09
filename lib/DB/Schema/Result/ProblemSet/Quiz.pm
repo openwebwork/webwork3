@@ -9,12 +9,6 @@ our %VALID_PARAMS = (
 	timed => '^[01]$',
 	time_length => '\d+',
 	);
-our @REQUIRED_PARAMS = qw//;
-
-sub setParamsAndDates {
-	my $self = shift; 
-	$self->setParamInfo(\%VALID_PARAMS,\@REQUIRED_PARAMS);
-	$self->setDateInfo(\@VALID_DATES,\@REQUIRED_DATES);
-}
+our %REQUIRED_PARAMS = ();
 
 1;

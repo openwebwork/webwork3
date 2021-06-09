@@ -1,9 +1,27 @@
 package DB::Schema::Result::Problem;
-use base qw/DBIx::Class::Core/;
+use DBIx::Class::Core;
+use DB::WithParams;
+
+our @ISA = qw(DBIx::Class::Core DB::WithParams);
 use strict;
-use warnings; 
+use warnings;
 
 use JSON; 
+
+our $VALID_PARAMS = {
+	weight => '\d+',
+	library_id => '\d+',
+	problem_path => '.*',
+	problem_pool_id => '\d+'
+}; 
+
+our $REQUIRED_PARAMS = 
+	{
+		'_ALL_' => [
+				'weight',
+				{'_ONE_OF_' => ['library_id','problem_path','problem_pool_id']} 
+			]
+	};
 
 
 ### this is the table that stores problems for a given Problem Set
@@ -30,6 +48,13 @@ __PACKAGE__->add_columns(
 										size => 16,
 										is_nullable => 1,
 									},
+								problem_version => 
+									{
+										data_type => 'integer',
+										size => 8,
+										is_nullable => 0,
+										default_value => 1
+									},
 								params => # store params as a JSON object
 									{
 										data_type => 'text',
@@ -40,7 +65,7 @@ __PACKAGE__->add_columns(
 								);
 
 __PACKAGE__->set_primary_key('problem_id');
-__PACKAGE__->add_unique_constraint([ qw/problem_id set_id problem_number/ ]); # maybe we don't need this. 
+__PACKAGE__->add_unique_constraint([ qw/problem_id set_id problem_version problem_number/ ]); # maybe we don't need this. 
 
 
 __PACKAGE__->belongs_to(problem_set => 'DB::Schema::Result::ProblemSet','set_id');

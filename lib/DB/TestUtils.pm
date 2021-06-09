@@ -1,4 +1,4 @@
-package DB::CSVUtils;
+package DB::TestUtils;
 
 use warnings;
 use strict; 
@@ -8,14 +8,14 @@ use Data::Dump qw/dd/;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw/buildHash loadCSV/; 
+our @EXPORT_OK = qw/buildHash loadCSV removeIDs filterBySetType/; 
 
 
 =pod
  
 =head1 DESCRIPTION
  
-This is a collection of utilities to load CSV files for testing purposes
+This is a collection of utilities for testing purposes
 
 =cut
 
@@ -54,5 +54,40 @@ sub loadCSV {
 	}
 	return @all_items; 
 }
+
+=pod
+
+=head2 removeIDs
+
+Removes all of the fields of an arrayref that ends in _id
+
+Used for testing against items from the database with all id tags removed. 
+
+=cut
+
+sub removeIDs {  # remove any field that ends in _id
+	my $obj = shift;
+	for my $key (keys %$obj){
+		delete $obj->{$key} if $key =~ /_id$/; 
+	}
+}
+
+
+sub filterBySetType {
+	my ($all_sets,$type,$course_name) = @_; 
+	my $type_hash = $DB::Schema::ResultSet::ProblemSet::SET_TYPES;
+	my @filtered_sets = @$all_sets; 
+
+	if (defined($course_name)){
+		@filtered_sets = grep { $_->{course_name} eq $course_name } @filtered_sets; 
+	}
+	if (defined($type)){
+		@filtered_sets = grep { $_->{type} eq $type_hash->{$type} } @filtered_sets; 
+	}
+
+	return @filtered_sets;
+}
+
+
 
 1;

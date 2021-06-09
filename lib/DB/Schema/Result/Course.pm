@@ -30,5 +30,8 @@ __PACKAGE__->many_to_many( users => 'course_users', 'user_id' );
 # set up the one-to-many relationship to problem_sets
 __PACKAGE__->has_many( problem_sets => 'DB::Schema::Result::ProblemSet','course_id');
 
+# set up the one-to-many relationship to problem_pools
+__PACKAGE__->has_many( problem_pools => 'DB::Schema::Result::ProblemPool','course_id');
+
 
 1;

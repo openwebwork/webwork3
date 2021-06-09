@@ -8,12 +8,6 @@ use Carp;
 our @VALID_DATES = qw/open closed/;
 our @REQUIRED_DATES = qw/open closed/; 
 our %VALID_PARAMS = ();
-our @REQUIRED_PARAMS = qw//;
-
-sub setParamsAndDates {
-	my $self = shift; 
-	$self->setParamInfo(\%VALID_PARAMS,\@REQUIRED_PARAMS);
-	$self->setDateInfo(\@VALID_DATES,\@REQUIRED_DATES);
-}
+our %REQUIRED_PARAMS = ();
 
 1;

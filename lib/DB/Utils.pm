@@ -2,13 +2,13 @@ package DB::Utils;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw/parseCourseInfo parseUserInfo getCourseInfo getUserInfo getSetInfo updateAllFields/; 
+our @EXPORT_OK = qw/parseCourseInfo parseUserInfo getCourseInfo getUserInfo getSetInfo 
+										updateAllFields getPoolInfo getProblemInfo/; 
 
 use Carp; 
 use Data::Dump qw/dd/;
 use List::Util qw/first/;
 use Scalar::Util qw/reftype/;
-use Clone qw/clone/;
 
 ## checks if the course info is correct and then parses the result to be passed 
 # to a database search.
@@ -49,30 +49,32 @@ sub parseUserInfo {
 }
 
 sub getCourseInfo {
-  my $course_user_info = shift; 
-  my $course_info = {};
-  for my $key (qw/course_id course_name/){
-    $course_info->{$key} = $course_user_info->{$key} if defined($course_user_info->{$key});
-  }
-  return $course_info; 
+	return _get_info(shift, qw/course_id course_name/);
 }
 
 sub getUserInfo {
-  my $course_user_info = shift; 
-  my $user_info = {};
-  for my $key (qw/user_id login/){
-    $user_info->{$key} = $course_user_info->{$key} if defined($course_user_info->{$key});
-  }
-  return $user_info; 
+	return _get_info(shift, qw/user_id login/);
 }
 
 sub getSetInfo {
-	my $course_set_info = shift; 
-	my $set_info = {};
-	for my $key (qw/set_id set_name/) {
-		$set_info->{$key} = $course_set_info->{$key} if defined($course_set_info->{$key});
+	return _get_info(shift,qw/set_id set_name/);
+}
+
+sub getPoolInfo {
+	return _get_info(shift,qw/problem_pool_id pool_name/);
+}
+
+sub getProblemInfo {
+	return _get_info(shift,qw/problem_number problem_id/);
+}
+
+sub _get_info {
+	my ($input_info,@param_array) = @_; 
+	my $output_info = {};
+	for my $key (@param_array) {
+		$output_info->{$key} = $input_info->{$key} if defined($input_info->{$key});
 	}
-	return $set_info; 
+	return $output_info;
 }
 
 =pod
@@ -86,7 +88,7 @@ This returns the hashref with both the original and any replacements.
 
 sub updateAllFields {
 	my ($current_fields,$updated_fields) = @_; 
-	my $fields_to_return = clone($current_fields);  ## make a copy of the hashref $current_fields
+	my $fields_to_return = {%$current_fields};  ## make a copy of the hashref $current_fields
 	for my $key (keys %$updated_fields) {
 		if (reftype($updated_fields->{$key}) eq "HASH") {
 			$fields_to_return->{$key} = updateAllFields($current_fields->{$key} || {},$updated_fields->{$key});

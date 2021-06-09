@@ -8,10 +8,8 @@ __PACKAGE__->table('course_user');
 
 our %VALID_PARAMS = (
 	comment => '.*',
-	section => '.*',
-	recitation => '.*'
 	);
-our @REQUIRED_PARAMS = qw//;
+our %REQUIRED_PARAMS = ();
 
 __PACKAGE__->add_columns(
 								course_user_id =>
@@ -33,12 +31,22 @@ __PACKAGE__->add_columns(
 										size      => 16,
 										is_nullable => 0,
 									},
-								roles => 
+								role => 
 									{
 										data_type => 'text',
 										size => 256,
 										is_nullable => 1
 									},
+								section => {
+									data_type => 'integer',
+									size      => 16,
+									is_nullable => 1,
+								},
+								recitation => {
+									data_type => 'integer',
+									size      => 16,
+									is_nullable => 1,
+								},
 								params => # store params as a JSON object
 									{
 										data_type => 'text',

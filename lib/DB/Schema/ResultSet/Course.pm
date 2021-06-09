@@ -65,7 +65,7 @@ sub getCourse {
 	my ($self,$course_info,$as_result_set) = @_;
   parseCourseInfo($course_info);
 	my $course = $self->find($course_info);
-	die "The course " . dump($course_info) . " is not defined" unless $course; 
+	die "The course " . dump($course_info) . " does not exist" unless defined($course); 
 	return $course if $as_result_set; 
 	return {$course->get_columns}; 
 }
