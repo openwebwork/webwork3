@@ -127,15 +127,12 @@ The problem_id or problem_number
 =cut
 
 sub getSetProblem {
-	my ($self,$course_set_prob_info,$as_result_set) = @_;
-
-	my $course_set_info = {%$course_set_prob_info};
-	for my $key (qw/problem_id problem_number/) {
-		delete $course_set_info->{$key};
-	}
-	my $problem_info = getProblemInfo($course_set_prob_info); 
+	my ($self,$course_set_problem_info,$as_result_set) = @_;
+	my $course_set_info = {%{getCourseInfo($course_set_problem_info)},%{getSetInfo($course_set_problem_info)}};
 	my $problem_set_rs = $self->result_source->schema->resultset("ProblemSet");
 	my $set = $problem_set_rs->getProblemSet($course_set_info,1);
+	
+	my $problem_info = getProblemInfo($course_set_problem_info); 
 	my $problem = $set->problems->find($problem_info);
 	
 	return {$problem->get_inflated_columns};
@@ -173,6 +170,39 @@ sub addSetProblem {
 	return {$added_problem->get_inflated_columns};
 
 }
+
+=pod
+
+=head2 deleteSetProblem 
+
+delete a single problem to an existing problem set within a course
+
+
+=head3 Note
+
+=item * 
+If either the problem set or course does not exist an error will be thrown
+=item * 
+If the problem parameters are not valid, an error will be thrown. 
+
+=cut
+
+sub deleteSetProblem {
+	my ($self,$course_set_problem_info,$problem_params, $as_result_set) = @_;
+	my $course_set_info = {%{getCourseInfo($course_set_problem_info)},%{getSetInfo($course_set_problem_info)}};
+	my $problem_set_rs = $self->result_source->schema->resultset("ProblemSet");
+	my $set = $problem_set_rs->getProblemSet($course_set_info,1);
+
+	my $problem = $set->search_related("problems",getProblemInfo($course_set_problem_info))->single;
+	
+	my $deleted_problem = $problem->delete;
+
+	return $deleted_problem if $as_result_set;
+	return {$deleted_problem->get_inflated_columns};
+
+}
+
+
 
 sub addPoolProblem {
 	my ($self,$course_set_info,$new_set_params, $as_result_set) = @_;

@@ -98,8 +98,6 @@ dies_ok {
 
 ## get a single problem from a course:
 
-
-
 my $set_problem = $problem_rs->getSetProblem({
 			course_name => $problems_from_csv[0]->{course_name},
 			set_name => $problems_from_csv[0]->{set_name},
@@ -128,7 +126,17 @@ my $prob1 = $problem_rs->addSetProblem( { course_name => "Precalculus", set_name
 removeIDs($prob1);
 is_deeply( $new_problem, $prob1, "addProblem: add a valid problem to a set" );
 
+## delete a problem from a set
 
+my $deleted_problem = $problem_rs->deleteSetProblem({
+	course_name => "Precalculus", 
+	set_name => "HW #1",
+	problem_number => 4,
+});
+removeIDs($deleted_problem);
+$new_problem->{problem_version} = 1 unless defined($new_problem->{problem_version});
+
+is_deeply($new_problem,$deleted_problem,"deleteSetProblem: delete one problem in an existing set.");
 
 
 done_testing;

@@ -37,7 +37,7 @@ my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
 
 my @pool_problems_from_file = loadCSV("$main::test_dir/sample_data/pool_problems.csv");
 
-my @problem_pools_from_file = @pool_problems_from_file;
+my @problem_pools_from_file = map { {%$_}; } @pool_problems_from_file; # copy the array
 for my $pool (@problem_pools_from_file) {
 	delete $pool->{library_id};
 	delete $pool->{params};
@@ -134,12 +134,108 @@ dies_ok {
 } "updateProblemPool: update a pool that doesn't exist";
 
 
+## get a PoolProblem (a problem within a ProblemPool)
+
+my $prob2 = $pool_problems_from_file[0];
+
+my $pool_problem2 = $problem_pool_rs->getPoolProblem($prob2);
+
+is($prob2->{library_id},$pool_problem2->{library_id},"getPoolProblem: get a single problem from a problem pool");
+
+## get a random PoolProblem
+
+my $random_prob = $problem_pool_rs->getPoolProblem({
+	course_name => $prob2->{course_name},
+	pool_name => $prob2->{pool_name}
+});
+
+my @probs3 = grep { 
+		$_->{course_name} eq $prob2->{course_name} and $_->{pool_name} eq $prob2->{pool_name}
+	} @pool_problems_from_file;
+
+my @lib_ids = map { $_->{library_id} } @probs3; 
+
+my @arr = grep {$_ == $random_prob->{library_id}} @lib_ids; 
+
+ok( scalar(@arr) == 1,"getPoolProblem: get a random problem from a problem pool");
+
+## add a Problem to a pool
+
+my $prob_to_add = {library_id => 8332};
+
+my $added_problem = $problem_pool_rs->addProblemToPool($updated_pool,$prob_to_add);
+
+is($prob_to_add->{library_id},$added_problem->{library_id},"addProblemToPool: adding a problem to an existing pool.");
+
+
+### check that adding a problem to a non-existence course fails
+
+dies_ok {
+	$problem_pool_rs->addProblemToPool({
+			course_name => "non_existing_course",
+			pool_name => "adding fractions"
+		},$prob_to_add);
+} "addProblemToPool: try to add to a nonexisting course";
+
+### check that adding a problem to a non-existence course fails
+
+dies_ok {
+	$problem_pool_rs->addProblemToPool({
+			course_name => $updated_pool->{course_name},
+			pool_name => "non_existent_pool_name"
+		},$prob_to_add);
+} "addProblemToPool: try to add to a nonexisting pool";
+
+## update a pool problem
+
+my $course_pool_problem_info = {%$updated_pool_from_db}; 
+$course_pool_problem_info->{pool_problem_id} = $added_problem->{pool_problem_id};
+
+my $updated_library_id = 2839; 
+
+my $updated_pool_problem = $problem_pool_rs->updatePoolProblem($course_pool_problem_info,{library_id => $updated_library_id});
+
+is($updated_library_id,$updated_pool_problem->{library_id},
+			"updatePoolProblem: update an existing problem in an existing pool.");
+
+### check that updating a problem to a non-existence course fails
+
+dies_ok {
+	$problem_pool_rs->updatePoolProblem({
+			course_name => "non_existing_course",
+			pool_name => "adding fractions",
+			pool_problem_id => $added_problem->{pool_problem_id}
+		},{library_id => $updated_library_id});
+} "updatePoolProblem: try to update a nonexisting course";
+
+### check that updating a problem to a non-existence course fails
+
+dies_ok {
+	$problem_pool_rs->updateProblemToPool({
+			course_name => $updated_pool->{course_name},
+			pool_name => "non_existent_pool_name",
+			pool_problem_id => $added_problem->{pool_problem_id}
+		},{library_id => $updated_library_id});
+} "updatePoolProblem: try to update  a nonexisting pool";
+
+### check that updating a problem to a non-existing problem fails. 
+
+dies_ok {
+	$problem_pool_rs->updateProblemToPool({
+			course_name => $updated_pool->{course_name},
+			pool_name => $updated_pool->{pool_name},
+			pool_problem_id => -999
+		},{library_id => $updated_library_id});
+} "updatePoolProblem: try to update a nonexisting problem";
+
+
+
 ## delete a problem pool
 my $pool_to_delete = $problem_pool_rs->deleteProblemPool($updated_pool);
 removeIDs($pool_to_delete);
 
-is_deeply($updated_pool,$pool_to_delete,
-							"deleteProblemPool: delete an existing problem pool");
+is_deeply($updated_pool,$pool_to_delete, "deleteProblemPool: delete an existing problem pool");
+
 
 done_testing;
 

@@ -3,7 +3,7 @@ package DB::Utils;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw/parseCourseInfo parseUserInfo getCourseInfo getUserInfo getSetInfo 
-										updateAllFields getPoolInfo getProblemInfo/; 
+										updateAllFields getPoolInfo getProblemInfo getPoolProblemInfo/; 
 
 use Carp; 
 use Data::Dump qw/dd/;
@@ -66,6 +66,10 @@ sub getPoolInfo {
 
 sub getProblemInfo {
 	return _get_info(shift,qw/problem_number problem_id/);
+}
+
+sub getPoolProblemInfo {
+	return _get_info(shift,qw/library_id pool_problem_id/);
 }
 
 sub _get_info {
