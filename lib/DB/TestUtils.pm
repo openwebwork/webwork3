@@ -65,10 +65,10 @@ Used for testing against items from the database with all id tags removed.
 
 =cut
 
-sub removeIDs {  # remove any field that ends in _id
+sub removeIDs {  # remove any field that ends in _id except student_id
 	my $obj = shift;
 	for my $key (keys %$obj){
-		delete $obj->{$key} if $key =~ /_id$/; 
+		delete $obj->{$key} if $key =~ /_id$/ && $key ne 'student_id'; 
 	}
 }
 

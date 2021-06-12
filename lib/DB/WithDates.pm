@@ -4,6 +4,13 @@ use Carp;
 use Array::Utils qw/array_minus intersect/;
 use Data::Dump qw/dd/;
 
+use Exception::Class (
+		'InvalidDateFieldException' => {fields => ['field_names']},
+		'InvalidDateException' => {fields => ['date']},
+		'RequiredDateFieldsException' => {fields => ['field_names']},
+		'ImproperDateOrderException' => {fields => ['field_names']}
+	);
+
 my @valid_dates;  # array of allowed/valid dates
 my @required_dates; # array of required dates
 
@@ -17,10 +24,12 @@ sub validDates {
 	my $self = shift; 
 	eval ('@valid_dates = @' . ref($self) . "::VALID_DATES") unless @valid_dates;
 	eval ('@required_dates = @' . ref($self) . "::REQUIRED_DATES") unless @required_dates;
+
+	## TODO: check that @valid_dates and @required_dates are defined; 
 	$self->validDateFields();
 	$self->hasRequiredDateFields();
 	$self->validDateValues();
-	croak "The dates are invalid. " unless $self->checkDates();
+	$self->checkDates();
 	return 1;
 }
 	
@@ -28,9 +37,9 @@ sub validDateFields {
 	my $self = shift; 
 	my @fields = keys %{$self->dates}; 
 	my @bad_fields = array_minus(@fields, @valid_dates);  # if this is not empty, there are illegal fields
-	if (scalar(@bad_fields) != 0) {
-		croak "The field(s):  " . join(", ",@bad_fields) . " are not valid";
-	}
+	InvalidDateFieldException->throw(field_names=> join(", ",@bad_fields))
+		if (scalar(@bad_fields) != 0);
+
 	return 1;
 }
 
@@ -40,7 +49,9 @@ sub validDateValues {
 	my $self = shift; 
 	for my $key (@valid_dates) {
 		next unless defined($self->dates->{$key});
-		die "The date $key is not in the proper form." unless $self->dates->{$key} =~ /^\d+$/; 
+		my $invalid_date  = {};
+		$invalid_date->{$key} = $self->dates->{$key};
+		InvalidDateException->throw(date => $invalid_date) unless $self->dates->{$key} =~ /^\d+$/;
 	}
 	return 1; 
 }
@@ -48,21 +59,20 @@ sub validDateValues {
 sub hasRequiredDateFields {
 	my $self = shift;
 	my @fields = keys %{$self->dates}; 
-	my @bad_fields = array_minus(@req_dates,@fields);  
-	if (scalar(@bad_fields) != 0) {
-		croak "The field(s): " . join(", ",@bad_fields) . " are required for this.";
-	}
+	my @bad_fields = array_minus(@required_dates,@fields);  
+	RequiredDateFieldsException->throw(field_names=>join(", ",@bad_fields)) if (scalar(@bad_fields) != 0);
 	return 1; 
 }
 
 sub checkDates { 
 	my $self = shift; 
-	return (defined($self->dates->{reduced_scoring}) &&
-			$self->dates->{open} <= $self->dates->{reduced_scoring} &&
-			$self->dates->{reduced_scoring} <= $self->dates->{due} &&
-			$self->dates->{due} <= $self->dates->{answer}) 
-		|| ($self->dates->{open} <= $self->dates->{due} &&
-				$self->dates->{due} <= $self->dates->{answer}); 
+	my @date_fields = keys %{$self->dates}; 
+	my $dates_in_order = 1; # assume the dates are in order;
+	for my $i (0..(scalar(@valid_dates)-2)){
+		next unless defined($self->dates->{$valid_dates[$i]}) && defined($self->dates->{$valid_dates[$i+1]});
+		ImproperDateOrderException->throw(field_names=>$valid_dates[$i] . ", " . $valid_dates[$i+1])
+			unless ($self->dates->{$valid_dates[$i]} <= $self->dates->{$valid_dates[$i+1]});
+	}
 }
 
 1;

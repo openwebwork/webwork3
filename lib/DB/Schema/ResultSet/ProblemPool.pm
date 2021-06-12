@@ -6,9 +6,16 @@ use base 'DBIx::Class::ResultSet';
 use Carp;
 use Data::Dump qw/dd dump/;
 use Scalar::Util qw/reftype/;
+use Try::Tiny; 
 
-use DB::Utils qw/getCourseInfo parseCourseInfo getPoolInfo getPoolProblemInfo/;
+use DB::Utils qw/getCourseInfo getPoolInfo getPoolProblemInfo/;
 
+use Exception::Class (
+		'PoolNotInCourseException' => {fields => ['course_name','pool_name']},
+		'PoolAlreadyInCourseException' => {fields => ['course_name','pool_name']},
+		'PoolProblemNotInPoolException' => {fields => ['info']},
+		'ParametersException'
+	);
 
 =pod
 
@@ -53,11 +60,8 @@ Get all problem pools for a given course
 
 sub getProblemPools {
 	my ($self,$course_info,$as_result_set) = @_;
-	my $search_params = parseCourseInfo($course_info); ## return a hash of course info
-
 	my $course_rs = $self->result_source->schema->resultset("Course");
 	my $course = $course_rs->getCourse($course_info,1);
-
 
 	my @pools = $self->search({'courses.course_id' => $course->course_id},{prefetch => [qw/courses/]});
 
@@ -80,11 +84,8 @@ Get a single problem pool for a given course
 
 sub getProblemPool {
 	my ($self,$course_pool_info,$as_result_set) = @_;
-	my $course_info = getCourseInfo($course_pool_info);
-	parseCourseInfo($course_info); ## return a hash of course info
-
 	my $course_rs = $self->result_source->schema->resultset("Course");
-	my $course = $course_rs->getCourse($course_info,1);
+	my $course = $course_rs->getCourse(getCourseInfo($course_pool_info),1);
 
 	my $search_info = getPoolInfo($course_pool_info);
 	$search_info->{'courses.course_id'} = $course->course_id;
@@ -94,7 +95,7 @@ sub getProblemPool {
 	unless($pool) {
 		my $pool_info = getPoolInfo($course_pool_info);
 		my $course_name = $course->course_name;
-		croak "The pool with info $pool_info in course $course_name does not exist";
+		PoolNotInCourseException->throw(pool_name => $pool_info,course_name=>$course_name);
 	}
 
 	return $pool if $as_result_set;
@@ -113,21 +114,18 @@ Add a problem pool for a given course
 
 sub addProblemPool {
 	my ($self,$course_info,$pool_params, $as_result_set) = @_;
-	my $search_params = parseCourseInfo($course_info); ## return a hash of course info
-
 	my $course_rs = $self->result_source->schema->resultset("Course");
-	my $course = $course_rs->getCourse($course_info,1);
+	my $course = $course_rs->getCourse(getCourseInfo($course_info),1);
 	my $course_name = $course->course_name;
 
-	croak "The pool_name is missing from the parameters" unless defined($pool_params->{pool_name});
+	ParametersException(error=>"The pool_name is missing from the parameters") 
+		unless defined($pool_params->{pool_name});
 
-	my $existing_pool = $self->find(
-						{
-							'courses.course_id' => $course->course_id,
-							pool_name => $pool_params->{pool_name}
-						},{prefetch => [qw/courses/]});
+	my $existing_pool = $self->find({'courses.course_id' => $course->course_id,
+																		pool_name => $pool_params->{pool_name}
+																	},{prefetch => [qw/courses/]});
 
-	croak "The problem pool with name: \"$pool_params->{pool_name}\" in course $course_name already exists" if defined($existing_pool);
+	PoolAlreadyInCourseException->throw(course_name => $course_name, pool_name => $pool_params->{pool_name}) if defined($existing_pool);
 
 	my $pool_to_add =$self->new($pool_params);
 
@@ -208,11 +206,22 @@ pool_problem_id or library_id or empty
 
 sub getPoolProblem {
 	my ($self,$course_pool_problem_info, $as_result_set) = @_;
+	
 	my $course_pool_info = {%{getCourseInfo($course_pool_problem_info)},%{getPoolInfo($course_pool_problem_info)}};
 	
 	my $problem_pool = $self->getProblemPool($course_pool_info,1);
 
-	my @pool_problems  = $problem_pool->search_related("pool_problems",getPoolProblemInfo($course_pool_problem_info))->all; 
+	my $pool_problem_info = {}; 
+
+	try { # if problem_info was passed in, then parse it. 
+		$pool_problem_info = getPoolProblemInfo($course_pool_problem_info);
+	}
+	catch { # else just use an empty hash; 
+		$pool_problem_info= {}; 
+	};
+
+	my @pool_problems  = $problem_pool->search_related("pool_problems",$pool_problem_info)->all; 
+
 
 	if (scalar(@pool_problems) == 1 ) {
 		return $pool_problems[0] if $as_result_set;
@@ -231,8 +240,6 @@ sub getPoolProblem {
 This adds a problem as a hashref to an existing problem pool.
 
 =cut
-
-use JSON; 
 
 sub addProblemToPool {
 	my ($self,$course_pool_info,$problem_params, $as_result_set) = @_;
@@ -279,7 +286,7 @@ sub updatePoolProblem {
 	my ($self,$course_pool_problem_info, $prob_params, $as_result_set) = @_;
 	my $prob = $self->getPoolProblem($course_pool_problem_info,1);
 
-	croak "The pool problem with info $course_pool_problem_info does not exist." unless defined($prob); 
+	PoolProblemNotInPoolException->throw(info=>$course_pool_problem_info) unless defined($prob); 
 
 	my $problem_pool_rs = $self->result_source->schema->resultset("PoolProblem");
 	my $prob_to_update = $problem_pool_rs->new($prob_params);

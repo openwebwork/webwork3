@@ -17,6 +17,7 @@ use lib "$main::lib_dir";
 use Data::Dump qw/dd/;
 use Test::More;
 use Test::Exception;
+use Try::Tiny; 
 use Carp;
 
 use List::MoreUtils qw/uniq/;
@@ -74,6 +75,25 @@ removeIDs($fetched_pool);
 
 is_deeply($pool_to_fetch,$fetched_pool,"getProblemPool: get a single pool from a course");
 
+## try to get a problem pool from a course that doesn't exist.
+
+try {
+	$problem_pool_rs->getProblemPool({course_name => "not existent course",pool_name => "adding fractions"});
+}
+catch {
+	ok($_->isa("CourseNotFoundException"),"getProblemPool: get a problem pool from a non-existent course");
+};
+
+## try to get a problem pool from a course, but the pool doesn't exist. 
+
+try {
+	$problem_pool_rs->getProblemPool({course_name => "Arithmetic",pool_name => "non_existent_pool"});
+}
+catch {
+	ok($_->isa("PoolNotInCourseException"),"getProblemPool: get a problem pool from a non-existent course");
+};
+
+
 ## add a problem pool
 
 my $course_name = 'Arithmetic';
@@ -95,17 +115,25 @@ is_deeply(
 
 ## addProblemPool to a pool that already exists
 
-dies_ok {
+
+
+try {
 	$problem_pool_rs->addProblemPool({course_name => 'Arithmetic'},{pool_name => "adding fractions"});
-} "addProblemPool: pool already exists";
+}
+catch {
+	ok($_->isa("PoolAlreadyInCourseException"),"addProblemPool: pool already exists");
+};
 
 ## addProblemPool with a pool with non-valid field
 
-dies_ok {
+try {
 	$problem_pool_rs->addProblemPool({course_name => 'Arithmetic'},
 		{pool_name => "multiplying fractions", other_field => "XXX"}
 	);
-} "addProblemPool: add a pool with non-valid field";
+} 
+catch {
+	ok($_->isa("DBIx::Class::Exception"),"addProblemPool: add a pool with non-valid field");
+};
 
 ## update an existing problem pool
 
@@ -126,13 +154,27 @@ is_deeply($updated_pool,$updated_pool_from_db,
 
 ## try to update a pool that doesn't exist
 
-dies_ok {
+## try to get a problem pool from a course that doesn't exist.
+
+try {
 	$problem_pool_rs->updateProblemPool(
-		{course_name => 'Arithmetic',pool_name => 'XXXX'},
+		{course_name => 'non_existent_course',pool_name => 'XXXX'},
 		$updated_pool
 	);
-} "updateProblemPool: update a pool that doesn't exist";
+}
+catch {
+	ok($_->isa("CourseNotFoundException"),"udpateProblemPool: update a problem pool from a non-existent course");
+};
 
+## try to get a problem pool from a course, but the pool doesn't exist. 
+
+try {
+	$problem_pool_rs->updateProblemPool(
+			{course_name => "Arithmetic",pool_name => "non_existent_pool"},$updated_pool);
+}
+catch {
+	ok($_->isa("PoolNotInCourseException"),"updateProblemPool: get a problem pool from a non-existent course");
+};
 
 ## get a PoolProblem (a problem within a ProblemPool)
 
@@ -170,21 +212,27 @@ is($prob_to_add->{library_id},$added_problem->{library_id},"addProblemToPool: ad
 
 ### check that adding a problem to a non-existence course fails
 
-dies_ok {
+try {
 	$problem_pool_rs->addProblemToPool({
 			course_name => "non_existing_course",
 			pool_name => "adding fractions"
 		},$prob_to_add);
-} "addProblemToPool: try to add to a nonexisting course";
+} 
+catch {
+	ok($_->isa("CourseNotFoundException"),"addProblemToPool: try to add to a nonexisting course");
+}; 
 
-### check that adding a problem to a non-existence course fails
+### check that adding a problem to a non-existence pool fails
 
-dies_ok {
+try {
 	$problem_pool_rs->addProblemToPool({
 			course_name => $updated_pool->{course_name},
 			pool_name => "non_existent_pool_name"
 		},$prob_to_add);
-} "addProblemToPool: try to add to a nonexisting pool";
+}
+catch {
+	ok($_->isa("PoolNotInCourseException"),"addProblemToPool: try to add to a nonexisting pool");
+};
 
 ## update a pool problem
 
@@ -200,33 +248,42 @@ is($updated_library_id,$updated_pool_problem->{library_id},
 
 ### check that updating a problem to a non-existence course fails
 
-dies_ok {
+try {
 	$problem_pool_rs->updatePoolProblem({
 			course_name => "non_existing_course",
 			pool_name => "adding fractions",
 			pool_problem_id => $added_problem->{pool_problem_id}
 		},{library_id => $updated_library_id});
-} "updatePoolProblem: try to update a nonexisting course";
+}
+catch {
+	ok($_->isa("CourseNotFoundException"),"updatePoolProblem: try to update a nonexisting course");
+};
 
 ### check that updating a problem to a non-existence course fails
 
-dies_ok {
-	$problem_pool_rs->updateProblemToPool({
+try {
+	$problem_pool_rs->updatePoolProblem({
 			course_name => $updated_pool->{course_name},
 			pool_name => "non_existent_pool_name",
 			pool_problem_id => $added_problem->{pool_problem_id}
 		},{library_id => $updated_library_id});
-} "updatePoolProblem: try to update  a nonexisting pool";
+} 
+catch {
+	ok($_->isa("PoolNotInCourseException"),"updatePoolProblem: try to update  a nonexisting pool");
+};
 
 ### check that updating a problem to a non-existing problem fails. 
 
-dies_ok {
-	$problem_pool_rs->updateProblemToPool({
+try {
+	$problem_pool_rs->updatePoolProblem({
 			course_name => $updated_pool->{course_name},
 			pool_name => $updated_pool->{pool_name},
 			pool_problem_id => -999
 		},{library_id => $updated_library_id});
-} "updatePoolProblem: try to update a nonexisting problem";
+} 
+catch {
+	ok($_->isa("PoolProblemNotInPoolException"),"updatePoolProblem: try to update a nonexisting problem");
+};
 
 
 

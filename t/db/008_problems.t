@@ -17,6 +17,7 @@ use lib "$main::lib_dir";
 use Data::Dump qw/dd/;
 use Test::More;
 use Test::Exception;
+use Try::Tiny;
 use Carp;
 
 use Array::Utils qw/array_minus intersect/;
@@ -84,17 +85,22 @@ is_deeply( \@precalc_problems1, \@set_problems1, "getSetProblems: get all proble
 
 ## try to get problems from a non-existing course
 
-dies_ok {
+try  {
 	$problem_rs->getSetProblems( { course_name => "non_existing_course", set_name => "HW #1" } );
 }
-"getSetProblem: get problems from non-existing course";
+catch {
+	ok($_->isa("CourseNotFoundException"),"getSetProblem: get problems from non-existing course");
+};
 
 ## try to get problems from a non-existing set
 
-dies_ok {
+try {
 	$problem_rs->getSetProblems( { course_name => "Precalculus", set_name => "HW #999" } );
 }
-"getSetProblems: get problems from non-existing set";
+catch {
+ ok($_->isa("SetNotInCourseException"),"getSetProblems: get problems from non-existing set");
+};
+
 
 ## get a single problem from a course:
 

@@ -7,7 +7,7 @@ use Carp;
 use Data::Dump qw/dd dump/;
 # use List::Util qw/first/;
 
-use DB::Utils qw/getCourseInfo getSetInfo parseCourseInfo getProblemInfo/;
+use DB::Utils qw/getCourseInfo getSetInfo getProblemInfo/;
 
 
 =pod
@@ -73,22 +73,17 @@ An arrayref of the problems.
 
 sub getProblems {
 	my ($self,$course_info,$as_result_set) = @_; 
-	parseCourseInfo($course_info); 
 	my $course_rs = $self->result_source->schema->resultset("Course");
 	my $course = $course_rs->getCourse($course_info,1);
-	my $course_id = $course->course_id; 
-
-	my $set_problem_rs = $self->result_source->schema->resultset("Course");
 
 	my @problems = $self->search({
-			'problem_set.course_id' => $course_id
+			'problem_set.course_id' => $course->course_id
 		},{
-			prefetch => ["problem_set"]
+			prefetch => [qw/problem_set/]
 		});
 	
 	return \@problems if $as_result_set; 
-	return map { {
-			$_->get_inflated_columns,
+	return map { { $_->get_inflated_columns,
 			set_name => $_->problem_set->set_name
 		};
 	} @problems; 

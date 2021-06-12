@@ -18,12 +18,13 @@ use Data::Dump qw/dd/;
 use List::MoreUtils qw/uniq first_value/;
 use Test::More;
 use Test::Exception;
+use Try::Tiny;
 use Carp;
 
 use DB::WithParams;
 use DB::WithDates;
 use DB::Schema;
-use DB::TestUtils qw/loadCSV/;
+use DB::TestUtils qw/loadCSV removeIDs/;
 
 ## order users on login_name;
 
@@ -61,7 +62,7 @@ my @all_students = orderUsers(@students);
 
 my @users_from_db = $users_rs->getAllGlobalUsers;
 for my $user (@users_from_db) {
-	delete $user->{user_id};
+	removeIDs($user); 
 }
 @users_from_db = sort { $a->{login} cmp $b->{login} } @users_from_db;
 
@@ -70,23 +71,30 @@ is_deeply( \@all_students, \@users_from_db, "getUsers: all users" );
 ## get one user that exists
 
 my $user = $users_rs->getGlobalUser( { login => $all_students[0]->{login} } );
-delete $user->{user_id};
+removeIDs($user);
 is_deeply( $all_students[0], $user, "getUser: by login" );
 
 $user = $users_rs->getGlobalUser( { user_id => 2 } );
-delete $user->{user_id};
+removeIDs($user);
 is_deeply( $students[1], $user, "getUser: by user_id" );
 
 ## get one user that does not exist
 
-dies_ok {
+try {
 	$user = $users_rs->getGlobalUser( { user_id => -9 } );
-}
-"getUser: undefined user_id";
-dies_ok {
-	$user = $users_rs->getGlobalUser( { login => "non_existent_user" } );
-}
-"getUser: undefined login";
+} 
+catch {
+	ok($_->isa("UserNotFoundException"),"getUser: undefined user_id");
+};
+
+try {
+	$user = $users_rs->getGlobalUser( { login => "non_existent_user"  } );
+} 
+catch {
+	ok($_->isa("UserNotFoundException"),"getUser: undefined login");
+};
+
+
 
 ## add one user
 
@@ -99,7 +107,7 @@ $user = {
 };
 
 my $new_user = $users_rs->addGlobalUser($user);
-delete $new_user->{user_id};
+removeIDs($new_user);
 is_deeply( $user, $new_user, "addUser: adding a user" );
 
 ## update a user
@@ -107,26 +115,35 @@ is_deeply( $user, $new_user, "addUser: adding a user" );
 my $updated_user = {%$user};    # make a copy of $user;
 $updated_user->{email} = 'spring.cop@gmail.com';
 my $up_user_from_db = $users_rs->updateGlobalUser( { login => $updated_user->{login} }, $updated_user );
-delete $up_user_from_db->{user_id};
+removeIDs($up_user_from_db);
 is_deeply( $updated_user, $up_user_from_db, "updateUser: updating a user" );
 
 ## try to update a user without passing login info:
 
-dies_ok {
+
+try {
 	$users_rs->updateGlobalUser( { login_name => "wiggam" }, $updated_user );
 }
-"updateUser: wrong user_info sent";
+catch {
+	ok($_->isa("ParametersException"),"updateUser: wrong user_info sent")
+};
 
 ## try to update a user that doesn't exist:
 
-dies_ok {
+try {
 	$users_rs->updateGlobalUser( { login => "non_existent_user" }, $updated_user );
-}
-"updateUser: update user for a non-existing login";
-dies_ok {
+} 
+catch {
+	ok($_->isa("UserNotFoundException"),"updateUser: update user for a non-existing login");
+};
+
+try {
 	$users_rs->updateGlobalUser( { user_id => -5 }, $updated_user );
-}
-"updateUser: update user for a non-existing user_id";
+} 
+catch {
+	ok($_->isa("UserNotFoundException"),"updateUser: update user for a non-existing user_id");
+};
+
 
 ## delete a user
 
@@ -138,14 +155,21 @@ is_deeply( $updated_user, $user_to_delete, "deleteUser: delete a user" );
 
 ## delete a user that doesn't exist.
 
-dies_ok {
+try {
 	$user = $users_rs->deleteGlobalUser( { login => "undefined_login" } );
-}
-"deleteUser: trying to delete with undefined login";
-dies_ok {
+} 
+catch {
+	ok($_->isa("UserNotFoundException"),"deleteUser: trying to delete with undefined login");
+};
+
+try {
 	$user = $users_rs->deleteGlobalUser( { user_id => -3 } );
-}
-"deleteUser: trying to delete with undefined user_id";
+} 
+catch {
+	ok($_->isa("UserNotFoundException"),"deleteUser: trying to delete with undefined user_id");
+};
+
+
 
 done_testing;
 

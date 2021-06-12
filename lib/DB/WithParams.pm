@@ -8,6 +8,11 @@ use Scalar::Util qw/reftype/;
 my $valid_params; # hash of valid parameters and the regexp for the values.
 my $required_params;  # array of the required parameters. 
 
+use Exception::Class (
+		'UndefinedParameterException' => {fields => ['field_names']},
+		'InvalidParameterException'  => {fields => ['field_names']},
+); 
+
 sub validParams {
 	my $self = shift; 
 	eval '$valid_params = $' . ref($self) . "::VALID_PARAMS" unless $valid_params;
@@ -28,7 +33,7 @@ sub validParamFields {
 	my @inter = intersect(@fields,@valid_fields);
 	if (scalar(@inter) != scalar(@fields)) {
 		my @bad_fields = array_minus(@fields, @valid_fields); 
-		croak "The field(s):  " . join(", ",@bad_fields) . " are not valid";
+		UndefinedParameterException->throw(field_names=>join(", ",@bad_fields));
 	}
 	return 1;
 }
@@ -38,7 +43,7 @@ sub validateParams {
 	return 1 unless defined $self->params; 
 	for my $key (keys %{$self->params}){
 		my $re = $valid_params->{$key};
-		croak "The field $key of params is not valid" unless $self->params->{$key} =~ qr/^$re$/; 
+		InvalidParameterException->throw(field_names => $key) unless $self->params->{$key} =~ qr/^$re$/; 
 	} 
 	return 1; 
 }

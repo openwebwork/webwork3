@@ -7,7 +7,12 @@ use Carp;
 use Data::Dump qw/dd dump/;
 use List::Util qw/first/;
 
-use DB::Utils qw/parseCourseInfo/;
+use DB::Utils qw/getCourseInfo/;
+
+use Exception::Class (
+		'CourseNotFoundException' => {fields => ['course_name']},
+		'CourseExistsException' => {fields => ['course_name']}
+	);
 
 
 =pod
@@ -63,9 +68,8 @@ of the fields.
 
 sub getCourse {
 	my ($self,$course_info,$as_result_set) = @_;
-  parseCourseInfo($course_info);
-	my $course = $self->find($course_info);
-	die "The course " . dump($course_info) . " does not exist" unless defined($course); 
+	my $course = $self->find(getCourseInfo($course_info));
+	CourseNotFoundException->throw(course_name => $course_info ) unless defined($course); 
 	return $course if $as_result_set; 
 	return {$course->get_columns}; 
 }
@@ -89,7 +93,7 @@ sub addCourse {
 	my ($self,$course_name,$as_result_set) = @_;
 	## check if the course exists.  If so throw an error. 
 	my $course = $self->find({course_name => $course_name}); 
-	die "The course with name $course_name already exists." if defined($course); 
+	CourseExistsException->throw(course_name=> $course_name) if defined($course); 
 
 	my $new_course = $self->create({course_name => $course_name});
 	return $new_course if $as_result_set; 
@@ -116,8 +120,7 @@ The deleted course as a <code>DBIx::Class::ResultSet::Course</code> object.
 
 sub deleteCourse {
 	my ($self,$course_info) = @_;
-	parseCourseInfo($course_info);
-	my $course_to_delete = $self->getCourse($course_info,1);
+	my $course_to_delete = $self->getCourse(getCourseInfo($course_info),1);
 
 	my $deleted_course = $course_to_delete->delete;
 	return {$deleted_course->get_columns};
@@ -143,8 +146,7 @@ The updated course as a <code>DBIx::Class::ResultSet::Course</code> object.
 
 sub updateCourse {
 	my ($self,$course_info,$course_params,$as_result_set) = @_;
-	parseCourseInfo($course_info);
-	my $course = $self->getCourse($course_info,1);
+	my $course = $self->getCourse(getCourseInfo($course_info),1);
 	$course->update($course_params);
 	return $course if $as_result_set; 
 	return {$course->get_columns}; 

@@ -68,7 +68,7 @@ sub addUsers {
 		for my $key (qw/section recitation params role/) {
 			$params->{$key} = $student->{$key};
 		}
-		$course_user->update($params);
+		my $u = $course_user->update($params);
 	}
 	return;
 }
@@ -191,6 +191,9 @@ addSets;
 addProblems;
 addUserSets;
 addProblemPools;
+
+# my $u = $course_user_rs->find({course_id=>1,user_id=>5});
+# dd {$u->get_columns}; 
 
 
 1; 

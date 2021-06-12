@@ -18,11 +18,12 @@ use Data::Dump qw/dd/;
 use List::Util qw(uniq);
 use Test::More;
 use Test::Exception;
+use Try::Tiny;
 
 use DB::WithParams;
 use DB::WithDates; 
 use DB::Schema;
-use DB::TestUtils qw/loadCSV/;
+use DB::TestUtils qw/loadCSV removeIDs/;
 
 # load the database
 my $db_file = "$main::test_dir/sample_db.sqlite";
@@ -52,9 +53,7 @@ my $precalc_students_from_db = removeCourseUserIDs( \@precalc_students_from_db )
 sub removeCourseUserIDs {
 	my $users = shift;
 	for my $user (@$users) {
-		for my $key (qw/course_id user_id course_user_id/) {
-			delete $user->{$key};
-		}
+		removeIDs($user); 
 	}
 }
 
@@ -62,42 +61,48 @@ is_deeply( \@precalc_students, \@precalc_students_from_db, "getUsers: get users 
 
 ## getUsers: test that an unknown course results in an error
 
-dies_ok {
-	my @users = $course_rs->getUsers( { course_name => "unknown_course" } );
+try {
+	$user_rs->getUsers( { course_name => "unknown_course" } );
 }
-"getUsers: undefined course_name";
-dies_ok {
-	my @users = $course_rs->getUsers( { course_id => -3 } );
+catch {
+	ok($_->isa('CourseNotFoundException'),"getUsers: undefined course_name");
+};
+
+try {
+	$user_rs->getUsers( { course_id => -3 } );
 }
-"getUsers: undefined course_id";
+catch {
+	ok($_->isa('CourseNotFoundException'),"getUsers: undefined course_id");
+};
 
 ## test getUser
 
 my $user = $user_rs->getUser( { course_name => "Precalculus", login => $precalc_students[0]->{login} } );
-for my $key (qw/course_id user_id course_user_id/) {
-	delete $user->{$key};
-}
+removeIDs($user); 
 
 is_deeply( $precalc_students[0], $user, "getUser: get one user" );
 
 ## getUser: test that an unknown course results in an error
 
-dies_ok {
-	my @users = $course_rs->getUsers( { course_name => "unknown_course", login => "barney" } );
+try {
+	$user_rs->getUser( { course_name => "unknown_course", login => "barney" } );
 }
-"getUser: undefined course";
+catch {
+	ok($_->isa('CourseNotFoundException'),"getUser: undefined course");
+};
 
 ## getUser: test that an unknown user results in an error
 
-dies_ok {
-	my @users = $course_rs->getUsers( { course_name => "Precalculus", login => "unknown_user" } );
+try {
+	$user_rs->getUser( { course_name => "Precalculus", login => "unknown_user" } );
 }
-"getUser: undefined user";
+catch {
+	ok($_->isa('UserNotInCourseException'),"getUser: undefined user");
+};
 
 ## addUser:  add a user to a course
 
 my $user_params = {
-	course_name => "Arithmetic",
 	login       => "quimby",
 	first_name  => "Joe",
 	last_name   => "Quimby",
@@ -106,79 +111,140 @@ my $user_params = {
 	role       => "student",
 	params      => {},
 	recitation  => undef,
-	section     => undef,
+	section     => undef
 };
 
 $user = $user_rs->addUser( { course_name => "Arithmetic" }, $user_params );
 
-for my $key (qw/course_id user_id course_user_id/) {
-	delete $user->{$key};
-}
+removeIDs($user); 
 delete $user_params->{course_name};
 
-is_deeply( $user_params, $user, "addUser: add a user succeeds" );
+is_deeply( $user_params, $user, "addUser: add a user to a course" );
 
 ## addUser: check that if the course doesn't exist, an error is thrown:
-dies_ok {
-	my $user = $course_rs->addUser( { course_name => "unknown_course", login => "barney" } );
-}
-"addUser: the course doesn't exist";
 
-## addUser: check that if the course exists, but the user is already a member.
-dies_ok {
-	my $user = $course_rs->addUser( { course_name => "Arithmetic", login => "moe" } );
+try {
+	$user_rs->addUser( { course_name => "unknown_course", login => "barney" } );
 }
-"addUser: the user is already a member";
+catch {
+	ok($_->isa("CourseNotFoundException"),"addUser: the course doesn't exist");
+};
+
+
+## addUser: the course exists, but the user is already a member.
+
+try {
+	$user_rs->addUser( { course_name => "Arithmetic"}, {login => "moe" } );
+}
+catch {
+	ok($_->isa("UserAlreadyInCourseException"),"addUser: the user is already a member");
+};
 
 ## updateUser: check that the user updates.
 
-my $updated_user = {%$user_params};    # make a copy of $user;
-$updated_user->{params}->{email}   = 'joe_the_mayor@juno.com';
-$updated_user->{params}->{comment} = 'Mayor Joe is the best!!';
-my $user_from_db = $user_rs->updateUser( { course_name => 'Arithmetic', login => 'quimby' }, $updated_user );
+my $updated_user = {
+	params=> {email=> 'joe_the_mayor@juno.com',comment => 'Mayor Joe is the best!!'}
+};
 
-for my $key (qw/course_id user_id course_user_id/) {
-	delete $user_from_db->{$key};
+for my $key (keys %$updated_user) {
+	$user_params->{$key} = $updated_user->{$key};
 }
 
-is_deeply( $updated_user, $user_from_db, "updateUser: update a single user in an existing course." );
+my $user_from_db = $user_rs->updateUser( 
+	{ course_name => 'Arithmetic', login => 'quimby' }, $updated_user );
+
+removeIDs($user_from_db); 
+
+is_deeply( $user_params, $user_from_db, "updateUser: update a single user in an existing course." );
 
 ## updateUser: check that if the course doesn't exist, an error is thrown:
-dies_ok {
-	my $user = $course_rs->updateUser( { course_name => "unknown_course", login => "barney" } );
+try {
+	$user_rs->updateUser( { course_name => "unknown_course", login => "barney" },$updated_user );
 }
-"updateUser: the course doesn't exist";
+catch {
+	ok($_->isa("CourseNotFoundException"),"updateUser: the course doesn't exist");
+};
 
-## updateUser: check that if the course exists, but the user is already a member.
-dies_ok {
-	my $user = $course_rs->updateUser( { course_name => "Arithmetic", login => "bart" } );
+## updateUser: check that if the course exists, but the user not a member.
+try {
+	$user_rs->updateUser( { course_name => "Arithmetic", login => "bart" }, $updated_user);
 }
-"updateuser: the user is not a member of the course";
+catch {
+	ok($_->isa("UserNotInCourseException"),"updateUser: the user is not a member of the course");
+};
+
+## updateUser: send in wrong information
+
+try {
+	$user_rs->updateUser( { course_name => "Arithmetic", login_name => "bart"},$updated_user);
+}
+catch {
+	ok($_->isa("ParametersException"),"updateUser: the incorrect information is passed in.");
+};
+
+## updateUser: update a user with nonvalid fields
+
+try {
+	$user_rs->updateUser({ course_name => "Arithmetic", login=> "quimby"}, {sleeps_in_class => 1});
+}
+catch {
+	ok($_->isa("ParametersException"),"updateUser: an invalid field is set");
+};
+
 
 ## deleteUser: delete a single user from a course
 
-my $deleted_user = $user_rs->deleteUser( { course_name => "Arithmetic", login => "quimby" } );
-for my $key (qw/course_id user_id course_user_id/) {
-	delete $deleted_user->{$key};
-}
+my $deleted_user;
 
-is_deeply( $updated_user, $deleted_user, 'deleteUser: delete a user from a course' );
+my $dont_delete_users; # switch to not delete added users.   
+
+SKIP: {
+
+	skip "delete added users", 4 if $dont_delete_users;
+
+	$deleted_user = $user_rs->deleteUser( { course_name => "Arithmetic", login => "quimby" } );
+	removeIDs($deleted_user); 
+
+	is_deeply( $user_params, $deleted_user, 'deleteUser: delete a user from a course' );
+
+
 
 ## deleteUser: check that if the course doesn't exist, an error is thrown:
-dies_ok {
-	my $user = $course_rs->deleteUser( { course_name => "unknown_course", login => "barney" } );
-}
-"deleteUser: the course doesn't exist";
 
-## deleteUser: check that if the course exists, but the user is already a member.
-dies_ok {
-	my $user = $course_rs->deleteUser( { course_name => "Arithmetic", login => "bart" } );
-}
-"deleteUser: the user is not a member of the course";
+	try {
+		$user_rs->deleteUser( { course_name => "unknown_course", login => "barney" });
+	}
+	catch {
+		ok($_->isa("CourseNotFoundException"),"deleteUser: the course doesn't exist");
+	};
+
+
+## deleteUser: check that if the course exists, but the user not a member.
+
+
+	try {
+		$user_rs->deleteUser( { course_name => "Arithmetic", login => "bart" });
+	}
+	catch {
+		ok($_->isa("UserNotInCourseException"),"deleteUser: the user is not a member of the course");
+	};
+
+
+## deleteUser: send in login_name instead of login
+
+	try {
+		$user_rs->deleteUser( { course_name => "Arithmetic", login_name => "bart"});
+	}
+	catch {
+		ok($_->isa("ParametersException"),"deleteUser: the incorrect information is passed in.");
+	};
+
+
 
 ### delete the global User that was created. 
 
-$user_rs->deleteGlobalUser({login => $user_params->{login}});
+	$user_rs->deleteGlobalUser({login => $user_params->{login}});
+}
 
 done_testing;
 

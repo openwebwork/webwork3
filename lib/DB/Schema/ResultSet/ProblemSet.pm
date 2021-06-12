@@ -6,7 +6,12 @@ use base 'DBIx::Class::ResultSet';
 use Carp;
 use Data::Dump qw/dd dump/;
 
-use DB::Utils qw/getCourseInfo parseCourseInfo getUserInfo parseUserInfo getSetInfo updateAllFields/;
+use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
+
+use Exception::Class (
+		'SetNotInCourseException' => {fields => ['set_name','course_name']},
+		'ParametersException'
+	);
 
 our $SET_TYPES = {
 		"HW" => 1,
@@ -61,7 +66,7 @@ Get all problem sets for a given course
 
 sub getProblemSets {
 	my ($self,$course_info,$set_params,$as_result_set) = @_;
-	my $search_params = parseCourseInfo($course_info); ## return a hash of course info
+	my $search_params = getCourseInfo($course_info); ## return a hash of course info
 	
 	my @sets = $self->search($search_params,{ prefetch => ["courses"] });
 	return map { {$_->get_inflated_columns}; } @sets; 
@@ -77,7 +82,7 @@ Get all hw sets for a given course
 
 sub getHWSets {
 	my ($self,$course_info,$as_result_set) = @_;
-	my $search_params = parseCourseInfo($course_info);  # pull out the course_info that is passed
+	my $search_params = getCourseInfo($course_info);  # pull out the course_info that is passed
 	$search_params->{'me.type'} = 1;  # set the type to search for. 
 	
 	my @sets = $self->search($search_params,{ prefetch => ["courses"] });
@@ -96,7 +101,7 @@ Get all quizzes for a given course
 
 sub getQuizzes {
 	my ($self,$course_info,$as_result_set) = @_;
-	my $search_params = parseCourseInfo($course_info);  # pull out the course_info that is passed
+	my $search_params = getCourseInfo($course_info);  # pull out the course_info that is passed
 	$search_params->{'me.type'} = 2;  # set the type to search for. 
 	
 	my @sets = $self->search($search_params,{ prefetch => ["courses"] });
@@ -115,15 +120,14 @@ Get one HW set for a given course
 sub getProblemSet {
 	my ($self,$course_set_info,$as_result_set) = @_;
 	my $course_info = getCourseInfo($course_set_info); 
-	parseCourseInfo($course_info); 
 	my $course_rs = $self->result_source->schema->resultset("Course");
 	my $course = $course_rs->getCourse($course_info,1);
 
 	my $search_params = {course_id=>$course->course_id,%{getSetInfo($course_set_info)}}; 
 	
 	my $set = $self->find($search_params,prefetch => 'courses');
-	croak "The set with info " . dump(getSetInfo($course_set_info)) . " does not exist the course" .
-		" defined with info " . dump($course_info) unless defined($set); 
+	SetNotInCourseException->throw(set_name=>getSetInfo($course_set_info),course_name=>$course->course_name)
+		unless defined($set); 
 
 	return $set if $as_result_set; 
 	return {$set->get_inflated_columns}; 
@@ -140,12 +144,12 @@ Get one HW set for a given course
 
 sub addProblemSet {
 	my ($self,$course_info,$set_params,$as_result_set) = @_;
-	parseCourseInfo($course_info); 
 	my $course_rs = $self->result_source->schema->resultset("Course");
-	my $course = $course_rs->getCourse($course_info,1);
+	my $course = $course_rs->getCourse(getCourseInfo($course_info),1);
 
-	## check to make sure that the set_name is defined. TODO: check other params
-	croak "You must defined the field name in the 2nd argument" unless defined($set_params->{set_name}); 
+	
+	ParametersException->throw(error => "You must defined the field set_name in the 2nd argument") 
+		unless defined($set_params->{set_name}); 
 
 	## check if the set exists. 
 	my $search_params = {course_id=>$course->course_id,set_name => $set_params->{set_name}}; 
