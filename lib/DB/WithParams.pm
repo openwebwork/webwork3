@@ -8,10 +8,11 @@ use Scalar::Util qw/reftype/;
 my $valid_params; # hash of valid parameters and the regexp for the values.
 my $required_params;  # array of the required parameters. 
 
+use DB::Exception; 
 use Exception::Class (
-		'UndefinedParameterException' => {fields => ['field_names']},
-		'InvalidParameterException'  => {fields => ['field_names']},
-); 
+		'DB::Exception::UndefinedParameter',
+		'DB::Exception::InvalidParameter',
+	);
 
 sub validParams {
 	my $self = shift; 
@@ -33,7 +34,7 @@ sub validParamFields {
 	my @inter = intersect(@fields,@valid_fields);
 	if (scalar(@inter) != scalar(@fields)) {
 		my @bad_fields = array_minus(@fields, @valid_fields); 
-		UndefinedParameterException->throw(field_names=>join(", ",@bad_fields));
+		DB::Exception::UndefinedParameter->throw(field_names=>join(", ",@bad_fields));
 	}
 	return 1;
 }
@@ -43,7 +44,7 @@ sub validateParams {
 	return 1 unless defined $self->params; 
 	for my $key (keys %{$self->params}){
 		my $re = $valid_params->{$key};
-		InvalidParameterException->throw(field_names => $key) unless $self->params->{$key} =~ qr/^$re$/; 
+		DB::Exception::InvalidParameter->throw(field_names => $key) unless $self->params->{$key} =~ qr/^$re$/; 
 	} 
 	return 1; 
 }

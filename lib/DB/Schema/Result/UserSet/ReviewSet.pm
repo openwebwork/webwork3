@@ -1,5 +1,5 @@
-package DB::Schema::Result::ProblemSet::ReviewSet;
-use base qw/DB::Schema::Result::ProblemSet/;
+package DB::Schema::Result::UserSet::ReviewSet;
+use base qw/DB::Schema::Result::UserSet/;
 use strict;
 use warnings; 
 

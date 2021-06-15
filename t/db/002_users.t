@@ -62,7 +62,7 @@ my @all_students = orderUsers(@students);
 
 my @users_from_db = $users_rs->getAllGlobalUsers;
 for my $user (@users_from_db) {
-	removeIDs($user); 
+	removeIDs($user);
 }
 @users_from_db = sort { $a->{login} cmp $b->{login} } @users_from_db;
 
@@ -80,21 +80,13 @@ is_deeply( $students[1], $user, "getUser: by user_id" );
 
 ## get one user that does not exist
 
-try {
+throws_ok {
 	$user = $users_rs->getGlobalUser( { user_id => -9 } );
-} 
-catch {
-	ok($_->isa("UserNotFoundException"),"getUser: undefined user_id");
-};
+} "DB::Exception::UserNotFound", "getUser: undefined user_id";
 
-try {
-	$user = $users_rs->getGlobalUser( { login => "non_existent_user"  } );
-} 
-catch {
-	ok($_->isa("UserNotFoundException"),"getUser: undefined login");
-};
-
-
+throws_ok {
+	$user = $users_rs->getGlobalUser( { login => "non_existent_user" } );
+} "DB::Exception::UserNotFound", "getUser: undefined login";
 
 ## add one user
 
@@ -120,33 +112,21 @@ is_deeply( $updated_user, $up_user_from_db, "updateUser: updating a user" );
 
 ## try to update a user without passing login info:
 
-
-try {
+throws_ok {
 	$users_rs->updateGlobalUser( { login_name => "wiggam" }, $updated_user );
-}
-catch {
-	ok($_->isa("ParametersException"),"updateUser: wrong user_info sent")
-};
+} "DB::Exception::ParametersNeeded", "updateUser: wrong user_info sent";
 
 ## try to update a user that doesn't exist:
 
-try {
+throws_ok {
 	$users_rs->updateGlobalUser( { login => "non_existent_user" }, $updated_user );
-} 
-catch {
-	ok($_->isa("UserNotFoundException"),"updateUser: update user for a non-existing login");
-};
+} "DB::Exception::UserNotFound", "updateUser: update user for a non-existing login";
 
-try {
+throws_ok {
 	$users_rs->updateGlobalUser( { user_id => -5 }, $updated_user );
-} 
-catch {
-	ok($_->isa("UserNotFoundException"),"updateUser: update user for a non-existing user_id");
-};
-
+} "DB::Exception::UserNotFound", "updateUser: update user for a non-existing user_id";
 
 ## delete a user
-
 
 my $user_to_delete = $users_rs->deleteGlobalUser( { login => $user->{login} } );
 
@@ -155,21 +135,13 @@ is_deeply( $updated_user, $user_to_delete, "deleteUser: delete a user" );
 
 ## delete a user that doesn't exist.
 
-try {
+throws_ok {
 	$user = $users_rs->deleteGlobalUser( { login => "undefined_login" } );
-} 
-catch {
-	ok($_->isa("UserNotFoundException"),"deleteUser: trying to delete with undefined login");
-};
+} "DB::Exception::UserNotFound", "deleteUser: trying to delete with undefined login";
 
-try {
+throws_ok {
 	$user = $users_rs->deleteGlobalUser( { user_id => -3 } );
-} 
-catch {
-	ok($_->isa("UserNotFoundException"),"deleteUser: trying to delete with undefined user_id");
-};
-
-
+} "DB::Exception::UserNotFound", "deleteUser: trying to delete with undefined user_id";
 
 done_testing;
 

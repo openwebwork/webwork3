@@ -13,20 +13,26 @@ use strict;
 use warnings;
 use base 'DBIx::Class::ResultSet';
 
-use Carp;
-
 use Data::Dump qw/dd dump/;
 use Array::Utils qw/array_minus/; 
 
 use DB::Utils qw/getCourseInfo getUserInfo/;
 
+use DB::Exception; 
 use Exception::Class (
-		'UserNotFoundException' => {fields => ['login']},
-		'UserNotInCourseException' => {fields => ['login','course_name']},
-		'UserAlreadyInCourseException' => {fields => ['login','course_name']},
-		'UserExistsException' => {fields => ['login']},
-		'ParametersException'
-	);
+	'DB::Exception::UserNotFound',
+	'DB::Exception::CourseExists',
+	"DB::Exception::UserNotInCourse"
+);
+
+
+# use Exception::Class (
+# 		'UserNotFoundException' => {fields => ['login']},
+# 		'UserNotInCourseException' => {fields => ['login','course_name']},
+# 		'UserAlreadyInCourseException' => {fields => ['login','course_name']},
+# 		'UserExistsException' => {fields => ['login']},
+# 		'ParametersException'
+# 	);
 
 
 
@@ -74,7 +80,7 @@ determine which is returned.
 sub getGlobalUser {
 	my ($self,$user_info,$as_result_set) = @_;
 	my $user = $self->find(getUserInfo($user_info));
-	UserNotFoundException->throw(login=>$user_info) unless defined($user);
+	DB::Exception::UserNotFound->throw(login=>$user_info) unless defined($user);
 	return $user if $as_result_set; 
 	return {$user->get_inflated_columns};
 	
@@ -105,7 +111,7 @@ The user as  <code>DBIx::Class::ResultSet::User</code> object or <code>undef</co
 
 sub addGlobalUser {
 	my ($self,$user_params, $as_result_set) = @_;
-	ParametersException->throw(error => "The parameters must include login") unless defined($user_params->{login});
+	DB::Exception::ParametersNeeded->throw(error => "The parameters must include login") unless defined($user_params->{login});
 
 	my $user_obj = $self->new($user_params); 
 
@@ -207,9 +213,8 @@ An arrayref of Users (as hashrefs) or an arrayref of <code>DBIx::Class::ResultSe
 
 sub getUsers {
 	my ($self,$course_info,$as_result_set) = @_; 
-	my $search_params = getCourseInfo($course_info);
 	my $course_rs = $self->result_source->schema->resultset("Course");			
-	my $course = $course_rs->getCourse($course_info,1);
+	my $course = $course_rs->getCourse(getCourseInfo($course_info),1);
 	my @users = $self->search({'course_users.course_id'=>$course->course_id},{ prefetch => ['course_users'] });
 	return \@users if $as_result_set; 
 	return map { {$_->get_columns,$_->course_users->first->get_inflated_columns}; } @users; 
@@ -248,15 +253,17 @@ An hashref of the user.
 sub getUser {
 	my ($self,$course_user_info,$as_result_set) = @_;
 	my $course_info = getCourseInfo($course_user_info); 
-	my $course_rs = $self->result_source->schema->resultset("Course");
-	my $course = $course_rs->getCourse($course_info,1);
-	my $course_id = $course->course_id; 
+	my $course = $self->result_source->schema->resultset("Course")
+		->getCourse($course_info,1);
+	
+	my $course_user = $course->users->find(getUserInfo($course_user_info));
+	DB::Exception::UserNotInCourse->throw(course_name => $course->course_name,login=>$course_user_info->{login}) 
+		unless defined($course_user); 
 
-	my $user_info = getUserInfo($course_user_info);
-	my $user = $self->find($user_info,prefetch => ["course_user"]);
-	UserNotInCourseException->throw(course_name => $course->course_name,login=>$user_info->{login}) unless defined($user); 
-	return $user if $as_result_set;
-	return {$user->get_columns,$user->course_users->first->get_inflated_columns};
+	return $course_user if $as_result_set;
+	my $user_params = {$course_user->get_columns,$course_user->course_users->first->get_columns};
+	$user_params->{params} = $course_user->course_users->first->get_inflated_column("params");
+	return $user_params; 
 }
 
 
@@ -302,35 +309,30 @@ An hashref of the added user.
 
 sub addUser {
 	my ($self,$course_info, $params, $as_result_set) = @_;
-	my $course_rs = $self->result_source->schema->resultset('Course');
-	my $course = $course_rs->getCourse(getCourseInfo($course_info),1); 
-	
-	ParametersException->throw(error => "You must defined the field login in the 2nd argument") 
+
+	my $course = $self->result_source->schema->resultset("Course")
+		->getCourse($course_info,1); 
+
+	DB::Exception::ParametersNeeded->throw(error => "You must defined the field login in the 2nd argument") 
 		unless defined($params->{login}); 
 
-	my $user_info = {login => $params->{login}};
-	my $user = $course->users->find($user_info);
+	my $user_exists = $course->users->find({login => $params->{login}}); 
+	DB::Exception::UserAlreadyInCourse->throw(course_name=> $course_info,login=>$params->{login})
+		if defined $user_exists;
 	
-	UserAlreadyInCourseException->throw(course_name=> $course_info,login=>$params->{login})
-		if defined $user;
-
-	my $course_user_rs = $self->result_source->schema->resultset("CourseUser"); 
 	my $course_user_params = {%$params}; # make a copy
 	my $user_params = {};
-	for my $key ($self->result_source->columns ){
+	for my $key ($self->result_source->columns ){ # remove all parameters that fit in the user table
 		$user_params->{$key} = $params->{$key} if defined $params->{$key};
 		delete $course_user_params->{$key}; 
 	}
 
 	my $user_to_add = $self->new($user_params);
-
 	my $new_user = $course->add_to_users({$user_to_add->get_inflated_columns},1);
 	my $user_course_ids = {user_id => $new_user->user_id, course_id => $course->course_id};
 	
 	## just call the updateUser to fill in the fields of the new user;
 	my $updated_user = $self->updateUser($user_course_ids,$course_user_params);
-
-	# dd $updated_user;
 
 	return $new_user if $as_result_set;
 	return {$new_user->get_inflated_columns, %{$updated_user}};
@@ -345,7 +347,7 @@ sub _checkCourseUser {
 	@cols = grep { ! ($_ =~/_id$/) } @cols; 
 	
 	my @illegal_fields = array_minus(@fields, @cols);
-	ParametersException->throw(error=>"The fields " . join(", ",@illegal_fields) . " are not legal for a user.")
+	DB::Exception::ParametersNeeded->throw(error=>"The fields " . join(", ",@illegal_fields) . " are not legal for a user.")
 		unless scalar(@illegal_fields) == 0; 	 
 	
 }
@@ -387,28 +389,25 @@ An hashref of the added user.
 
 sub updateUser {
 	my ($self,$course_user_info,$params,$as_result_set) = @_;
-	my $course_rs = $self->result_source->schema->resultset("Course");
-	my $course_info = getCourseInfo($course_user_info); 
-	my $course = $course_rs->getCourse($course_info,1); 
-
-	my $user_info = getUserInfo($course_user_info);
-	my $user = $course->users->find($user_info); 
-	UserNotInCourseException->throw(course_name=> $course->course_name,login=>$user_info->{login})
-		unless defined $user;
-
+	my $user = $self->getUser($course_user_info,1);
 	
+	my $course = $self->result_source->schema->resultset("Course")
+		->getCourse(getCourseInfo($course_user_info),1);
+
 	$self->_checkCourseUser($params);
 	
-	my $course_user_rs = $self->result_source->schema->resultset("CourseUser");
-	
-	my $course_user = $course_user_rs
-											->find({course_id => $course->course_id,user_id => $user->user_id})
-											->update({%$params}); # seems like updates changes $params, so make a copy.
-	
-	my $course_user_to_return = {$course_user->get_columns};
+	my $user_to_update = $self->result_source->schema->resultset("CourseUser")
+		->find({course_id => $course->course_id,user_id => $user->user_id});
 
-	# calling get_inflated_columsn on $course_user inflates user_id and course_id (it shouldn't)
-	$course_user_to_return->{params} = $course_user->get_inflated_column("params");
+	DB::Excpetion::UserNotInCourse->throw(course_name => $course->course_name,login=>$course_user_info->{login})
+		unless defined($user_to_update);
+
+	my $updated_user = $user_to_update->update({%$params}); # seems like updates changes $params, so make a copy.
+
+	my $course_user_to_return = {$updated_user->get_columns};
+
+	# calling get_inflated_columns on $course_user inflates user_id and course_id (it shouldn't)
+	$course_user_to_return->{params} = $updated_user->get_inflated_column("params");
 	return $user if $as_result_set;
 	return {$user->get_columns,%$course_user_to_return};
 }
@@ -450,7 +449,7 @@ sub deleteUser {
 	
 	my $user_info = getUserInfo($course_user_info);
 	my $user = $course->users->find($user_info); 
-	UserNotInCourseException->throw(course_name => $course->course_name, login => $course_info->{login})
+	DB::Exception::UserNotInCourse->throw(course_name => $course->course_name, login => $course_info->{login})
 		unless defined $user;
 
 	my $course_user_rs = $self->result_source->schema->resultset("CourseUser");

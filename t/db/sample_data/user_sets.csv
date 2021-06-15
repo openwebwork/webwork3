@@ -1,4 +1,10 @@
-course_name,login,set_name,DATE_open,DATE_reduced_scoring,DATE_due,DATE_answer
-Precalculus,homer,"HW #1",,,,
+course_name,login,set_name,DATE_open,DATE_reduced_scoring,DATE_due,DATE_answer,PARAM_has_reduced_scoring
+Precalculus,homer,"HW #1",,,120,150,1
 Precalculus,bart,"HW #1",,,,
 Precalculus,ned,"HW #1",,,,
+Precalculus,homer,"HW #2",,,240,240,0
+Precalculus,bart,"HW #2",,,,
+Precalculus,ned,"HW #2",,,,
+Precalculus,homer,"HW #3",,,360,500,0
+Precalculus,bart,"HW #3",,,,
+Precalculus,ned,"HW #3",,,,

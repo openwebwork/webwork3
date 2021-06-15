@@ -10,7 +10,7 @@ use List::Util qw/first/;
 use Scalar::Util qw/reftype/;
 
 use Exception::Class (
-		'ParametersException'
+		'DB::Exception::ParametersNeeded'
 	);
 
 sub getCourseInfo {
@@ -49,9 +49,9 @@ sub _get_info {
 		$output_info->{$key} = $input_info->{$key} if defined($input_info->{$key});
 	}
 	
-	ParametersException->throw(error=>"You must pass in only one of " . join(", ",@fields) . ".") 
+	DB::Exception::ParametersNeeded->throw(error=>"You must pass in only one of " . join(", ",@fields) . ".") 
 		if scalar(keys %$output_info) >  1;
-	ParametersException->throw(error=>"You must pass exactly one of " . join(", ",@fields) . ".") 
+	DB::Exception::ParametersNeeded->throw(error=>"You must pass exactly one of " . join(", ",@fields) . ".") 
 		if scalar(keys %$output_info) <  1;
 		
 	return $output_info;

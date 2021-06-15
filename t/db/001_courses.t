@@ -25,7 +25,6 @@ use DB::WithParams;
 use DB::WithDates;
 use DB::Schema;
 
-
 # load the database
 my $db_file = "$main::test_dir/sample_db.sqlite";
 my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
@@ -41,7 +40,7 @@ my @known_courses = uniq map { $_->{course_name}; } @$students;
 @known_courses = map { { course_name => $_ }; } ( sort @known_courses );
 
 ## check the list of all courses
-my @courses_from_db = $course_rs->getCourses;
+my @courses_from_db   = $course_rs->getCourses;
 my $course_rs_from_db = sortByCourseName( removeCourseID( \@courses_from_db ) );
 is_deeply( $course_rs_from_db, \@known_courses, "getCourses: course names" );
 
@@ -59,42 +58,35 @@ delete $course->{course_id};
 is_deeply( $course, { course_name => "Calculus" }, "getCourse: get a single course by id" );
 
 ## try to get a single course with sending proper info:
-dies_ok {
+throws_ok {
 	$course_rs->getCourse( { course_id => $calc_id, course_name => "Calculus" } );
-} "getCourse: sends too much info";
+} "DB::Exception::ParametersNeeded", "getCourse: sends too much info";
 
-dies_ok {
+throws_ok {
 	$course_rs->getCourse( { name => "Calculus" } );
-} "getCourse: sends wrong info";
+} "DB::Exception::ParametersNeeded", "getCourse: sends wrong info";
 
 ## try to get a single course that doesn't exist
 
-try {
-	$course_rs->getCourse({course_name => "non_existent_course"});
-} 
-catch {
-	ok($_->isa("CourseNotFoundException"),"getCourse: get a non-existent course");
-};
-
+throws_ok {
+	$course_rs->getCourse( { course_name => "non_existent_course" } );
+} "DB::Exception::CourseNotFound", "getCourse: get a non-existent course";
 
 ## add a course
 my $new_course = $course_rs->addCourse("Geometry");
 push( @known_courses, { course_name => $new_course->{course_name} } );
 my $known_courses = sortByCourseName( \@known_courses );
 
-@courses_from_db = $course_rs->getCourses;
+@courses_from_db   = $course_rs->getCourses;
 $course_rs_from_db = sortByCourseName( removeCourseID( \@courses_from_db ) );
 
 is_deeply( $known_courses, $course_rs_from_db, "addCourse: add a new course" );
 
 ## add a course that already exists
 
-try {
+throws_ok {
 	$course_rs->addCourse("Geometry");
-} 
-catch {
-	ok($_->isa("CourseExistsException"),"addCourse: course already exists");
-};
+} "DB::Exception::CourseExists", "addCourse: course already exists";
 
 ## update a course
 
@@ -107,44 +99,35 @@ is_deeply( $new_course_params, $updated_course, "updateCourse: update a course b
 
 ## Try to update an non-existent course
 
-try {
-	$course_rs->updateCourse({course_name => "non_existent_course"});
-} 
-catch {
-	ok($_->isa("CourseNotFoundException"),"updateCourse: update a non-existent course_name");
-};
+throws_ok {
+	$course_rs->updateCourse( { course_name => "non_existent_course" } );
+} "DB::Exception::CourseNotFound", "updateCourse: update a non-existent course_name";
 
-try {
+throws_ok {
 	$course_rs->updateCourse( { course_id => -9 }, $new_course_params );
-} 
-catch {
-	ok($_->isa("CourseNotFoundException"),"updateCourse: update a non-existent course_id");
-};
-
+} "DB::Exception::CourseNotFound", "updateCourse: update a non-existent course_id";
 
 ## delete a course
 my $deleted_course = $course_rs->deleteCourse( { course_name => "Geometry II" } );
 @known_courses = grep { $_->{course_name} ne "Geometry" } @known_courses;
 $known_courses = sortByCourseName( \@known_courses );
 
-@courses_from_db = $course_rs->getCourses;
+@courses_from_db   = $course_rs->getCourses;
 $course_rs_from_db = sortByCourseName( removeCourseID( \@courses_from_db ) );
 is_deeply( $course_rs_from_db, \@known_courses, "deleteCourse: delete a course" );
 
 ## try to delete a non-existent course by name
-dies_ok {
+throws_ok {
 	$course_rs->deleteCourse( { course_name => "undefined_name" } )
-}
-"deleteCourse: delete a non-existent course_name";
+} "DB::Exception::CourseNotFound", "deleteCourse: delete a non-existent course_name";
 
 ## try to delete a non-existent course by id
-dies_ok {
+throws_ok {
 	$course_rs->deleteCourse( { course_id => -9 } )
-}
-"deleteCourse: delete a non-existent course_id";
+} "DB::Exception::CourseNotFound", "deleteCourse: delete a non-existent course_id";
 
 sub sortByCourseName {
-	my $course_rs   = shift;
+	my $course_rs = shift;
 	my @new_array = sort { $a->{course_name} cmp $b->{course_name} } @$course_rs;
 	return \@new_array;
 }

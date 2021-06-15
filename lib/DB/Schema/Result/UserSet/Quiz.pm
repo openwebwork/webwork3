@@ -1,5 +1,5 @@
-package DB::Schema::Result::ProblemSet::Quiz;
-use base qw/DB::Schema::Result::ProblemSet/;
+package DB::Schema::Result::UserSet::Quiz;
+use base qw/DB::Schema::Result::UserSet/;
 use strict;
 use warnings; 
 

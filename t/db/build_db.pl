@@ -161,11 +161,8 @@ sub addUserSets {
 			for my $key (qw/course_name set_name login/) { 
 				delete $user_set->{$key};
 			}
-			# for my $key (qw/answer_date open_date reduced_scoring_date due_date/) {
-			# 	delete $user_set->{$key} unless $user_set->{$key}; 
-			# }
 			$user_set->{user_id} = $user_course->user_id;
-			$user_set->{set_id} = $problem_set->set_id; 
+			$user_set->{set_id} = $problem_set->set_id;
 			$problem_set->add_to_user_sets($user_set);
 		}
 	}

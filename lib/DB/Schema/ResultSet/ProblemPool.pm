@@ -11,10 +11,10 @@ use Try::Tiny;
 use DB::Utils qw/getCourseInfo getPoolInfo getPoolProblemInfo/;
 
 use Exception::Class (
-		'PoolNotInCourseException' => {fields => ['course_name','pool_name']},
-		'PoolAlreadyInCourseException' => {fields => ['course_name','pool_name']},
-		'PoolProblemNotInPoolException' => {fields => ['info']},
-		'ParametersException'
+		'DB::Exception::PoolNotInCourse',
+		'DB::Exception::PoolAlreadyInCourse',
+		'DB::Exception::PoolProblemNotInPool',
+		'DB::Exception::ParametersNeeded'
 	);
 
 =pod
@@ -95,7 +95,7 @@ sub getProblemPool {
 	unless($pool) {
 		my $pool_info = getPoolInfo($course_pool_info);
 		my $course_name = $course->course_name;
-		PoolNotInCourseException->throw(pool_name => $pool_info,course_name=>$course_name);
+		DB::Exception::PoolNotInCourse->throw(pool_name => $pool_info,course_name=>$course_name);
 	}
 
 	return $pool if $as_result_set;
@@ -118,14 +118,14 @@ sub addProblemPool {
 	my $course = $course_rs->getCourse(getCourseInfo($course_info),1);
 	my $course_name = $course->course_name;
 
-	ParametersException(error=>"The pool_name is missing from the parameters") 
+	DB::Exception::ParametersNeeded->throw(error=>"The pool_name is missing from the parameters") 
 		unless defined($pool_params->{pool_name});
 
 	my $existing_pool = $self->find({'courses.course_id' => $course->course_id,
 																		pool_name => $pool_params->{pool_name}
 																	},{prefetch => [qw/courses/]});
 
-	PoolAlreadyInCourseException->throw(course_name => $course_name, pool_name => $pool_params->{pool_name}) if defined($existing_pool);
+	DB::Exception::PoolAlreadyInCourse->throw(course_name => $course_name, pool_name => $pool_params->{pool_name}) if defined($existing_pool);
 
 	my $pool_to_add =$self->new($pool_params);
 
@@ -171,8 +171,8 @@ sub deleteProblemPool {
 
 	my $pool = $self->getProblemPool($course_pool_info,1);
 
-	croak "The problem pool does not exist" unless defined($pool);
-
+	DB::Exception::PoolNotInCourse->throws(error => "The problem pool does not exist") 
+		unless defined($pool);
 
 	my $deleted_pool = $pool->delete();
 
@@ -245,7 +245,8 @@ sub addProblemToPool {
 	my ($self,$course_pool_info,$problem_params, $as_result_set) = @_;
 
 	my $pool = $self->getProblemPool($course_pool_info,1);
-	croak "The problem pool does not exist" unless defined($pool);
+	DB::Exception::PoolNotInCourse->throw(course_name => getCourseInfo($course_pool_info))
+		unless defined($pool);
 
 	my $course_rs = $self->result_source->schema->resultset("Course");
 	my $course = $course_rs->find({course_id => $pool->course_id});
@@ -285,8 +286,7 @@ hashref containing information about the Problem.
 sub updatePoolProblem {
 	my ($self,$course_pool_problem_info, $prob_params, $as_result_set) = @_;
 	my $prob = $self->getPoolProblem($course_pool_problem_info,1);
-
-	PoolProblemNotInPoolException->throw(info=>$course_pool_problem_info) unless defined($prob); 
+	DB::Exception::PoolProblemNotInPool->throw(info=>$course_pool_problem_info) unless defined($prob); 
 
 	my $problem_pool_rs = $self->result_source->schema->resultset("PoolProblem");
 	my $prob_to_update = $problem_pool_rs->new($prob_params);

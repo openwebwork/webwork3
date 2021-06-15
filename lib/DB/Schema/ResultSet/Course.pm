@@ -8,11 +8,12 @@ use Data::Dump qw/dd dump/;
 use List::Util qw/first/;
 
 use DB::Utils qw/getCourseInfo/;
-
+use DB::Exception; 
 use Exception::Class (
-		'CourseNotFoundException' => {fields => ['course_name']},
-		'CourseExistsException' => {fields => ['course_name']}
-	);
+	'DB::Exception::CourseNotFound',
+	'DB::Exception::CourseExists'
+);
+
 
 
 =pod
@@ -69,7 +70,7 @@ of the fields.
 sub getCourse {
 	my ($self,$course_info,$as_result_set) = @_;
 	my $course = $self->find(getCourseInfo($course_info));
-	CourseNotFoundException->throw(course_name => $course_info ) unless defined($course); 
+	DB::Exception::CourseNotFound->throw(course_name => $course_info ) unless defined($course); 
 	return $course if $as_result_set; 
 	return {$course->get_columns}; 
 }
@@ -93,7 +94,7 @@ sub addCourse {
 	my ($self,$course_name,$as_result_set) = @_;
 	## check if the course exists.  If so throw an error. 
 	my $course = $self->find({course_name => $course_name}); 
-	CourseExistsException->throw(course_name=> $course_name) if defined($course); 
+	DB::Exception::CourseExists->throw(course_name=> $course_name) if defined($course); 
 
 	my $new_course = $self->create({course_name => $course_name});
 	return $new_course if $as_result_set; 

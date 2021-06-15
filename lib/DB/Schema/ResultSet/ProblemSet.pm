@@ -8,17 +8,19 @@ use Data::Dump qw/dd dump/;
 
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 
-use Exception::Class (
-		'SetNotInCourseException' => {fields => ['set_name','course_name']},
-		'ParametersException'
-	);
-
 our $SET_TYPES = {
 		"HW" => 1,
 		"QUIZ" => 2,
 		"JITAR" => 3,
 		"REVIEW" => 4,
 	};
+
+use DB::Exception; 
+use Exception::Class (
+	"DB::Exception::SetNotInCourse",
+	'DB::Exception::ParametersNeeded'
+);
+
 
 =pod
  
@@ -30,6 +32,23 @@ This is the functionality of a ProblemSet in WeBWorK.  This package is based on
 =cut
 
 =pod
+
+=pod
+=head2 getSetType
+
+returns the type (HW, Quiz, JITAR, REVIEW) of the problem set
+
+=cut
+
+sub set_type {
+	my ($self,$type_number) = @_; 
+	dd {$self->get_inflated_columns};
+	for my $key (keys %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES}){
+		return $key if $self->type == $DB::Schema::ResultSet::ProblemSet::SET_TYPES->{$key};
+	}
+
+}
+
 =head2 getProblemSets
 
 This gets a list of all ProblemSet (and set-like objects) stored in the database in the <code>courses</codes> table. 
@@ -47,7 +66,9 @@ An array of courses as a <code>DBIx::Class::ResultSet::ProblemSet</code> object.
 sub getAllProblemSets {
 	my $self = shift;
 	my @all_sets = $self->search(undef,{ prefetch => 'courses' }); 
-	return map { {$_->get_inflated_columns,$_->courses->get_columns};} @all_sets;
+	return map { 
+		{$_->get_inflated_columns,$_->courses->get_columns, set_type=> $_->set_type};
+	} @all_sets;
 } 
 
 ####
@@ -69,7 +90,7 @@ sub getProblemSets {
 	my $search_params = getCourseInfo($course_info); ## return a hash of course info
 	
 	my @sets = $self->search($search_params,{ prefetch => ["courses"] });
-	return map { {$_->get_inflated_columns}; } @sets; 
+	return map { {$_->get_inflated_columns, set_type => $_->set_type}; } @sets; 
 }
 
 =pod
@@ -87,7 +108,7 @@ sub getHWSets {
 	
 	my @sets = $self->search($search_params,{ prefetch => ["courses"] });
 	return \@sets if $as_result_set; 
-	return map { {$_->get_inflated_columns}; } @sets; 
+	return map { {$_->get_inflated_columns, set_type => $_->set_type}; } @sets; 
 }
 
 
@@ -106,7 +127,7 @@ sub getQuizzes {
 	
 	my @sets = $self->search($search_params,{ prefetch => ["courses"] });
 	return \@sets if $as_result_set; 
-	return map { {$_->get_inflated_columns}; } @sets; 
+	return map { {$_->get_inflated_columns,set_type => $_->set_type}; } @sets; 
 }
 
 =pod
@@ -126,11 +147,11 @@ sub getProblemSet {
 	my $search_params = {course_id=>$course->course_id,%{getSetInfo($course_set_info)}}; 
 	
 	my $set = $self->find($search_params,prefetch => 'courses');
-	SetNotInCourseException->throw(set_name=>getSetInfo($course_set_info),course_name=>$course->course_name)
+	DB::Exception::SetNotInCourse->throw(set_name=>getSetInfo($course_set_info),course_name=>$course->course_name)
 		unless defined($set); 
 
 	return $set if $as_result_set; 
-	return {$set->get_inflated_columns}; 
+	return {$set->get_inflated_columns,set_type=>$set->set_type}; 
 
 }
 
@@ -139,23 +160,25 @@ sub getProblemSet {
 
 Get one HW set for a given course
 
-
 =cut
 
 sub addProblemSet {
-	my ($self,$course_info,$set_params,$as_result_set) = @_;
+	my ($self,$course_info,$params,$as_result_set) = @_;
 	my $course_rs = $self->result_source->schema->resultset("Course");
 	my $course = $course_rs->getCourse(getCourseInfo($course_info),1);
 
+	my $set_params = {%$params};
 	
-	ParametersException->throw(error => "You must defined the field set_name in the 2nd argument") 
+	DB::Exception::ParametersNeeded->throw(error => "You must defined the field set_name in the 2nd argument") 
 		unless defined($set_params->{set_name}); 
 
 	## check if the set exists. 
 	my $search_params = {course_id=>$course->course_id,set_name => $set_params->{set_name}}; 
 
 	my $set = $self->find($search_params,prefetch => 'courses');
-	croak "The Problem set with name " . $set_params->{set_name} . " already exists." if defined($set);
+	DB::Exception::SetAlreadyExists
+		->throws(set_name => $set_params->{set_name}, course_name=>$course->course_name)
+		if defined($set);
 
 	$set_params->{type} = $SET_TYPES->{$set_params->{set_type}};
 	delete $set_params->{set_type};
@@ -170,7 +193,7 @@ sub addProblemSet {
 	my $new_set = $course->add_to_problem_sets($set_params,1);
 
 	return $new_set if $as_result_set;
-	return {$new_set->get_inflated_columns};
+	return {$new_set->get_inflated_columns,set_type => $new_set->set_type};
 }
 
 =pod
@@ -195,7 +218,7 @@ sub updateProblemSet {
 	$set_obj->validParams();
 	my $updated_set = $set->update({$set_obj->get_inflated_columns});
 	return $updated_set if $as_result_set;
-	return {$updated_set->get_inflated_columns};
+	return {$updated_set->get_inflated_columns, set_type => $updated_set->set_type};
 }
 
 
@@ -214,7 +237,7 @@ sub deleteProblemSet {
 	$set_to_delete->delete; 
 
 	return $set_to_delete if $as_result_set;
-	return {$set_to_delete->get_inflated_columns};
+	return {$set_to_delete->get_inflated_columns, set_type => $set_to_delete->set_type};
 }
 
 
