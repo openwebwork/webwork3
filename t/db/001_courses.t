@@ -135,7 +135,12 @@ for my $user_course (@user_courses) {
 }
 
 my @user_courses_from_csv = grep { $_->{login} eq "lisa"} @students;
-@user_courses_from_csv = map { {course_name => $_->{course_name}}; } @user_courses_from_csv;
+# @user_courses_from_csv = map { {course_name => $_->{course_name}}; } @user_courses_from_csv;
+for my $user (@user_courses_from_csv) {
+	for my $key (qw/email first_name last_name login student_id/){
+		delete $user->{$key};
+	}
+}
 
 is_deeply(\@user_courses,\@user_courses_from_csv,"getUserCourses: get all courses for a given user");
 

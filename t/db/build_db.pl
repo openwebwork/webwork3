@@ -60,10 +60,17 @@ sub addUsers {
 		for my $key (qw/login first_name last_name email student_id/) {
 			$stud_info->{$key} = $student->{$key};
 		}
+		$stud_info->{login_params} = {
+			password => $student->{login}
+		};
 		$course->add_to_users($stud_info);
 
 		my $user = $user_rs->find({login => $student->{login}});
-		my $params = {user_id=> $user->user_id, course_id=> $course->course_id};
+		my $params = {
+			user_id=> $user->user_id, 
+			course_id=> $course->course_id,
+		};
+
 		my $course_user = $course_user_rs->find($params);
 		for my $key (qw/section recitation params role/) {
 			$params->{$key} = $student->{$key};

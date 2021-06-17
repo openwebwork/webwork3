@@ -18,7 +18,7 @@ sub getCourseInfo {
 }
 
 sub getUserInfo {
-	return _get_info(shift, qw/user_id login/);
+	return _get_info(shift, qw/user_id login email/);
 }
 
 sub getSetInfo {

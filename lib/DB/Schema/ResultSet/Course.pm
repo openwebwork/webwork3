@@ -176,9 +176,16 @@ sub getUserCourses {
 	my ($self, $user_info, $as_result_set)  = @_; 
 	my $user = $self->result_source->schema->resultset("User")
 		->getGlobalUser(getUserInfo($user_info),1);
-	my @user_courses = $user->courses(); 
+
+	my @user_courses = $self->search({'course_users.user_id'=>$user->user_id},{ prefetch => ['course_users'] });
+
+	# my @user_courses = $course_user->courses(); 	
 	return @user_courses if $as_result_set; 
-	return map { {$_->get_columns}; } @user_courses; 
+	return map { {
+		$_->get_columns, 
+		$_->course_users->first->get_columns,
+		params => $_->course_users->first->get_inflated_column("params")
+	}; } @user_courses; 
 } 
 
 

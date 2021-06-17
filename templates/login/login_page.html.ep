@@ -1,0 +1,28 @@
+<html>
+  %= include 'layouts/header'
+  <body>
+		%= include 'layouts/nav'
+		<div class="container">
+			<div class="col-md-4 offset-md-4">
+				<h2>Login Here</h2>
+				% if(my $msg =  flash 'msg') {
+					<div class="p-2 alert-danger border rounded"><%== $msg %> </div>
+				% }
+				<div class="p-2 border rounded mt-4">
+				<form action="/login" method="post">
+					<div class="mb-3">
+						<label for="email" class="form-label">Email address</label>
+						<input type="email" class="form-control" id="email" name="email" placeholder="name@example.com">
+					</div>
+					<div class="mb-3">
+						<label for="password" class="form-label">Password</label>
+						<input type="password" class="form-control" id="password" name="password" placeholder="*****">
+					</div>
+					<div class="mb-3">
+					<button class="btn btn-primary" type="submit">Login</button>
+				</form>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

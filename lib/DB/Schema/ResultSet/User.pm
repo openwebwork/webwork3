@@ -187,6 +187,13 @@ sub updateGlobalUser {
 }
 
 
+sub authenticate {
+	my ($self,$username,$password) = @_; 
+	my $user = $self->getGlobalUser({email => $username});
+	return $user->{login_params}->{password} eq $password; 
+}
+
+
 ####
 #
 #  The following is CRUD for users in a given course
