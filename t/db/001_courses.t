@@ -13,7 +13,6 @@ BEGIN {
 
 use lib "$main::lib_dir";
 
-use Text::CSV qw/csv/;
 use Data::Dump qw/dd/;
 use List::MoreUtils qw(uniq);
 
@@ -25,6 +24,8 @@ use DB::WithParams;
 use DB::WithDates;
 use DB::Schema;
 
+use DB::TestUtils qw/loadCSV removeIDs/;
+
 # load the database
 my $db_file = "$main::test_dir/sample_db.sqlite";
 my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
@@ -35,8 +36,8 @@ my $course_rs = $schema->resultset("Course");
 
 ## get a list of courses from the CSV file
 
-my $students      = csv( in => "$main::test_dir/sample_data/students.csv", headers => "lc" );
-my @known_courses = uniq map { $_->{course_name}; } @$students;
+my @students      = loadCSV("$main::test_dir/sample_data/students.csv");
+my @known_courses = uniq map { $_->{course_name}; } @students;
 @known_courses = map { { course_name => $_ }; } ( sort @known_courses );
 
 ## check the list of all courses
@@ -125,6 +126,25 @@ throws_ok {
 throws_ok {
 	$course_rs->deleteCourse( { course_id => -9 } )
 } "DB::Exception::CourseNotFound", "deleteCourse: delete a non-existent course_id";
+
+## get a list of courses for a user
+
+my @user_courses = $course_rs->getUserCourses({login => "lisa"});
+for my $user_course (@user_courses) {
+	removeIDs($user_course);
+}
+
+my @user_courses_from_csv = grep { $_->{login} eq "lisa"} @students;
+@user_courses_from_csv = map { {course_name => $_->{course_name}}; } @user_courses_from_csv;
+
+is_deeply(\@user_courses,\@user_courses_from_csv,"getUserCourses: get all courses for a given user");
+
+## try to get a list of course from a non-existent user
+
+throws_ok {
+	$course_rs->getUserCourses({login=>"non_existent_user"});
+} "DB::Exception::UserNotFound", "getUserCourse: try to get a list of courses for a non-existent user";
+
 
 sub sortByCourseName {
 	my $course_rs = shift;

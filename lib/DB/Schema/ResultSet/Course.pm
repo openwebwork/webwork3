@@ -7,7 +7,7 @@ use Carp;
 use Data::Dump qw/dd dump/;
 use List::Util qw/first/;
 
-use DB::Utils qw/getCourseInfo/;
+use DB::Utils qw/getCourseInfo getUserInfo/;
 use DB::Exception; 
 use Exception::Class (
 	'DB::Exception::CourseNotFound',
@@ -153,7 +153,33 @@ sub updateCourse {
 	return {$course->get_columns}; 
 }
 
+=pod
+=head2 getUserCourses
 
+This gets a list of Courses for a given user
+
+=head3 input 
+
+=item*
+hashref containing info about the user
+=item* 
+<code>$as_result_set</code>, a boolean if the return is to be a result_set
+
+=head3 output 
+
+An array of courses as a <code>DBIx::Class::ResultSet::Course</code> object
+if <code>$as_result_set</code> is true.  Otherwise an array of hash_ref.  
+
+=cut
+
+sub getUserCourses {
+	my ($self, $user_info, $as_result_set)  = @_; 
+	my $user = $self->result_source->schema->resultset("User")
+		->getGlobalUser(getUserInfo($user_info),1);
+	my @user_courses = $user->courses(); 
+	return @user_courses if $as_result_set; 
+	return map { {$_->get_columns}; } @user_courses; 
+} 
 
 
 1;

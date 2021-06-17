@@ -77,5 +77,6 @@ use Exception::Class (
 DB::Exception::CourseNotFound->Trace(1);
 DB::Exception::InvalidParameter->Trace(1);
 DB::Exception::PoolNotInCourse->Trace(1);
+DB::Exception::ParametersNeeded->Trace(1);
 
 1;

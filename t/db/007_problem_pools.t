@@ -254,6 +254,8 @@ throws_ok {
 	);
 } "DB::Exception::PoolProblemNotInPool", "updatePoolProblem: try to update a nonexisting problem";
 
+
+
 ## delete a problem pool
 my $pool_to_delete = $problem_pool_rs->deleteProblemPool($updated_pool);
 removeIDs($pool_to_delete);

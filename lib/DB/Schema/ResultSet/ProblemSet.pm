@@ -164,8 +164,8 @@ Get one HW set for a given course
 
 sub addProblemSet {
 	my ($self,$course_info,$params,$as_result_set) = @_;
-	my $course_rs = $self->result_source->schema->resultset("Course");
-	my $course = $course_rs->getCourse(getCourseInfo($course_info),1);
+	my $course = $self->result_source->schema->resultset("Course")
+		->getCourse(getCourseInfo($course_info),1);
 
 	my $set_params = {%$params};
 	
