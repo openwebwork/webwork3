@@ -1,34 +1,26 @@
-<html>
-  %= include 'layouts/header'
-  <body>
-		%= include 'layouts/nav'
-		<div class="container">
-			<div class="col-md-4 offset-md-4">
-				<h2>Courses for <%==$user->{first_name}%> <%==$user->{last_name}%> </h2>
-				
-			</div>
-			<div class="row">
-				<div class="col-md-4">
-					<h3>Courses as Student</h3>
-					<ul>
-					% for my $course (@$user_courses) {
-						% if ($course->{role} eq "student") {
-						<li> <%==$course->{course_name} %>
-						% }
-					% }
-					</ul>
-				</div>
-				<div class="col-md-4 offset-md-4">
-					<h3>Courses as Instructor</h3>
-					<ul>
-					% for my $course (@$user_courses) {
-						% if ($course->{role} eq "instructor") {
-						<li> <%==$course->{course_name} %>
-						% }
-					% }
-					</ul>
-				</div>
-			</div>
-		</div>
-	</body>
-</html>
+% layout 'default';
+<div class="col-md-4 offset-md-4">
+	<h2>Courses for <%==$user->{first_name}%> <%==$user->{last_name}%> </h2>
+</div>
+<div class="row">
+	<div class="col-md-4">
+		<h3>Courses as Student</h3>
+		<ul>
+		% for my $course (@$user_courses) {
+			% if ($course->{role} eq "student") {
+			<li> <%==$course->{course_name} %>
+			% }
+		% }
+		</ul>
+	</div>
+	<div class="col-md-4 offset-md-4">
+		<h3>Courses as Instructor</h3>
+		<ul>
+		% for my $course (@$user_courses) {
+			% if ($course->{role} eq "instructor") {
+			<li> <%==$course->{course_name} %>
+			% }
+		% }
+		</ul>
+	</div>
+</div>

@@ -1,0 +1,10 @@
+<html>
+  %= include 'layouts/header'
+  <body>
+		%= include 'layouts/nav'
+		<div class="container">
+		%= content
+		</div>
+	%= include 'layouts/footer'
+	</body>
+</html>

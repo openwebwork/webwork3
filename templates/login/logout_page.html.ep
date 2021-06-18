@@ -1,0 +1,7 @@
+% layout 'default';
+<div class="col-md-4 offset-md-4">
+	<h2>You have been logged out</h2>
+	<p>
+		Click <a href="/login">here</a> to login again.
+	</p>
+</div>

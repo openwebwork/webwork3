@@ -1,19 +1,18 @@
-package WeBWorK3::Controller::Course;
+package webwork3::Controller::Course;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 use Data::Dump qw/dd/;
 
-sub getCourses($self) {
-	my @all_courses =  $self->courses->getCourses; 
+sub getCourses {
+	my $self = shift; 
+	$self->render(json => {msg => "hi"});
+	my @all_courses =  $self->schema->resultset("Course")->getCourses; 
 	$self->render(json => \@all_courses);
 }
 
-sub getCourse($self) {
-
-	my $course = $self->param("course_id") =~ /^\d+/ ? 
-			$self->courses->getCourseByID( int( $self->param("course_id"))):
-			$self->courses->getCourseByName($self->param("course_id"));
-
+sub getCourse {
+	my $self = shift; 
+	my $course = $self->schema->resultset("Course")->getCourse( {course_id => int( $self->param("course_id") )} );
 	$self->render(json => $course);
 }
 

@@ -34,13 +34,9 @@ sub startup ($self) {
    }
 );
 
-	# Router
-	my $r = $self->routes;
 	$self->loginRoutes();
-
-	$r->get('/courses')->to({controller => 'Course', action => 'getCourses'});
-	$r->get('/courses/:course_id')->to({controller => 'Course', action => 'getCourse'});
-
+	$self->coursesRoutes();
+	
 }
 
 sub load_account {
@@ -61,10 +57,17 @@ sub loginRoutes {
 	my $self = shift; 
 	
 	# Normal route to controller
-	$self->routes->get('/')->to('Example#welcome');
 	$self->routes->get('/login')->to('Login#login_page');
-	$self->routes->get('/users/:user_id')->to('Login#user_courses');
+	$self->routes->get('/login/help')->to('Login#login_help');
+	$self->routes->get('/users/start')->to('Login#user_courses');
 	$self->routes->post('/login')->to('Login#check_login');
+	$self->routes->get('/logout')->to('Login#logout_page');
+}
+
+sub coursesRoutes {
+	my $self = shift; 
+	$self->routes->get('/api/courses')->to('Course#getCourses');
+	$self->routes->get('/api/courses/:course_id')->to('Course#getCourse');
 
 }
 

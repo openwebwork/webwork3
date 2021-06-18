@@ -9,4 +9,5 @@
 <link rel="stylesheet" href="[% top_dir %]/modules/codemirror/lib/codemirror.css" type="text/css">
 <link rel='stylesheet' href='[% top_dir %]/modules/@fortawesome/fontawesome-free/css/all.min.css' type='text/css' media='screen'>
 <link rel='stylesheet' type="text/css" href="[% top_dir %]/css/[% main_css %]"> -->
+<link rel='stylesheet' type="text/css" href="/css/webwork.css">
 </head>
