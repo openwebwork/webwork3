@@ -16,7 +16,7 @@ use base 'DBIx::Class::ResultSet';
 use Data::Dump qw/dd dump/;
 use Array::Utils qw/array_minus/; 
 
-use DB::Utils qw/getCourseInfo getUserInfo/;
+use DB::Utils qw/getCourseInfo getUserInfo removeLoginParams/;
 
 use DB::Exception; 
 use Exception::Class (
@@ -24,16 +24,6 @@ use Exception::Class (
 	'DB::Exception::CourseExists',
 	"DB::Exception::UserNotInCourse"
 );
-
-
-# use Exception::Class (
-# 		'UserNotFoundException' => {fields => ['login']},
-# 		'UserNotInCourseException' => {fields => ['login','course_name']},
-# 		'UserAlreadyInCourseException' => {fields => ['login','course_name']},
-# 		'UserExistsException' => {fields => ['login']},
-# 		'ParametersException'
-# 	);
-
 
 
 =pod
@@ -55,7 +45,7 @@ sub getAllGlobalUsers {
 	my ($self,$as_result_set) = @_;
 	my @users = $self->search({});
 	return \@users if $as_result_set; 
-	return map { {$_->get_inflated_columns}; } @users;
+	return map { removeLoginParams({$_->get_inflated_columns}); } @users;
 } 
 
 =pod
@@ -82,7 +72,7 @@ sub getGlobalUser {
 	my $user = $self->find(getUserInfo($user_info));
 	DB::Exception::UserNotFound->throw(login=>$user_info) unless defined($user);
 	return $user if $as_result_set; 
-	return {$user->get_inflated_columns};
+	return removeLoginParams({$user->get_inflated_columns});
 	
 }
 
@@ -117,7 +107,7 @@ sub addGlobalUser {
 
 	my $new_user = $self->create({$user_obj->get_inflated_columns});
 	return $new_user if $as_result_set; 
-	return {$new_user->get_columns};
+	return removeLoginParams({$new_user->get_columns});
 }
 
 =pod
@@ -147,7 +137,7 @@ sub deleteGlobalUser {
 
   my $deleted_user = $user_to_delete->delete; 
 	return $deleted_user if $as_result_set; 
-	return {$deleted_user->get_columns};
+		return removeLoginParams({$deleted_user->get_inflated_columns});
 }
 
 =pod
@@ -183,7 +173,7 @@ sub updateGlobalUser {
 
 	my $updated_user = $user->update({$user_obj->get_inflated_columns}); 
 	return $updated_user if $as_result_set;
-	return {$user->get_columns};  
+	return removeLoginParams({$updated_user->get_inflated_columns});
 }
 
 
@@ -224,7 +214,9 @@ sub getUsers {
 	my $course = $course_rs->getCourse(getCourseInfo($course_info),1);
 	my @users = $self->search({'course_users.course_id'=>$course->course_id},{ prefetch => ['course_users'] });
 	return \@users if $as_result_set; 
-	return map { {$_->get_columns,$_->course_users->first->get_inflated_columns}; } @users; 
+	return map { 
+		removeLoginParams({$_->get_columns,$_->course_users->first->get_inflated_columns}); 
+	} @users; 
 }
 
 ###
@@ -270,7 +262,7 @@ sub getUser {
 	return $course_user if $as_result_set;
 	my $user_params = {$course_user->get_columns,$course_user->course_users->first->get_columns};
 	$user_params->{params} = $course_user->course_users->first->get_inflated_column("params");
-	return $user_params; 
+	return removeLoginParams($user_params);
 }
 
 
@@ -342,7 +334,7 @@ sub addUser {
 	my $updated_user = $self->updateUser($user_course_ids,$course_user_params);
 
 	return $new_user if $as_result_set;
-	return {$new_user->get_inflated_columns, %{$updated_user}};
+	return removeLoginParams({$new_user->get_inflated_columns, %{$updated_user}});
 }
 
 sub _checkCourseUser {
@@ -416,7 +408,7 @@ sub updateUser {
 	# calling get_inflated_columns on $course_user inflates user_id and course_id (it shouldn't)
 	$course_user_to_return->{params} = $updated_user->get_inflated_column("params");
 	return $user if $as_result_set;
-	return {$user->get_columns,%$course_user_to_return};
+	return removeLoginParams({$user->get_columns,%$course_user_to_return});
 }
 
 =pod
@@ -469,7 +461,7 @@ sub deleteUser {
 	# my $deleted_course_user = $course_user_db->delete; 
 
 	return $deleted_course_user if $as_result_set; 
-	return {$user->get_columns,$deleted_course_user->get_inflated_columns}; 
+	return removeLoginParams({$user->get_columns,$deleted_course_user->get_inflated_columns}); 
 	
 
 }

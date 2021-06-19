@@ -82,11 +82,13 @@ is_deeply( $students[1], $user, "getUser: by user_id" );
 
 throws_ok {
 	$user = $users_rs->getGlobalUser( { user_id => -9 } );
-} "DB::Exception::UserNotFound", "getUser: undefined user_id";
+}
+"DB::Exception::UserNotFound", "getUser: undefined user_id";
 
 throws_ok {
 	$user = $users_rs->getGlobalUser( { login => "non_existent_user" } );
-} "DB::Exception::UserNotFound", "getUser: undefined login";
+}
+"DB::Exception::UserNotFound", "getUser: undefined login";
 
 ## add one user
 
@@ -114,17 +116,20 @@ is_deeply( $updated_user, $up_user_from_db, "updateUser: updating a user" );
 
 throws_ok {
 	$users_rs->updateGlobalUser( { login_name => "wiggam" }, $updated_user );
-} "DB::Exception::ParametersNeeded", "updateUser: wrong user_info sent";
+}
+"DB::Exception::ParametersNeeded", "updateUser: wrong user_info sent";
 
 ## try to update a user that doesn't exist:
 
 throws_ok {
 	$users_rs->updateGlobalUser( { login => "non_existent_user" }, $updated_user );
-} "DB::Exception::UserNotFound", "updateUser: update user for a non-existing login";
+}
+"DB::Exception::UserNotFound", "updateUser: update user for a non-existing login";
 
 throws_ok {
 	$users_rs->updateGlobalUser( { user_id => -5 }, $updated_user );
-} "DB::Exception::UserNotFound", "updateUser: update user for a non-existing user_id";
+}
+"DB::Exception::UserNotFound", "updateUser: update user for a non-existing user_id";
 
 ## delete a user
 
@@ -137,11 +142,13 @@ is_deeply( $updated_user, $user_to_delete, "deleteUser: delete a user" );
 
 throws_ok {
 	$user = $users_rs->deleteGlobalUser( { login => "undefined_login" } );
-} "DB::Exception::UserNotFound", "deleteUser: trying to delete with undefined login";
+}
+"DB::Exception::UserNotFound", "deleteUser: trying to delete with undefined login";
 
 throws_ok {
 	$user = $users_rs->deleteGlobalUser( { user_id => -3 } );
-} "DB::Exception::UserNotFound", "deleteUser: trying to delete with undefined user_id";
+}
+"DB::Exception::UserNotFound", "deleteUser: trying to delete with undefined user_id";
 
 done_testing;
 

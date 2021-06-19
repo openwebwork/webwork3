@@ -18,7 +18,6 @@ use Data::Dump qw/dd/;
 use Test::More;
 use Test::Exception;
 
-
 use Array::Utils qw/array_minus intersect/;
 
 use DB::WithParams;
@@ -43,16 +42,16 @@ my @all_problem_sets;    # stores all problem_sets
 
 my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
-	$quiz->{type} = 2;
-	$quiz->{set_type} = "QUIZ";
-	$quiz->{set_version} = 1 unless defined($quiz->{set_version});
+	$quiz->{type}        = 2;
+	$quiz->{set_type}    = "QUIZ";
+	$quiz->{set_version} = 1 unless defined( $quiz->{set_version} );
 }
 
 ## test: get all quizzes from one course
 my @precalc_quizzes = filterBySetType( \@quizzes, "QUIZ", "Precalculus" );
 @precalc_quizzes = map {
 	{%$_};
-} @precalc_quizzes;      # clone all quizzes
+} @precalc_quizzes;    # clone all quizzes
 
 for my $quiz (@precalc_quizzes) {
 	delete $quiz->{course_name};

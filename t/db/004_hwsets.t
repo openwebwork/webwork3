@@ -43,21 +43,21 @@ my $user_rs        = $schema->resultset("User");
 # load HW sets from CSV file
 my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
 for my $set (@hw_sets) {
-	$set->{type} = 1;
-	$set->{set_type} = "HW";
-	$set->{set_version} = 1 unless defined($set->{set_version}); 
+	$set->{type}        = 1;
+	$set->{set_type}    = "HW";
+	$set->{set_version} = 1 unless defined( $set->{set_version} );
 }
 my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
-	$quiz->{type} = 2;
-	$quiz->{set_type} = "QUIZ";
-	$quiz->{set_version} = 1 unless defined($quiz->{set_version}); 
+	$quiz->{type}        = 2;
+	$quiz->{set_type}    = "QUIZ";
+	$quiz->{set_version} = 1 unless defined( $quiz->{set_version} );
 }
 my @review_sets = loadCSV("$main::test_dir/sample_data/review_sets.csv");
 for my $set (@review_sets) {
-	$set->{type} = 4;
-	$set->{set_type} = "REVIEW";
-	$set->{set_version} = 1 unless defined($set->{set_version}); 
+	$set->{type}        = 4;
+	$set->{set_type}    = "REVIEW";
+	$set->{set_version} = 1 unless defined( $set->{set_version} );
 }
 my @all_problem_sets = ( @hw_sets, @quizzes, @review_sets );
 
@@ -68,6 +68,8 @@ my @problem_sets_from_db = $problem_set_rs->getAllProblemSets;
 ## remove the id tags:
 for my $set (@problem_sets_from_db) {
 	removeIDs($set);
+	delete $set->{course_params};
+	delete $set->{course_dates};
 }
 
 is_deeply( \@all_problem_sets, \@problem_sets_from_db, "getProblemSets: get all sets" );
@@ -127,13 +129,13 @@ is_deeply( $set_one, $set_from_db, "getProblemSet: get one homework" );
 
 throws_ok {
 	$problem_set_rs->getProblemSet( { course_name => "Precalculus", set_name => "nonexistent_set" } );
-} "DB::Exception::SetNotInCourse", "getProblemSet: non-existent set name";
-
+}
+"DB::Exception::SetNotInCourse", "getProblemSet: non-existent set name";
 
 throws_ok {
 	$problem_set_rs->getProblemSet( { course_name => "Precalculus", set_id => 99999 } );
-} "DB::Exception::SetNotInCourse", "getProblemSet: non-existent set_id";
-
+}
+"DB::Exception::SetNotInCourse", "getProblemSet: non-existent set_id";
 
 ## add a new problem set
 
@@ -160,8 +162,8 @@ my $new_set2 = {
 
 throws_ok {
 	$problem_set_rs->addProblemSet( { course_name => "Precalculus" }, $new_set2 );
-} "DB::Exception::ParametersNeeded", "addProblemSet: set_name not passed in.";
-
+}
+"DB::Exception::ParametersNeeded", "addProblemSet: set_name not passed in.";
 
 ## try to add a homework with bad date fields
 
@@ -173,7 +175,8 @@ my $new_set3 = {
 
 throws_ok {
 	$problem_set_rs->addProblemSet( { course_name => "Precalculus" }, $new_set3 );
-} "DB::Exception::InvalidDateField", "addProblemSet: invalid date field passed in.";
+}
+"DB::Exception::InvalidDateField", "addProblemSet: invalid date field passed in.";
 
 ## try to add a homework set without all required date fields
 
@@ -185,7 +188,8 @@ my $new_set4 = {
 
 throws_ok {
 	$problem_set_rs->addProblemSet( { course_name => "Precalculus" }, $new_set4 );
-} "DB::Exception::RequiredDateFields", "addProblemSet: missing required date fields";
+}
+"DB::Exception::RequiredDateFields", "addProblemSet: missing required date fields";
 
 ## try to add a homework set without all required date fields
 
@@ -196,7 +200,8 @@ my $new_set5 = {
 };
 throws_ok {
 	$problem_set_rs->addProblemSet( { course_name => "Precalculus" }, $new_set5 );
-} "DB::Exception::InvalidDateFormat", "addProblemSet: adding a non-numeric date";
+}
+"DB::Exception::InvalidDateFormat", "addProblemSet: adding a non-numeric date";
 
 ## try to add a homework set without invalid date order
 
@@ -208,8 +213,8 @@ my $new_set6 = {
 };
 throws_ok {
 	$problem_set_rs->addProblemSet( { course_name => "Precalculus" }, $new_set6 );
-} "DB::Exception::ImproperDateOrder", "addProblemSet: adding an illegal date order.";
-
+}
+"DB::Exception::ImproperDateOrder", "addProblemSet: adding an illegal date order.";
 
 ## check for undefined parameter fields
 
@@ -222,7 +227,8 @@ my $new_set7 = {
 
 throws_ok {
 	$problem_set_rs->addProblemSet( { course_name => "Precalculus" }, $new_set7 );
-} "DB::Exception::UndefinedParameter", "addProblemSet: adding an undefined parameter field";
+}
+"DB::Exception::UndefinedParameter", "addProblemSet: adding an undefined parameter field";
 
 ## check for invalid parameter fields
 
@@ -234,14 +240,15 @@ my $new_set8 = {
 };
 throws_ok {
 	$problem_set_rs->addProblemSet( { course_name => "Precalculus" }, $new_set8 );
-}  "DB::Exception::InvalidParameter", "addProblemSet: adding an non-valid parameter";
+}
+"DB::Exception::InvalidParameter", "addProblemSet: adding an non-valid parameter";
 
 ## update a set
 
-$new_set_params->{set_name} = "HW #8";
-$new_set_params->{params}   = { has_reduced_scoring => 1 };
-$new_set_params->{type}     = 1;
-$new_set_params->{set_version} = 1; 
+$new_set_params->{set_name}    = "HW #8";
+$new_set_params->{params}      = { has_reduced_scoring => 1 };
+$new_set_params->{type}        = 1;
+$new_set_params->{set_version} = 1;
 
 my $updated_set = $problem_set_rs->updateProblemSet( { course_name => "Precalculus", set_id => $new_set_id },
 	{ set_name => $new_set_params->{set_name}, params => { has_reduced_scoring => 1 } } );
@@ -253,23 +260,24 @@ is_deeply( $new_set_params, $updated_set, "updateSet: change the set parameters"
 
 throws_ok {
 	$problem_set_rs->updateProblemSet( { course_name => "Precalculus", set_id => $new_set_id }, { bad_field => 0 } );
-} "DBIx::Class::Exception", "updateProblemSet: use a non-existing field";
-
+}
+"DBIx::Class::Exception", "updateProblemSet: use a non-existing field";
 
 ## try to update a set with an illegal date field
 
 throws_ok {
 	$problem_set_rs->updateProblemSet( { course_name => "Precalculus", set_id => $new_set_id },
 		{ dates => { bad_date => 99 } } );
-} "DB::Exception::InvalidDateField", "updateSet: invalid date field passed in.";
-
+}
+"DB::Exception::InvalidDateField", "updateSet: invalid date field passed in.";
 
 ## try to update a set with an dates in a bad order
 
 throws_ok {
 	$problem_set_rs->updateProblemSet( { course_name => "Precalculus", set_id => $new_set_id },
 		{ dates => { open => 999, answer => 100 } } );
-} "DB::Exception::ImproperDateOrder", "updateSet: adding an illegal date order.";
+}
+"DB::Exception::ImproperDateOrder", "updateSet: adding an illegal date order.";
 
 ## delete a set
 

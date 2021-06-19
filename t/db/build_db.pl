@@ -48,6 +48,17 @@ my $course_user_rs = $schema->resultset('CourseUser');
 my $problem_set_rs = $schema->resultset('ProblemSet');
 my $problem_pool_rs = $schema->resultset('ProblemPool');
 
+sub addCourses {
+	my @courses = loadCSV("$main::test_dir/sample_data/courses.csv");
+	for my $course (@courses) {
+		$course->{course_params} = $course->{params};
+		delete $course->{params};
+		$course->{course_dates} = $course->{dates};
+		delete $course->{dates};
+		$course_rs->create($course);
+	}
+}
+
 sub addUsers {
 	# add some users
 
@@ -55,7 +66,7 @@ sub addUsers {
 
 	for my $student (@all_students) {
 		# dd $student; 
-		my $course = $course_rs->find_or_create({course_name => $student->{course_name}});
+		my $course = $course_rs->find({course_name => $student->{course_name}});
 		my $stud_info = {};
 		for my $key (qw/login first_name last_name email student_id/) {
 			$stud_info->{$key} = $student->{$key};
@@ -189,12 +200,13 @@ sub addProblemPools {
 	}
 }
 
-
+addCourses;
 addUsers;
 addSets;
 addProblems;
 addUserSets;
 addProblemPools;
+
 
 # my $u = $course_user_rs->find({course_id=>1,user_id=>5});
 # dd {$u->get_columns}; 

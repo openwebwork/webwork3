@@ -107,8 +107,8 @@ returns the type (HW, Quiz, JITAR, REVIEW) of the problem set
 =cut
 
 sub set_type {
-	my ($self,$type_number) = @_; 
-	for my $key (keys %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES}){
+	my ( $self, $type_number ) = @_;
+	for my $key ( keys %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES} ) {
 		return $key if $self->type == $DB::Schema::ResultSet::ProblemSet::SET_TYPES->{$key};
 	}
 

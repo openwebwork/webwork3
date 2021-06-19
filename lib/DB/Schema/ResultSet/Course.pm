@@ -46,7 +46,11 @@ sub getCourses {
 	my ($self, $as_result_set)  = @_; 
 	my @courses = $self->search();
 	return @courses if $as_result_set; 
-	return map { {$_->get_columns}; } @courses; 
+	return map { {
+		$_->get_inflated_columns,
+		# params => $_->get_inflated_column("course_params"),
+		# dates => $_->get_inflated_column("course_dates")
+	}; } @courses; 
 } 
 
 =pod
@@ -72,7 +76,7 @@ sub getCourse {
 	my $course = $self->find(getCourseInfo($course_info));
 	DB::Exception::CourseNotFound->throw(course_name => $course_info ) unless defined($course); 
 	return $course if $as_result_set; 
-	return {$course->get_columns}; 
+	return { $course->get_inflated_columns};
 }
 
 =pod
@@ -91,14 +95,17 @@ The added course as a <code>DBIx::Class::ResultSet::Course</code> object.
 =cut
 
 sub addCourse {
-	my ($self,$course_name,$as_result_set) = @_;
-	## check if the course exists.  If so throw an error. 
-	my $course = $self->find({course_name => $course_name}); 
-	DB::Exception::CourseExists->throw(course_name=> $course_name) if defined($course); 
+	my ($self,$course_params,$as_result_set) = @_;
+	DB::Exception::ParametersNeeded->throw(error => "The parameters must include course_name")
+		unless defined($course_params->{course_name});
 
-	my $new_course = $self->create({course_name => $course_name});
+	## check if the course exists.  If so throw an error. 
+	my $course = $self->find({course_name => $course_params->{course_name}}); 
+	DB::Exception::CourseExists->throw(course_name=> $course_params->{course_name}) if defined($course); 
+
+	my $new_course = $self->create($course_params);
 	return $new_course if $as_result_set; 
-	return {$new_course->get_columns};
+	return {$new_course->get_inflated_columns };
 }
 
 =pod
@@ -120,11 +127,12 @@ The deleted course as a <code>DBIx::Class::ResultSet::Course</code> object.
 ## TODO: delete everything related to the course from all tables. 
 
 sub deleteCourse {
-	my ($self,$course_info) = @_;
+	my ($self,$course_info,$as_result_set) = @_;
 	my $course_to_delete = $self->getCourse(getCourseInfo($course_info),1);
 
 	my $deleted_course = $course_to_delete->delete;
-	return {$deleted_course->get_columns};
+	return $deleted_course if $as_result_set;
+	return {$deleted_course->get_inflated_columns};
 }
 
 =pod
@@ -148,9 +156,9 @@ The updated course as a <code>DBIx::Class::ResultSet::Course</code> object.
 sub updateCourse {
 	my ($self,$course_info,$course_params,$as_result_set) = @_;
 	my $course = $self->getCourse(getCourseInfo($course_info),1);
-	$course->update($course_params);
+	$course->update({%$course_params});
 	return $course if $as_result_set; 
-	return {$course->get_columns}; 
+	return {$course->get_inflated_columns};
 }
 
 =pod
@@ -182,9 +190,8 @@ sub getUserCourses {
 	# my @user_courses = $course_user->courses(); 	
 	return @user_courses if $as_result_set; 
 	return map { {
-		$_->get_columns, 
-		$_->course_users->first->get_columns,
-		params => $_->course_users->first->get_inflated_column("params")
+		course_name => $_->get_column("course_name"), 
+		$_->course_users->first->get_inflated_columns
 	}; } @user_courses; 
 } 
 

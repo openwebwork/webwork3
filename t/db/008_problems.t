@@ -89,13 +89,15 @@ is_deeply( \@precalc_problems1, \@set_problems1, "getSetProblems: get all proble
 
 throws_ok {
 	$problem_rs->getSetProblems( { course_name => "non_existing_course", set_name => "HW #1" } );
-} "DB::Exception::CourseNotFound", "getSetProblem: get problems from non-existing course";
+}
+"DB::Exception::CourseNotFound", "getSetProblem: get problems from non-existing course";
 
 ## try to get problems from a non-existing set
 
 throws_ok {
 	$problem_rs->getSetProblems( { course_name => "Precalculus", set_name => "HW #999" } );
-} "DB::Exception::SetNotInCourse", "getSetProblems: get problems from non-existing set";
+}
+"DB::Exception::SetNotInCourse", "getSetProblems: get problems from non-existing set";
 
 ## get a single problem from a course:
 

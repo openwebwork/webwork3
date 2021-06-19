@@ -68,7 +68,8 @@ sub coursesRoutes {
 	my $self = shift; 
 	$self->routes->get('/api/courses')->to('Course#getCourses');
 	$self->routes->get('/api/courses/:course_id')->to('Course#getCourse');
-
+  $self->routes->put('/api/courses/:course_id')->to('Course#updateCourse');
+	$self->routes->post('/api/courses/:course_id')->to('Course#addCourse');
 }
 
 

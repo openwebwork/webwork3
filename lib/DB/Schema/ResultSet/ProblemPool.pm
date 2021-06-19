@@ -30,7 +30,7 @@ global courses.
 =pod
 =head2 getAllProblemPools
 
-This gets a list of all problems stored in the database in the <code>problems</codes> table.
+This gets a list of all problems stored in the database in the <code>problem_pool</codes> table.
 
 =head3 input
 
@@ -48,7 +48,7 @@ sub getAllProblemPools {
 	my @problem_pools = $self->search({},
 		{prefetch => [qw/courses/]});
 	return @problem_pools if $as_result_set;
-	return map { {$_->get_inflated_columns,$_->courses->get_inflated_columns}; } @problem_pools;
+	return map { {$_->get_inflated_columns, course_name => $_->courses->course_name}; } @problem_pools;
 }
 
 =pod
@@ -66,7 +66,7 @@ sub getProblemPools {
 	my @pools = $self->search({'courses.course_id' => $course->course_id},{prefetch => [qw/courses/]});
 
 	return \@pools if $as_result_set;
-	return map { {$_->get_inflated_columns,$_->courses->get_inflated_columns}; } @pools;
+	return map { {$_->get_inflated_columns}; } @pools;
 
 }
 
@@ -90,16 +90,15 @@ sub getProblemPool {
 	my $search_info = getPoolInfo($course_pool_info);
 	$search_info->{'courses.course_id'} = $course->course_id;
 
-	my $pool = $self->find($search_info,{prefetch => [qw/courses/]});
+	my $pool = $self->find($search_info,{join => [qw/courses/]});
 
 	unless($pool) {
 		my $pool_info = getPoolInfo($course_pool_info);
 		my $course_name = $course->course_name;
 		DB::Exception::PoolNotInCourse->throw(pool_name => $pool_info,course_name=>$course_name);
 	}
-
 	return $pool if $as_result_set;
-	return {$pool->get_columns,$pool->courses->get_columns};
+	return {$pool->get_columns};
 
 }
 
@@ -132,7 +131,7 @@ sub addProblemPool {
 	my $problem_pool = $course->add_to_problem_pools({$pool_to_add->get_columns});
 
 	return $problem_pool if $as_result_set;
-	return {$problem_pool->get_columns,$problem_pool->courses->get_columns};
+	return {$problem_pool->get_columns};
 
 }
 
@@ -148,7 +147,7 @@ sub updateProblemPool {
 
 	my $pool = $self->getProblemPool($course_pool_info,1);
 
-	croak "The problem pool does not exist" unless defined($pool);
+	DB::Excpetion::PoolNotInCourse->throw(course_name => getCourseInfo($course_pool_info), pool_name => $pool_params->{pool_name}) unless defined($pool);
 
 	# create a new problem pool to check for valid fields
 	my $new_pool = $self->new($pool_params);
@@ -156,7 +155,7 @@ sub updateProblemPool {
 	my $updated_pool = $pool->update($pool_params);
 
 	return $updated_pool if $as_result_set;
-	return {$updated_pool->get_columns,$updated_pool->courses->get_columns};
+	return {$updated_pool->get_columns};
 }
 
 =pod
@@ -177,7 +176,7 @@ sub deleteProblemPool {
 	my $deleted_pool = $pool->delete();
 
 	return $deleted_pool if $as_result_set;
-	return {$deleted_pool->get_columns,$deleted_pool->courses->get_columns};
+	return {$deleted_pool->get_columns};
 }
 
 #####

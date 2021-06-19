@@ -65,7 +65,6 @@ __PACKAGE__->typecast_map(
 	}
 );
 
-
 ### Handle the params column using JSON.
 
 __PACKAGE__->inflate_column(

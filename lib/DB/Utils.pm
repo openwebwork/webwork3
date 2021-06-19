@@ -2,7 +2,8 @@ package DB::Utils;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw/getCourseInfo getUserInfo getSetInfo updateAllFields getPoolInfo getProblemInfo getPoolProblemInfo/; 
+our @EXPORT_OK = qw/getCourseInfo getUserInfo getSetInfo updateAllFields 
+	getPoolInfo getProblemInfo getPoolProblemInfo removeLoginParams/; 
 
 use Carp; 
 use Data::Dump qw/dd/;
@@ -79,6 +80,21 @@ sub updateAllFields {
 		}
 	}
 	return $fields_to_return;
+}
+
+=pod
+=head2 removeLoginParams
+
+This removes the login_params field from a user.  There is no reason the login_params are needed
+off the server. 
+
+=cut
+
+
+sub removeLoginParams {
+	my $params = shift;
+	delete $params->{login_params};
+	return $params; 
 }
 
 1; 
