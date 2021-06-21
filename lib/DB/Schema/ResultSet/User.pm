@@ -205,9 +205,14 @@ sub getUsers {
 	my ( $self, $course_info, $as_result_set ) = @_;
 	my $course_rs = $self->result_source->schema->resultset("Course");
 	my $course    = $course_rs->getCourse( getCourseInfo($course_info), 1 );
-	my @users = $self->search( { 'course_users.course_id' => $course->course_id }, { prefetch => ['course_users'] } );
+	my @users = $self->search( { 'course_users.course_id' => $course->course_id }, { prefetch => ["course_users"] } );
+
 	return \@users if $as_result_set;
-	return map { removeLoginParams( { $_->get_columns, $_->course_users->first->get_inflated_columns } ); } @users;
+	return map { removeLoginParams( { 
+		$_->get_columns, 
+		$_->course_users->first->get_columns,
+		params => $_->course_users->first->get_inflated_column("params") 
+	} ); } @users;
 }
 
 ###
@@ -243,7 +248,6 @@ sub getUser {
 	my ( $self, $course_user_info, $as_result_set ) = @_;
 	my $course_info = getCourseInfo($course_user_info);
 	my $course      = $self->result_source->schema->resultset("Course")->getCourse( $course_info, 1 );
-
 	my $course_user = $course->users->find( getUserInfo($course_user_info) );
 	DB::Exception::UserNotInCourse->throw( course_name => $course->course_name, login => $course_user_info->{login} )
 		unless defined($course_user);
@@ -296,7 +300,6 @@ An hashref of the added user.
 
 sub addUser {
 	my ( $self, $course_info, $params, $as_result_set ) = @_;
-
 	my $course = $self->result_source->schema->resultset("Course")->getCourse( $course_info, 1 );
 
 	DB::Exception::ParametersNeeded->throw( error => "You must defined the field login in the 2nd argument" )

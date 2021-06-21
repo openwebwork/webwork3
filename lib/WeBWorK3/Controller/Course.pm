@@ -5,7 +5,6 @@ use Data::Dump qw/dd/;
 
 sub getCourses {
 	my $self = shift; 
-	$self->render(json => {msg => "hi"});
 	my @all_courses =  $self->schema->resultset("Course")->getCourses; 
 	$self->render(json => \@all_courses);
 }

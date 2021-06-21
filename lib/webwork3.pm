@@ -36,6 +36,8 @@ sub startup ($self) {
 
 	$self->loginRoutes();
 	$self->coursesRoutes();
+	$self->userRoutes();
+	$self->courseUserRoutes();
 	
 }
 
@@ -71,7 +73,26 @@ sub coursesRoutes {
 	$course_routes->delete('/:course_id')->to(action => 'deleteCourse');
 }
 
+sub userRoutes {
+	my $self = shift; 
+	my $course_routes = $self->routes->any('/api/users')->to(controller => 'User');
+	$course_routes->get('/')->to(action => 'getGlobalUsers');
+	$course_routes->post('/')->to(action => 'addGlobalUser');
+	$course_routes->get('/:user_id')->to(action => 'getGlobalUser');
+	$course_routes->put('/:user_id')->to(action => 'updateGlobalUser');
+	$course_routes->delete('/:user_id')->to(action => 'deleteGlobalUser');
+}
 
+sub courseUserRoutes {
+	my $self = shift;
+	my $course_user_routes = $self->routes->any('/api/courses/:course_id/users')->to(controller =>'User');
+	$course_user_routes->get('/')->to(action => 'getUsers');
+	$course_user_routes->post('/')->to(action => 'addUser');
+	$course_user_routes->get('/:user_id')->to(action => 'getUser');
+	$course_user_routes->put('/:user_id')->to(action => 'updateUser');
+	$course_user_routes->delete('/:user_id')->to(action => 'deleteUser');
+
+}
 
 
 1;
