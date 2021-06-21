@@ -1,3 +1,4 @@
+
 =pod
  
 =head1 DESCRIPTION
@@ -7,24 +8,18 @@ This is the functionality of a User in WeBWorK.  This package is based on
  
 =cut
 
-
 package DB::Schema::ResultSet::User;
 use strict;
 use warnings;
 use base 'DBIx::Class::ResultSet';
 
 use Data::Dump qw/dd dump/;
-use Array::Utils qw/array_minus/; 
+use Array::Utils qw/array_minus/;
 
 use DB::Utils qw/getCourseInfo getUserInfo removeLoginParams/;
 
-use DB::Exception; 
-use Exception::Class (
-	'DB::Exception::UserNotFound',
-	'DB::Exception::CourseExists',
-	"DB::Exception::UserNotInCourse"
-);
-
+use DB::Exception;
+use Exception::Class ( 'DB::Exception::UserNotFound', 'DB::Exception::CourseExists', "DB::Exception::UserNotInCourse" );
 
 =pod
 =head1 getAllGlobalUsers
@@ -42,11 +37,11 @@ An array of courses as a <code>DBIx::Class::ResultSet::Course</code> object.
 =cut
 
 sub getAllGlobalUsers {
-	my ($self,$as_result_set) = @_;
-	my @users = $self->search({});
-	return \@users if $as_result_set; 
-	return map { removeLoginParams({$_->get_inflated_columns}); } @users;
-} 
+	my ( $self, $as_result_set ) = @_;
+	my @users = $self->search( {} );
+	return \@users if $as_result_set;
+	return map { removeLoginParams( { $_->get_inflated_columns } ); } @users;
+}
 
 =pod
 =head1 getGlobalUser
@@ -68,14 +63,13 @@ determine which is returned.
 =cut
 
 sub getGlobalUser {
-	my ($self,$user_info,$as_result_set) = @_;
-	my $user = $self->find(getUserInfo($user_info));
-	DB::Exception::UserNotFound->throw(login=>$user_info) unless defined($user);
-	return $user if $as_result_set; 
-	return removeLoginParams({$user->get_inflated_columns});
-	
-}
+	my ( $self, $user_info, $as_result_set ) = @_;
+	my $user = $self->find( getUserInfo($user_info) );
+	DB::Exception::UserNotFound->throw( login => $user_info ) unless defined($user);
+	return $user if $as_result_set;
+	return removeLoginParams( { $user->get_inflated_columns } );
 
+}
 
 =pod
 =head1 addGlobalUser
@@ -100,14 +94,15 @@ The user as  <code>DBIx::Class::ResultSet::User</code> object or <code>undef</co
 ### TODO: check that other params are legal
 
 sub addGlobalUser {
-	my ($self,$user_params, $as_result_set) = @_;
-	DB::Exception::ParametersNeeded->throw(error => "The parameters must include login") unless defined($user_params->{login});
+	my ( $self, $user_params, $as_result_set ) = @_;
+	DB::Exception::ParametersNeeded->throw( error => "The parameters must include login" )
+		unless defined( $user_params->{login} );
 
-	my $user_obj = $self->new($user_params); 
+	my $user_obj = $self->new($user_params);
 
-	my $new_user = $self->create({$user_obj->get_inflated_columns});
-	return $new_user if $as_result_set; 
-	return removeLoginParams({$new_user->get_columns});
+	my $new_user = $self->create( { $user_obj->get_inflated_columns } );
+	return $new_user if $as_result_set;
+	return removeLoginParams( { $new_user->get_columns } );
 }
 
 =pod
@@ -128,16 +123,15 @@ The deleted user as a <code>DBIx::Class::ResultSet::User</code> object.
 
 =cut
 
-
-## TODO: delete everything related to the user from all tables. 
+## TODO: delete everything related to the user from all tables.
 
 sub deleteGlobalUser {
-	my ($self,$user_info, $as_result_set) = @_;
-	my $user_to_delete = $self->getGlobalUser($user_info,1); 
+	my ( $self, $user_info, $as_result_set ) = @_;
+	my $user_to_delete = $self->getGlobalUser( $user_info, 1 );
 
-  my $deleted_user = $user_to_delete->delete; 
-	return $deleted_user if $as_result_set; 
-		return removeLoginParams({$deleted_user->get_inflated_columns});
+	my $deleted_user = $user_to_delete->delete;
+	return $deleted_user if $as_result_set;
+	return removeLoginParams( { $deleted_user->get_inflated_columns } );
 }
 
 =pod
@@ -164,32 +158,32 @@ The updated course as a <code>DBIx::Class::ResultSet::Course</code> or a hashref
 
 =cut
 
-## TODO: check that the user_params are valid. 
+## TODO: check that the user_params are valid.
 
 sub updateGlobalUser {
-	my ($self,$user_info,$user_params,$as_result_set) = @_;
-	my $user = $self->getGlobalUser($user_info,1); 
-	my $user_obj = $self->new($user_params); 
+	my ( $self, $user_info, $user_params, $as_result_set ) = @_;
+	my $user     = $self->getGlobalUser( $user_info, 1 );
+	my $user_obj = $self->new($user_params);
 
-	my $updated_user = $user->update({$user_obj->get_inflated_columns}); 
+	my $updated_user = $user->update( { $user_obj->get_inflated_columns } );
 	return $updated_user if $as_result_set;
-	return removeLoginParams({$updated_user->get_inflated_columns});
+	return removeLoginParams( { $updated_user->get_inflated_columns } );
 }
 
+## This clearly needs to be fixed to include encryption of the password.
+# we need to decide on what encryption algorithm.
 
 sub authenticate {
-	my ($self,$username,$password) = @_; 
-	my $user = $self->getGlobalUser({email => $username});
-	return $user->{login_params}->{password} eq $password; 
+	my ( $self, $username, $password ) = @_;
+	my $user = $self->getGlobalUser( { email => $username }, 1 );
+	return $user->login_params->{password} eq $password;
 }
-
 
 ####
 #
 #  The following is CRUD for users in a given course
 #
 ####
-
 
 =pod
 =head1 getUsers
@@ -207,16 +201,13 @@ An arrayref of Users (as hashrefs) or an arrayref of <code>DBIx::Class::ResultSe
 
 =cut
 
-
 sub getUsers {
-	my ($self,$course_info,$as_result_set) = @_; 
-	my $course_rs = $self->result_source->schema->resultset("Course");			
-	my $course = $course_rs->getCourse(getCourseInfo($course_info),1);
-	my @users = $self->search({'course_users.course_id'=>$course->course_id},{ prefetch => ['course_users'] });
-	return \@users if $as_result_set; 
-	return map { 
-		removeLoginParams({$_->get_columns,$_->course_users->first->get_inflated_columns}); 
-	} @users; 
+	my ( $self, $course_info, $as_result_set ) = @_;
+	my $course_rs = $self->result_source->schema->resultset("Course");
+	my $course    = $course_rs->getCourse( getCourseInfo($course_info), 1 );
+	my @users = $self->search( { 'course_users.course_id' => $course->course_id }, { prefetch => ['course_users'] } );
+	return \@users if $as_result_set;
+	return map { removeLoginParams( { $_->get_columns, $_->course_users->first->get_inflated_columns } ); } @users;
 }
 
 ###
@@ -248,23 +239,20 @@ An hashref of the user.
 
 =cut
 
-
 sub getUser {
-	my ($self,$course_user_info,$as_result_set) = @_;
-	my $course_info = getCourseInfo($course_user_info); 
-	my $course = $self->result_source->schema->resultset("Course")
-		->getCourse($course_info,1);
-	
-	my $course_user = $course->users->find(getUserInfo($course_user_info));
-	DB::Exception::UserNotInCourse->throw(course_name => $course->course_name,login=>$course_user_info->{login}) 
-		unless defined($course_user); 
+	my ( $self, $course_user_info, $as_result_set ) = @_;
+	my $course_info = getCourseInfo($course_user_info);
+	my $course      = $self->result_source->schema->resultset("Course")->getCourse( $course_info, 1 );
+
+	my $course_user = $course->users->find( getUserInfo($course_user_info) );
+	DB::Exception::UserNotInCourse->throw( course_name => $course->course_name, login => $course_user_info->{login} )
+		unless defined($course_user);
 
 	return $course_user if $as_result_set;
-	my $user_params = {$course_user->get_columns,$course_user->course_users->first->get_columns};
+	my $user_params = { $course_user->get_columns, $course_user->course_users->first->get_columns };
 	$user_params->{params} = $course_user->course_users->first->get_inflated_column("params");
 	return removeLoginParams($user_params);
 }
-
 
 =pod
 =head1 addUser
@@ -307,48 +295,48 @@ An hashref of the added user.
 ## TODO: need to check for valid fields
 
 sub addUser {
-	my ($self,$course_info, $params, $as_result_set) = @_;
+	my ( $self, $course_info, $params, $as_result_set ) = @_;
 
-	my $course = $self->result_source->schema->resultset("Course")
-		->getCourse($course_info,1); 
+	my $course = $self->result_source->schema->resultset("Course")->getCourse( $course_info, 1 );
 
-	DB::Exception::ParametersNeeded->throw(error => "You must defined the field login in the 2nd argument") 
-		unless defined($params->{login}); 
+	DB::Exception::ParametersNeeded->throw( error => "You must defined the field login in the 2nd argument" )
+		unless defined( $params->{login} );
 
-	my $user_exists = $course->users->find({login => $params->{login}}); 
-	DB::Exception::UserAlreadyInCourse->throw(course_name=> $course_info,login=>$params->{login})
+	my $user_exists = $course->users->find( { login => $params->{login} } );
+	DB::Exception::UserAlreadyInCourse->throw( course_name => $course_info, login => $params->{login} )
 		if defined $user_exists;
-	
-	my $course_user_params = {%$params}; # make a copy
-	my $user_params = {};
-	for my $key ($self->result_source->columns ){ # remove all parameters that fit in the user table
+
+	my $course_user_params = {%$params};               # make a copy
+	my $user_params        = {};
+	for my $key ( $self->result_source->columns ) {    # remove all parameters that fit in the user table
 		$user_params->{$key} = $params->{$key} if defined $params->{$key};
-		delete $course_user_params->{$key}; 
+		delete $course_user_params->{$key};
 	}
 
-	my $user_to_add = $self->new($user_params);
-	my $new_user = $course->add_to_users({$user_to_add->get_inflated_columns},1);
-	my $user_course_ids = {user_id => $new_user->user_id, course_id => $course->course_id};
-	
+	my $user_to_add     = $self->new($user_params);
+	my $new_user        = $course->add_to_users( { $user_to_add->get_inflated_columns }, 1 );
+	my $user_course_ids = { user_id => $new_user->user_id, course_id => $course->course_id };
+
 	## just call the updateUser to fill in the fields of the new user;
-	my $updated_user = $self->updateUser($user_course_ids,$course_user_params);
+	my $updated_user = $self->updateUser( $user_course_ids, $course_user_params );
 
 	return $new_user if $as_result_set;
-	return removeLoginParams({$new_user->get_inflated_columns, %{$updated_user}});
+	return removeLoginParams( { $new_user->get_inflated_columns, %{$updated_user} } );
 }
 
 sub _checkCourseUser {
-	my ($self,$params) = @_;
-	my @fields = keys %$params; 
+	my ( $self, $params ) = @_;
+	my @fields         = keys %$params;
 	my $course_user_rs = $self->result_source->schema->resultset("CourseUser");
 
 	my @cols = $course_user_rs->result_source->columns;
-	@cols = grep { ! ($_ =~/_id$/) } @cols; 
-	
-	my @illegal_fields = array_minus(@fields, @cols);
-	DB::Exception::ParametersNeeded->throw(error=>"The fields " . join(", ",@illegal_fields) . " are not legal for a user.")
-		unless scalar(@illegal_fields) == 0; 	 
-	
+	@cols = grep { !( $_ =~ /_id$/ ) } @cols;
+
+	my @illegal_fields = array_minus( @fields, @cols );
+	DB::Exception::ParametersNeeded->throw(
+		error => "The fields " . join( ", ", @illegal_fields ) . " are not legal for a user." )
+		unless scalar(@illegal_fields) == 0;
+
 }
 
 =pod
@@ -387,28 +375,27 @@ An hashref of the added user.
 =cut
 
 sub updateUser {
-	my ($self,$course_user_info,$params,$as_result_set) = @_;
-	my $user = $self->getUser($course_user_info,1);
-	
-	my $course = $self->result_source->schema->resultset("Course")
-		->getCourse(getCourseInfo($course_user_info),1);
+	my ( $self, $course_user_info, $params, $as_result_set ) = @_;
+	my $user = $self->getUser( $course_user_info, 1 );
+
+	my $course = $self->result_source->schema->resultset("Course")->getCourse( getCourseInfo($course_user_info), 1 );
 
 	$self->_checkCourseUser($params);
-	
-	my $user_to_update = $self->result_source->schema->resultset("CourseUser")
-		->find({course_id => $course->course_id,user_id => $user->user_id});
 
-	DB::Excpetion::UserNotInCourse->throw(course_name => $course->course_name,login=>$course_user_info->{login})
+	my $user_to_update = $self->result_source->schema->resultset("CourseUser")
+		->find( { course_id => $course->course_id, user_id => $user->user_id } );
+
+	DB::Excpetion::UserNotInCourse->throw( course_name => $course->course_name, login => $course_user_info->{login} )
 		unless defined($user_to_update);
 
-	my $updated_user = $user_to_update->update({%$params}); # seems like updates changes $params, so make a copy.
+	my $updated_user = $user_to_update->update( {%$params} );    # seems like updates changes $params, so make a copy.
 
-	my $course_user_to_return = {$updated_user->get_columns};
+	my $course_user_to_return = { $updated_user->get_columns };
 
 	# calling get_inflated_columns on $course_user inflates user_id and course_id (it shouldn't)
 	$course_user_to_return->{params} = $updated_user->get_inflated_column("params");
 	return $user if $as_result_set;
-	return removeLoginParams({$user->get_columns,%$course_user_to_return});
+	return removeLoginParams( { $user->get_columns, %$course_user_to_return } );
 }
 
 =pod
@@ -441,31 +428,30 @@ An hashref of the added user.
 =cut
 
 sub deleteUser {
-	my ($self,$course_user_info,$as_result_set) = @_;
-	my $course_rs = $self->result_source->schema->resultset("Course");
-	my $course_info = getCourseInfo($course_user_info); 
-	my $course = $course_rs->getCourse($course_info,1); 
-	
+	my ( $self, $course_user_info, $as_result_set ) = @_;
+	my $course_rs   = $self->result_source->schema->resultset("Course");
+	my $course_info = getCourseInfo($course_user_info);
+	my $course      = $course_rs->getCourse( $course_info, 1 );
+
 	my $user_info = getUserInfo($course_user_info);
-	my $user = $course->users->find($user_info); 
-	DB::Exception::UserNotInCourse->throw(course_name => $course->course_name, login => $course_info->{login})
+	my $user      = $course->users->find($user_info);
+	DB::Exception::UserNotInCourse->throw( course_name => $course->course_name, login => $course_info->{login} )
 		unless defined $user;
 
 	my $course_user_rs = $self->result_source->schema->resultset("CourseUser");
-	
-	## get the CourseUser data from the DB
-	my $deleted_course_user = $course_user_rs->find({
-		course_id => $course->course_id,
-		user_id => $user->user_id
-	})->delete; 
-	# my $deleted_course_user = $course_user_db->delete; 
 
-	return $deleted_course_user if $as_result_set; 
-	return removeLoginParams({$user->get_columns,$deleted_course_user->get_inflated_columns}); 
-	
+	## get the CourseUser data from the DB
+	my $deleted_course_user = $course_user_rs->find(
+		{   course_id => $course->course_id,
+			user_id   => $user->user_id
+		}
+	)->delete;
+
+	# my $deleted_course_user = $course_user_db->delete;
+
+	return $deleted_course_user if $as_result_set;
+	return removeLoginParams( { $user->get_columns, $deleted_course_user->get_inflated_columns } );
 
 }
-
-
 
 1;

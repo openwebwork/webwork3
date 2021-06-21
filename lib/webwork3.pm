@@ -41,15 +41,12 @@ sub startup ($self) {
 
 sub load_account {
 	my ($self,$user_id)  = @_;
-	dd "in load_account";
 	my $user = $self->schema->resultset("User")->getGlobalUser({email => $user_id});
 	return $user->{user_id};
 }
 
 sub validate {
 	my ($self,$user,$password) = @_;
-	dd "in validate";
-	dd "user: $user   password: $password";
 	return $self->schema->resultset("User")->authenticate($user,$password);
 }
 
@@ -66,10 +63,12 @@ sub loginRoutes {
 
 sub coursesRoutes {
 	my $self = shift; 
-	$self->routes->get('/api/courses')->to('Course#getCourses');
-	$self->routes->get('/api/courses/:course_id')->to('Course#getCourse');
-  $self->routes->put('/api/courses/:course_id')->to('Course#updateCourse');
-	$self->routes->post('/api/courses/:course_id')->to('Course#addCourse');
+	my $course_routes = $self->routes->any('/api/courses')->to(controller => 'Course');
+	$course_routes->get('/')->to(action => 'getCourses');
+	$course_routes->get('/:course_id')->to(action => 'getCourse');
+  $course_routes->put('/:course_id')->to(action => 'updateCourse');
+	$course_routes->post('/')->to(action => 'addCourse');
+	$course_routes->delete('/:course_id')->to(action => 'deleteCourse');
 }
 
 

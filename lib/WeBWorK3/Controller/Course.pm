@@ -19,17 +19,24 @@ sub getCourse {
 ## update the course given by course_id with given params
 
 sub updateCourse {
-	my ($self,$course_params) = @_;
+	my $self = shift; 
 	my $course = $self->schema->resultset("Course")
-		->updateCourse( {course_id => int( $self->param("course_id") )},$course_params);
+		->updateCourse( {course_id => int( $self->param("course_id") )},$self->req->json);
 	$self->render(json => $course);
 }
 
 sub addCourse {
-	my ($self,$course_params) = @_;
-	my $course = $self->schema->resultset("Course")
-		->addCourse( {course_id => int( $self->param("course_id") )},$course_params);
+	my $self = shift; 
+	my $course = $self->schema->resultset("Course")->addCourse($self->req->json);
 	$self->render(json => $course);
 }
+
+sub deleteCourse {
+	my $self = shift; 
+	my $course = $self->schema->resultset("Course")
+		->deleteCourse( {course_id => int( $self->param("course_id") )});
+	$self->render(json => $course);
+}
+
 
 1; 
