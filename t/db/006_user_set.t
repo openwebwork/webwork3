@@ -34,6 +34,14 @@ my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
 # $schema->storage->debug(1);  # print out the SQL commands.
 
 my $user_set_rs = $schema->resultset("UserSet");
+my $course_rs = $schema->resultset("Course");
+my $course = $course_rs->find({course_id => 1});
+
+# my @results = $user_set_rs->search({set_id => 3}, {prefetch => ["course_users"]});
+
+# dd map { {$_->get_inflated_columns, $_->course_users->get_inflated_columns}; } @results; 
+
+# die; 
 
 # load info from CSV files
 
@@ -79,6 +87,19 @@ for my $user_set (@user_sets_from_db) {
 }
 
 is_deeply( \@user_sets_from_db, \@user_sets, "getUserSets: get all user sets for a user in a course" );
+
+## get all user sets for a given set in a course
+
+@user_sets_from_db = $user_set_rs->getUserSets({course_name => "Precalculus", set_name => "HW #1"});
+
+@user_sets = grep { $_->{course_name} eq "Precalculus" && $_->{set_name} eq "HW #1" } @all_user_sets;
+
+for my $user_set (@user_sets_from_db) {
+	removeIDs($user_set);
+	delete $user_set->{type};
+}
+
+is_deeply(\@user_sets_from_db, \@user_sets, "getUserSets: get all user sets for a set in a course" );
 
 ## try to get a user set from a non-existing course
 
@@ -173,6 +194,6 @@ throws_ok {
 
 my $updated_params = { dates => { open => 10, reduced_scoring => 30 } };
 
-$user_set_rs->updateUserSet( $info, $updated_params );
+# $user_set_rs->updateUserSet( $info, $updated_params );
 
 done_testing;

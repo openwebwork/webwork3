@@ -1,4 +1,3 @@
-
 =pod
  
 =head1 DESCRIPTION
@@ -13,44 +12,92 @@ use strict;
 use warnings;
 use base 'DBIx::Class::ResultSet';
 
+use Try::Tiny;
 use Data::Dump qw/dd/;
 
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 use DB::WithDates;
 use DB::WithParams;
 
+
 =pod
 =head2 getUserSets
 
-get all UserSet for a given course and user
+get all UserSet for a given course and either a given user or given set
+
+=head3 input
+=item *
+A hashref containing
+=item -
+Either a course_name or course_id
+=item -
+information on either a set (set_name or set_id) or a user (user_id or login)
 
 =cut
 
 sub getUserSets {
-	my ( $self, $user_course_info, $as_result_set ) = @_;
+	my ( $self, $info, $as_result_set ) = @_;
+	my $course = $self->result_source->schema->resultset("Course")
+		->getCourse( getCourseInfo($info), 1 );
+	
+	my ($user_info,$set_info); 
 
-	my $user = $self->result_source->schema->resultset("User")->getUser( $user_course_info, 1 );
+	# determine if this is a set of user set based on a set or a user
+	try { # one of these will throw an error
+		$user_info = getUserInfo($info);
+	} finally {};
+	try {
+		$set_info = getSetInfo($info); 
+	} finally {};
+	
+	if (scalar(keys %$user_info) == 1){ # all user sets for a given user
+		my $user = $self->result_source->schema->resultset("User")
+			->getUser( {course_id => $course->course_id, %$user_info}, 1 );
+			
+		my @user_sets   = $self->search( { user_id => $user->user_id } );
+		my @user_setids = map { { set_id => $_->set_id }; } @user_sets;
 
-	my @user_sets   = $self->search( { user_id => $user->user_id } );
-	my @user_setids = map { { set_id => $_->set_id }; } @user_sets;
+		my @problem_sets = $course->problem_sets->search( \@user_setids );
 
-	my $course = $self->result_source->schema->resultset("Course")->getCourse( getCourseInfo($user_course_info), 1 );
-	my @problem_sets = $course->problem_sets->search( \@user_setids );
+		my @user_sets_to_return = ();
+		for my $i ( 0 .. $#user_sets ) {
+			my $all_params = { 
+				$problem_sets[$i]->get_columns ,
+				params => updateAllFields( $problem_sets[$i]->get_inflated_column("params"),
+					$user_sets[$i]->get_inflated_column("params") ),
+				dates => updateAllFields( $problem_sets[$i]->get_inflated_column("dates"),
+					$user_sets[$i]->get_inflated_column("dates") ),
+				set_type => $problem_sets[$i]->set_type,
+				login => $user->login,
+				course_name => $course->course_name,
+				set_version => $user_sets[$i]->set_version
+			};
+			push( @user_sets_to_return, $all_params );
 
-	my @user_sets_to_return = ();
-	for my $i ( 0 .. $#user_sets ) {
-		my $all_params = { $problem_sets[$i]->get_columns };
-		$all_params->{params} = updateAllFields( $problem_sets[$i]->get_inflated_column("params"),
-			$user_sets[$i]->get_inflated_column("params") );
-		$all_params->{dates} = updateAllFields( $problem_sets[$i]->get_inflated_column("dates"),
-			$user_sets[$i]->get_inflated_column("dates") );
-		$all_params->{set_type}    = $problem_sets[$i]->set_type;
-		$all_params->{login}       = $user->login;
-		$all_params->{course_name} = $course->course_name;
-		push( @user_sets_to_return, $all_params );
+		}
+		return @user_sets_to_return;
+	} elsif (scalar(keys %$set_info) == 1){ # all user sets for a given set
+		my $set = $self->result_source->schema->resultset("ProblemSet")
+			->getProblemSet( {course_id => $course->course_id, %$set_info},1);
 
+		my @user_sets = $self->search({ set_id => 1},{prefetch => {course_users => 'users'}});
+		my @user_sets_to_return = ();
+		for my $i ( 0 .. $#user_sets ) {
+			my $all_params = { 
+				$set->get_columns ,
+				params => updateAllFields( $set->get_inflated_column("params"),
+					$user_sets[$i]->get_inflated_column("params") ),
+				dates => updateAllFields( $set->get_inflated_column("dates"),
+					$user_sets[$i]->get_inflated_column("dates") ),
+				set_type => $set->set_type,
+				login => $user_sets[$i]->course_users->users->login,
+				course_name => $course->course_name,
+				set_version => $user_sets[$i]->set_version
+			};
+			push( @user_sets_to_return, $all_params );
+		}
+		return @user_sets_to_return;
 	}
-	return @user_sets_to_return;
 }
 
 =pod
@@ -71,7 +118,8 @@ sub getUserSet {
 	my $user           = $user_rs->getUser( $user_course_info, 1 );
 
 	my $user_set = $self->find(
-		{   'problem_sets.course_id' => $problem_set->course_id,
+		{
+			'problem_sets.course_id' => $problem_set->course_id,
 			'problem_sets.set_id'    => $problem_set->set_id,
 			user_id                  => $user->user_id,
 		},
@@ -130,5 +178,7 @@ sub updateUserSet {
 	my $user_set_to_update = $self->new($params);
 	$user_set_to_update->validParams();
 }
+
+
 
 1;

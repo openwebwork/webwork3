@@ -16,7 +16,14 @@ our $VALID_PARAMS = {
 };
 
 our $REQUIRED_PARAMS =
-	{ '_ALL_' => [ 'weight', { '_ONE_OF_' => [ 'library_id', 'problem_path', 'problem_pool_id' ] } ] };
+	{ 
+		'_ALL_' => 
+		[ 'weight', 
+			{ '_ONE_OF_' => 
+				[ 'library_id', 'problem_path', 'problem_pool_id' ] 
+			} 
+		] 
+	};
 
 ### this is the table that stores problems for a given Problem Set
 

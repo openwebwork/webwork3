@@ -45,7 +45,7 @@ __PACKAGE__->set_primary_key('course_id');
 
 # set up the many-to-many relationship to users
 __PACKAGE__->has_many( course_users => 'DB::Schema::Result::CourseUser', 'course_id' );
-__PACKAGE__->many_to_many( users => 'course_users', 'user_id' );
+__PACKAGE__->many_to_many( users => 'course_users', 'users' );
 
 # set up the one-to-many relationship to problem_sets
 __PACKAGE__->has_many( problem_sets => 'DB::Schema::Result::ProblemSet', 'course_id' );

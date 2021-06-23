@@ -167,7 +167,8 @@ Get one HW set for a given course
 
 sub addProblemSet {
 	my ( $self, $course_info, $params, $as_result_set ) = @_;
-	my $course = $self->result_source->schema->resultset("Course")->getCourse( getCourseInfo($course_info), 1 );
+	my $course = $self->result_source->schema->resultset("Course")
+		->getCourse( getCourseInfo($course_info), 1 );
 
 	my $set_params = {%$params};
 
@@ -181,7 +182,7 @@ sub addProblemSet {
 	DB::Exception::SetAlreadyExists->throws( set_name => $set_params->{set_name}, course_name => $course->course_name )
 		if defined($set);
 
-	$set_params->{type} = $SET_TYPES->{ $set_params->{set_type} };
+	$set_params->{type} = $SET_TYPES->{ $set_params->{set_type} || 'HW' };
 	delete $set_params->{set_type};
 
 	my $set_obj = $self->new($set_params);
@@ -238,5 +239,53 @@ sub deleteProblemSet {
 	return $set_to_delete if $as_result_set;
 	return { $set_to_delete->get_inflated_columns, set_type => $set_to_delete->set_type };
 }
+
+
+### 
+#
+# Versions of problem sets
+#
+##
+
+
+=pod
+=head2 newSetVersion
+
+Creates a new version of a problem set for a given course for either any entire course or a specific user
+
+=head3 inputs
+
+=item *
+A hashref with
+=item - 
+course_id or course_name
+=item -
+set_id or set_name
+=item - 
+login or user_id (optional)
+
+=head4 output
+
+=cut
+
+sub newSetVersion {
+	my ($self,$info) = @_;
+	my $course_set_info = {%{getCourseInfo($info)},%{getSetInfo($info)}};
+	my $set = $self->getProblemSet($course_set_info);
+
+	# if $info also contains user info
+	my @fields = keys %$info; 
+	if (scalar(@fields)==3){
+		my $user_info = getUserInfo($info);
+
+	} else {
+		my $user_set_rs = $self->result_source->schema->resultset("UserSet");
+		# @user_sets = $user_set_rs->get
+	}
+	dd $set; 
+}
+
+
+
 
 1;

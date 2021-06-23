@@ -1,5 +1,5 @@
 #
-# This tests the basic database CRUD functions of problem sets of type quiz.
+# This tests the basic database CRUD functions of problem sets.
 #
 use warnings;
 use strict;
@@ -15,8 +15,10 @@ use lib "$main::lib_dir";
 
 use Text::CSV qw/csv/;
 use Data::Dump qw/dd/;
+use List::MoreUtils qw(uniq);
 use Test::More;
 use Test::Exception;
+use Try::Tiny;
 
 use Array::Utils qw/array_minus intersect/;
 
@@ -38,35 +40,15 @@ my $problem_set_rs = $schema->resultset("ProblemSet");
 my $course_rs      = $schema->resultset("Course");
 my $user_rs        = $schema->resultset("User");
 
-my @all_problem_sets;    # stores all problem_sets
-
-my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
-for my $quiz (@quizzes) {
-	$quiz->{type}        = 2;
-	$quiz->{set_type}    = "QUIZ";
+# load HW sets from CSV file
+my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
+for my $set (@hw_sets) {
+	$set->{type}        = 1;
+	$set->{set_type}    = "HW";
+	$set->{set_version} = 1 unless defined( $set->{set_version} );
 }
 
-## test: get all quizzes from one course
-my @precalc_quizzes = filterBySetType( \@quizzes, "QUIZ", "Precalculus" );
-@precalc_quizzes = map {
-	{%$_};
-} @precalc_quizzes;    # clone all quizzes
+$problem_set_rs->newSetVersion({course_id=>1,set_id=>1});
 
-for my $quiz (@precalc_quizzes) {
-	delete $quiz->{course_name};
-}
-@precalc_quizzes = sort { $a->{set_name} cmp $b->{set_name} } @precalc_quizzes;
-my @precalc_quizzes_from_db = $problem_set_rs->getQuizzes( { course_name => "Precalculus" } );
-
-# remove id tags:
-for my $quiz (@precalc_quizzes_from_db) {
-	removeIDs($quiz);
-}
-
-is_deeply( \@precalc_quizzes, \@precalc_quizzes_from_db, "getQuizzes: get all quizzes for one course" );
 
 done_testing;
-
-## helpful subroutines
-
-1;
