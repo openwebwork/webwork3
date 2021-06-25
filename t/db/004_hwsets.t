@@ -134,6 +134,12 @@ throws_ok {
 }
 "DB::Exception::SetNotInCourse", "getProblemSet: non-existent set_id";
 
+## try to get a problem set that is not in a given course
+
+throws_ok {
+	$problem_set_rs->getProblemSet( {course_name => "Precalculus", set_id => 6});
+} "DB::Exception::SetNotInCourse", "getProblemSet: find a set that is not in a course";
+
 ## add a new problem set
 
 my $new_set_params = {

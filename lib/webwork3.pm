@@ -6,9 +6,23 @@ use Mojo::File qw(curfile);
 my $webwork_root = curfile->dirname->sibling('lib')->to_string;
 
 use Data::Dump qw/dd/;
+use Try::Tiny;
 
 use DB::Schema;
 
+
+my $handle_exception = sub ($next, $controller) {
+	## only test requests that start with "/api"
+	if ($controller->req->url->to_string =~ /\/api/) {
+		try {
+			$next->();
+		} catch {
+			$controller->render(json => {msg => "oops!", exception => ref($_)});
+		};
+	} else {
+		$next->();
+	}
+};
 
 # This method will run once at server start
 sub startup ($self) {
@@ -20,7 +34,7 @@ sub startup ($self) {
 	$self->secrets($config->{secrets});
 
 	## get the dbix plugin loaded
-	
+
 	my $schema = DB::Schema->connect("dbi:SQLite:dbname=$webwork_root/../t/db/sample_db.sqlite");
 
 	$self->plugin('DBIC',{schema => $schema});
@@ -28,18 +42,26 @@ sub startup ($self) {
 	# load the authentication plugin
 
 	$self->plugin(
-   Authentication => {
-      load_user     => sub ($app, $uid) { $self->load_account($uid) },
-      validate_user => sub ($c, $u, $p, $e) { $self->validate($u, $p) ? $u : () },
-   }
-);
+		Authentication => {
+				load_user     => sub ($app, $uid) { $self->load_account($uid) },
+				validate_user => sub ($c, $u, $p, $e) { $self->validate($u, $p) ? $u : () },
+		}
+	);
 
+	## handle all api route exceptions
+	$self->hook( around_dispatch => $handle_exception );
+
+	## load all routes
 	$self->loginRoutes();
 	$self->coursesRoutes();
 	$self->userRoutes();
 	$self->courseUserRoutes();
-	
+	$self->problemSetRoutes();
+
 }
+
+
+
 
 sub load_account {
 	my ($self,$user_id)  = @_;
@@ -53,8 +75,8 @@ sub validate {
 }
 
 sub loginRoutes {
-	my $self = shift; 
-	
+	my $self = shift;
+
 	# Normal route to controller
 	$self->routes->get('/login')->to('Login#login_page');
 	$self->routes->get('/login/help')->to('Login#login_help');
@@ -64,7 +86,7 @@ sub loginRoutes {
 }
 
 sub coursesRoutes {
-	my $self = shift; 
+	my $self = shift;
 	my $course_routes = $self->routes->any('/api/courses')->to(controller => 'Course');
 	$course_routes->get('/')->to(action => 'getCourses');
 	$course_routes->get('/:course_id')->to(action => 'getCourse');
@@ -74,7 +96,7 @@ sub coursesRoutes {
 }
 
 sub userRoutes {
-	my $self = shift; 
+	my $self = shift;
 	my $course_routes = $self->routes->any('/api/users')->to(controller => 'User');
 	$course_routes->get('/')->to(action => 'getGlobalUsers');
 	$course_routes->post('/')->to(action => 'addGlobalUser');
@@ -92,6 +114,17 @@ sub courseUserRoutes {
 	$course_user_routes->put('/:user_id')->to(action => 'updateUser');
 	$course_user_routes->delete('/:user_id')->to(action => 'deleteUser');
 
+}
+
+sub problemSetRoutes {
+	my $self = shift;
+	$self->routes->get('/api/sets')->to("ProblemSet#getProblemSets");
+	my $course_routes = $self->routes->any('/api/courses/:course_id/sets')->to(controller => 'ProblemSet');
+	$course_routes->get('/')->to(action => 'getProblemSets');
+	$course_routes->get('/:set_id')->to(action => 'getProblemSet');
+  $course_routes->put('/:set_id')->to(action => 'updateProblemSet');
+	$course_routes->post('/')->to(action => 'addProblemSet');
+	$course_routes->delete('/:set_id')->to(action => 'deleteProblemSet');
 }
 
 

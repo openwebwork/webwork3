@@ -19,12 +19,12 @@ use DB::Exception;
 use Exception::Class ( "DB::Exception::SetNotInCourse", 'DB::Exception::ParametersNeeded' );
 
 =pod
- 
+
 =head1 DESCRIPTION
- 
-This is the functionality of a ProblemSet in WeBWorK.  This package is based on 
-<code>DBIx::Class::ResultSet</code>.  The basics are a CRUD for ProblemSets;  
- 
+
+This is the functionality of a ProblemSet in WeBWorK.  This package is based on
+<code>DBIx::Class::ResultSet</code>.  The basics are a CRUD for ProblemSets;
+
 =cut
 
 =pod
@@ -38,7 +38,6 @@ returns the type (HW, Quiz, JITAR, REVIEW) of the problem set
 
 sub set_type {
 	my ( $self, $type_number ) = @_;
-	dd { $self->get_inflated_columns };
 	for my $key ( keys %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES} ) {
 		return $key if $self->type == $DB::Schema::ResultSet::ProblemSet::SET_TYPES->{$key};
 	}
@@ -47,15 +46,15 @@ sub set_type {
 
 =head2 getProblemSets
 
-This gets a list of all ProblemSet (and set-like objects) stored in the database in the <code>courses</codes> table. 
+This gets a list of all ProblemSet (and set-like objects) stored in the database in the <code>courses</codes> table.
 
-=head3 input 
+=head3 input
 
 none
 
-=head3 output 
+=head3 output
 
-An array of courses as a <code>DBIx::Class::ResultSet::ProblemSet</code> object.  
+An array of courses as a <code>DBIx::Class::ResultSet::ProblemSet</code> object.
 
 =cut
 
@@ -63,7 +62,7 @@ sub getAllProblemSets {
 	my $self     = shift;
 	my @all_sets = $self->search( undef, { prefetch => 'courses' } );
 	return map {
-		{ $_->get_inflated_columns, $_->courses->get_columns, set_type => $_->set_type };
+		{ $_->get_inflated_columns, $_->courses->get_inflated_columns, set_type => $_->set_type };
 	} @all_sets;
 }
 
@@ -145,9 +144,7 @@ sub getProblemSet {
 	my $course_rs   = $self->result_source->schema->resultset("Course");
 	my $course      = $course_rs->getCourse( $course_info, 1 );
 
-	my $search_params = { course_id => $course->course_id, %{ getSetInfo($course_set_info) } };
-
-	my $set = $self->find( $search_params, prefetch => 'courses' );
+	my $set = $course->problem_sets->find(getSetInfo($course_set_info));
 	DB::Exception::SetNotInCourse->throw(
 		set_name    => getSetInfo($course_set_info),
 		course_name => $course->course_name
@@ -241,7 +238,7 @@ sub deleteProblemSet {
 }
 
 
-### 
+###
 #
 # Versions of problem sets
 #
@@ -257,11 +254,11 @@ Creates a new version of a problem set for a given course for either any entire 
 
 =item *
 A hashref with
-=item - 
+=item -
 course_id or course_name
 =item -
 set_id or set_name
-=item - 
+=item -
 login or user_id (optional)
 
 =head4 output
@@ -274,7 +271,7 @@ sub newSetVersion {
 	my $set = $self->getProblemSet($course_set_info);
 
 	# if $info also contains user info
-	my @fields = keys %$info; 
+	my @fields = keys %$info;
 	if (scalar(@fields)==3){
 		my $user_info = getUserInfo($info);
 
@@ -282,7 +279,7 @@ sub newSetVersion {
 		my $user_set_rs = $self->result_source->schema->resultset("UserSet");
 		# @user_sets = $user_set_rs->get
 	}
-	dd $set; 
+	dd $set;
 }
 
 

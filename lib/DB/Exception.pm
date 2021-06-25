@@ -35,7 +35,7 @@ use Exception::Class (
 	},
 	DB::Exception::SetNotInCourse => {
 		fields => ['set_name','course_name'],
-		description => 'The user is not in the course'
+		description => 'The set is not in the course'
 	},
 	DB::Exception::SetAlreadyExists => {
 		fields => ['set_name', 'course_name'],
@@ -72,7 +72,7 @@ use Exception::Class (
 		fields => ['info'],
 		description => 'The requested problem is not in the selected problem pool'
 	}
-); 
+);
 
 DB::Exception::UndefinedParameter->Trace(1);
 DB::Exception::UserNotInCourse->Trace(1);

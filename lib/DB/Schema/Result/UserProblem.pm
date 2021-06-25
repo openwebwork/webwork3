@@ -3,9 +3,16 @@ use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
 
-use JSON; 
+use JSON;
 
 ### this is the table that stores problems for a given Problem Set
+
+
+## Note: we probably also need to store the problem info if it changes.
+
+# perhaps the params will store both the problem info and the seed.
+
+# don't allow the same problem/seed.
 
 __PACKAGE__->table('user_problem');
 
