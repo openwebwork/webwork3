@@ -22,7 +22,11 @@ use DB::Schema;
 my $db_file = "$main::test_dir/sample_db.sqlite";
 my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
 
-my $t = Test::Mojo->new('webwork3');
+my $t = Test::Mojo->new( webwork3 => { ignore_permissions => 0, secrets => [1234] } );
+
+$t->post_ok( '/api/login' => json => { email => 'admin@google.com', password => 'admin' } )
+	->content_type_is('application/json;charset=UTF-8')->json_is( '/logged_in' => 1 )->json_is( '/user/user_id' => 1 )
+	->json_is( '/user/is_admin' => 1 );
 
 $t->get_ok('/api/courses')->content_type_is('application/json;charset=UTF-8')
 	->json_is( '/0/course_name' => "Precalculus" )->json_is( '/0/course_params/institution' => "Springfield CC" );
@@ -52,30 +56,30 @@ $new_course->{course_params}->{institution} = "Springfield University";
 $t->put_ok( "/api/courses/$new_course_id" => json => $new_course );
 is_deeply( $new_course, $t->tx->res->json, "updateCourse: courses match" );
 
-## test for exceptions
-
-# a set that is not in a course
-$t->get_ok("/api/courses/99999")->content_type_is('application/json;charset=UTF-8')
-	->json_is( '/exception' => 'DB::Exception::CourseNotFound' );
-
-# try to update a non-existant course
-
-$t->put_ok( "/api/courses/999999" => json => { course_name => 'new course name' } )
-	->content_type_is('application/json;charset=UTF-8')->json_is( '/exception' => 'DB::Exception::CourseNotFound' );
-
-# try to add a course without a course_name
-
-my $another_new_course = { name => "this is the wrong field" };
-
-$t->post_ok( "/api/courses/" => json => $another_new_course )->content_type_is('application/json;charset=UTF-8')
-	->json_is( '/exception' => 'DB::Exception::ParametersNeeded' );
-
-# try to delete a non-existent course.
-$t->delete_ok("/api/courses/9999999")->content_type_is('application/json;charset=UTF-8')
-	->json_is( '/exception' => 'DB::Exception::CourseNotFound' );
-
 # delete the added course
 
 $t->delete_ok("/api/courses/$new_course_id")->status_is(200)->json_is( '/course_name' => $new_course->{course_name} );
+
+# logout
+
+$t->get_ok("/api/logout")->status_is(200)->json_is( '/logged_in' => 0 );
+
+## login a non admin user
+
+$t->post_ok( '/api/login' => json => { email => 'lisa@google.com', password => 'lisa' } )
+	->content_type_is('application/json;charset=UTF-8')->json_is( '/logged_in' => 1 )
+	->json_is( '/user/login' => "lisa" )->json_is( '/user/is_admin' => 0 );
+
+$t->get_ok('/api/courses')->content_type_is('application/json;charset=UTF-8')
+	->json_is( '/0/course_name' => "Precalculus" )->json_is( '/0/course_params/institution' => "Springfield CC" );
+
+$t->get_ok('/api/courses/1')->content_type_is('application/json;charset=UTF-8')
+	->json_is( '/course_name' => "Precalculus" )->json_is( '/course_params/institution' => "Springfield CC" );
+
+$t->post_ok( '/api/courses' => json => $new_course )->status_is(200)->json_is( '/has_permission' => 0 );
+
+$t->put_ok( "/api/courses/1" => json => { course_name => "XXX" } )->status_is(200)->json_is( '/has_permission' => 0 );
+
+$t->delete_ok("/api/courses/1")->status_is(200)->json_is( '/has_permission' => 0 );
 
 done_testing;

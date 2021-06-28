@@ -5,7 +5,6 @@ use Test::Mojo;
 
 use Data::Dump qw/dd/;
 
-
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
@@ -22,46 +21,62 @@ use DB::Schema;
 # load the database
 my $db_file = "$main::test_dir/sample_db.sqlite";
 my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
- 
 
 my $t = Test::Mojo->new('webwork3');
 
-$t->get_ok('/api/courses/2/users')
-	->content_type_is('application/json;charset=UTF-8')
-	->json_is('/1/first_name'=>"Apu")
-	->json_is('/0/email' => 'lisa@google.com');
+$t->get_ok('/api/courses/2/users')->content_type_is('application/json;charset=UTF-8')
+	->json_is( '/1/first_name' => "Apu" )->json_is( '/0/email' => 'lisa@google.com' );
 
-	# Pull out the id from the response
+# Pull out the id from the response
 my $user_id = $t->tx->res->json('/0/user_id');
 
-
-$t->get_ok("/api/courses/2/users/$user_id")
-	->content_type_is('application/json;charset=UTF-8')
-	->json_is('/first_name'=>"Lisa");
+$t->get_ok("/api/courses/2/users/$user_id")->content_type_is('application/json;charset=UTF-8')
+	->json_is( '/first_name' => "Lisa" );
 
 ## add a new user to a course
 
 my $new_user = {
-	email => 'maggie@abc.com',
+	email      => 'maggie@abc.com',
 	first_name => "Maggie",
-	last_name => "Simpson",
-	login => "maggie",
+	last_name  => "Simpson",
+	login      => "maggie",
 	student_id => "1234123423"
-}; 
+};
 
-$t->post_ok("/api/courses/2/users" => json => $new_user)
-	->content_type_is('application/json;charset=UTF-8')
-	->json_is('/first_name' => 'Maggie');
+$t->post_ok( "/api/courses/2/users" => json => $new_user )->content_type_is('application/json;charset=UTF-8')
+	->json_is( '/first_name' => 'Maggie' );
 
 # update the new user
 my $new_user_id = $t->tx->res->json('/user_id');
-$new_user->{recitation} = 2; 
-$t->put_ok("/api/courses/2/users/$new_user_id" => json => {recitation => 2})
-	->content_type_is('application/json;charset=UTF-8')
-	->json_is('/recitation' => 2);
+$new_user->{recitation} = 2;
+$t->put_ok( "/api/courses/2/users/$new_user_id" => json => { recitation => 2 } )
+	->content_type_is('application/json;charset=UTF-8')->json_is( '/recitation' => 2 );
 
-$t->delete_ok("/api/courses/2/users/$new_user_id")
-	->content_type_is('application/json;charset=UTF-8')
-	->json_is('/login' => 'maggie');
+## test for exceptions
+
+## test for exceptions
+
+# a user that is not in a course
+$t->get_ok("/api/courses/1/users/4")->content_type_is('application/json;charset=UTF-8')
+	->json_is( '/exception' => 'DB::Exception::UserNotInCourse' );
+
+# try to update a user not in a course
+
+$t->put_ok( "/api/courses/1/users/4" => json => { recitation => '2' } )
+	->content_type_is('application/json;charset=UTF-8')->json_is( '/exception' => 'DB::Exception::UserNotInCourse' );
+
+# try to add a user without a login
+
+my $another_new_user = { login_name => "this is the wrong field" };
+
+$t->post_ok( "/api/courses/1/users" => json => $another_new_user )->content_type_is('application/json;charset=UTF-8')
+	->json_is( '/exception' => 'DB::Exception::ParametersNeeded' );
+
+# try to delete a user not in a course
+$t->delete_ok("/api/courses/1/users/4")->content_type_is('application/json;charset=UTF-8')
+	->json_is( '/exception' => 'DB::Exception::UserNotInCourse' );
+
+$t->delete_ok("/api/courses/2/users/$new_user_id")->content_type_is('application/json;charset=UTF-8')
+	->json_is( '/login' => 'maggie' );
 
 done_testing;

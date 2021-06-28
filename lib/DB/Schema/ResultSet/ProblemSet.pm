@@ -279,7 +279,6 @@ sub newSetVersion {
 		my $user_set_rs = $self->result_source->schema->resultset("UserSet");
 		# @user_sets = $user_set_rs->get
 	}
-	dd $set;
 }
 
 

@@ -12,17 +12,12 @@ sub getProblemSets {
 
 sub getProblemSet {
 	my $self = shift;
-	# try {
-		my $set = $self->schema->resultset("ProblemSet")
-			->getProblemSet({
-					course_id => int( $self->param("course_id")),
-					set_id => int( $self->param("set_id"))
-				});
-		$self->render(json => $set);
-	# } catch {
-	# 	dd ref $_;
-	# 	$self->render(json => {msg => "oops!", exception => ref($_)});
-	# };
+	my $set = $self->schema->resultset("ProblemSet")
+		->getProblemSet({
+				course_id => int( $self->param("course_id")),
+				set_id => int( $self->param("set_id"))
+			});
+	$self->render(json => $set);
 }
 
 ## update the course given by course_id with given params

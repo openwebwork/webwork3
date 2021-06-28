@@ -31,9 +31,31 @@ sub user_courses {
 }
 
 sub logout_page {
-	my $self = shift; 
+	my $self = shift;
 	$self->logout;
 	$self->render();
+}
+
+#
+# TODO: handle post parameters as well.
+#
+
+sub login {
+	my $self = shift;
+	my $params = $self->req->json;
+	# dd $params;
+	if ($self->authenticate($params->{email},$params->{password})) {
+		## redirect
+		$self->render(json=>{logged_in => 1, user => $self->current_user});
+	} else {
+		$self->render(json=>{logged_in => 0, msg => "Your login information was incorrect"});
+	}
+}
+
+sub logout_user {
+	my $self = shift;
+	$self->logout;
+	$self->render(json => {logged_in => 0, msg => "Logout is successful"});
 }
 
 1;

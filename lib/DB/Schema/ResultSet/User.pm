@@ -429,8 +429,6 @@ An hashref of the added user.
 
 sub deleteUser {
 	my ( $self, $course_user_info, $as_result_set ) = @_;
-	dd "in deleteUser";
-	dd $course_user_info;
 	my $course_rs   = $self->result_source->schema->resultset("Course");
 	my $course_info = getCourseInfo($course_user_info);
 	my $course      = $course_rs->getCourse( $course_info, 1 );

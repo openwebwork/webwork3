@@ -1,0 +1,17 @@
+#
+# This file contains the permissions for all of the mojolicious
+# routes and what user type has permissions to call the particular route.
+#
+# for course level, check if the global user is an admin or * means any user
+Course:
+  getCourses:
+  getCourse:
+  updateCourse:
+    check_permission : true
+    admin_required: true
+  addCourse:
+    check_permission : true
+    admin_required: true
+  deleteCourse:
+    check_permission : true
+    admin_required: true

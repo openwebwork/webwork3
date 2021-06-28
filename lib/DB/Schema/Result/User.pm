@@ -35,6 +35,11 @@ __PACKAGE__->add_columns(
 		data_type   => 'text',
 		is_nullable => 1,
 	},
+	is_admin => {
+		data_type => 'bool',
+		is_nullable => 0,
+		default_value => 0,
+	},
 	login_params => {
 		data_type     => 'text',
 		size          => 256,
