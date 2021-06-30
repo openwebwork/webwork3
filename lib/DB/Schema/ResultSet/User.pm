@@ -66,8 +66,9 @@ sub getGlobalUser {
 	my $user = $self->find( getUserInfo($user_info) );
 	DB::Exception::UserNotFound->throw( login => $user_info ) unless defined($user);
 	return $user if $as_result_set;
-	return removeLoginParams( { $user->get_inflated_columns } );
-
+	my $params =  { $user->get_inflated_columns };
+	$params->{role} = "admin" if $user->is_admin;
+	return removeLoginParams($params);
 }
 
 =pod

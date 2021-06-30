@@ -54,8 +54,17 @@ for my $student (@students) {
 	for my $key (qw/course_name recitation section params role/) {
 		delete $student->{$key};
 	}
+	$student->{is_admin} = 0;
 }
-
+# add the admin user
+push(@students,{
+		login => "admin",
+		email => 'admin@google.com',
+		is_admin => 1,
+		last_name => undef,
+		first_name => undef,
+		student_id => undef
+	});
 my @all_students = orderUsers(@students);
 
 ## get a list of all users
@@ -72,11 +81,14 @@ is_deeply( \@all_students, \@users_from_db, "getUsers: all users" );
 
 my $user = $users_rs->getGlobalUser( { login => $all_students[0]->{login} } );
 removeIDs($user);
+delete $user->{role};
 is_deeply( $all_students[0], $user, "getUser: by login" );
+
 
 $user = $users_rs->getGlobalUser( { user_id => 2 } );
 removeIDs($user);
-is_deeply( $students[1], $user, "getUser: by user_id" );
+my @stud2 = grep {$_->{login} eq $user->{login}} @all_students;
+is_deeply( $stud2[0], $user, "getUser: by user_id" );
 
 ## get one user that does not exist
 
@@ -97,7 +109,8 @@ $user = {
 	last_name  => "Wiggam",
 	first_name => "Clancy",
 	email      => 'wiggam@springfieldpd.gov',
-	student_id => ''
+	student_id => '',
+	is_admin   => 0,
 };
 
 my $new_user = $users_rs->addGlobalUser($user);

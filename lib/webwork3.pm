@@ -4,61 +4,16 @@ use Mojo::Base 'Mojolicious', -signatures;
 use Mojo::File qw(curfile);
 use YAML::XS qw/LoadFile/;
 
-my $webwork_root = curfile->dirname->sibling('lib')->to_string;
+my $webwork_root = curfile->dirname->to_string . "/..";
 
 use Data::Dump qw/dd/;
 use Try::Tiny;
 
 use DB::Schema;
+use WeBWorK3::Mojolicious;
 
-## perhaps make this a plugin
 
-my $handle_exception = sub ($next, $c) {
-	## only test requests that start with "/api"
-	# dd "in handle_exception";
-	if ($c->req->url->to_string =~ /\/api/) {
-		try {
-			$next->();
-		} catch {
-			$c->render(json => {msg => "oops!", message=> $_->message, exception => ref($_)});
-		};
-	} else {
-		$next->();
-	}
-};
-
-my $ignore_permissions = 1;
-my $perm_table = LoadFile("$webwork_root/../conf/permissions.yaml");
-
-sub has_permission {
-  my ($user,$controller_name, $action_name) = @_;
-	dd "in has_permission";
-	my $perm = $perm_table->{$controller_name}->{$action_name};
-	return 1 unless $perm->{check_permission};
-	return $user->{is_admin} if $perm->{admin_required};
-	## check non-admin routes;
-
-	return 1;
-}
-
-## check permission for /api routes
-
-my $check_permission = sub {
-	my ($next, $c, $action, $last) = @_;
-	dd "in check_permission";
-	# dd $c->{stash};
-	return $next->() if ($c->req->url->to_string =~ /\/api\/login/);
-	if ($c->req->url->to_string =~ /\/api/) {
-		dd has_permission($c->current_user,$c->{stash}->{controller},$c->{stash}->{action});
-		if (has_permission($c->current_user,$c->{stash}->{controller},$c->{stash}->{action})) {
-			return $next->();
-		} else {
-			$c->render( json => { has_permission => 0, msg => "permission error"});
-		}
-	} else {
-		$next->();
-	}
-};
+my $perm_table;
 
 # This method will run once at server start
 sub startup ($self) {
@@ -68,15 +23,12 @@ sub startup ($self) {
 
 	# Configure the application
 	$self->secrets($config->{secrets});
-	$ignore_permissions = $config->{ignore_permissions};
 	## get the dbix plugin loaded
 
-	my $schema = DB::Schema->connect("dbi:SQLite:dbname=$webwork_root/../t/db/sample_db.sqlite");
-
+	my $schema = DB::Schema->connect("dbi:SQLite:dbname=$webwork_root/t/db/sample_db.sqlite");
 	$self->plugin('DBIC',{schema => $schema});
 
 	# load the authentication plugin
-
 	$self->plugin(
 		Authentication => {
 				load_user     => sub ($app, $uid) { $self->load_account($uid) },
@@ -84,13 +36,17 @@ sub startup ($self) {
 		}
 	);
 
+	$self->helper( perm_table => sub ($c) {
+		$perm_table = LoadFile("$webwork_root/conf/permissions.yaml") unless defined($perm_table);
+		return $perm_table;
+	});
 
-
-
+	$self->helper( ignore_permissions => sub ($c) { return $config->{ignore_permissions}; });
 
 	## handle all api route exceptions
-	$self->hook( around_dispatch => $handle_exception);
-	$self->hook( around_action => $check_permission);
+
+	$self->hook( around_dispatch => $WeBWorK3::Mojolicious::exception_handler );
+	$self->hook( around_action   => $WeBWorK3::Mojolicious::check_permission );
 
 	## load all routes
 	$self->loginRoutes();
