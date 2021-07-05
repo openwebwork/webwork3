@@ -27,22 +27,6 @@ This is the functionality of a ProblemSet in WeBWorK.  This package is based on
 
 =cut
 
-=pod
-
-=pod
-=head2 getSetType
-
-returns the type (HW, Quiz, JITAR, REVIEW) of the problem set
-
-=cut
-
-sub set_type {
-	my ( $self, $type_number ) = @_;
-	for my $key ( keys %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES} ) {
-		return $key if $self->type == $DB::Schema::ResultSet::ProblemSet::SET_TYPES->{$key};
-	}
-
-}
 
 =head2 getProblemSets
 
@@ -279,6 +263,7 @@ sub newSetVersion {
 		my $user_set_rs = $self->result_source->schema->resultset("UserSet");
 		# @user_sets = $user_set_rs->get
 	}
+	return $set;
 }
 
 

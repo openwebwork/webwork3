@@ -39,9 +39,9 @@ my $course = $course_rs->find({course_id => 1});
 
 # my @results = $user_set_rs->search({set_id => 3}, {prefetch => ["course_users"]});
 
-# dd map { {$_->get_inflated_columns, $_->course_users->get_inflated_columns}; } @results; 
+# dd map { {$_->get_inflated_columns, $_->course_users->get_inflated_columns}; } @results;
 
-# die; 
+# die;
 
 # load info from CSV files
 
@@ -133,10 +133,10 @@ my $user_set = $user_set_rs->getUserSet($info);
 
 my $user_set_from_csv = firstval {
 	$_->{course_name} eq "Precalculus"
-		&& $_->{login} eq $user_set->{login}
-		&& $_->{set_name} eq $user_set->{set_name}
-}
-@all_user_sets;
+		&& $_->{login} eq $info->{login}
+		&& $_->{set_name} eq $info->{set_name}
+} @all_user_sets;
+
 
 removeIDs($user_set);
 delete $user_set->{type};
@@ -194,6 +194,6 @@ throws_ok {
 
 my $updated_params = { dates => { open => 10, reduced_scoring => 30 } };
 
-# $user_set_rs->updateUserSet( $info, $updated_params );
+my $updated_set = $user_set_rs->updateUserSet( $info, $updated_params );
 
 done_testing;

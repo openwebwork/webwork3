@@ -339,7 +339,7 @@ sub _checkCourseUser {
 	DB::Exception::ParametersNeeded->throw(
 		error => "The fields " . join( ", ", @illegal_fields ) . " are not legal for a user." )
 		unless scalar(@illegal_fields) == 0;
-
+	return 1;
 }
 
 =pod

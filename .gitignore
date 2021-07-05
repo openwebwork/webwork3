@@ -25,3 +25,4 @@ pnpm-debug.log*
 
 sample_db.sqlite
 *.bak
+node_modules

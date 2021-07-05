@@ -8,8 +8,8 @@ use JSON;
 our @VALID_DATES    = qw/open end/;
 our @REQUIRED_DATES = qw//;
 our $VALID_PARAMS   = {
-	institution => '.*',
-	visible     => '[01]'
+	institution => q{.*},
+	visible     => q{[01]}
 };
 our $REQUIRED_PARAMS = { _ALL_ => ['visible'] };
 
