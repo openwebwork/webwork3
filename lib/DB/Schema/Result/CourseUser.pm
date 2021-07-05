@@ -6,15 +6,15 @@ use JSON;
 
 __PACKAGE__->table('course_user');
 
-our $VALID_PARAMS    = {
-	comment => '.*',
-	useMathQuill => '[01]',
-	useMathView => '[01]',
-	displayMode => '\w+',
-	status => '\w',
-	lis_source_did => '.*',
-  useWirisEditor => '[01]',
-  showOldAnswers => '[01]'
+our $VALID_PARAMS = {
+	comment        => q{.*},
+	useMathQuill   => q{[01]},
+	useMathView    => q{[01]},
+	displayMode    => q{\w+},
+	status         => q{\w},
+	lis_source_did => q{.*},
+	useWirisEditor => q{[01]},
+	showOldAnswers => q{[01]}
 };
 
 our $REQUIRED_PARAMS = {};
@@ -63,14 +63,13 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('course_user_id');
 __PACKAGE__->add_unique_constraint( [qw/course_id user_id/] );
 
-__PACKAGE__->belongs_to( users => 'DB::Schema::Result::User', 'user_id' );
+__PACKAGE__->belongs_to( users   => 'DB::Schema::Result::User',   'user_id' );
 __PACKAGE__->belongs_to( courses => 'DB::Schema::Result::Course', 'course_id' );
 
-__PACKAGE__->has_many( user_sets => 'DB::Schema::Result::UserSet', 'user_id');
+__PACKAGE__->has_many( user_sets => 'DB::Schema::Result::UserSet', 'user_id' );
 
 # __PACKAGE__->belongs_to( user_id => 'DB::Schema::Result::User' );
 # __PACKAGE__->belongs_to( course_id => 'DB::Schema::Result::Course' );
-
 
 ### Handle the params column using JSON.
 

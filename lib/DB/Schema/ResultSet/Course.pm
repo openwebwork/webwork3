@@ -12,28 +12,28 @@ use DB::Exception;
 use Exception::Class ( 'DB::Exception::CourseNotFound', 'DB::Exception::CourseExists' );
 
 =pod
- 
+
 =head1 DESCRIPTION
- 
-This is the functionality of a Course in WeBWorK.  This package is based on 
-<code>DBIx::Class::ResultSet</code>.  The basics are a CRUD for anything on the 
-global courses.  
- 
+
+This is the functionality of a Course in WeBWorK.  This package is based on
+<code>DBIx::Class::ResultSet</code>.  The basics are a CRUD for anything on the
+global courses.
+
 =cut
 
 =pod
 =head2 getCourses
 
-This gets a list of Courses stored in the database in the <code>courses</codes> table. 
+This gets a list of Courses stored in the database in the <code>courses</codes> table.
 
-=head3 input 
+=head3 input
 
 <code>$as_result_set</code>, a boolean if the return is to be a result_set
 
-=head3 output 
+=head3 output
 
 An array of courses as a <code>DBIx::Class::ResultSet::Course</code> object
-if <code>$as_result_set</code> is true.  Otherwise an array of hash_ref.  
+if <code>$as_result_set</code> is true.  Otherwise an array of hash_ref.
 
 =cut
 
@@ -41,31 +41,24 @@ sub getCourses {
 	my ( $self, $as_result_set ) = @_;
 	my @courses = $self->search();
 	return @courses if $as_result_set;
-	return map {
-		{
-			$_->get_inflated_columns,
-
-				# params => $_->get_inflated_column("course_params"),
-				# dates => $_->get_inflated_column("course_dates")
-		};
-	} @courses;
+	return map { {$_->get_inflated_columns}; } @courses;
 }
 
 =pod
 =head1 getCourse
 
-This gets a single course that is stored in the database in the <code>courses</codes> table. 
+This gets a single course that is stored in the database in the <code>courses</codes> table.
 
-=head3 input 
+=head3 input
 =item *
 <code>course_info</code>, a hashref containing either course_name or course_id
 =item *
 <code>result_set</code>, a a boolean if the return is to be a result_set
 
-=head3 output 
+=head3 output
 
-The course either as a <code> DBIx::Class::ResultSet::Course</code> object or a hashref 
-of the fields.  
+The course either as a <code> DBIx::Class::ResultSet::Course</code> object or a hashref
+of the fields.
 
 =cut
 
@@ -80,15 +73,15 @@ sub getCourse {
 =pod
 =head1 addCourse
 
-Adds a single course to the database in the <code>courses</codes> table. 
+Adds a single course to the database in the <code>courses</codes> table.
 
-=head3 input 
+=head3 input
 
-A set of parameters, especially a <code>course_name</code> of type string. 
+A set of parameters, especially a <code>course_name</code> of type string.
 
-=head3 output 
+=head3 output
 
-The added course as a <code>DBIx::Class::ResultSet::Course</code> object.  
+The added course as a <code>DBIx::Class::ResultSet::Course</code> object.
 
 =cut
 
@@ -109,15 +102,15 @@ sub addCourse {
 =pod
 =head1 deleteCourse
 
-This deletes a single course that is stored in the database in the <code>courses</codes> table. 
+This deletes a single course that is stored in the database in the <code>courses</codes> table.
 
-=head3 input 
+=head3 input
 
-<code>course_name</code>, a string, the name of the course to be deleted.  
+<code>course_name</code>, a string, the name of the course to be deleted.
 
-=head3 output 
+=head3 output
 
-The deleted course as a <code>DBIx::Class::ResultSet::Course</code> object.  
+The deleted course as a <code>DBIx::Class::ResultSet::Course</code> object.
 
 =cut
 
@@ -135,18 +128,18 @@ sub deleteCourse {
 =pod
 =head1 updateCourse
 
-This updates a single course that is stored in the database in the <code>courses</codes> table. 
+This updates a single course that is stored in the database in the <code>courses</codes> table.
 
-=head3 input 
+=head3 input
 
-=item * 
+=item *
 <code>course_name</code>, a string
 =item *
-A hash of the course parameters to be updated.  
+A hash of the course parameters to be updated.
 
-=head3 output 
+=head3 output
 
-The updated course as a <code>DBIx::Class::ResultSet::Course</code> object.  
+The updated course as a <code>DBIx::Class::ResultSet::Course</code> object.
 
 =cut
 
@@ -163,17 +156,17 @@ sub updateCourse {
 
 This gets a list of Courses for a given user
 
-=head3 input 
+=head3 input
 
 =item*
 hashref containing info about the user
-=item* 
+=item*
 <code>$as_result_set</code>, a boolean if the return is to be a result_set
 
-=head3 output 
+=head3 output
 
 An array of courses as a <code>DBIx::Class::ResultSet::Course</code> object
-if <code>$as_result_set</code> is true.  Otherwise an array of hash_ref.  
+if <code>$as_result_set</code> is true.  Otherwise an array of hash_ref.
 
 =cut
 

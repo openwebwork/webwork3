@@ -15,7 +15,6 @@ use lib "$main::lib_dir";
 
 use Text::CSV qw/csv/;
 use Data::Dump qw/dd/;
-use List::MoreUtils qw/uniq first_value/;
 use Test::More;
 use Test::Exception;
 use Try::Tiny;
@@ -25,19 +24,6 @@ use DB::WithParams;
 use DB::WithDates;
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
-
-## order users on login_name;
-
-sub orderUsers {
-	my @array       = @_;
-	my %temp_hash   = map { $_->{login}, 0 } @_;
-	my @login_names = sort ( keys %temp_hash );
-	my @users       = ();
-	for my $key (@login_names) {
-		push( @users, first_value { $_->{login} eq $key } @array );
-	}
-	return @users;
-}
 
 # load the database
 my $db_file = "$main::test_dir/sample_db.sqlite";
@@ -50,12 +36,18 @@ my $users_rs = $schema->resultset("User");
 ## get a list of users from the CSV file
 my @students = loadCSV("$main::test_dir/sample_data/students.csv");
 
+# remove duplicates
+my %seen = ();
+@students = grep { ! $seen{ $_->{login} }++ } @students;
+# dd \@unique;
+
 for my $student (@students) {
 	for my $key (qw/course_name recitation section params role/) {
 		delete $student->{$key};
 	}
 	$student->{is_admin} = 0;
 }
+
 # add the admin user
 push(@students,{
 		login => "admin",
@@ -65,7 +57,7 @@ push(@students,{
 		first_name => undef,
 		student_id => undef
 	});
-my @all_students = orderUsers(@students);
+my @all_students = sort { $a->{login} cmp $b->{login} } @students;
 
 ## get a list of all users
 
@@ -76,6 +68,9 @@ for my $user (@users_from_db) {
 @users_from_db = sort { $a->{login} cmp $b->{login} } @users_from_db;
 
 is_deeply( \@all_students, \@users_from_db, "getUsers: all users" );
+
+# dd \@all_students;
+# dd \@users_from_db;
 
 ## get one user that exists
 
@@ -164,4 +159,6 @@ throws_ok {
 "DB::Exception::UserNotFound", "deleteUser: trying to delete with undefined user_id";
 
 done_testing;
+
+1;
 

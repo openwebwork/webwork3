@@ -27,11 +27,11 @@ __PACKAGE__->add_columns(
 		is_nullable => 0,
 	},
 	set_version => {
-		data_type   => 'integer',
-		size        => 16,
-		is_nullable => 0,
+		data_type     => 'integer',
+		size          => 16,
+		is_nullable   => 0,
 		default_value => 1,
-	},	
+	},
 	type => {
 		data_type     => "int",
 		default_value => 1,
@@ -54,9 +54,11 @@ __PACKAGE__->add_columns(
 );
 
 __PACKAGE__->set_primary_key('user_set_id');
-__PACKAGE__->add_unique_constraint([qw/set_id user_id set_version/]);
-__PACKAGE__->belongs_to( course_users => 'DB::Schema::Result::CourseUser', 
-	{'foreign.user_id' => 'self.user_id'} );
+__PACKAGE__->add_unique_constraint( [qw/set_id user_id set_version/] );
+__PACKAGE__->belongs_to(
+	course_users => 'DB::Schema::Result::CourseUser',
+	{ 'foreign.user_id' => 'self.user_id' }
+);
 __PACKAGE__->belongs_to( problem_sets => 'DB::Schema::Result::ProblemSet', 'set_id' );
 
 #
