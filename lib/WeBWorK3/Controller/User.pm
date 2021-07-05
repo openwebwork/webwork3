@@ -5,7 +5,7 @@ use Data::Dump qw/dd/;
 
 sub getGlobalUsers {
 	my $self = shift;
-	my @global_users =  $self->schema->resultset("User")->getAllGlobalUsers; 
+	my @global_users =  $self->schema->resultset("User")->getAllGlobalUsers;
 	$self->render(json => \@global_users);
 }
 
@@ -35,13 +35,13 @@ sub deleteGlobalUser {
 	$self->render(json => $user);
 }
 
-## the following subs are related to users within a given course. 
+## the following subs are related to users within a given course.
 
 sub getUsers {
 	my $self = shift;
 	my @course_users = $self->schema->resultset("User")->getUsers(
 		{course_id => int($self->param("course_id"))});
-	$self->render(json => \@course_users); 
+	$self->render(json => \@course_users);
 }
 
 sub getUser {
@@ -65,7 +65,7 @@ sub addUser {
 sub updateUser {
 	my $self = shift;
 	my $course_user = $self->schema->resultset("User")->updateUser(
-		{ 
+		{
 			course_id => int($self->param("course_id")),
 			user_id => int($self->param("user_id"))
 		}, $self->req->json);
@@ -76,12 +76,19 @@ sub updateUser {
 sub deleteUser {
 	my $self = shift;
 	my $course_user = $self->schema->resultset("User")->deleteUser(
-		{ 
+		{
 			course_id => int($self->param("course_id")),
 			user_id => int($self->param("user_id"))
 		});
 	$self->render(json => $course_user);
 
+}
+
+sub getUserCourses {
+	my $self = shift;
+	my @user_courses = $self->schema->resultset("Course")
+		->getUserCourses({user_id => $self->param('user_id')});
+	$self->render(json => \@user_courses);
 }
 
 
