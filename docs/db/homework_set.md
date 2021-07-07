@@ -1,11 +1,10 @@
-## HomeworkSet
+# HomeworkSet
 
 This basically mimics a WeBWorK2 homework set
 
-### fields
+## fields
 
 - `type`: `HW`
-
 - `dates`:
   - `open` (**required**)
   - `reduced_scoring`
@@ -15,10 +14,6 @@ This basically mimics a WeBWorK2 homework set
 - `params`:
   - `visible`: (default: false)
   - `problem_view`: (default: `one_per_page`)
-
-
-
-
 
 ## JITAR (Just in Time Set)
 

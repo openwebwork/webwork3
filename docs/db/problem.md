@@ -1,17 +1,16 @@
-## Problems in WeBWorK3
+# Problems in WeBWorK3
 
-### fields
+## fields
 
 - `problem_id`
 - `set_id` -- the set the problem is in
 - `problem_number`
 - `problem_version`
-- `params`: 
+- `params`:
   - `problem_path`
   - `library_id`
-	- `value`
+  - `value`
 
-
-### Questions
+## Questions
 
 1. How do we store problems in a problem pool?
