@@ -28,10 +28,11 @@ and tests the results.
 Like above the tests rely on the `sample_db.sqlite` database and it must be built
 or rebuilt.
 
-All tests within the directory can be run with either `prove *.t` or `prove -lv *.t`,
+Like the `db` subdirectory, all tests within the directory can be run with
+either `prove *.t` or `prove -lv *.t`,
 where the first runs all tests within all test files and just reports a summary of
 the results.  The command with the `-lv` flags lists things test by test and any
 output from the tests.
 
-Additional, one can run an individual test as in the following  example
+Also, one can run an individual test as in the following  example
 `prove -lv 001_login.t`.
