@@ -64,6 +64,7 @@ of the fields.
 
 sub getCourse {
 	my ( $self, $course_info, $as_result_set ) = @_;
+	dd getCourseInfo($course_info);
 	my $course = $self->find( getCourseInfo($course_info) );
 	DB::Exception::CourseNotFound->throw( course_name => $course_info ) unless defined($course);
 	return $course if $as_result_set;

@@ -333,7 +333,7 @@ sub _checkCourseUser {
 	my $course_user_rs = $self->result_source->schema->resultset("CourseUser");
 
 	my @cols = $course_user_rs->result_source->columns;
-	@cols = grep { !( $_ =~ /_id$/ ) } @cols;
+	@cols = grep { !( $_ =~ /_id$/x ) } @cols;
 
 	my @illegal_fields = array_minus( @fields, @cols );
 	DB::Exception::ParametersNeeded->throw(

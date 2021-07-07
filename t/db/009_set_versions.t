@@ -50,5 +50,6 @@ for my $set (@hw_sets) {
 
 $problem_set_rs->newSetVersion({course_id=>1,set_id=>1});
 
+is_deeply({test=>1},{test=>1},'fake test');
 
 done_testing;

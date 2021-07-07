@@ -1,4 +1,4 @@
-package webwork3;
+package WeBWorK3;
 use Mojo::Base 'Mojolicious', -signatures;
 
 use Mojo::File qw(curfile);
@@ -16,8 +16,8 @@ use WeBWorK3::Mojolicious;
 my $perm_table;
 
 # This method will run once at server start
-sub startup ($self) {
-
+sub startup {
+	my $self = shift;
 	# Load configuration from config file
 	my $config = $self->plugin('NotYAMLConfig');
 
@@ -54,7 +54,7 @@ sub startup ($self) {
 	$self->userRoutes();
 	$self->courseUserRoutes();
 	$self->problemSetRoutes();
-
+	return;
 }
 
 
@@ -81,6 +81,7 @@ sub loginRoutes {
 	$self->routes->get('/logout')->to('Login#logout_page');
 	$self->routes->post('/webwork3/api/login')->to('Login#login');
 	$self->routes->any('/webwork3/api/logout')->to('Login#logout_user');
+	return;
 }
 
 sub coursesRoutes {
@@ -91,6 +92,7 @@ sub coursesRoutes {
   $course_routes->put('/:course_id')->to(action => 'updateCourse');
 	$course_routes->post('/')->to(action => 'addCourse');
 	$course_routes->delete('/:course_id')->to(action => 'deleteCourse');
+	return;
 }
 
 sub userRoutes {
@@ -102,6 +104,7 @@ sub userRoutes {
 	$course_routes->put('/:user_id')->to(action => 'updateGlobalUser');
 	$course_routes->delete('/:user_id')->to(action => 'deleteGlobalUser');
 	$self->routes->get('/webwork3/api/users/:user_id/courses')->to('User#getUserCourses');
+	return;
 }
 
 sub courseUserRoutes {
@@ -112,7 +115,7 @@ sub courseUserRoutes {
 	$course_user_routes->get('/:user_id')->to(action => 'getUser');
 	$course_user_routes->put('/:user_id')->to(action => 'updateUser');
 	$course_user_routes->delete('/:user_id')->to(action => 'deleteUser');
-
+	return;
 }
 
 sub problemSetRoutes {
@@ -124,6 +127,7 @@ sub problemSetRoutes {
   $course_routes->put('/:set_id')->to(action => 'updateProblemSet');
 	$course_routes->post('/')->to(action => 'addProblemSet');
 	$course_routes->delete('/:set_id')->to(action => 'deleteProblemSet');
+	return;
 }
 
 
