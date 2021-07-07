@@ -2,17 +2,18 @@ package DB::Schema::Result::Problem;
 use DBIx::Class::Core;
 use DB::WithParams;
 
-our @ISA = qw(DBIx::Class::Core DB::WithParams);
 use strict;
 use warnings;
+
+use base qw(DBIx::Class::Core DB::WithParams);
 
 use JSON;
 
 our $VALID_PARAMS = {
-	weight          => '\d+',
-	library_id      => '\d+',
-	problem_path    => '.*',
-	problem_pool_id => '\d+'
+	weight          => q{\d+},
+	library_id      => q{\d+},
+	problem_path    => q{.*},
+	problem_pool_id => q{\d+}
 };
 
 our $REQUIRED_PARAMS =

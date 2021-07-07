@@ -35,6 +35,11 @@ __PACKAGE__->add_columns(
 		data_type   => 'text',
 		is_nullable => 1,
 	},
+	is_admin => {
+		data_type     => 'bool',
+		is_nullable   => 0,
+		default_value => 0,
+	},
 	login_params => {
 		data_type     => 'text',
 		size          => 256,
@@ -46,8 +51,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('user_id');
 __PACKAGE__->add_unique_constraint( [qw/login/] );
 
-__PACKAGE__->has_many( course_users => 'DB::Schema::Result::CourseUser', 'user_id' );
-__PACKAGE__->many_to_many( courses => 'course_users', 'course_id' );
+__PACKAGE__->has_many( course_users => 'DB::Schema::Result::CourseUser', { 'foreign.user_id' => 'self.user_id' } );
+__PACKAGE__->many_to_many( courses => 'course_users', 'courses' );
 
 __PACKAGE__->inflate_column(
 	'login_params',

@@ -36,6 +36,9 @@ my $user_rs   = $schema->resultset("User");
 
 ## get a list of users from the CSV file
 my @students = loadCSV("$main::test_dir/sample_data/students.csv");
+for my $student (@students) {
+	$student->{is_admin} = 0;
+}
 
 ## filter only precalc students
 my @precalc_students = grep { $_->{course_name} eq "Precalculus" } @students;
@@ -109,7 +112,8 @@ my $user_params = {
 	role       => "student",
 	params     => {},
 	recitation => undef,
-	section    => undef
+	section    => undef,
+	is_admin   => 0,
 };
 
 $user = $user_rs->addUser( { course_name => "Arithmetic" }, $user_params );

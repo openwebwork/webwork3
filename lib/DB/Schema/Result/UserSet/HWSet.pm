@@ -1,16 +1,17 @@
 package DB::Schema::Result::UserSet::HWSet;
-@ISA = qw(DB::Schema::Result::UserSet DB::WithParams DB::WithDates);
+use DB::WithParams;
+use DB::WithDates;
+
 use strict;
-use warnings; 
+use warnings;
+use base qw(DB::Schema::Result::UserSet DB::WithParams DB::WithDates);
 
-our @VALID_DATES = qw/open reduced_scoring due answer/;
-our @REQUIRED_DATES = qw/open due answer/; 
-our $VALID_PARAMS = {
-	has_reduced_scoring => '[01]',
-	visible => '[01]',
-	hide_hints => '[01]'
-};
+use DB::Schema::Result::ProblemSet::HWSet;
 
-our $REQUIRED_PARAMS = {};
+our @VALID_DATES = @DB::Schema::Result::ProblemSet::HWSet::VALID_DATES;
+our @REQUIRED_DATES = @DB::Schema::Result::ProblemSet::HWSet::REQUIRED_DATES;
+
+our $VALID_PARAMS = $DB::Schema::Result::ProblemSet::HWSet::VALID_PARAMS;
+our $REQUIRED_PARAMS = $DB::Schema::Result::ProblemSet::HWSet::REQUIRED_PARAMS;
 
 1;

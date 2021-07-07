@@ -1,13 +1,14 @@
 package DB::Schema::Result::ProblemSet::Quiz;
-use base qw/DB::Schema::Result::ProblemSet/;
+
 use strict;
-use warnings; 
+use warnings;
+use base qw/DB::Schema::Result::ProblemSet/;
 
 our @VALID_DATES = qw/open due answer/;
-our @REQUIRED_DATES = qw/open due answer/; 
+our @REQUIRED_DATES = qw/open due answer/;
 our $VALID_PARAMS = {
-	timed => '^[01]$',
-	time_length => '\d+',
+	timed => q{^[01]$},
+	time_length => q{\d+},
 };
 our $REQUIRED_PARAMS = {};
 

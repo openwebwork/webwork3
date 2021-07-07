@@ -1,8 +1,8 @@
-## Problems
+# Problem
 
 Class that handles problems in a set
 
-### fields
+## fields
 
 - `problem_id`
 - `set_id`
@@ -11,7 +11,5 @@ Class that handles problems in a set
 - `params`
   - `problem_label`
   - `weight`
-  - `library_id` 
-	- `problem_path`
-
-
+  - `library_id`
+  - `problem_path`

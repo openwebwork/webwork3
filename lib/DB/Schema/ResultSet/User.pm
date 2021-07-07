@@ -1,11 +1,10 @@
-
 =pod
- 
+
 =head1 DESCRIPTION
- 
-This is the functionality of a User in WeBWorK.  This package is based on 
-<code>DBIx::Class::ResultSet</code>.  The basics are a CRUD for users.  
- 
+
+This is the functionality of a User in WeBWorK.  This package is based on
+<code>DBIx::Class::ResultSet</code>.  The basics are a CRUD for users.
+
 =cut
 
 package DB::Schema::ResultSet::User;
@@ -24,15 +23,15 @@ use Exception::Class ( 'DB::Exception::UserNotFound', 'DB::Exception::CourseExis
 =pod
 =head1 getAllGlobalUsers
 
-This gets a list of all users or users stored in the database in the <code>users</codes> table. 
+This gets a list of all users or users stored in the database in the <code>users</codes> table.
 
-=head3 input 
+=head3 input
 
-none 
+none
 
-=head3 output 
+=head3 output
 
-An array of courses as a <code>DBIx::Class::ResultSet::Course</code> object.  
+An array of courses as a <code>DBIx::Class::ResultSet::Course</code> object.
 
 =cut
 
@@ -46,19 +45,19 @@ sub getAllGlobalUsers {
 =pod
 =head1 getGlobalUser
 
-Gets a single user from the <code>users</code> table. 
+Gets a single user from the <code>users</code> table.
 
-=head3 input 
+=head3 input
 
-=item * 
+=item *
 <code>user_info</code>, a hashref of the form <code>{user_id => 1}</code>
-or <code>{login => "username"}</code>. 
+or <code>{login => "username"}</code>.
 =item *
 <code>result_set</code>, a boolean that if true returns the user as a result set.  See below
-=head3 output 
+=head3 output
 
-The user as either a hashref or a  <code>DBIx::Class::ResultSet::User</code> object.  the argument <code>result_set</code> 
-determine which is returned.  
+The user as either a hashref or a  <code>DBIx::Class::ResultSet::User</code> object.  the argument <code>result_set</code>
+determine which is returned.
 
 =cut
 
@@ -67,16 +66,17 @@ sub getGlobalUser {
 	my $user = $self->find( getUserInfo($user_info) );
 	DB::Exception::UserNotFound->throw( login => $user_info ) unless defined($user);
 	return $user if $as_result_set;
-	return removeLoginParams( { $user->get_inflated_columns } );
-
+	my $params =  { $user->get_inflated_columns };
+	$params->{role} = "admin" if $user->is_admin;
+	return removeLoginParams($params);
 }
 
 =pod
 =head1 addGlobalUser
 
-Add a single user to the <code>users</code> table. 
+Add a single user to the <code>users</code> table.
 
-=head3 input 
+=head3 input
 
 <code>params</code>, a hashref including information about the user this includes:
 =item * login (required)
@@ -85,9 +85,9 @@ Add a single user to the <code>users</code> table.
 =item * email
 =item * student_id
 
-=head3 output 
+=head3 output
 
-The user as  <code>DBIx::Class::ResultSet::User</code> object or <code>undef</code> if no user exists. 
+The user as  <code>DBIx::Class::ResultSet::User</code> object or <code>undef</code> if no user exists.
 
 =cut
 
@@ -108,18 +108,18 @@ sub addGlobalUser {
 =pod
 =head1 deleteGlobalUser
 
-This deletes a single user that is stored in the database in the <code>users</codes> table. 
+This deletes a single user that is stored in the database in the <code>users</codes> table.
 
-=head3 input 
+=head3 input
 
 =item *
 <code>user_info</code>, a hashref of the form <code>{user_id => 1}</code>
-or <code>{login => "username"}</code>. 
+or <code>{login => "username"}</code>.
 =item *
-as_result_set, a flag to return the result as a ResultSet of a hashref. 
-=head3 output 
+as_result_set, a flag to return the result as a ResultSet of a hashref.
+=head3 output
 
-The deleted user as a <code>DBIx::Class::ResultSet::User</code> object.  
+The deleted user as a <code>DBIx::Class::ResultSet::User</code> object.
 
 =cut
 
@@ -137,13 +137,13 @@ sub deleteGlobalUser {
 =pod
 =head1 updateGlobalUser
 
-This updates a single user that is stored in the database in the <code>user</codes> table. 
+This updates a single user that is stored in the database in the <code>user</codes> table.
 
-=head3 input 
+=head3 input
 
-=item * 
+=item *
 <code>user_info</code>, a hashref of the form <code>{user_id => 1}</code>
-or <code>{login => "username"}</code>. 
+or <code>{login => "username"}</code>.
 =item *
 <code>params</code>, a hashref of the user parameters.   The following structure is expected:
 =item - login (required)
@@ -152,9 +152,9 @@ or <code>{login => "username"}</code>.
 =item - email
 =item - student_id
 
-=head3 output 
+=head3 output
 
-The updated course as a <code>DBIx::Class::ResultSet::Course</code> or a hashref.  
+The updated course as a <code>DBIx::Class::ResultSet::Course</code> or a hashref.
 
 =cut
 
@@ -188,14 +188,14 @@ sub authenticate {
 =pod
 =head1 getUsers
 
-This gets all users in a given course. 
+This gets all users in a given course.
 
-=head3 input 
+=head3 input
 
-=item * 
+=item *
 <code>course_name</code>, a string
 
-=head3 output 
+=head3 output
 
 An arrayref of Users (as hashrefs) or an arrayref of <code>DBIx::Class::ResultSet::User</code>
 
@@ -205,9 +205,14 @@ sub getUsers {
 	my ( $self, $course_info, $as_result_set ) = @_;
 	my $course_rs = $self->result_source->schema->resultset("Course");
 	my $course    = $course_rs->getCourse( getCourseInfo($course_info), 1 );
-	my @users = $self->search( { 'course_users.course_id' => $course->course_id }, { prefetch => ['course_users'] } );
+	my @users = $self->search( { 'course_users.course_id' => $course->course_id }, { prefetch => ["course_users"] } );
+
 	return \@users if $as_result_set;
-	return map { removeLoginParams( { $_->get_columns, $_->course_users->first->get_inflated_columns } ); } @users;
+	return map { removeLoginParams( {
+		$_->get_columns,
+		$_->course_users->first->get_columns,
+		params => $_->course_users->first->get_inflated_column("params")
+	} ); } @users;
 }
 
 ###
@@ -219,23 +224,23 @@ sub getUsers {
 =pod
 =head1 getUser
 
-This gets a single user in a given course. 
+This gets a single user in a given course.
 
-=head3 input 
+=head3 input
 
-=item * 
+=item *
 <code>params</code>, a hashref containing:
 =item -
 <code>course_name</code>, the name of an existing course
 =item -
-<code>login</code>, the login of an existing user.  
+<code>login</code>, the login of an existing user.
 
 =head3 notes:
-if either the course or login doesn't exist, an error will be thrown. 
+if either the course or login doesn't exist, an error will be thrown.
 
-=head3 output 
+=head3 output
 
-An hashref of the user. 
+An hashref of the user.
 
 =cut
 
@@ -243,7 +248,6 @@ sub getUser {
 	my ( $self, $course_user_info, $as_result_set ) = @_;
 	my $course_info = getCourseInfo($course_user_info);
 	my $course      = $self->result_source->schema->resultset("Course")->getCourse( $course_info, 1 );
-
 	my $course_user = $course->users->find( getUserInfo($course_user_info) );
 	DB::Exception::UserNotInCourse->throw( course_name => $course->course_name, login => $course_user_info->{login} )
 		unless defined($course_user);
@@ -259,12 +263,12 @@ sub getUser {
 
 This adds a User to an existing course
 
-=head3 input 
+=head3 input
 
 =item *
 <code>course_info</code> containing either course_name or course_id as a hashref.
 
-=item * 
+=item *
 <code>params</code>, a hashref containing
 =item -
 <code>login</code>, the login of a user (required)
@@ -279,16 +283,16 @@ This adds a User to an existing course
 
 =head3 notes
 =item *
-If both the login and course name is not included, an error will be thrown. 
+If both the login and course name is not included, an error will be thrown.
 =item *
 If the course doesn't exist, an error will be thrown
 =item *
-If the user's login already exists as a global user, an error will be thrown. 
+If the user's login already exists as a global user, an error will be thrown.
 
 
-=head3 output 
+=head3 output
 
-An hashref of the added user. 
+An hashref of the added user.
 
 =cut
 
@@ -296,7 +300,6 @@ An hashref of the added user.
 
 sub addUser {
 	my ( $self, $course_info, $params, $as_result_set ) = @_;
-
 	my $course = $self->result_source->schema->resultset("Course")->getCourse( $course_info, 1 );
 
 	DB::Exception::ParametersNeeded->throw( error => "You must defined the field login in the 2nd argument" )
@@ -330,13 +333,13 @@ sub _checkCourseUser {
 	my $course_user_rs = $self->result_source->schema->resultset("CourseUser");
 
 	my @cols = $course_user_rs->result_source->columns;
-	@cols = grep { !( $_ =~ /_id$/ ) } @cols;
+	@cols = grep { !( $_ =~ /_id$/x ) } @cols;
 
 	my @illegal_fields = array_minus( @fields, @cols );
 	DB::Exception::ParametersNeeded->throw(
 		error => "The fields " . join( ", ", @illegal_fields ) . " are not legal for a user." )
 		unless scalar(@illegal_fields) == 0;
-
+	return 1;
 }
 
 =pod
@@ -344,11 +347,11 @@ sub _checkCourseUser {
 
 This updates a User in an existing course
 
-=head3 input 
+=head3 input
 
 =item *
 <code>course_info</code> containing either course_name or course_id as a hashref.
-=item * 
+=item *
 <code>params</code>, a hashref containing
 =item -
 <code>login</code>, the login of a user (required)
@@ -368,9 +371,9 @@ If the course doesn't exist, an error will be thrown
 If the login field is not defined, an error will be thrown.
 
 
-=head3 output 
+=head3 output
 
-An hashref of the added user. 
+An hashref of the added user.
 
 =cut
 
@@ -388,12 +391,10 @@ sub updateUser {
 	DB::Excpetion::UserNotInCourse->throw( course_name => $course->course_name, login => $course_user_info->{login} )
 		unless defined($user_to_update);
 
-	my $updated_user = $user_to_update->update( {%$params} );    # seems like updates changes $params, so make a copy.
+	my $updated_user = $user_to_update->update( {%$params} );    # seems like update changes $params, so make a copy.
 
-	my $course_user_to_return = { $updated_user->get_columns };
+	my $course_user_to_return = { $updated_user->get_inflated_columns };
 
-	# calling get_inflated_columns on $course_user inflates user_id and course_id (it shouldn't)
-	$course_user_to_return->{params} = $updated_user->get_inflated_column("params");
 	return $user if $as_result_set;
 	return removeLoginParams( { $user->get_columns, %$course_user_to_return } );
 }
@@ -401,13 +402,13 @@ sub updateUser {
 =pod
 =head2 deleteUser
 
-This deletes a User in an existing course.  This doesn't remove the global user however. 
+This deletes a User in an existing course.  This doesn't remove the global user however.
 
-=head3 input 
+=head3 input
 
 =item *
 <code>course_info</code> containing either course_name or course_id as a hashref.
-=item * 
+=item *
 <code>user_params</code>, a hashref containing either
 =item -
 <code>login</code>, the login of a user
@@ -421,9 +422,9 @@ If the course doesn't exist, an error will be thrown
 If the login field is not defined, an error will be thrown.
 
 
-=head3 output 
+=head3 output
 
-An hashref of the added user. 
+An hashref of the added user.
 
 =cut
 

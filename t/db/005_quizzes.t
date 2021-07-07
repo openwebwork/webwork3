@@ -44,7 +44,6 @@ my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
 	$quiz->{type}        = 2;
 	$quiz->{set_type}    = "QUIZ";
-	$quiz->{set_version} = 1 unless defined( $quiz->{set_version} );
 }
 
 ## test: get all quizzes from one course

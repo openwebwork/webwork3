@@ -143,3 +143,5 @@ $new_problem->{problem_version} = 1 unless defined( $new_problem->{problem_versi
 is_deeply( $new_problem, $deleted_problem, "deleteSetProblem: delete one problem in an existing set." );
 
 done_testing;
+
+1;

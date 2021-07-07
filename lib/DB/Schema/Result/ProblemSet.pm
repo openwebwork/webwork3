@@ -28,16 +28,10 @@ __PACKAGE__->add_columns(
 		size        => 16,
 		is_nullable => 0,
 	},
-	set_version => {
-		data_type     => 'integer',
-		size          => 16,
-		is_nullable   => 0,
-		default_value => 1
-	},
 	type => {
 		data_type     => "int",
 		default_value => 1,
-		size          => 16
+		size          => 8
 	},
 	dates =>    # store dates as a JSON object
 		{
@@ -69,7 +63,7 @@ __PACKAGE__->typecast_map(
 );
 
 __PACKAGE__->set_primary_key('set_id');
-__PACKAGE__->add_unique_constraint( [qw/course_id set_name set_version/] );
+__PACKAGE__->add_unique_constraint( [qw/course_id set_name/] );
 
 __PACKAGE__->belongs_to( courses => 'DB::Schema::Result::Course', 'course_id' );
 __PACKAGE__->has_many( problems  => 'DB::Schema::Result::Problem', 'set_id' );
@@ -107,10 +101,7 @@ returns the type (HW, Quiz, JITAR, REVIEW) of the problem set
 =cut
 
 sub set_type {
-	my ( $self, $type_number ) = @_;
-	for my $key ( keys %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES} ) {
-		return $key if $self->type == $DB::Schema::ResultSet::ProblemSet::SET_TYPES->{$key};
-	}
-
+	my %set_type_rev = reverse %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES};
+	return $set_type_rev{ shift->type };
 }
 1;

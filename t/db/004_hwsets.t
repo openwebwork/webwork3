@@ -45,19 +45,16 @@ my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
 for my $set (@hw_sets) {
 	$set->{type}        = 1;
 	$set->{set_type}    = "HW";
-	$set->{set_version} = 1 unless defined( $set->{set_version} );
 }
 my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
 	$quiz->{type}        = 2;
 	$quiz->{set_type}    = "QUIZ";
-	$quiz->{set_version} = 1 unless defined( $quiz->{set_version} );
 }
 my @review_sets = loadCSV("$main::test_dir/sample_data/review_sets.csv");
 for my $set (@review_sets) {
 	$set->{type}        = 4;
 	$set->{set_type}    = "REVIEW";
-	$set->{set_version} = 1 unless defined( $set->{set_version} );
 }
 my @all_problem_sets = ( @hw_sets, @quizzes, @review_sets );
 
@@ -136,6 +133,12 @@ throws_ok {
 	$problem_set_rs->getProblemSet( { course_name => "Precalculus", set_id => 99999 } );
 }
 "DB::Exception::SetNotInCourse", "getProblemSet: non-existent set_id";
+
+## try to get a problem set that is not in a given course
+
+throws_ok {
+	$problem_set_rs->getProblemSet( {course_name => "Precalculus", set_id => 6});
+} "DB::Exception::SetNotInCourse", "getProblemSet: find a set that is not in a course";
 
 ## add a new problem set
 
@@ -222,7 +225,7 @@ my $new_set7 = {
 	set_name => "HW #11",
 	dates    => { open => 100, due => 140, answer => 200 },
 	set_type => "HW",
-	params   => { has_reduced_scoring => 0, not_a_valid_field => 5 }
+	params   => { enable_reduced_scoring => 0, not_a_valid_field => 5 }
 };
 
 throws_ok {
@@ -236,7 +239,7 @@ my $new_set8 = {
 	set_name => "HW #11",
 	dates    => { open => 100, due => 140, answer => 200 },
 	set_type => "HW",
-	params   => { has_reduced_scoring => 0, hide_hints => "yes" }
+	params   => { enable_reduced_scoring => 0, hide_hint => "yes" }
 };
 throws_ok {
 	$problem_set_rs->addProblemSet( { course_name => "Precalculus" }, $new_set8 );
@@ -246,12 +249,11 @@ throws_ok {
 ## update a set
 
 $new_set_params->{set_name}    = "HW #8";
-$new_set_params->{params}      = { has_reduced_scoring => 1 };
+$new_set_params->{params}      = { enable_reduced_scoring => 1 };
 $new_set_params->{type}        = 1;
-$new_set_params->{set_version} = 1;
 
 my $updated_set = $problem_set_rs->updateProblemSet( { course_name => "Precalculus", set_id => $new_set_id },
-	{ set_name => $new_set_params->{set_name}, params => { has_reduced_scoring => 1 } } );
+	{ set_name => $new_set_params->{set_name}, params => { enable_reduced_scoring => 1 } } );
 removeIDs($updated_set);
 
 is_deeply( $new_set_params, $updated_set, "updateSet: change the set parameters" );

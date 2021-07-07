@@ -1,10 +1,10 @@
-## Quiz
+# Quiz
 
-### fields
+## fields
 
 - `type`: `QUIZ`
-- `dates`: 
-  - `open`:  (**required**) 
+- `dates`:
+  - `open`:  (**required**)
   - `due`: (**required**)
   - `answer`:  (**required**)
 - `params`:
@@ -18,4 +18,4 @@
 
 - `type`: `GWQ`
 - `params`:
-  - `version`: 
+  - `version`:
