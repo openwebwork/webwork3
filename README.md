@@ -10,7 +10,8 @@ There are three main parts of this repository:
 
 ## webwork-db
 
-This is code to handle a new database structure for webwork and other utilities needed for non-gui webwork functionality.
+This is code to handle a new database structure for webwork and
+other utilities needed for non-gui webwork functionality.
 
 See docs/db.md for more information on the database.
 

@@ -2,17 +2,17 @@
 
 ## Courses DB
 
-### fields
+fields
 
 - `course_id` (PK, auto_increment)
 - `course_name`
 - `params`
   - `hidden`: boolean
-	- `archived`: boolean
+  - `archived`: boolean
 
 ## Users DB (global users)
 
-### fields
+fields
 
 - `user_id` (PK, auto_increment)
 - `login`
@@ -21,14 +21,14 @@
   - `first_name`
   - `last_name`
   - `email`
-	- `student_id`
+  - `student_id`
 
+## Course Users
 
-## Course Users 
+This stores information about users in individual courses,
+plus it is a many-to-many bridge table
 
-This stores information about users in individual courses, plus it is a many-to-many bridge table
-
-### fields
+fields
 
 - `course_user_id` (KParker -- maybe not needed)
 - `course_id`
@@ -36,5 +36,5 @@ This stores information about users in individual courses, plus it is a many-to-
 - `roles`
 - `params`
   - `section`
-	- `recitation`
-	- `comment`
+  - `recitation`
+  - `comment`
