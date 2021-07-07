@@ -128,14 +128,14 @@ sub getProblemSet {
 	my $course_rs   = $self->result_source->schema->resultset("Course");
 	my $course      = $course_rs->getCourse( $course_info, 1 );
 
-	my $set = $course->problem_sets->find(getSetInfo($course_set_info));
+	my $problem_set = $course->problem_sets->find(getSetInfo($course_set_info));
 	DB::Exception::SetNotInCourse->throw(
 		set_name    => getSetInfo($course_set_info),
 		course_name => $course->course_name
-	) unless defined($set);
+	) unless defined($problem_set);
 
-	return $set if $as_result_set;
-	return { $set->get_inflated_columns, set_type => $set->set_type };
+	return $problem_set if $as_result_set;
+	return { $problem_set->get_inflated_columns, set_type => $problem_set->set_type };
 
 }
 
@@ -159,9 +159,9 @@ sub addProblemSet {
 	## check if the set exists.
 	my $search_params = { course_id => $course->course_id, set_name => $set_params->{set_name} };
 
-	my $set = $self->find( $search_params, prefetch => 'courses' );
+	my $problem_set = $self->find( $search_params, prefetch => 'courses' );
 	DB::Exception::SetAlreadyExists->throws( set_name => $set_params->{set_name}, course_name => $course->course_name )
-		if defined($set);
+		if defined($problem_set);
 
 	$set_params->{type} = $SET_TYPES->{ $set_params->{set_type} || 'HW' };
 	delete $set_params->{set_type};
@@ -189,8 +189,8 @@ Update a problem set (HW, Quiz, etc.) for a given course
 sub updateProblemSet {
 	my ( $self, $course_set_info, $updated_params, $as_result_set ) = @_;
 
-	my $set        = $self->getProblemSet( $course_set_info, 1 );
-	my $set_params = { $set->get_inflated_columns };
+	my $problem_set = $self->getProblemSet( $course_set_info, 1 );
+	my $set_params  = { $problem_set->get_inflated_columns };
 
 	my $params  = updateAllFields( $set_params, $updated_params );
 	my $set_obj = $self->new($params);
@@ -198,7 +198,7 @@ sub updateProblemSet {
 	## check the parameters are valid.
 	$set_obj->validDates();
 	$set_obj->validParams();
-	my $updated_set = $set->update( { $set_obj->get_inflated_columns } );
+	my $updated_set = $problem_set->update( { $set_obj->get_inflated_columns } );
 	return $updated_set if $as_result_set;
 	return { $updated_set->get_inflated_columns, set_type => $updated_set->set_type };
 }
@@ -252,7 +252,7 @@ login or user_id (optional)
 sub newSetVersion {
 	my ($self,$info) = @_;
 	my $course_set_info = {%{getCourseInfo($info)},%{getSetInfo($info)}};
-	my $set = $self->getProblemSet($course_set_info);
+	my $problem_set = $self->getProblemSet($course_set_info);
 
 	# if $info also contains user info
 	my @fields = keys %$info;
@@ -263,7 +263,7 @@ sub newSetVersion {
 		my $user_set_rs = $self->result_source->schema->resultset("UserSet");
 		# @user_sets = $user_set_rs->get
 	}
-	return $set;
+	return $problem_set;
 }
 
 

@@ -77,19 +77,19 @@ sub getUserSets {
 		}
 		return @user_sets_to_return;
 	} elsif (scalar(keys %$set_info) == 1){ # all user sets for a given set
-		my $set = $self->result_source->schema->resultset("ProblemSet")
+		my $problem_set = $self->result_source->schema->resultset("ProblemSet")
 			->getProblemSet( {course_id => $course->course_id, %$set_info},1);
 
 		my @user_sets = $self->search({ set_id => 1},{prefetch => {course_users => 'users'}});
 		my @user_sets_to_return = ();
 		for my $i ( 0 .. $#user_sets ) {
 			my $all_params = {
-				$set->get_columns ,
-				params => updateAllFields( $set->get_inflated_column("params"),
+				$problem_set->get_columns ,
+				params => updateAllFields( $problem_set->get_inflated_column("params"),
 					$user_sets[$i]->get_inflated_column("params") ),
-				dates => updateAllFields( $set->get_inflated_column("dates"),
+				dates => updateAllFields( $problem_set->get_inflated_column("dates"),
 					$user_sets[$i]->get_inflated_column("dates") ),
-				set_type => $set->set_type,
+				set_type => $problem_set->set_type,
 				login => $user_sets[$i]->course_users->users->login,
 				course_name => $course->course_name,
 				set_version => $user_sets[$i]->set_version
@@ -191,13 +191,13 @@ sub updateUserSet {
 		delete $merged_set->{$key};
 	}
 
-	my $set = $user_set->update($merged_set);
+	my $problem_set = $user_set->update($merged_set);
 	# check for valid params
-	$set->validParams();
-	$set->validDates();
+	$problem_set->validParams();
+	$problem_set->validDates();
 
-	return $set if $as_result_set;
-	return {$set->get_inflated_columns};
+	return $problem_set if $as_result_set;
+	return {$problem_set->get_inflated_columns};
 }
 
 

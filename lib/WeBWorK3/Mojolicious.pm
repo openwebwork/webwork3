@@ -1,20 +1,20 @@
 package WeBWorK3::Mojolicious;
+use warnings;
+use strict;
 
 use Try::Tiny;
 
-our $VERSION = '0.99';
+our $VERSION = '2.99';
 
 use Data::Dump qw/dd/;
 
 our $exception_handler = sub {
 	my ($next, $c) = @_;
 	## only test requests that start with "/api"
-	if ($c->req->url->to_string =~ /\/api/) {
+	if ($c->req->url->to_string =~ /\/api/x) {
 		try {
 			$next->();
 		} catch {
-			# dd ref $_;
-			# dd (ref($_) eq 'Mojo::Exception' && $_->message);
 			my $output = {msg => "oops!", exception => ref($_)};
 			$output->{message} = $_->message if ($_ && ref($_) eq 'Mojo::Exception');
 			$output->{message} = $_->msg if ($_ && ref($_) eq 'DBIx::Class::Exception');
@@ -25,10 +25,7 @@ our $exception_handler = sub {
 	}
 };
 
-my $perm_table;
-
 my $ignore_permissions = 1;
-# my $perm_table = LoadFile("$webwork3::webwork_root/conf/permissions.yaml");
 
 sub has_permission {
   my ($user,$perm) = @_;
@@ -45,11 +42,11 @@ sub has_permission {
 ## check permission for /api routes
 
 our $check_permission = sub {
-	my ($next, $c, $action, $last) = @_;
-	return $next->() if ($c->ignore_permissions || $c->req->url->to_string =~ /\/api\/login/);
+	my ($next, $c, $action) = @_;
+	return $next->() if ($c->ignore_permissions || $c->req->url->to_string =~ /\/api\/login/x);
 	my $controller_name = $c->{stash}->{controller};
 	my $action_name = $c->{stash}->{action};
-	if ($c->req->url->to_string =~ /\/api/) {
+	if ($c->req->url->to_string =~ /\/api/x) {
 		if (has_permission($c->current_user,$c->perm_table->{$controller_name}->{$action_name})) {
 			return $next->();
 		} else {

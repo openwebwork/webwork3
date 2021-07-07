@@ -1,4 +1,6 @@
 package DB::WithParams;
+use warnings;
+use strict;
 
 use Carp;
 use Array::Utils qw/array_minus intersect/;
@@ -16,6 +18,9 @@ use Exception::Class (
 
 sub validParams {
 	my $self = shift;
+	# the following stops the carping of perlcritic
+	## no critic 'ProhibitStringyEval'
+	## no critic 'RequireCheckingReturnValueOfEval'
 	eval '$valid_params = $' . ref($self) . "::VALID_PARAMS" unless $valid_params;
 	eval '$required_params = $' . ref($self) . "::REQUIRED_PARAMS" unless $required_params;
 	$self->validParamFields();
@@ -44,7 +49,7 @@ sub validateParams {
 	return 1 unless defined $self->params;
 	for my $key (keys %{$self->params}){
 		my $re = $valid_params->{$key};
-		DB::Exception::InvalidParameter->throw(field_names => $key) unless $self->params->{$key} =~ qr/^$re$/;
+		DB::Exception::InvalidParameter->throw(field_names => $key) unless $self->params->{$key} =~ qr/^$re$/x;
 	}
 	return 1;
 }
@@ -58,6 +63,7 @@ sub checkRequiredParams {
 			$self->_check_params($key,$required_params->{$key});
 		}
 	}
+	return 1;
 }
 
 ## the following is an internal subroutine to check the struture of a hashref for $required_params.
@@ -69,7 +75,7 @@ sub _check_params {
 		my $valid = "";  ## assume that it is not valid;
 		for my $el (@$value) {
 			if(! defined(reftype($el))) { # assume it is a string
-				$valid = grep(/^$el$/,@$value);
+				$valid = grep {/^$el$/x } @$value;
 			} elsif( reftype($el) eq "HASH") {
 				for my $key (keys %$el) {
 					$valid = $self->_check_params($key,$el->{$key});
@@ -82,6 +88,7 @@ sub _check_params {
 		my @fields = keys %{$self->params};
 		return scalar(intersect(@fields,@$value)) == 1;
 	}
+	return 1;
 }
 
 1;
