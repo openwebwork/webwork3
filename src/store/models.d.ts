@@ -14,6 +14,17 @@ export interface User {
 	user_id: number;
 }
 
+export interface UserCourse {
+	course_id: number;
+	course_user_id: number;
+	user_id: number;
+	course_name: string;
+	params: Dictionary<string>;
+	recitation: string;
+	section: string;
+	role: string;
+}
+
 export interface CourseUser {
 	email: string;
 	first_name: string;
@@ -25,7 +36,7 @@ export interface CourseUser {
 	role: string;
 }
 
-export interface LoginInfo {
+export interface SessionInfo {
   user: User;
   logged_in: boolean;
 	message: string;

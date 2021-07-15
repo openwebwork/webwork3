@@ -1,14 +1,17 @@
-# utils-structure 
+# utils-structure
 
-This document lays out the structure of the utils (utilities) needed for the webwork common.  This is an API for the middle layer.  
+This document lays out the structure of the utils (utilities)
+needed for the webwork common.  This is an API for the middle
+layer.
 
-This needs access only to the database. 
+This needs access only to the database.
 
 Question: should this be the level of handling permissions?
 
 ## AdminUtils
 
-This set of subroutines handle all administration level (currently everything in the admin course):
+This set of subroutines handle all administration level (currently
+everything in the admin course):
 
 * `createCourse`
 * `renameCourse`
@@ -16,19 +19,24 @@ This set of subroutines handle all administration level (currently everything in
 * `upgradeCourse`
 * `archiveCourse`
 * `unarchiveCourse`
+* `getAllCourses`
+* `getCourse`
+* `addCourse`
+* `updateCourse`
+* `upgradeCourse`
+* `checkCourseIntegrity`
 
 ## UserUtils
 
-Plans are to allow a server to setup with a global level of users. These utils will handle the global users instead of the course Users:
+Plans are to allow a server to setup with a global level of users.
+These utils will handle the global users instead of the course Users:
 
 * `getUsers` -- get all user data
 * `getCourses(user_id)` -- get the courses that user `user_id` is enrolled.
 * `createUser`
 * `updateUser`
 * `deleteUser`
-*  handle password for users (could be handled in `updateUser`)
-
-
+* handle password for users (could be handled in `updateUser`)
 
 ## CourseUtils
 
@@ -39,19 +47,17 @@ Plans are to allow a server to setup with a global level of users. These utils w
 * student progress/stats/scoring tools
 * email utils
 * file management (get/put files, move) in course directory
-* 
-
 
 ## LibraryUtils
 
 * `listLibraries`: list all libraries available to a course
-* `getTaxonomy`: 
+* `getTaxonomy`:
 * `getSubjectProblems` : get all problems with given subject
 * `getChapterProblems` : get all problems with given subject/chapter
 * `getSectionProblems` : get all problems with given subject/chapter/section
 * `getProblem`: get all problems matching metadata
 * `searchLibrary`: general searching function
-* `sortbyMLT`: sorts problem into More Like This (MLT) categories. 
+* `sortbyMLT`: sorts problem into More Like This (MLT) categories.
 * `getProblemTags` : gets all tags for a problem
 * `getPGfilesInDir` : list of all PG files in a directory (local or in library)
 * `get_set_defs`
@@ -93,7 +99,8 @@ Plans are to allow a server to setup with a global level of users. These utils w
 
 ## GatewayQuizzes
 
-Maybe we put these in a separate file in order to more easily upgrade this at a later time
+Maybe we put these in a separate file in order to more easily upgrade
+this at a later time
 
 ## Achievements
 
@@ -101,7 +108,6 @@ Maybe we put these in a separate file in order to more easily upgrade this at a 
 * `getAllAchivementRewards`
 * `getAchievementBadge`
 * `getAchievementReward`
-
 
 ## CourseUserUtils
 
@@ -113,20 +119,6 @@ Maybe we put these in a separate file in order to more easily upgrade this at a 
 * `checkPassword`
 * `updatePassword`
 
-## AdminUtils
-
-* `getAllCourses`
-* `getCourse`
-* `addCourse`
-* `updateCourse`
-* `deleteCourse`
-* `archiveCourse`
-* `unarchiveCourse`
-* `upgradeCourse`
-* `checkCourseIntegrity`
-
 ## GeneralUtils
 
 * international/translation utilities
-
-

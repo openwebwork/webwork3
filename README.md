@@ -10,9 +10,10 @@ There are three main parts of this repository:
 
 ## webwork-db
 
-This is code to handle a new database structure for webwork and other utilities needed for non-gui webwork functionality.
+This is code to handle a new database structure for webwork and
+other utilities needed for non-gui webwork functionality.
 
-See docs/db.md for more information on the database.
+See `docs/db.md` for more information on the database.
 
 ## webwork-mojo
 
@@ -36,9 +37,13 @@ The current version of this is for **DEVELOPMENT ONLY** and used as a proof of c
 ### Getting Mojolicious and other needed packages
 
 1. Make sure that you have perl (at least version 5.20) installed.
-2. Install `cpanm` from perl and install Mojolicious with `cpanm Mojolicious`.  A one-liner install is available at [the Mojolicious homepage](https://mojolicious.org/).
+2. Install `cpanm` from perl and install Mojolicious with `cpanm Mojolicious`.
+  A one-liner install is available at [the Mojolicious homepage](https://mojolicious.org/).
 3. Start mojolicious (from the `webwork3` directory) with `morbo bin/webwork3`.
 4. Note if there are missing perl packages, it will let you know and you can install those with `cpanm`.
+  Also, there may missing plugins, like `DBIC`.  Any Mojolicious plugins have a prefix
+	of `Mojolicious::Plugin`, so to install the `DBIC` plugin, enter
+	`cpanm Mojolicious::Plugin::DBIC`
 5. If you get the message `Web application available at http://127.0.0.1:3000` then mojolicious is running and waiting for any requests.
 
 ### Creating some fake data
@@ -52,13 +57,13 @@ There is some fake data to get started with so there are a few courses and users
 
 This section builds all of the UI code using webpack and fires up a browser window to view the webwork3 interface.
 
-1. Inside the `webwork3` directory, enter `npm install`.  If you don't have npm installed, this is part of `node` and depending on your platform, determine how to install it.
+1. Inside the `webwork3` directory, enter `yarn install`.  If you don't have yarn installed, see [yarn homepage](https://yarnpkg.com/).
 
 	There are some warnings (mostly deprecations) that can be ignored.
 
-2. Start the development server with `npm run serve` and again hopefully there are no errors.
+2. Start the development server with `quasar dev` and again hopefully there are no errors.
 
-3. Visit `http://localhost:8080` (or perhaps a different port) in your web browser (the output of the the `npm run serve` command says where to go).
+3. Visit `http://localhost:8080/webwork3/login` (or perhaps a different port) in your web browser (the output of the the `quasar dev` command says where to go).
 
 4. You should get a "Login to WeBWorK" screen.  You can use the Lisa Simpson login with `lisa@google.com` and her name in lower-case as the password.
 

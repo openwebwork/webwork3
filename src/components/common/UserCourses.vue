@@ -1,7 +1,9 @@
 <template>
+<q-page-container>
 	<div class="row" v-if="user !== undefined">
 			<h3> Welcome {{user.first_name}} {{user.last_name}} </h3>
 	</div>
+
 	<div class="row">
 		<p> Select a course below: </p>
 		</div>
@@ -45,41 +47,51 @@
 		</div>
 	</q-card>
 	</div>
+</q-page-container>
 </template>
 
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue';
-// import { defineComponent } from 'vue';
-import { useStore } from 'vuex';
+import { defineComponent, computed, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import { useStore } from '../../store';
 
-import { CourseUser }  from '@/store/models';
+import { UserCourse }  from '@/store/models';
 
 export default defineComponent({
 	name: 'Test',
 	setup() {
 		const store = useStore();
+		const route = useRoute();
+
+		watch( () =>  route.params.course_name,
+			(course_name) =>  {
+				console.log(course_name);
+					void store.dispatch('session/setCourseName',course_name);
+				}
+		);
+
 		return {
 			student_courses: computed(() => {
-				return store.getters['user/user_courses'].filter( (user: CourseUser) => user.role === 'student');
-				}),
+				console.log(store.state.user.user_courses);
+				return store.state.user.user_courses.filter( (user: UserCourse) => user.role === 'student');
+			}),
 			instructor_courses: computed(() => {
-				return store.getters['user/user_courses'].filter( (user: CourseUser) => user.role === 'instructor');
-				}),
+				return store.state.user.user_courses.filter( (user: UserCourse) => user.role === 'instructor');
+			}),
 			user: computed( () => {
-				console.log(store.getters['session/user']);
-				return store.getters['session/user'];
+				return store.state.session.user;
 			})
 		};
+
+
 	},
 
 	async created () {
-		console.log("in created");
     // fetch the data when the view is created and the data is
     // already being observed
 		const store = useStore();
-		const user = store.getters["session/user"];
-		await store.dispatch("user/fetchUserCourses",user.user_id);
+		await store.dispatch('user/fetchUserCourses',store.state.session.user.user_id);
   },
 });
 
