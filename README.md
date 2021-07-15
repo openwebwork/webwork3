@@ -37,9 +37,13 @@ The current version of this is for **DEVELOPMENT ONLY** and used as a proof of c
 ### Getting Mojolicious and other needed packages
 
 1. Make sure that you have perl (at least version 5.20) installed.
-2. Install `cpanm` from perl and install Mojolicious with `cpanm Mojolicious`.  A one-liner install is available at [the Mojolicious homepage](https://mojolicious.org/).
+2. Install `cpanm` from perl and install Mojolicious with `cpanm Mojolicious`.
+  A one-liner install is available at [the Mojolicious homepage](https://mojolicious.org/).
 3. Start mojolicious (from the `webwork3` directory) with `morbo bin/webwork3`.
 4. Note if there are missing perl packages, it will let you know and you can install those with `cpanm`.
+  Also, there may missing plugins, like `DBIC`.  Any Mojolicious plugins have a prefix
+	of `Mojolicious::Plugin`, so to install the `DBIC` plugin, enter
+	`cpanm Mojolicious::Plugin::DBIC`
 5. If you get the message `Web application available at http://127.0.0.1:3000` then mojolicious is running and waiting for any requests.
 
 ### Creating some fake data

@@ -4,18 +4,21 @@
 
 <script lang="ts">
 import { defineComponent, computed, watch } from 'vue';
-import { useStore } from 'vuex';
+
+import { useStore } from '../../store';
 export default defineComponent({
 	name: 'Student',
 	setup(props) {
 		const store = useStore();
 		console.log(props);
-		watch( () => store.getters["session/course_name"], (state, prev_state) => {
+		watch( () => store.state.session.course_name, (state, prev_state) => {
 			console.log(state);
 			console.log(prev_state)
 		});
+
 		return {
-			course_name: computed( () => store.getters["session/course_name"])
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+			course_name: computed( () => store.getters['session/course_name'])
 		};
 	}
 });

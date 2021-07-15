@@ -1,11 +1,13 @@
-import { User, Course } from "../models";
 import { Commit } from 'vuex';
+// import { StateInterface } from '../index';
 
-import { fetchUserCourses } from "../api";
+import { User, UserCourse } from '../models';
 
-interface State {
+import axios from 'axios';
+
+export interface UserState {
 	users: Array<User>;
-	user_courses: Array<Course>;
+	user_courses: Array<UserCourse>;
 }
 
 const initial_state = {
@@ -13,22 +15,33 @@ const initial_state = {
 	user_courses: []
 }
 
-export const userModule = {
-  namespaced: true,
-  state: initial_state,
+export default {
+	namespaced: true,
+	state: initial_state,
 	getters: {
-		user_courses(state: State): Array<Course> {
+		user_courses(state: UserState): Array<UserCourse> {
 			return state.user_courses
 		}
 	},
   actions: {
-		fetchUserCourses({ commit }: { commit: Commit },user_id: number): void {
-			commit('fetchUserCourses',user_id);
+		async fetchUserCourses({ commit }: { commit: Commit },user_id: number): Promise<void> {
+			const _user_courses = await _fetchUserCourses(user_id);
+			commit('STORE_USER_COURSES',_user_courses);
 		}
 	},
   mutations: {
-		async fetchUserCourses(state: State, user_id: number): Promise<void> {
-			state.user_courses = await fetchUserCourses(user_id);
+		STORE_USER_COURSES(state: UserState, _user_courses: Array<UserCourse>): void {
+			state.user_courses = _user_courses;
 		}
 	}
 };
+
+async function _fetchUserCourses(user_id: number): Promise<Array<UserCourse>> {
+	const response = await axios.get(`/webwork3/api/users/${user_id}/courses`);
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+	if (response.data.exception){
+		return []
+	} else {
+		return response.data as Array<UserCourse>;
+	}
+}

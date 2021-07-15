@@ -1,13 +1,9 @@
-import axios from "axios";
+import axios from 'axios';
+// import { Session } from 'inspector';
 
-import type { LoginInfo, UserPassword, Course } from '@/store/models';
+import type { SessionInfo, UserPassword } from './models';
 
-export async function checkPassword(login: UserPassword): Promise<LoginInfo> {
+export async function checkPassword(login: UserPassword): Promise<SessionInfo> {
 	const response = await axios.post('/webwork3/api/login', login);
-	return response.data as LoginInfo;
-}
-
-export async function fetchUserCourses(user_id: number): Promise<Array<Course>> {
-	const response = await axios.get(`/webwork3/api/users/${user_id}/courses`);
-	return response.data as Array<Course>;
+	return response.data as SessionInfo;
 }
