@@ -13,7 +13,7 @@ There are three main parts of this repository:
 This is code to handle a new database structure for webwork and
 other utilities needed for non-gui webwork functionality.
 
-See docs/db.md for more information on the database.
+See `docs/db.md` for more information on the database.
 
 ## webwork-mojo
 
@@ -57,13 +57,13 @@ There is some fake data to get started with so there are a few courses and users
 
 This section builds all of the UI code using webpack and fires up a browser window to view the webwork3 interface.
 
-1. Inside the `webwork3` directory, enter `npm install`.  If you don't have npm installed, this is part of `node` and depending on your platform, determine how to install it.
+1. Inside the `webwork3` directory, enter `yarn install`.  If you don't have yarn installed, see [yarn homepage](https://yarnpkg.com/).
 
 	There are some warnings (mostly deprecations) that can be ignored.
 
-2. Start the development server with `npm run serve` and again hopefully there are no errors.
+2. Start the development server with `quasar dev` and again hopefully there are no errors.
 
-3. Visit `http://localhost:8080` (or perhaps a different port) in your web browser (the output of the the `npm run serve` command says where to go).
+3. Visit `http://localhost:8080/webwork3/login` (or perhaps a different port) in your web browser (the output of the the `quasar dev` command says where to go).
 
 4. You should get a "Login to WeBWorK" screen.  You can use the Lisa Simpson login with `lisa@google.com` and her name in lower-case as the password.
 
