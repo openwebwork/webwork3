@@ -3,6 +3,18 @@ use warnings;
 use strict;
 
 use Exception::Class (
+	'DB::Exception::UndefinedCourseField' => {
+		fields => ['message'],
+		description => 'There is an undefined course setting field'
+	},
+	'DB::Exception::InvalidCourseField' => {
+		fields => ['message'],
+		description => 'There is an invalid parameter'
+	},
+	'DB::Exception::InvalidCourseFieldType' => {
+		fields => ['message'],
+		description => 'There is an invalid field type'
+	},
 	'DB::Exception::UndefinedParameter' => {
 		fields => ['field_names'],
 		description => 'There is an undefined parameter'
@@ -76,7 +88,8 @@ use Exception::Class (
 	}
 );
 
-# DB::Exception::UndefinedParameter->show_trace(1);
+DB::Exception::UndefinedCourseField->Trace(1);
+DB::Exception::InvalidCourseField->Trace(1);
 # DB::Exception::UserNotInCourse->Trace(1);
 # DB::Exception::UserNotFound->Trace(1);
 # DB::Exception::CourseNotFound->Trace(1);

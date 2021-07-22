@@ -23,7 +23,7 @@ This is a collection of utilities for testing purposes
 =head2 buildParamHash
 
 This takes a hashref and builds up a params field and a dates field for any
-field starting with PARAM_ and DATE_ respectively.
+field starting with PARAM: and DATE: respectively.
 
 =cut
 
@@ -31,9 +31,9 @@ sub buildHash {
 	my $input = shift;
 	my $output = { params => {}, dates => {} };
 	for my $key (keys %{$input}) {
-		if ($key =~ /^PARAM_(.*)/x) {
+		if ($key =~ /^PARAM:(.*)/x) {
 			$output->{params}->{$1} = $input->{$key} if defined($input->{$key});
-		} elsif ($key =~ /^DATE_(.*)/x) {
+		} elsif ($key =~ /^DATE:(.*)/x) {
 			$output->{dates}->{$1} = $input->{$key} if defined($input->{$key});
 		} else {
 			$output->{$key} = $input->{$key};
@@ -41,7 +41,6 @@ sub buildHash {
 	}
 	my @date_fields = keys %{$output->{dates}};
 	delete $output->{dates} if (scalar(@date_fields) == 0);
-
 	return $output;
 }
 

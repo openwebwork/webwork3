@@ -1,4 +1,4 @@
-course_name,PARAM_institution,DATE_start,DATE_end
+course_name,PARAM:general:institution,DATE:start,DATE:end
 Precalculus,"Springfield CC",2021-01-01,2021-12-31
 "Abstract Algebra","Springfield University",2021-01-01,2021-12-31
 "Topology","Springfield University",2021-01-01,2021-12-31

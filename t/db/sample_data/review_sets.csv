@@ -1,4 +1,4 @@
-course_name,set_name,DATE_open,DATE_closed
+course_name,set_name,DATE:open,DATE:closed
 Precalculus,"Review #1",1,10,
 Precalculus,"Review #2",21,30
 Precalculus,"Review #3",31,40

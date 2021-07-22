@@ -27,9 +27,6 @@ use DB::Schema;
 use DB;
 use DB::TestUtils qw/loadCSV/;
 
-
-
-
 # set up the database
 my $db_file = "$main::test_dir/sample_db.sqlite";
 
@@ -51,7 +48,11 @@ my $problem_pool_rs = $schema->resultset('ProblemPool');
 sub addCourses {
 	my @courses = loadCSV("$main::test_dir/sample_data/courses.csv");
 	for my $course (@courses) {
-		$course->{course_params} = $course->{params};
+		$course->{course_setting} = {};
+		for my $key (keys %{$course->{params}}) {
+			my @fields = split(/:/, $key);
+			$course->{course_setting}->{$fields[0]} = {$fields[1] => $course->{params}->{$key}};
+		}
 		delete $course->{params};
 		$course->{course_dates} = $course->{dates};
 		delete $course->{dates};
