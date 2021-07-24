@@ -18,12 +18,6 @@
   type: text
   default: ''
 -
-  var: visible
-  category: general
-  doc: whether or not the course is visible in the course listing
-  type: boolean
-  default: true
--
   var: course_description
   category: general
   doc: Description of the course

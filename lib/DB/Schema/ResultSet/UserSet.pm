@@ -1,3 +1,4 @@
+
 =pod
 
 =head1 DESCRIPTION
@@ -19,7 +20,6 @@ use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 use DB::WithDates;
 use DB::WithParams;
 
-
 =pod
 =head2 getUserSets
 
@@ -37,22 +37,23 @@ information on either a set (set_name or set_id) or a user (user_id or login)
 
 sub getUserSets {
 	my ( $self, $info, $as_result_set ) = @_;
-	my $course = $self->result_source->schema->resultset("Course")
-		->getCourse( getCourseInfo($info), 1 );
+	my $course = $self->result_source->schema->resultset("Course")->getCourse( getCourseInfo($info), 1 );
 
-	my ($user_info,$set_info);
+	my ( $user_info, $set_info );
 
 	# determine if this is a set of user set based on a set or a user
-	try { # one of these will throw an error
+	try {    # one of these will throw an error
 		$user_info = getUserInfo($info);
-	} finally {};
+	}
+	finally { };
 	try {
 		$set_info = getSetInfo($info);
-	} finally {};
+	}
+	finally { };
 
-	if (scalar(keys %$user_info) == 1){ # all user sets for a given user
+	if ( scalar( keys %$user_info ) == 1 ) {    # all user sets for a given user
 		my $user = $self->result_source->schema->resultset("User")
-			->getUser( {course_id => $course->course_id, %$user_info}, 1 );
+			->getUser( { course_id => $course->course_id, %$user_info }, 1 );
 
 		my @user_sets   = $self->search( { user_id => $user->user_id } );
 		my @user_setids = map { { set_id => $_->set_id }; } @user_sets;
@@ -62,13 +63,17 @@ sub getUserSets {
 		my @user_sets_to_return = ();
 		for my $i ( 0 .. $#user_sets ) {
 			my $all_params = {
-				$problem_sets[$i]->get_columns ,
-				params => updateAllFields( $problem_sets[$i]->get_inflated_column("params"),
-					$user_sets[$i]->get_inflated_column("params") ),
-				dates => updateAllFields( $problem_sets[$i]->get_inflated_column("dates"),
-					$user_sets[$i]->get_inflated_column("dates") ),
-				set_type => $problem_sets[$i]->set_type,
-				login => $user->login,
+				$problem_sets[$i]->get_columns,
+				params => updateAllFields(
+					$problem_sets[$i]->get_inflated_column("params"),
+					$user_sets[$i]->get_inflated_column("params")
+				),
+				dates => updateAllFields(
+					$problem_sets[$i]->get_inflated_column("dates"),
+					$user_sets[$i]->get_inflated_column("dates")
+				),
+				set_type    => $problem_sets[$i]->set_type,
+				login       => $user->login,
 				course_name => $course->course_name,
 				set_version => $user_sets[$i]->set_version
 			};
@@ -76,21 +81,26 @@ sub getUserSets {
 
 		}
 		return @user_sets_to_return;
-	} elsif (scalar(keys %$set_info) == 1){ # all user sets for a given set
+	}
+	elsif ( scalar( keys %$set_info ) == 1 ) {    # all user sets for a given set
 		my $problem_set = $self->result_source->schema->resultset("ProblemSet")
-			->getProblemSet( {course_id => $course->course_id, %$set_info},1);
+			->getProblemSet( { course_id => $course->course_id, %$set_info }, 1 );
 
-		my @user_sets = $self->search({ set_id => 1},{prefetch => {course_users => 'users'}});
+		my @user_sets           = $self->search( { set_id => 1 }, { prefetch => { course_users => 'users' } } );
 		my @user_sets_to_return = ();
 		for my $i ( 0 .. $#user_sets ) {
 			my $all_params = {
-				$problem_set->get_columns ,
-				params => updateAllFields( $problem_set->get_inflated_column("params"),
-					$user_sets[$i]->get_inflated_column("params") ),
-				dates => updateAllFields( $problem_set->get_inflated_column("dates"),
-					$user_sets[$i]->get_inflated_column("dates") ),
-				set_type => $problem_set->set_type,
-				login => $user_sets[$i]->course_users->users->login,
+				$problem_set->get_columns,
+				params => updateAllFields(
+					$problem_set->get_inflated_column("params"),
+					$user_sets[$i]->get_inflated_column("params")
+				),
+				dates => updateAllFields(
+					$problem_set->get_inflated_column("dates"),
+					$user_sets[$i]->get_inflated_column("dates")
+				),
+				set_type    => $problem_set->set_type,
+				login       => $user_sets[$i]->course_users->users->login,
 				course_name => $course->course_name,
 				set_version => $user_sets[$i]->set_version
 			};
@@ -118,8 +128,7 @@ sub getUserSet {
 	my $user           = $user_rs->getUser( $user_course_info, 1 );
 
 	my $user_set = $self->find(
-		{
-			'problem_sets.course_id' => $problem_set->course_id,
+		{   'problem_sets.course_id' => $problem_set->course_id,
 			'problem_sets.set_id'    => $problem_set->set_id,
 			user_id                  => $user->user_id,
 		},
@@ -130,8 +139,6 @@ sub getUserSet {
 	my $params = updateAllFields( $problem_set->params, $user_set->params );
 	my $dates  = updateAllFields( $problem_set->dates,  $user_set->dates );
 
-
-
 	return $user_set if $as_result_set;
 	return {
 		$problem_set->get_inflated_columns,
@@ -139,7 +146,7 @@ sub getUserSet {
 		$user_set->get_columns,
 		dates  => $dates,
 		params => $params,
-		login => $user->login
+		login  => $user->login
 	};
 }
 
@@ -155,7 +162,6 @@ add a single UserSet for a given course, user, and ProblemSet
 # 	my $problem_set_info = { %{ getCourseInfo($user_set_info) }, %{ getSetInfo($user_set_info) } };
 # 	my $user_course_info = { %{ getCourseInfo($user_set_info) }, %{ getUserInfo($user_set_info) } };
 
-
 # }
 
 =pod
@@ -168,7 +174,7 @@ update a single UserSet for a given course, user, and ProblemSet
 sub updateUserSet {
 	my ( $self, $set_info, $user_set_params, $as_result_set ) = @_;
 
-	my $user_set  = $self->getUserSet($set_info,1);
+	my $user_set   = $self->getUserSet( $set_info, 1 );
 	my $merged_set = $self->getUserSet($set_info);
 
 	my @keys = grep { $_ ne "params" && $_ ne "dates" } keys %$user_set_params;
@@ -176,30 +182,29 @@ sub updateUserSet {
 	for my $key (@keys) {
 		$merged_set->{$key} = $user_set_params->{$key};
 	}
-	for my $key (keys %{$user_set_params->{params}}){
+	for my $key ( keys %{ $user_set_params->{params} } ) {
 		$merged_set->{params}->{$key} = $user_set_params->{params}->{$key};
 	}
-	for my $key (keys %{$user_set_params->{dates}}){
+	for my $key ( keys %{ $user_set_params->{dates} } ) {
 		$merged_set->{dates}->{$key} = $user_set_params->{dates}->{$key};
 	}
 
 	# convert the set_type (a string) to type ( a number)
-	$merged_set->{type} = $DB::Schema::ResultSet::ProblemSet::SET_TYPES->{$merged_set->{set_type}};
+	$merged_set->{type} = $DB::Schema::ResultSet::ProblemSet::SET_TYPES->{ $merged_set->{set_type} };
 
 	# delete fields that are not in the database,  TODO: automate this.
-	for my $key (qw/set_type set_name course_id login/){
+	for my $key (qw/set_type set_name course_id login/) {
 		delete $merged_set->{$key};
 	}
 
 	my $problem_set = $user_set->update($merged_set);
+
 	# check for valid params
 	$problem_set->validParams();
 	$problem_set->validDates();
 
 	return $problem_set if $as_result_set;
-	return {$problem_set->get_inflated_columns};
+	return { $problem_set->get_inflated_columns };
 }
-
-
 
 1;

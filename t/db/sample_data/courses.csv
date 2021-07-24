@@ -1,6 +1,6 @@
-course_name,PARAM:general:institution,DATE:start,DATE:end
-Precalculus,"Springfield CC",2021-01-01,2021-12-31
-"Abstract Algebra","Springfield University",2021-01-01,2021-12-31
-"Topology","Springfield University",2021-01-01,2021-12-31
-Arithmetic,"Springfield CC",2020-09-01,2020-12-16
-Calculus,"Springfield University",2020-09-01,2020-12-16
+course_name,visible,PARAM:general:institution,DATE:start,DATE:end
+Precalculus,1,"Springfield CC",2021-01-01,2021-12-31
+"Abstract Algebra",1,"Springfield University",2021-01-01,2021-12-31
+"Topology",1,"Springfield University",2021-01-01,2021-12-31
+Arithmetic,1,"Springfield CC",2020-09-01,2020-12-16
+Calculus,1,"Springfield University",2020-09-01,2020-12-16

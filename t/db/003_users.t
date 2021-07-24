@@ -38,7 +38,8 @@ my @students = loadCSV("$main::test_dir/sample_data/students.csv");
 
 # remove duplicates
 my %seen = ();
-@students = grep { ! $seen{ $_->{login} }++ } @students;
+@students = grep { !$seen{ $_->{login} }++ } @students;
+
 # dd \@unique;
 
 for my $student (@students) {
@@ -49,14 +50,16 @@ for my $student (@students) {
 }
 
 # add the admin user
-push(@students,{
-		login => "admin",
-		email => 'admin@google.com',
-		is_admin => 1,
-		last_name => undef,
+push(
+	@students,
+	{   login      => "admin",
+		email      => 'admin@google.com',
+		is_admin   => 1,
+		last_name  => undef,
 		first_name => undef,
 		student_id => undef
-	});
+	}
+);
 my @all_students = sort { $a->{login} cmp $b->{login} } @students;
 
 ## get a list of all users
@@ -79,10 +82,9 @@ removeIDs($user);
 delete $user->{role};
 is_deeply( $all_students[0], $user, "getUser: by login" );
 
-
 $user = $users_rs->getGlobalUser( { user_id => 2 } );
 removeIDs($user);
-my @stud2 = grep {$_->{login} eq $user->{login}} @all_students;
+my @stud2 = grep { $_->{login} eq $user->{login} } @all_students;
 is_deeply( $stud2[0], $user, "getUser: by user_id" );
 
 ## get one user that does not exist

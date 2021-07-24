@@ -19,6 +19,7 @@ use Text::CSV qw/csv/;
 use Data::Dump qw/dd/;
 use Carp;
 use JSON;
+use feature "say";
 
 use DB::WithParams;
 use DB::WithDates;
@@ -30,6 +31,7 @@ use DB::TestUtils qw/loadCSV/;
 # set up the database
 my $db_file = "$main::test_dir/sample_db.sqlite";
 
+my $visible = 1;
 
 ## first delete the file
 unlink $db_file;
@@ -46,12 +48,13 @@ my $problem_set_rs = $schema->resultset('ProblemSet');
 my $problem_pool_rs = $schema->resultset('ProblemPool');
 
 sub addCourses {
+	say "adding courses" if $visible;
 	my @courses = loadCSV("$main::test_dir/sample_data/courses.csv");
 	for my $course (@courses) {
-		$course->{course_setting} = {};
+		$course->{course_settings} = {};
 		for my $key (keys %{$course->{params}}) {
 			my @fields = split(/:/, $key);
-			$course->{course_setting}->{$fields[0]} = {$fields[1] => $course->{params}->{$key}};
+			$course->{course_settings}->{$fields[0]} = {$fields[1] => $course->{params}->{$key}};
 		}
 		delete $course->{params};
 		$course->{course_dates} = $course->{dates};
@@ -62,6 +65,7 @@ sub addCourses {
 
 sub addUsers {
 	# add some users
+	say "adding users" if $visible;
 
 	my @all_students = loadCSV("$main::test_dir/sample_data/students.csv");
 
@@ -110,17 +114,21 @@ my @quiz_params = @DB::Schema::Result::ProblemSet::HWSet::VALID_PARAMS;
 
 sub addSets {
 	## add some problem sets
+	say "adding problem sets" if $visible;
+
 	my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
 	for my $set (@hw_sets) {
-		my $course = $course_rs->search({course_name => $set->{course_name}})->single;
+		my $course = $course_rs->find({course_name => $set->{course_name}});
 		if (! defined($course)){
 			croak "The course ". $set->{course_name} ." does not exist";
 		}
+
 		delete $set->{course_name};
 		$course->add_to_problem_sets($set);
 	}
 
 	## add quizzes
+	say "adding quizzes" if $visible;
 
 	my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
 	for my $quiz (@quizzes) {
@@ -132,6 +140,8 @@ sub addSets {
 		delete $quiz->{course_name};
 		$course->add_to_problem_sets($quiz);
 	}
+
+	say "adding review sets" if $visible;
 
 	my @review_sets = loadCSV("$main::test_dir/sample_data/review_sets.csv");
 	for my $set (@review_sets) {

@@ -5,13 +5,10 @@ use warnings;
 
 use JSON;
 
-our @VALID_DATES    = qw/open end/;
-our @REQUIRED_DATES = qw//;
-our $VALID_PARAMS   = {
-	institution => q{.*},
-	visible     => q{[01]}
-};
-our $REQUIRED_PARAMS = { _ALL_ => ['visible'] };
+our @VALID_DATES     = qw/open end/;
+our @REQUIRED_DATES  = qw//;
+our $VALID_PARAMS    = { visible => q{[01]} };
+our $REQUIRED_PARAMS = { _ALL_   => ['visible'] };
 
 __PACKAGE__->table('course');
 
@@ -33,12 +30,11 @@ __PACKAGE__->add_columns(
 		is_nullable   => 0,
 		default_value => "{}",
 	},
-	# course_setting_id => {
-	# 	data_type     => 'integer',
-	# 	size          => 16,
-	# 	is_nullable   => 0,
-	# 	is_foreign_key => 1,
-	# }
+	visible => {
+		data_type     => 'boolean',
+		is_nullable   => 0,
+		default_value => 1,
+	}
 );
 
 __PACKAGE__->set_primary_key('course_id');
@@ -54,8 +50,7 @@ __PACKAGE__->has_many( problem_sets => 'DB::Schema::Result::ProblemSet', 'course
 __PACKAGE__->has_many( problem_pools => 'DB::Schema::Result::ProblemPool', 'course_id' );
 
 # set up the one-to-one relationship to course settings;
-__PACKAGE__->has_one( course_setting => 'DB::Schema::Result::CourseSetting', 'course_id' );
-
+__PACKAGE__->has_one( course_settings => 'DB::Schema::Result::CourseSettings', 'course_id' );
 
 __PACKAGE__->inflate_column(
 	"course_dates",

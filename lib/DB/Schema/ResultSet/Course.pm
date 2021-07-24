@@ -46,17 +46,9 @@ sub getCourses {
 	my ( $self, $as_result_set ) = @_;
 	my @courses = $self->search();
 	return @courses if $as_result_set;
-
-	my @courses_to_return = ();
-	for my $course (@courses) {
-		my $course_settings_from_db = {$course->course_setting->get_inflated_columns};
-		removeIDs($course_settings_from_db);
-		push(@courses_to_return, {
-			$course->get_inflated_columns,
-			course_setting => $course_settings_from_db
-		});
-	}
-	return @courses_to_return;
+	return map {
+		{ $_->get_inflated_columns };
+	} @courses;
 }
 
 =pod
@@ -83,12 +75,7 @@ sub getCourse {
 	DB::Exception::CourseNotFound->throw( course_name => $course_info ) unless defined($course);
 	return $course if $as_result_set;
 
-	my $course_settings_from_db = {$course->course_setting->get_inflated_columns};
-	removeIDs($course_settings_from_db);
-	return {
-			$course->get_inflated_columns,
-			course_setting => $course_settings_from_db
-		};
+	return { $course->get_inflated_columns };
 }
 
 =pod
@@ -115,20 +102,17 @@ sub addCourse {
 	my $course = $self->find( { course_name => $course_params->{course_name} } );
 	DB::Exception::CourseExists->throw( course_name => $course_params->{course_name} ) if defined($course);
 
-	my $params = clone($course_params);
-	$params->{course_setting} = {} unless defined($params->{course_setting});
+	my $params = {};
+	for my $field (qw/course_name visible course_dates/) {    # this should be looked up
+		$params->{$field} = $course_params->{$field} if defined( $course_params->{$field} );
+	}
+	$params->{course_settings} = {};
 
 	# check the parameters
 	my $new_course = $self->create($params);
 
-	my $course_settings_from_db = {$new_course->course_setting->get_inflated_columns};
-	removeIDs($course_settings_from_db);
-
 	return $new_course if $as_result_set;
-	return {
-		$new_course->get_inflated_columns,
-		course_setting => $course_settings_from_db
-	};
+	return { $new_course->get_inflated_columns };
 }
 
 =pod
@@ -152,18 +136,10 @@ sub deleteCourse {
 	my ( $self, $course_info, $as_result_set ) = @_;
 	my $course_to_delete = $self->getCourse( getCourseInfo($course_info), 1 );
 
-
-	my $course_settings_from_db = {$course_to_delete->course_setting->get_inflated_columns};
-	removeIDs($course_settings_from_db);
-
-
 	my $deleted_course = $course_to_delete->delete;
 	return $deleted_course if $as_result_set;
 
-	return {
-			$course_to_delete->get_inflated_columns,
-			course_setting => $course_settings_from_db
-		};
+	return { $course_to_delete->get_inflated_columns };
 }
 
 =pod
@@ -187,24 +163,29 @@ The updated course as a <code>DBIx::Class::ResultSet::Course</code> object.
 sub updateCourse {
 	my ( $self, $course_info, $course_params, $as_result_set ) = @_;
 	my $course = $self->getCourse( getCourseInfo($course_info), 1 );
-
 	## TODO: check the validity of the params
-	my $params = {};
-	for my $field (qw/course_name course_dates/) {
-		$params->{$field} = $course_params->{$field} if defined($course_params);
-	}
-	$course->update($params);
-	my $course_settings_from_db = {
-		$course->course_setting->update($course_params->{course_settings})
-		->get_inflated_columns
-	};
-	removeIDs($course_settings_from_db);
+	my $course_to_return = $course->update($course_params);
 
-	return $course if $as_result_set;
-	return {
-		$course->get_inflated_columns,
-		course_setting => $course_settings_from_db
-	};
+	# dd $params;
+	# ## need to update params, not blow others away.
+
+	# $course->update($params) unless  scalar(keys %$params) == 0;
+
+	# # my $settings = $course->course_setting->update($course_params->{course_settings});
+
+	# # dd {$settings->get_inflated_columns};
+	# dd $course_params->{course_settings};
+
+	# # update the course_settings
+	# my $course_settings_from_db = {
+	# 	$course->course_settings->update($course_params->{course_settings})
+	# 	->get_inflated_columns
+	# };
+	# # dd $course_settings_from_db;
+	# removeIDs($course_settings_from_db);
+
+	return $course_to_return if $as_result_set;
+	return { $course_to_return->get_inflated_columns };
 }
 
 =pod
@@ -259,30 +240,24 @@ if <code>$as_result_set</code> is true.  Otherwise an array of hash_ref.
 =cut
 
 sub getCourseSettings {
-	my ($self,$course_info,$as_result_set) = @_;
-	my $course = $self->getCourse($course_info,1);
-	my $course_settings = getDefaultCourseValues(getDefaultCourseSettings());
-	my $settings_from_db = {$course->course_setting->get_inflated_columns};
-	return mergeCourseSettings($course_settings,$settings_from_db);
+	my ( $self, $course_info, $as_result_set ) = @_;
+	my $course = $self->getCourse( $course_info, 1 );
+
+	my $course_settings  = getDefaultCourseValues( getDefaultCourseSettings() );
+	my $settings_from_db = { $course->course_settings->get_inflated_columns };
+	return mergeCourseSettings( $course_settings, $settings_from_db );
 }
 
 sub updateCourseSettings {
-	my ($self,$course_info,$course_settings,$as_result_set) = @_;
-	my $course = $self->getCourse($course_info,1);
+	my ( $self, $course_info, $course_settings, $as_result_set ) = @_;
+	my $course = $self->getCourse( $course_info, 1 );
 	validateCourseSettings($course_settings);
-	# get the current settings:
-	my $current_settings = {$course->course_setting->get_inflated_columns};
-	# dd $current_settings;
-	# dd $course_settings;
-	my $updated_settings = mergeCourseSettings($current_settings,$course_settings);
 
-	# dd $updated_settings;
-	my $cs = $course->course_setting->update($updated_settings);
-	# dd {$cs->get_inflated_columns};
-	return mergeCourseSettings(
-		getDefaultCourseValues(getDefaultCourseSettings()),
-		{$cs->get_inflated_columns}
-	);
+	my $current_settings = { $course->course_settings->get_inflated_columns };
+	my $updated_settings = mergeCourseSettings( $current_settings, $course_settings );
+
+	my $cs = $course->course_settings->update($updated_settings);
+	return mergeCourseSettings( getDefaultCourseValues( getDefaultCourseSettings() ), { $cs->get_inflated_columns } );
 }
 
 1;
