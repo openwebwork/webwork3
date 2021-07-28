@@ -55,6 +55,14 @@ use Exception::Class (
 		fields => ['set_name', 'course_name'],
 		description => 'The set already exists in the course'
 	},
+	'DB::Exception::UserSetExists' => {
+		fields => ['set_name', 'course_name',"login"],
+		description => 'The user set already exists in the course'
+	},
+	'DB::Exception::UserSetNotInCourse' => {
+		fields => ['set_name', 'course_name',"login"],
+		description => 'The user set does not exist in the course'
+	},
 	'DB::Exception::ParametersNeeded' => {
 		description => 'Parameters are needed that were not included.'
 	},
@@ -93,7 +101,9 @@ DB::Exception::InvalidCourseField->Trace(1);
 # DB::Exception::UserNotInCourse->Trace(1);
 # DB::Exception::UserNotFound->Trace(1);
 # DB::Exception::CourseNotFound->Trace(1);
-# DB::Exception::InvalidParameter->Trace(1);
+DB::Exception::InvalidParameter->Trace(1);
+DB::Exception::UndefinedParameter->Trace(1);
+DB::Exception::InvalidDateField->Trace(1);
 # DB::Exception::PoolNotInCourse->Trace(1);
 # DB::Exception::ParametersNeeded->Trace(1);
 

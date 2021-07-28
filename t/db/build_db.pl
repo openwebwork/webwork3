@@ -31,7 +31,7 @@ use DB::TestUtils qw/loadCSV/;
 # set up the database
 my $db_file = "$main::test_dir/sample_db.sqlite";
 
-my $visible = 1;
+my $verbose = 1;
 
 ## first delete the file
 unlink $db_file;
@@ -48,7 +48,7 @@ my $problem_set_rs = $schema->resultset('ProblemSet');
 my $problem_pool_rs = $schema->resultset('ProblemPool');
 
 sub addCourses {
-	say "adding courses" if $visible;
+	say "adding courses" if $verbose;
 	my @courses = loadCSV("$main::test_dir/sample_data/courses.csv");
 	for my $course (@courses) {
 		$course->{course_settings} = {};
@@ -65,7 +65,7 @@ sub addCourses {
 
 sub addUsers {
 	# add some users
-	say "adding users" if $visible;
+	say "adding users" if $verbose;
 
 	my @all_students = loadCSV("$main::test_dir/sample_data/students.csv");
 
@@ -114,7 +114,7 @@ my @quiz_params = @DB::Schema::Result::ProblemSet::HWSet::VALID_PARAMS;
 
 sub addSets {
 	## add some problem sets
-	say "adding problem sets" if $visible;
+	say "adding problem sets" if $verbose;
 
 	my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
 	for my $set (@hw_sets) {
@@ -128,7 +128,7 @@ sub addSets {
 	}
 
 	## add quizzes
-	say "adding quizzes" if $visible;
+	say "adding quizzes" if $verbose;
 
 	my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
 	for my $quiz (@quizzes) {
@@ -141,7 +141,7 @@ sub addSets {
 		$course->add_to_problem_sets($quiz);
 	}
 
-	say "adding review sets" if $visible;
+	say "adding review sets" if $verbose;
 
 	my @review_sets = loadCSV("$main::test_dir/sample_data/review_sets.csv");
 	for my $set (@review_sets) {
@@ -159,6 +159,7 @@ sub addSets {
 
 sub addProblems {
 	## add some problems
+	say "adding problems" if $verbose;
 	my @problems = loadCSV("$main::test_dir/sample_data/problems.csv");
 	for my $prob (@problems){
 		# check if the course_name/set_name exists
@@ -189,14 +190,20 @@ sub addProblems {
 
 sub addUserSets {
 	## add some users to problem sets
+	say "adding user sets" if $verbose;
 	my @user_sets = loadCSV("$main::test_dir/sample_data/user_sets.csv");
 	for my $user_set (@user_sets){
 		# check if the course_name/set_name/user_name exists
 		my $course = $course_rs->find({ course_name=>$user_set->{course_name}});
 		my $user_course = $course->users->find({login=>$user_set->{login}});
 		if( defined $user_course) {
-			my $problem_set = $schema->resultset('ProblemSet')->find({ course_id => $course->course_id, set_name => $user_set->{set_name} });
-			for my $key (qw/course_name set_name login/) {
+			my $problem_set = $schema->resultset('ProblemSet')->find(
+				{
+					course_id => $course->course_id,
+					set_name => $user_set->{set_name}
+				}
+			);
+			for my $key (qw/course_name set_name type login/) {
 				delete $user_set->{$key};
 			}
 			$user_set->{user_id} = $user_course->user_id;
@@ -208,6 +215,7 @@ sub addUserSets {
 }
 
 sub addProblemPools {
+	say "adding problem pools" if $verbose;
 	my @problem_pools = loadCSV("$main::test_dir/sample_data/pool_problems.csv");
 	for my $pool (@problem_pools) {
 		my $course = $course_rs->find({ course_name=>$pool->{course_name}});
@@ -226,10 +234,5 @@ addSets;
 addProblems;
 addUserSets;
 addProblemPools;
-
-
-# my $u = $course_user_rs->find({course_id=>1,user_id=>5});
-# dd {$u->get_columns};
-
 
 1;

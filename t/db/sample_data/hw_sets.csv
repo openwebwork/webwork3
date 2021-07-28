@@ -1,7 +1,7 @@
-course_name,set_name,set_visible,DATE:open,DATE:reduced_scoring,DATE:due,DATE:answer
-Precalculus,"HW #1",1,1,1,10,10
-Precalculus,"HW #2",1,21,21,30,30
-Precalculus,"HW #3",1,31,31,40,40
-"Abstract Algebra","HW #1",1,1,1,10,10
-"Abstract Algebra","HW #2",1,21,21,30,30
-"Abstract Algebra","HW #3",1,31,31,40,40
+course_name,set_name,set_visible,DATE:open,DATE:reduced_scoring,DATE:due,DATE:answer,PARAM:enable_reduced_scoring
+Precalculus,"HW #1",1,1,1,10,10,
+Precalculus,"HW #2",1,21,21,30,30,1
+Precalculus,"HW #3",1,31,31,40,40,
+"Abstract Algebra","HW #1",1,1,1,10,10,
+"Abstract Algebra","HW #2",1,21,21,30,30,
+"Abstract Algebra","HW #3",1,31,31,40,40,

@@ -17,12 +17,13 @@ use Exception::Class (
 	);
 
 sub validParams {
-	my $self = shift;
+	my ($self,$type) = @_;
 	# the following stops the carping of perlcritic
 	## no critic 'ProhibitStringyEval'
 	## no critic 'RequireCheckingReturnValueOfEval'
-	eval '$valid_params = $' . ref($self) . "::VALID_PARAMS" unless $valid_params;
-	eval '$required_params = $' . ref($self) . "::REQUIRED_PARAMS" unless $required_params;
+	eval '$valid_params = &' . ref($self) . "::valid_params($type)" unless $valid_params;
+	eval '$required_params = &' . ref($self) . "::required_params($type)" unless $required_params;
+
 	$self->validParamFields();
 	$self->validateParams();
 	$self->checkRequiredParams();

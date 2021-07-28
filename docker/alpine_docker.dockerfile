@@ -1,22 +1,17 @@
 FROM scottw/alpine-perl:latest
 RUN apk update && \
-	apk add bash
+	apk add bash perl-data-dump perl-list-moreutils perl-text-csv \
+	perl-test-exception perl-try-tiny perl-dbix-dbschema perl-sql-translator \
+	perl-module-build perl-json-xs perl-clone perl-yaml perl-digest-md5 \
+	perl-capture-tiny perl-io-socket-ssl perl-json-xs perl-uri \
+	perl-exception-class
 RUN	cpanm -fi --notest \
-  Data::Dump \
-	DBIC \
-	List::MoreUtils \
-	Text::CSV \
-	Test::Exception \
-	Try::Tiny \
 	Array::Utils \
-	Exception::Class \
-	DBIx::Class::Schema \
+	Perl::Tidy \
 	DBIx::Class::DynamicSubclass \
-	SQL::Translator \
-	JSON \
-	Clone \
-	YAML::XS \
+	Devel::Cover \
 	Mojolicious \
 	Mojolicious::Plugin::DBIC \
-	Mojolicious::Plugin::Authentication
+	Mojolicious::Plugin::Authentication \
+	Devel::Cover::Report::Codecov
 ENTRYPOINT /bin/bash

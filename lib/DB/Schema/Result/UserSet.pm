@@ -1,11 +1,11 @@
 package DB::Schema::Result::UserSet;
-use base 'DBIx::Class::Core';
+use base qw(DBIx::Class::Core DB::WithParams DB::WithDates);
 use strict;
 use warnings;
 
 use JSON;
 
-__PACKAGE__->load_components(qw/DynamicSubclass Core/);
+# __PACKAGE__->load_components(qw/DynamicSubclass Core/);
 
 __PACKAGE__->table('user_set');
 
@@ -31,11 +31,6 @@ __PACKAGE__->add_columns(
 		size          => 16,
 		is_nullable   => 0,
 		default_value => 1,
-	},
-	type => {
-		data_type     => "int",
-		default_value => 1,
-		size          => 8
 	},
 	dates =>    # store dates as a JSON object
 		{
@@ -65,14 +60,14 @@ __PACKAGE__->belongs_to( problem_sets => 'DB::Schema::Result::ProblemSet', 'set_
 # This defines the non-abstract classes of ProblemSets.
 #
 
-__PACKAGE__->typecast_map(
-	type => {
-		1 => 'DB::Schema::Result::UserSet::HWSet',
-		2 => 'DB::Schema::Result::UserSet::Quiz',
-		3 => 'DB::Schema::Result::UserSet::JITAR',
-		4 => 'DB::Schema::Result::UserSet::ReviewSet',
-	}
-);
+# __PACKAGE__->typecast_map(
+# 	type => {
+# 		1 => 'DB::Schema::Result::UserSet::HWSet',
+# 		2 => 'DB::Schema::Result::UserSet::Quiz',
+# 		3 => 'DB::Schema::Result::UserSet::JITAR',
+# 		4 => 'DB::Schema::Result::UserSet::ReviewSet',
+# 	}
+# );
 
 ### Handle the params column using JSON.
 
@@ -97,4 +92,44 @@ __PACKAGE__->inflate_column(
 		}
 	}
 );
+
+use Data::Dump qw/dd/;
+
+my $set_type = {
+	1 => 'DB::Schema::Result::ProblemSet::HWSet',
+	2 => 'DB::Schema::Result::ProblemSet::Quiz',
+	3 => 'DB::Schema::Result::ProblemSet::JITAR',
+	4 => 'DB::Schema::Result::ProblemSet::ReviewSet'
+};
+
+sub valid_params {
+	my $type = shift;
+	my $params = eval '&' . $set_type->{$type} . '::valid_params';
+	return $params;
+}
+
+sub required_params {
+	my $type = shift;
+	my $params = eval '&' . $set_type->{$type} . '::required_params';
+	return $params;
+}
+
+sub valid_dates {
+	my $type = shift;
+	my $params = eval '&' . $set_type->{$type} . '::valid_dates';
+	return $params;
+}
+
+sub required_dates {
+	my $type = shift;
+	my $params = eval '&' . $set_type->{$type} . '::required_dates';
+	return $params;
+}
+
+
+
+
+
+
+
 1;

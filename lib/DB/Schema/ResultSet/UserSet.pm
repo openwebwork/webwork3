@@ -1,4 +1,3 @@
-
 =pod
 
 =head1 DESCRIPTION
@@ -20,6 +19,8 @@ use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 use DB::WithDates;
 use DB::WithParams;
 
+use Exception::Class ( 'DB::Exception::UserSetExists' );
+
 =pod
 =head2 getUserSets
 
@@ -35,80 +36,65 @@ information on either a set (set_name or set_id) or a user (user_id or login)
 
 =cut
 
-sub getUserSets {
+sub getUserSetsForUser {
 	my ( $self, $info, $as_result_set ) = @_;
-	my $course = $self->result_source->schema->resultset("Course")->getCourse( getCourseInfo($info), 1 );
+	my $course = $self->_getCourse($info);
 
-	my ( $user_info, $set_info );
+	my $user = $self->_getUser(
+		{
+			course_id => $course->course_id,
+			%{getUserInfo($info)}
+		}, 1 );
 
-	# determine if this is a set of user set based on a set or a user
-	try {    # one of these will throw an error
-		$user_info = getUserInfo($info);
+	my @user_sets   = $self->search( { user_id => $user->user_id } );
+	my @user_setids = map { { set_id => $_->set_id }; } @user_sets;
+
+	my @problem_sets = $course->problem_sets->search( \@user_setids );
+
+	my @user_sets_to_return = ();
+	for my $i ( 0 .. $#user_sets ) {
+		my $params = _mergeUserSet($problem_sets[$i],$user_sets[$i],$user);
+		push( @user_sets_to_return, $params );
 	}
-	finally { };
-	try {
-		$set_info = getSetInfo($info);
-	}
-	finally { };
+	return @user_sets_to_return;
 
-	if ( scalar( keys %$user_info ) == 1 ) {    # all user sets for a given user
-		my $user = $self->result_source->schema->resultset("User")
-			->getUser( { course_id => $course->course_id, %$user_info }, 1 );
-
-		my @user_sets   = $self->search( { user_id => $user->user_id } );
-		my @user_setids = map { { set_id => $_->set_id }; } @user_sets;
-
-		my @problem_sets = $course->problem_sets->search( \@user_setids );
-
-		my @user_sets_to_return = ();
-		for my $i ( 0 .. $#user_sets ) {
-			my $all_params = {
-				$problem_sets[$i]->get_columns,
-				params => updateAllFields(
-					$problem_sets[$i]->get_inflated_column("params"),
-					$user_sets[$i]->get_inflated_column("params")
-				),
-				dates => updateAllFields(
-					$problem_sets[$i]->get_inflated_column("dates"),
-					$user_sets[$i]->get_inflated_column("dates")
-				),
-				set_type    => $problem_sets[$i]->set_type,
-				login       => $user->login,
-				course_name => $course->course_name,
-				set_version => $user_sets[$i]->set_version
-			};
-			push( @user_sets_to_return, $all_params );
-
-		}
-		return @user_sets_to_return;
-	}
-	elsif ( scalar( keys %$set_info ) == 1 ) {    # all user sets for a given set
-		my $problem_set = $self->result_source->schema->resultset("ProblemSet")
-			->getProblemSet( { course_id => $course->course_id, %$set_info }, 1 );
-
-		my @user_sets           = $self->search( { set_id => 1 }, { prefetch => { course_users => 'users' } } );
-		my @user_sets_to_return = ();
-		for my $i ( 0 .. $#user_sets ) {
-			my $all_params = {
-				$problem_set->get_columns,
-				params => updateAllFields(
-					$problem_set->get_inflated_column("params"),
-					$user_sets[$i]->get_inflated_column("params")
-				),
-				dates => updateAllFields(
-					$problem_set->get_inflated_column("dates"),
-					$user_sets[$i]->get_inflated_column("dates")
-				),
-				set_type    => $problem_set->set_type,
-				login       => $user_sets[$i]->course_users->users->login,
-				course_name => $course->course_name,
-				set_version => $user_sets[$i]->set_version
-			};
-			push( @user_sets_to_return, $all_params );
-		}
-		return @user_sets_to_return;
-	}
 }
+
+=pod
+=head2 getUserSetsForSet
+
+get an array of all user sets for a given problem set (HW, quiz, etc.)
+
+=cut
+
+sub getUserSetsForSet {
+	my ( $self, $set_info, $as_result_set ) = @_;
+	my $course = $self->_getCourse($set_info);
+
+	my $problem_set = $self->_getProblemSet(
+		{
+			course_id => $course->course_id, %{getSetInfo($set_info)}
+		});
+
+	my @user_sets = $self->search(
+		{
+			set_id =>  $problem_set->set_id
+		},
+		{
+			prefetch => { course_users => 'users' }
+		}
+	);
+
+	my @user_sets_to_return = ();
+	for my $i ( 0 .. $#user_sets ) {
+		my $params = _mergeUserSet($problem_set,$user_sets[$i],
+			$user_sets[$i]->course_users->users);
+		push( @user_sets_to_return, $params );
+	}
+	return @user_sets_to_return;
+}
+
+
 
 =pod
 =head2 getUserSet
@@ -119,36 +105,23 @@ get a single UserSet for a given course, user, and ProblemSet
 
 sub getUserSet {
 	my ( $self, $user_set_info, $as_result_set ) = @_;
-	my $problem_set_info = { %{ getCourseInfo($user_set_info) }, %{ getSetInfo($user_set_info) } };
-	my $user_course_info = { %{ getCourseInfo($user_set_info) }, %{ getUserInfo($user_set_info) } };
 
-	my $problem_set_rs = $self->result_source->schema->resultset("ProblemSet");
-	my $user_rs        = $self->result_source->schema->resultset("User");
-	my $problem_set    = $problem_set_rs->getProblemSet( $problem_set_info, 1 );
-	my $user           = $user_rs->getUser( $user_course_info, 1 );
+	my $problem_set    = $self->_getProblemSet( $user_set_info);
+	my $user           = $self->_getUser( $user_set_info);
 
 	my $user_set = $self->find(
-		{   'problem_sets.course_id' => $problem_set->course_id,
+		{
+			'problem_sets.course_id' => $problem_set->course_id,
 			'problem_sets.set_id'    => $problem_set->set_id,
 			user_id                  => $user->user_id,
 		},
 		{ prefetch => [qw/problem_sets/] }
 	);
-
-	# override the user set params
-	my $params = updateAllFields( $problem_set->params, $user_set->params );
-	my $dates  = updateAllFields( $problem_set->dates,  $user_set->dates );
-
 	return $user_set if $as_result_set;
-	return {
-		$problem_set->get_inflated_columns,
-		set_type => $problem_set->set_type,
-		$user_set->get_columns,
-		dates  => $dates,
-		params => $params,
-		login  => $user->login
-	};
+	return _mergeUserSet($problem_set,$user_set,$user);
 }
+
+
 
 =pod
 =head2 addUserSet
@@ -157,12 +130,41 @@ add a single UserSet for a given course, user, and ProblemSet
 
 =cut
 
-# sub addUserSet {
-# 	my ( $self, $user_set_info, $user_set_params, $as_result_set ) = @_;
-# 	my $problem_set_info = { %{ getCourseInfo($user_set_info) }, %{ getSetInfo($user_set_info) } };
-# 	my $user_course_info = { %{ getCourseInfo($user_set_info) }, %{ getUserInfo($user_set_info) } };
+sub addUserSet {
+	my ( $self, $user_set_info, $user_set_params, $as_result_set ) = @_;
 
-# }
+	my $problem_set = $self->_getProblemSet($user_set_info);
+	my $user = $self->_getUser($user_set_info);
+
+	DB::Exception::UserSetExists->throw(
+		login => $user->login,
+		set_name => $problem_set->set_name,
+		course_name => $problem_set->course_id
+	) if $self->getUserSet($user_set_info,1);
+
+	my $params = {
+		user_id => $user->user_id,
+		set_id  => $problem_set->set_id
+	};
+
+	for my $key (keys %$user_set_params) {
+		$params->{$key} = $user_set_params->{$key};
+	}
+
+	## make sure the parameters and dates are valid.
+	my $new_user_set = $self->new($params);
+
+	$new_user_set->validParams($problem_set->type) if $new_user_set->params;
+	$new_user_set->validDates($problem_set->type) if $new_user_set->dates;
+
+	my $user_set = $problem_set->add_to_user_sets($params);
+
+	## add_to_user_set not getting default values, so get the just added user_set
+	my $s = $self->find({user_set_id => $user_set->user_set_id});
+
+	return $user_set if $as_result_set;
+	return _mergeUserSet($problem_set,$s,$user);
+}
 
 =pod
 =head2 updateUserSet
@@ -172,39 +174,141 @@ update a single UserSet for a given course, user, and ProblemSet
 =cut
 
 sub updateUserSet {
-	my ( $self, $set_info, $user_set_params, $as_result_set ) = @_;
+	my ( $self, $user_set_info, $user_set_params, $as_result_set ) = @_;
 
-	my $user_set   = $self->getUserSet( $set_info, 1 );
-	my $merged_set = $self->getUserSet($set_info);
+	my $user_set   = $self->getUserSet( $user_set_info, 1 );
 
-	my @keys = grep { $_ ne "params" && $_ ne "dates" } keys %$user_set_params;
+	DB::Exception::UserSetNotInCourse->throw(
+		set_name => $user_set_info->{set_name},
+		course_name => $user_set_info->{course_name},
+		login => $user_set_info->{login}
+	) unless defined($user_set);
 
-	for my $key (@keys) {
-		$merged_set->{$key} = $user_set_params->{$key};
-	}
-	for my $key ( keys %{ $user_set_params->{params} } ) {
-		$merged_set->{params}->{$key} = $user_set_params->{params}->{$key};
-	}
-	for my $key ( keys %{ $user_set_params->{dates} } ) {
-		$merged_set->{dates}->{$key} = $user_set_params->{dates}->{$key};
-	}
-
-	# convert the set_type (a string) to type ( a number)
-	$merged_set->{type} = $DB::Schema::ResultSet::ProblemSet::SET_TYPES->{ $merged_set->{set_type} };
-
-	# delete fields that are not in the database,  TODO: automate this.
-	for my $key (qw/set_type set_name course_id login/) {
-		delete $merged_set->{$key};
+	## only allow params and dates to be updated
+	for my $field (keys %$user_set_params) {
+		my @allowed_fields = grep { $_ eq $field } qw/params dates/;
+		DB::Exception::InvalidParameter->throw(field_names => $field)
+			unless scalar(@allowed_fields) == 1;
 	}
 
-	my $problem_set = $user_set->update($merged_set);
+	my $problem_set = $self->_getProblemSet($user_set_info);
+	my $user = $self->_getUser($user_set_info);
 
-	# check for valid params
-	$problem_set->validParams();
-	$problem_set->validDates();
+	## make sure the parameters and dates are valid.
+	my $new_user_set = $self->new($user_set_params);
 
-	return $problem_set if $as_result_set;
-	return { $problem_set->get_inflated_columns };
+	$new_user_set->validParams($problem_set->type) if $new_user_set->params;
+	$new_user_set->validDates($problem_set->type) if $new_user_set->dates;
+
+	my $updated_user_set = $user_set->update($user_set_params);
+
+		## update not getting all values, so get the user_set
+	my $s = $self->find({user_set_id => $user_set->user_set_id});
+
+
+	return $updated_user_set if $as_result_set;
+	return _mergeUserSet($problem_set,$s,$user);
 }
+
+
+=pod
+=head2 deleteUserSet
+
+delete a single UserSet for a given course, user, and ProblemSet
+
+=cut
+
+sub deleteUserSet {
+	my ( $self, $user_set_info, $user_set_params, $as_result_set ) = @_;
+
+	my $user_set   = $self->getUserSet( $user_set_info, 1 );
+
+	DB::Exception::UserSetNotInCourse->throw(
+		set_name => $user_set_info->{set_name},
+		course_name => $user_set_info->{course_name},
+		login => $user_set_info->{login}
+	) unless defined($user_set);
+
+
+	my $problem_set = $self->_getProblemSet($user_set_info);
+	my $user = $self->_getUser($user_set_info);
+
+	$user_set->delete;
+	return $user_set if $as_result_set;
+	return _mergeUserSet($problem_set,$user_set,$user);
+
+
+}
+
+## the following are private methods used in this module
+
+# return the Course resultset
+
+sub _course_rs {
+	return shift->result_source->schema->resultset("Course");
+}
+
+# return the ProblemSet resultset
+sub _problem_set_rs {
+	return shift->result_source->schema->resultset("ProblemSet");
+}
+
+# return the User resultset
+sub _user_rs {
+	return shift->result_source->schema->resultset("User");
+}
+
+# return the course/set info given the user_set_info is passed in
+
+sub _getProblemSet {
+	my ($self,$info) = @_;
+	my $set_info = { %{ getCourseInfo($info) }, %{ getSetInfo($info) } };
+	return $self->_problem_set_rs->getProblemSet($set_info,1);
+}
+
+# return the course/set info given the user_set_info is passed in
+
+sub _getUser {
+	my ($self,$info) = @_;
+	my $user_info = { %{ getCourseInfo($info) }, %{ getUserInfo($info) } };
+	return $self->_user_rs->getUser($user_info,1);
+}
+
+
+# return the course/set info given the user_set_info is passed in
+
+sub _getCourse {
+	my ($self,$info) = @_;
+	return $self->_course_rs->getCourse(getCourseInfo($info),1);
+}
+
+# merge the user set data with the problem set information
+
+sub _mergeUserSet {
+	my ($problem_set,$user_set,$user) = @_;
+
+	# override the user set params
+	my $params = updateAllFields( $problem_set->params, $user_set->params );
+	# my $dates  = updateAllFields( $problem_set->dates,  $user_set->dates );
+
+	my $user_set_dates = $user_set->dates || {};
+
+	# check if there are dates in the user_set
+	# and use the user_set dates otherwise use the problem_set ones.
+	my @date_fields = keys %$user_set_dates;
+	my $dates = (scalar(@date_fields) > 0) ? $user_set_dates : $problem_set->dates;
+
+	return {
+		$user_set->get_columns,
+		set_type => $problem_set->set_type,
+		set_name => $problem_set->set_name,
+		set_visible => $problem_set->set_visible,
+		dates  => $dates,
+		params => $params,
+		login => $user->login
+	};
+}
+
+
 
 1;

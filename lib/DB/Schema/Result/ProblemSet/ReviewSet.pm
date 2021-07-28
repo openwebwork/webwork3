@@ -5,9 +5,21 @@ use warnings;
 
 use Carp;
 
-our @VALID_DATES = qw/open closed/;
-our @REQUIRED_DATES = qw/open closed/;
-our $VALID_PARAMS = {};
-our $REQUIRED_PARAMS = {};
+
+sub valid_dates {
+	return ['open' ,'close'];
+}
+
+sub required_dates {
+	return ['open' ,'close'];
+}
+
+sub valid_params {
+	return {};
+}
+
+sub required_params {
+	return {};
+}
 
 1;
