@@ -23,5 +23,6 @@ RUN cpanm --notest Array::Utils \
     Mojolicious \
     Mojolicious::Plugin::NotYAMLConfig \
     Mojolicious::Plugin::DBIC \
-    Mojolicious::Plugin::Authentication
+    Mojolicious::Plugin::Authentication \
+    Devel::Cover::Report::Codecov
 ENTRYPOINT /bin/bash

@@ -24,5 +24,5 @@ jobs:
           path: cover_db/
       - name: push coverage analysis
         env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          CODECOV_TOKEN: ${{ secrets.WEBWORK3_CODECOV_TOKEN }}
         run: cover -report codecov
