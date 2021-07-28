@@ -21,8 +21,13 @@ sub validParams {
 	# the following stops the carping of perlcritic
 	## no critic 'ProhibitStringyEval'
 	## no critic 'RequireCheckingReturnValueOfEval'
-	eval '$valid_params = &' . ref($self) . "::valid_params($type)" unless $valid_params;
-	eval '$required_params = &' . ref($self) . "::required_params($type)" unless $required_params;
+	if (defined($type)) {
+		eval '$valid_params = &' . ref($self) . "::valid_params($type)" unless $valid_params;
+		eval '$required_params = &' . ref($self) . "::required_params($type)" unless $required_params;
+	} else {
+		eval '$valid_params = &' . ref($self) . "::valid_params" unless $valid_params;
+		eval '$required_params = &' . ref($self) . "::required_params" unless $required_params;
+	}
 
 	$self->validParamFields();
 	$self->validateParams();

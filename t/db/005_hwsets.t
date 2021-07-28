@@ -19,6 +19,7 @@ use List::MoreUtils qw(uniq);
 use Test::More;
 use Test::Exception;
 use Try::Tiny;
+use Clone qw/clone/;
 
 use Array::Utils qw/array_minus intersect/;
 
@@ -43,17 +44,14 @@ my $user_rs        = $schema->resultset("User");
 # load HW sets from CSV file
 my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
 for my $set (@hw_sets) {
-	$set->{type}     = 1;
 	$set->{set_type} = "HW";
 }
 my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
-	$quiz->{type}     = 2;
 	$quiz->{set_type} = "QUIZ";
 }
 my @review_sets = loadCSV("$main::test_dir/sample_data/review_sets.csv");
 for my $set (@review_sets) {
-	$set->{type}     = 4;
 	$set->{set_type} = "REVIEW";
 }
 my @all_problem_sets = ( @hw_sets, @quizzes, @review_sets );
@@ -64,17 +62,14 @@ my @problem_sets_from_db = $problem_set_rs->getAllProblemSets;
 
 ## remove the id tags:
 for my $set (@problem_sets_from_db) {
-
-	# dd $set;
 	removeIDs($set);
 	delete $set->{visible};    # remove information about the course
 	delete $set->{course_dates};
 }
 
-# dd $all_problem_sets[6];
-# dd $problem_sets_from_db[6];
 
 is_deeply( \@all_problem_sets, \@problem_sets_from_db, "getProblemSets: get all sets" );
+
 
 ## test for all sets in one course
 
@@ -82,14 +77,13 @@ is_deeply( \@all_problem_sets, \@problem_sets_from_db, "getProblemSets: get all 
 my @precalc_sets = filterBySetType( \@all_problem_sets, undef, "Precalculus" );
 
 ## make a clone of the sets:
-@precalc_sets = map {
-	{%$_};
-} @precalc_sets;
+my $all_precalc_sets = clone(\@precalc_sets);
 
-for my $set (@precalc_sets) {
+for my $set (@$all_precalc_sets) {
 	delete $set->{course_name};
 }
-@precalc_sets = sort { $a->{set_name} cmp $b->{set_name} } @precalc_sets;
+
+my @all_precalc_sets = sort { $a->{set_name} cmp $b->{set_name} } @$all_precalc_sets;
 
 my @precalc_sets_from_db = $problem_set_rs->getProblemSets( { course_name => "Precalculus" } );
 
@@ -98,7 +92,7 @@ for my $set (@precalc_sets_from_db) {
 	removeIDs($set);
 }
 
-is_deeply( \@precalc_sets, \@precalc_sets_from_db, "getProblemSets: get sets for one course" );
+is_deeply( \@all_precalc_sets, \@precalc_sets_from_db, "getProblemSets: get sets for one course" );
 
 ## test all HW sets in one course
 

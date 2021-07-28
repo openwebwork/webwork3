@@ -9,15 +9,20 @@ use base qw(DBIx::Class::Core DB::WithParams);
 
 use JSON;
 
-our $VALID_PARAMS = {
-	weight          => q{\d+},
-	library_id      => q{\d+},
-	problem_path    => q{.*},
-	problem_pool_id => q{\d+}
-};
+sub valid_params {
+	return {
+		weight          => q{\d+},
+		library_id      => q{\d+},
+		problem_path    => q{.*},
+		problem_pool_id => q{\d+}
+	};
+}
 
-our $REQUIRED_PARAMS =
-	{ '_ALL_' => [ 'weight', { '_ONE_OF_' => [ 'library_id', 'problem_path', 'problem_pool_id' ] } ] };
+sub required_params {
+	return {
+		'_ALL_' => [ 'weight', { '_ONE_OF_' => [ 'library_id', 'problem_path', 'problem_pool_id' ] } ]
+	};
+}
 
 ### this is the table that stores problems for a given Problem Set
 

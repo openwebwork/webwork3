@@ -82,7 +82,7 @@ sub filterBySetType {
 		@filtered_sets = grep { $_->{course_name} eq $course_name } @filtered_sets;
 	}
 	if (defined($type)){
-		@filtered_sets = grep { $_->{type} eq $type_hash->{$type} } @filtered_sets;
+		@filtered_sets = grep { $_->{set_type} eq $type } @filtered_sets;
 	}
 
 	return @filtered_sets;

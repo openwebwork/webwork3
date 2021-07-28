@@ -27,8 +27,13 @@ sub validDates {
 	# the following stops the carping of perlcritic
 	## no critic 'ProhibitStringyEval'
   ## no critic 'RequireCheckingReturnValueOfEval'
-	eval '$valid_dates = &' . ref($self) . "::valid_dates($type)" unless $valid_dates;
-	eval '$required_dates = &' . ref($self) . "::required_dates($type)" unless $required_dates;
+	if (defined($type)) {
+		eval '$valid_dates = &' . ref($self) . "::valid_dates($type)" unless $valid_dates;
+		eval '$required_dates = &' . ref($self) . "::required_dates($type)" unless $required_dates;
+	} else {
+		eval '$valid_dates = &' . ref($self) . "::valid_dates" unless $valid_dates;
+		eval '$required_dates = &' . ref($self) . "::required_dates" unless $required_dates;
+	}
 
 	$self->validDateFields();
 	$self->hasRequiredDateFields();
