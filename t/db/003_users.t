@@ -33,6 +33,11 @@ my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
 
 my $users_rs = $schema->resultset("User");
 
+# remove the maggie user if exists in the database
+my $maggie = $users_rs->find({login => "maggie"});
+$maggie->delete if defined($maggie);
+
+
 ## get a list of users from the CSV file
 my @students = loadCSV("$main::test_dir/sample_data/students.csv");
 
