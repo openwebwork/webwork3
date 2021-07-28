@@ -8,6 +8,7 @@ on:
 
 jobs:
   coverage:
+    runs-on: ubuntu-latest
     container: pstaabp/webwork3
     steps:
       - uses: actions/checkout@v2
