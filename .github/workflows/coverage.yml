@@ -15,7 +15,9 @@ jobs:
       - name: Build project and run tests
         env:
           HARNESS_PERL_SWITCHES: -MDevel::Cover
-        run: prove -r t
+        run: |
+          perl t/db/build_db.pl
+          prove -r t
       - uses: actions/upload-artifact@v2
         with:
           name: coverage-report
