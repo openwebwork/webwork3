@@ -10,7 +10,6 @@ jobs:
   coverage:
     container: pstaabp/webwork3
     steps:
-      - name: install-packages
       - uses: actions/checkout@v2
       - name: Build project and run tests
         env:
