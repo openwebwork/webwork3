@@ -4,7 +4,10 @@ use Mojo::Base 'Mojolicious', -signatures;
 use Mojo::File qw(curfile);
 use YAML::XS qw/LoadFile/;
 
-my $webwork_root = curfile->dirname->to_string . "/..";
+my $webwork_root;
+BEGIN {
+	$webwork_root = curfile->dirname->to_string . "/..";
+}
 
 use Data::Dump qw/dd/;
 use Try::Tiny;
@@ -12,6 +15,9 @@ use Try::Tiny;
 use DB::Schema;
 use WeBWorK3::Mojolicious;
 
+# require Exporter;
+# use base qw(Exporter);
+# our @EXPORT_OK = qw/confDirectory/;
 
 my $perm_table;
 
@@ -57,6 +63,9 @@ sub startup {
 	return;
 }
 
+sub confDirectory {
+	return "$webwork_root/conf";
+}
 
 
 sub load_account {

@@ -1,0 +1,28 @@
+name: Unit Tests and Coverage
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+# comment 2
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    container: pstaabp/webwork3
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build project and run tests
+        env:
+          HARNESS_PERL_SWITCHES: -MDevel::Cover
+        run: |
+          perl t/db/build_db.pl
+          prove -r t
+      - uses: actions/upload-artifact@v2
+        with:
+          name: coverage-report
+          path: cover_db/
+      - name: push coverage analysis
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: cover -report codecov

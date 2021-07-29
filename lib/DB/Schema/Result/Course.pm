@@ -5,13 +5,10 @@ use warnings;
 
 use JSON;
 
-our @VALID_DATES    = qw/open end/;
-our @REQUIRED_DATES = qw//;
-our $VALID_PARAMS   = {
-	institution => q{.*},
-	visible     => q{[01]}
-};
-our $REQUIRED_PARAMS = { _ALL_ => ['visible'] };
+our @VALID_DATES     = qw/open end/;
+our @REQUIRED_DATES  = qw//;
+our $VALID_PARAMS    = { visible => q{[01]} };
+our $REQUIRED_PARAMS = { _ALL_   => ['visible'] };
 
 __PACKAGE__->table('course');
 
@@ -27,18 +24,17 @@ __PACKAGE__->add_columns(
 		size        => 256,
 		is_nullable => 0,
 	},
-	course_params => {
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => "{}",
-	},
 	course_dates => {
 		data_type     => 'text',
 		size          => 256,
 		is_nullable   => 0,
 		default_value => "{}",
 	},
+	visible => {
+		data_type     => 'boolean',
+		is_nullable   => 0,
+		default_value => 1,
+	}
 );
 
 __PACKAGE__->set_primary_key('course_id');
@@ -53,19 +49,11 @@ __PACKAGE__->has_many( problem_sets => 'DB::Schema::Result::ProblemSet', 'course
 # set up the one-to-many relationship to problem_pools
 __PACKAGE__->has_many( problem_pools => 'DB::Schema::Result::ProblemPool', 'course_id' );
 
-__PACKAGE__->inflate_column(
-	'course_params',
-	{   inflate => sub {
-			decode_json shift;
-		},
-		deflate => sub {
-			encode_json shift;
-		}
-	}
-);
+# set up the one-to-one relationship to course settings;
+__PACKAGE__->has_one( course_settings => 'DB::Schema::Result::CourseSettings', 'course_id' );
 
 __PACKAGE__->inflate_column(
-	'course_dates',
+	"course_dates",
 	{   inflate => sub {
 			decode_json shift;
 		},

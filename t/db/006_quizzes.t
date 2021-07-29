@@ -42,15 +42,15 @@ my @all_problem_sets;    # stores all problem_sets
 
 my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
-	$quiz->{type}        = 2;
-	$quiz->{set_type}    = "QUIZ";
+	$quiz->{type}     = 2;
+	$quiz->{set_type} = "QUIZ";
 }
 
 ## test: get all quizzes from one course
 my @precalc_quizzes = filterBySetType( \@quizzes, "QUIZ", "Precalculus" );
 @precalc_quizzes = map {
 	{%$_};
-} @precalc_quizzes;    # clone all quizzes
+} @precalc_quizzes;      # clone all quizzes
 
 for my $quiz (@precalc_quizzes) {
 	delete $quiz->{course_name};

@@ -46,18 +46,29 @@ if ($TEST_PERMISSIONS) {
 $t->get_ok('/webwork3/api/courses')
 	->content_type_is('application/json;charset=UTF-8')
 	->json_is( '/0/course_name' => "Precalculus" )
-	->json_is( '/0/course_params/institution' => "Springfield CC" );
+	->json_is( '/0/visible' => 1 );
 
 $t->get_ok('/webwork3/api/courses/1')
 	->content_type_is('application/json;charset=UTF-8')
 	->json_is( '/course_name' => "Precalculus" )
-	->json_is( '/course_params/institution' => "Springfield CC" );
+	->json_is( '/visible' => 1);
+
+
 
 ## add a new course
 
 my $new_course = {
 	course_name   => "Linear Algebra",
-	course_params => { institution => "Springfield A&M" },
+	# course_setting => {
+		# general => {
+		# 	institution => "Springfield A&M"
+		# },
+		# optional    => {},
+		# permissions => {},
+		# problem     => {},
+		# problem_set => {},
+		# email => {},
+	# },
 	course_dates  => { start       => "2021-05-31", end => "2021-07-01" }
 };
 
@@ -71,14 +82,20 @@ is_deeply( $new_course, $t->tx->res->json, "addCourse: courses match" );
 
 ## update the course
 
-$new_course->{course_params}->{institution} = "Springfield University";
-$t->put_ok( "/webwork3/api/courses/$new_course_id" => json => $new_course );
+$new_course->{visible} = 0;
+$t->put_ok( "/webwork3/api/courses/$new_course_id" => json => $new_course )
+	->status_is(200)
+	->json_is( '/course_name' => $new_course->{course_name} );
+
 is_deeply( $new_course, $t->tx->res->json, "updateCourse: courses match" );
+dd $new_course;
+dd $t->tx->res->json;
 
 ## test for exceptions
 
 # a set that is not in a course
-$t->get_ok("/webwork3/api/courses/99999")->content_type_is('application/json;charset=UTF-8')
+$t->get_ok("/webwork3/api/courses/99999")
+	->content_type_is('application/json;charset=UTF-8')
 	->json_is( '/exception' => 'DB::Exception::CourseNotFound' );
 
 # try to update a non-existant course

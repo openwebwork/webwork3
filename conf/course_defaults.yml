@@ -1,0 +1,451 @@
+# This is the definition, description and documentation of all of the
+# course settings in webwork3.
+#
+# The outermost labelling are the categories: general, optional, permission, answer_options, email
+# For the optional category, there are subcategories.
+#
+# For each course setting there are 4 fields
+#    var: the name of the variable/setting
+#    doc: a short description of the variable
+#    doc2: a longer description of the variable (optional)
+#    type: the type of varable (text, list, multilist, boolean, integer, decimal, time, date_time, time_duration, timezone)
+
+# these are the general course settings
+-
+  var: institution
+  category: general
+  doc: Name of the institution
+  type: text
+  default: ''
+-
+  var: course_description
+  category: general
+  doc: Description of the course
+  type: text
+  default: ''
+-
+  var: language
+  category: general
+  doc: Default language for the course
+  doc2: 'WeBWorK currently has translations for four languages: "English en", "Turkish tr", "Spanish es", and "French fr"'
+  type: list
+  options:
+    -
+      label: English
+      value: en-us
+    -
+      label: Turkish
+      value: tr
+    -
+      label: Spanish
+      value: es
+    -
+      label: French
+      value: fr
+    -
+      label: Chinese (Hong Kong)
+      value: zh_hk
+    -
+      label: Hebrew
+      value: he
+  default: en-us  # select default value here
+-
+  var: per_problem_lang_and_dir_setting_mode
+  category: general
+  doc: Mode in which the LANG and DIR settings for a single problem are determined.
+  doc2: >
+    Mode in which the LANG and DIR settings for a single problem are determined.
+
+    The system will set the LANGuage attribute to either a value determined from the problem,
+    a course-wide default, or the system default of en-US, depending on the mode selected.
+    The tag will only be added to the DIV enclosing the problem if it is different than the
+    value which should be set in the main HTML tag set for the entire course based on the
+    course language.<p>There are two options for the DIRection attribute: \"ltr\" for
+    left-to-write sripts, and \"rtl\" for right-to-left scripts like Arabic and Hebrew.
+
+    The DIRection attribute is needed to trigger proper display of the question text when
+    the problem text-direction is different than that used by the current language of the
+    course. For example, English problems from the library browser would display improperly
+    in RTL mode for a Hebrew course, unless the problen Direction is set to LTR.<p>The feature
+    to set a problem language and direction was only added in 2018 to the PG language, so most
+    problems will not declare their language, and the system needs to fall back to determining
+    the language and direction in a different manner. The OPL itself is all English, so the
+    system wide fallback is to en-US in LTR mode.<p>Since the defaults fall back to the LTR
+    direction, most sites should be fine with the \"auto::\" mode, but may want to select the
+    one which matches their course language. The mode \"force::ltr\" would also be an option
+    for a course which runs into trouble with the \"auto\" modes.<p>Modes:
+
+    <ul><li> \"none\"
+    prevents any additional LANG and/or DIR tag being added. The browser will use the main setting
+    which was applied to the entire HTML page. This is likely to cause trouble when a problem of
+    the other direction is displayed.</li><li> \"auto::\" allows the system to make the settings
+    based on the language and direction reported by the problem (a new feature, so not set in
+    almost all existing problems) and falling back to the expected default of en-US in LTR mode. </li>
+
+    <li> \"auto:LangCode:Dir\" allows the system to make the settings based on the language and direction
+    reported by the problem (a new feature, so not set in almost all existing problems) but falling
+    back to the language with the given LangCode and the direction Dir when problem settings are not
+    available from PG.</li>
+
+    <li> \"auto::Dir\" for problems without PG settings, this will use the
+    default en=english language, but force the direction to Dir. Problems with PG settings will get
+    those settings.</li>
+
+    <li> \"auto:LangCode:\" for problems without PG settings, this will use the
+    default LTR direction, but will set the language to LangCode.Problems with PG settings will get
+    those settings.</li>
+
+    <li> \"force:LangCode:Dir\" will <b>ignore</b> any setting made by the PG
+    code of the problem, and will force the system to set the language with the given LangCode and
+    the direction to Dir for <b>all</b> problems.</li>
+
+    <li> \"force::Dir\" will <b>ignore</b> any
+    setting made by the PG code of the problem, and will force the system to set the direction to Dir
+    for <b>all</b> problems, but will avoid setting any language attribute for individual problem.</li></ul>
+  type: list
+  options:
+    - none
+    - 'auto::'
+    - force::ltr
+    - force::rtl
+    - force:en:ltr
+    - auto:en:ltr
+    - force:tr:ltr
+    - auto:tr:ltr
+    - force:es:ltr
+    - auto:es:ltr
+    - force:fr:ltr
+    - auto:fr:ltr
+    - force:zh_hk:ltr
+    - auto:zh_hk:ltr
+    - force:he:rtl
+    - auto:he:rtl
+  default: none
+-
+  var: session_key_timeout
+  category: general
+  doc: Inactivity time before a user is required to login again
+  type: time_duration
+  # note the default time is in seconds
+  default: 15 mins
+-
+  var: timezone
+  category: general
+  doc: Timezone for the course
+  type: timezone
+  default: site_default_timezone
+-
+  var: hardcopy_theme
+  category: general
+  doc: Hardcopy Theme
+  doc2: |
+    There are currently two hardcopy themes to choose from:
+    One Column and Two Columns.  The Two Columns theme is the
+    traditional hardcopy format.  The One Column theme uses the
+    full page width for each column
+  type: list
+  options: [ 'One Column', 'Two Column' ]
+  default: 'Two Column'
+-
+  var: show_course_homework_totals
+  doc: Show Total Homework Grade on Grades Page
+  doc2: |
+    When this is on students will see a line on the Grades page which has
+    their total cumulative homework score.  This score includes all sets
+    assigned to the student.
+  type: boolean
+  default: true
+
+# this contains all optional features of webwork
+-
+  category: optional
+  subcategory: conditional_release
+  var: enable_conditional_release
+  doc: whether or not problem sets can have conditional release
+  type: boolean
+  default: false
+
+# reduced scoring
+-
+  var: enable_reduced_scoring
+  category: optional
+  subcategory: educed_scoring
+  doc: whether or not problem sets can have reducing scoring enabled.
+  type: boolean
+  default: false
+-
+  var: reducing_scoring_value
+  category: optional
+  subcategory: reduced_scoring
+  doc: Value of work done in Reduced Scoring Period
+  doc2: >
+    After the Reduced Scoring Date all additional work done by the student
+    counts at a reduced rate. Here is where you set the reduced rate which
+    must be a percentage. For example if this value is 50% and a student
+    views a problem during the Reduced Scoring Period, they will see the message
+    "You are in the Reduced Scoring Period: All additional work done counts 50%
+    of the original."
+
+    To use this, you also have to enable Reduced Scoring and set the Reduced
+    Scoring Date for individual assignments by editing the set data using the
+    Hmwk Sets Editor.
+
+    This works with the avg_problem_grader (which is
+    the default grader) and the std_problem_grader (the all or nothing grader).
+    It will work with custom graders if they are written appropriately.
+  type: text
+  default: false
+-
+  var: reduced_scoring_period
+  category: optional
+  subcategory: reduced_scoring
+  doc: Default Length of Reduced Scoring Period
+  doc2: >
+    The Reduced Scoring Period is the default period before the due date
+    during which all additional work done by the student counts at a reduced rate.
+    When enabling reduced scoring for a set the reduced scoring date will be set to
+    the due date minus this number. The reduced scoring date can then be changed. If
+    the Reduced Scoring is enabled and if it is after the reduced scoring date, but
+    before the due date, a message like "This assignment has a Reduced Scoring
+    Period that begins 11/08/2009 at 06:17pm EST and ends on the due date, 11/10/2009
+    at 06:17pm EST. During this period all additional work done counts 50% of the
+    original." will be displayed.
+  type: time_duration
+  default: 3 days
+  # show me another
+-
+  var: enable_show_me_another
+  category: optional
+  subcategory: show_me_another
+  doc: Enable Show Me Another button
+  doc2: Enables use of the Show Me Another button, which offers the student a newly-seeded version of the current problem, complete with solution (if it exists for that problem).
+  type: boolean
+  default: false
+-
+  var: show_me_another_default
+  category: optional
+  subcategory: show_me_another
+  doc: Default number of attempts before Show Me Another can be used (-1 => Never)
+  doc2: |
+    This is the default number of attempts before show me another becomes available
+    to students.  It can be set to -1 to disable show me another by default.
+  type: integer
+  default: -1
+-
+  var: show_me_another_max_reps
+  category: optional
+  subcategory: show_me_another
+  doc: Maximum times Show me Another can be used per problem (-1 => unlimited)
+  doc2: |
+    The Maximum number of times Show me Another can be used per problem by a
+    student. If set to -1 then there is no limit to the number of times that
+    Show Me Another can be used.
+  type: integer
+  default: -1
+-
+  var: show_me_another_options
+  category: optional
+  subcategory: show_me_another
+  doc: List of options for Show Me Another button
+  doc2: >
+    <ul><li><b>SMAcheckAnswers</b>: enables the Check Answers button <i>for
+    the new problem</i> when Show Me Another is clicked</li>
+    <li><b>SMAshowSolutions</b>: shows walk-through solution <i>for the new problem</i>
+    when Show Me Another is clicked; a check is done first to make sure that a solution exists </li>
+    <li><b>SMAshowCorrect</b>: correct answers <i>for the new problem</i> can be viewed
+    when Show Me Another is clicked; note that <b>SMAcheckAnswers</b> needs to be enabled
+    at the same time</li><li><b>SMAshowHints</b>: show hints <i>for the new problem</i>
+    (assuming they exist)</li></ul>
+    <p>Note: there is very little point enabling the button
+    unless you check at least one of these options - the students would simply see a new
+    version that they can not attempt or learn from.</p>
+  type: list
+  options: ['SMAcheckAnswers','SMAshowSolutions','SMAshowCorrect','SMAshowHints']
+  default: SMAcheckAnswers
+  # rerandomization
+-
+  var: enable_periodic_randomization
+  category: optional
+  subcategory: rerandomization
+  doc: Enable periodic re-randomization of problems
+  doc2: |
+    Enables periodic re-randomization of problems after a given number of attempts.
+    Student would have to click Request New Version to obtain new version of the problem
+    and to continue working on the problem.
+  type: boolean
+  default: false
+-
+  var: periodic_randomization_period
+  category: optional
+  subcategory: rerandomization
+  doc: The default number of attempts between re-randomization of the problems ( 0 => never)
+  type: integer
+  default: 0
+-
+  var: show_correct_on_randomize
+  category: optional
+  subcategory: rerandomization
+  doc: Show the correct answer to the current problem on the last attempt before a new version is requested.
+  type: boolean
+  default: false
+
+# Permissions Settings
+-
+  var: permissions_test
+  category: permissions
+  doc: Something related to permission for testing
+  type: boolean
+  default: false
+
+# Settings at the Problem Set level
+-
+  var: time_assign_due
+  category: problem_set
+  doc: Default Time that the Assignment is Due
+  doc2: |
+    The time of the day that the assignment is due.  This can be changed
+    on an individual basis, but WeBWorK will use this value for default
+    when a set is created.
+  type: time
+  default: '23:59' # Note this is in 24-hour time format
+-
+  var: assign_open_prior_to_due
+  category: problem_set
+  doc: Default Amount of Time (in minutes) before Due Date that the Assignment is Open
+  doc2: |
+    The amount of time (in minutes) before the due date when the assignment is opened.  You can
+    change this for individual homework, but WeBWorK will use this value when a set is created.
+  type: time_duration
+  default: 1 week
+-
+  var: answers_open_after_due_date
+  category: problem_set
+  doc: Default Amount of Time (in minutes) after Due Date that Answers are Open
+  doc2: |
+    The amount of time (in minutes) after the due date that the Answers are available to student to view.
+    You can change this for individual homework, but WeBWorK will use this value when a set is created.
+  type: time_duration
+  default: 1 week
+
+# settings on the problem level.
+-
+  var: display_mode_options
+  category: problem
+  doc: List of display modes made available to students
+  doc2: >
+    When viewing a problem, users may choose different methods of rendering formulas via an options
+    box in the left panel. Here, you can adjust what display modes are listed.
+
+    Some display modes require other software to be installed on the server. Be sure to check that
+    all display modes selected here work from your server.
+
+    The display modes are <ul>
+    <li> plainText: shows the raw LaTeX srings for formulas.</li>
+    <li> images: produces images using the external programs LaTeX and dvipng.</li>
+    <li> MathJax: a successor to jsMath, uses javascript to place render mathematics.</li>
+    </ul>
+
+    You must use at least one display mode. If you select only one, then the options box will
+    not give a choice of modes (since there will only be one active).
+  type: multilist
+  options: ['plainText','images','MathJax']
+  default: ['plainText','images','MathJax']
+-
+  var: display_mode
+  category: problem
+  doc: The default display mode
+  type: list
+  options: ['plainText','images','MathJax']
+  default: MathJax
+-
+  var: num_rel_percent_tol_default
+  category: problem
+  doc: Allowed error, as a percentage, for numerical comparisons
+  doc2: >
+    When numerical answers are checked, most test if the student's answer is close enough
+    to the programmed answer be computing the error as a percentage of the correct answer.
+    This value controls the default for how close the student answer has to be in order to be
+    marked correct.
+
+    A value such as 0.1 means 0.1 percent error is allowed.
+  type: decimal
+  default: 0.1
+-
+  var: answer_entry_assist
+  category: problem
+  doc: Assist with the student answer entry process.
+  doc2: |
+    MathQuill renders students answers in real-time as they type on the keyboard.
+
+    MathView allows students to choose from a variety of common math structures
+    (such as fractions and square roots) as they attempt to input their answers.
+
+    WIRIS provides a separate workspace for students to construct their response in a WYSIWYG environment.
+  type: list
+  options: ['None', 'MathQuill', 'MathView', 'WIRIS']
+  default: None
+
+  # this one may not be need depending on the UI.
+-
+  var: show_evaluated_answers
+  category: problem
+  doc: Display the evaluated student answer
+  doc2: |
+    Set to true to display the "Entered" column which automatically shows the evaluated
+    student answer, e.g. 1 if student input is sin(pi/2). If this is set to false, e.g.
+    to save space in the response area, the student can still see their evaluated answer
+    by hovering the mouse pointer over the typeset version of their answer.
+  type: text
+  default: ''
+-
+  var: use_base_10_log
+  category: problem
+  doc: Use log base 10 instead of base <i>e</i>
+  doc2: Set to true for log to mean base 10 log and false for log to mean natural logarithm
+  type: boolean
+  default: false
+  # is there any reason not to default for this and drop as an option?
+-
+  var: parse_alternatives
+  category: problem
+  doc: Allow Unicode alternatives in student answers
+  doc2: |
+    Set to true to allow students to enter Unicode versions of some characters (like U+2212
+    for the minus sign) in their answers.  One reason to allow this is that copying and
+    pasting output from MathJax can introduce these characters, but it is also getting easier
+    to enter these characters directory from the keyboard.
+  type: boolean
+  default: false
+-
+  var: convert_full_width_characters
+  category: problem
+  doc: Automatically convert Full Width Unicode characters to their ASCII equivalents
+  doc2: |
+    Set to true to have Full Width Unicode character (U+FF01 to U+FF5E) converted to
+    their ASCII equivalents (U+0021 to U+007E) automatically in MathObjects.  This may be
+    valuable for Chinese keyboards, for example, that automatically use Full Width characters
+    for parentheses and commas.
+  type: boolean
+  default: true
+-
+  var: waive_explanations
+  category: problem
+  doc: Skip explanation essay answer fields
+  doc2: |
+      Some problems have an explanation essay answer field, typically following a simpler answer
+      field. For example, find a certain derivative using the definition. An answer blank would be
+      present for the derivative to be automatically checked, and then there would be a separate
+      essay answer field to show the steps of actually using the defintion of the derivative, to be
+      scored manually. With this setting, the essay explanation fields are supperessed. Instructors
+      may use the exercise without incurring the manual grading.
+  type: boolean
+  default: false
+
+# settings related to email
+-
+  var: test_var_for_email
+  category: email
+  doc: "this is just for testing"
+  type: decimal
+  # options: hi
+  default: -23.3
