@@ -17,7 +17,8 @@ RUN apt-get install -qy make \
     libdbd-sqlite3-perl \
     libtext-csv-perl \
     libjson-perl \
-    libdevel-cover-perl
+    libdevel-cover-perl \
+    git
 RUN cpanm --notest Array::Utils \
     DBIx::Class::DynamicSubclass \
     Mojolicious \
