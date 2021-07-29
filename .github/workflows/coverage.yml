@@ -5,7 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-# comment2
+# comment
 jobs:
   coverage:
     runs-on: ubuntu-latest
@@ -24,5 +24,5 @@ jobs:
           path: cover_db/
       - name: push coverage analysis
         env:
-          CODECOV_TOKEN: ${{ secrets.WEBWORK3_CODECOV_TOKEN }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: cover -report codecov
