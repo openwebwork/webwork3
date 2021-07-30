@@ -1,9 +1,9 @@
 {
-  "name": "delete_me",
-  "version": "0.0.1",
-  "description": "A Quasar Framework app",
-  "productName": "Quasar App",
-  "author": "Peter Staab <peter.staab@gmail.com>",
+  "name": "webwork3",
+  "version": "2.99.0",
+  "description": "An open-source online homework system",
+  "productName": "WeBWorK3",
+  "author": "info@openwebwork.org",
   "private": true,
   "scripts": {
     "lint": "eslint --ext .js,.ts,.vue ./",
@@ -14,6 +14,7 @@
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
     "quasar": "^2.0.0",
+    "vue": "^3.1.0",
     "vuex": "^4.0.1"
   },
   "devDependencies": {

@@ -41,11 +41,7 @@
 <script lang="ts">
 import { computed, defineComponent, ref } from 'vue';
 import { useStore } from '../../store';
-import { useRouter } from 'vue-router';
-
-// import { GetterTypes } from '../../store/modules/session';
-
-
+import { useRouter, useRoute } from 'vue-router';
 
 import { instructor_views, MenuBarView } from '../../common';
 
@@ -56,16 +52,17 @@ export default defineComponent({
 	setup() {
 		const store = useStore();
 		const router = useRouter();
-		const current_view = ref('Hi There');
+		const route = useRoute();
+		const current_view = ref('');
 
 		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return @typescript-eslint/no-unsafe-member-access
 			logged_in: computed( () => store.getters['session/logged_in']),
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return @typescript-eslint/no-unsafe-member-access
 			user: computed( () => store.getters['session/user']),
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return @typescript-eslint/no-unsafe-member-access
 			full_name: computed( () => store.getters['session/full_name']),
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return @typescript-eslint/no-unsafe-member-access
 			course_name: computed( () => store.getters['session/course_name']),
 			user_courses: computed( () => {
 				const current_course_name = store.state.session.course_name;
@@ -87,8 +84,9 @@ export default defineComponent({
 			current_view,
 			views: computed( () => instructor_views),
 			changeView: (view: MenuBarView) => {
-				console.log('in changeView');
-				console.log(view);
+
+				current_view.value = view.name;
+				void router.push({name: view.component_name, params: route.params});
 			},
 			logout: () => {
 				console.log('logging out');

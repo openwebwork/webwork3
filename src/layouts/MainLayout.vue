@@ -4,7 +4,6 @@
 
 		<q-drawer
 			v-model="sidebar_open"
-			show-if-above
 			bordered
 			class="bg-grey-1"
 		>
@@ -35,6 +34,7 @@ export default defineComponent({
 	},
 	setup() {
 		const sidebar_open = ref(false);
+
 		return {
 			sidebar_open
 		}
