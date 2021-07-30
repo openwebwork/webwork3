@@ -5,7 +5,6 @@ use strict;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 use Try::Tiny;
-use Data::Dump qw/dd/;
 
 sub getProblemSets {
 	my $self = shift;
