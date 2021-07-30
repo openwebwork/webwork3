@@ -60,6 +60,7 @@ sub startup {
 	$self->userRoutes();
 	$self->courseUserRoutes();
 	$self->problemSetRoutes();
+	$self->settingsRoutes();
 	return;
 }
 
@@ -136,6 +137,13 @@ sub problemSetRoutes {
   $course_routes->put('/:set_id')->to(action => 'updateProblemSet');
 	$course_routes->post('/')->to(action => 'addProblemSet');
 	$course_routes->delete('/:set_id')->to(action => 'deleteProblemSet');
+	return;
+}
+
+sub settingsRoutes {
+	my $self = shift;
+	$self->routes->get('/webwork3/api/default_settings')->to("Settings#getDefaultCourseSettings");
+	$self->routes->get('/webwork3/api/courses/:course_id/settings')->to("Settings#getCourseSettings");
 	return;
 }
 
