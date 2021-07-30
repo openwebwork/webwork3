@@ -7,10 +7,8 @@ import { defineComponent } from 'vue';
 // import { useStore } from 'vuex';
 export default defineComponent({
 	name: 'Instructor',
-	props: ['course_name'],
-	setup(props) {
-
-		console.log(props);
+	props: {
+		course_name: String
 	}
 });
 </script>

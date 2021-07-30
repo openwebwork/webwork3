@@ -51,3 +51,28 @@ export interface Course {
 	course_id: number;
 	course_name: string;
 }
+
+export enum CourseSettingType {
+	int,
+	decimal,
+	list,
+	multilist,
+	text
+}
+
+// This contains the default and documentation for a given course setting
+
+export interface CourseSettingInfo {
+	var: string;
+	category: string;
+	doc: string;
+	doc2: string;
+	type: CourseSettingType;
+	options?: Array<string>;
+	default: string | number | boolean;
+}
+
+export interface CourseSetting {
+	var: string;
+	value: string | number | boolean;
+}

@@ -52,10 +52,10 @@ const routes: RouteRecordRaw[] = [
 				name: 'instructor',
 				props: true,
 				meta: {requiresAuth: true},
-				beforeEnter: (to, from) => {
-					console.log(to);
-					console.log(from);
-				},
+				// beforeEnter: (to, from) => {
+				// 	console.log(to);
+				// 	console.log(from);
+				// },
 				children:
 				[
 					{

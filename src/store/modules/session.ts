@@ -19,19 +19,6 @@ function state(): SessionState {
 	}
 }
 
-// interface SessionGetters {
-// 	'session/logged_in': boolean;
-// 	'session/user': User;
-// 	'session/course_name': string;
-// }
-
-// /* Getter names */
-// export  enum  GetterTypes  {
-// 	GET_LOGGED_IN   = 'session/logged_in',
-// 	GET_USER        = 'session/user',
-// 	GET_COURSE_NAME = 'session/course_name'
-// }
-
 type Getters = {
 	logged_in(state: SessionState) : boolean;
 	user(state: SessionState): User;
@@ -47,22 +34,6 @@ const getters: GetterTree<SessionState,StateInterface> & Getters = {
 	},
 	course_name: state => state.course_name,
 }
-
-// type Getters = {
-//   [P in keyof SessionGetters]: (state: SessionState, getters: SessionGetters) => SessionGetters[P];
-// }
-
-// const getters: GetterTree<SessionState, StateInterface> & Getters = {
-// 	[GetterTypes.GET_LOGGED_IN]: (state: SessionState): boolean  => {
-// 		return state.logged_in;
-// 	},
-// 	[GetterTypes.GET_USER]: (state: SessionState): User => {
-// 		return state.user;
-// 	},
-// 	[GetterTypes.GET_COURSE_NAME]: (state: SessionState): string => {
-// 		return state.course_name;
-// 	}
-// };
 
 export default {
 	namespaced: true,
