@@ -17,8 +17,7 @@ export default defineComponent({
 		});
 
 		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return @typescript-eslint/no-unsafe-member-access @typescript-eslint/no-unsafe-return
-			course_name: computed( () => store.getters['session/course_name'])
+			course_name: computed( () => store.state.session.course_name)
 		};
 	}
 });

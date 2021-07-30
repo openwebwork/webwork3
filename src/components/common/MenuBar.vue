@@ -56,14 +56,12 @@ export default defineComponent({
 		const current_view = ref('');
 
 		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return @typescript-eslint/no-unsafe-member-access
-			logged_in: computed( () => store.getters['session/logged_in']),
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return @typescript-eslint/no-unsafe-member-access
-			user: computed( () => store.getters['session/user']),
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return @typescript-eslint/no-unsafe-member-access
-			full_name: computed( () => store.getters['session/full_name']),
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return @typescript-eslint/no-unsafe-member-access
-			course_name: computed( () => store.getters['session/course_name']),
+
+			logged_in: computed( () => store.state.session.logged_in),
+			user: computed( () => store.state.session.user),
+
+			full_name: computed( () => `${store.state.session.user.first_name} ${store.state.session.user.last_name}`),
+			course_name: computed( () => store.state.session.course_name),
 			user_courses: computed( () => {
 				const current_course_name = store.state.session.course_name;
 				return store.state.user.user_courses
