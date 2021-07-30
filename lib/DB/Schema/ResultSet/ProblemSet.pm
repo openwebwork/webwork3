@@ -27,7 +27,6 @@ This is the functionality of a ProblemSet in WeBWorK.  This package is based on
 
 =cut
 
-
 =head2 getProblemSets
 
 This gets a list of all ProblemSet (and set-like objects) stored in the database in the <code>courses</codes> table.
@@ -44,10 +43,21 @@ An array of courses as a <code>DBIx::Class::ResultSet::ProblemSet</code> object.
 
 sub getAllProblemSets {
 	my $self     = shift;
-	my @all_sets = $self->search( undef, { prefetch => 'courses' } );
-	return map {
-		{ $_->get_inflated_columns, $_->courses->get_inflated_columns, set_type => $_->set_type };
-	} @all_sets;
+	my $problem_set_rs = $self->search( undef, { prefetch => 'courses' } );
+
+	my @all_sets = ();
+	while( my $set = $problem_set_rs->next) {
+		my $expanded_set =
+			{
+				$set->get_inflated_columns,
+				$set->courses->get_inflated_columns,
+				set_type => $set->set_type
+			};
+		delete $expanded_set->{type};
+		push(@all_sets,$expanded_set);
+	}
+
+	return @all_sets;
 }
 
 ####
@@ -68,10 +78,18 @@ sub getProblemSets {
 	my ( $self, $course_info, $set_params, $as_result_set ) = @_;
 	my $search_params = getCourseInfo($course_info);    ## return a hash of course info
 
-	my @sets = $self->search( $search_params, { prefetch => ["courses"] } );
-	return map {
-		{ $_->get_inflated_columns, set_type => $_->set_type };
-	} @sets;
+	my $problem_set_rs = $self->search( $search_params, { prefetch => ["courses"] } );
+	my @sets = ();
+	while( my $set = $problem_set_rs->next) {
+		my $expanded_set =
+			{
+				$set->get_inflated_columns,
+				set_type => $set->set_type
+			};
+		delete $expanded_set->{type};
+		push(@sets,$expanded_set);
+	}
+	return @sets;
 }
 
 =pod
@@ -87,13 +105,19 @@ sub getHWSets {
 	my $search_params = getCourseInfo($course_info);    # pull out the course_info that is passed
 	$search_params->{'me.type'} = 1;                    # set the type to search for.
 
-	my @sets = $self->search( $search_params, { prefetch => ["courses"] } );
-	return \@sets if $as_result_set;
-	return map {
-		{ $_->get_inflated_columns, set_type => $_->set_type };
-	} @sets;
+	my $problem_set_rs = $self->search( $search_params, { prefetch => ["courses"] } );
+	my @sets = ();
+	while( my $set = $problem_set_rs->next) {
+		my $expanded_set =
+			{
+				$set->get_inflated_columns,
+				set_type => $set->set_type
+			};
+		delete $expanded_set->{type};
+		push(@sets,$expanded_set);
+	}
+	return @sets;
 }
-
 =pod
 =head2 getQuizzes
 
@@ -128,14 +152,19 @@ sub getProblemSet {
 	my $course_rs   = $self->result_source->schema->resultset("Course");
 	my $course      = $course_rs->getCourse( $course_info, 1 );
 
-	my $problem_set = $course->problem_sets->find(getSetInfo($course_set_info));
+	my $problem_set = $course->problem_sets->find( getSetInfo($course_set_info) );
 	DB::Exception::SetNotInCourse->throw(
 		set_name    => getSetInfo($course_set_info),
 		course_name => $course->course_name
 	) unless defined($problem_set);
 
 	return $problem_set if $as_result_set;
-	return { $problem_set->get_inflated_columns, set_type => $problem_set->set_type };
+	my $set = {
+		$problem_set->get_inflated_columns,
+		set_type => $problem_set->set_type
+	};
+	delete $set->{type};
+	return $set;
 
 }
 
@@ -148,8 +177,7 @@ Get one HW set for a given course
 
 sub addProblemSet {
 	my ( $self, $course_info, $params, $as_result_set ) = @_;
-	my $course = $self->result_source->schema->resultset("Course")
-		->getCourse( getCourseInfo($course_info), 1 );
+	my $course = $self->result_source->schema->resultset("Course")->getCourse( getCourseInfo($course_info), 1 );
 
 	my $set_params = {%$params};
 
@@ -221,13 +249,11 @@ sub deleteProblemSet {
 	return { $set_to_delete->get_inflated_columns, set_type => $set_to_delete->set_type };
 }
 
-
 ###
 #
 # Versions of problem sets
 #
 ##
-
 
 =pod
 =head2 newSetVersion
@@ -250,23 +276,31 @@ login or user_id (optional)
 =cut
 
 sub newSetVersion {
-	my ($self,$info) = @_;
-	my $course_set_info = {%{getCourseInfo($info)},%{getSetInfo($info)}};
-	my $problem_set = $self->getProblemSet($course_set_info);
+	my ( $self, $info ) = @_;
+	my $course_set_info = { %{ getCourseInfo($info) }, %{ getSetInfo($info) } };
+	my $problem_set     = $self->getProblemSet($course_set_info);
 
 	# if $info also contains user info
 	my @fields = keys %$info;
-	if (scalar(@fields)==3){
+	if ( scalar(@fields) == 3 ) {
 		my $user_info = getUserInfo($info);
 
-	} else {
+	}
+	else {
 		my $user_set_rs = $self->result_source->schema->resultset("UserSet");
+
 		# @user_sets = $user_set_rs->get
 	}
 	return $problem_set;
 }
 
+## the following are private methods used in this module
 
+# return the Course resultset
+
+sub _course_rs {
+	return shift->result_source->schema->resultset("Course");
+}
 
 
 1;

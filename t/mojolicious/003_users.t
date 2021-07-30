@@ -26,6 +26,10 @@ use DB::Schema;
 my $db_file = "$main::test_dir/../../t/db/sample_db.sqlite";
 my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
 
+# remove the maggie user if exists in the database
+my $maggie = $schema->resultset("User")->find({login => "maggie"});
+$maggie->delete if defined($maggie);
+
 my $t;
 
 if ($TEST_PERMISSIONS) {
@@ -62,8 +66,6 @@ my $new_user = {
 
 $t->post_ok( '/webwork3/api/users' => json => $new_user )->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is( '/login' => $new_user->{login} );
-
-dd $t->tx->res->json;
 
 # Pull out the id from the response
 $new_user->{user_id} = $t->tx->res->json('/user_id');

@@ -1,3 +1,4 @@
+
 =pod
 
 =head1 DESCRIPTION
@@ -66,7 +67,7 @@ sub getGlobalUser {
 	my $user = $self->find( getUserInfo($user_info) );
 	DB::Exception::UserNotFound->throw( login => $user_info ) unless defined($user);
 	return $user if $as_result_set;
-	my $params =  { $user->get_inflated_columns };
+	my $params = { $user->get_inflated_columns };
 	$params->{role} = "admin" if $user->is_admin;
 	return removeLoginParams($params);
 }
@@ -208,11 +209,14 @@ sub getUsers {
 	my @users = $self->search( { 'course_users.course_id' => $course->course_id }, { prefetch => ["course_users"] } );
 
 	return \@users if $as_result_set;
-	return map { removeLoginParams( {
-		$_->get_columns,
-		$_->course_users->first->get_columns,
-		params => $_->course_users->first->get_inflated_column("params")
-	} ); } @users;
+	return map {
+		removeLoginParams(
+			{   $_->get_columns,
+				$_->course_users->first->get_columns,
+				params => $_->course_users->first->get_inflated_column("params")
+			}
+		);
+	} @users;
 }
 
 ###

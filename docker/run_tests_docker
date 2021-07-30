@@ -1,0 +1,17 @@
+FROM perl:latest
+RUN cpanm -fi --notest \
+  Data::Dump \
+	List::MoreUtils \
+	Text::CSV \
+	Test::Exception \
+	Try::Tiny \
+	Array::Utils \
+	Exception::Class \
+	DBIx::Class::Schema \
+	DBIx::Class::DynamicSubclass \
+	JSON \
+	Clone \
+	YAML::XS \
+	Mojolicious
+WORKDIR /opt/webwork
+CMD ["/bin/bash"]
