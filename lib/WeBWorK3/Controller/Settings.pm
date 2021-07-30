@@ -21,8 +21,7 @@ sub getDefaultCourseSettings {
 	my $self = shift;
 	my $settings = LoadFile(path($self->config->{webwork3_home},"conf","course_defaults.yml"));
 	## check if the file exists
-
-	return $settings;
+	$self->render(json => $settings);
 }
 
 sub getCourseSettings {
