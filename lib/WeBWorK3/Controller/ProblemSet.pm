@@ -4,13 +4,27 @@ use strict;
 
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
+use Data::Dumper;
 use Try::Tiny;
 
-sub getProblemSets {
+use Mojo::Log;
+
+my $log = Mojo::Log->new;
+
+
+sub getAllProblemSets {
 	my $self = shift;
 	my @all_problem_sets =  $self->schema->resultset("ProblemSet")->getAllProblemSets;
 	$self->render(json => \@all_problem_sets);
 	return;
+}
+
+sub getProblemSets {
+	my $self = shift;
+	$log->debug($self->param("course_id"));
+	my @problem_sets = $self->schema->resultset("ProblemSet")
+		->getProblemSets({ course_id => int( $self->param("course_id")) });
+	$self->render(json => \@problem_sets);
 }
 
 sub getProblemSet {
