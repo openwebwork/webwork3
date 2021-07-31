@@ -17,7 +17,7 @@ our $exception_handler = sub {
 		} catch {
 			my $output = {msg => "oops!", exception => ref($_)};
 			$output->{message} = $_->message if ($_ && ref($_) eq 'Mojo::Exception');
-			$output->{message} = $_->msg if ($_ && ref($_) eq 'DBIx::Class::Exception');
+			$output->{message} = $_ if ($_ && ref($_) eq 'DBIx::Class::Exception');
 			$c->render(json => $output);
 		};
 	} else {

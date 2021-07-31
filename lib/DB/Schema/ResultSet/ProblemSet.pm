@@ -76,9 +76,11 @@ Get all problem sets for a given course
 
 sub getProblemSets {
 	my ( $self, $course_info, $set_params, $as_result_set ) = @_;
-	my $search_params = getCourseInfo($course_info);    ## return a hash of course info
+	# my $search_params = $self->getCourseInfo($course_info);    ## return a hash of course info
+	my $course_rs   = $self->result_source->schema->resultset("Course");
+	my $course      = $course_rs->getCourse( $course_info, 1 );
 
-	my $problem_set_rs = $self->search( $search_params, { prefetch => ["courses"] } );
+	my $problem_set_rs = $self->search( { 'me.course_id' => $course->course_id }, { prefetch => ["courses"] } );
 	my @sets = ();
 	while( my $set = $problem_set_rs->next) {
 		my $expanded_set =
