@@ -36,38 +36,27 @@ import { defineComponent, PropType, ref, Ref } from 'vue';
 
 // import { useStore } from '../../store';
 
+import { CourseSettingInfo, OptionType } from '../../store/models';
+
 // import { CourseSettingInfo, CourseSettingOption, OptionType } from '../../store/models';
 
 // import * as models from '../../store/models';
 
-enum CourseSettingOption {
-	int = 'int',
-	decimal = 'decimal',
-	list = 'list',
-	multilist = 'multilist',
-	text = 'text'
-}
 
-export interface CourseSetting {
-	var: string;
-	value: string | number | boolean;
-}
+// interface CourseSettingInfo {
+// 	var: string;
+// 	category: string;
+// 	doc: string;
+// 	doc2: string;
+// 	type: CourseSettingOption;
+// 	options: Array<string> | Array<OptionType> | undefined;
+// 	default: string | number | boolean;
+// }
 
-
-interface CourseSettingInfo {
-	var: string;
-	category: string;
-	doc: string;
-	doc2: string;
-	type: CourseSettingOption;
-	options: Array<string> | Array<OptionType> | undefined;
-	default: string | number | boolean;
-}
-
-interface OptionType {
-	label: string;
-	value: string | number;
-}
+// interface OptionType {
+// 	label: string;
+// 	value: string | number;
+// }
 
 export default defineComponent({
 	name: 'SingleSetting',

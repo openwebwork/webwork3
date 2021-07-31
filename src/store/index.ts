@@ -15,6 +15,9 @@ import { UserState } from './modules/user';
 import settings from './modules/settings';
 import { SettingsState } from './modules/settings';
 
+import problem_sets from './modules/problem_sets';
+import { ProblemSetState } from './modules/problem_sets';
+
 
 /*
  * If not building with SSR mode, you can
@@ -31,7 +34,8 @@ export interface StateInterface {
 	// Declared as unknown to avoid linting issue. Best to strongly type as per the line above.
 	session: SessionState,
 	user: UserState,
-	settings: SettingsState
+	settings: SettingsState,
+	problem_sets: ProblemSetState
 }
 
 // provide typings for `this.$store`
@@ -49,7 +53,8 @@ export default store(function (/* { ssrContext } */) {
 		modules: {
 			session,
 			user,
-			settings
+			settings,
+			problem_sets
 		},
 
 		// enable strict mode (adds overhead!)

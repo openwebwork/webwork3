@@ -61,17 +61,15 @@ export enum CourseSettingOption {
 	boolean = 'boolean'
 }
 
-export interface OptionType {
-	label: string;
-	value: string | number;
-}
-
 export interface CourseSetting {
 	var: string;
 	value: string | number | boolean;
 }
 
-// This contains the default and documentation for a given course setting
+export interface OptionType {
+	label: string;
+	value: string | number;
+}
 
 export interface CourseSettingInfo {
 	var: string;
@@ -79,6 +77,22 @@ export interface CourseSettingInfo {
 	doc: string;
 	doc2: string;
 	type: CourseSettingOption;
-	options: Array<string> | Array<CourseSetting> | undefined;
+	options: Array<string> | Array<OptionType> | undefined;
 	default: string | number | boolean;
+}
+
+export enum ProblemSetType {
+	HW,
+	QUIZ,
+	REVIEW_SET
+}
+
+export interface ProblemSet {
+	set_id: number;
+	set_name: string;
+	course_id: number;
+	set_type: ProblemSetType;
+	set_visible: boolean;
+	params: Dictionary<string>;
+	dates: Dictionary<string>;
 }

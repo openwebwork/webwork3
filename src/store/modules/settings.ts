@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import { Commit, GetterTree } from 'vuex';
 import { StateInterface } from '../index';
-import { CourseSetting, CourseSettingInfo } from '../models';
+import { CourseSetting, CourseSettingInfo, CourseSettingOption } from '../models';
 
 
 export interface SettingsState {
@@ -48,7 +48,7 @@ export default {
 			// switch boolean values to javascript true/false
 			_course_settings.forEach( (setting: CourseSetting) => {
 					const found_setting = state.default_settings.find( (_setting: CourseSettingInfo) => _setting.var === setting.var);
-					if (found_setting && found_setting.type === 'boolean') {
+					if (found_setting && found_setting.type === CourseSettingOption.boolean) {
 						setting.value = setting.value === 1 ? true : false
 					}
 				}
