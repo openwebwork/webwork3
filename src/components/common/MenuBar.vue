@@ -61,14 +61,14 @@ export default defineComponent({
 			user: computed( () => store.state.session.user),
 
 			full_name: computed( () => `${store.state.session.user.first_name} ${store.state.session.user.last_name}`),
-			course_name: computed( () => store.state.session.course_name),
+			course_name: computed( () => store.state.session.course.course_name),
 			user_courses: computed( () => {
-				const current_course_name = store.state.session.course_name;
+				const current_course_name = store.state.session.course.course_name;
 				return store.state.user.user_courses
 					.filter( (course: UserCourse) => course.course_name !== current_course_name);
 			}),
 			changeCourse: (course_id: number, course_name: string) => {
-				const current_course_name = store.state.session.course_name;
+				const current_course_name = store.state.session.course.course_name;
 				const current_course = store.state.user.user_courses
 					.filter( (course: UserCourse) => course.course_name === current_course_name)[0];
 

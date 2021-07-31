@@ -260,7 +260,7 @@ sub isTimeString {
 # test for a time duration which can have the unit: sec, min, day, week, hr, hour
 
 sub isTimeDuration {
-	return shift =~ /^(\d+)\s(sec|min|day|week|hr|hour)s?$/i;
+	return shift =~ /^(\d+)\s(sec|second|min|minute|day|week|hr|hour)s?$/i;
 }
 
 sub isDecimal {

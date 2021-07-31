@@ -35,13 +35,9 @@ export default {
 			const response = await axios.get('/webwork3/api/default_settings');
 			commit('SET_DEFAULT_SETTINGS',response.data as Array<CourseSettingInfo>);
 		},
-		async fetchCourseSettings( { commit }: { commit: Commit }): Promise<void> {
-			const response = await axios.get('/webwork3/api/settings');
-			commit('SET_DEFAULT_SETTINGS',response.data as Array<CourseSettingInfo>);
-		},
-		logout( { commit }: {commit: Commit }): void {
-			commit('UPDATE_SESSION_INFO',{ logged_in: false});
-			commit('SET_COURSE_NAME','');
+		async fetchCourseSettings( { commit }: { commit: Commit }, course_id: number): Promise<void> {
+			const response = await axios.get(`/webwork3/api/courses/${course_id}/settings`);
+			commit('SET_COURSE_SETTINGS',response.data as Array<CourseSetting>);
 		}
 	},
   mutations: {
@@ -49,6 +45,14 @@ export default {
 			state.default_settings = _default_settings;
 		},
 		SET_COURSE_SETTINGS(state: SettingsState, _course_settings: Array<CourseSetting>): void {
+			// switch boolean values to javascript true/false
+			_course_settings.forEach( (setting: CourseSetting) => {
+					const found_setting = state.default_settings.find( (_setting: CourseSettingInfo) => _setting.var === setting.var);
+					if (found_setting && found_setting.type === 'boolean') {
+						setting.value = setting.value === 1 ? true : false
+					}
+				}
+			);
 			state.course_settings = _course_settings;
 		},
 	},

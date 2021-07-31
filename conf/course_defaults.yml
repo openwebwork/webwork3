@@ -148,6 +148,7 @@
   default: 'Two Column'
 -
   var: show_course_homework_totals
+  category: general
   doc: Show Total Homework Grade on Grades Page
   doc2: |
     When this is on students will see a line on the Grades page which has
@@ -169,7 +170,7 @@
 -
   var: enable_reduced_scoring
   category: optional
-  subcategory: educed_scoring
+  subcategory: reduced_scoring
   doc: whether or not problem sets can have reducing scoring enabled.
   type: boolean
   default: false
