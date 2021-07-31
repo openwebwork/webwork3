@@ -1,7 +1,7 @@
 # webwork3
 
+![coverage workflow](https://github.com/pstaabp/webwork3/actions/workflows/coverage.yml/badge.svg)
 [![codecov](https://codecov.io/gh/pstaabp/webwork3/branch/main/graph/badge.svg?token=1IDPWGNQ6F)](https://codecov.io/gh/pstaabp/webwork3)
-![example workflow](https://github.com/github/docs/actions/workflows/main.yml/badge.svg)
 
 There are three main parts of this repository:
 
