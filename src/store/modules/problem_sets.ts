@@ -23,6 +23,7 @@ export default {
   actions: {
 		async fetchProblemSets({ commit }: { commit: Commit },course_id: number): Promise<void> {
 			const _problem_sets = await _fetchProblemSets(course_id);
+
 			commit('SET_PROBLEM_SETS',_problem_sets);
 		},
 	},
