@@ -19,6 +19,7 @@ use Test::More;
 use Test::Exception;
 
 use Array::Utils qw/array_minus intersect/;
+use DateTime::Format::Strptime;
 
 use DB::WithParams;
 use DB::WithDates;
@@ -28,6 +29,8 @@ use DB::TestUtils qw/loadCSV removeIDs filterBySetType/;
 # load the database
 my $db_file = "$main::test_dir/sample_db.sqlite";
 my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
+
+my $strp = DateTime::Format::Strptime->new( pattern => '%FT%T',on_error  => 'croak' );
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 
@@ -44,6 +47,10 @@ my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
 	$quiz->{type}     = 2;
 	$quiz->{set_type} = "QUIZ";
+	for my $date (keys %{$quiz->{dates}}) {
+		my $dt = $strp->parse_datetime( $quiz->{dates}->{$date});
+		$quiz->{dates}->{$date} = $dt->epoch;
+	}
 }
 
 ## test: get all quizzes from one course

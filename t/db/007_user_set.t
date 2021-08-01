@@ -15,6 +15,8 @@ use lib "$main::lib_dir";
 
 use Text::CSV qw/csv/;
 use Data::Dump qw/dd/;
+use DateTime::Format::Strptime;
+
 use Test::More;
 use Clone qw/clone/;
 use Test::Exception;
@@ -31,6 +33,8 @@ use DB::TestUtils qw/loadCSV removeIDs/;
 # load the database
 my $db_file = "$main::test_dir/sample_db.sqlite";
 my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
+
+my $strp = DateTime::Format::Strptime->new( pattern => '%FT%T',on_error  => 'croak' );
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 
@@ -49,6 +53,10 @@ my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
 for my $hw_set (@hw_sets) {
 	$hw_set->{set_type} = "HW";
 	$hw_set->{set_version} = 1 unless defined( $hw_set->{set_version} );
+	for my $date (keys %{$hw_set->{dates}}) {
+		my $dt = $strp->parse_datetime( $hw_set->{dates}->{$date});
+		$hw_set->{dates}->{$date} = $dt->epoch;
+	}
 }
 my @all_user_sets = loadCSV("$main::test_dir/sample_data/user_sets.csv");
 
