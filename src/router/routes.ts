@@ -24,7 +24,11 @@ const routes: RouteRecordRaw[] = [
 	},
 	{
 		path: '/webwork3',
+<<<<<<< HEAD
 		component: MainLayout,
+=======
+		component: () => import('layouts/MainLayout.vue'),
+>>>>>>> a3e677e55e7c4d1d9e4cd977900730c57f8319a1
 		children: [
 			{
 				path: 'welcome',
@@ -52,6 +56,7 @@ const routes: RouteRecordRaw[] = [
 				name: 'instructor',
 				props: true,
 				meta: {requiresAuth: true},
+<<<<<<< HEAD
 				// beforeEnter: (to, from) => {
 				// 	console.log(to);
 				// 	console.log(from);
@@ -102,6 +107,12 @@ const routes: RouteRecordRaw[] = [
 						component: ProblemEditor,
 					}
 				]
+=======
+				beforeEnter: (to, from) => {
+					console.log(to);
+					console.log(from);
+				}
+>>>>>>> a3e677e55e7c4d1d9e4cd977900730c57f8319a1
 			},
 		]
 	},

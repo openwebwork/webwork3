@@ -34,7 +34,10 @@ export default defineComponent({
 	},
 	setup() {
 		const sidebar_open = ref(false);
+<<<<<<< HEAD
 
+=======
+>>>>>>> a3e677e55e7c4d1d9e4cd977900730c57f8319a1
 		return {
 			sidebar_open
 		}

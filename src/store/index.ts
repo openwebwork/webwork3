@@ -33,9 +33,13 @@ export interface StateInterface {
 	// example: ExampleStateInterface;
 	// Declared as unknown to avoid linting issue. Best to strongly type as per the line above.
 	session: SessionState,
+<<<<<<< HEAD
 	user: UserState,
 	settings: SettingsState,
 	problem_sets: ProblemSetState
+=======
+	user: UserState
+>>>>>>> a3e677e55e7c4d1d9e4cd977900730c57f8319a1
 }
 
 // provide typings for `this.$store`
@@ -52,9 +56,13 @@ export default store(function (/* { ssrContext } */) {
 	const Store = createStore<StateInterface>({
 		modules: {
 			session,
+<<<<<<< HEAD
 			user,
 			settings,
 			problem_sets
+=======
+			user
+>>>>>>> a3e677e55e7c4d1d9e4cd977900730c57f8319a1
 		},
 
 		// enable strict mode (adds overhead!)
