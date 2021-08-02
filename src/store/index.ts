@@ -12,6 +12,13 @@ import { SessionState } from './modules/session';
 import user from './modules/user';
 import { UserState } from './modules/user';
 
+import settings from './modules/settings';
+import { SettingsState } from './modules/settings';
+
+import problem_sets from './modules/problem_sets';
+import { ProblemSetState } from './modules/problem_sets';
+
+
 /*
  * If not building with SSR mode, you can
  * directly export the Store instantiation;
@@ -26,7 +33,9 @@ export interface StateInterface {
 	// example: ExampleStateInterface;
 	// Declared as unknown to avoid linting issue. Best to strongly type as per the line above.
 	session: SessionState,
-	user: UserState
+	user: UserState,
+	settings: SettingsState,
+	problem_sets: ProblemSetState
 }
 
 // provide typings for `this.$store`
@@ -43,7 +52,9 @@ export default store(function (/* { ssrContext } */) {
 	const Store = createStore<StateInterface>({
 		modules: {
 			session,
-			user
+			user,
+			settings,
+			problem_sets
 		},
 
 		// enable strict mode (adds overhead!)

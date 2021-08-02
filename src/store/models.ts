@@ -51,3 +51,48 @@ export interface Course {
 	course_id: number;
 	course_name: string;
 }
+
+export enum CourseSettingOption {
+	int = 'int',
+	decimal = 'decimal',
+	list = 'list',
+	multilist = 'multilist',
+	text = 'text',
+	boolean = 'boolean'
+}
+
+export interface CourseSetting {
+	var: string;
+	value: string | number | boolean;
+}
+
+export interface OptionType {
+	label: string;
+	value: string | number;
+}
+
+export interface CourseSettingInfo {
+	var: string;
+	category: string;
+	doc: string;
+	doc2: string;
+	type: CourseSettingOption;
+	options: Array<string> | Array<OptionType> | undefined;
+	default: string | number | boolean;
+}
+
+export enum ProblemSetType {
+	HW,
+	QUIZ,
+	REVIEW_SET
+}
+
+export interface ProblemSet {
+	set_id: number;
+	set_name: string;
+	course_id: number;
+	set_type: ProblemSetType;
+	set_visible: boolean;
+	params: Dictionary<string>;
+	dates: Dictionary<string>;
+}

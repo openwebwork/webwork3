@@ -4,7 +4,6 @@
 
 		<q-drawer
 			v-model="sidebar_open"
-			show-if-above
 			bordered
 			class="bg-grey-1"
 		>

@@ -52,44 +52,37 @@
 
 
 <script lang="ts">
-import { defineComponent, computed, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { defineComponent, computed } from 'vue';
+// import { useRoute } from 'vue-router';
 import { useStore } from '../../store';
 
 import { UserCourse }  from '@/store/models';
 
 export default defineComponent({
-	name: 'Test',
+	name: 'UserCourses',
 	setup() {
 		const store = useStore();
-		const route = useRoute();
+		// const route = useRoute();
 
-		watch( () =>  route.params.course_name,
-			(course_name) =>  {
-				console.log(course_name);
-					void store.dispatch('session/setCourseName',course_name);
-				}
-		);
+		// watch( () =>  route.params.course_name,
+		// 	(course_name) =>  {
+		// 		console.log(course_name);
+		// 			void store.dispatch('session/setCourseName',course_name);
+		// 		}
+		// );
 
 		return {
-			student_courses: computed(() => {
-				console.log(store.state.user.user_courses);
-				return store.state.user.user_courses.filter( (user: UserCourse) => user.role === 'student');
-			}),
-			instructor_courses: computed(() => {
-				return store.state.user.user_courses.filter( (user: UserCourse) => user.role === 'instructor');
-			}),
-			user: computed( () => {
-				return store.state.session.user;
-			})
+			student_courses:    computed( () => store.state.user.user_courses.filter( (user: UserCourse) => user.role === 'student')),
+			instructor_courses: computed( () => store.state.user.user_courses.filter( (user: UserCourse) => user.role === 'instructor')),
+			user:               computed( () => store.state.session.user)
 		};
 
 
 	},
 
 	async created () {
-    // fetch the data when the view is created and the data is
-    // already being observed
+		// fetch the data when the view is created and the data is
+		// already being observed
 		const store = useStore();
 		await store.dispatch('user/fetchUserCourses',store.state.session.user.user_id);
   },

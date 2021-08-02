@@ -125,7 +125,13 @@ my $new_problem = {
 	}
 };
 
-my $prob1 = $problem_rs->addSetProblem( { course_name => "Precalculus", set_name => "HW #1" }, $new_problem );
+my $prob1 = $problem_rs->addSetProblem(
+	{
+		course_name => "Precalculus",
+		set_name => "HW #1"
+	},
+	$new_problem
+);
 removeIDs($prob1);
 is_deeply( $new_problem, $prob1, "addProblem: add a valid problem to a set" );
 

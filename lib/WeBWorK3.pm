@@ -4,7 +4,10 @@ use Mojo::Base 'Mojolicious', -signatures;
 use Mojo::File qw(curfile);
 use YAML::XS qw/LoadFile/;
 
-my $webwork_root = curfile->dirname->to_string . "/..";
+my $webwork_root;
+BEGIN {
+	$webwork_root = curfile->dirname->to_string . "/..";
+}
 
 use Data::Dump qw/dd/;
 use Try::Tiny;
@@ -12,6 +15,9 @@ use Try::Tiny;
 use DB::Schema;
 use WeBWorK3::Mojolicious;
 
+# require Exporter;
+# use base qw(Exporter);
+# our @EXPORT_OK = qw/confDirectory/;
 
 my $perm_table;
 
@@ -54,9 +60,13 @@ sub startup {
 	$self->userRoutes();
 	$self->courseUserRoutes();
 	$self->problemSetRoutes();
+	$self->settingsRoutes();
 	return;
 }
 
+sub confDirectory {
+	return "$webwork_root/conf";
+}
 
 
 sub load_account {
@@ -127,6 +137,13 @@ sub problemSetRoutes {
   $course_routes->put('/:set_id')->to(action => 'updateProblemSet');
 	$course_routes->post('/')->to(action => 'addProblemSet');
 	$course_routes->delete('/:set_id')->to(action => 'deleteProblemSet');
+	return;
+}
+
+sub settingsRoutes {
+	my $self = shift;
+	$self->routes->get('/webwork3/api/default_settings')->to("Settings#getDefaultCourseSettings");
+	$self->routes->get('/webwork3/api/courses/:course_id/settings')->to("Settings#getCourseSettings");
 	return;
 }
 

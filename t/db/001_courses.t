@@ -38,7 +38,21 @@ my $course_rs = $schema->resultset("Course");
 
 my @courses = loadCSV("$main::test_dir/sample_data/courses.csv");
 for my $course (@courses) {
-	$course->{course_params} = $course->{params};
+
+	# my $course_settings = {
+	# 	general => {},
+	# 	optional => {},
+	# 	problem_set => {},
+	# 	problem => {},
+	# 	permissions => {},
+	# 	email => {}
+	# };
+	# for my $key (keys %{$course->{params}}) {
+	# 	my @fields = split(/:/,$key);
+	# 	$course_settings->{$fields[0]}->{$fields[1]} = $course->{params}->{$key};
+	# }
+	# $course->{course_settings} = $course_settings;
+	# $course->{course_params} = $course->{params};
 	delete $course->{params};
 	$course->{course_dates} = $course->{dates};
 	delete $course->{dates};
@@ -86,27 +100,29 @@ throws_ok {
 
 ## add a course
 my $new_course_params = {
-	course_name   => "Geometry",
-	course_params => { institution => 'Springfield A&M' },
-	course_dates  => {}
+	course_name  => "Geometry",
+	visible      => 1,
+	course_dates => {}
 };
 
-my $new_course = $course_rs->addCourse($new_course_params);
+my $new_course      = $course_rs->addCourse($new_course_params);
+my $added_course_id = $new_course->{course_id};
 removeIDs($new_course);
+
 is_deeply( $new_course_params, $new_course, "addCourse: add a new course" );
 
 ## add a course that already exists
 
 throws_ok {
-	$course_rs->addCourse( { course_name => "Geometry" } );
+	$course_rs->addCourse( { course_name => "Geometry", visible => 1 } );
 }
 "DB::Exception::CourseExists", "addCourse: course already exists";
 
-## update a course
+## update the course name
+
+my $updated_course = $course_rs->updateCourse( { course_id => $added_course_id }, { course_name => "Geometry II" } );
 
 $new_course_params->{course_name} = "Geometry II";
-my $updated_course = $course_rs->updateCourse( { course_name => "Geometry" }, $new_course_params );
-my $new_course_id  = $updated_course->{course_id};
 delete $updated_course->{course_id};
 
 is_deeply( $new_course_params, $updated_course, "updateCourse: update a course by name" );
@@ -152,10 +168,9 @@ my @students = loadCSV("$main::test_dir/sample_data/students.csv");
 
 my @user_courses_from_csv = grep { $_->{login} eq "lisa" } @students;
 
-# @user_courses_from_csv = map { {course_name => $_->{course_name}}; } @user_courses_from_csv;
-for my $user (@user_courses_from_csv) {
+for my $user_course (@user_courses_from_csv) {
 	for my $key (qw/email first_name last_name login student_id/) {
-		delete $user->{$key};
+		delete $user_course->{$key};
 	}
 }
 

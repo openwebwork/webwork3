@@ -11,14 +11,13 @@ export default defineComponent({
 	setup(props) {
 		const store = useStore();
 		console.log(props);
-		watch( () => store.state.session.course_name, (state, prev_state) => {
+		watch( () => store.state.session.course.course_name, (state, prev_state) => {
 			console.log(state);
 			console.log(prev_state)
 		});
 
 		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			course_name: computed( () => store.getters['session/course_name'])
+			course_name: computed( () => store.state.session.course.course_name)
 		};
 	}
 });

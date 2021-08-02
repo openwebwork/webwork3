@@ -96,8 +96,8 @@ sub getSetProblems {
 	my $course_rs      = $self->result_source->schema->resultset("Course");
 	my $problem_set_rs = $self->result_source->schema->resultset("ProblemSet");
 
-	my $problem_set    = $problem_set_rs->getProblemSet( $course_set_info, 1 );
-	my @problems = $self->search( { 'set_id' => $problem_set->set_id } );
+	my $problem_set = $problem_set_rs->getProblemSet( $course_set_info, 1 );
+	my @problems    = $self->search( { 'set_id' => $problem_set->set_id } );
 
 	return \@problems if $as_result_set;
 	return map {
@@ -154,8 +154,7 @@ If the problem parameters are not valid, an error will be thrown.
 
 sub addSetProblem {
 	my ( $self, $course_set_info, $new_set_params, $as_result_set ) = @_;
-	my $problem_set = $self->result_source->schema->resultset("ProblemSet")
-		->getProblemSet( $course_set_info, 1 );
+	my $problem_set = $self->result_source->schema->resultset("ProblemSet")->getProblemSet( $course_set_info, 1 );
 
 	my $problem_to_add = $self->new($new_set_params);
 	$problem_to_add->validParams();
@@ -183,9 +182,9 @@ If the problem parameters are not valid, an error will be thrown.
 
 sub deleteSetProblem {
 	my ( $self, $course_set_problem_info, $problem_params, $as_result_set ) = @_;
-	my $set_problem = $self->getSetProblem($course_set_problem_info,1);
-	my $problem_set  = $self->result_source->schema->resultset("ProblemSet")
-		->getProblemSet( {course_id => $set_problem->problem_set->course_id, set_id => $set_problem->set_id} , 1 );
+	my $set_problem = $self->getSetProblem( $course_set_problem_info, 1 );
+	my $problem_set = $self->result_source->schema->resultset("ProblemSet")
+		->getProblemSet( { course_id => $set_problem->problem_set->course_id, set_id => $set_problem->set_id }, 1 );
 
 	my $problem = $problem_set->search_related( "problems", getProblemInfo($course_set_problem_info) )->single;
 

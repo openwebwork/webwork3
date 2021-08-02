@@ -24,5 +24,10 @@ pnpm-debug.log*
 
 
 sample_db.sqlite
-*.bak
 node_modules
+
+*.bak
+
+# Devel::Cover
+cover_db/
+
