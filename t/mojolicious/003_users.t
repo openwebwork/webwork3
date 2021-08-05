@@ -77,6 +77,20 @@ $new_user->{email} = 'maggie@juno.com';
 $t->put_ok( "/webwork3/api/users/" . $new_user->{user_id} => json => $new_user );
 is_deeply( $new_user, $t->tx->res->json, "updateUser: global user updated" );
 
+## add the user to the course
+my $added_user_to_course = {
+	user_id => $new_user->{user_id},
+	role => "student"
+};
+
+$t->post_ok( "/webwork3/api/courses/4/users" => json => $added_user_to_course)
+	->content_type_is('application/json;charset=UTF-8')
+	->json_is( '/login' => 'maggie')
+	->json_is( '/role' => 'student');
+
+# dd $t->tx->res->json;
+
+
 ## test for exceptions
 
 # try to get a non-existent user
@@ -99,9 +113,32 @@ $t->post_ok( "/webwork3/api/users" => json => $another_new_user )->content_type_
 $t->delete_ok("/webwork3/api/users/99999")->content_type_is('application/json;charset=UTF-8')
 	->json_is( '/exception' => 'DB::Exception::UserNotFound' );
 
-# delete the added user
+# add another user to a course that is not a global user
 
-$t->delete_ok("/webwork3/api/users/$new_user->{user_id}")->status_is(200)->json_is( '/login' => $new_user->{login} );
+my $another_user = {
+	login => "bob",
+	first_name => "Sideshow",
+	last_name => "Bob",
+	student_id => "933723",
+	email => 'bob@sideshow.net',
+	role => 'student'
+};
+
+$t->post_ok("/webwork3/api/courses/4/users" => json => $another_user )
+	->content_type_is('application/json;charset=UTF-8')
+	->json_is('/login' => 'bob');
+
+my $another_new_user_id = $t->tx->res->json('/user_id');
+
+# delete the added users
+
+$t->delete_ok("/webwork3/api/users/$new_user->{user_id}")
+	->status_is(200)
+	->json_is( '/login' => $new_user->{login} );
+
+$t->delete_ok("/webwork3/api/users/$another_new_user_id")
+	->status_is(200)
+	->json_is( '/login' => $another_user->{login} );
 
 ## test that a non-admin user cannot access all of the routes
 

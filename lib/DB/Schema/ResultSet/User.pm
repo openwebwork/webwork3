@@ -300,30 +300,40 @@ An hashref of the added user.
 
 =cut
 
-## TODO: need to check for valid fields
 
 sub addUser {
 	my ( $self, $course_info, $params, $as_result_set ) = @_;
 	my $course = $self->result_source->schema->resultset("Course")->getCourse( $course_info, 1 );
+	# dd $course_info;
+	# dd $params;
 
-	DB::Exception::ParametersNeeded->throw( error => "You must defined the field login in the 2nd argument" )
-		unless defined( $params->{login} );
+	DB::Exception::ParametersNeeded->throw( message => "You must defined the field login in the 2nd argument" )
+		unless defined( $params->{login} ) || defined( $params->{user_id} );
 
-	my $user_exists = $course->users->find( { login => $params->{login} } );
+	my $user_info = {};
+	if (defined($params->{user_id})) {
+		$user_info->{user_id} = $params->{user_id};
+	} else {
+		$user_info->{login} = $params->{login};
+	}
+
+	my $user_exists = $course->users->find( $user_info );
 	DB::Exception::UserAlreadyInCourse->throw( course_name => $course_info, login => $params->{login} )
 		if defined $user_exists;
 
 	my $course_user_params = {%$params};               # make a copy
 	my $user_params        = {};
-	for my $key ( $self->result_source->columns ) {    # remove all parameters that fit in the user table
+	for my $key ( $self->result_source->columns ) {    # remove all parameters that don't fit in the user table
 		$user_params->{$key} = $params->{$key} if defined $params->{$key};
 		delete $course_user_params->{$key};
 	}
 
-	my $user_to_add     = $self->new($user_params);
-	my $new_user        = $course->add_to_users( { $user_to_add->get_inflated_columns }, 1 );
+	my $globalUser = $self->find($user_info);
+	$globalUser    = $self->new($user_params) unless (defined($globalUser));
+	my $new_user   = $course->add_to_users( { $globalUser->get_inflated_columns }, 1 );
 	my $user_course_ids = { user_id => $new_user->user_id, course_id => $course->course_id };
 
+	## TO CHECK: Not sure this is needed
 	## just call the updateUser to fill in the fields of the new user;
 	my $updated_user = $self->updateUser( $user_course_ids, $course_user_params );
 

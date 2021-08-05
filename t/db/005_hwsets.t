@@ -22,6 +22,7 @@ use Try::Tiny;
 use Clone qw/clone/;
 
 use Array::Utils qw/array_minus intersect/;
+use DateTime::Format::Strptime;
 
 use DB::WithParams;
 use DB::WithDates;
@@ -31,6 +32,8 @@ use DB::TestUtils qw/loadCSV removeIDs filterBySetType/;
 # load the database
 my $db_file = "$main::test_dir/sample_db.sqlite";
 my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
+
+my $strp = DateTime::Format::Strptime->new( pattern => '%FT%T',on_error  => 'croak' );
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 
@@ -45,14 +48,27 @@ my $user_rs        = $schema->resultset("User");
 my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
 for my $set (@hw_sets) {
 	$set->{set_type} = "HW";
+	for my $date (keys %{$set->{dates}}) {
+		my $dt = $strp->parse_datetime( $set->{dates}->{$date});
+		$set->{dates}->{$date} = $dt->epoch;
+	}
 }
 my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
 	$quiz->{set_type} = "QUIZ";
+	for my $date (keys %{$quiz->{dates}}) {
+		my $dt = $strp->parse_datetime( $quiz->{dates}->{$date});
+		$quiz->{dates}->{$date} = $dt->epoch;
+	}
 }
+
 my @review_sets = loadCSV("$main::test_dir/sample_data/review_sets.csv");
 for my $set (@review_sets) {
 	$set->{set_type} = "REVIEW";
+	for my $date (keys %{$set->{dates}}) {
+		my $dt = $strp->parse_datetime( $set->{dates}->{$date});
+		$set->{dates}->{$date} = $dt->epoch;
+	}
 }
 my @all_problem_sets = ( @hw_sets, @quizzes, @review_sets );
 
@@ -66,7 +82,6 @@ for my $set (@problem_sets_from_db) {
 	delete $set->{visible};    # remove information about the course
 	delete $set->{course_dates};
 }
-
 
 is_deeply( \@all_problem_sets, \@problem_sets_from_db, "getProblemSets: get all sets" );
 
