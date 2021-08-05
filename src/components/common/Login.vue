@@ -35,18 +35,23 @@ export default defineComponent({
 		const message: Ref<string> = ref('');
 
 		const store = useStore();
-
-		const login = async () => {
-			const login_info = {email: email.value, password: password.value};
-			const session = await checkPassword(login_info);
-			if (!session.logged_in) {
-				message.value = session.message;
-			} else { // success
-				void store.dispatch('session/updateSessionInfo',session);
-				void router.push(`/webwork3/users/${session.user.user_id}/courses`);
+		return {
+			email,
+			password,
+			message,
+			login: async () => {
+				const login_info = {email: email.value, password: password.value};
+				const session = await checkPassword(login_info);
+				if (!session.logged_in) {
+					message.value = session.message;
+				} else { // success
+					void store.dispatch('session/updateSessionInfo',session);
+					if (session && session.user && session.user.user_id) {
+						void router.push(`/webwork3/users/${session.user.user_id}/courses`);
+					}
+				}
 			}
 		};
-		return { email, password, message,login};
 	}
 });
 </script>

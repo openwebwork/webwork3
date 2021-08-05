@@ -2,12 +2,8 @@ import axios from 'axios';
 import { Commit } from 'vuex';
 import { StateInterface } from '../index';
 
-import { User, UserCourse } from '../models';
+import { User, UserCourse, ResponseError } from '../models';
 
-interface APIError {
-	exception: string;
-	message: string;
-}
 
 
 export interface UserState {
@@ -37,11 +33,26 @@ export default {
 			const _users = await _fetchUsers(course_id);
 			commit('SET_USERS',_users);
 		},
-		async addUser( { commit, rootState }: { commit: Commit, rootState: StateInterface}, _user: User): Promise<void> {
-			const user = await _addUser(rootState.session.course.course_id,_user).catch( (err) => {
-				throw(err);
-			})
-			commit('ADD_USER',user);
+		async addUser( { commit, rootState }: { commit: Commit, rootState: StateInterface}, _user: User): Promise<User|undefined> {
+			const course_id = rootState.session.course.course_id;
+			const response = await axios.post(`/webwork3/api/courses/${course_id}/users`,_user);
+			if (response.status === 200) {
+				const u = response.data as User;
+				commit('ADD_USER',u);
+				return u;
+			} else if (response.status === 400) {
+				throw(response.data as ResponseError)
+			}
+		},
+		async deleteUser( { commit,rootState }: { commit: Commit, rootState: StateInterface}, _user: User): Promise<User|undefined> {
+			const course_id = rootState.session.course.course_id;
+			const response = await axios.delete(`/webwork3/api/courses/${course_id}/users/${_user.user_id || 0}`);
+			if (response.status === 200) {
+				commit('DELETE_USER',_user);
+				return response.data as User;
+			} else if (response.status === 400) {
+				throw(response.data as ResponseError);
+			}
 		}
 	},
   mutations: {
@@ -53,6 +64,10 @@ export default {
 		},
 		ADD_USER(state: UserState, _user: User): void {
 			state.users.push(_user);
+		},
+		DELETE_USER(state: UserState, _user: User): void {
+			const index =  state.users.findIndex( (u) => u.user_id === _user.user_id);
+			state.users.splice(index,1);
 		}
 	}
 };
@@ -67,14 +82,4 @@ async function _fetchUsers(course_id: number): Promise<Array<User>> {
 	const response = await axios.get(`/webwork3/api/courses/${course_id}/users`);
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	return (response.data.exception) ? [] : (response.data as Array<User>);
-}
-
-async function _addUser(course_id: number, _user: User): Promise<User|undefined> {
-
-	const response = await axios.post(`/webwork3/api/courses/${course_id}/users`,_user);
-	if (response.status === 200) {
-		return response.data as User;
-	} else if (response.status === 400) {
-		throw(response.data as APIError)
-	}
 }

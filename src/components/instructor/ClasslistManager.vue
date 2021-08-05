@@ -6,13 +6,14 @@
 				:rows="users"
 				row-key="user_id"
 				title="Users"
-				selection="single"
+				selection="multiple"
 				:filter="filter"
 				:visible-columns="['login','email']"
 				v-model:selected="selected"
 			>
 				<template v-slot:top-right>
 					<span v-if="selected.length>0" style="margin-right: 20px">
+						<q-btn color="secondary" label="Deleted Selected" @click="deleteUsers" />
 						<q-btn color="secondary" label="Edit Selected" />
 					</span>
 					<q-input dense debounce="300" v-model="filter" placeholder="Search">
@@ -40,7 +41,7 @@
 			</q-table>
 		</div>
 		<q-dialog full-width v-model="open_users_manually">
-			<add-users-manually />
+			<add-users-manually @close-dialog="open_users_manually = false"/>
 		</q-dialog>
 		<q-dialog full-width v-model="open_users_from_file">
 			<add-users-from-file />
@@ -50,6 +51,7 @@
 </template>
 
 <script lang="ts">
+import { useQuasar } from 'quasar';
 import { defineComponent, computed, ref, Ref } from 'vue';
 import { useStore } from '../../store';
 import { User } from '../../store/models';
@@ -62,7 +64,9 @@ export default defineComponent({
 		AddUsersManually,
 		AddUsersFromFile
 	},
+	emits: ['closeDialog'],
 	setup() {
+		const $q = useQuasar();
 		const store = useStore();
 		const selected: Ref<Array<User>> = ref([]);
 		const filter: Ref<string> = ref('');
@@ -100,6 +104,22 @@ export default defineComponent({
 			open_users_from_file,
 			columns,
 			users: computed( () => store.state.user.users),
+			deleteUsers: () => {
+				var conf = confirm(`Are you sure you want to delete the users: ${selected.value.map((u) => u.login).join(', ')}`);
+				if (conf) {
+					selected.value.forEach( (_user: User) => {
+						try {
+							void store.dispatch('user/deleteUser',_user);
+							$q.notify(`The user ${_user.login} has been succesfully deleted.`);
+						} catch (err) {
+							$q.notify(err);
+						}
+					})
+				}
+			},
+			closingManually: () => {
+				console.log('closing');
+			}
 		}
 
 	}

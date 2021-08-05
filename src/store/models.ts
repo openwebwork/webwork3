@@ -96,3 +96,8 @@ export interface ProblemSet {
 	params: Dictionary<string>;
 	dates: Dictionary<string>;
 }
+
+export interface ResponseError {
+	exception: string;
+	message: string;
+}
