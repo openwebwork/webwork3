@@ -99,7 +99,7 @@ use Exception::Class (
 DB::Exception::UndefinedCourseField->Trace(1);
 DB::Exception::InvalidCourseField->Trace(1);
 # DB::Exception::UserNotInCourse->Trace(1);
-# DB::Exception::UserNotFound->Trace(1);
+DB::Exception::UserNotFound->Trace(1);
 # DB::Exception::CourseNotFound->Trace(1);
 DB::Exception::InvalidParameter->Trace(1);
 DB::Exception::UndefinedParameter->Trace(1);
