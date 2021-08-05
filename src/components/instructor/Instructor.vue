@@ -23,10 +23,13 @@ export default defineComponent({
 		}
 	},
 	async created () {
-		// fetch the user and problem set data
+		// fetch most data needed for instrutor views
 		const store = useStore();
 		await store.dispatch('user/fetchUsers',store.state.session.course.course_id);
 		await store.dispatch('problem_sets/fetchProblemSets',store.state.session.course.course_id);
+		await store.dispatch('settings/fetchDefaultSettings');
+		await store.dispatch('settings/fetchCourseSettings',store.state.session.course.course_id);
+
 	},
 });
 </script>

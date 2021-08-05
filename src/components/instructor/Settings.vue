@@ -59,14 +59,6 @@ export default defineComponent({
 				return settings[0].value;
 			}
 		}
-	},
-	async created () {
-		// fetch the data when the view is created and the data is
-		// already being observed
-		const store = useStore();
-		await store.dispatch('settings/fetchDefaultSettings');
-		await store.dispatch('settings/fetchCourseSettings',store.state.session.course.course_id);
-	},
-
+	}
 });
 </script>

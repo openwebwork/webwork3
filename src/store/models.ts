@@ -7,11 +7,11 @@ export interface Dictionary<T> {
 export interface User {
 	email: string;
 	first_name: string;
-	is_admin: number;
+	is_admin: boolean;
 	last_name: string;
 	login: string;
 	student_id: string;
-	user_id: number;
+	user_id: number | undefined;
 }
 
 export interface UserCourse {

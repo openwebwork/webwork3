@@ -15,10 +15,6 @@ use Try::Tiny;
 use DB::Schema;
 use WeBWorK3::Mojolicious;
 
-# require Exporter;
-# use base qw(Exporter);
-# our @EXPORT_OK = qw/confDirectory/;
-
 my $perm_table;
 
 # This method will run once at server start

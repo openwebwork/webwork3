@@ -50,7 +50,6 @@ export default {
 			commit('UPDATE_SESSION_INFO',session_info);
 		},
 		setCourse( { commit }: { commit: Commit }, _course: CourseInfo): void {
-			console.log(_course);
 			commit('SET_COURSE',_course);
 		},
 		logout( { commit }: {commit: Commit }): void {

@@ -82,13 +82,10 @@ export default defineComponent({
 			current_view,
 			views: computed( () => instructor_views),
 			changeView: (view: MenuBarView) => {
-
 				current_view.value = view.name;
 				void router.push({name: view.component_name, params: route.params});
 			},
 			logout: () => {
-				console.log('logging out');
-				console.log(store.state.session.user);
 				void store.dispatch('session/logout');
 				void router.push('/webwork3/login');
 			}

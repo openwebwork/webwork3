@@ -4,10 +4,10 @@ export function newUser(): User {
 	return {
 		email: '',
 		first_name: '',
-		is_admin: 0,
+		is_admin: false,
 		last_name: '',
 		login: '',
 		student_id: '',
-		user_id: 0
+		user_id: undefined
 	};
 }

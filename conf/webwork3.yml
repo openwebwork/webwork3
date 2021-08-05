@@ -2,3 +2,4 @@
 secrets:
   - 3cdf63327fcf77deaed1d200df4b9fee66af2326
 webwork3_home: /opt/webwork/webwork3
+ignore_permissions: true

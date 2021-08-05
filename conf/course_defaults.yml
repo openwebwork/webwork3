@@ -292,11 +292,15 @@
 
 # Permissions Settings
 -
-  var: permissions_test
+  var: roles
   category: permissions
-  doc: Something related to permission for testing
-  type: boolean
-  default: false
+  doc: A list of roles in the course
+  type: multilist
+  default:
+    - admin
+    - instructor
+    - TA
+    - student
 
 # Settings at the Problem Set level
 -
