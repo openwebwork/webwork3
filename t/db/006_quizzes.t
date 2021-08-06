@@ -17,6 +17,7 @@ use Text::CSV qw/csv/;
 use Data::Dump qw/dd/;
 use Test::More;
 use Test::Exception;
+use YAML::XS qw/LoadFile/;
 
 use Array::Utils qw/array_minus intersect/;
 use DateTime::Format::Strptime;
@@ -26,9 +27,17 @@ use DB::WithDates;
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs filterBySetType/;
 
+# load some configuration for the database:
+
+my $config = LoadFile("$main::lib_dir/../conf/webwork3.yml");
+
+my $schema;
 # load the database
-my $db_file = "$main::test_dir/sample_db.sqlite";
-my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
+if ($config->{database} eq 'sqlite') {
+	$schema  = DB::Schema->connect($config->{sqlite_dsn});
+} elsif ($config->{database} eq 'mariadb') {
+	$schema  = DB::Schema->connect($config->{mariadb_dsn},$config->{database_user},$config->{database_password});
+}
 
 my $strp = DateTime::Format::Strptime->new( pattern => '%FT%T',on_error  => 'croak' );
 

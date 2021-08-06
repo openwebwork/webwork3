@@ -20,6 +20,7 @@ use List::MoreUtils qw(uniq);
 use Test::More;
 use Test::Exception;
 use Try::Tiny;
+use YAML::XS qw/LoadFile/;
 
 use DB::WithParams;
 use DB::WithDates;
@@ -32,9 +33,18 @@ use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings getDefaultCourseValues
 
 use DB::TestUtils qw/loadCSV removeIDs/;
 
+# load some configuration for the database:
+
+my $config = LoadFile("$main::lib_dir/../conf/webwork3.yml");
+
+my $schema;
 # load the database
-my $db_file = "$main::test_dir/sample_db.sqlite";
-my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
+if ($config->{database} eq 'sqlite') {
+	$schema  = DB::Schema->connect($config->{sqlite_dsn});
+} elsif ($config->{database} eq 'mariadb') {
+	$schema  = DB::Schema->connect($config->{mariadb_dsn},$config->{database_user},$config->{database_password});
+}
+
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 

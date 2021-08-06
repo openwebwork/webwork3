@@ -20,6 +20,7 @@ use Test::More;
 use Test::Exception;
 use Try::Tiny;
 use Clone qw/clone/;
+use YAML::XS qw/LoadFile/;
 
 use Array::Utils qw/array_minus intersect/;
 use DateTime::Format::Strptime;
@@ -29,9 +30,17 @@ use DB::WithDates;
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs filterBySetType/;
 
+# load some configuration for the database:
+
+my $config = LoadFile("$main::lib_dir/../conf/webwork3.yml");
+
+my $schema;
 # load the database
-my $db_file = "$main::test_dir/sample_db.sqlite";
-my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
+if ($config->{database} eq 'sqlite') {
+	$schema  = DB::Schema->connect($config->{sqlite_dsn});
+} elsif ($config->{database} eq 'mariadb') {
+	$schema  = DB::Schema->connect($config->{mariadb_dsn},$config->{database_user},$config->{database_password});
+}
 
 my $strp = DateTime::Format::Strptime->new( pattern => '%FT%T',on_error  => 'croak' );
 
@@ -75,6 +84,9 @@ my @all_problem_sets = ( @hw_sets, @quizzes, @review_sets );
 ## Test getting all problem sets
 
 my @problem_sets_from_db = $problem_set_rs->getAllProblemSets;
+
+@problem_sets_from_db = sort { $a->{set_name} cmp $b->{set_name} } @problem_sets_from_db;
+@all_problem_sets = sort { $a->{set_name} cmp $b->{set_name} } @all_problem_sets;
 
 ## remove the id tags:
 for my $set (@problem_sets_from_db) {
