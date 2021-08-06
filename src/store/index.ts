@@ -18,6 +18,9 @@ import { SettingsState } from './modules/settings';
 import problem_sets from './modules/problem_sets';
 import { ProblemSetState } from './modules/problem_sets';
 
+import courses from './modules/courses';
+import { CourseState } from './modules/courses';
+
 
 /*
  * If not building with SSR mode, you can
@@ -35,7 +38,8 @@ export interface StateInterface {
 	session: SessionState,
 	user: UserState,
 	settings: SettingsState,
-	problem_sets: ProblemSetState
+	problem_sets: ProblemSetState,
+	courses: CourseState
 }
 
 // provide typings for `this.$store`
@@ -54,7 +58,8 @@ export default store(function (/* { ssrContext } */) {
 			session,
 			user,
 			settings,
-			problem_sets
+			problem_sets,
+			courses
 		},
 
 		// enable strict mode (adds overhead!)

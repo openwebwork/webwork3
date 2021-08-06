@@ -1,4 +1,4 @@
-import { User } from './models';
+import { User, Course } from './models';
 
 export function newUser(): User {
 	return {
@@ -10,4 +10,16 @@ export function newUser(): User {
 		student_id: '',
 		user_id: undefined
 	};
+}
+
+export function newCourse(): Course {
+	return {
+		course_id: 0,
+		course_name: '',
+		visible: false,
+		course_dates: {
+			end: '',
+			start: ''
+		}
+	}
 }

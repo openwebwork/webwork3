@@ -2,7 +2,6 @@ import { Commit, GetterTree } from 'vuex';
 import { StateInterface } from '../index';
 import { User, SessionInfo } from '../models';
 import { newUser } from '../common';
-// import { Session } from 'inspector';
 
 interface CourseInfo {
 	course_name: string;
@@ -62,6 +61,7 @@ export default {
 			state.logged_in = _session_info.logged_in;
 			if (state.logged_in) {
 				state.user = _session_info.user;
+				state.user.is_admin = _session_info.user.is_admin === 1 || _session_info.user.is_admin ? true : false;
 			} else {
 				state.user = newUser()
 			}

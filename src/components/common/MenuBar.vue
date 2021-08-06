@@ -17,22 +17,23 @@
 			</q-toolbar-title>
 			<q-space />
 			<q-btn-dropdown v-if="logged_in" color="purple" icon="person" :label="full_name">
-			<q-list>
-				<q-item clickable v-close-popup @click="logout">Logout</q-item>
-			</q-list>
-		</q-btn-dropdown>
-		<q-btn v-else><router-link to="/webwork3/login">Login</router-link></q-btn>
+				<q-list>
+					<q-item clickable v-close-popup @click="logout">Logout</q-item>
+					<q-item clickable>User Settings</q-item>
+				</q-list>
+			</q-btn-dropdown>
+			<q-btn v-else><router-link to="/webwork3/login">Login</router-link></q-btn>
 			<q-btn-dropdown color="purple" :label="course_name" v-if="course_name !== ''">
-			<q-list>
-				<template v-for="course in user_courses" :key="course.course_id">
-					<q-item clickable v-close-popup @click="changeCourse(course.course_id,course.course_name)">
-						<q-item-section>
-							<q-item-label>{{course.course_name}}</q-item-label>
-						</q-item-section>
-					</q-item>
-				</template>
-			</q-list>
-		</q-btn-dropdown>
+				<q-list>
+					<template v-for="course in user_courses" :key="course.course_id">
+						<q-item clickable v-close-popup @click="changeCourse(course.course_id,course.course_name)">
+							<q-item-section>
+								<q-item-label>{{course.course_name}}</q-item-label>
+							</q-item-section>
+						</q-item>
+					</template>
+				</q-list>
+			</q-btn-dropdown>
 		</q-toolbar>
 	</q-header>
 </template>
@@ -43,7 +44,7 @@ import { computed, defineComponent, ref } from 'vue';
 import { useStore } from '../../store';
 import { useRouter, useRoute } from 'vue-router';
 
-import { instructor_views, MenuBarView } from '../../common';
+import { instructor_views, admin_views, MenuBarView } from '../../common';
 
 import { UserCourse } from '../../store/models';
 
@@ -59,7 +60,6 @@ export default defineComponent({
 
 			logged_in: computed( () => store.state.session.logged_in),
 			user: computed( () => store.state.session.user),
-
 			full_name: computed( () => `${store.state.session.user.first_name} ${store.state.session.user.last_name}`),
 			course_name: computed( () => store.state.session.course.course_name),
 			user_courses: computed( () => {
@@ -80,7 +80,15 @@ export default defineComponent({
 				void store.dispatch('session/setCourseName',course_name);
 			},
 			current_view,
-			views: computed( () => instructor_views),
+			views: computed( () => {
+				console.log(route.path);
+				if (/^\/webwork3\/admin/.exec(route.path)) {
+					return admin_views;
+				} else {
+					return instructor_views;
+				}
+
+			}),
 			changeView: (view: MenuBarView) => {
 				current_view.value = view.name;
 				void router.push({name: view.component_name, params: route.params});

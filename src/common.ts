@@ -102,3 +102,14 @@ export const instructor_views = [
 		show_user: false,
 	},
 ];
+
+export const admin_views = [
+	{
+		name: 'Courses',
+		component_name: 'AdminCourses',
+		icon: 'today',
+		route: 'courses',
+		show_set: false,
+		show_user: false,
+	}
+];

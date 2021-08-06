@@ -17,6 +17,11 @@ import LibraryBrowser from '../components/instructor/LibraryBrowser.vue';
 import ProblemSetsManager from '../components/instructor/ProblemSetsManager.vue';
 import ProblemEditor from '../components/instructor/ProblemEditor.vue';
 
+
+// Admin components
+import Admin from '../components/admin/Admin.vue';
+import AdminCourses from '../components/admin/AdminCourses.vue';
+
 const routes: RouteRecordRaw[] = [
 	{
 		path: '/',
@@ -100,6 +105,17 @@ const routes: RouteRecordRaw[] = [
 						path: 'editor',
 						name: 'ProblemEditor',
 						component: ProblemEditor,
+					}
+				]
+			},
+			{
+				path: 'admin',
+				component: Admin,
+				children: [
+					{
+						path: 'courses',
+						component: AdminCourses,
+						name: 'AdminCourses'
 					}
 				]
 			},

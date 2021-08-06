@@ -7,7 +7,7 @@ export interface Dictionary<T> {
 export interface User {
 	email: string;
 	first_name: string;
-	is_admin: boolean;
+	is_admin: boolean | number; // it comes in as a 0/1 boolean
 	last_name: string;
 	login: string;
 	student_id: string;
@@ -47,9 +47,16 @@ export interface UserPassword {
   password: string;
 }
 
+export interface CourseDates {
+	start: string;
+	end: string;
+}
+
 export interface Course {
 	course_id: number;
 	course_name: string;
+	visible: boolean;
+	course_dates: CourseDates;
 }
 
 export enum CourseSettingOption {

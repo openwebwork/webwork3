@@ -27,7 +27,16 @@ sub startup {
 	$self->secrets($config->{secrets});
 	## get the dbix plugin loaded
 
-	my $schema = DB::Schema->connect("dbi:SQLite:dbname=$webwork_root/t/db/sample_db.sqlite");
+	# load some configuration for the database:
+
+	my $schema;
+	# load the database
+	if ($config->{database} eq 'sqlite') {
+		$schema  = DB::Schema->connect($config->{sqlite_dsn});
+	} elsif ($config->{database} eq 'mariadb') {
+		$schema  = DB::Schema->connect($config->{mariadb_dsn},$config->{database_user},$config->{database_password});
+	}
+
 	$self->plugin('DBIC',{schema => $schema});
 
 	# load the authentication plugin

@@ -49,7 +49,7 @@ export default {
 			_course_settings.forEach( (setting: CourseSetting) => {
 					const found_setting = state.default_settings.find( (_setting: CourseSettingInfo) => _setting.var === setting.var);
 					if (found_setting && found_setting.type === CourseSettingOption.boolean) {
-						setting.value = setting.value === 1 ? true : false
+						setting.value = setting.value === 1 || setting.value ? true : false
 					}
 				}
 			);
