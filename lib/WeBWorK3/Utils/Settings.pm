@@ -1,4 +1,6 @@
 package WeBWorK3::Utils::Settings;
+use strict;
+use warnings;
 
 use YAML::XS qw/LoadFile/;
 use Data::Dump qw/dd/;
@@ -48,7 +50,7 @@ sub getDefaultCourseValues {
 	my $course_defaults = getDefaultCourseSettings();  # the full default course settings
 
 	my $all_settings = {};
-  for my $category (@course_setting_categories){
+	for my $category (@course_setting_categories){
 		$all_settings->{$category} = {};
 		my @settings = grep { $_->{category} eq $category} @$course_defaults;
 		for my $setting (@settings) {
@@ -180,14 +182,14 @@ sub validateSettingConfig {
 	# check that the variable name is kebobCase
 
 	DB::Exception::InvalidCourseField->throw(
-		message => "The variable name ${setting->{var}} must be in kebob case"
+		message => "The variable name $setting->{var} must be in kebob case"
 	) unless kebobCase($setting->{var});
 
 	# check that each of the setting fields is allowed
 	for my $field (keys %$setting){
 		my @fields = grep { $_ eq $field } @allowed_fields;
 		DB::Exception::InvalidCourseField->throw(
-			message => "The field: $field is not an allowed field of the setting ${setting->{var}}"
+			message => "The field: $field is not an allowed field of the setting $setting->{var}"
 		) if scalar(@fields) == 0;
 	}
 
@@ -195,14 +197,14 @@ sub validateSettingConfig {
 	for my $field (@required_fields){
 		my @fields = grep { $_ eq $field } (keys %$setting);
 		DB::Exception::InvalidCourseField->throw(
-			message => "The field: $field is a required field for the setting ${setting->{var}}"
+			message => "The field: $field is a required field for the setting $setting->{var}"
 		) if scalar(@fields) == 0;
 	}
 
 	my @type = grep { $_ eq $setting->{type} } @valid_types;
 	DB::Exception::InvalidCourseFieldType->throw(
-			message => "The setting type: ${setting->{type}} is not valid for variable: ${setting->{var}}"
-	 ) unless scalar(@type)==1;
+		message => "The setting type: $setting->{type} is not valid for variable: $setting->{var}"
+	) unless scalar(@type)==1;
 
 	return validateSetting($setting);
 }
@@ -210,6 +212,8 @@ sub validateSettingConfig {
 sub validateSetting {
 	my $setting = shift;
 	my $value = $setting->{default} || $setting->{value};
+
+	return 0 if !defined $setting->{type};
 
 	if ($setting->{type} eq "list"){
 		validateList($setting);
@@ -264,7 +268,7 @@ sub isTimeDuration {
 }
 
 sub isDecimal {
-  return shift =~ /(^-?\d+(\.\d+)?$)|(^-?\.\d+$)/;
+	return shift =~ /(^-?\d+(\.\d+)?$)|(^-?\.\d+$)/;
 }
 
 1;

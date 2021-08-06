@@ -1,55 +1,53 @@
 <template>
-<div class='fit row wrap justify-center items-start content-start'>
-	<q-card class='col-4'>
-		<q-card-section>
-			<div class='text-h6'>Login to WeBWorK</div>
-		</q-card-section>
-		<q-card-section v-if='message.length>0'>
-			<div>{{message}}</div>
-		</q-card-section>
-		<q-card-section>
-			<q-input v-model='email' label='Email'/>
-			<q-input v-model='password' type='password' label='Password'/>
-		</q-card-section>
-		<q-card-section>
-			<q-btn push color='primary' label='Login' @click='login' />
-		</q-card-section>
+<div class='row q-mt-lg justify-center'>
+	<q-card class='col-sm-4'>
+		<q-form @submit.prevent='login'>
+			<q-card-section>
+				<div class='text-h6'>Login to WeBWorK</div>
+			</q-card-section>
+			<q-card-section>
+				<q-input v-model='username' label='Username' />
+				<q-input v-model='password' type='password' label='Password' />
+			</q-card-section>
+			<q-card-section>
+				<q-btn push type='submit' color='primary' label='Login' />
+			</q-card-section>
+			<q-card-section v-if='message'>
+				<div class="text-red">{{message}}</div>
+			</q-card-section>
+		</q-form>
 	</q-card>
 </div>
 </template>
 
-
 <script lang='ts'>
-import { useStore } from '../../store';
 import { useRouter } from 'vue-router';
-import { defineComponent, ref, Ref } from 'vue';
-
-import { checkPassword } from '../../store/api';
+import { defineComponent, ref } from 'vue';
+import { useStore } from 'src/store';
+import { checkPassword } from 'src/store/api';
 
 export default defineComponent({
 	name: 'Login',
 	setup() {
 		const router = useRouter();
-		const email: Ref<string> = ref('');
-		const password: Ref<string> = ref('');
-		const message: Ref<string> = ref('');
+		const username = ref('');
+		const password = ref('');
+		const message = ref('');
 
 		const store = useStore();
 
 		const login = async () => {
-			const login_info = {email: email.value, password: password.value};
+			const login_info = { login: username.value, password: password.value };
 			const session = await checkPassword(login_info);
 			if (!session.logged_in) {
-				message.value = session.message;
-			} else { // success
-				void store.dispatch('session/updateSessionInfo',session);
-				void router.push(`/webwork3/users/${session.user.user_id}/courses`);
+				if (session.message) message.value = session.message;
+			} else {
+				// success
+				void store.dispatch('session/updateSessionInfo', session);
+				void router.push(`/users/${session.user.user_id}/courses`);
 			}
 		};
-		return { email, password, message,login};
+		return { username, password, message, login };
 	}
 });
 </script>
-
-<style>
-</style>

@@ -1,3 +1,4 @@
+---
 # This is the definition, description and documentation of all of the
 # course settings in webwork3.
 #
@@ -8,7 +9,8 @@
 #    var: the name of the variable/setting
 #    doc: a short description of the variable
 #    doc2: a longer description of the variable (optional)
-#    type: the type of varable (text, list, multilist, boolean, integer, decimal, time, date_time, time_duration, timezone)
+#    type: the type of varable (text, list, multilist, boolean, integer, decimal, time, date_time, time_duration,
+#    timezone)
 
 # these are the general course settings
 -
@@ -27,7 +29,8 @@
   var: language
   category: general
   doc: Default language for the course
-  doc2: 'WeBWorK currently has translations for four languages: "English en", "Turkish tr", "Spanish es", and "French fr"'
+  doc2: >
+    WeBWorK currently has translations for four languages: "English en", "Turkish tr", "Spanish es", and "French fr"
   type: list
   options:
     -
@@ -219,7 +222,9 @@
   category: optional
   subcategory: show_me_another
   doc: Enable Show Me Another button
-  doc2: Enables use of the Show Me Another button, which offers the student a newly-seeded version of the current problem, complete with solution (if it exists for that problem).
+  doc2: >
+    Enables use of the Show Me Another button, which offers the student a newly-seeded
+    version of the current problem, complete with solution (if it exists for that problem).
   type: boolean
   default: false
 -

@@ -33,29 +33,24 @@
 
 <script lang="ts">
 import { defineComponent, PropType, ref, Ref } from 'vue';
-
-// import { useStore } from '../../store';
-
-import { CourseSettingInfo, OptionType } from '../../store/models';
-
-// import { CourseSettingInfo, CourseSettingOption, OptionType } from '../../store/models';
-
-// import * as models from '../../store/models';
-
+// import { useStore } from 'src/store';
+import { CourseSettingInfo, OptionType } from 'src/store/models';
+// import { CourseSettingInfo, CourseSettingOption, OptionType } from 'src/store/models';
+// import * as models from 'src/store/models';
 
 // interface CourseSettingInfo {
-// 	var: string;
-// 	category: string;
-// 	doc: string;
-// 	doc2: string;
-// 	type: CourseSettingOption;
-// 	options: Array<string> | Array<OptionType> | undefined;
-// 	default: string | number | boolean;
+//   var: string;
+//   category: string;
+//   doc: string;
+//   doc2: string;
+//   type: CourseSettingOption;
+//   options: Array<string> | Array<OptionType> | undefined;
+//   default: string | number | boolean;
 // }
 
 // interface OptionType {
-// 	label: string;
-// 	value: string | number;
+//   label: string;
+//   value: string | number;
 // }
 
 export default defineComponent({
@@ -66,13 +61,13 @@ export default defineComponent({
 	},
 	setup(props) {
 		const val = ref(props.value);
-		const option: Ref<OptionType>  = ref({value: '', label: ''});
+		const option: Ref<OptionType>  = ref({ value: '', label: '' });
 		const options: Ref<Array<OptionType>> = ref([]);
 		if (props.setting && props.setting.options) {
-			options.value = props.setting.options.map( (opt: string | OptionType) =>
-				typeof opt === 'string' ? {label: opt, value: opt} : opt )
-			const v = options.value.find( (opt:OptionType) => opt.value === val.value);
-			option.value = v || {value: '', label: ''};
+			options.value = props.setting.options.map((opt: string | OptionType) =>
+				typeof opt === 'string' ? { label: opt, value: opt } : opt);
+			const v = options.value.find((opt:OptionType) => opt.value === val.value);
+			option.value = v || { value: '', label: '' };
 		}
 
 		const time_dur_regexp = /^(\d+)\s(sec|second|min|minute|day|week|hr|hour)s?$/i;
@@ -86,8 +81,8 @@ export default defineComponent({
 			option,
 			options,
 			check_time_dur: [(val: string) => time_dur_regexp.test(val) || 'This is not a valid time duration'],
-			check_int: [ (val: string) => isInt(val) ||	'This must be an integer greater than or equal to -1.']
-		}
+			check_int: [ (val: string) => isInt(val) || 'This must be an integer greater than or equal to -1.']
+		};
 	}
 });
 </script>

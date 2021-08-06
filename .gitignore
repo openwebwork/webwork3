@@ -1,7 +1,7 @@
 .DS_Store
 node_modules
 /dist
-
+.quasar
 
 # local env files
 .env.local
@@ -21,12 +21,10 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
-
-
-sample_db.sqlite
-node_modules
-
 *.bak
+
+# Project files
+sample_db.sqlite
 
 # Devel::Cover
 cover_db/

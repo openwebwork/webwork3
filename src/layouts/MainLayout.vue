@@ -25,8 +25,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-
-import MenuBar from '../components/common/MenuBar.vue';
+import MenuBar from 'components/common/MenuBar.vue';
 
 export default defineComponent({
 	components: {
@@ -36,7 +35,7 @@ export default defineComponent({
 		const sidebar_open = ref(false);
 		return {
 			sidebar_open
-		}
+		};
 	}
 });
 </script>

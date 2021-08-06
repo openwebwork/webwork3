@@ -1,114 +1,110 @@
 import { RouteRecordRaw } from 'vue-router';
 
-import Login from '../components/common/Login.vue';
-import Welcome from '../components/common/Welcome.vue';
-import MainLayout from '../layouts/MainLayout.vue';
-// import Empty from '../components/common/Empty.vue';
-
-import UserCourses from '../components/common/UserCourses.vue';
-import Instructor from '../components/instructor/Instructor.vue';
-import Student from '../components/student/Student.vue';
-import Settings from '../components/instructor/Settings.vue';
-import Calendar from '../components/instructor/Calendar.vue';
-import ProblemViewer from '../components/common/ProblemViewer.vue';
-import ClasslistManager from '../components/instructor/ClasslistManager.vue';
-import ProblemSetDetails from '../components/instructor/ProblemSetDetails.vue';
-import LibraryBrowser from '../components/instructor/LibraryBrowser.vue';
-import ProblemSetsManager from '../components/instructor/ProblemSetsManager.vue';
-import ProblemEditor from '../components/instructor/ProblemEditor.vue';
-
 const routes: RouteRecordRaw[] = [
 	{
 		path: '/',
-		redirect: '/webwork3/login'
+		redirect: '/login'
 	},
 	{
-		path: '/webwork3',
-		component: MainLayout,
+		path: '/',
+		component: () => import('src/layouts/MainLayout.vue'),
 		children: [
 			{
 				path: 'welcome',
-				component: Welcome,
+				component: () => import(/* webpackChunkName: "Welcome" */
+					'src/components/common/Welcome.vue'),
 				name: 'welcome'
 			},
 			{
 				path: 'login',
-				component: Login
+				component: () => import(/* webpackChunkName: "Login" */
+					'src/components/common/Login.vue')
 			},
 			{
 				path: 'users/:user_id/courses',
-				component: UserCourses
+				component: () => import(/* webpackChunkName: "UserCourses" */
+					'src/components/common/UserCourses.vue')
 			},
 			{
 				path: 'courses/:course_id',
-				component: Student,
+				component: () => import(/* webpackChunkName: "Student" */
+					'src/components/student/Student.vue'),
 				name: 'student',
 				props: true,
-				meta: { requiresAuth: true },
+				meta: { requiresAuth: true }
 			},
 			{
 				path: 'courses/:course_id/instructor',
-				component: Instructor,
+				component: () => import(
+					/* webpackChunkName: "Instructor" */
+					'src/components/instructor/Instructor.vue'
+				),
 				name: 'instructor',
 				props: true,
-				meta: {requiresAuth: true},
-				// beforeEnter: (to, from) => {
-				// 	console.log(to);
-				// 	console.log(from);
-				// },
+				meta: { requiresAuth: true },
 				children:
 				[
 					{
 						path: 'settings',
 						name: 'Settings',
-						component: Settings
+						component: () => import(/* webpackChunkName: "Settings" */
+							'src/components/instructor/Settings.vue')
 					},
 					{
 						path: 'calendar',
 						name: 'Calendar',
-						component: Calendar
+						component: () => import(/* webpackChunkName: "Calendar" */
+							'src/components/instructor/Calendar.vue')
 					},
 					{
 						path: 'viewer',
 						name: 'ProblemViewer',
-						component: ProblemViewer
+						component: () => import(/* webpackChunkName: "ProblemViewer" */
+							'src/components/common/ProblemViewer.vue')
 					},
 					{
 						path: 'classlist',
 						name: 'ClasslistManager',
-						component: ClasslistManager,
+						component: () => import(
+							/* webpackChunkName: "ClasslistManager" */
+							'src/components/instructor/ClasslistManager.vue'
+						)
 					},
 					{
 						path: 'setdetails',
 						name: 'ProblemSetDetails',
-						component: ProblemSetDetails,
+						component: () => import(/* webpackChunkName: "ProblemSetDetails" */
+							'src/components/instructor/ProblemSetDetails.vue')
 					},
 
 					{
 						path: 'library',
 						name: 'LibraryBrowser',
-						component: LibraryBrowser,
+						component: () => import(/* webpackChunkName: "LibraryBrowser" */
+							'src/components/instructor/LibraryBrowser.vue')
 					},
 
 					{
 						path: 'problemsets',
 						name: 'ProblemSetsManager',
-						component: ProblemSetsManager,
+						component: () => import(/* webpackChunkName: "ProblemSetsManager" */
+							'src/components/instructor/ProblemSetsManager.vue')
 					},
 
 					{
 						path: 'editor',
 						name: 'ProblemEditor',
-						component: ProblemEditor,
+						component: () => import(/* webpackChunkName: "ProblemEditor" */
+							'src/components/instructor/ProblemEditor.vue')
 					}
 				]
-			},
+			}
 		]
 	},
 	{
-    path: '/:catchAll(.*)*',
-    component: () => import('pages/Error404.vue'),
-  },
+		path: '/:catchAll(.*)*',
+		component: () => import('pages/Error404.vue')
+	}
 ];
 
 export default routes;

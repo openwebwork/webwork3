@@ -20,7 +20,7 @@
 					<q-tab-panel v-for="category in categories" :name="category" :key="'panel:'+category" >
 						<q-markup-table separator="horizontal" dense>
 							<template v-for="item in getSettings(category)" :key="item.var">
-        				<single-setting :setting="item" :value="getSettingValue(item.var)" />
+								<single-setting :setting="item" :value="getSettingValue(item.var)" />
 							</template>
 						</q-markup-table>
 					</q-tab-panel>
@@ -32,10 +32,8 @@
 
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue';
-import { useStore } from '../../store';
-
-import { CourseSettingInfo, CourseSetting } from '../../store/models';
-
+import { useStore } from 'src/store';
+import { CourseSettingInfo, CourseSetting } from 'src/store/models';
 import SingleSetting from './SingleSetting.vue';
 
 export default defineComponent({
@@ -49,24 +47,24 @@ export default defineComponent({
 
 		return {
 			tab,
-			categories: computed( () => [ ...new Set(store.state.settings.default_settings
-				.map( (setting: CourseSettingInfo) => setting.category)) ]),
+			categories: computed(() => [ ...new Set(store.state.settings.default_settings
+				.map((setting: CourseSettingInfo) => setting.category)) ]),
 			getSettings: (cat: string) => store.state.settings.default_settings
-				.filter( (setting: CourseSettingInfo) => setting.category === cat),
+				.filter((setting: CourseSettingInfo) => setting.category === cat),
 			getSettingValue: (var_name: string)  => {
 				const settings = store.state.settings.course_settings
-				.filter( (setting: CourseSetting) => setting.var === var_name);
+					.filter((setting: CourseSetting) => setting.var === var_name);
 				return settings[0].value;
 			}
-		}
+		};
 	},
 	async created () {
 		// fetch the data when the view is created and the data is
 		// already being observed
 		const store = useStore();
 		await store.dispatch('settings/fetchDefaultSettings');
-		await store.dispatch('settings/fetchCourseSettings',store.state.session.course.course_id);
-	},
+		await store.dispatch('settings/fetchCourseSettings', store.state.session.course.course_id);
+	}
 
 });
 </script>

@@ -1,6 +1,6 @@
 FROM perl:latest
 RUN cpanm -fi --notest \
-  Data::Dump \
+	Data::Dump \
 	List::MoreUtils \
 	Text::CSV \
 	Test::Exception \

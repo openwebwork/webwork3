@@ -3,21 +3,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, watch } from 'vue';
+import { defineComponent, computed } from 'vue';
+import { useStore } from 'src/store';
 
-import { useStore } from '../../store';
 export default defineComponent({
 	name: 'Student',
-	setup(props) {
+	setup() {
 		const store = useStore();
-		console.log(props);
-		watch( () => store.state.session.course.course_name, (state, prev_state) => {
-			console.log(state);
-			console.log(prev_state)
-		});
 
 		return {
-			course_name: computed( () => store.state.session.course.course_name)
+			course_name: computed(() => store.state.session.course.course_name)
 		};
 	}
 });

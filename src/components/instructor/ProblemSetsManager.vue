@@ -14,7 +14,8 @@
 			<template v-slot:body-cell-set_visible="props">
 				<q-td :props="props">
 					<div>
-						<q-icon v-if="props.value" name="done"  class="text-primary"  style="font-size: 20px; font-weight: bold" />
+						<q-icon v-if="props.value" name="done" class="text-primary"
+							style="font-size: 20px; font-weight: bold" />
 					</div>
 				</q-td>
 			</template>
@@ -26,7 +27,8 @@
 import { Dictionary } from '@/store/models';
 import { date } from 'quasar';
 import { defineComponent, computed } from 'vue';
-import { useStore } from '../../store';
+import { useStore } from 'src/store';
+
 export default defineComponent({
 	name: 'ProblemSetsManager',
 	setup() {
@@ -48,7 +50,7 @@ export default defineComponent({
 				name: 'set_visible',
 				label: 'Visible',
 				field: 'set_visible',
-				sortable: true,
+				sortable: true
 			},
 			{
 				name: 'set_type',
@@ -63,16 +65,14 @@ export default defineComponent({
 				format: (val: Dictionary<string>) => {
 					const open_date = new Date();
 					open_date.setTime(10000000000*Math.random()+parseInt(val.open));
-					console.log(open_date);
-					return date.formatDate(open_date,'MM-DD-YYYY') //row.dates.open
+					return date.formatDate(open_date, 'MM-DD-YYYY'); //row.dates.open
 				}
 			}
 		];
 		return {
 			columns,
-			problem_sets: computed( () => store.state.problem_sets.problem_sets)
-		}
-
+			problem_sets: computed(() => store.state.problem_sets.problem_sets)
+		};
 	}
 });
 </script>
