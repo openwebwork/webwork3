@@ -21,6 +21,7 @@ use Carp;
 use JSON;
 use feature "say";
 use DateTime::Format::Strptime;
+use YAML::XS qw/LoadFile/;
 
 use DB::WithParams;
 use DB::WithDates;
@@ -29,19 +30,26 @@ use DB::Schema;
 use DB;
 use DB::TestUtils qw/loadCSV/;
 
-# set up the database
-my $db_file = "$main::test_dir/sample_db.sqlite";
-
+# load some configuration for the database:
 my $verbose = 1;
 
-## first delete the file
-unlink $db_file;
+my $config = LoadFile("$main::lib_dir/../conf/webwork3.yml");
 
-say "restoring the file at $db_file";
-my $schema = DB::Schema->connect("dbi:SQLite:$db_file");
-if (not -e $db_file) {
-    $schema->deploy();  ## create the database based on the schema
+my $schema;
+my $dsn;
+# load the database
+if ($config->{database} eq 'sqlite') {
+	$dsn = $config->{sqlite_dsn};
+	$schema  = DB::Schema->connect($dsn);
+} elsif ($config->{database} eq 'mariadb') {
+	$dsn = $config->{mariadb_dsn};
+	$schema  = DB::Schema->connect($dsn,$config->{database_user},$config->{database_password});
 }
+
+
+say "restoring the database with dbi: $dsn" if $verbose;
+$schema->deploy({ add_drop_table => 1 });  ## create the database based on the schema
+
 
 my $course_rs = $schema->resultset('Course');
 my $user_rs = $schema->resultset('User');

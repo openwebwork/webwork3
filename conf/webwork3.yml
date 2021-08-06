@@ -2,3 +2,11 @@
 secrets:
   - 3cdf63327fcf77deaed1d200df4b9fee66af2326
 webwork3_home: /opt/webwork/webwork3
+# sqlite database
+sqlite_dsn: dbi:SQLite:/opt/webwork/webwork3/t/db/sample_db.sqlite
+# mysql or mariadb setup
+mariadb_dsn: dbi:mysql:test_webwork3:localhost:3306
+database_user: webworkWrite
+database_password: password
+# determine which database to use
+database: mariadb
