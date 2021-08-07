@@ -20,7 +20,7 @@ import ProblemEditor from '../components/instructor/ProblemEditor.vue';
 
 // Admin components
 import Admin from '../components/admin/Admin.vue';
-import AdminCourses from '../components/admin/AdminCourses.vue';
+import CourseManager from '../components/admin/CourseManager.vue';
 
 const routes: RouteRecordRaw[] = [
 	{
@@ -114,7 +114,7 @@ const routes: RouteRecordRaw[] = [
 				children: [
 					{
 						path: 'courses',
-						component: AdminCourses,
+						component: CourseManager,
 						name: 'AdminCourses'
 					}
 				]

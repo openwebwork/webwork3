@@ -33,6 +33,15 @@ export default {
 			const _users = await _fetchUsers(course_id);
 			commit('SET_USERS',_users);
 		},
+		async getUser({ commit }: { commit: Commit }, _login: string): Promise<User|undefined> {
+			const response = await axios.get(`/webwork3/api/users/${_login}`);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			if (response.data.login !== '') {
+				return response.data as User
+			} else {
+				return undefined;
+			}
+		},
 		async addUser( { commit, rootState }: { commit: Commit, rootState: StateInterface}, _user: User): Promise<User|undefined> {
 			const course_id = rootState.session.course.course_id;
 			const response = await axios.post(`/webwork3/api/courses/${course_id}/users`,_user);

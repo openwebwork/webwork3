@@ -103,7 +103,7 @@ export default defineComponent({
 			open_users_manually,
 			open_users_from_file,
 			columns,
-			users: computed( () => store.state.user.users),
+			users: computed( () => store.state.users.users),
 			deleteUsers: () => {
 				var conf = confirm(`Are you sure you want to delete the users: ${selected.value.map((u) => u.login).join(', ')}`);
 				if (conf) {

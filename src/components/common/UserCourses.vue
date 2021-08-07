@@ -72,8 +72,10 @@ export default defineComponent({
 		// );
 
 		return {
-			student_courses:    computed( () => store.state.user.user_courses.filter( (user: UserCourse) => user.role === 'student')),
-			instructor_courses: computed( () => store.state.user.user_courses.filter( (user: UserCourse) => user.role === 'instructor')),
+			student_courses:    computed( () =>
+				store.state.users.user_courses.filter( (user: UserCourse) => user.role === 'student')),
+			instructor_courses: computed( () =>
+				store.state.users.user_courses.filter( (user: UserCourse) => user.role === 'instructor')),
 			user:               computed( () => store.state.session.user)
 		};
 

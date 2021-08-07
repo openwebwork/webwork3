@@ -31,7 +31,7 @@
 				</template>
 			</q-table>
 		</div>
-		<q-dialog v-model="new_course_dialog">
+		<q-dialog full-width v-model="new_course_dialog">
 			<new-course-dialog @close-dialog="new_course_dialog = false" />
 		</q-dialog>
 	</div>

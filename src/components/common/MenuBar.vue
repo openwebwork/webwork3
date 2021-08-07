@@ -64,15 +64,15 @@ export default defineComponent({
 			course_name: computed( () => store.state.session.course.course_name),
 			user_courses: computed( () => {
 				const current_course_name = store.state.session.course.course_name;
-				return store.state.user.user_courses
+				return store.state.users.user_courses
 					.filter( (course: UserCourse) => course.course_name !== current_course_name);
 			}),
 			changeCourse: (course_id: number, course_name: string) => {
 				const current_course_name = store.state.session.course.course_name;
-				const current_course = store.state.user.user_courses
+				const current_course = store.state.users.user_courses
 					.filter( (course: UserCourse) => course.course_name === current_course_name)[0];
 
-				const new_course = store.state.user.user_courses
+				const new_course = store.state.users.user_courses
 					.filter( (course: UserCourse) => course.course_name === course_name)[0];
 				if (current_course.role !== new_course.role) {
 					void router.push({name: new_course.role, params: {course_id: course_id}});
