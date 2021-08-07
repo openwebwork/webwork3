@@ -115,7 +115,7 @@ sub userRoutes {
 	my $course_routes = $self->routes->any('/webwork3/api/users')->to(controller => 'User');
 	$course_routes->get('/')->to(action => 'getGlobalUsers');
 	$course_routes->post('/')->to(action => 'addGlobalUser');
-	$course_routes->get('/:user_id')->to(action => 'getGlobalUser');
+	$course_routes->get('/:user')->to(action => 'getGlobalUser');
 	$course_routes->put('/:user_id')->to(action => 'updateGlobalUser');
 	$course_routes->delete('/:user_id')->to(action => 'deleteGlobalUser');
 	$self->routes->get('/webwork3/api/users/:user_id/courses')->to('User#getUserCourses');
