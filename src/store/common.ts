@@ -1,4 +1,4 @@
-import { User, Course } from './models';
+import { User, Course, CourseUser } from './models';
 
 export function newUser(): User {
 	return {
@@ -9,6 +9,17 @@ export function newUser(): User {
 		login: '',
 		student_id: '',
 		user_id: undefined
+	};
+}
+
+export function newCourseUser(): CourseUser {
+	return {
+		course_user_id: 0,
+		course_id: 0,
+		role: 'student',
+		section: '',
+		recitation: '',
+		params: {}
 	};
 }
 

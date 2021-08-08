@@ -49,7 +49,6 @@ export default defineComponent({
 					message.value = session.message;
 				} else { // success
 					void store.dispatch('session/updateSessionInfo',session);
-					console.log('hier');
 					if (session && session.user && session.user.is_admin) {
 						void router.push('/webwork3/admin');
 					} else if (session && session.user && session.user.user_id) {

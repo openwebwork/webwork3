@@ -43,7 +43,7 @@ import { useStore } from '../../store';
 
 import { Course } from '../../store/models';
 
-import NewCourseDialog from './NewCourseDialog.vue';
+import NewCourseDialog from './AddCourse.vue';
 
 interface CourseDate {
 	start: string;

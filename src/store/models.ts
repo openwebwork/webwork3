@@ -26,14 +26,12 @@ export interface UserCourse {
 }
 
 export interface CourseUser {
-	email: string;
-	first_name: string;
-	is_admin: number;
-	last_name: string;
-	login: string;
-	student_id: string;
-	user_id: number;
+	course_user_id: number;
+	course_id: number;
 	role: string;
+	section: string;
+	recitation: string;
+	params: Dictionary<string>;
 }
 
 export interface SessionInfo {

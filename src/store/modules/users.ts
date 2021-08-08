@@ -1,10 +1,8 @@
 import axios from 'axios';
-import { Commit } from 'vuex';
+import { Commit, ActionContext } from 'vuex';
 import { StateInterface } from '../index';
 
-import { User, UserCourse, ResponseError } from '../models';
-
-
+import { User, UserCourse, CourseUser, ResponseError } from '../models';
 
 export interface UserState {
 	users: Array<User>;
@@ -33,24 +31,26 @@ export default {
 			const _users = await _fetchUsers(course_id);
 			commit('SET_USERS',_users);
 		},
-		async getUser({ commit }: { commit: Commit }, _login: string): Promise<User|undefined> {
+		async getUser( _context: ActionContext<UserState,StateInterface>, _login: string): Promise<User|undefined> {
 			const response = await axios.get(`/webwork3/api/users/${_login}`);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			if (response.data.login !== '') {
+			if (response.data.login && response.data.login !== '') {
 				return response.data as User
 			} else {
 				return undefined;
 			}
 		},
-		async addUser( { commit, rootState }: { commit: Commit, rootState: StateInterface}, _user: User): Promise<User|undefined> {
-			const course_id = rootState.session.course.course_id;
-			const response = await axios.post(`/webwork3/api/courses/${course_id}/users`,_user);
+		async addCourseUser( { commit, rootState }: { commit: Commit, rootState: StateInterface}, _course_user: CourseUser): Promise<CourseUser|undefined> {
+			const course_id = rootState.session.course.course_id > 0 ?
+				rootState.session.course.course_id :
+				_course_user.course_id;
+			const response = await axios.post(`/webwork3/api/courses/${course_id}/users`,_course_user);
 			if (response.status === 200) {
-				const u = response.data as User;
+				const u = response.data as CourseUser;
 				commit('ADD_USER',u);
 				return u;
 			} else if (response.status === 400) {
-				throw(response.data as ResponseError)
+				throw(response.data as ResponseError);
 			}
 		},
 		async deleteUser( { commit,rootState }: { commit: Commit, rootState: StateInterface}, _user: User): Promise<User|undefined> {

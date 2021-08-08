@@ -83,6 +83,8 @@ sub addUsers {
 	my $admin = {
 		login => "admin",
 		email => 'admin@google.com',
+		first_name => "Andrea",
+		last_name => "Administrator",
 		is_admin => 1,
 		login_params => { password => "admin"}
 	};

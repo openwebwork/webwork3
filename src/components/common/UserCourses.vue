@@ -62,15 +62,6 @@ export default defineComponent({
 	name: 'UserCourses',
 	setup() {
 		const store = useStore();
-		// const route = useRoute();
-
-		// watch( () =>  route.params.course_name,
-		// 	(course_name) =>  {
-		// 		console.log(course_name);
-		// 			void store.dispatch('session/setCourseName',course_name);
-		// 		}
-		// );
-
 		return {
 			student_courses:    computed( () =>
 				store.state.users.user_courses.filter( (user: UserCourse) => user.role === 'student')),

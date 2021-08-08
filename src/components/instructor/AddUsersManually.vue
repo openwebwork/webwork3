@@ -42,9 +42,9 @@ import { defineComponent, ref, Ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 
 import { useStore } from '../../store';
-import { newUser } from '../../store/common';
+import { newCourseUser, newUser } from '../../store/common';
 
-import { CourseSetting, User, ResponseError } from '../../store/models';
+import { CourseSetting, User, CourseUser, ResponseError } from '../../store/models';
 import { AxiosError } from 'axios';
 
 
@@ -54,6 +54,7 @@ export default defineComponent({
 	setup(props, context) {
 		const $q = useQuasar();
 		const user: Ref<User> = ref(newUser());
+		const course_user: Ref<CourseUser> = ref(newCourseUser());
 		const store = useStore();
 
 		return {
@@ -65,7 +66,8 @@ export default defineComponent({
 			}),
 			addUser: async () => {
 				try {
-					const _user = await store.dispatch('user/addUser',user.value) as unknown as User;
+					const _user = await store.dispatch('users/addGlobalUser',user) as User;
+					void await store.dispatch('users/addCourseUser',{user: course_user.value}) as unknown as CourseUser;
 					$q.notify({
 						message: `The user ${_user.login} was successfully added to the course.`,
 						color: 'green'
