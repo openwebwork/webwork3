@@ -108,9 +108,9 @@ export default defineComponent({
 				const users_to_delete = selected.value.map((u) => u.login).join(', ');
 				var conf = confirm(`Are you sure you want to delete the users: ${users_to_delete}`);
 				if (conf) {
-					selected.value.forEach( (_user: User) => {
+					selected.value.forEach((_user: User) => {
 						try {
-							void store.dispatch('user/deleteUser',_user);
+							void store.dispatch('user/deleteUser', _user);
 							$q.notify(`The user ${_user.login} has been succesfully deleted.`);
 						} catch (err) {
 							$q.notify(err);

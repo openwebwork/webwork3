@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 ---
->>>>>>> openwebwork/vue3-quasar
 # This is the definition, description and documentation of all of the
 # course settings in webwork3.
 #
@@ -12,12 +9,8 @@
 #    var: the name of the variable/setting
 #    doc: a short description of the variable
 #    doc2: a longer description of the variable (optional)
-<<<<<<< HEAD
-#    type: the type of varable (text, list, multilist, boolean, integer, decimal, time, date_time, time_duration, timezone)
-=======
 #    type: the type of varable (text, list, multilist, boolean, integer, decimal, time, date_time, time_duration,
 #    timezone)
->>>>>>> openwebwork/vue3-quasar
 
 # these are the general course settings
 -
@@ -36,12 +29,8 @@
   var: language
   category: general
   doc: Default language for the course
-<<<<<<< HEAD
-  doc2: 'WeBWorK currently has translations for four languages: "English en", "Turkish tr", "Spanish es", and "French fr"'
-=======
   doc2: >
     WeBWorK currently has translations for four languages: "English en", "Turkish tr", "Spanish es", and "French fr"
->>>>>>> openwebwork/vue3-quasar
   type: list
   options:
     -
@@ -233,13 +222,9 @@
   category: optional
   subcategory: show_me_another
   doc: Enable Show Me Another button
-<<<<<<< HEAD
-  doc2: Enables use of the Show Me Another button, which offers the student a newly-seeded version of the current problem, complete with solution (if it exists for that problem).
-=======
   doc2: >
     Enables use of the Show Me Another button, which offers the student a newly-seeded
     version of the current problem, complete with solution (if it exists for that problem).
->>>>>>> openwebwork/vue3-quasar
   type: boolean
   default: false
 -
@@ -312,7 +297,6 @@
 
 # Permissions Settings
 -
-<<<<<<< HEAD
   var: roles
   category: permissions
   doc: A list of roles in the course
@@ -322,13 +306,6 @@
     - instructor
     - TA
     - student
-=======
-  var: permissions_test
-  category: permissions
-  doc: Something related to permission for testing
-  type: boolean
-  default: false
->>>>>>> openwebwork/vue3-quasar
 
 # Settings at the Problem Set level
 -
@@ -481,8 +458,4 @@
   doc: "this is just for testing"
   type: decimal
   # options: hi
-<<<<<<< HEAD
   default: -23.3
-=======
-  default: -23.3
->>>>>>> openwebwork/vue3-quasar

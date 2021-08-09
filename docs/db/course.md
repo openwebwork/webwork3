@@ -83,8 +83,4 @@ This needs to be rethought.  Perhaps a table of permissions versus course roles.
 - `email_from_pg`: string (list of email addresses)
 - `email_automatic`: set of course roles
 - `email_additional`: string (list of email addresses)
-<<<<<<< HEAD
 - `email_feedback_section`: boolean
-=======
-- `email_feedback_section`: boolean
->>>>>>> openwebwork/vue3-quasar

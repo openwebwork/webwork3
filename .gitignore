@@ -25,12 +25,6 @@ pnpm-debug.log*
 
 # Project files
 sample_db.sqlite
-<<<<<<< HEAD
-node_modules
-
-*.bak
-=======
->>>>>>> openwebwork/vue3-quasar
 
 # Devel::Cover
 cover_db/

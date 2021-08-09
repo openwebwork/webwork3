@@ -1,10 +1,6 @@
 FROM perl:latest
 RUN cpanm -fi --notest \
-<<<<<<< HEAD
-  Data::Dump \
-=======
 	Data::Dump \
->>>>>>> openwebwork/vue3-quasar
 	List::MoreUtils \
 	Text::CSV \
 	Test::Exception \

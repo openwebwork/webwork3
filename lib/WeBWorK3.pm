@@ -15,13 +15,10 @@ use Try::Tiny;
 use DB::Schema;
 use WeBWorK3::Mojolicious;
 
-<<<<<<< HEAD
-=======
 # require Exporter;
 # use base qw(Exporter);
 # our @EXPORT_OK = qw/confDirectory/;
 
->>>>>>> openwebwork/vue3-quasar
 my $perm_table;
 
 # This method will run once at server start

@@ -2,7 +2,6 @@
 secrets:
   - 3cdf63327fcf77deaed1d200df4b9fee66af2326
 webwork3_home: /opt/webwork/webwork3
-<<<<<<< HEAD
 
 # if ignore_permissions is set to true, all routes can be executed
 # this should only be used in development
@@ -16,5 +15,3 @@ database_user: webworkWrite
 database_password: password
 # determine which database to use
 database: mariadb
-=======
->>>>>>> openwebwork/vue3-quasar

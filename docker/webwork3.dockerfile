@@ -3,32 +3,6 @@ FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
 ENV HARNESS_PERL_SWITCHES -MDevel::Cover
-<<<<<<< HEAD
-RUN apt-get update
-RUN apt-get install -qy make \
-    cpanminus \
-    libtest-harness-perl \
-    libdata-dump-perl \
-    liblist-moreutils-perl \
-    libtest-exception-perl \
-    libtry-tiny-perl \
-    libexception-class-perl \
-    libdbix-class-perl \
-    libdbix-dbschema-perl \
-    libdbd-sqlite3-perl \
-    libtext-csv-perl \
-    libjson-perl \
-    libdevel-cover-perl \
-    git
-RUN cpanm --notest Array::Utils \
-    DBIx::Class::DynamicSubclass \
-    Mojolicious \
-    Mojolicious::Plugin::NotYAMLConfig \
-    Mojolicious::Plugin::DBIC \
-    Mojolicious::Plugin::Authentication \
-    Devel::Cover::Report::Codecov
-ENTRYPOINT /bin/bash
-=======
 RUN apt-get update && \
 	apt-get install -qy --no-install-recommends --no-install-suggests \
 	make=4.2.1-1.2 \
@@ -55,4 +29,3 @@ RUN apt-get update && \
 	Mojolicious::Plugin::Authentication \
 	Devel::Cover::Report::Codecov
 ENTRYPOINT ["/bin/bash"]
->>>>>>> openwebwork/vue3-quasar
