@@ -96,7 +96,15 @@ const routes: RouteRecordRaw[] = [
 						name: 'ProblemEditor',
 						component: () => import(/* webpackChunkName: "ProblemEditor" */
 							'src/components/instructor/ProblemEditor.vue')
+					},
+
+					{
+						path: 'statistics',
+						name: 'Statistics',
+						component: () => import(/* webpackChunkName: "ProblemEditor" */
+							'src/components/instructor/Stastistics.vue')
 					}
+
 				]
 			},
 			{
@@ -107,11 +115,11 @@ const routes: RouteRecordRaw[] = [
 					{
 						path: 'courses',
 						component: () => import(/* webpackChunkName: "CourseMananger" */
-							'src/components/instructor/CourseManager.vue'),
+							'src/components/admin/CourseManager.vue'),
 						name: 'CourseManager'
 					}
 				]
-			},
+			}
 		]
 	},
 	{
