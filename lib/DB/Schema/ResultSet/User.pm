@@ -15,6 +15,7 @@ use base 'DBIx::Class::ResultSet';
 
 use Data::Dump qw/dd dump/;
 use Array::Utils qw/array_minus/;
+use Clone qw/clone/;
 
 use DB::Utils qw/getCourseInfo getUserInfo removeLoginParams/;
 
@@ -321,7 +322,7 @@ sub addUser {
 	DB::Exception::UserAlreadyInCourse->throw( course_name => $course_info, login => $params->{login} )
 		if defined $user_exists;
 
-	my $course_user_params = {%$params};               # make a copy
+	my $course_user_params = clone($params);
 	my $user_params        = {};
 	for my $key ( $self->result_source->columns ) {    # remove all parameters that don't fit in the user table
 		$user_params->{$key} = $params->{$key} if defined $params->{$key};
@@ -457,7 +458,8 @@ sub deleteUser {
 
 	## get the CourseUser data from the DB
 	my $deleted_course_user = $course_user_rs->find(
-		{   course_id => $course->course_id,
+		{
+			course_id => $course->course_id,
 			user_id   => $user->user_id
 		}
 	)->delete;
@@ -468,5 +470,109 @@ sub deleteUser {
 	return removeLoginParams( { $user->get_columns, $deleted_course_user->get_inflated_columns } );
 
 }
+
+sub getCourseUser {
+	my ( $self, $course_user_info, $as_result_set ) = @_;
+	my $course = $self->result_source->schema->resultset("Course")
+		->getCourse(getCourseInfo($course_user_info),1);
+	my $user = $self->getGlobalUser(getUserInfo($course_user_info),1);
+	my @keys = keys %$course_user_info;
+
+	DB::Exception::TooManyParameters->throw(
+		message => "Too many parameters were passed into getCourseUser"
+	) if (scalar(@keys) != 2 );
+
+
+
+	my $course_user = $self->result_source->schema->resultset("CourseUser")
+		->find({course_id => $course->course_id, user_id => $user->user_id});
+
+	DB::Exception::UserNotInCourse->throw(
+		message => "The user ${\$user->login} is not enrolled in the course ${\$course->course_name}"
+	) unless defined $course_user;
+
+	return $course_user if $as_result_set;
+	return {$course_user->get_inflated_columns};
+
+}
+
+##
+#
+# This is used to add a user to an existing course
+#
+##
+
+=pod
+=head2 addCourseUser
+
+This method adds a course user to the course_users database knowing that there is
+an existing user and course.
+
+The method returns only the information in the course_user table
+
+=cut
+
+
+sub addCourseUser {
+	my ( $self, $course_user_params, $as_result_set ) = @_;
+	my $course = $self->result_source->schema->resultset("Course")
+		->getCourse(getCourseInfo($course_user_params),1);
+	my $user = $self->getGlobalUser(getUserInfo($course_user_params),1);
+
+	my $params = clone($course_user_params);
+
+	for my $key (qw/ course_id course_name login user_id/) {
+		delete $params->{$key};
+	}
+
+	## still need to check params for validity.
+
+	my $course_user = $self->result_source->schema->resultset("CourseUser")
+		->new($params);
+	$course->add_to_users({user_id => $user->user_id});
+
+	my $user_to_return = $self->result_source->schema->resultset("CourseUser")
+		->find({course_id => $course->course_id, user_id => $user->user_id})
+		->update($params);
+
+	return $user_to_return if $as_result_set;
+	return {$user_to_return->get_inflated_columns};
+}
+
+=pod
+=head2 updateCourseUser
+
+This method updates the course user table
+
+=cut
+
+sub updateCourseUser {
+	my ( $self, $course_user_info, $course_user_params, $as_result_set ) = @_;
+	my $course_user = $self->getCourseUser($course_user_info,1);
+
+	my $course_user_to_return = $course_user->update($course_user_params);
+
+	return $course_user_to_return if $as_result_set;
+	return {$course_user_to_return->get_inflated_columns};
+
+}
+
+=pod
+=head2 deleteCourseUser
+
+This method updates the course user table
+
+=cut
+
+sub deleteCourseUser {
+	my ( $self, $course_user_info, $course_user_params, $as_result_set ) = @_;
+	my $course_user_to_delete = $self->getCourseUser($course_user_info,1)->delete;
+
+	return $course_user_to_delete if $as_result_set;
+	return {$course_user_to_delete->get_inflated_columns};
+
+}
+
+
 
 1;

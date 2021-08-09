@@ -69,8 +69,8 @@ push(
 	{   login      => "admin",
 		email      => 'admin@google.com',
 		is_admin   => 1,
-		last_name  => undef,
-		first_name => undef,
+		last_name  => "Andrea",
+		first_name => "Administrator",
 		student_id => undef
 	}
 );

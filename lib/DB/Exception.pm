@@ -66,6 +66,9 @@ use Exception::Class (
 	'DB::Exception::ParametersNeeded' => {
 		description => 'Parameters are needed that were not included.'
 	},
+	'DB::Exception::TooManyParameters' => {
+		description => 'Too many parameters are passed in.'
+	},
 	'DB::Exception::InvalidDateField' => {
 		fields => ['field_names'],
 		description => 'The date fields are invalid',
@@ -105,7 +108,7 @@ DB::Exception::InvalidParameter->Trace(1);
 DB::Exception::UndefinedParameter->Trace(1);
 DB::Exception::InvalidDateField->Trace(1);
 # DB::Exception::PoolNotInCourse->Trace(1);
-# DB::Exception::ParametersNeeded->Trace(1);
+DB::Exception::ParametersNeeded->Trace(1);
 
 
 1;
