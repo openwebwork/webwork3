@@ -87,7 +87,7 @@ export const instructor_views = [
 	},
 	{
 		name: 'Statistics',
-		component_name: 'Stastistics',
+		component_name: 'Statistics',
 		icon: 'assessment',
 		route: 'statistics',
 		show_set: false,
@@ -100,5 +100,13 @@ export const instructor_views = [
 		route: 'settings',
 		show_set: false,
 		show_user: false
+	}
+];
+
+export const admin_views = [
+	{
+		name: 'Course Manager',
+		component_name: 'CourseManager',
+		icon: 'assessment'
 	}
 ];

@@ -47,7 +47,6 @@ import { newCourseUser, newUser } from '../../store/common';
 import { CourseSetting, User, CourseUser, ResponseError } from '../../store/models';
 import { AxiosError } from 'axios';
 
-
 export default defineComponent({
 	name: 'AddUsersManually',
 	emits: ['closeDialog'],
@@ -59,15 +58,16 @@ export default defineComponent({
 
 		return {
 			user,
-			roles: computed( () => {
+			roles: computed(() => {
 				const role_setting = store.state.settings.course_settings
-					.find( (_setting: CourseSetting) => _setting.var === 'roles');
+					.find((_setting: CourseSetting) => _setting.var === 'roles');
 				return role_setting && role_setting.value || [];
 			}),
 			addUser: async () => {
 				try {
-					const _user = await store.dispatch('users/addGlobalUser',user) as User;
-					void await store.dispatch('users/addCourseUser',{user: course_user.value}) as unknown as CourseUser;
+					const _user = await store.dispatch('users/addGlobalUser', user) as User;
+					const param = { user: course_user.value };
+					void await store.dispatch('users/addCourseUser', param) as unknown as CourseUser;
 					$q.notify({
 						message: `The user ${_user.login} was successfully added to the course.`,
 						color: 'green'
@@ -75,7 +75,8 @@ export default defineComponent({
 					context.emit('closeDialog');
 				} catch (err) {
 					const error = err as AxiosError;
-					const data = error  && error.response && (error.response.data  as ResponseError) || { exception: ''};
+					const data = error  && error.response && (error.response.data  as ResponseError)
+						|| { exception: '' };
 					$q.notify({
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 						message: data.exception,
@@ -83,7 +84,7 @@ export default defineComponent({
 					});
 				}
 			}
-		}
+		};
 	}
 });
 </script>

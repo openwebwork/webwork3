@@ -48,7 +48,7 @@ sub login {
 	my $self = shift;
 	my $params = $self->req->json;
 	# dd $params;
-	if ($self->authenticate($params->{login}, $params->{password})) {
+	if ($self->authenticate($params->{username}, $params->{password})) {
 		## redirect
 		$self->render(json=>{logged_in => 1, user => $self->current_user});
 	} else {

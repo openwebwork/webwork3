@@ -44,15 +44,15 @@ export default defineComponent({
 			if (!session.logged_in) {
 				message.value = session.message;
 			} else { // success
-				void store.dispatch('session/updateSessionInfo',session);
+				void store.dispatch('session/updateSessionInfo', session);
 				if (session && session.user && session.user.is_admin) {
-					void router.push('/webwork3/admin');
+					void router.push('/admin');
 				} else if (session && session.user && session.user.user_id) {
-					void router.push(`/webwork3/users/${session.user.user_id}/courses`);
+					void router.push(`/users/${session.user.user_id}/courses`);
 				}
 			}
-		}
-
-			return { username, password, message, login };
+		};
+		return { username, password, message, login };
+	}
 });
 </script>

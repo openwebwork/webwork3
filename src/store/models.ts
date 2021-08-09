@@ -41,7 +41,7 @@ export interface SessionInfo {
 }
 
 export interface UserPassword {
-  login: string;
+  username: string;
   password: string;
 }
 

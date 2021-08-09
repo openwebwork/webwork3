@@ -14,7 +14,12 @@
 				<template v-slot:body-cell-visible="props">
 					<q-td :props="props">
 						<div>
-							<q-icon v-if="props.value" name="done"  class="text-primary"  style="font-size: 20px; font-weight: bold" />
+							<q-icon
+								v-if="props.value"
+								name="done"
+								class="text-primary"
+								style="font-size: 20px; font-weight: bold"
+							/>
 						</div>
 					</q-td>
 				</template>
@@ -61,7 +66,7 @@ export default defineComponent({
 			{
 				name: 'course_id',
 				label: 'Course ID',
-				field: 'course_id',
+				field: 'course_id'
 			},
 			{
 				name: 'course_name',
@@ -79,14 +84,14 @@ export default defineComponent({
 				name: 'starting_date',
 				label: 'Starting Date',
 				field: 'course_dates',
-				format: (val: CourseDate ) => val.start,
+				format: (val: CourseDate) => val.start,
 				sortable: true
 			},
 			{
 				name: 'end_date',
 				label: 'Ending Date',
 				field: 'course_dates',
-				format: (val: CourseDate ) => val.end,
+				format: (val: CourseDate) => val.end,
 				sortable: true
 			}
 		];
@@ -99,12 +104,11 @@ export default defineComponent({
 			filter,
 			selected,
 			new_course_dialog,
-			courses: computed( () => store.state.courses.courses),
+			courses: computed(() => store.state.courses.courses),
 			newCourse: () => {
 				console.log('new course');
 			}
-		}
+		};
 	}
-})
-
+});
 </script>

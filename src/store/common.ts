@@ -32,5 +32,5 @@ export function newCourse(): Course {
 			end: '',
 			start: ''
 		}
-	}
+	};
 }

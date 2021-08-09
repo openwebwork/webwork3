@@ -79,7 +79,7 @@ export default defineComponent({
 		// fetch the data when the view is created and the data is
 		// already being observed
 		const store = useStore();
-		await store.dispatch('user/fetchUserCourses', store.state.session.user.user_id);
+		await store.dispatch('users/fetchUserCourses', store.state.session.user.user_id);
 	}
 });
 </script>
