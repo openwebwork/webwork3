@@ -1,8 +1,10 @@
 <nav class="navbar fixed-bottom navbar-dark bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand" style="font-size: 75%" href="https://openwebwork.org">WeBWorK&copy; 2000-2021, openwebwork.org</a>
+	<div class="container-fluid">
+		<a class="navbar-brand" style="font-size: 75%" href="https://openwebwork.org">
+			WeBWorK&copy; 2000-2021, openwebwork.org
+		</a>
 		<div class="justify-content-end">
 			<span class="navbar-text"> Version: 3.0-alpha1</span>
 		</div>
-  </div>
+	</div>
 </nav>

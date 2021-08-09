@@ -1,11 +1,11 @@
 import { GetterTree } from 'vuex';
-import { StateInterface } from '../index';
+import { StateInterface } from 'src/store';
 import { SessionState } from './state';
 
 const getters: GetterTree<SessionState, StateInterface> = {
-  someAction (/* context */) {
-    // your code
-  }
+	someAction (/* context */) {
+		// your code
+	}
 };
 
 export default getters;

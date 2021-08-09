@@ -1,10 +1,9 @@
 import { Module, ActionTree, GetterTree, MutationTree } from 'vuex';
-import { StateInterface } from '../index';
+import { StateInterface } from 'src/store';
 // import state, { SessionState } from './state';
 // import actions from './actions';
 // import getters from './getters';
 // import mutations from './mutations';
-
 
 export interface SessionState {
 	logged_in: boolean;
@@ -17,9 +16,8 @@ function state(): SessionState {
 		logged_in: false,
 		user: '',
 		course_name: ''
-	}
+	};
 }
-
 
 const getters: GetterTree<SessionState, StateInterface> = {
 	someAction (/* context */) {
@@ -32,8 +30,6 @@ const actions: ActionTree<SessionState, StateInterface> = {
 		// your code
 	}
 };
-
-
 
 const mutations: MutationTree<SessionState> = {
 	someMutation (/* state: ExampleStateInterface */) {

@@ -1,4 +1,4 @@
-#
+---
 # This file contains the permissions for all of the mojolicious
 # routes and what user type has permissions to call the particular route.
 #
@@ -24,12 +24,12 @@ User:
   deleteGlobalUser:
     admin_required: true
   getUsers:
-    allowed_users: ["admin","instructor"]
+    allowed_users: ["admin", "instructor"]
   getUser:
-    allowed_users: ["admin","instructor"]
+    allowed_users: ["admin", "instructor"]
   addUser:
-    allowed_users: ["admin","instructor"]
+    allowed_users: ["admin", "instructor"]
   updateUser:
-    allowed_users: ["admin","instructor"]
+    allowed_users: ["admin", "instructor"]
   deleteUsers:
-    allowed_users: ["admin","instructor"]
+    allowed_users: ["admin", "instructor"]

@@ -25,7 +25,7 @@ sub getProblemSets {
 	my $self = shift;
 	# $log->debug($self->param("course_id"));
 	my @problem_sets = $self->schema->resultset("ProblemSet")
-		->getProblemSets({ course_id => int( $self->param("course_id")) });
+		->getProblemSets({ course_id => int($self->param("course_id")) });
 	# convert booleans
 	for my $set (@problem_sets) {
 		# $log->debug(Dumper($set));

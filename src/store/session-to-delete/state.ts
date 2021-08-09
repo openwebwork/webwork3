@@ -9,7 +9,7 @@ function state(): SessionState {
 		logged_in: false,
 		user: '',
 		course_name: ''
-	}
+	};
 }
 
 export default state;

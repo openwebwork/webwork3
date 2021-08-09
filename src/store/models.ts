@@ -1,7 +1,7 @@
 // This contains all of the interfaces for models throughout the app.
 
 export interface Dictionary<T> {
-  [key: string]: T;
+	[key: string]: T;
 }
 
 export interface User {
@@ -37,14 +37,14 @@ export interface CourseUser {
 }
 
 export interface SessionInfo {
-  user: User;
-  logged_in: boolean;
+	user: User;
+	logged_in: boolean;
 	message: string;
 }
 
 export interface UserPassword {
-  email: string;
-  password: string;
+	login: string;
+	password: string;
 }
 
 export interface Course {
@@ -54,11 +54,11 @@ export interface Course {
 
 export enum CourseSettingOption {
 	int = 'int',
-	decimal = 'decimal',
-	list = 'list',
-	multilist = 'multilist',
-	text = 'text',
-	boolean = 'boolean'
+		decimal = 'decimal',
+		list = 'list',
+		multilist = 'multilist',
+		text = 'text',
+		boolean = 'boolean'
 }
 
 export interface CourseSetting {
@@ -83,8 +83,8 @@ export interface CourseSettingInfo {
 
 export enum ProblemSetType {
 	HW,
-	QUIZ,
-	REVIEW_SET
+		QUIZ,
+		REVIEW_SET
 }
 
 export interface ProblemSet {

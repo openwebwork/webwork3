@@ -16,7 +16,7 @@ export const student_views = [
 		icon: 'today',
 		route: 'student-calendar',
 		show_set: false,
-		show_user: false,
+		show_user: false
 	},
 	{
 		name: 'Problem Viewer',
@@ -24,8 +24,8 @@ export const student_views = [
 		icon: 'preview',
 		route: 'student-problems',
 		show_set: false,
-		show_user: false,
-	},
+		show_user: false
+	}
 ];
 
 export const instructor_views = [
@@ -35,7 +35,7 @@ export const instructor_views = [
 		icon: 'today',
 		route: 'calendar',
 		show_set: false,
-		show_user: false,
+		show_user: false
 	},
 	{
 		name: 'Problem Viewer',
@@ -43,7 +43,7 @@ export const instructor_views = [
 		icon: 'preview',
 		route: 'viewer',
 		show_set: false,
-		show_user: false,
+		show_user: false
 	},
 	{
 		name: 'Classlist Manager',
@@ -51,7 +51,7 @@ export const instructor_views = [
 		icon: 'people',
 		route: 'classlist',
 		show_set: false,
-		show_user: false,
+		show_user: false
 	},
 	{
 		name: 'Problem Set Details',
@@ -59,7 +59,7 @@ export const instructor_views = [
 		icon: 'info',
 		route: 'set-view',
 		show_set: true,
-		show_user: false,
+		show_user: false
 	},
 	{
 		name: 'Library Browser',
@@ -67,7 +67,7 @@ export const instructor_views = [
 		icon: 'book',
 		route: 'library',
 		show_set: true,
-		show_user: false,
+		show_user: false
 	},
 	{
 		name: 'Problem Sets Manager',
@@ -75,7 +75,7 @@ export const instructor_views = [
 		icon: 'list',
 		route: 'problem-sets',
 		show_set: false,
-		show_user: true,
+		show_user: true
 	},
 	{
 		name: 'Problem Editor',
@@ -83,7 +83,7 @@ export const instructor_views = [
 		icon: 'edit ',
 		route: 'editor',
 		show_set: false,
-		show_user: false,
+		show_user: false
 	},
 	{
 		name: 'Statistics',
@@ -91,7 +91,7 @@ export const instructor_views = [
 		icon: 'assessment',
 		route: 'statistics',
 		show_set: false,
-		show_user: false,
+		show_user: false
 	},
 	{
 		name: 'Settings',
@@ -99,6 +99,6 @@ export const instructor_views = [
 		icon: 'settings',
 		route: 'settings',
 		show_set: false,
-		show_user: false,
-	},
+		show_user: false
+	}
 ];
