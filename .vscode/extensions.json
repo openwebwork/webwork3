@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "recommendations": [
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
@@ -9,4 +10,16 @@
     "dbaeumer.jshint",
     "ms-vscode.vscode-typescript-tslint-plugin"
   ]
+=======
+	"recommendations": [
+		"dbaeumer.vscode-eslint",
+		"esbenp.prettier-vscode",
+		"octref.vetur"
+	],
+	"unwantedRecommendations": [
+		"hookyqr.beautify",
+		"dbaeumer.jshint",
+		"ms-vscode.vscode-typescript-tslint-plugin"
+	]
+>>>>>>> openwebwork/vue3-quasar
 }

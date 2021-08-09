@@ -1,7 +1,7 @@
 .DS_Store
 node_modules
 /dist
-
+.quasar
 
 # local env files
 .env.local
@@ -21,12 +21,16 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+*.bak
 
-
+# Project files
 sample_db.sqlite
+<<<<<<< HEAD
 node_modules
 
 *.bak
+=======
+>>>>>>> openwebwork/vue3-quasar
 
 # Devel::Cover
 cover_db/

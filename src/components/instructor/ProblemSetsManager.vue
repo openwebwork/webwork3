@@ -32,7 +32,12 @@
 			<template v-slot:body-cell-set_visible="props">
 				<q-td :props="props">
 					<div>
-						<q-icon v-if="props.value" name="done"  class="text-primary"  style="font-size: 20px; font-weight: bold" />
+						<q-icon
+							v-if="props.value"
+							name="done"
+							class="text-primary"
+							style="font-size: 20px; font-weight: bold"
+						/>
 					</div>
 				</q-td>
 			</template>
@@ -70,7 +75,7 @@ export default defineComponent({
 				name: 'set_visible',
 				label: 'Visible',
 				field: 'set_visible',
-				sortable: true,
+				sortable: true
 			},
 			{
 				name: 'open_date',
@@ -94,15 +99,14 @@ export default defineComponent({
 		function formatDate(_date_to_format: string) {
 			const _date = new Date();
 			_date.setTime(parseInt(_date_to_format)*1000); //js dates have milliseconds instead of standard unix epoch
-			return date.formatDate(_date,'MM-DD-YYYY [at] h:mmA') // have the format changeable?
+			return date.formatDate(_date, 'MM-DD-YYYY [at] h:mmA'); // have the format changeable?
 		}
 		return {
 			filter,
 			selected,
 			columns,
-			problem_sets: computed( () => store.state.problem_sets.problem_sets)
-		}
-
+			problem_sets: computed(() => store.state.problem_sets.problem_sets)
+		};
 	}
 });
 </script>

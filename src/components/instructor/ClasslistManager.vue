@@ -95,7 +95,7 @@ export default defineComponent({
 				name: 'role',
 				label: 'Role',
 				field: 'role',
-				sortable: true,
+				sortable: true
 			}];
 		return {
 			filter,
@@ -103,9 +103,10 @@ export default defineComponent({
 			open_users_manually,
 			open_users_from_file,
 			columns,
-			users: computed( () => store.state.users.users),
+			users: computed(() => store.state.users.users),
 			deleteUsers: () => {
-				var conf = confirm(`Are you sure you want to delete the users: ${selected.value.map((u) => u.login).join(', ')}`);
+				const users_to_delete = selected.value.map((u) => u.login).join(', ');
+				var conf = confirm(`Are you sure you want to delete the users: ${users_to_delete}`);
 				if (conf) {
 					selected.value.forEach( (_user: User) => {
 						try {
@@ -114,14 +115,13 @@ export default defineComponent({
 						} catch (err) {
 							$q.notify(err);
 						}
-					})
+					});
 				}
 			},
 			closingManually: () => {
 				console.log('closing');
 			}
-		}
-
+		};
 	}
 });
 </script>

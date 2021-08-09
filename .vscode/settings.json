@@ -1,7 +1,15 @@
 {
+<<<<<<< HEAD
   "vetur.validation.template": false,
   "vetur.format.enable": false,
   "eslint.validate": ["javascript", "javascriptreact", "typescript", "vue"],
   "typescript.tsdk": "node_modules/typescript/lib",
   "vetur.experimental.templateInterpolationService": true
+=======
+	"vetur.validation.template": false,
+	"vetur.format.enable": false,
+	"eslint.validate": ["javascript", "javascriptreact", "typescript", "vue"],
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"vetur.experimental.templateInterpolationService": true
+>>>>>>> openwebwork/vue3-quasar
 }

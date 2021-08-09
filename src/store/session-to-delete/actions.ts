@@ -1,11 +1,11 @@
 import { ActionTree } from 'vuex';
-import { StateInterface } from '../index';
+import { StateInterface } from 'src/store';
 import { SessionState } from './state';
 
 const actions: ActionTree<SessionState, StateInterface> = {
-  someAction (/* context */) {
-    // your code
-  }
+	someAction (/* context */) {
+		// your code
+	}
 };
 
 export default actions;

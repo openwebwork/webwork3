@@ -15,6 +15,13 @@ use Try::Tiny;
 use DB::Schema;
 use WeBWorK3::Mojolicious;
 
+<<<<<<< HEAD
+=======
+# require Exporter;
+# use base qw(Exporter);
+# our @EXPORT_OK = qw/confDirectory/;
+
+>>>>>>> openwebwork/vue3-quasar
 my $perm_table;
 
 # This method will run once at server start
@@ -76,13 +83,13 @@ sub confDirectory {
 
 sub load_account {
 	my ($self,$user_id)  = @_;
-	my $user = $self->schema->resultset("User")->getGlobalUser({email => $user_id});
+	my $user = $self->schema->resultset("User")->getGlobalUser({login => $user_id});
 	return $user;
 }
 
 sub validate {
 	my ($self,$user,$password) = @_;
-	return $self->schema->resultset("User")->authenticate($user,$password);
+	return $self->schema->resultset("User")->authenticate($user, $password);
 }
 
 sub loginRoutes {
@@ -104,7 +111,7 @@ sub coursesRoutes {
 	my $course_routes = $self->routes->any('/webwork3/api/courses')->to(controller => 'Course');
 	$course_routes->get('/')->to(action => 'getCourses');
 	$course_routes->get('/:course_id')->to(action => 'getCourse');
-  $course_routes->put('/:course_id')->to(action => 'updateCourse');
+	$course_routes->put('/:course_id')->to(action => 'updateCourse');
 	$course_routes->post('/')->to(action => 'addCourse');
 	$course_routes->delete('/:course_id')->to(action => 'deleteCourse');
 	return;
@@ -139,7 +146,7 @@ sub problemSetRoutes {
 	my $course_routes = $self->routes->any('/webwork3/api/courses/:course_id/sets')->to(controller => 'ProblemSet');
 	$course_routes->get('/')->to(action => 'getProblemSets');
 	$course_routes->get('/:set_id')->to(action => 'getProblemSet');
-  $course_routes->put('/:set_id')->to(action => 'updateProblemSet');
+	$course_routes->put('/:set_id')->to(action => 'updateProblemSet');
 	$course_routes->post('/')->to(action => 'addProblemSet');
 	$course_routes->delete('/:set_id')->to(action => 'deleteProblemSet');
 	return;

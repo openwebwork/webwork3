@@ -1,16 +1,10 @@
-/*
- * This file runs in a Node context (it's NOT transpiled by Babel), so use only
- * the ES6 features that are supported by your Node version. https://node.green/
- */
-
-// Configuration for your app
-// https://v2.quasar.dev/quasar-cli/quasar-conf-js
-
 /* eslint-env node */
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { configure } = require('quasar/wrappers');
+const StyleLintPlugin = require('stylelint-webpack-plugin');
 
 module.exports = configure(function (ctx) {
+<<<<<<< HEAD
   return {
     // https://v2.quasar.dev/quasar-cli/supporting-ts
     supportTS: {
@@ -230,4 +224,50 @@ module.exports = configure(function (ctx) {
       },
     }
   }
+=======
+	return {
+		supportTS: {
+			tsCheckerConfig: {
+				eslint: {
+					enabled: true,
+					files: './src/**/*.{ts,tsx,js,jsx,vue}'
+				}
+			}
+		},
+
+		boot: [
+			'axios'
+		],
+
+		css: [
+			'app.scss'
+		],
+
+		extras: [
+			'roboto-font',
+			'material-icons'
+		],
+
+		build: {
+			vueRouterMode: 'history',
+			publicPath: '/webwork3',
+
+			chainWebpack(chain) {
+				chain.plugin('stylelint-webpack').use(new StyleLintPlugin({
+					emitError: ctx.prod ? true : false,
+					extensions: ['vue', 'html', 'css', 'scss', 'sass'],
+					files: ['**/*.{vue,html,css,scss,sass}'],
+					exclude: ['node_modules', 'dist']
+				}));
+			}
+		},
+
+		devServer: {
+			https: false,
+			port: 8080,
+			open: true, // opens browser window automatically,
+			proxy: { '/webwork3/api': 'http://localhost:3000' }
+		}
+	};
+>>>>>>> openwebwork/vue3-quasar
 });

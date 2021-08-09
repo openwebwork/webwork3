@@ -26,7 +26,11 @@ sub validDates {
 	my ($self,$type) = @_;
 	# the following stops the carping of perlcritic
 	## no critic 'ProhibitStringyEval'
+<<<<<<< HEAD
   ## no critic 'RequireCheckingReturnValueOfEval'
+=======
+	## no critic 'RequireCheckingReturnValueOfEval'
+>>>>>>> openwebwork/vue3-quasar
 	if (defined($type)) {
 		eval '$valid_dates = &' . ref($self) . "::valid_dates($type)" unless $valid_dates;
 		eval '$required_dates = &' . ref($self) . "::required_dates($type)" unless $required_dates;

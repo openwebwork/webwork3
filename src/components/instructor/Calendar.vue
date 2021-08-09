@@ -6,12 +6,12 @@
 			</div>
 			<div class="col-3">
 				<q-btn-group push>
-      <q-btn push label="Previous Week" @click="prev" />
-      <q-btn push label="Today" @click="today"/>
-      <q-btn push label="Next Week" @click="next" />
-    </q-btn-group>
+					<q-btn push label="Previous Week" @click="prev" />
+					<q-btn push label="Today" @click="today"/>
+					<q-btn push label="Next Week" @click="next" />
+				</q-btn-group>
 			</div>
-			<div class="col"></div> <!-- empty column to ensure the same size as the calendar -->
+			<div class="col"></div><!-- empty column to ensure the same size as the calendar -->
 		</div>
 		<template v-for="day in calendar_days" :key="day">
 			<calendar-row :first_day_of_week="day"/>
@@ -21,28 +21,30 @@
 
 <script lang="ts">
 import { defineComponent, ref, Ref, computed } from 'vue';
-import CalendarRow from '../common/CalendarComponents/CalendarRow.vue';
-import { date } from 'quasar'
-// import { useStore } from 'vuex';
+import { date } from 'quasar';
+import CalendarRow from 'components/common/CalendarComponents/CalendarRow.vue';
+
 export default defineComponent({
 	name: 'Calendar',
 	components: {
-    CalendarRow,
+		CalendarRow
 	},
 	props: {
 		course_id: String
-  },
+	},
 	setup() {
 		const today = new Date();
-		const first_day: Ref<Date> = ref(date.subtractFromDate(today,{days: today.getDay()}));  // first day of the calendar
+		// first day of the calendar
+		const first_day: Ref<Date> = ref(date.subtractFromDate(today, { days: today.getDay() }));
 		return {
 			first_day,
-			calendar_days: computed( () => [0,1,2,3,4].map( (num) => date.addToDate(first_day.value,{days: 7*num}) ) ),
-			current_month: computed( () => date.formatDate(first_day.value,'MMMM, YYYY')),
-			prev: () => first_day.value = date.subtractFromDate(first_day.value, {days: 7}),
-			next: () => first_day.value = date.addToDate(first_day.value, {days: 7}),
-			today: () => first_day.value = date.subtractFromDate(new Date(),{days: today.getDay()})
-		}
+			calendar_days: computed(
+				() => [0, 1, 2, 3, 4].map((num) => date.addToDate(first_day.value, { days: 7 * num }))),
+			current_month: computed(() => date.formatDate(first_day.value, 'MMMM, YYYY')),
+			prev: () => first_day.value = date.subtractFromDate(first_day.value, { days: 7 }),
+			next: () => first_day.value = date.addToDate(first_day.value, { days: 7 }),
+			today: () => first_day.value = date.subtractFromDate(new Date(), { days: today.getDay() })
+		};
 	}
 });
 </script>

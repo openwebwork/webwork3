@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+---
+>>>>>>> openwebwork/vue3-quasar
 name: Unit Tests and Coverage
 
 on:
@@ -5,7 +9,11 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+<<<<<<< HEAD
 # comment 2
+=======
+# comment
+>>>>>>> openwebwork/vue3-quasar
 jobs:
   coverage:
     runs-on: ubuntu-latest

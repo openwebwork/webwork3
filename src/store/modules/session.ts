@@ -1,7 +1,7 @@
 import { Commit, GetterTree } from 'vuex';
-import { StateInterface } from '../index';
-import { User, SessionInfo } from '../models';
-import { newUser } from '../common';
+import { StateInterface } from 'src/store';
+import { User, SessionInfo } from 'src/store/models';
+import { newUser } from 'src/store/common';
 
 interface CourseInfo {
 	course_name: string;
@@ -22,7 +22,7 @@ function state(): SessionState {
 			course_id: 0,
 			course_name: ''
 		}
-	}
+	};
 }
 
 type Getters = {
@@ -32,38 +32,38 @@ type Getters = {
 	course(state: SessionState): CourseInfo;
 }
 
-const getters: GetterTree<SessionState,StateInterface> & Getters = {
+const getters: GetterTree<SessionState, StateInterface> & Getters = {
 	logged_in: state => state.logged_in,
 	user: state => state.user,
 	full_name: state => {
 		return state.user.first_name + ' ' + state.user.last_name;
 	},
-	course: state => state.course,
-}
+	course: state => state.course
+};
 
 export default {
 	namespaced: true,
 	getters,
-  actions: {
-    updateSessionInfo( { commit }: { commit: Commit }, session_info: SessionInfo): void {
-			commit('UPDATE_SESSION_INFO',session_info);
+	actions: {
+		updateSessionInfo({ commit }: { commit: Commit }, session_info: SessionInfo): void {
+			commit('UPDATE_SESSION_INFO', session_info);
 		},
-		setCourse( { commit }: { commit: Commit }, _course: CourseInfo): void {
-			commit('SET_COURSE',_course);
+		setCourse({ commit }: { commit: Commit }, _course: CourseInfo): void {
+			commit('SET_COURSE', _course);
 		},
-		logout( { commit }: {commit: Commit }): void {
-			commit('UPDATE_SESSION_INFO',{ logged_in: false});
-			commit('SET_COURSE','');
+		logout({ commit }: { commit: Commit }): void {
+			commit('UPDATE_SESSION_INFO', { logged_in: false });
+			commit('SET_COURSE', { course_id: 0, course_name: '' });
 		}
 	},
-  mutations: {
+	mutations: {
 		UPDATE_SESSION_INFO(state: SessionState, _session_info: SessionInfo): void {
 			state.logged_in = _session_info.logged_in;
 			if (state.logged_in) {
 				state.user = _session_info.user;
 				state.user.is_admin = _session_info.user.is_admin === 1 || _session_info.user.is_admin ? true : false;
 			} else {
-				state.user = newUser()
+				state.user = newUser();
 			}
 		},
 		SET_COURSE(state: SessionState, _course: CourseInfo): void {

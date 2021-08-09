@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "webwork3",
   "version": "2.99.0",
   "description": "An open-source online homework system",
@@ -43,4 +44,59 @@
     "npm": ">= 6.13.4",
     "yarn": ">= 1.21.1"
   }
+=======
+	"name": "webwork3",
+	"version": "2.99.0",
+	"description": "An open-source online homework system",
+	"productName": "WeBWorK3",
+	"author": "info@openwebwork.org",
+	"private": true,
+	"scripts": {
+		"lint": "eslint --ext .js,.ts,.vue ./src --fix && stylelint \"./src/**/*.vue\" \"./src/**/*.scss\" --fix",
+		"test": "echo \"No test specified\" && exit 0",
+		"serve": "morbo bin/webwork3 & quasar dev",
+		"build": "quasar build"
+	},
+	"dependencies": {
+		"@quasar/extras": "^1.0.0",
+		"axios": "^0.21.1",
+		"core-js": "^3.6.5",
+		"quasar": "^2.0.0",
+		"stylelint-config-prettier": "^8.0.2",
+		"vue": "^3.1.0",
+		"vuex": "^4.0.1",
+		"vuex-persistedstate": "^4.0.0"
+	},
+	"devDependencies": {
+		"@babel/eslint-parser": "^7.13.14",
+		"@quasar/app": "^3.0.0",
+		"@types/node": "^10.17.15",
+		"@typescript-eslint/eslint-plugin": "^4.16.1",
+		"@typescript-eslint/parser": "^4.16.1",
+		"eslint": "^7.14.0",
+		"eslint-config-prettier": "^8.1.0",
+		"eslint-plugin-vue": "^7.0.0",
+		"stylelint": "^13.13.1",
+		"stylelint-config-recommended-scss": "^4.3.0",
+		"stylelint-config-standard": "^22.0.0",
+		"stylelint-scss": "^3.20.1",
+		"stylelint-webpack-plugin": "^3.0.1"
+	},
+	"browserslist": [
+		"last 10 Chrome versions",
+		"last 10 Firefox versions",
+		"last 4 Edge versions",
+		"last 7 Safari versions",
+		"last 8 Android versions",
+		"last 8 ChromeAndroid versions",
+		"last 8 FirefoxAndroid versions",
+		"last 10 iOS versions",
+		"last 5 Opera versions"
+	],
+	"engines": {
+		"node": ">= 12.22.1",
+		"npm": ">= 6.13.4",
+		"yarn": ">= 1.21.1"
+	}
+>>>>>>> openwebwork/vue3-quasar
 }

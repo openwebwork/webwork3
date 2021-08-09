@@ -5,10 +5,8 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 // import { useStore } from 'vuex';
+
 export default defineComponent({
-	name: 'LibraryBrowser',
-	setup() {
-		console.log('in setup()');
-	}
+	name: 'LibraryBrowser'
 });
 </script>

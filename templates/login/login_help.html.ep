@@ -8,8 +8,8 @@
 				</div>
 				<div class="card-body">
 					<p>
-						You need to be registered for a course here to login. 
-						If you have forgotten your password, enter your email below to get 
+						You need to be registered for a course here to login.
+						If you have forgotten your password, enter your email below to get
 						instructions to reset your password.
 					</p>
 					<form action="/password/reset" method="post">

@@ -57,8 +57,8 @@ or <code>{login => "username"}</code>.
 <code>result_set</code>, a boolean that if true returns the user as a result set.  See below
 =head3 output
 
-The user as either a hashref or a  <code>DBIx::Class::ResultSet::User</code> object.  the argument <code>result_set</code>
-determine which is returned.
+The user as either a hashref or a  <code>DBIx::Class::ResultSet::User</code> object.  the argument
+<code>result_set</code> determine which is returned.
 
 =cut
 
@@ -176,7 +176,7 @@ sub updateGlobalUser {
 
 sub authenticate {
 	my ( $self, $username, $password ) = @_;
-	my $user = $self->getGlobalUser( { email => $username }, 1 );
+	my $user = $self->getGlobalUser( { login => $username }, 1 );
 	return $user->login_params->{password} eq $password;
 }
 
