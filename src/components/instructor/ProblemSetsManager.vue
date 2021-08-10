@@ -46,7 +46,7 @@
 </template>
 
 <script lang="ts">
-import { Dictionary } from '@/store/models';
+import { Dictionary } from 'src/store/models';
 import { date } from 'quasar';
 import { defineComponent, computed, ref, Ref } from 'vue';
 import { useStore } from '../../store';

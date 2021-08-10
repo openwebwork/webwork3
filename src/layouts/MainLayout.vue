@@ -1,6 +1,6 @@
 <template>
 	<q-layout view="hHh Lpr lFf">
-		<menu-bar />
+		<menu-bar  @toggle="test"/>
 
 		<q-drawer
 			v-model="sidebar_open"
@@ -8,7 +8,7 @@
 			class="bg-grey-1"
 		>
 
-		<menu-sidebar @toggle="test2" />
+		<menu-sidebar />
 		</q-drawer>
 
 		<q-page-container>
@@ -28,9 +28,6 @@ export default defineComponent({
 		MenuBar
 	},
 	emits: ['toggleMenuSidebar'],
-	test2() {
-		console.log('test2');
-	},
 	setup() {
 		const sidebar_open = ref(true);
 		return {
