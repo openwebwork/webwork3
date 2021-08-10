@@ -27,6 +27,15 @@ module.exports = configure(function (ctx) {
 			'material-icons'
 		],
 
+		framework: {
+			plugins: [
+				'Notify'
+			],
+			config: {
+				notify: { /* look at QuasarConfOptions from the API card */ }
+			}
+		},
+
 		build: {
 			vueRouterMode: 'history',
 			publicPath: '/webwork3',

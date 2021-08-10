@@ -1,5 +1,5 @@
 <template>
-	<q-layout view="lHh Lpr lFf">
+	<q-layout view="hHh Lpr lFf">
 		<menu-bar />
 
 		<q-drawer
@@ -7,14 +7,8 @@
 			bordered
 			class="bg-grey-1"
 		>
-			<q-list>
-				<q-item-label
-					header
-					class="text-grey-8"
-				>
-					Essential Links
-				</q-item-label>
-			</q-list>
+
+		<menu-sidebar @toggle="test2" />
 		</q-drawer>
 
 		<q-page-container>
@@ -25,16 +19,26 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import MenuBar from 'components/common/MenuBar.vue';
+import MenuSidebar from './MenuSidebar.vue';
+import MenuBar from './MenuBar.vue';
 
 export default defineComponent({
 	components: {
+		MenuSidebar,
 		MenuBar
 	},
+	emits: ['toggleMenuSidebar'],
+	test2() {
+		console.log('test2');
+	},
 	setup() {
-		const sidebar_open = ref(false);
+		const sidebar_open = ref(true);
 		return {
-			sidebar_open
+			sidebar_open,
+			test: () => {
+				console.log('in test');
+				sidebar_open.value = !sidebar_open.value;
+			}
 		};
 	}
 });

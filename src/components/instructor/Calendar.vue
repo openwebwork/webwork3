@@ -33,9 +33,13 @@ export default defineComponent({
 		course_id: String
 	},
 	setup() {
-		const today = new Date();
+		const first_day_of_month: Date = new Date();
+		first_day_of_month.setDate(1);
 		// first day of the calendar
-		const first_day: Ref<Date> = ref(date.subtractFromDate(today, { days: today.getDay() }));
+		// console.log(date.subtractFromDate(today, { days: today.getDay() }));
+		//const first_day: Ref<Date> = ref(date.subtractFromDate(today, { days: today.getDay() }));
+		const first_day: Ref<Date>
+			= ref(date.subtractFromDate(first_day_of_month, { days: first_day_of_month.getDay() }));
 		return {
 			first_day,
 			calendar_days: computed(
@@ -43,7 +47,8 @@ export default defineComponent({
 			current_month: computed(() => date.formatDate(first_day.value, 'MMMM, YYYY')),
 			prev: () => first_day.value = date.subtractFromDate(first_day.value, { days: 7 }),
 			next: () => first_day.value = date.addToDate(first_day.value, { days: 7 }),
-			today: () => first_day.value = date.subtractFromDate(new Date(), { days: today.getDay() })
+			today: () => first_day.value
+				= date.subtractFromDate(first_day_of_month, { days: first_day_of_month.getDay() })
 		};
 	}
 });

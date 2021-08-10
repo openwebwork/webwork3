@@ -46,9 +46,8 @@ if ($config->{database} eq 'sqlite') {
 	$schema  = DB::Schema->connect($dsn,$config->{database_user},$config->{database_password});
 }
 
-my $verbose = 1;
-
 say "restoring the database with dbi: $dsn" if $verbose;
+say $dsn;
 $schema->deploy({ add_drop_table => 1 });  ## create the database based on the schema
 
 
