@@ -12,7 +12,9 @@ sub getGlobalUsers {
 
 sub getGlobalUser {
 	my $self = shift;
-	my $user = $self->schema->resultset("User")->getGlobalUser( { user_id => int( $self->param("user_id") )} );
+	my $user = $self->param("user") =~ /^\d+$/ ?
+		$self->schema->resultset("User")->getGlobalUser( { user_id => int( $self->param("user") )} ) :
+		$self->schema->resultset("User")->getGlobalUser( { login => $self->param("user") } );
 	$self->render(json => $user);
 	return;
 }
@@ -20,8 +22,8 @@ sub getGlobalUser {
 sub updateGlobalUser {
 	my $self = shift;
 	my $user = $self->schema->resultset("User")->updateGlobalUser(
-		 { user_id => int( $self->param("user_id") )},
-		 $self->req->json );
+		{ user_id => int( $self->param("user_id") )},
+		$self->req->json );
 	$self->render(json => $user);
 	return;
 }

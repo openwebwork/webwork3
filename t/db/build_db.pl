@@ -20,6 +20,8 @@ use Data::Dump qw/dd/;
 use Carp;
 use JSON;
 use feature "say";
+use DateTime::Format::Strptime;
+use YAML::XS qw/LoadFile/;
 
 use DB::WithParams;
 use DB::WithDates;
@@ -28,18 +30,26 @@ use DB::Schema;
 use DB;
 use DB::TestUtils qw/loadCSV/;
 
-# set up the database
-my $db_file = "$main::test_dir/sample_db.sqlite";
-
+# load some configuration for the database:
 my $verbose = 1;
 
-## first delete the file
-unlink $db_file;
+my $config = LoadFile("$main::lib_dir/../conf/webwork3.yml");
 
-my $schema = DB::Schema->connect("dbi:SQLite:$db_file");
-if (not -e $db_file) {
-    $schema->deploy();  ## create the database based on the schema
+my $schema;
+my $dsn;
+# load the database
+if ($config->{database} eq 'sqlite') {
+	$dsn = $config->{sqlite_dsn};
+	$schema  = DB::Schema->connect($dsn);
+} elsif ($config->{database} eq 'mariadb') {
+	$dsn = $config->{mariadb_dsn};
+	$schema  = DB::Schema->connect($dsn,$config->{database_user},$config->{database_password});
 }
+
+say "restoring the database with dbi: $dsn" if $verbose;
+say $dsn;
+$schema->deploy({ add_drop_table => 1 });  ## create the database based on the schema
+
 
 my $course_rs = $schema->resultset('Course');
 my $user_rs = $schema->resultset('User');
@@ -73,6 +83,8 @@ sub addUsers {
 	my $admin = {
 		login => "admin",
 		email => 'admin@google.com',
+		first_name => "Andrea",
+		last_name => "Administrator",
 		is_admin => 1,
 		login_params => { password => "admin"}
 	};
@@ -111,6 +123,7 @@ my @hw_params = @DB::Schema::Result::ProblemSet::HWSet::VALID_PARAMS;
 my @quiz_dates = @DB::Schema::Result::ProblemSet::HWSet::VALID_DATES;
 my @quiz_params = @DB::Schema::Result::ProblemSet::HWSet::VALID_PARAMS;
 
+my $strp = DateTime::Format::Strptime->new( pattern => '%FT%T',on_error  => 'croak' );
 
 sub addSets {
 	## add some problem sets
@@ -121,6 +134,10 @@ sub addSets {
 		my $course = $course_rs->find({course_name => $set->{course_name}});
 		if (! defined($course)){
 			croak "The course ". $set->{course_name} ." does not exist";
+		}
+		for my $date (keys %{$set->{dates}}) {
+			my $dt = $strp->parse_datetime( $set->{dates}->{$date});
+			$set->{dates}->{$date} = $dt->epoch;
 		}
 
 		delete $set->{course_name};
@@ -136,6 +153,11 @@ sub addSets {
 		if (! defined($course)){
 			croak "The course ". $quiz->{course_name} ." does not exist";
 		}
+		for my $date (keys %{$quiz->{dates}}) {
+			my $dt = $strp->parse_datetime( $quiz->{dates}->{$date});
+			$quiz->{dates}->{$date} = $dt->epoch;
+		}
+
 		$quiz->{type} = 2;
 		delete $quiz->{course_name};
 		$course->add_to_problem_sets($quiz);
@@ -147,6 +169,10 @@ sub addSets {
 	for my $set (@review_sets) {
 		my $course = $course_rs->find({course_name => $set->{course_name}});
 		croak "The course |$set->{course_name}| does not exist" unless defined($course);
+		for my $date (keys %{$set->{dates}}) {
+			my $dt = $strp->parse_datetime( $set->{dates}->{$date});
+			$set->{dates}->{$date} = $dt->epoch;
+		}
 
 		$set->{type} = 4;
 		delete $set->{course_name};

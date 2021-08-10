@@ -20,17 +20,29 @@ use Test::More;
 use Test::Exception;
 use Try::Tiny;
 use Clone qw/clone/;
+use YAML::XS qw/LoadFile/;
 
 use Array::Utils qw/array_minus intersect/;
+use DateTime::Format::Strptime;
 
 use DB::WithParams;
 use DB::WithDates;
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs filterBySetType/;
 
+# load some configuration for the database:
+
+my $config = LoadFile("$main::lib_dir/../conf/webwork3.yml");
+
+my $schema;
 # load the database
-my $db_file = "$main::test_dir/sample_db.sqlite";
-my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
+if ($config->{database} eq 'sqlite') {
+	$schema  = DB::Schema->connect($config->{sqlite_dsn});
+} elsif ($config->{database} eq 'mariadb') {
+	$schema  = DB::Schema->connect($config->{mariadb_dsn},$config->{database_user},$config->{database_password});
+}
+
+my $strp = DateTime::Format::Strptime->new( pattern => '%FT%T',on_error  => 'croak' );
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 
@@ -45,20 +57,36 @@ my $user_rs        = $schema->resultset("User");
 my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
 for my $set (@hw_sets) {
 	$set->{set_type} = "HW";
+	for my $date (keys %{$set->{dates}}) {
+		my $dt = $strp->parse_datetime( $set->{dates}->{$date});
+		$set->{dates}->{$date} = $dt->epoch;
+	}
 }
 my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
 	$quiz->{set_type} = "QUIZ";
+	for my $date (keys %{$quiz->{dates}}) {
+		my $dt = $strp->parse_datetime( $quiz->{dates}->{$date});
+		$quiz->{dates}->{$date} = $dt->epoch;
+	}
 }
+
 my @review_sets = loadCSV("$main::test_dir/sample_data/review_sets.csv");
 for my $set (@review_sets) {
 	$set->{set_type} = "REVIEW";
+	for my $date (keys %{$set->{dates}}) {
+		my $dt = $strp->parse_datetime( $set->{dates}->{$date});
+		$set->{dates}->{$date} = $dt->epoch;
+	}
 }
 my @all_problem_sets = ( @hw_sets, @quizzes, @review_sets );
 
 ## Test getting all problem sets
 
 my @problem_sets_from_db = $problem_set_rs->getAllProblemSets;
+
+@problem_sets_from_db = sort { $a->{set_name} cmp $b->{set_name} } @problem_sets_from_db;
+@all_problem_sets = sort { $a->{set_name} cmp $b->{set_name} } @all_problem_sets;
 
 ## remove the id tags:
 for my $set (@problem_sets_from_db) {

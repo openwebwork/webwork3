@@ -56,7 +56,8 @@ __PACKAGE__->many_to_many( courses => 'course_users', 'courses' );
 
 __PACKAGE__->inflate_column(
 	'login_params',
-	{   inflate => sub {
+	{
+		inflate => sub {
 			decode_json shift;
 		},
 		deflate => sub {

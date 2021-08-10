@@ -195,7 +195,7 @@ sub deleteProblemPool {
 =pod
 =head2 getPoolProblem
 
-This gets a single problem out of a ProblemPool.  
+This gets a single problem out of a ProblemPool.
 
 =head3 arguments
 

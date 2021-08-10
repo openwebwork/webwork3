@@ -31,7 +31,16 @@ sub startup {
 	$self->secrets($config->{secrets});
 	## get the dbix plugin loaded
 
-	my $schema = DB::Schema->connect("dbi:SQLite:dbname=$webwork_root/t/db/sample_db.sqlite");
+	# load some configuration for the database:
+
+	my $schema;
+	# load the database
+	if ($config->{database} eq 'sqlite') {
+		$schema  = DB::Schema->connect($config->{sqlite_dsn});
+	} elsif ($config->{database} eq 'mariadb') {
+		$schema  = DB::Schema->connect($config->{mariadb_dsn},$config->{database_user},$config->{database_password});
+	}
+
 	$self->plugin('DBIC',{schema => $schema});
 
 	# load the authentication plugin
@@ -60,6 +69,7 @@ sub startup {
 	$self->userRoutes();
 	$self->courseUserRoutes();
 	$self->problemSetRoutes();
+	$self->settingsRoutes();
 	return;
 }
 
@@ -70,13 +80,13 @@ sub confDirectory {
 
 sub load_account {
 	my ($self,$user_id)  = @_;
-	my $user = $self->schema->resultset("User")->getGlobalUser({email => $user_id});
+	my $user = $self->schema->resultset("User")->getGlobalUser({login => $user_id});
 	return $user;
 }
 
 sub validate {
 	my ($self,$user,$password) = @_;
-	return $self->schema->resultset("User")->authenticate($user,$password);
+	return $self->schema->resultset("User")->authenticate($user, $password);
 }
 
 sub loginRoutes {
@@ -98,7 +108,7 @@ sub coursesRoutes {
 	my $course_routes = $self->routes->any('/webwork3/api/courses')->to(controller => 'Course');
 	$course_routes->get('/')->to(action => 'getCourses');
 	$course_routes->get('/:course_id')->to(action => 'getCourse');
-  $course_routes->put('/:course_id')->to(action => 'updateCourse');
+	$course_routes->put('/:course_id')->to(action => 'updateCourse');
 	$course_routes->post('/')->to(action => 'addCourse');
 	$course_routes->delete('/:course_id')->to(action => 'deleteCourse');
 	return;
@@ -109,7 +119,7 @@ sub userRoutes {
 	my $course_routes = $self->routes->any('/webwork3/api/users')->to(controller => 'User');
 	$course_routes->get('/')->to(action => 'getGlobalUsers');
 	$course_routes->post('/')->to(action => 'addGlobalUser');
-	$course_routes->get('/:user_id')->to(action => 'getGlobalUser');
+	$course_routes->get('/:user')->to(action => 'getGlobalUser');
 	$course_routes->put('/:user_id')->to(action => 'updateGlobalUser');
 	$course_routes->delete('/:user_id')->to(action => 'deleteGlobalUser');
 	$self->routes->get('/webwork3/api/users/:user_id/courses')->to('User#getUserCourses');
@@ -133,9 +143,16 @@ sub problemSetRoutes {
 	my $course_routes = $self->routes->any('/webwork3/api/courses/:course_id/sets')->to(controller => 'ProblemSet');
 	$course_routes->get('/')->to(action => 'getProblemSets');
 	$course_routes->get('/:set_id')->to(action => 'getProblemSet');
-  $course_routes->put('/:set_id')->to(action => 'updateProblemSet');
+	$course_routes->put('/:set_id')->to(action => 'updateProblemSet');
 	$course_routes->post('/')->to(action => 'addProblemSet');
 	$course_routes->delete('/:set_id')->to(action => 'deleteProblemSet');
+	return;
+}
+
+sub settingsRoutes {
+	my $self = shift;
+	$self->routes->get('/webwork3/api/default_settings')->to("Settings#getDefaultCourseSettings");
+	$self->routes->get('/webwork3/api/courses/:course_id/settings')->to("Settings#getCourseSettings");
 	return;
 }
 
