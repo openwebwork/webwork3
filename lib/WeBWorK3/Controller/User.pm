@@ -22,8 +22,8 @@ sub getGlobalUser {
 sub updateGlobalUser {
 	my $self = shift;
 	my $user = $self->schema->resultset("User")->updateGlobalUser(
-		 { user_id => int( $self->param("user_id") )},
-		 $self->req->json );
+		{ user_id => int( $self->param("user_id") )},
+		$self->req->json );
 	$self->render(json => $user);
 	return;
 }

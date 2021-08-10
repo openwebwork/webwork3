@@ -14,4 +14,4 @@ mariadb_dsn: dbi:mysql:test_webwork3:localhost:3306
 database_user: webworkWrite
 database_password: password
 # determine which database to use
-database: mariadb
+database: sqlite

@@ -28,7 +28,7 @@ our $exception_handler = sub {
 my $ignore_permissions = 1;
 
 sub has_permission {
-  my ($user,$perm) = @_;
+	my ($user,$perm) = @_;
 	if ($perm->{allowed_users}) {
 		return "" unless $user->{role};
 		return grep {$_ eq $user->{role} } @{$perm->{allowed_users}};

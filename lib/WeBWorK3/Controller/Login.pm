@@ -12,11 +12,11 @@ sub login_help { shift->render(); return;}
 
 sub check_login {
 	my $self = shift;
-	if ($self->authenticate($self->req->param("email"),$self->req->param("password"))) {
+	if ($self->authenticate($self->req->param("login"), $self->req->param("password"))) {
 		## redirect
 		$self->redirect_to("/users/start");
 	} else {
-		$self->flash(msg => "Your login/password information is not correct.");
+		$self->flash(msg => "Incorrect username or password.");
 		$self->redirect_to('login');
 	}
 	return;
@@ -48,11 +48,11 @@ sub login {
 	my $self = shift;
 	my $params = $self->req->json;
 	# dd $params;
-	if ($self->authenticate($params->{email},$params->{password})) {
+	if ($self->authenticate($params->{username}, $params->{password})) {
 		## redirect
 		$self->render(json=>{logged_in => 1, user => $self->current_user});
 	} else {
-		$self->render(json=>{logged_in => 0, msg => "Your login information was incorrect"});
+		$self->render(json=>{logged_in => 0, message => "Incorrect username or password."});
 	}
 	return;
 }
@@ -60,7 +60,7 @@ sub login {
 sub logout_user {
 	my $self = shift;
 	$self->logout;
-	$self->render(json => {logged_in => 0, msg => "Logout is successful"});
+	$self->render(json => {logged_in => 0, message => "Successfully logged out."});
 	return;
 }
 

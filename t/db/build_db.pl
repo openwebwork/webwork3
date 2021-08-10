@@ -46,8 +46,8 @@ if ($config->{database} eq 'sqlite') {
 	$schema  = DB::Schema->connect($dsn,$config->{database_user},$config->{database_password});
 }
 
-
 say "restoring the database with dbi: $dsn" if $verbose;
+say $dsn;
 $schema->deploy({ add_drop_table => 1 });  ## create the database based on the schema
 
 
@@ -83,8 +83,8 @@ sub addUsers {
 	my $admin = {
 		login => "admin",
 		email => 'admin@google.com',
-		last_name  => "Andrea",
-		first_name => "Administrator",
+		first_name => "Andrea",
+		last_name => "Administrator",
 		is_admin => 1,
 		login_params => { password => "admin"}
 	};
