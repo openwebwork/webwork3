@@ -5,10 +5,11 @@ use strict;
 
 use Text::CSV qw/csv/;
 use Data::Dump qw/dd/;
+use YAML::XS qw/LoadFile/;
 
 require Exporter;
 use base qw(Exporter);
-our @EXPORT_OK = qw/buildHash loadCSV removeIDs filterBySetType/;
+our @EXPORT_OK = qw/buildHash loadCSV removeIDs filterBySetType loadSchema/;
 
 
 =pod
@@ -88,6 +89,21 @@ sub filterBySetType {
 	return @filtered_sets;
 }
 
+sub loadSchema {
+	# load some configuration for the database:
 
+	my $config = LoadFile("$main::lib_dir/../conf/webwork3.yml");
+
+	my $schema;
+	# load the database
+	if ($config->{database} eq 'sqlite') {
+		$schema  = DB::Schema->connect($config->{sqlite_dsn});
+	} elsif ($config->{database} eq 'mariadb') {
+		$schema  = DB::Schema->connect($config->{mariadb_dsn},$config->{database_user},$config->{database_password});
+	}
+
+	return $schema;
+
+}
 
 1;

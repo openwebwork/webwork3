@@ -25,20 +25,9 @@ use DateTime::Format::Strptime;
 use DB::WithParams;
 use DB::WithDates;
 use DB::Schema;
-use DB::TestUtils qw/loadCSV removeIDs filterBySetType/;
+use DB::TestUtils qw/loadCSV removeIDs filterBySetType loadSchema/;
 
-# load some configuration for the database:
-
-my $config = LoadFile("$main::lib_dir/../conf/webwork3.yml");
-
-my $schema;
-# load the database
-if ($config->{database} eq 'sqlite') {
-	$schema  = DB::Schema->connect($config->{sqlite_dsn});
-} elsif ($config->{database} eq 'mariadb') {
-	$schema  = DB::Schema->connect($config->{mariadb_dsn},$config->{database_user},$config->{database_password});
-}
-
+my $schema = loadSchema();
 my $strp = DateTime::Format::Strptime->new( pattern => '%FT%T',on_error  => 'croak' );
 
 # $schema->storage->debug(1);  # print out the SQL commands.

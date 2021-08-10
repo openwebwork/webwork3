@@ -26,19 +26,9 @@ use List::MoreUtils qw/uniq/;
 use DB::WithParams;
 use DB::WithDates;
 use DB::Schema;
-use DB::TestUtils qw/loadCSV removeIDs/;
+use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
 
-# load some configuration for the database:
-
-my $config = LoadFile("$main::lib_dir/../conf/webwork3.yml");
-
-my $schema;
-# load the database
-if ($config->{database} eq 'sqlite') {
-	$schema  = DB::Schema->connect($config->{sqlite_dsn});
-} elsif ($config->{database} eq 'mariadb') {
-	$schema  = DB::Schema->connect($config->{mariadb_dsn},$config->{database_user},$config->{database_password});
-}
+my $schema = loadSchema();
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 
