@@ -17,14 +17,14 @@
 		"core-js": "^3.6.5",
 		"quasar": "^2.0.0",
 		"stylelint-config-prettier": "^8.0.2",
-		"vue": "^3.2.0",
+		"vue": "^3.1.0",
 		"vue-router": "^4.0.11",
 		"vuex": "^4.0.1",
 		"vuex-persistedstate": "^4.0.0"
 	},
 	"devDependencies": {
 		"@babel/eslint-parser": "^7.13.14",
-		"@quasar/app": "^3.0.0",
+		"@quasar/app": "^3.0.4",
 		"@types/node": "^10.17.15",
 		"@typescript-eslint/eslint-plugin": "^4.16.1",
 		"@typescript-eslint/parser": "^4.16.1",
