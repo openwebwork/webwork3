@@ -4,14 +4,13 @@
 			<div class="col-3">
 				<span style="font-weight: bold; font-size: 140%"> {{ current_month }}</span>
 			</div>
-			<div class="col-3">
+			<div class="col-5">
 				<q-btn-group push>
 					<q-btn push label="Previous Week" @click="prev" />
 					<q-btn push label="Today" @click="today"/>
 					<q-btn push label="Next Week" @click="next" />
 				</q-btn-group>
 			</div>
-			<div class="col"></div><!-- empty column to ensure the same size as the calendar -->
 		</div>
 		<template v-for="day in calendar_days" :key="day">
 			<calendar-row :first_day_of_week="day"/>

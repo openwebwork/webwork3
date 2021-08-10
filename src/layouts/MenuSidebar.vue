@@ -21,7 +21,11 @@ export default defineComponent({
 		const sidebar_open: Ref<boolean> = ref(false);
 		return {
 			sidebar_open,
-			views: computed(() => (/^\/admin/.exec(route.path)) ? admin_views : instructor_views),
+			views: computed(() => (/^\/admin/.exec(route.path)) ?
+				admin_views :
+				(/^\/courses\/\d+\/instructor/.exec(route.path)) ?
+					instructor_views :
+					[]),
 			changeView: (view: MenuBarView) => {
 				// current_view.value = view.name;
 				void router.push({ name: view.component_name, params: route.params });

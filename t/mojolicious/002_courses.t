@@ -3,7 +3,7 @@ use Mojo::Base -strict;
 use Test::More;
 use Test::Mojo;
 
-use Data::Dump qw/dd/;
+use Data::Dumper;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -19,17 +19,22 @@ GetOptions ("perm"  => \$TEST_PERMISSIONS);  # check for the flag --perm when ru
 use lib "$main::lib_dir";
 
 use DB::Schema;
+use DB::TestUtils qw/loadSchema/;
+use Clone qw/clone/;
 
 # this tests the api with common courses routes
 
-# load the database
-my $db_file = "$main::test_dir/../../t/db/sample_db.sqlite";
-my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
+my $schema = loadSchema();
+
+use YAML::XS qw/LoadFile/;
+my $config = clone(LoadFile("$main::lib_dir/../conf/webwork3.yml"));
+
 
 my $t;
 
 if ($TEST_PERMISSIONS) {
-	$t = Test::Mojo->new( WeBWorK3 => { ignore_permissions => 0, secrets => [1234] } );
+	$config->{ignore_permissions} = 0;
+	$t = Test::Mojo->new( WeBWorK3 => $config );
 
 	# and login
 	$t->post_ok( '/api/login' => json => { email => 'admin@google.com', password => 'admin' } )
@@ -39,7 +44,8 @@ if ($TEST_PERMISSIONS) {
 		->json_is( '/user/is_admin' => 1 );
 
 } else {
-	$t = Test::Mojo->new( WeBWorK3 => { ignore_permissions => 1, secrets => [1234] });
+	$config->{ignore_permissions} = 1;
+	$t = Test::Mojo->new( WeBWorK3 => $config );
 }
 
 
@@ -59,20 +65,11 @@ $t->get_ok('/webwork3/api/courses/1')
 
 my $new_course = {
 	course_name   => "Linear Algebra",
-	# course_setting => {
-		# general => {
-		# 	institution => "Springfield A&M"
-		# },
-		# optional    => {},
-		# permissions => {},
-		# problem     => {},
-		# problem_set => {},
-		# email => {},
-	# },
 	course_dates  => { start       => "2021-05-31", end => "2021-07-01" }
 };
 
-$t->post_ok( '/webwork3/api/courses' => json => $new_course )->status_is(200)
+$t->post_ok( '/webwork3/api/courses' => json => $new_course )
+	->status_is(200)
 	->json_is( '/course_name' => $new_course->{course_name} );
 
 # Pull out the id from the response
@@ -88,32 +85,36 @@ $t->put_ok( "/webwork3/api/courses/$new_course_id" => json => $new_course )
 	->json_is( '/course_name' => $new_course->{course_name} );
 
 is_deeply( $new_course, $t->tx->res->json, "updateCourse: courses match" );
-dd $new_course;
-dd $t->tx->res->json;
 
 ## test for exceptions
 
 # a set that is not in a course
 $t->get_ok("/webwork3/api/courses/99999")
+	->status_is(250,'error status')
 	->content_type_is('application/json;charset=UTF-8')
 	->json_is( '/exception' => 'DB::Exception::CourseNotFound' );
 
 # try to update a non-existant course
 
 $t->put_ok( "/webwork3/api/courses/999999" => json => { course_name => 'new course name' } )
+	->status_is(250,'error status')
 	->content_type_is('application/json;charset=UTF-8')
 	->json_is( '/exception' => 'DB::Exception::CourseNotFound' );
+
+print Dumper($t->tx->res);
 
 # try to add a course without a course_name
 
 my $another_new_course = { name => "this is the wrong field" };
 
 $t->post_ok( "/webwork3/api/courses/" => json => $another_new_course )
+	->status_is(250,'error status')
 	->content_type_is('application/json;charset=UTF-8')
 	->json_is( '/exception' => 'DB::Exception::ParametersNeeded' );
 
 # try to delete a non-existent course.
 $t->delete_ok("/webwork3/api/courses/9999999")
+	->status_is(250,'error status')
 	->content_type_is('application/json;charset=UTF-8')
 	->json_is( '/exception' => 'DB::Exception::CourseNotFound' );
 

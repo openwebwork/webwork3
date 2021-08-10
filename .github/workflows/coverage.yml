@@ -18,10 +18,11 @@ jobs:
         run: |
           perl t/db/build_db.pl
           prove -r t
-      - uses: actions/upload-artifact@v2
-        with:
-          name: coverage-report
-          path: cover_db/
+      # we probably don'te need to upload the codecov data
+      # - uses: actions/upload-artifact@v2
+      #   with:
+      #     name: coverage-report
+      #     path: cover_db/
       - name: push coverage analysis
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

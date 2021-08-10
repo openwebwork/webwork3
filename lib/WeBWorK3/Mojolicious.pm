@@ -15,10 +15,10 @@ our $exception_handler = sub {
 		try {
 			$next->();
 		} catch {
-			my $output = {msg => "oops!", exception => ref($_)};
-			$output->{message} = $_->message if ($_ && ref($_) eq 'Mojo::Exception');
+			my $output = {exception => ref($_)};
+			$output->{message} = $_->message if ($_ && ref($_) eq 'Mojo::Exception' or /^DB::Excpetion/ =~ ref($_));
 			$output->{message} = $_ if ($_ && ref($_) eq 'DBIx::Class::Exception');
-			$c->render(json => $output);
+			$c->render(json => $output, status => '250');
 		};
 	} else {
 		$next->();

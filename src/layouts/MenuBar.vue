@@ -38,10 +38,10 @@ import { UserCourse } from 'src/store/models';
 
 export default defineComponent({
 	name: 'MenuBar',
-	// emits: {
-	// toggle: null
-	// },
-	setup(_props, context) {
+	emits: {
+		toggle: null
+	},
+	setup(_, { emit }) {
 		const store = useStore();
 		const router = useRouter();
 		const current_view = ref('');
@@ -70,7 +70,7 @@ export default defineComponent({
 			},
 			toggleButton: () => {
 				console.log('here');
-				context.emit('toggle');
+				emit('toggle', 10);
 			},
 			current_view,
 			logout: () => {
