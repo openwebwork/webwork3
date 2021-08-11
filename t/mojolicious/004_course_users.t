@@ -20,17 +20,23 @@ GetOptions( "perm" => \$TEST_PERMISSIONS );    # check for the flag --perm when 
 use lib "$main::lib_dir";
 
 use DB::Schema;
+use DB::TestUtils qw/loadSchema/;
+use Clone qw/clone/;
+use YAML::XS qw/LoadFile/;
+
+
+my $config = clone(LoadFile("$main::lib_dir/../conf/webwork3.yml"));
+
 
 # this tests the api with common courses routes
 
-# load the database
-my $db_file = "$main::test_dir/../../t/db/sample_db.sqlite";
-my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
+my $schema = loadSchema();
 
 my $t;
 
 if ($TEST_PERMISSIONS) {
-	$t = Test::Mojo->new( WeBWorK3 => { ignore_permissions => 0, secrets => [1234] } );
+	$config->{ignore_permissions} = 0;
+	$t = Test::Mojo->new( WeBWorK3 => $config );
 
 	# login an admin
 	$t->post_ok( '/webwork3/api/login' => json => { email => 'admin@google.com', password => 'admin' } )
@@ -39,7 +45,8 @@ if ($TEST_PERMISSIONS) {
 
 }
 else {
-	$t = Test::Mojo->new( WeBWorK3 => { ignore_permissions => 1, secrets => [1234] } );
+	$config->{ignore_permissions} = 1;
+	$t = Test::Mojo->new( WeBWorK3 => $config );
 }
 
 $t->get_ok('/webwork3/api/courses/2/users')->status_is(200)->content_type_is('application/json;charset=UTF-8')
@@ -73,26 +80,33 @@ $t->put_ok( "/webwork3/api/courses/2/users/$new_user_id" => json => { recitation
 ## test for exceptions
 
 # a user that is not in a course
-$t->get_ok("/webwork3/api/courses/1/users/99")->status_is(200)->content_type_is('application/json;charset=UTF-8')
+$t->get_ok("/webwork3/api/courses/1/users/99")
+	->status_is(250,"status for exception")
+	->content_type_is('application/json;charset=UTF-8')
 	->json_is( '/exception' => 'DB::Exception::UserNotInCourse' );
 
 # try to update a user not in a course
 
-$t->put_ok( "/webwork3/api/courses/1/users/99" => json => { recitation => '2' } )->status_is(200)
+$t->put_ok( "/webwork3/api/courses/1/users/99" => json => { recitation => '2' } )
+	->status_is(250,"status for exception")
 	->content_type_is('application/json;charset=UTF-8')->json_is( '/exception' => 'DB::Exception::UserNotInCourse' );
 
 # try to add a user without a login
 
 my $another_new_user = { login_name => "this is the wrong field" };
 
-$t->post_ok( "/webwork3/api/courses/1/users" => json => $another_new_user )->status_is(200)
+$t->post_ok( "/webwork3/api/courses/1/users" => json => $another_new_user )
+	->status_is(250,"status for exception")
 	->content_type_is('application/json;charset=UTF-8')->json_is( '/exception' => 'DB::Exception::ParametersNeeded' );
 
 # try to delete a user not in a course
-$t->delete_ok("/webwork3/api/courses/1/users/99")->status_is(200)->content_type_is('application/json;charset=UTF-8')
+$t->delete_ok("/webwork3/api/courses/1/users/99")
+	->status_is(250,"status for exception")
+	->content_type_is('application/json;charset=UTF-8')
 	->json_is( '/exception' => 'DB::Exception::UserNotInCourse' );
 
-$t->delete_ok("/webwork3/api/courses/2/users/$new_user_id")->status_is(200)
+$t->delete_ok("/webwork3/api/courses/2/users/$new_user_id")
+	->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is( '/login' => 'maggie' );
 
 if ($TEST_PERMISSIONS) {
@@ -105,15 +119,15 @@ my @all_users   = $schema->resultset("User")->getUsers( { course_id => 1 } );
 my @instructors = grep { $_->{role} eq 'instructor' } @all_users;
 
 if ($TEST_PERMISSIONS) {
-	$t->post_ok(
-		"/webwork3/api/login" => json => { email => $instructors[0]->{email}, password => $instructors[0]->{login} } )
-		->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is( '/logged_in' => 1 );
+	$t->post_ok(	"/webwork3/api/login" => json =>
+		{
+			email => $instructors[0]->{email},
+			password => $instructors[0]->{login}
+		})->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is( '/logged_in' => 1 );
 
 	$t->get_ok('/webwork3/api/courses/1/users')->status_is(200)->content_type_is('application/json;charset=UTF-8');
 
-	# ->json_is('/0' => $all_users[0]->{first_name});
-
-	# dd $t->tx->res->json;
 }
 
 done_testing;

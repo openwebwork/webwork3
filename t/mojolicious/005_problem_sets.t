@@ -2,8 +2,8 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
-
-use Data::Dump qw/dd/;
+use Data::Dumper;
+use DateTime::Format::Strptime;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -19,17 +19,25 @@ GetOptions( "perm" => \$TEST_PERMISSIONS );    # check for the flag --perm when 
 use lib "$main::lib_dir";
 
 use DB::Schema;
+use DB::TestUtils qw/loadCSV loadSchema/;
+use Clone qw/clone/;
+use YAML::XS qw/LoadFile/;
+
+my $config = clone(LoadFile("$main::lib_dir/../conf/webwork3.yml"));
+
+my $strp = DateTime::Format::Strptime->new( pattern => '%FT%T',on_error  => 'croak' );
+
 
 # this tests the api with common courses routes
 
 # load the database
-my $db_file = "$main::test_dir/../db/sample_db.sqlite";
-my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
+my $schema = loadSchema();
 
 my $t;
 
 if ($TEST_PERMISSIONS) {
-	$t = Test::Mojo->new( WeBWorK3 => { ignore_permissions => 0, secrets => [1234] } );
+	$config->{ignore_permissions} = 1;
+	$t = Test::Mojo->new( WeBWorK3 => $config );
 
 	# login an admin
 	$t->post_ok( '/webwork3/api/login' => json => { email => 'admin@google.com', password => 'admin' } )
@@ -38,22 +46,37 @@ if ($TEST_PERMISSIONS) {
 
 }
 else {
-	$t = Test::Mojo->new( WeBWorK3 => { ignore_permissions => 1, secrets => [1234] } );
+	$config->{ignore_permissions} = 0;
+	$t = Test::Mojo->new( WeBWorK3 => $config );
 }
 
-# Disabled for now until this is fixed.
-#$t->get_ok('/webwork3/api/sets')->content_type_is('application/json;charset=UTF-8')
-#	->json_is( '/10/set_name' => "Quiz #1" );
+# load the homework sets
 
-$t->get_ok('/webwork3/api/courses/2/sets')->content_type_is('application/json;charset=UTF-8')
-	->json_is( '/1/set_name' => "HW #2" )->json_is( '/1/dates/open' => 21 );
+my @hw_sets = loadCSV("$main::lib_dir/../t/db/sample_data/hw_sets.csv");
+for my $set (@hw_sets) {
+	$set->{set_type} = "HW";
+	for my $date (keys %{$set->{dates}}) {
+		my $dt = $strp->parse_datetime( $set->{dates}->{$date});
+		$set->{dates}->{$date} = $dt->epoch;
+	}
+}
+
+$t->get_ok('/webwork3/api/courses/2/sets')
+	->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')
+	->json_is( '/1/set_name' => $hw_sets[1]->{set_name} )
+	->json_is( '/1/dates/open' => $hw_sets[1]->{dates}->{open} );
 
 # Pull out the id from the response
-my $set_id = $t->tx->res->json('/3/set_id');
+my $set_id = $t->tx->res->json('/2/set_id');
 
 # Disabled for now until this is fixed.
-#$t->get_ok("/webwork3/api/courses/2/sets/$set_id")->content_type_is('application/json;charset=UTF-8')
-#	->json_is( '/set_name' => "HW #1" )->json_is( '/set_type' => 'HW' )->json_is( '/dates/open' => 1 );
+$t->get_ok("/webwork3/api/courses/2/sets/$set_id")
+	->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')
+	->json_is( '/set_name' => $hw_sets[2]->{set_name} )
+	->json_is( '/set_type' => $hw_sets[2]->{set_type} )
+	->json_is( '/dates/open' => $hw_sets[2]->{dates}->{open} );
 
 # new problem set
 
