@@ -129,11 +129,11 @@ sub userRoutes {
 sub courseUserRoutes {
 	my $self = shift;
 	my $course_user_routes = $self->routes->any('/webwork3/api/courses/:course_id/users')->to(controller =>'User');
-	$course_user_routes->get('/')->to(action => 'getUsers');
-	$course_user_routes->post('/')->to(action => 'addUser');
-	$course_user_routes->get('/:user_id')->to(action => 'getUser');
-	$course_user_routes->put('/:user_id')->to(action => 'updateUser');
-	$course_user_routes->delete('/:user_id')->to(action => 'deleteUser');
+	$course_user_routes->get('/')->to(action => 'getCourseUsers');
+	$course_user_routes->post('/')->to(action => 'addCourseUser');
+	$course_user_routes->get('/:user_id')->to(action => 'getCourseUser');
+	$course_user_routes->put('/:user_id')->to(action => 'updateCourseUser');
+	$course_user_routes->delete('/:user_id')->to(action => 'deleteCourseUser');
 	return;
 }
 

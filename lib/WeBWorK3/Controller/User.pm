@@ -44,17 +44,17 @@ sub deleteGlobalUser {
 
 ## the following subs are related to users within a given course.
 
-sub getUsers {
+sub getCourseUsers {
 	my $self = shift;
-	my @course_users = $self->schema->resultset("User")->getUsers(
+	my @course_users = $self->schema->resultset("User")->getCourseUsers(
 		{course_id => int($self->param("course_id"))});
 	$self->render(json => \@course_users);
 	return;
 }
 
-sub getUser {
+sub getCourseUser {
 	my $self = shift;
-	my $course_user = $self->schema->resultset("User")->getUser(
+	my $course_user = $self->schema->resultset("User")->getCourseUser(
 		{
 			course_id => int($self->param("course_id")),
 			user_id => int($self->param("user_id"))
@@ -64,17 +64,18 @@ sub getUser {
 	return;
 }
 
-sub addUser {
+sub addCourseUser {
 	my $self = shift;
-	my $course_user = $self->schema->resultset("User")->addUser(
-		{ course_id => int($self->param("course_id"))}, $self->req->json);
+	my $params = $self->req->json;
+	$params->{course_id} = $self->param("course_id");
+	my $course_user = $self->schema->resultset("User")->addCourseUser($params);
 	$self->render(json => $course_user);
 	return;
 }
 
-sub updateUser {
+sub updateCourseUser {
 	my $self = shift;
-	my $course_user = $self->schema->resultset("User")->updateUser(
+	my $course_user = $self->schema->resultset("User")->updateCourseUser(
 		{
 			course_id => int($self->param("course_id")),
 			user_id => int($self->param("user_id"))
@@ -83,9 +84,9 @@ sub updateUser {
 	return;
 }
 
-sub deleteUser {
+sub deleteCourseUser {
 	my $self = shift;
-	my $course_user = $self->schema->resultset("User")->deleteUser(
+	my $course_user = $self->schema->resultset("User")->deleteCourseUser(
 		{
 			course_id => int($self->param("course_id")),
 			user_id => int($self->param("user_id"))

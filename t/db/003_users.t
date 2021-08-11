@@ -56,12 +56,13 @@ for my $student (@students) {
 # add the admin user
 push(
 	@students,
-	{   login      => "admin",
-		email      => 'admin@google.com',
-		is_admin   => 1,
+	{
+		login       => "admin",
+		email       => 'admin@google.com',
+		is_admin    => 1,
 		first_name  => "Andrea",
-		last_name => "Administrator",
-		student_id => undef
+		last_name   => "Administrator",
+		student_id  => undef
 	}
 );
 my @all_students = sort { $a->{login} cmp $b->{login} } @students;

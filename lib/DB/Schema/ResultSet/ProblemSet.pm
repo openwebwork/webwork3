@@ -183,7 +183,7 @@ sub addProblemSet {
 
 	my $set_params = {%$params};
 
-	DB::Exception::ParametersNeeded->throw( error => "You must defined the field set_name in the 2nd argument" )
+	DB::Exception::ParametersNeeded->throw( message => "You must defined the field set_name in the 2nd argument" )
 		unless defined( $set_params->{set_name} );
 
 	## check if the set exists.

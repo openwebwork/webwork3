@@ -130,7 +130,7 @@ if ($TEST_PERMISSIONS) {
 
 ## check that a non_admin user has proper access.
 
-my @all_users   = $schema->resultset("User")->getUsers( { course_id => 1 } );
+my @all_users   = $schema->resultset("User")->getCourseUsers( { course_id => 1 } );
 my @instructors = grep { $_->{role} eq 'instructor' } @all_users;
 
 if ($TEST_PERMISSIONS) {

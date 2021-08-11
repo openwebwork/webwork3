@@ -117,7 +117,7 @@ sub addProblemPool {
 	my $course      = $course_rs->getCourse( getCourseInfo($course_info), 1 );
 	my $course_name = $course->course_name;
 
-	DB::Exception::ParametersNeeded->throw( error => "The pool_name is missing from the parameters" )
+	DB::Exception::ParametersNeeded->throw( message => "The pool_name is missing from the parameters" )
 		unless defined( $pool_params->{pool_name} );
 
 	my $existing_pool = $self->find(

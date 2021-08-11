@@ -51,11 +51,16 @@ else {
 
 my @all_users = $schema->resultset("User")->getAllGlobalUsers();
 
-$t->get_ok('/webwork3/api/users')->content_type_is('application/json;charset=UTF-8')
-	->json_is( '/1/first_name' => $all_users[1]->{first_name} )->json_is( '/1/email' => $all_users[1]->{email} );
+$t->get_ok('/webwork3/api/users')
+	->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')
+	->json_is( '/1/first_name' => $all_users[1]->{first_name} )
+	->json_is( '/1/email' => $all_users[1]->{email} );
 
 
-$t->get_ok('/webwork3/api/users/3')->content_type_is('application/json;charset=UTF-8')->json_is( '/login' => "lisa" )
+$t->get_ok('/webwork3/api/users/3')
+	->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is( '/login' => "lisa" )
 	->json_is( '/email' => 'lisa@google.com' );
 
 ## add a new user
@@ -91,12 +96,11 @@ my $added_user_to_course = {
 
 $t->post_ok( "/webwork3/api/courses/4/users" => json => $added_user_to_course)
 	->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')
-	->json_is( '/login' => 'maggie')
-	->json_is( '/role' => 'student');
+	->content_type_is('application/json;charset=UTF-8');
+	# ->json_is( '/login' => 'maggie')
+	# ->json_is( '/role' => 'student');
 
-# dd $t->tx->res->json;
-
+# warn Dumper $t->tx->res->json;
 
 ## test for exceptions
 
@@ -115,7 +119,8 @@ $t->put_ok( "/webwork3/api/users/99999" => json => { email => 'fred@happy.com' }
 
 my $another_new_user = { login_name => "this is the wrong field" };
 
-$t->post_ok( "/webwork3/api/users" => json => $another_new_user )->content_type_is('application/json;charset=UTF-8')
+$t->post_ok( "/webwork3/api/users" => json => $another_new_user )
+	->content_type_is('application/json;charset=UTF-8')
 	->status_is(250,"exception status")
 	->json_is( '/exception' => 'DB::Exception::ParametersNeeded' );
 
@@ -131,14 +136,23 @@ my $another_user = {
 	first_name => "Sideshow",
 	last_name => "Bob",
 	student_id => "933723",
-	email => 'bob@sideshow.net',
-	role => 'student'
+	email => 'bob@sideshow.net'
 };
 
-$t->post_ok("/webwork3/api/courses/4/users" => json => $another_user )
+$t->post_ok("/webwork3/api/users" => json => $another_user )
 	->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')
-	->json_is('/login' => 'bob');
+	->json_is('/login' => $another_user->{login});
+
+my $another_user_id = $t->tx->res->json("/user_id");
+
+$t->post_ok("/webwork3/api/courses/4/users" => json => {
+		user_id => $another_user_id,
+		role => "student"
+	})
+	->status_is(200)
+	->content_type_is('application/json;charset=UTF-8');
+
 
 my $another_new_user_id = $t->tx->res->json('/user_id');
 

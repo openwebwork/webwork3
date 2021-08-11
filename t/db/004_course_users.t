@@ -14,7 +14,7 @@ BEGIN {
 use lib "$main::lib_dir";
 
 use Text::CSV qw/csv/;
-use Data::Dump qw/dd/;
+use Data::Dumper;
 use List::Util qw(uniq);
 use Test::More;
 use Test::Exception;
@@ -48,7 +48,7 @@ for my $student (@precalc_students) {
 
 ## test getUsers
 
-my @users                    = $user_rs->getUsers( { course_name => "Precalculus" } );
+my @users                    = $user_rs->getCourseUsers( { course_name => "Precalculus" } );
 my @precalc_students_from_db = sort { $a->{login} cmp $b->{login} } @users;
 my $precalc_students_from_db = removeCourseUserIDs( \@precalc_students_from_db );
 
@@ -64,12 +64,12 @@ is_deeply( \@precalc_students, \@precalc_students_from_db, "getUsers: get users 
 ## getUsers: test that an unknown course results in an error
 
 throws_ok {
-	$user_rs->getUsers( { course_name => "unknown_course" } );
+	$user_rs->getCourseUsers( { course_name => "unknown_course" } );
 }
 'DB::Exception::CourseNotFound', "getUsers: undefined course_name";
 
 throws_ok {
-	$user_rs->getUsers( { course_id => -3 } );
+	$user_rs->getCourseUsers( { course_id => -3 } );
 }
 'DB::Exception::CourseNotFound', "getUsers: undefined course_id";
 
@@ -103,127 +103,101 @@ throws_ok {
 ## addUser:  add a user to a course
 
 # remove the following user if already defined in the course
-try {
-	my $quimby = $user_rs->getUser( {course_name => "Arithmetic", login => "quimby"},1);
-	$quimby->delete if defined $quimby;
-};
 
-my $user_params = {
+my $arithmetic = $course_rs->find( {course_name => "Arithmetic" });
+my $quimby = $user_rs->find( { login => "quimby" });
+# warn Dumper {$quimby->get_inflated_columns} if $quimby;
+$quimby->delete if defined $quimby;
+my $cu = $schema->resultset("CourseUser")->find( { user_id => $quimby->user_id, course_id => $arithmetic->course_id}) if defined($quimby);
+$cu->delete if defined($cu);
+# warn Dumper {$cu->get_inflated_columns} if $cu;
+
+my $user_params =
+{
 	login      => "quimby",
 	first_name => "Joe",
 	last_name  => "Quimby",
 	email      => 'mayor_joe@springfield.gov',
 	student_id => "12345",
-	role       => "student",
-	params     => {},
-	recitation => undef,
-	section    => undef,
-	is_admin   => 0,
+	is_admin   => 0
 };
-
-$user = $user_rs->addUser( { course_name => "Arithmetic" }, $user_params );
+my $course_user_params =
+{
+	course_name => "Arithmetic",
+	login       => "quimby",
+	role        => "student",
+	params      => {},
+	recitation  => undef,
+	section     => undef
+};
+$user_rs->addGlobalUser($user_params);
+$user = $user_rs->addCourseUser($course_user_params);
+for my $key (qw/login course_name/) {
+	delete $course_user_params->{$key};
+}
 
 removeIDs($user);
 delete $user_params->{course_name};
 
-is_deeply( $user_params, $user, "addUser: add a user to a course" );
+is_deeply( $course_user_params, $user, "addUser: add a user to a course" );
 
 ## addUser: check that if the course doesn't exist, an error is thrown:
 
 throws_ok {
-	$user_rs->addUser( { course_name => "unknown_course", login => "barney" } );
+	$user_rs->addCourseUser( { course_name => "unknown_course", login => "barney" }, {} );
 }
 "DB::Exception::CourseNotFound", "addUser: the course doesn't exist";
 
 ## addUser: the course exists, but the user is already a member.
 
 throws_ok {
-	$user_rs->addUser( { course_name => "Arithmetic" }, { login => "moe" } );
+	$user_rs->addCourseUser( { course_name => "Arithmetic", login => "moe" });
 }
 "DB::Exception::UserAlreadyInCourse", "addUser: the user is already a member";
 
 ## updateUser: check that the user updates.
 
-my $updated_user = { params => { email => 'joe_the_mayor@juno.com', comment => 'Mayor Joe is the best!!' } };
+my $updated_user = { params => { comment => 'Mayor Joe is the best!!' }, recitation => "2" };
 
 for my $key ( keys %$updated_user ) {
-	$user_params->{$key} = $updated_user->{$key};
+	$course_user_params->{$key} = $updated_user->{$key};
 }
 
-my $user_from_db = $user_rs->updateUser( { course_name => 'Arithmetic', login => 'quimby' }, $updated_user );
+my $user_from_db = $user_rs->updateCourseUser( { course_name => 'Arithmetic', login => 'quimby' }, $updated_user );
 
 removeIDs($user_from_db);
-
-is_deeply( $user_params, $user_from_db, "updateUser: update a single user in an existing course." );
+is_deeply( $course_user_params, $user_from_db, "updateUser: update a single user in an existing course." );
 
 ## updateUser: check that if the course doesn't exist, an error is thrown:
 throws_ok {
-	$user_rs->updateUser( { course_name => "unknown_course", login => "barney" }, $updated_user );
+	$user_rs->updateCourseUser( { course_name => "unknown_course", login => "barney" }, $updated_user );
 }
 "DB::Exception::CourseNotFound", "updateUser: the course doesn't exist";
 
 ## updateUser: check that if the course exists, but the user not a member.
 throws_ok {
-	$user_rs->updateUser( { course_name => "Arithmetic", login => "marge" }, $updated_user );
+	$user_rs->updateCourseUser( { course_name => "Arithmetic", login => "marge" }, $updated_user );
 }
 "DB::Exception::UserNotInCourse", "updateUser: the user is not a member of the course";
 
 ## updateUser: send in wrong information
 
 throws_ok {
-	$user_rs->updateUser( { course_name => "Arithmetic", login_name => "bart" }, $updated_user );
+	$user_rs->updateCourseUser( { course_name => "Arithmetic", login_name => "bart" }, $updated_user );
 }
 "DB::Exception::ParametersNeeded", "updateUser: the incorrect information is passed in.";
 
 ## updateUser: update a user with nonvalid fields
 
 throws_ok {
-	$user_rs->updateUser( { course_name => "Arithmetic", login => "quimby" }, { sleeps_in_class => 1 } );
+	$user_rs->updateCourseUser( { course_name => "Arithmetic", login => "quimby" }, { sleeps_in_class => 1 } );
 }
-"DB::Exception::ParametersNeeded", "updateUser: an invalid field is set";
+"DBIx::Class::Exception", "updateUser: an invalid field is set";
 
 
+# These next test add a course user where both the course and user exist, but the user is
+# not in the course.
 
-###
-#   Check UserCourse methods
-###
-
-my $course_user2 = $user_rs->getCourseUser({ course_name => "Arithmetic", login=> "quimby" });
-removeIDs($course_user2);
-
-my $user_params2 = {};
-for my $key (keys %$course_user2) {
-	$user_params2->{$key} = $user_params->{$key};
-}
-
-is_deeply($user_params2,$course_user2,"getCourseUser: get a course user");
-
-# check that a non-existent user throws an error:
-
-throws_ok {
-	$user_rs->getCourseUser({ course_name => "Arithmetic", login => "non_existent_user"})
-}
-"DB::Exception::UserNotFound", "getCourseUser: try to get a non-existent user";
-
-# check that a non-existent course throws an error:
-
-throws_ok {
-	$user_rs->getCourseUser({ course_name => "non_existent_course", login => "bart"})
-}
-"DB::Exception::CourseNotFound", "getCourseUser: try to get a non-existent course";
-
-# check that getting a user not enrolled throws an error
-
-throws_ok {
-	$user_rs->getCourseUser({ course_name => "Arithmetic", login => "marge"})
-}
-"DB::Exception::UserNotInCourse", "getCourseUser: try to get a user not enrolled";
-
-# remove the following user if already defined in the course
-my $apu = $user_rs->find({login=>"apu"});
-my $arithmetic = $course_rs->find({course_name => "Arithmetic"});
-my $apu_cu = $cu_rs->find({user_id => $apu->user_id, course_id => $arithmetic->course_id});
-$apu_cu->delete if defined $apu_cu;
 
 my $course_user = {
 	login => "apu",
@@ -233,6 +207,10 @@ my $course_user = {
 	recitation => undef,
 	section => undef
 };
+
+throws_ok {
+	$user_rs->getCourseUser({login => $course_user->{login}, course_name => $course_user->{course_name}});
+} "DB::Exception::UserNotInCourse", "getCourseUser: the user is not in the course";
 
 my $course_user_from_db = $user_rs->addCourseUser($course_user);
 removeIDs($course_user_from_db);
@@ -288,37 +266,39 @@ my $dont_delete_users;    # switch to not delete added users.
 
 SKIP: {
 
-	skip "delete added users", 4 if $dont_delete_users;
+	skip "delete added users", 5 if $dont_delete_users;
 
-	$deleted_user = $user_rs->deleteUser( { course_name => "Arithmetic", login => "quimby" } );
+	my $deleted_course_user = $user_rs->deleteCourseUser( { course_name => "Arithmetic", login => "quimby" } );
+	removeIDs($deleted_course_user);
+
+	is_deeply( $course_user_params, $deleted_course_user, 'deleteCourseUser: delete a user from a course' );
+
+	$deleted_user = $user_rs->deleteGlobalUser( {login => "quimby"});
 	removeIDs($deleted_user);
 
-	is_deeply( $user_params, $deleted_user, 'deleteUser: delete a user from a course' );
+	is_deeply($user_params, $deleted_user, "deleteGlobalUser: delete a user");
 
 ## deleteUser: check that if the course doesn't exist, an error is thrown:
 
 	throws_ok {
-		$user_rs->deleteUser( { course_name => "unknown_course", login => "barney" } );
+		$user_rs->deleteCourseUser( { course_name => "unknown_course", login => "barney" } );
 	}
 	"DB::Exception::CourseNotFound", "deleteUser: the course doesn't exist";
 
 ## deleteUser: check that if the course exists, but the user not a member.
 
 	throws_ok {
-		$user_rs->deleteUser( { course_name => "Arithmetic", login => "marge" } );
+		$user_rs->deleteCourseUser( { course_name => "Arithmetic", login => "marge" } );
 	}
 	"DB::Exception::UserNotInCourse", "deleteUser: the user is not a member of the course";
 
 ## deleteUser: send in login_name instead of login
 
 	throws_ok {
-		$user_rs->deleteUser( { course_name => "Arithmetic", login_name => "bart" } );
+		$user_rs->deleteCourseUser( { course_name => "Arithmetic", login_name => "bart" } );
 	}
 	"DB::Exception::ParametersNeeded", "deleteUser: the incorrect information is passed in.";
 
-### delete the global User that was created.
-
-	$user_rs->deleteGlobalUser( { login => $user_params->{login} } );
 }
 
 

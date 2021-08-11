@@ -101,7 +101,7 @@ $t->put_ok( "/webwork3/api/courses/999999" => json => { course_name => 'new cour
 	->content_type_is('application/json;charset=UTF-8')
 	->json_is( '/exception' => 'DB::Exception::CourseNotFound' );
 
-print Dumper($t->tx->res);
+# print Dumper($t->tx->res);
 
 # try to add a course without a course_name
 
