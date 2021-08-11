@@ -69,7 +69,6 @@ export default defineComponent({
 				void store.dispatch('session/setCourse', { course_name, course_id });
 			},
 			toggleButton: () => {
-				console.log('here');
 				emit('toggle', 10);
 			},
 			current_view,

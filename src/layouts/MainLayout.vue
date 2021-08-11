@@ -1,6 +1,6 @@
 <template>
 	<q-layout view="hHh Lpr lFf">
-		<menu-bar  @toggle="test"/>
+		<menu-bar  @toggle="toggleSidebar"/>
 
 		<q-drawer
 			v-model="sidebar_open"
@@ -32,10 +32,7 @@ export default defineComponent({
 		const sidebar_open = ref(true);
 		return {
 			sidebar_open,
-			test: () => {
-				console.log('in test');
-				sidebar_open.value = !sidebar_open.value;
-			}
+			toggleSidebar: () => sidebar_open.value = !sidebar_open.value
 		};
 	}
 });
