@@ -1,9 +1,9 @@
 <template>
 <div class='row q-mt-lg justify-center'>
 	<q-card class='col-sm-4'>
-		<q-form @submit.prevent='username'>
+		<q-form @submit.prevent='login'>
 			<q-card-section>
-				<div class='text-h6'>username to WeBWorK</div>
+				<div class='text-h6'>Login to WeBWorK</div>
 			</q-card-section>
 			<q-card-section>
 				<q-input v-model='username' label='Username' />
@@ -35,7 +35,7 @@ export default defineComponent({
 		const message = ref('');
 
 		const store = useStore();
-		const username = async () => {
+		const login = async () => {
 			const username_info = {
 				username: username.value,
 				password: password.value
@@ -52,7 +52,7 @@ export default defineComponent({
 				}
 			}
 		};
-		return { username, password, message, username };
+		return { username, password, message, login };
 	}
 });
 </script>
