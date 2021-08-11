@@ -271,7 +271,7 @@ course_id or course_name
 =item -
 set_id or set_name
 =item -
-login or user_id (optional)
+username or user_id (optional)
 
 =head4 output
 

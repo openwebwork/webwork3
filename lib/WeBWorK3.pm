@@ -80,7 +80,7 @@ sub confDirectory {
 
 sub load_account {
 	my ($self,$user_id)  = @_;
-	my $user = $self->schema->resultset("User")->getGlobalUser({login => $user_id});
+	my $user = $self->schema->resultset("User")->getGlobalUser({username => $user_id});
 	return $user;
 }
 

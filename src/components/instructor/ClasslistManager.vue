@@ -8,7 +8,7 @@
 				title="Users"
 				selection="multiple"
 				:filter="filter"
-				:visible-columns="['login','email']"
+				:visible-columns="['username','email']"
 				v-model:selected="selected"
 			>
 				<template v-slot:top-right>
@@ -74,9 +74,9 @@ export default defineComponent({
 		const open_users_from_file: Ref<boolean> = ref(false);
 		const columns = [
 			{
-				name: 'login',
-				label: 'Login',
-				field: 'login',
+				name: 'username',
+				label: 'username',
+				field: 'username',
 				sortable: true
 			},
 			{
@@ -105,13 +105,13 @@ export default defineComponent({
 			columns,
 			users: computed(() => store.state.users.users),
 			deleteUsers: () => {
-				const users_to_delete = selected.value.map((u) => u.login).join(', ');
+				const users_to_delete = selected.value.map((u) => u.username).join(', ');
 				var conf = confirm(`Are you sure you want to delete the users: ${users_to_delete}`);
 				if (conf) {
 					selected.value.forEach((_user: User) => {
 						try {
 							void store.dispatch('user/deleteUser', _user);
-							$q.notify(`The user ${_user.login} has been succesfully deleted.`);
+							$q.notify(`The user ${_user.username} has been succesfully deleted.`);
 						} catch (err) {
 							$q.notify(err);
 						}

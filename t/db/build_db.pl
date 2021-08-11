@@ -81,7 +81,7 @@ sub addUsers {
 
 	# add an admin user
 	my $admin = {
-		login => "admin",
+		username => "admin",
 		email => 'admin@google.com',
 		first_name => "Andrea",
 		last_name => "Administrator",
@@ -94,15 +94,15 @@ sub addUsers {
 		# dd $student;
 		my $course = $course_rs->find({course_name => $student->{course_name}});
 		my $stud_info = {};
-		for my $key (qw/login first_name last_name email student_id/) {
+		for my $key (qw/username first_name last_name email student_id/) {
 			$stud_info->{$key} = $student->{$key};
 		}
 		$stud_info->{login_params} = {
-			password => $student->{login}
+			password => $student->{username}
 		};
 		$course->add_to_users($stud_info);
 
-		my $user = $user_rs->find({login => $student->{login}});
+		my $user = $user_rs->find({username => $student->{username}});
 		my $params = {
 			user_id=> $user->user_id,
 			course_id=> $course->course_id,
@@ -221,7 +221,7 @@ sub addUserSets {
 	for my $user_set (@user_sets){
 		# check if the course_name/set_name/user_name exists
 		my $course = $course_rs->find({ course_name=>$user_set->{course_name}});
-		my $user_course = $course->users->find({login=>$user_set->{login}});
+		my $user_course = $course->users->find({username=>$user_set->{username}});
 		if( defined $user_course) {
 			my $problem_set = $schema->resultset('ProblemSet')->find(
 				{
@@ -229,7 +229,7 @@ sub addUserSets {
 					set_name => $user_set->{set_name}
 				}
 			);
-			for my $key (qw/course_name set_name type login/) {
+			for my $key (qw/course_name set_name type username/) {
 				delete $user_set->{$key};
 			}
 			$user_set->{user_id} = $user_course->user_id;

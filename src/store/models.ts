@@ -9,7 +9,7 @@ export interface User {
 	first_name: string;
 	is_admin: boolean | number; // it comes in as a 0/1 boolean
 	last_name: string;
-	login: string;
+	username: string;
 	student_id: string;
 	user_id: number | undefined;
 }

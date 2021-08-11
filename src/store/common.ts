@@ -6,7 +6,7 @@ export function newUser(): User {
 		first_name: '',
 		is_admin: false,
 		last_name: '',
-		login: '',
+		username: '',
 		student_id: '',
 		user_id: undefined
 	};

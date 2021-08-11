@@ -53,7 +53,7 @@ Gets a single user from the <code>users</code> table.
 
 =item *
 <code>user_info</code>, a hashref of the form <code>{user_id => 1}</code>
-or <code>{login => "username"}</code>.
+or <code>{username => "username"}</code>.
 =item *
 <code>result_set</code>, a boolean that if true returns the user as a result set.  See below
 =head3 output
@@ -66,7 +66,7 @@ The user as either a hashref or a  <code>DBIx::Class::ResultSet::User</code> obj
 sub getGlobalUser {
 	my ( $self, $user_info, $as_result_set ) = @_;
 	my $user = $self->find( getUserInfo($user_info) );
-	DB::Exception::UserNotFound->throw( login => $user_info ) unless defined($user);
+	DB::Exception::UserNotFound->throw( username => $user_info ) unless defined($user);
 	return $user if $as_result_set;
 	my $params = { $user->get_inflated_columns };
 	$params->{role} = "admin" if $user->is_admin;
@@ -81,7 +81,7 @@ Add a single user to the <code>users</code> table.
 =head3 input
 
 <code>params</code>, a hashref including information about the user this includes:
-=item * login (required)
+=item * username (required)
 =item * first_name
 =item * last_name
 =item * email
@@ -97,8 +97,8 @@ The user as  <code>DBIx::Class::ResultSet::User</code> object or <code>undef</co
 
 sub addGlobalUser {
 	my ( $self, $user_params, $as_result_set ) = @_;
-	DB::Exception::ParametersNeeded->throw( message => "The parameters must include login" )
-		unless defined( $user_params->{login} );
+	DB::Exception::ParametersNeeded->throw( message => "The parameters must include username" )
+		unless defined( $user_params->{username} );
 
 	my $user_obj = $self->new($user_params);
 
@@ -116,7 +116,7 @@ This deletes a single user that is stored in the database in the <code>users</co
 
 =item *
 <code>user_info</code>, a hashref of the form <code>{user_id => 1}</code>
-or <code>{login => "username"}</code>.
+or <code>{username => "username"}</code>.
 =item *
 as_result_set, a flag to return the result as a ResultSet of a hashref.
 =head3 output
@@ -145,10 +145,10 @@ This updates a single user that is stored in the database in the <code>user</cod
 
 =item *
 <code>user_info</code>, a hashref of the form <code>{user_id => 1}</code>
-or <code>{login => "username"}</code>.
+or <code>{username => "username"}</code>.
 =item *
 <code>params</code>, a hashref of the user parameters.   The following structure is expected:
-=item - login (required)
+=item - username (required)
 =item - first_name
 =item - last_name
 =item - email
@@ -177,7 +177,7 @@ sub updateGlobalUser {
 
 sub authenticate {
 	my ( $self, $username, $password ) = @_;
-	my $user = $self->getGlobalUser( { login => $username }, 1 );
+	my $user = $self->getGlobalUser( { username => $username }, 1 );
 	return $user->login_params->{password} eq $password;
 }
 
@@ -238,10 +238,10 @@ This gets a single user in a given course.
 =item -
 <code>course_name</code>, the name of an existing course
 =item -
-<code>login</code>, the login of an existing user.
+<code>username</code>, the username of an existing user.
 
 =head3 notes:
-if either the course or login doesn't exist, an error will be thrown.
+if either the course or username doesn't exist, an error will be thrown.
 
 =head3 output
 
@@ -254,7 +254,7 @@ sub getUser {
 	my $course_info = getCourseInfo($course_user_info);
 	my $course      = $self->result_source->schema->resultset("Course")->getCourse( $course_info, 1 );
 	my $course_user = $course->users->find( getUserInfo($course_user_info) );
-	DB::Exception::UserNotInCourse->throw( course_name => $course->course_name, login => $course_user_info->{login} )
+	DB::Exception::UserNotInCourse->throw( course_name => $course->course_name, username => $course_user_info->{username} )
 		unless defined($course_user);
 
 	return $course_user if $as_result_set;
@@ -282,7 +282,7 @@ sub getCourseUser {
 		->find({course_id => $course->course_id, user_id => $user->user_id});
 
 	DB::Exception::UserNotInCourse->throw(
-		message => "The user ${\$user->login} is not enrolled in the course ${\$course->course_name}"
+		message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}"
 	) unless defined $course_user;
 
 	return $course_user if $as_result_set;
@@ -320,12 +320,12 @@ sub addCourseUser {
 		->find({ user_id => $user->user_id, course_id => $course->course_id});
 	# warn Dumper {$cu->get_inflated_columns} if $cu;
 	DB::Exception::UserAlreadyInCourse->throw(
-		message => "The user with username: ${\$user->login} is already in the course: ${\$course->course_name}"
+		message => "The user with username: ${\$user->username} is already in the course: ${\$course->course_name}"
 	) if defined($cu);
 
 	my $params = clone($course_user_params);
 
-	for my $key (qw/ course_id course_name login user_id/) {
+	for my $key (qw/ course_id course_name username user_id/) {
 		delete $params->{$key};
 	}
 
@@ -399,7 +399,7 @@ This adds a User to an existing course
 =item *
 <code>params</code>, a hashref containing
 =item -
-<code>login</code>, the login of a user (required)
+<code>username</code>, the username of a user (required)
 =item -
 <code>first_name</code>, the first name of the user
 =item -
@@ -411,11 +411,11 @@ This adds a User to an existing course
 
 =head3 notes
 =item *
-If both the login and course name is not included, an error will be thrown.
+If both the username and course name is not included, an error will be thrown.
 =item *
 If the course doesn't exist, an error will be thrown
 =item *
-If the user's login already exists as a global user, an error will be thrown.
+If the user's username already exists as a global user, an error will be thrown.
 
 
 =head3 output
@@ -431,18 +431,18 @@ An hashref of the added user.
 # 	# dd $course_info;
 # 	# dd $params;
 
-# 	DB::Exception::ParametersNeeded->throw( message => "You must defined the field login in the 2nd argument" )
-# 		unless defined( $params->{login} ) || defined( $params->{user_id} );
+# 	DB::Exception::ParametersNeeded->throw( message => "You must defined the field username in the 2nd argument" )
+# 		unless defined( $params->{username} ) || defined( $params->{user_id} );
 
 # 	my $user_info = {};
 # 	if (defined($params->{user_id})) {
 # 		$user_info->{user_id} = $params->{user_id};
 # 	} else {
-# 		$user_info->{login} = $params->{login};
+# 		$user_info->{username} = $params->{username};
 # 	}
 
 # 	my $user_exists = $course->users->find( $user_info );
-# 	DB::Exception::UserAlreadyInCourse->throw( course_name => $course_info, login => $params->{login} )
+# 	DB::Exception::UserAlreadyInCourse->throw( course_name => $course_info, username => $params->{username} )
 # 		if defined $user_exists;
 
 # 	my $course_user_params = clone($params);
@@ -492,7 +492,7 @@ This updates a User in an existing course
 =item *
 <code>params</code>, a hashref containing
 =item -
-<code>login</code>, the login of a user (required)
+<code>username</code>, the username of a user (required)
 =item -
 <code>first_name</code>, the first name of the user
 =item -
@@ -506,7 +506,7 @@ This updates a User in an existing course
 =item *
 If the course doesn't exist, an error will be thrown
 =item *
-If the login field is not defined, an error will be thrown.
+If the username field is not defined, an error will be thrown.
 
 
 =head3 output
@@ -526,7 +526,7 @@ An hashref of the added user.
 # 	my $user_to_update = $self->result_source->schema->resultset("CourseUser")
 # 		->find( { course_id => $course->course_id, user_id => $user->user_id } );
 
-# 	DB::Excpetion::UserNotInCourse->throw( course_name => $course->course_name, login => $course_user_info->{login} )
+# 	DB::Excpetion::UserNotInCourse->throw( course_name => $course->course_name, username => $course_user_info->{username} )
 # 		unless defined($user_to_update);
 
 # 	my $updated_user = $user_to_update->update( {%$params} );    # seems like update changes $params, so make a copy.
@@ -549,7 +549,7 @@ This deletes a User in an existing course.  This doesn't remove the global user 
 =item *
 <code>user_params</code>, a hashref containing either
 =item -
-<code>login</code>, the login of a user
+<code>username</code>, the username of a user
 =item -
 <code>user_id</code>, user_id of the user
 
@@ -557,7 +557,7 @@ This deletes a User in an existing course.  This doesn't remove the global user 
 =item *
 If the course doesn't exist, an error will be thrown
 =item *
-If the login field is not defined, an error will be thrown.
+If the username field is not defined, an error will be thrown.
 
 
 =head3 output
@@ -574,7 +574,7 @@ An hashref of the added user.
 
 # 	my $user_info = getUserInfo($course_user_info);
 # 	my $user      = $course->users->find($user_info);
-# 	DB::Exception::UserNotInCourse->throw( course_name => $course->course_name, login => $course_info->{login} )
+# 	DB::Exception::UserNotInCourse->throw( course_name => $course->course_name, username => $course_info->{username} )
 # 		unless defined $user;
 
 # 	my $course_user_rs = $self->result_source->schema->resultset("CourseUser");

@@ -65,7 +65,7 @@ This gets all problems in a given course.
 <code>course_id</code>.
 
 =head3 notes:
-if either the course or login doesn't exist, an error will be thrown.
+if either the course or username doesn't exist, an error will be thrown.
 
 =head3 output
 

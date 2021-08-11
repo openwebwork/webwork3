@@ -31,10 +31,10 @@ export default {
 			const _users = await _fetchUsers(course_id);
 			commit('SET_USERS', _users);
 		},
-		async getUser(_context: ActionContext<UserState, StateInterface>, _login: string): Promise<User|undefined> {
-			const response = await axios.get(`/webwork3/api/users/${_login}`);
+		async getUser(_context: ActionContext<UserState, StateInterface>, _username: string): Promise<User|undefined> {
+			const response = await axios.get(`/webwork3/api/users/${_username}`);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			if (response.data.login && response.data.login !== '') {
+			if (response.data.username && response.data.username !== '') {
 				return response.data as User;
 			} else {
 				return undefined;

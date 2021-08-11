@@ -1,16 +1,16 @@
 <template>
 <div class='row q-mt-lg justify-center'>
 	<q-card class='col-sm-4'>
-		<q-form @submit.prevent='login'>
+		<q-form @submit.prevent='username'>
 			<q-card-section>
-				<div class='text-h6'>Login to WeBWorK</div>
+				<div class='text-h6'>username to WeBWorK</div>
 			</q-card-section>
 			<q-card-section>
 				<q-input v-model='username' label='Username' />
 				<q-input v-model='password' type='password' label='Password' />
 			</q-card-section>
 			<q-card-section>
-				<q-btn push type='submit' color='primary' label='Login' />
+				<q-btn push type='submit' color='primary' label='username' />
 			</q-card-section>
 			<q-card-section v-if='message'>
 				<div class="text-red">{{message}}</div>
@@ -27,7 +27,7 @@ import { useStore } from 'src/store';
 import { checkPassword } from 'src/store/api';
 
 export default defineComponent({
-	name: 'Login',
+	name: 'username',
 	setup() {
 		const router = useRouter();
 		const username = ref('');
@@ -35,12 +35,12 @@ export default defineComponent({
 		const message = ref('');
 
 		const store = useStore();
-		const login = async () => {
-			const login_info = {
+		const username = async () => {
+			const username_info = {
 				username: username.value,
 				password: password.value
 			};
-			const session = await checkPassword(login_info);
+			const session = await checkPassword(username_info);
 			if (!session.logged_in) {
 				message.value = session.message;
 			} else { // success
@@ -52,7 +52,7 @@ export default defineComponent({
 				}
 			}
 		};
-		return { username, password, message, login };
+		return { username, password, message, username };
 	}
 });
 </script>

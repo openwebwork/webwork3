@@ -20,19 +20,21 @@ $t->get_ok('/login')->status_is(200);
 # $t->ua->max_redirects(1);
 
 ## test the redirect
-$t->post_ok( '/login' => form => { login => 'lisa', password => 'lisa' } )->status_is(302)
+$t->post_ok( '/login' => form => { username => 'lisa', password => 'lisa' } )
+	->status_is(302)
 	->header_is( location => '/users/start' );
 
 $t->ua->max_redirects(1);
-$t->post_ok( '/login' => form => { login => 'lisa', password => 'lisa' } )->status_is(200);
+$t->post_ok( '/login' => form => { username => 'lisa', password => 'lisa' } )
+	->status_is(200);
 
 ## test for a bad password
 $t->ua->max_redirects(0);
-$t->post_ok( '/login' => form => { login => 'lisa', password => 'wrong_password' } )->status_is(302)
+$t->post_ok( '/login' => form => { username => 'lisa', password => 'wrong_password' } )->status_is(302)
 	->header_is( location => '/login' );
 
 $t->ua->max_redirects(1);
-$t->post_ok( '/login' => form => { login => 'lisa', password => 'wrong_password' } )->status_is(200)
+$t->post_ok( '/login' => form => { username => 'lisa', password => 'wrong_password' } )->status_is(200)
 	->text_like( 'div#message' => qr!Incorrect username or password.! );
 
 done_testing;

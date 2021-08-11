@@ -8,7 +8,7 @@
 			<q-card-section class="q-pt-none">
 				<div class="row">
 					<div class="col">
-						<q-input outlined v-model="user.login" label="Login Name" />
+						<q-input outlined v-model="user.username" label="username Name" />
 					</div>
 					<div class="col">
 						<q-input outlined v-model="user.first_name" label="First Name" />
@@ -69,7 +69,7 @@ export default defineComponent({
 					const param = { user: course_user.value };
 					void await store.dispatch('users/addCourseUser', param) as unknown as CourseUser;
 					$q.notify({
-						message: `The user ${_user.login} was successfully added to the course.`,
+						message: `The user ${_user.username} was successfully added to the course.`,
 						color: 'green'
 					});
 					console.log('ici');

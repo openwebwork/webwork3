@@ -38,8 +38,8 @@ if ($TEST_PERMISSIONS) {
 	$config->{ignore_permissions} = 0;
 	$t = Test::Mojo->new( WeBWorK3 => $config );
 
-	# login an admin
-	$t->post_ok( '/webwork3/api/login' => json => { email => 'admin@google.com', password => 'admin' } )
+	# username an admin
+	$t->post_ok( '/webwork3/api/username' => json => { email => 'admin@google.com', password => 'admin' } )
 		->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is( '/logged_in' => 1 )
 		->json_is( '/user/user_id' => 1 )->json_is( '/user/is_admin' => 1 );
 
@@ -50,7 +50,7 @@ else {
 }
 
 # remove the maggie user if exists in the database
-my $maggie = $schema->resultset("User")->find({login => "maggie"});
+my $maggie = $schema->resultset("User")->find({username => "maggie"});
 my $maggie_cu = $schema->resultset("CourseUser")->search({user_id => $maggie->user_id}) if $maggie;
 $maggie_cu->delete_all if defined($maggie_cu);
 $maggie->delete if defined($maggie);
@@ -75,7 +75,7 @@ my $new_user = {
 	email      => 'maggie@abc.com',
 	first_name => "Maggie",
 	last_name  => "Simpson",
-	login      => "maggie",
+	username      => "maggie",
 	student_id => "1234123423"
 };
 
@@ -130,9 +130,9 @@ $t->put_ok( "/webwork3/api/courses/1/users/$new_user_id" => json => { recitation
 	->status_is(250,"status for exception")
 	->content_type_is('application/json;charset=UTF-8')->json_is( '/exception' => 'DB::Exception::UserNotInCourse' );
 
-# try to add a user without a login
+# try to add a user without a username
 
-my $another_new_user = { login_name => "this is the wrong field" };
+my $another_new_user = { username_name => "this is the wrong field" };
 
 $t->post_ok( "/webwork3/api/courses/1/users" => json => $another_new_user )
 	->status_is(250,"status for exception")
@@ -165,10 +165,10 @@ my @all_users   = $schema->resultset("User")->getCourseUsers( { course_id => 1 }
 my @instructors = grep { $_->{role} eq 'instructor' } @all_users;
 
 if ($TEST_PERMISSIONS) {
-	$t->post_ok(	"/webwork3/api/login" => json =>
+	$t->post_ok(	"/webwork3/api/username" => json =>
 		{
 			email => $instructors[0]->{email},
-			password => $instructors[0]->{login}
+			password => $instructors[0]->{username}
 		})->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is( '/logged_in' => 1 );
 

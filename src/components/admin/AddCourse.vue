@@ -19,7 +19,7 @@
 						<q-toggle v-model="course.visible" label="Visible" />
 					</div>
 					<div class="col-3">
-						<q-input outlined v-model="user.login" label="Instructor Login" @blur="checkUser"/>
+						<q-input outlined v-model="user.username" label="Instructor username" @blur="checkUser"/>
 					</div>
 				</div>
 				<div class="row q-col-gutter-lg">
@@ -86,18 +86,18 @@ export default defineComponent({
 
 		const course: Ref<Course> = ref(newCourse());
 		const user: Ref<User> = ref(newUser());
-		const login: Ref<string> = ref('');
+		const username: Ref<string> = ref('');
 		const instructor_exists = ref(false);
 		const course_dates: Ref<DateRange> = ref({ to:'', from:'' });
 
 		return {
 			course,
 			user,
-			login,
+			username,
 			course_dates,
 			instructor_exists,
-			checkUser: async () => { // lookup the user by login to see if already exists
-				const _user = await store.dispatch('users/getGlobalUser', user.value.login) as User;
+			checkUser: async () => { // lookup the user by username to see if already exists
+				const _user = await store.dispatch('users/getGlobalUser', user.value.username) as User;
 				console.log(_user);
 				if (_user !== undefined) {
 					user.value = _user;
@@ -124,7 +124,7 @@ export default defineComponent({
 					_course_user.course_id = _course.course_id;
 					await store.dispatch('users/addCourseUser', _course_user);
 					$q.notify({
-						message: `The user ${user.value.login} was successfully added to the course.`,
+						message: `The user ${user.value.username} was successfully added to the course.`,
 						color: 'green'
 					});
 					context.emit('closeDialog');

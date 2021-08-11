@@ -32,7 +32,7 @@ A hashref containing
 =item -
 Either a course_name or course_id
 =item -
-information on either a set (set_name or set_id) or a user (user_id or login)
+information on either a set (set_name or set_id) or a user (user_id or username)
 
 =cut
 
@@ -137,7 +137,7 @@ sub addUserSet {
 	my $user = $self->_getUser($user_set_info);
 
 	DB::Exception::UserSetExists->throw(
-		login => $user->login,
+		username => $user->username,
 		set_name => $problem_set->set_name,
 		course_name => $problem_set->course_id
 	) if $self->getUserSet($user_set_info,1);
@@ -181,7 +181,7 @@ sub updateUserSet {
 	DB::Exception::UserSetNotInCourse->throw(
 		set_name => $user_set_info->{set_name},
 		course_name => $user_set_info->{course_name},
-		login => $user_set_info->{login}
+		username => $user_set_info->{username}
 	) unless defined($user_set);
 
 	## only allow params and dates to be updated
@@ -226,7 +226,7 @@ sub deleteUserSet {
 	DB::Exception::UserSetNotInCourse->throw(
 		set_name => $user_set_info->{set_name},
 		course_name => $user_set_info->{course_name},
-		login => $user_set_info->{login}
+		username => $user_set_info->{username}
 	) unless defined($user_set);
 
 
@@ -305,7 +305,7 @@ sub _mergeUserSet {
 		set_visible => $problem_set->set_visible,
 		dates  => $dates,
 		params => $params,
-		login => $user->login
+		username => $user->username
 	};
 }
 

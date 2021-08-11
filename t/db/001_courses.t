@@ -160,17 +160,17 @@ throws_ok {
 
 ## get a list of courses for a user
 
-my @user_courses = $course_rs->getUserCourses( { login => "lisa" } );
+my @user_courses = $course_rs->getUserCourses( { username => "lisa" } );
 for my $user_course (@user_courses) {
 	removeIDs($user_course);
 }
 
 my @students = loadCSV("$main::test_dir/sample_data/students.csv");
 
-my @user_courses_from_csv = grep { $_->{login} eq "lisa" } @students;
+my @user_courses_from_csv = grep { $_->{username} eq "lisa" } @students;
 
 for my $user_course (@user_courses_from_csv) {
-	for my $key (qw/email first_name last_name login student_id/) {
+	for my $key (qw/email first_name last_name username student_id/) {
 		delete $user_course->{$key};
 	}
 }
@@ -180,7 +180,7 @@ is_deeply( \@user_courses, \@user_courses_from_csv, "getUserCourses: get all cou
 ## try to get a list of course from a non-existent user
 
 throws_ok {
-	$course_rs->getUserCourses( { login => "non_existent_user" } );
+	$course_rs->getUserCourses( { username => "non_existent_user" } );
 }
 "DB::Exception::UserNotFound", "getUserCourse: try to get a list of courses for a non-existent user";
 
