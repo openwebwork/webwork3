@@ -3,8 +3,6 @@ use Mojo::Base -strict;
 use Test::More;
 use Test::Mojo;
 
-use Data::Dump qw/dd/;
-
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
@@ -17,28 +15,29 @@ my $TEST_PERMISSIONS;
 GetOptions( "perm" => \$TEST_PERMISSIONS );    # check for the flag --perm when running this.
 
 use lib "$main::lib_dir";
-
 use DB::Schema;
+use DB::TestUtils qw/loadSchema/;
+use Clone qw/clone/;
 
-# this tests the api with common courses routes
+# Test the api with common "sets" routes
 
-# load the database
-my $db_file = "$main::test_dir/../db/sample_db.sqlite";
-my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
+my $schema = loadSchema();
+use YAML::XS qw/LoadFile/;
+my $config = clone(LoadFile("$main::lib_dir/../conf/webwork3.yml"));
 
 my $t;
 
 if ($TEST_PERMISSIONS) {
-	$t = Test::Mojo->new( WeBWorK3 => { ignore_permissions => 0, secrets => [1234] } );
+	$config->{ignore_permissions} = 0;
+	$t = Test::Mojo->new( WeBWorK3 => $config );
 
 	# login an admin
 	$t->post_ok( '/webwork3/api/login' => json => { email => 'admin@google.com', password => 'admin' } )
 		->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is( '/logged_in' => 1 )
 		->json_is( '/user/user_id' => 1 )->json_is( '/user/is_admin' => 1 );
-
 }
 else {
-	$t = Test::Mojo->new( WeBWorK3 => { ignore_permissions => 1, secrets => [1234] } );
+	$t = Test::Mojo->new( WeBWorK3 => $config );
 }
 
 # Disabled for now until this is fixed.
@@ -46,7 +45,7 @@ else {
 #	->json_is( '/10/set_name' => "Quiz #1" );
 
 $t->get_ok('/webwork3/api/courses/2/sets')->content_type_is('application/json;charset=UTF-8')
-	->json_is( '/1/set_name' => "HW #2" )->json_is( '/1/dates/open' => 21 );
+	->json_is( '/1/set_name' => "HW #2" )->json_is( '/1/dates/open' => 1609545540 );
 
 # Pull out the id from the response
 my $set_id = $t->tx->res->json('/3/set_id');
