@@ -2,13 +2,8 @@
 	<q-layout view="hHh Lpr lFf">
 		<menu-bar  @toggle="test"/>
 
-		<q-drawer
-			v-model="sidebar_open"
-			bordered
-			class="bg-grey-1"
-		>
-
-		<menu-sidebar />
+		<q-drawer show-if-above v-model="sidebar_open" bordered class="bg-grey-1" >
+			<menu-sidebar />
 		</q-drawer>
 
 		<q-page-container>
@@ -29,7 +24,7 @@ export default defineComponent({
 	},
 	emits: ['toggleMenuSidebar'],
 	setup() {
-		const sidebar_open = ref(true);
+		const sidebar_open = ref(false);
 		return {
 			sidebar_open,
 			test: () => {
