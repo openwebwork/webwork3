@@ -24,7 +24,7 @@ export default {
 			const response = await axios.get('/webwork3/api/courses');
 			commit('SET_COURSES', response.data as Array<Course>);
 		},
-		async addCourse({ commit }: { commit: Commit}, _course: Course): Promise<Course> {
+		async addCourse({ commit }: { commit: Commit }, _course: Course): Promise<Course> {
 			const response = await axios.post('/webwork3/api/courses', _course);
 			const course = response.data as Course;
 			commit('ADD_COURSE', course);

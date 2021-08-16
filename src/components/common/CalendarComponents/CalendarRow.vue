@@ -57,8 +57,7 @@
 				</table>
 			</b-popover>
 		</draggable>
-		-->
-	</div>
+		--></div>
 </template>
 
 <script lang="ts">
@@ -76,12 +75,12 @@ export default defineComponent({
 		const first_day_of_week = props.first_day_of_week || Date.now();
 
 		return {
-			week: computed((): Array<Date> =>
-				[0, 1, 2, 3, 4, 5, 6].map((num) => date.addToDate(first_day_of_week, { days: num }))),
-			shortDay: (day: Date) =>
-				day.getDate() === 1 ? date.formatDate(day, 'MMM D') : date.formatDate(day, 'D'),
+			week: computed(
+				(): Array<Date> => [0, 1, 2, 3, 4, 5, 6].map((num) => date.addToDate(first_day_of_week, { days: num }))
+			),
+			shortDay: (day: Date) => (day.getDate() === 1 ? date.formatDate(day, 'MMM D') : date.formatDate(day, 'D')),
 			background: (day: Date) =>
-				day.getDate() === 1 ? 'firstday' : (date.isSameDate(day, new Date(), 'day') ? 'today' : '')
+				day.getDate() === 1 ? 'firstday' : date.isSameDate(day, new Date(), 'day') ? 'today' : ''
 		};
 	}
 	// private drag = false;

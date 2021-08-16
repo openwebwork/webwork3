@@ -7,13 +7,13 @@
 			<div class="col-5">
 				<q-btn-group push>
 					<q-btn push label="Previous Week" @click="prev" />
-					<q-btn push label="Today" @click="today"/>
+					<q-btn push label="Today" @click="today" />
 					<q-btn push label="Next Week" @click="next" />
 				</q-btn-group>
 			</div>
 		</div>
 		<template v-for="day in calendar_days" :key="day">
-			<calendar-row :first_day_of_week="day"/>
+			<calendar-row :first_day_of_week="day" />
 		</template>
 	</div>
 </template>
@@ -41,13 +41,13 @@ export default defineComponent({
 			= ref(date.subtractFromDate(first_day_of_month, { days: first_day_of_month.getDay() }));
 		return {
 			first_day,
-			calendar_days: computed(
-				() => [0, 1, 2, 3, 4].map((num) => date.addToDate(first_day.value, { days: 7 * num }))),
+			calendar_days: computed(() => [0, 1, 2, 3, 4]
+				.map((num) => date.addToDate(first_day.value, { days: 7 * num }))),
 			current_month: computed(() => date.formatDate(first_day.value, 'MMMM, YYYY')),
-			prev: () => first_day.value = date.subtractFromDate(first_day.value, { days: 7 }),
-			next: () => first_day.value = date.addToDate(first_day.value, { days: 7 }),
-			today: () => first_day.value
-				= date.subtractFromDate(first_day_of_month, { days: first_day_of_month.getDay() })
+			prev: () => (first_day.value = date.subtractFromDate(first_day.value, { days: 7 })),
+			next: () => (first_day.value = date.addToDate(first_day.value, { days: 7 })),
+			today: () => (first_day.value
+				= date.subtractFromDate(first_day_of_month, { days: first_day_of_month.getDay() }))
 		};
 	}
 });

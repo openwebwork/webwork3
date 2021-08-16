@@ -5,9 +5,7 @@
 				<div class="text-h6">Adding Users From a File</div>
 			</q-card-section>
 
-			<q-card-section class="q-pt-none">
-				Click/Tap on the backdrop.
-			</q-card-section>
+			<q-card-section class="q-pt-none"> Click/Tap on the backdrop. </q-card-section>
 
 			<q-card-actions align="right" class="bg-white text-teal">
 				<q-btn flat label="OK" v-close-popup />

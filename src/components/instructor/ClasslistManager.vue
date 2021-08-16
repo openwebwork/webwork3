@@ -8,11 +8,11 @@
 				title="Users"
 				selection="multiple"
 				:filter="filter"
-				:visible-columns="['username','email']"
+				:visible-columns="['username', 'email']"
 				v-model:selected="selected"
 			>
 				<template v-slot:top-right>
-					<span v-if="selected.length>0" style="margin-right: 20px">
+					<span v-if="selected.length > 0" style="margin-right: 20px">
 						<q-btn color="secondary" label="Deleted Selected" @click="deleteUsers" />
 						<q-btn color="secondary" label="Edit Selected" />
 					</span>
@@ -41,12 +41,11 @@
 			</q-table>
 		</div>
 		<q-dialog full-width v-model="open_users_manually">
-			<add-users-manually @close-dialog="open_users_manually = false"/>
+			<add-users-manually @close-dialog="open_users_manually = false" />
 		</q-dialog>
 		<q-dialog full-width v-model="open_users_from_file">
 			<add-users-from-file />
 		</q-dialog>
-
 	</div>
 </template>
 
@@ -96,7 +95,8 @@ export default defineComponent({
 				label: 'Role',
 				field: 'role',
 				sortable: true
-			}];
+			}
+		];
 		return {
 			filter,
 			selected,

@@ -1,14 +1,9 @@
 <template>
 	<q-layout view="hHh Lpr lFf">
-		<menu-bar  @toggle="test"/>
+		<menu-bar @toggle="test" />
 
-		<q-drawer
-			v-model="sidebar_open"
-			bordered
-			class="bg-grey-1"
-		>
-
-		<menu-sidebar />
+		<q-drawer v-model="sidebar_open" bordered class="bg-grey-1">
+			<menu-sidebar />
 		</q-drawer>
 
 		<q-page-container>

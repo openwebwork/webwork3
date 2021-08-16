@@ -18,7 +18,7 @@
 					</div>
 					<div class="col">
 						<q-input outlined v-model="user.email" label="Email" />
-						</div>
+					</div>
 					<div class="col">
 						<q-input outlined v-model="user.student_id" label="Student ID" />
 					</div>
@@ -59,15 +59,16 @@ export default defineComponent({
 		return {
 			user,
 			roles: computed(() => {
-				const role_setting = store.state.settings.course_settings
-					.find((_setting: CourseSetting) => _setting.var === 'roles');
-				return role_setting && role_setting.value || [];
+				const role_setting = store.state.settings.course_settings.find(
+					(_setting: CourseSetting) => _setting.var === 'roles'
+				);
+				return (role_setting && role_setting.value) || [];
 			}),
 			addUser: async () => {
 				try {
-					const _user = await store.dispatch('users/addGlobalUser', user) as User;
+					const _user = (await store.dispatch('users/addGlobalUser', user)) as User;
 					const param = { user: course_user.value };
-					void await store.dispatch('users/addCourseUser', param) as unknown as CourseUser;
+					void (await store.dispatch('users/addCourseUser', param)) as unknown as CourseUser;
 					$q.notify({
 						message: `The user ${_user.username} was successfully added to the course.`,
 						color: 'green'
@@ -76,7 +77,7 @@ export default defineComponent({
 					context.emit('closeDialog');
 				} catch (err) {
 					const error = err as AxiosError;
-					const data = error  && error.response && (error.response.data  as ResponseError)
+					const data = (error && error.response && (error.response.data as ResponseError))
 						|| { exception: '' };
 					$q.notify({
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

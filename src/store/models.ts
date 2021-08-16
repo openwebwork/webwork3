@@ -35,14 +35,14 @@ export interface CourseUser {
 }
 
 export interface SessionInfo {
-  user: User;
-  logged_in: boolean;
+	user: User;
+	logged_in: boolean;
 	message: string;
 }
 
 export interface UserPassword {
-  username: string;
-  password: string;
+	username: string;
+	password: string;
 }
 
 export interface CourseDates {
@@ -59,11 +59,11 @@ export interface Course {
 
 export enum CourseSettingOption {
 	int = 'int',
-		decimal = 'decimal',
-		list = 'list',
-		multilist = 'multilist',
-		text = 'text',
-		boolean = 'boolean'
+	decimal = 'decimal',
+	list = 'list',
+	multilist = 'multilist',
+	text = 'text',
+	boolean = 'boolean'
 }
 
 export interface CourseSetting {

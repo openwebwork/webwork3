@@ -9,18 +9,20 @@
 				:filter="filter"
 				selection="multiple"
 				v-model:selected="selected"
-				:visible-columns="['course_name','visible','starting_date','end_date']"
+				:visible-columns="['course_name', 'visible', 'starting_date', 'end_date']"
 			>
 				<template v-slot:body-cell-visible="props">
 					<q-td :props="props">
 						<div>
-							<q-icon
-								v-if="props.value"
-								name="done"
-								class="text-primary"
-								style="font-size: 20px; font-weight: bold"
-							/>
+							<q-icon v-if="props.value" name="done"
+								class="text-primary" style="font-size: 20px; font-weight: bold" />
 						</div>
+					</q-td>
+				</template>
+
+				<template v-slot:body-cell-course_name="props">
+					<q-td :props="props">
+						<router-link :to="`/courses/${props.row.course_id}/instructor`">{{ props.value }}</router-link>
 					</q-td>
 				</template>
 

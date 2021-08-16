@@ -11,7 +11,7 @@
 						<q-input outlined v-model="course.course_name" label="Course Name" />
 					</div>
 					<div class="col">
-						<div class="text-h5">Add Instructor </div>
+						<div class="text-h5">Add Instructor</div>
 					</div>
 				</div>
 				<div class="row">
@@ -19,7 +19,7 @@
 						<q-toggle v-model="course.visible" label="Visible" />
 					</div>
 					<div class="col-3">
-						<q-input outlined v-model="user.username" label="Instructor username" @blur="checkUser"/>
+						<q-input outlined v-model="user.username" label="Instructor username" @blur="checkUser" />
 					</div>
 				</div>
 				<div class="row q-col-gutter-lg">
@@ -29,25 +29,18 @@
 					<div class="col">
 						<div class="row q-col-gutter-lg">
 							<div class="col-3">
-								<q-input
-									outlined
-									:disable="instructor_exists"
-									v-model="user.first_name"
-									label="First Name"
-								/>
+								<q-input outlined :disable="instructor_exists"
+									v-model="user.first_name" label="First Name" />
 							</div>
 							<div class="col-3">
-								<q-input
-									outlined
-									:disable="instructor_exists"
-									v-model="user.last_name"
-									label="Last Name"
-								/>
+								<q-input outlined :disable="instructor_exists"
+									v-model="user.last_name" label="Last Name" />
 							</div>
 						</div>
 						<div class="row q-col-gutter-lg">
 							<div class="col-3">
-								<q-input outlined :disable="instructor_exists" v-model="user.email" label="Email" />
+								<q-input outlined :disable="instructor_exists"
+									v-model="user.email" label="Email" />
 							</div>
 						</div>
 					</div>
@@ -88,7 +81,7 @@ export default defineComponent({
 		const user: Ref<User> = ref(newUser());
 		const username: Ref<string> = ref('');
 		const instructor_exists = ref(false);
-		const course_dates: Ref<DateRange> = ref({ to:'', from:'' });
+		const course_dates: Ref<DateRange> = ref({ to: '', from: '' });
 
 		return {
 			course,
@@ -96,8 +89,9 @@ export default defineComponent({
 			username,
 			course_dates,
 			instructor_exists,
-			checkUser: async () => { // lookup the user by username to see if already exists
-				const _user = await store.dispatch('users/getGlobalUser', user.value.username) as User;
+			checkUser: async () => {
+				// lookup the user by username to see if already exists
+				const _user = (await store.dispatch('users/getGlobalUser', user.value.username)) as User;
 				console.log(_user);
 				if (_user !== undefined) {
 					user.value = _user;
@@ -108,15 +102,15 @@ export default defineComponent({
 			},
 			addCourse: async () => {
 				try {
-					const _course = await store.dispatch('courses/addCourse', course.value) as unknown as Course;
+					const _course = (await store.dispatch('courses/addCourse', course.value)) as unknown as Course;
 
 					$q.notify({
 						message: `The course ${_course.course_name} was successfully added.`,
 						color: 'green'
 					});
-					if (! instructor_exists.value) {
+					if (!instructor_exists.value) {
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-						void await store.dispatch('users/addGlobalUser', user.value);
+						void (await store.dispatch('users/addGlobalUser', user.value));
 					}
 					// add the user to the course
 					const _course_user = newCourseUser();
@@ -130,7 +124,8 @@ export default defineComponent({
 					context.emit('closeDialog');
 				} catch (err) {
 					const error = err as AxiosError;
-					const data = error && error.response && (error.response.data as ResponseError) || { exception: '' };
+					const data = (error && error.response && (error.response.data as ResponseError))
+						|| { exception: '' };
 					$q.notify({
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 						message: data.exception,

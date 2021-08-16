@@ -1,26 +1,26 @@
 <template>
-<div class='row q-mt-lg justify-center'>
-	<q-card class='col-sm-4'>
-		<q-form @submit.prevent='login'>
-			<q-card-section>
-				<div class='text-h6'>Login to WeBWorK</div>
-			</q-card-section>
-			<q-card-section>
-				<q-input v-model='username' label='Username' />
-				<q-input v-model='password' type='password' label='Password' />
-			</q-card-section>
-			<q-card-section>
-				<q-btn push type='submit' color='primary' label='username' />
-			</q-card-section>
-			<q-card-section v-if='message'>
-				<div class="text-red">{{message}}</div>
-			</q-card-section>
-		</q-form>
-	</q-card>
-</div>
+	<div class="row q-mt-lg justify-center">
+		<q-card class="col-sm-4">
+			<q-form @submit.prevent="login">
+				<q-card-section>
+					<div class="text-h6">Login to WeBWorK</div>
+				</q-card-section>
+				<q-card-section>
+					<q-input v-model="username" label="Username" />
+					<q-input v-model="password" type="password" label="Password" />
+				</q-card-section>
+				<q-card-section>
+					<q-btn push type="submit" color="primary" label="Login" />
+				</q-card-section>
+				<q-card-section v-if="message">
+					<div class="text-red">{{ message }}</div>
+				</q-card-section>
+			</q-form>
+		</q-card>
+	</div>
 </template>
 
-<script lang='ts'>
+<script lang="ts">
 import { useRouter } from 'vue-router';
 import { defineComponent, ref } from 'vue';
 import { useStore } from 'src/store';
@@ -43,7 +43,8 @@ export default defineComponent({
 			const session = await checkPassword(username_info);
 			if (!session.logged_in) {
 				message.value = session.message;
-			} else { // success
+			} else {
+				// success
 				void store.dispatch('session/updateSessionInfo', session);
 				if (session && session.user && session.user.is_admin) {
 					void router.push('/admin');
