@@ -1,5 +1,13 @@
 /* This file contains common functions and constants needs for general use */
 
+import { date } from 'quasar';
+
+export function formatDate(_date_to_format: string) {
+	const _date = new Date();
+	_date.setTime(parseInt(_date_to_format) * 1000); //js dates have milliseconds instead of standard unix epoch
+	return date.formatDate(_date, 'MM-DD-YYYY [at] h:mmA'); // have the format changeable?
+}
+
 export interface MenuBarView {
 	name: string;
 	component_name: string;
@@ -55,7 +63,7 @@ export const instructor_views = [
 	},
 	{
 		name: 'Problem Set Details',
-		component_name: 'ProblemSetDetails',
+		component_name: 'SetDetailContainer',
 		icon: 'info',
 		route: 'set-view',
 		show_set: true,

@@ -1,13 +1,11 @@
 <template>
 	<q-header>
-		<q-toolbar>
+		<q-toolbar :class="'bg-' + menubar_color">
 			<q-btn flat @click="toggleButton" round dense icon="menu" />
-			<q-toolbar-title>
+			<q-img src="/images/webwork_logo.svg" height="40px" width="140px" />
+			<!-- <q-toolbar-title>
 				WeBWorK
-				<!-- <q-btn-dropdown color="primary" :label="current_view" menu-anchor="bottom middle" no-caps>
-
-				</q-btn-dropdown> -->
-			</q-toolbar-title>
+			</q-toolbar-title> -->
 			<q-space />
 			<q-btn-dropdown v-if="logged_in" color="purple" icon="person" :label="full_name">
 				<q-list>
@@ -20,7 +18,7 @@
 					<template v-for="course in user_courses" :key="course.course_id">
 						<q-item clickable v-close-popup @click="changeCourse(course.course_id, course.course_name)">
 							<q-item-section>
-								<q-item-label>{{course.course_name}}</q-item-label>
+								<q-item-label>{{ course.course_name }}</q-item-label>
 							</q-item-section>
 						</q-item>
 					</template>
@@ -34,6 +32,7 @@
 import { computed, defineComponent, ref } from 'vue';
 import { useStore } from 'src/store';
 import { useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { UserCourse } from 'src/store/models';
 
 export default defineComponent({
@@ -44,6 +43,7 @@ export default defineComponent({
 	setup(_, { emit }) {
 		const store = useStore();
 		const router = useRouter();
+		const route = useRoute();
 		const current_view = ref('');
 
 		const current_course_name = computed(() => store.state.session.course.course_name);
@@ -54,15 +54,18 @@ export default defineComponent({
 			current_course_name,
 			full_name: computed(() => `${store.state.session.user.first_name} ${store.state.session.user.last_name}`),
 			user_courses: computed(() => {
-				return store.state.users.user_courses
-					.filter((course: UserCourse) => course.course_name !== current_course_name.value);
+				return store.state.users.user_courses.filter(
+					(course: UserCourse) => course.course_name !== current_course_name.value
+				);
 			}),
 			changeCourse: (course_id: number, course_name: string) => {
-				const current_course = store.state.users.user_courses
-					.filter((course: UserCourse) => course.course_name === current_course_name.value)[0];
+				const current_course = store.state.users.user_courses.filter(
+					(course: UserCourse) => course.course_name === current_course_name.value
+				)[0];
 
-				const new_course = store.state.users.user_courses
-					.filter((course: UserCourse) => course.course_name === course_name)[0];
+				const new_course = store.state.users.user_courses.filter(
+					(course: UserCourse) => course.course_name === course_name
+				)[0];
 				if (current_course.role !== new_course.role) {
 					void router.push({ name: new_course.role, params: { course_id: course_id } });
 				}
@@ -76,9 +79,15 @@ export default defineComponent({
 			logout: () => {
 				void store.dispatch('session/logout');
 				void router.push('/login');
-			}
+			},
+			menubar_color: computed(() =>
+				/^\/courses\/\d+\/instructor/.test(route.path)
+					? 'deep-purple-8'
+					: /^\/admin/.test(route.path)
+						? 'indigo-8'
+						: 'green-9'
+			)
 		};
 	}
-
 });
 </script>

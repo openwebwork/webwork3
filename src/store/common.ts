@@ -1,4 +1,4 @@
-import { User, Course, CourseUser } from './models';
+import { User, Course, CourseUser, ProblemSet, ProblemSetType } from './models';
 
 export function newUser(): User {
 	return {
@@ -32,5 +32,17 @@ export function newCourse(): Course {
 			end: '',
 			start: ''
 		}
+	};
+}
+
+export function newProblemSet(): ProblemSet {
+	return {
+		set_id: 0,
+		set_name: '',
+		course_id: 0,
+		set_type: ProblemSetType.HW,
+		set_visible: false,
+		params: {},
+		dates: {}
 	};
 }
