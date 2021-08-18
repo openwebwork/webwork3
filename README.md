@@ -41,7 +41,7 @@ are assuming terminal/shell commands.
 
 1. Clone the webwork3 code with `git clone https://github.com/openwebwork/webwork3.git`
 2. Change directory to the webwork3 directory: `cd webwork3`
-3. Switch to the `vue-quasar` branch with `git checkout vue-quasar`.
+3. Copy conf/webwork3.yml.dist to conf/webwork3.yml and modify it appropriately if needed.
 
 ### Getting Mojolicious and other needed packages
 
