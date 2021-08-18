@@ -173,6 +173,7 @@ delete $new_set->{type};
 
 is_deeply( $new_set_params, $new_set, "addProblemSet: add one homework" );
 
+
 ## try to add a homework without set_name
 
 my $new_set2 = {
@@ -274,8 +275,23 @@ my $updated_set = $problem_set_rs->updateProblemSet( { course_name => "Precalcul
 	{ set_name => $new_set_params->{set_name}, params => { enable_reduced_scoring => 1 } } );
 removeIDs($updated_set);
 delete $updated_set->{set_visible};
+delete $new_set_params->{type};
 
 is_deeply( $new_set_params, $updated_set, "updateSet: change the set parameters" );
+
+## update the set where the set_type is sent, but the type is not:
+
+$new_set_params->{set_name} = "HW #88";
+$new_set_params->{set_type} = "HW";
+delete $new_set_params->{type};
+
+$updated_set = $problem_set_rs->updateProblemSet({course_name => "Precalculus", set_id => $new_set_id},
+	$new_set_params);
+
+removeIDs($updated_set);
+delete $updated_set->{set_visible};
+is_deeply( $new_set_params, $updated_set, "updateSet: update a set with set_type defined." );
+
 
 ## try to update a set with an illegal field
 
@@ -302,7 +318,7 @@ throws_ok {
 
 ## delete a set
 
-my $deleted_set = $problem_set_rs->deleteProblemSet( { course_name => "Precalculus", set_name => "HW #8" } );
+my $deleted_set = $problem_set_rs->deleteProblemSet( { course_name => "Precalculus", set_name => "HW #88" } );
 removeIDs($deleted_set);
 delete $deleted_set->{set_visible};
 
