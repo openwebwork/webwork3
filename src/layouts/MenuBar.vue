@@ -1,32 +1,42 @@
 <template>
 	<q-header>
-		<q-toolbar>
-			<q-btn flat @click="toggleButton" round dense icon="menu" />
-			<q-toolbar-title>
-				WeBWorK
-				<!-- <q-btn-dropdown color="primary" :label="current_view" menu-anchor="bottom middle" no-caps>
-
-				</q-btn-dropdown> -->
-			</q-toolbar-title>
-			<q-space />
-			<q-btn-dropdown v-if="logged_in" color="purple" icon="person" :label="full_name">
-				<q-list>
-					<q-item clickable>User Settings</q-item>
-					<q-item clickable v-close-popup @click="logout">Logout</q-item>
-				</q-list>
-			</q-btn-dropdown>
-			<q-btn-dropdown color="purple" :label="current_course_name" v-if="current_course_name">
-				<q-list>
-					<template v-for="course in user_courses" :key="course.course_id">
-						<q-item clickable v-close-popup @click="changeCourse(course.course_id, course.course_name)">
-							<q-item-section>
-								<q-item-label>{{course.course_name}}</q-item-label>
-							</q-item-section>
-						</q-item>
-					</template>
-				</q-list>
-			</q-btn-dropdown>
-		</q-toolbar>
+		<div class="row">
+			<div class="col col-md-3 col-12 q-my-auto" style="background-color:#1048ae">
+				<q-toolbar>
+					<q-btn flat @click="toggleButton" round dense icon="menu" />
+					<q-toolbar-title>
+						<q-img src="images/webwork_logo.svg" position="0 50%" width="190px" fit="scale-down" />
+					</q-toolbar-title>
+				</q-toolbar>
+			</div>
+			<div class="col col-md-4 col-12 q-my-auto" style="padding:4px 0">
+				<q-img src="images/maa_logo.png" position="6px 50%" width="340px" fit="scale-down" :ratio="9.5" />
+			</div>
+			<div class="col col-md-5 col-12 q-my-auto">
+				<q-toolbar>
+					<q-space />
+					<q-btn-dropdown v-if="logged_in" color="secondary" icon="person" :label="full_name">
+						<q-list>
+							<q-item clickable>User Settings</q-item>
+							<q-item clickable v-close-popup @click="logout">Logout</q-item>
+						</q-list>
+					</q-btn-dropdown>
+					<q-btn-dropdown color="secondary" :label="current_course_name" v-if="current_course_name"
+						style="margin-left:6px">
+						<q-list>
+							<template v-for="course in user_courses" :key="course.course_id">
+								<q-item clickable v-close-popup
+									@click="changeCourse(course.course_id, course.course_name)">
+									<q-item-section>
+										<q-item-label>{{course.course_name}}</q-item-label>
+									</q-item-section>
+								</q-item>
+							</template>
+						</q-list>
+					</q-btn-dropdown>
+				</q-toolbar>
+			</div>
+		</div>
 	</q-header>
 </template>
 
