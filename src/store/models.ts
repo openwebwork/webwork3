@@ -57,6 +57,8 @@ export interface Course {
 	course_dates: CourseDates;
 }
 
+/* These are related to Course Settings */
+
 export enum CourseSettingOption {
 	int = 'int',
 	decimal = 'decimal',
@@ -86,10 +88,12 @@ export interface CourseSettingInfo {
 	default: string | number | boolean;
 }
 
+/* These are Problem Set interfaces */
+
 export enum ProblemSetType {
-	HW,
-	QUIZ,
-	REVIEW_SET
+	HW = 'HW',
+	QUIZ = 'Quiz',
+	REVIEW_SET = 'REVIEW'
 }
 
 export interface ProblemSet {
@@ -98,6 +102,60 @@ export interface ProblemSet {
 	course_id: number;
 	set_type: ProblemSetType;
 	set_visible: boolean;
+	params: ParamsType;
+	dates: DatesType;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface DatesType {
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ParamsType {
+}
+
+export interface HomeworkSetParams extends ParamsType {
+	enable_reduced_scoring?: boolean;
+	hide_hint?: boolean;
+	hardcopy_header?: string;
+	set_header?: string;
+	description?: string;
+}
+
+export interface HomeworkSetDates {
+	open: number;
+	reduced_scoring?: number;
+	due: number;
+	answer:number;
+}
+
+export interface HomeworkSet extends ProblemSet {
+	params: HomeworkSetParams;
+	dates: HomeworkSetDates;
+}
+
+export interface QuizDates extends DatesType {
+	open: number;
+	due: number;
+	answer:number;
+}
+
+export interface QuizParams extends ParamsType {
+	timed?: boolean;
+	time_length?: number;
+}
+
+export interface Quiz extends ProblemSet {
+	params: QuizParams;
+	dates: QuizDates;
+}
+
+export interface ParseableProblemSet {
+	set_id: string | number;
+	set_name: string;
+	course_id: string | number;
+	set_type: string;
+	set_visible: string | number;
 	params: Dictionary<string>;
 	dates: Dictionary<string>;
 }
