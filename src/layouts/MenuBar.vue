@@ -57,7 +57,7 @@ export default defineComponent({
 	emits: {
 		toggle: null
 	},
-	setup(_, { emit }) {
+	setup() {
 		const store = useStore();
 		const router = useRouter();
 		const current_view = ref('');
