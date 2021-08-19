@@ -1,10 +1,7 @@
-
-=pod
-
 =head1 DESCRIPTION
 
 This is the functionality of a User in WeBWorK.  This package is based on
-<code>DBIx::Class::ResultSet</code>.  The basics are a CRUD for users.
+C<DBIx::Class::ResultSet>.  The basics are a CRUD for users.
 
 =cut
 
@@ -22,10 +19,9 @@ use DB::Utils qw/getCourseInfo getUserInfo removeLoginParams/;
 use DB::Exception;
 use Exception::Class ( 'DB::Exception::UserNotFound', 'DB::Exception::CourseExists', "DB::Exception::UserNotInCourse" );
 
-=pod
 =head1 getAllGlobalUsers
 
-This gets a list of all users or users stored in the database in the <code>users</codes> table.
+This gets a list of all users or users stored in the database in the C<users> table.
 
 =head3 input
 
@@ -33,7 +29,7 @@ none
 
 =head3 output
 
-An array of courses as a <code>DBIx::Class::ResultSet::Course</code> object.
+An array of courses as a C<DBIx::Class::ResultSet::Course> object.
 
 =cut
 
@@ -44,22 +40,24 @@ sub getAllGlobalUsers {
 	return map { removeLoginParams( { $_->get_inflated_columns } ); } @users;
 }
 
-=pod
 =head1 getGlobalUser
 
-Gets a single user from the <code>users</code> table.
+Gets a single user from the C<users> table.
 
 =head3 input
 
-=item *
-<code>user_info</code>, a hashref of the form <code>{user_id => 1}</code>
-or <code>{username => "username"}</code>.
-=item *
-<code>result_set</code>, a boolean that if true returns the user as a result set.  See below
+=over
+
+=item * C<user_info>, a hashref of the form C<{ user_id => 1 }> or C<{ username => "username" }>.
+
+=item * C<result_set>, a boolean that if true returns the user as a result set.  See below
+
+=back
+
 =head3 output
 
-The user as either a hashref or a  <code>DBIx::Class::ResultSet::User</code> object.  the argument
-<code>result_set</code> determine which is returned.
+The user as either a hashref or a  C<DBIx::Class::ResultSet::User> object.  the argument
+C<result_set> determine which is returned.
 
 =cut
 
@@ -73,23 +71,31 @@ sub getGlobalUser {
 	return removeLoginParams($params);
 }
 
-=pod
 =head1 addGlobalUser
 
-Add a single user to the <code>users</code> table.
+Add a single user to the C<users> table.
 
 =head3 input
 
-<code>params</code>, a hashref including information about the user this includes:
+C<params>, a hashref including information about the user this includes:
+
+=over
+
 =item * username (required)
+
 =item * first_name
+
 =item * last_name
+
 =item * email
+
 =item * student_id
+
+=back
 
 =head3 output
 
-The user as  <code>DBIx::Class::ResultSet::User</code> object or <code>undef</code> if no user exists.
+The user as  C<DBIx::Class::ResultSet::User> object or C<undef> if no user exists.
 
 =cut
 
@@ -107,21 +113,23 @@ sub addGlobalUser {
 	return removeLoginParams( { $new_user->get_columns } );
 }
 
-=pod
 =head1 deleteGlobalUser
 
-This deletes a single user that is stored in the database in the <code>users</codes> table.
+This deletes a single user that is stored in the database in the C<users> table.
 
 =head3 input
 
-=item *
-<code>user_info</code>, a hashref of the form <code>{user_id => 1}</code>
-or <code>{username => "username"}</code>.
-=item *
-as_result_set, a flag to return the result as a ResultSet of a hashref.
+=over
+
+=item * C<user_info>, a hashref of the form C<{user_id => 1}> or C<{username => "username"}>.
+
+=item * as_result_set, a flag to return the result as a ResultSet of a hashref.
+
+=back
+
 =head3 output
 
-The deleted user as a <code>DBIx::Class::ResultSet::User</code> object.
+The deleted user as a C<DBIx::Class::ResultSet::User> object.
 
 =cut
 
@@ -136,27 +144,37 @@ sub deleteGlobalUser {
 	return removeLoginParams( { $deleted_user->get_inflated_columns } );
 }
 
-=pod
 =head1 updateGlobalUser
 
-This updates a single user that is stored in the database in the <code>user</codes> table.
+This updates a single user that is stored in the database in the C<user> table.
 
 =head3 input
 
-=item *
-<code>user_info</code>, a hashref of the form <code>{user_id => 1}</code>
-or <code>{username => "username"}</code>.
-=item *
-<code>params</code>, a hashref of the user parameters.   The following structure is expected:
+=over
+
+=item * C<user_info>, a hashref of the form C<{user_id => 1}> or C<{username => "username"}>.
+
+=item * C<params>, a hashref of the user parameters.   The following structure is expected:
+
+=over
+
 =item - username (required)
+
 =item - first_name
+
 =item - last_name
+
 =item - email
+
 =item - student_id
+
+=back
+
+=back
 
 =head3 output
 
-The updated course as a <code>DBIx::Class::ResultSet::Course</code> or a hashref.
+The updated course as a C<DBIx::Class::ResultSet::Course> or a hashref.
 
 =cut
 
@@ -187,19 +205,21 @@ sub authenticate {
 #
 ####
 
-=pod
 =head1 getUsers
 
 This gets all users in a given course.
 
 =head3 input
 
-=item *
-<code>course_name</code>, a string
+=over
+
+=item * C<course_name>, a string
+
+=back
 
 =head3 output
 
-An array of Users (as hashrefs) or an arrayref of <code>DBIx::Class::ResultSet::User</code>
+An array of Users (as hashrefs) or an arrayref of C<DBIx::Class::ResultSet::User>
 
 =cut
 
@@ -226,19 +246,25 @@ sub getCourseUsers {
 #
 ###
 
-=pod
 =head1 getUser
 
 This gets a single user in a given course.
 
 =head3 input
 
-=item *
-<code>params</code>, a hashref containing:
-=item -
-<code>course_name</code>, the name of an existing course
-=item -
-<code>username</code>, the username of an existing user.
+=over
+
+=item * C<params>, a hashref containing:
+
+=over
+
+=item - C<course_name>, the name of an existing course
+
+=item - C<username>, the username of an existing user.
+
+=back
+
+=back
 
 =head3 notes:
 if either the course or username doesn't exist, an error will be thrown.
@@ -263,8 +289,6 @@ sub getUser {
 	return removeLoginParams($user_params);
 }
 
-
-
 sub getCourseUser {
 	my ( $self, $course_user_info, $as_result_set ) = @_;
 
@@ -276,8 +300,6 @@ sub getCourseUser {
 	DB::Exception::TooManyParameters->throw(
 		message => "Too many parameters were passed into getCourseUser"
 	) if (scalar(@keys) != 2 );
-
-
 
 	my $course_user = $self->result_source->schema->resultset("CourseUser")
 		->find({course_id => $course->course_id, user_id => $user->user_id});
@@ -307,7 +329,6 @@ The method returns only the information in the course_user table
 
 =cut
 
-
 sub addCourseUser {
 	my ( $self, $course_user_params, $as_result_set ) = @_;
 	# warn "in addCourseUser";
@@ -329,7 +350,6 @@ sub addCourseUser {
 	for my $key (qw/ course_id course_name username user_id/) {
 		delete $params->{$key};
 	}
-
 
 	## still need to check params for validity.
 
@@ -385,46 +405,51 @@ sub deleteCourseUser {
 #
 ###
 
-
-
-=pod
 =head1 addUser
 
 This adds a User to an existing course
 
 =head3 input
 
-=item *
-<code>course_info</code> containing either course_name or course_id as a hashref.
+=over
 
-=item *
-<code>params</code>, a hashref containing
-=item -
-<code>username</code>, the username of a user (required)
-=item -
-<code>first_name</code>, the first name of the user
-=item -
-<code>last_name</code>, the last name of the user
-=item -
-<code>student_id</code>, the student id of the user
-=item -
-<code>roles</code>, A listing of roles of the user (instructor, student)
+=item * C<course_info> containing either course_name or course_id as a hashref.
+
+=item * C<params>, a hashref containing
+
+=over
+
+=item - C<username>, the username of a user (required)
+
+=item - C<first_name>, the first name of the user
+
+=item - C<last_name>, the last name of the user
+
+=item - C<student_id>, the student id of the user
+
+=item - C<roles>, A listing of roles of the user (instructor, student)
+
+=back
+
+=back
 
 =head3 notes
-=item *
-If both the username and course name is not included, an error will be thrown.
-=item *
-If the course doesn't exist, an error will be thrown
-=item *
-If the user's username already exists as a global user, an error will be thrown.
 
+=over
+
+=item * If both the username and course name is not included, an error will be thrown.
+
+=item * If the course doesn't exist, an error will be thrown
+
+=item * If the user's username already exists as a global user, an error will be thrown.
+
+=back
 
 =head3 output
 
 An hashref of the added user.
 
 =cut
-
 
 # sub addUser {
 # 	my ( $self, $course_info, $params, $as_result_set ) = @_;
@@ -481,34 +506,43 @@ sub _checkCourseUser {
 	return 1;
 }
 
-=pod
 =head2 updateUser
 
 This updates a User in an existing course
 
 =head3 input
 
-=item *
-<code>course_info</code> containing either course_name or course_id as a hashref.
-=item *
-<code>params</code>, a hashref containing
-=item -
-<code>username</code>, the username of a user (required)
-=item -
-<code>first_name</code>, the first name of the user
-=item -
-<code>last_name</code>, the last name of the user
-=item -
-<code>student_id</code>, the student id of the user
-=item -
-<code>roles</code>, A listing of roles of the user (instructor, student)
+=over
+
+=item * C<course_info> containing either course_name or course_id as a hashref.
+
+=item * C<params>, a hashref containing
+
+=over
+
+=item - C<username>, the username of a user (required)
+
+=item - C<first_name>, the first name of the user
+
+=item - C<last_name>, the last name of the user
+
+=item - C<student_id>, the student id of the user
+
+=item - C<roles>, A listing of roles of the user (instructor, student)
+
+=back
+
+=back
 
 =head3 notes
-=item *
-If the course doesn't exist, an error will be thrown
-=item *
-If the username field is not defined, an error will be thrown.
 
+=over
+
+=item * If the course doesn't exist, an error will be thrown
+
+=item * If the username field is not defined, an error will be thrown.
+
+=back
 
 =head3 output
 
@@ -539,28 +573,37 @@ An hashref of the added user.
 # 	return removeLoginParams( { $user->get_columns, %$course_user_to_return } );
 # }
 
-=pod
 =head2 deleteUser
 
 This deletes a User in an existing course.  This doesn't remove the global user however.
 
 =head3 input
 
-=item *
-<code>course_info</code> containing either course_name or course_id as a hashref.
-=item *
-<code>user_params</code>, a hashref containing either
-=item -
-<code>username</code>, the username of a user
-=item -
-<code>user_id</code>, user_id of the user
+=over
+
+=item * C<course_info> containing either course_name or course_id as a hashref.
+
+=item * C<user_params>, a hashref containing either
+
+=over
+
+=item - C<username>, the username of a user
+
+=item - C<user_id>, user_id of the user
+
+=back
+
+=back
 
 =head3 notes
-=item *
-If the course doesn't exist, an error will be thrown
-=item *
-If the username field is not defined, an error will be thrown.
 
+=over
+
+=item * If the course doesn't exist, an error will be thrown
+
+=item * If the username field is not defined, an error will be thrown.
+
+=back
 
 =head3 output
 
@@ -595,6 +638,5 @@ An hashref of the added user.
 # 	return removeLoginParams( { $user->get_columns, $deleted_course_user->get_inflated_columns } );
 
 # }
-
 
 1;

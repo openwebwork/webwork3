@@ -2,7 +2,6 @@ package DB::Utils;
 use warnings;
 use strict;
 
-
 require Exporter;
 use base qw(Exporter);
 our @EXPORT_OK = qw/getCourseInfo getUserInfo getSetInfo updateAllFields
@@ -64,8 +63,6 @@ sub _get_info {
 	return $output_info;
 }
 
-=pod
-
 =head1 updateAllFields
 
 This method updates the fields of the first argument with any from the second argument.
@@ -88,14 +85,12 @@ sub updateAllFields {
 	return $fields_to_return;
 }
 
-=pod
 =head2 removeLoginParams
 
 This removes the login_params field from a user.  There is no reason the login_params are needed
 off the server.
 
 =cut
-
 
 sub removeLoginParams {
 	my $params = shift;

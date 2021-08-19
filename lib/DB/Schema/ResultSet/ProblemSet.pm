@@ -19,18 +19,14 @@ our $SET_TYPES = {
 use DB::Exception;
 use Exception::Class ( "DB::Exception::SetNotInCourse", 'DB::Exception::ParametersNeeded' );
 
-=pod
-
 =head1 DESCRIPTION
 
 This is the functionality of a ProblemSet in WeBWorK.  This package is based on
-<code>DBIx::Class::ResultSet</code>.  The basics are a CRUD for ProblemSets;
-
-=cut
+C<DBIx::Class::ResultSet>.  The basics are a CRUD for ProblemSets;
 
 =head2 getProblemSets
 
-This gets a list of all ProblemSet (and set-like objects) stored in the database in the <code>courses</codes> table.
+This gets a list of all ProblemSet (and set-like objects) stored in the database in the C<courses> table.
 
 =head3 input
 
@@ -38,7 +34,7 @@ none
 
 =head3 output
 
-An array of courses as a <code>DBIx::Class::ResultSet::ProblemSet</code> object.
+An array of courses as a C<DBIx::Class::ResultSet::ProblemSet> object.
 
 =cut
 
@@ -67,11 +63,9 @@ sub getAllProblemSets {
 #
 ####
 
-=pod
 =head2 getProblemSets
 
 Get all problem sets for a given course
-
 
 =cut
 
@@ -86,11 +80,9 @@ sub getProblemSets {
 	return @$sets;
 }
 
-=pod
 =head2 getHWSets
 
 Get all hw sets for a given course
-
 
 =cut
 
@@ -118,11 +110,10 @@ sub getHWSets {
 	my $sets = _formatSets($quizzes);
 	return @$sets;
 }
-=pod
+
 =head2 getQuizzes
 
 Get all quizzes for a given course
-
 
 =cut
 
@@ -138,11 +129,9 @@ sub getQuizzes {
 	} @sets;
 }
 
-=pod
 =head2 getProblemSet
 
 Get one HW set for a given course
-
 
 =cut
 
@@ -168,7 +157,6 @@ sub getProblemSet {
 
 }
 
-=pod
 =head2 addProblemSet
 
 Get one HW set for a given course
@@ -212,11 +200,9 @@ sub addProblemSet {
 	return $set;
 }
 
-=pod
 =head2 updateProblemSet
 
 Update a problem set (HW, Quiz, etc.) for a given course
-
 
 =cut
 
@@ -249,11 +235,9 @@ sub updateProblemSet {
 	return $set;
 }
 
-=pod
 =head2 deleteProblemSet
 
 Delete a problem set (HW, Quiz, etc.) for a given course
-
 
 =cut
 
@@ -278,21 +262,27 @@ sub deleteProblemSet {
 #
 ##
 
-=pod
 =head2 newSetVersion
 
 Creates a new version of a problem set for a given course for either any entire course or a specific user
 
 =head3 inputs
 
-=item *
-A hashref with
-=item -
-course_id or course_name
-=item -
-set_id or set_name
-=item -
-username or user_id (optional)
+=over
+
+=item * A hashref with
+
+=over
+
+=item - course_id or course_name
+
+=item - set_id or set_name
+
+=item - username or user_id (optional)
+
+=back
+
+=back
 
 =head4 output
 
@@ -324,6 +314,5 @@ sub newSetVersion {
 sub _course_rs {
 	return shift->result_source->schema->resultset("Course");
 }
-
 
 1;

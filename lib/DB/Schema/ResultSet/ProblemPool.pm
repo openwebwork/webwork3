@@ -15,29 +15,24 @@ use Exception::Class (
 	'DB::Exception::PoolProblemNotInPool', 'DB::Exception::ParametersNeeded'
 );
 
-=pod
-
 =head1 DESCRIPTION
 
 This is the functionality of a Course in WeBWorK.  This package is based on
-<code>DBIx::Class::ResultSet</code>.  The basics are a CRUD for anything on the
+C<DBIx::Class::ResultSet>.  The basics are a CRUD for anything on the
 global courses.
 
-=cut
-
-=pod
 =head2 getAllProblemPools
 
-This gets a list of all problems stored in the database in the <code>problem_pool</codes> table.
+This gets a list of all problems stored in the database in the C<problem_pool> table.
 
 =head3 input
 
-<code>$as_result_set</code>, a boolean if the return is to be a result_set
+C<$as_result_set>, a boolean if the return is to be a result_set
 
 =head3 output
 
-An array of courses as a <code>DBIx::Class::ResultSet::Course</code> object
-if <code>$as_result_set</code> is true.  Otherwise an array of hash_ref.
+An array of courses as a C<DBIx::Class::ResultSet::Course> object
+if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 
 =cut
 
@@ -50,7 +45,6 @@ sub getAllProblemPools {
 	} @problem_pools;
 }
 
-=pod
 =head2 getProblemPools
 
 Get all problem pools for a given course
@@ -77,7 +71,6 @@ sub getProblemPools {
 #
 ####
 
-=pod
 =head2 getProblemPool
 
 Get a single problem pool for a given course
@@ -104,7 +97,6 @@ sub getProblemPool {
 
 }
 
-=pod
 =head2 addProblemPool
 
 Add a problem pool for a given course
@@ -139,7 +131,6 @@ sub addProblemPool {
 
 }
 
-=pod
 =head2 updateProblemPool
 
 updates the parameters of an existing problem pool
@@ -165,7 +156,6 @@ sub updateProblemPool {
 	return { $updated_pool->get_columns };
 }
 
-=pod
 =head2 updateProblemPool
 
 updates the parameters of an existing problem pool
@@ -192,21 +182,27 @@ sub deleteProblemPool {
 #
 ####
 
-=pod
 =head2 getPoolProblem
 
 This gets a single problem out of a ProblemPool.
 
 =head3 arguments
 
-=item *
-hashref containing
-=item -
-course_id or course_name
-=item -
-problem_pool_id or pool_name
-=item -
-pool_problem_id or library_id or empty
+=over
+
+=item * hashref containing
+
+=over
+
+=item - course_id or course_name
+
+=item - problem_pool_id or pool_name
+
+=item - pool_problem_id or library_id or empty
+
+=back
+
+=back
 
 =cut
 
@@ -240,7 +236,6 @@ sub getPoolProblem {
 	}
 }
 
-=pod
 =head2 addProblemToPool
 
 This adds a problem as a hashref to an existing problem pool.
@@ -268,22 +263,29 @@ sub addProblemToPool {
 
 }
 
-=pod
 =head2 updatePoolProblem
 
 updated an existing problem to an existing ProblemPool in a course
 
 =head3 arguments
-=item *
-hashref containing
-=item -
-course_id or course_name
-=item -
-pool_name or problem_pool_id
-=item -
-library_id or ???
-=item *
-hashref containing information about the Problem.
+
+=over
+
+=item * hashref containing
+
+=over
+
+=item - course_id or course_name
+
+=item - pool_name or problem_pool_id
+
+=item - library_id or ???
+
+=back
+
+=item * hashref containing information about the Problem.
+
+=back
 
 =cut
 

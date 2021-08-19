@@ -5,7 +5,6 @@ use warnings;
 
 use Carp;
 
-
 sub valid_dates {
 	return ['open' ,'close'];
 }
