@@ -16,6 +16,7 @@
 		"axios": "^0.21.1",
 		"core-js": "^3.6.5",
 		"quasar": "^2.0.0",
+		"vue-i18n": "^9.1.7",
 		"vue-router": "4.0.10",
 		"vuex": "^4.0.1",
 		"vuex-persistedstate": "^4.0.0"

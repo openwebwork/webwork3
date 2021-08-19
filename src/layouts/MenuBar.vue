@@ -1,9 +1,10 @@
 <template>
+	<div>
 	<q-header>
 		<div class="row">
 			<div class="col col-md-3 col-12 q-my-auto" style="background-color:#1048ae">
 				<q-toolbar>
-					<q-btn flat @click="toggleButton" round dense icon="menu" />
+					<q-btn flat @click="$emit('toggle')" round dense icon="menu" />
 					<q-toolbar-title>
 						<q-img src="images/webwork_logo.svg" position="0 50%" width="190px" fit="scale-down" />
 					</q-toolbar-title>
@@ -17,7 +18,7 @@
 					<q-space />
 					<q-btn-dropdown v-if="logged_in" color="secondary" icon="person" :label="full_name">
 						<q-list>
-							<q-item clickable>User Settings</q-item>
+							<q-item clickable @click="open_user_settings = true">User Settings</q-item>
 							<q-item clickable v-close-popup @click="logout">Logout</q-item>
 						</q-list>
 					</q-btn-dropdown>
@@ -38,6 +39,21 @@
 			</div>
 		</div>
 	</q-header>
+	<q-dialog medium v-model="open_user_settings">
+		<q-card style="width: 300px">
+			<q-card-section>
+				<div class="text-h6">User Settings</div>
+			</q-card-section>
+
+			<q-card-section class="q-pt-none">
+				<q-select label="Language" v-model="$i18n.locale" :options="$i18n.availableLocales" />
+			</q-card-section>
+			<q-card-actions align="right" class="bg-white text-teal">
+				<q-btn flat label="OK" v-close-popup />
+			</q-card-actions>
+		</q-card>
+	</q-dialog>
+	</div>
 </template>
 
 <script lang="ts">
@@ -48,10 +64,8 @@ import { UserCourse } from 'src/store/models';
 
 export default defineComponent({
 	name: 'MenuBar',
-	emits: {
-		toggle: null
-	},
-	setup(_, { emit }) {
+	emits: ['toggle'],
+	setup() {
 		const store = useStore();
 		const router = useRouter();
 		const current_view = ref('');
@@ -78,9 +92,7 @@ export default defineComponent({
 				}
 				void store.dispatch('session/setCourse', { course_name, course_id });
 			},
-			toggleButton: () => {
-				emit('toggle', 10);
-			},
+			open_user_settings: ref(false),
 			current_view,
 			logout: () => {
 				void store.dispatch('session/logout');
