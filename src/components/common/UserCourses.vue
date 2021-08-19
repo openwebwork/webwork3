@@ -1,7 +1,11 @@
 <template>
-	<q-page-container>
-		<div class="row" v-if="user !== undefined">
-			<h3>Welcome {{ user.first_name }} {{ user.last_name }}</h3>
+<div class="q-pa-md">
+	<div class="row" v-if="user !== undefined">
+		<h3> Welcome {{user.first_name}} {{user.last_name}} </h3>
+	</div>
+
+	<div class="row">
+		<p> Select a course below: </p>
 		</div>
 
 		<div class="row">
@@ -56,7 +60,7 @@
 				</div>
 			</q-card>
 		</div>
-	</q-page-container>
+	</div>
 </template>
 
 <script lang="ts">

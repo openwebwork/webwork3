@@ -17,6 +17,7 @@
 		"core-js": "^3.6.5",
 		"lodash-es": "^4.17.21",
 		"quasar": "^2.0.0",
+		"vue-i18n": "^9.1.7",
 		"vue-router": "4.0.10",
 		"vuex": "^4.0.1",
 		"vuex-persistedstate": "^4.0.0"

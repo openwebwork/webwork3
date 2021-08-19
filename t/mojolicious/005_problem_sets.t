@@ -17,7 +17,6 @@ my $TEST_PERMISSIONS;
 GetOptions( "perm" => \$TEST_PERMISSIONS );    # check for the flag --perm when running this.
 
 use lib "$main::lib_dir";
-
 use DB::Schema;
 use DB::TestUtils qw/loadCSV loadSchema/;
 use Clone qw/clone/;
@@ -28,7 +27,7 @@ my $config = clone(LoadFile("$main::lib_dir/../conf/webwork3.yml"));
 my $strp = DateTime::Format::Strptime->new( pattern => '%FT%T',on_error  => 'croak' );
 
 
-# this tests the api with common courses routes
+# Test the api with common "sets" routes
 
 # load the database
 my $schema = loadSchema();
@@ -43,7 +42,6 @@ if ($TEST_PERMISSIONS) {
 	$t->post_ok( '/webwork3/api/username' => json => { email => 'admin@google.com', password => 'admin' } )
 		->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is( '/logged_in' => 1 )
 		->json_is( '/user/user_id' => 1 )->json_is( '/user/is_admin' => 1 );
-
 }
 else {
 	$config->{ignore_permissions} = 0;

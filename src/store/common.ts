@@ -1,5 +1,5 @@
 import { User, Course, CourseUser, ProblemSet, HomeworkSet, ProblemSetType,
-	Quiz, QuizDates, QuizParams, ParseableProblemSet,
+	Quiz, QuizDates, QuizParams, ParseableProblemSet, CourseSetting,
 	HomeworkSetParams, HomeworkSetDates } from './models';
 
 export function newUser(): User {
@@ -113,5 +113,12 @@ export function parseQuiz(_set: ParseableProblemSet): Quiz {
 		set_type: ProblemSetType.QUIZ,
 		params: params,
 		dates: dates
+	};
+}
+
+export function newCourseSetting(): CourseSetting {
+	return {
+		var: '',
+		value: ''
 	};
 }

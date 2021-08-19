@@ -10,7 +10,6 @@ BEGIN {
 	use Cwd qw/abs_path/;
 	$main::test_dir = abs_path( dirname(__FILE__) );
 	$main::lib_dir  = dirname( dirname($main::test_dir) ) . '/lib';
-
 }
 
 use Getopt::Long;
@@ -18,7 +17,6 @@ my $TEST_PERMISSIONS;
 GetOptions( "perm" => \$TEST_PERMISSIONS );    # check for the flag --perm when running this.
 
 use lib "$main::lib_dir";
-
 use DB::Schema;
 use DB::TestUtils qw/loadSchema/;
 use Clone qw/clone/;
@@ -28,7 +26,7 @@ use YAML::XS qw/LoadFile/;
 my $config = clone(LoadFile("$main::lib_dir/../conf/webwork3.yml"));
 
 
-# this tests the api with common courses routes
+# Test the api with common "courses" routes
 
 my $schema = loadSchema();
 

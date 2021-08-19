@@ -108,7 +108,7 @@ export default defineComponent({
 			new_course_dialog,
 			courses: computed(() => store.state.courses.courses),
 			newCourse: () => {
-				console.log('new course');
+				//console.log('new course');
 			}
 		};
 	}

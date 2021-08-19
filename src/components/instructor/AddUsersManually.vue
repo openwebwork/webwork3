@@ -73,7 +73,6 @@ export default defineComponent({
 						message: `The user ${_user.username} was successfully added to the course.`,
 						color: 'green'
 					});
-					console.log('ici');
 					context.emit('closeDialog');
 				} catch (err) {
 					const error = err as AxiosError;

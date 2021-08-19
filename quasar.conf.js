@@ -15,7 +15,8 @@ module.exports = configure(function (ctx) {
 		},
 
 		boot: [
-			'axios'
+			'axios',
+			'i18n'
 		],
 
 		css: [

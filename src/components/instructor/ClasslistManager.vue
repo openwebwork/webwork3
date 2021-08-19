@@ -117,9 +117,6 @@ export default defineComponent({
 						}
 					});
 				}
-			},
-			closingManually: () => {
-				console.log('closing');
 			}
 		};
 	}

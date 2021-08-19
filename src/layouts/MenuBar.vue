@@ -1,31 +1,59 @@
 <template>
+	<div>
 	<q-header>
-		<q-toolbar :class="'bg-' + menubar_color">
-			<q-btn flat @click="toggleButton" round dense icon="menu" />
-			<q-img src="/images/webwork_logo.svg" height="40px" width="140px" />
-			<!-- <q-toolbar-title>
-				WeBWorK
-			</q-toolbar-title> -->
-			<q-space />
-			<q-btn-dropdown v-if="logged_in" color="purple" icon="person" :label="full_name">
-				<q-list>
-					<q-item clickable>User Settings</q-item>
-					<q-item clickable v-close-popup @click="logout">Logout</q-item>
-				</q-list>
-			</q-btn-dropdown>
-			<q-btn-dropdown color="purple" :label="current_course_name" v-if="current_course_name">
-				<q-list>
-					<template v-for="course in user_courses" :key="course.course_id">
-						<q-item clickable v-close-popup @click="changeCourse(course.course_id, course.course_name)">
-							<q-item-section>
-								<q-item-label>{{ course.course_name }}</q-item-label>
-							</q-item-section>
-						</q-item>
-					</template>
-				</q-list>
-			</q-btn-dropdown>
-		</q-toolbar>
+		<div class="row">
+			<div class="col col-md-3 col-12 q-my-auto" style="background-color:#1048ae">
+				<q-toolbar>
+					<q-btn flat @click="$emit('toggle')" round dense icon="menu" />
+					<q-toolbar-title>
+						<q-img src="images/webwork_logo.svg" position="0 50%" width="190px" fit="scale-down" />
+					</q-toolbar-title>
+				</q-toolbar>
+			</div>
+			<div class="col col-md-4 col-12 q-my-auto" style="padding:4px 0">
+				<q-img src="images/maa_logo.png" position="6px 50%" width="340px" fit="scale-down" :ratio="9.5" />
+			</div>
+			<div class="col col-md-5 col-12 q-my-auto">
+				<q-toolbar>
+					<q-space />
+					<q-btn-dropdown v-if="logged_in" color="secondary" icon="person" :label="full_name">
+						<q-list>
+							<q-item clickable @click="open_user_settings = true">User Settings</q-item>
+							<q-item clickable v-close-popup @click="logout">Logout</q-item>
+						</q-list>
+					</q-btn-dropdown>
+					<q-btn-dropdown color="secondary" :label="current_course_name" v-if="current_course_name"
+						style="margin-left:6px">
+						<q-list>
+							<template v-for="course in user_courses" :key="course.course_id">
+								<q-item clickable v-close-popup
+									@click="changeCourse(course.course_id, course.course_name)">
+									<q-item-section>
+										<q-item-label>{{course.course_name}}</q-item-label>
+									</q-item-section>
+								</q-item>
+							</template>
+						</q-list>
+					</q-btn-dropdown>
+				</q-toolbar>
+			</div>
+		</div>
 	</q-header>
+	<q-dialog medium v-model="open_user_settings">
+		<q-card style="width: 300px">
+			<q-card-section>
+				<div class="text-h6">User Settings</div>
+			</q-card-section>
+
+			<q-card-section class="q-pt-none">
+				<q-select label="Language" v-model="$i18n.locale" :options="$i18n.availableLocales" />
+			</q-card-section>
+			<q-card-actions align="right" class="bg-white text-teal">
+				<q-btn flat label="OK" v-close-popup />
+			</q-card-actions>
+		</q-card>
+	</q-dialog>
+	</div>
 </template>
 
 <script lang="ts">
@@ -37,10 +65,8 @@ import { UserCourse } from 'src/store/models';
 
 export default defineComponent({
 	name: 'MenuBar',
-	emits: {
-		toggle: null
-	},
-	setup(_, { emit }) {
+	emits: ['toggle'],
+	setup() {
 		const store = useStore();
 		const router = useRouter();
 		const route = useRoute();
@@ -71,10 +97,7 @@ export default defineComponent({
 				}
 				void store.dispatch('session/setCourse', { course_name, course_id });
 			},
-			toggleButton: () => {
-				console.log('here');
-				emit('toggle', 10);
-			},
+			open_user_settings: ref(false),
 			current_view,
 			logout: () => {
 				void store.dispatch('session/logout');
