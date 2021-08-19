@@ -6,9 +6,9 @@
 			</div>
 			<div class="col-5">
 				<q-btn-group push>
-					<q-btn push label="Previous Week" @click="prev" />
-					<q-btn push label="Today" @click="today"/>
-					<q-btn push label="Next Week" @click="next" />
+					<q-btn push :label="$t('calendar.prev_week')" @click="prev" />
+					<q-btn push :label="$t('calendar.today')" @click="today"/>
+					<q-btn push :label="$t('calendar.next_week')" @click="next" />
 				</q-btn-group>
 			</div>
 		</div>
