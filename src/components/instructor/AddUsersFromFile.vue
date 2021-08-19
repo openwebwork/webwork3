@@ -20,9 +20,6 @@
 import { defineComponent } from 'vue';
 
 export default defineComponent({
-	name: 'AddUsersFromFile',
-	setup() {
-		console.log('adding users');
-	}
+	name: 'AddUsersFromFile'
 });
 </script>

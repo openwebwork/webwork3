@@ -25,6 +25,7 @@ pnpm-debug.log*
 
 # Project files
 sample_db.sqlite
+conf/webwork3.yml
 
 # Devel::Cover
 cover_db/
