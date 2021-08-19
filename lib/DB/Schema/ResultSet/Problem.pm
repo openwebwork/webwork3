@@ -10,29 +10,24 @@ use Data::Dump qw/dd dump/;
 
 use DB::Utils qw/getCourseInfo getSetInfo getProblemInfo/;
 
-=pod
-
 =head1 DESCRIPTION
 
 This is the functionality of a Course in WeBWorK.  This package is based on
-<code>DBIx::Class::ResultSet</code>.  The basics are a CRUD for anything on the
+C<DBIx::Class::ResultSet>.  The basics are a CRUD for anything on the
 global courses.
 
-=cut
-
-=pod
 =head2 getGlobalProblems
 
-This gets a list of all problems stored in the database in the <code>problems</codes> table.
+This gets a list of all problems stored in the database in the C<problems> table.
 
 =head3 input
 
-<code>$as_result_set</code>, a boolean if the return is to be a result_set
+C<$as_result_set>, a boolean if the return is to be a result_set
 
 =head3 output
 
-An array of courses as a <code>DBIx::Class::ResultSet::Course</code> object
-if <code>$as_result_set</code> is true.  Otherwise an array of hash_ref.
+An array of courses as a C<DBIx::Class::ResultSet::Course> object
+if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 
 =cut
 
@@ -51,18 +46,23 @@ sub getGlobalProblems {
 #
 ###
 
-=pod
 =head1 getProblems
 
 This gets all problems in a given course.
 
 =head3 input
 
-=item *
-<code>params</code>, a hashref containing:
-=item -
-<code>course_name</code>, the name of an existing course or
-<code>course_id</code>.
+=over
+
+=item * C<params>, a hashref containing:
+
+=over
+
+=item - C<course_name>, the name of an existing course or C<course_id>.
+
+=back
+
+=back
 
 =head3 notes:
 if either the course or login doesn't exist, an error will be thrown.
@@ -105,8 +105,6 @@ sub getSetProblems {
 	} @problems;
 }
 
-=pod
-
 =head2 getSetProblem
 
 This gets a single problem from a given course and problem
@@ -114,12 +112,16 @@ This gets a single problem from a given course and problem
 =head3 Input
 
 A hashref containing
-=item *
-The course_id or course_name
-=item *
-The set_id or set_name
-=item *
-The problem_id or problem_number
+
+=over
+
+=item * The course_id or course_name
+
+=item * The set_id or set_name
+
+=item * The problem_id or problem_number
+
+=back
 
 =cut
 
@@ -136,19 +138,19 @@ sub getSetProblem {
 	return { $problem->get_inflated_columns };
 }
 
-=pod
-
 =head2 addSetProblem
 
 Add a single problem to an existing problem set within a course
 
-
 =head3 Note
 
-=item *
-If either the problem set or course does not exist an error will be thrown
-=item *
-If the problem parameters are not valid, an error will be thrown.
+=over
+
+=item * If either the problem set or course does not exist an error will be thrown
+
+=item * If the problem parameters are not valid, an error will be thrown.
+
+=back
 
 =cut
 
@@ -164,19 +166,19 @@ sub addSetProblem {
 
 }
 
-=pod
-
 =head2 deleteSetProblem
 
 delete a single problem to an existing problem set within a course
 
-
 =head3 Note
 
-=item *
-If either the problem set or course does not exist an error will be thrown
-=item *
-If the problem parameters are not valid, an error will be thrown.
+=over
+
+=item * If either the problem set or course does not exist an error will be thrown
+
+=item * If the problem parameters are not valid, an error will be thrown.
+
+=back
 
 =cut
 
@@ -199,7 +201,6 @@ sub deleteSetProblem {
 # 	my ( $self, $course_set_info, $new_set_params, $as_result_set ) = @_;
 # }
 
-=pod
 =head2 deleteSetProblem
 
 This deletes the problem with given course and set

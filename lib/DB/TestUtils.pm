@@ -11,17 +11,11 @@ require Exporter;
 use base qw(Exporter);
 our @EXPORT_OK = qw/buildHash loadCSV removeIDs filterBySetType loadSchema/;
 
-
-=pod
-
 =head1 DESCRIPTION
 
 This is a collection of utilities for testing purposes
 
-=cut
-
-=pod
-=head2 buildParamHash
+=head2 buildHash
 
 This takes a hashref and builds up a params field and a dates field for any
 field starting with PARAM: and DATE: respectively.
@@ -55,8 +49,6 @@ sub loadCSV {
 	return @all_items;
 }
 
-=pod
-
 =head2 removeIDs
 
 Removes all of the fields of an arrayref that ends in _id
@@ -72,7 +64,6 @@ sub removeIDs {  # remove any field that ends in _id except student_id
 	}
 	return;
 }
-
 
 sub filterBySetType {
 	my ($all_sets,$type,$course_name) = @_;

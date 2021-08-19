@@ -13,7 +13,6 @@ use Data::Dumper;
 
 my $log = Mojo::Log->new;
 
-
 sub getAllProblemSets {
 	my $self = shift;
 	my @all_problem_sets =  $self->schema->resultset("ProblemSet")->getAllProblemSets;
@@ -76,6 +75,5 @@ sub deleteProblemSet {
 	$self->render(json => $problem_set);
 	return;
 }
-
 
 1;

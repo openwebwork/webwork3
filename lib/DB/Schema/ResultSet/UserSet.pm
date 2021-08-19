@@ -1,9 +1,7 @@
-=pod
-
 =head1 DESCRIPTION
 
 This is the functionality of a UserSet in WeBWorK.  This package is based on
-<code>DBIx::Class::ResultSet</code>.  The basics are a CRUD for user sets.
+C<DBIx::Class::ResultSet>.  The basics are a CRUD for user sets.
 
 =cut
 
@@ -21,18 +19,25 @@ use DB::WithParams;
 
 use Exception::Class ( 'DB::Exception::UserSetExists' );
 
-=pod
 =head2 getUserSets
 
 get all UserSet for a given course and either a given user or given set
 
 =head3 input
-=item *
-A hashref containing
-=item -
-Either a course_name or course_id
-=item -
-information on either a set (set_name or set_id) or a user (user_id or login)
+
+=over
+
+=item * A hashref containing
+
+=over
+
+=item - Either a course_name or course_id
+
+=item - information on either a set (set_name or set_id) or a user (user_id or login)
+
+=back
+
+=back
 
 =cut
 
@@ -60,7 +65,6 @@ sub getUserSetsForUser {
 
 }
 
-=pod
 =head2 getUserSetsForSet
 
 get an array of all user sets for a given problem set (HW, quiz, etc.)
@@ -94,9 +98,6 @@ sub getUserSetsForSet {
 	return @user_sets_to_return;
 }
 
-
-
-=pod
 =head2 getUserSet
 
 get a single UserSet for a given course, user, and ProblemSet
@@ -121,9 +122,6 @@ sub getUserSet {
 	return _mergeUserSet($problem_set,$user_set,$user);
 }
 
-
-
-=pod
 =head2 addUserSet
 
 add a single UserSet for a given course, user, and ProblemSet
@@ -166,7 +164,6 @@ sub addUserSet {
 	return _mergeUserSet($problem_set,$s,$user);
 }
 
-=pod
 =head2 updateUserSet
 
 update a single UserSet for a given course, user, and ProblemSet
@@ -205,13 +202,10 @@ sub updateUserSet {
 		## update not getting all values, so get the user_set
 	my $s = $self->find({user_set_id => $user_set->user_set_id});
 
-
 	return $updated_user_set if $as_result_set;
 	return _mergeUserSet($problem_set,$s,$user);
 }
 
-
-=pod
 =head2 deleteUserSet
 
 delete a single UserSet for a given course, user, and ProblemSet
@@ -229,14 +223,12 @@ sub deleteUserSet {
 		login => $user_set_info->{login}
 	) unless defined($user_set);
 
-
 	my $problem_set = $self->_getProblemSet($user_set_info);
 	my $user = $self->_getUser($user_set_info);
 
 	$user_set->delete;
 	return $user_set if $as_result_set;
 	return _mergeUserSet($problem_set,$user_set,$user);
-
 
 }
 
@@ -274,7 +266,6 @@ sub _getUser {
 	return $self->_user_rs->getUser($user_info,1);
 }
 
-
 # return the course/set info given the user_set_info is passed in
 
 sub _getCourse {
@@ -308,7 +299,6 @@ sub _mergeUserSet {
 		login => $user->login
 	};
 }
-
 
 
 1;
