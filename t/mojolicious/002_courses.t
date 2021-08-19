@@ -29,7 +29,6 @@ my $schema = loadSchema();
 use YAML::XS qw/LoadFile/;
 my $config = clone(LoadFile("$main::lib_dir/../conf/webwork3.yml"));
 
-
 my $t;
 
 if ($TEST_PERMISSIONS) {
@@ -48,7 +47,6 @@ if ($TEST_PERMISSIONS) {
 	$t = Test::Mojo->new( WeBWorK3 => $config );
 }
 
-
 $t->get_ok('/webwork3/api/courses')
 	->content_type_is('application/json;charset=UTF-8')
 	->json_is( '/0/course_name' => "Precalculus" )
@@ -58,8 +56,6 @@ $t->get_ok('/webwork3/api/courses/1')
 	->content_type_is('application/json;charset=UTF-8')
 	->json_is( '/course_name' => "Precalculus" )
 	->json_is( '/visible' => 1);
-
-
 
 ## add a new course
 

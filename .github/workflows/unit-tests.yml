@@ -5,25 +5,30 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-# comment 2
+
 jobs:
-  coverage:
+  unit-tests:
     runs-on: ubuntu-latest
-    container: pstaabp/webwork3
+    # If we are going to use a prebuilt image like this we need a webwork repository on docker hub
+    container: drgrice1/webwork3
     steps:
       - uses: actions/checkout@v2
       - name: Build project and run tests
         env:
           HARNESS_PERL_SWITCHES: -MDevel::Cover
         run: |
+          cat conf/webwork3.yml.dist | sed 's/\/opt\/webwork\//\/__w\/webwork3\//g' > conf/webwork3.yml
           perl t/db/build_db.pl
           prove -r t
+
       # we probably don'te need to upload the codecov data
       # - uses: actions/upload-artifact@v2
       #   with:
       #     name: coverage-report
       #     path: cover_db/
-      - name: push coverage analysis
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        run: cover -report codecov
+
+      # FIXME: This results in a "400 Bad Request: Could not determine repo and owner", and so is disabled.
+      #- name: push coverage analysis
+      #  env:
+      #    CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      #  run: cover -report codecov
