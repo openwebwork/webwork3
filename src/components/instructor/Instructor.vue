@@ -14,6 +14,7 @@ export default defineComponent({
 	},
 	setup (props){
 		const store = useStore();
+
 		if (props.course_id && props.course_name) {
 			const course = {
 				course_id: props.course_id,

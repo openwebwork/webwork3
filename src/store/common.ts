@@ -1,4 +1,4 @@
-import { User, Course, CourseUser } from './models';
+import { User, Course, CourseUser, CourseSetting } from './models';
 
 export function newUser(): User {
 	return {
@@ -32,5 +32,12 @@ export function newCourse(): Course {
 			end: '',
 			start: ''
 		}
+	};
+}
+
+export function newCourseSetting(): CourseSetting {
+	return {
+		var: '',
+		value: ''
 	};
 }
