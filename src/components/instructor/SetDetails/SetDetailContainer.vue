@@ -41,10 +41,12 @@ export default defineComponent({
 
 		return {
 			selected_set,
-			problem_set_names: computed(() =>
-				store.state.problem_sets.problem_sets
-					.map((_set: ProblemSet) => ({ label: _set.set_name, value: _set.set_id }))
-			)
+			problem_set_names: computed(() => {
+				const set_names = store.state.problem_sets.problem_sets
+					.map((_set: ProblemSet) => ({ label: _set.set_name, value: _set.set_id }));
+				set_names.unshift({ label: '', value: 0 });
+				return set_names;
+			})
 		};
 	}
 });

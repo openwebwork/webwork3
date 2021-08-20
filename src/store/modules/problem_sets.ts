@@ -4,7 +4,7 @@ import { StateInterface } from '../index';
 import { isEqual } from 'lodash-es';
 
 import { ProblemSet, ParseableProblemSet } from 'src/store/models';
-import { parseHW, parseQuiz } from '../common';
+import { parseHW, parseQuiz, parseReview } from '../common';
 
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;
@@ -68,6 +68,8 @@ async function _fetchProblemSets(course_id: number): Promise<Array<ProblemSet>> 
 			problem_sets.push(parseHW(_set));
 		} else if (_set.set_type === 'QUIZ') {
 			problem_sets.push(parseQuiz(_set));
+		} else if (_set.set_type === 'REVIEW') {
+			problem_sets.push(parseReview(_set));
 		} else {
 			console.error('Unexpected Problem type: ');
 			console.error(_set);

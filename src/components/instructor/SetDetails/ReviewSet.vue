@@ -13,22 +13,17 @@
 			<td class="header">Visible</td>
 			<td><q-toggle v-model="set.set_visible" /></td>
 		</tr>
-			<tr>
-			<td class="header">Enable Reduced Scoring</td>
-			<td><q-toggle v-model="set.params.enable_reduced_scoring" /></td>
-		</tr>
-
 		<tr>
 			<td class="header">Open Date</td>
 			<td><date-time-input v-model="set.dates.open" /></td>
 		</tr>
 		<tr>
-			<td class="header">Due Date</td>
-			<td><date-time-input v-model="set.dates.due" /></td>
+			<td class="header">Closed Date</td>
+			<td><date-time-input v-model="set.dates.closed" /></td>
 		</tr>
 		<tr>
-			<td class="header">Answer Date</td>
-			<td><date-time-input v-model="set.dates.answer" /></td>
+			<td class="header">Other</td>
+			<td><q-toggle v-model="set.params.allow" /></td>
 		</tr>
 	</table>
 </template>
@@ -45,7 +40,7 @@ import { useStore } from 'src/store';
 
 export default defineComponent({
 	components: { DateTimeInput },
-	name: 'HomeworkSet',
+	name: 'ReviewSet',
 	props: {
 		set_id: Number
 	},
@@ -69,15 +64,12 @@ export default defineComponent({
 		// see the docs at https://v3.vuejs.org/guide/reactivity-computed-watchers.html#watching-reactive-objects
 		// for why we need to do a cloneDeep here
 		watch(() => cloneDeep(set), (new_set, old_set) => {
-			console.log('in watch');
-			console.log([new_set.set_id, old_set.set_id]);
 			if (new_set.set_id == old_set.set_id) {
 				void store.dispatch('problem_sets/updateSet', new_set);
 				$q.notify({
 					message: `The problem set ${new_set.set_name} was successfully updated.`,
 					color: 'green'
 				});
-
 			}
 		},
 		{ deep: true });

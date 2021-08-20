@@ -92,7 +92,7 @@ export interface CourseSettingInfo {
 
 export enum ProblemSetType {
 	HW = 'HW',
-	QUIZ = 'Quiz',
+	QUIZ = 'QUIZ',
 	REVIEW_SET = 'REVIEW'
 }
 
@@ -148,6 +148,20 @@ export interface QuizParams extends ParamsType {
 export interface Quiz extends ProblemSet {
 	params: QuizParams;
 	dates: QuizDates;
+}
+
+export interface ReviewSetDates extends DatesType {
+	open: number;
+	closed: number;
+}
+
+export interface ReviewSetParams extends ParamsType {
+	allow?: boolean;
+}
+
+export interface ReviewSet extends ProblemSet {
+	params: ReviewSetParams;
+	dates: ReviewSetDates;
 }
 
 export interface ParseableProblemSet {

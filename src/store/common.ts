@@ -1,5 +1,6 @@
 import { User, Course, CourseUser, ProblemSet, HomeworkSet, ProblemSetType,
 	Quiz, QuizDates, QuizParams, ParseableProblemSet, CourseSetting,
+	ReviewSet, ReviewSetParams, ReviewSetDates,
 	HomeworkSetParams, HomeworkSetDates } from './models';
 
 import { cloneDeep } from 'lodash-es';
@@ -61,24 +62,21 @@ export function copyProblemSet(target: ProblemSet, source: ProblemSet) {
 	target.params = cloneDeep(source.params);
 }
 
+function parseBoolean(_value: string | number) {
+	return _value === undefined ?
+		undefined :
+		parseInt(`${_value}`)===1 ? true: false ;
+}
+
 export function parseHW(_set: ParseableProblemSet): HomeworkSet {
 
-	const params: HomeworkSetParams = {};
-	if (_set.params.enable_reduced_scoring !== undefined) {
-		params.enable_reduced_scoring = parseInt(_set.params.enable_reduced_scoring)===1 ? true: false ;
-	}
-	if (_set.params.hide_hint !== undefined) {
-		params.hide_hint = parseInt(_set.params.hide_hint)===1 ? true: false ;
-	}
-	if (_set.params.hardcopy_header !== undefined) {
-		params.hardcopy_header = _set.params.hardcopy_header;
-	}
-	if (_set.params.set_header !== undefined) {
-		params.set_header = _set.params.set_header;
-	}
-	if (_set.params.description !== undefined) {
-		params.description = _set.params.description;
-	}
+	const params: HomeworkSetParams = {
+		enable_reduced_scoring: parseBoolean(_set.params.enable_reduced_scoring),
+		hide_hint: parseBoolean(_set.params.hide_hint),
+		hardcopy_header: _set.params.hardcopy_header,
+		set_header: _set.params.set_header,
+		description: _set.params.description
+	};
 
 	const dates: HomeworkSetDates = {
 		open: parseInt(_set.dates.open),
@@ -103,11 +101,7 @@ export function parseHW(_set: ParseableProblemSet): HomeworkSet {
 export function parseQuiz(_set: ParseableProblemSet): Quiz {
 
 	const params: QuizParams = {
-		timed: _set.params.timed === undefined ?
-			undefined :
-			parseInt(_set.params.timed)===1 ?
-				true:
-				false,
+		timed: parseBoolean(_set.params.timed),
 		time_length: _set.params.time_length === undefined ? undefined : parseInt(_set.params.time_length)
 	};
 
@@ -123,6 +117,28 @@ export function parseQuiz(_set: ParseableProblemSet): Quiz {
 		course_id: parseInt(`${_set.course_id}`),
 		set_visible: 1 ? true : false,
 		set_type: ProblemSetType.QUIZ,
+		params: params,
+		dates: dates
+	};
+}
+
+export function parseReview(_set: ParseableProblemSet): ReviewSet {
+
+	const params: ReviewSetParams = {
+		allow: parseBoolean(_set.params.allow)
+	};
+
+	const dates: ReviewSetDates = {
+		open: parseInt(_set.dates.open),
+		closed: parseInt(_set.dates.closed)
+	};
+
+	return {
+		set_id: parseInt(`${_set.set_id}`),
+		set_name: _set.set_name,
+		course_id: parseInt(`${_set.course_id}`),
+		set_visible: 1 ? true : false,
+		set_type: ProblemSetType.REVIEW_SET,
 		params: params,
 		dates: dates
 	};
