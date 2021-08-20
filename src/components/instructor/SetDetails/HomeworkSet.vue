@@ -69,8 +69,6 @@ export default defineComponent({
 		// see the docs at https://v3.vuejs.org/guide/reactivity-computed-watchers.html#watching-reactive-objects
 		// for why we need to do a cloneDeep here
 		watch(() => cloneDeep(set), (new_set, old_set) => {
-			console.log('in watch');
-			console.log([new_set.set_id, old_set.set_id]);
 			if (new_set.set_id == old_set.set_id) {
 				void store.dispatch('problem_sets/updateSet', new_set);
 				$q.notify({

@@ -37,9 +37,7 @@ export default {
 			if (isEqual(set, _set)) {
 				commit('UPDATE_PROBLEM_SET', _set);
 			} else {
-				console.error('The returned set is not the same. ');
-				console.log(set);
-				console.log(_set);
+				// console.error('The returned set is not the same. ');
 			}
 			return set;
 		}
@@ -59,7 +57,7 @@ async function _fetchProblemSets(course_id: number): Promise<Array<ProblemSet>> 
 	const response = await axios.get(`${process.env.VUE_ROUTER_BASE ?? ''}api/courses/${course_id}/sets`);
 	// eslint-disable-next-line
 	if (response.data.exception) {
-		console.error(response.data);
+		// console.error(response.data);
 	}
 	const all_sets = response.data as Array<ParseableProblemSet>;
 	const problem_sets: Array<ProblemSet> = [];
@@ -71,8 +69,8 @@ async function _fetchProblemSets(course_id: number): Promise<Array<ProblemSet>> 
 		} else if (_set.set_type === 'REVIEW') {
 			problem_sets.push(parseReview(_set));
 		} else {
-			console.error('Unexpected Problem type: ');
-			console.error(_set);
+			// console.error('Unexpected Problem type: ');
+			// console.error(_set);
 		}
 	});
 

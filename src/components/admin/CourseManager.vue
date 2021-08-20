@@ -106,10 +106,7 @@ export default defineComponent({
 			filter,
 			selected,
 			new_course_dialog,
-			courses: computed(() => store.state.courses.courses),
-			newCourse: () => {
-				//console.log('new course');
-			}
+			courses: computed(() => store.state.courses.courses)
 		};
 	}
 });

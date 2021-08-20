@@ -35,8 +35,6 @@ export default defineComponent({
 		const first_day_of_month: Date = new Date();
 		first_day_of_month.setDate(1);
 		// first day of the calendar
-		// console.log(date.subtractFromDate(today, { days: today.getDay() }));
-		//const first_day: Ref<Date> = ref(date.subtractFromDate(today, { days: today.getDay() }));
 		const first_day: Ref<Date>
 			= ref(date.subtractFromDate(first_day_of_month, { days: first_day_of_month.getDay() }));
 		return {

@@ -47,7 +47,6 @@ export default defineComponent({
 			() => date_string.value,
 			(val) => {
 				const d = date.extractDate(val, 'YYYY-MM-DD HH:mm');
-				console.log(d.getTime());
 				emit('update:modelValue', d.getTime());
 			}
 		);

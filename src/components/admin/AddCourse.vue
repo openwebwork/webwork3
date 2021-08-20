@@ -92,7 +92,6 @@ export default defineComponent({
 			checkUser: async () => {
 				// lookup the user by username to see if already exists
 				const _user = (await store.dispatch('users/getGlobalUser', user.value.username)) as User;
-				console.log(_user);
 				if (_user !== undefined) {
 					user.value = _user;
 					instructor_exists.value = true;
