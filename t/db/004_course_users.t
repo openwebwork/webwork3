@@ -321,5 +321,4 @@ SKIP: {
 	$user_rs->deleteGlobalUser( { login => $user_params->{login} } );
 }
 
-
 done_testing;

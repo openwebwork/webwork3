@@ -1,0 +1,3 @@
+{
+	"ignore": ["**/*.pm", "**/*.pl", "node_modules", "dist"]
+}
