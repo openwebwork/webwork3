@@ -319,7 +319,6 @@ sub getCourseUser {
 #
 ##
 
-=pod
 =head2 addCourseUser
 
 This method adds a course user to the course_users database knowing that there is
@@ -365,7 +364,6 @@ sub addCourseUser {
 	return {$user_to_return->get_inflated_columns};
 }
 
-=pod
 =head2 updateCourseUser
 
 This method updates the course user table
@@ -383,7 +381,6 @@ sub updateCourseUser {
 
 }
 
-=pod
 =head2 deleteCourseUser
 
 This method updates the course user table

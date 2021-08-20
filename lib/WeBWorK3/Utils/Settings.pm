@@ -158,14 +158,21 @@ sub kebobCase {
 	return shift =~ /^[a-z][a-z_\d]*[a-z\d]$/;
 }
 
-=pod
+=head1 validateSettingsConfig
 
 This checks the configuration for a single setting is valid.  This includes
 
+=over
+
 =item Check that the variable name is kebob case
+
 =item Ensure that all fields passed in are valid
+
 =item Ensure that all require fields are present
+
 =item Checks that the default value is appropriate for the type
+
+=back
 
 =cut
 
