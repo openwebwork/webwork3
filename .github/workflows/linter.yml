@@ -60,7 +60,10 @@ jobs:
       # Run Linter against code base #
       ################################
       - name: Super-Linter
-        uses: github/super-linter@v4.5.1
+        # Note that this actually uses super-linter version 4.6.0 which is the desired version.
+        # See https://github.com/github/super-linter/issues/1839.
+        # It seems that version 4.6.1 has a bug with perlcritic, so we actually want 4.6.0.
+        uses: github/super-linter@v4.6.1
 
         env:
           VALIDATE_ALL_CODEBASE: false
@@ -73,6 +76,7 @@ jobs:
           CSS_FILE_NAME: .stylelintrc.js
           VALIDATE_TYPESCRIPT_STANDARD: false
           VALIDATE_JAVASCRIPT_STANDARD: false
+          FILTER_REGEX_EXCLUDE: .*/we_b_wor_k3.yml
 
       # This doesn't work and so is disabled.
       # This either should be in a separate workflow or the workflow shoule be renamed.

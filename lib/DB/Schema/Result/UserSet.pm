@@ -104,25 +104,33 @@ my $set_type = {
 
 sub valid_params {
 	my $type = shift;
+	## no critic
 	my $params = eval '&' . $set_type->{$type} . '::valid_params';
+	## use critic
 	return $params;
 }
 
 sub required_params {
 	my $type = shift;
+	## no critic
 	my $params = eval '&' . $set_type->{$type} . '::required_params';
+	## use critic
 	return $params;
 }
 
 sub valid_dates {
 	my $type = shift;
+	## no critic
 	my $params = eval '&' . $set_type->{$type} . '::valid_dates';
+	## use critic
 	return $params;
 }
 
 sub required_dates {
 	my $type = shift;
+	## no critic
 	my $params = eval '&' . $set_type->{$type} . '::required_dates';
+	## use critic
 	return $params;
 }
 
