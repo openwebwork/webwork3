@@ -13,11 +13,9 @@ use Mojolicious::Commands;
 # check if the config file has been created
 my $webwork_dir = curfile->dirname->dirname("..");
 
-warn "The file $webwork_dir/conf/webwork3.yml does not exist.  Perhaps you haven't copied webwork3.dist.yml to this file."
+warn qq!The file $webwork_dir/conf/webwork3.yml does not exist.
+	Perhaps you haven't copied webwork3.dist.yml to this file.!
 	unless -e "$webwork_dir/conf/webwork3.yml";
-
-
-
 
 # Start command line interface for application
 Mojolicious::Commands->start_app('WeBWorK3');

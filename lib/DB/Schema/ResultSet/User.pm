@@ -527,8 +527,9 @@ An hashref of the added user.
 # 	my $user_to_update = $self->result_source->schema->resultset("CourseUser")
 # 		->find( { course_id => $course->course_id, user_id => $user->user_id } );
 
-# 	DB::Excpetion::UserNotInCourse->throw( course_name => $course->course_name, username => $course_user_info->{username} )
-# 		unless defined($user_to_update);
+# 	DB::Excpetion::UserNotInCourse->throw(
+#	course_name => $course->course_name, username => $course_user_info->{username}
+#	) unless defined($user_to_update);
 
 # 	my $updated_user = $user_to_update->update( {%$params} );    # seems like update changes $params, so make a copy.
 
