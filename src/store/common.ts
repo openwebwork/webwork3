@@ -2,6 +2,8 @@ import { User, Course, CourseUser, ProblemSet, HomeworkSet, ProblemSetType,
 	Quiz, QuizDates, QuizParams, ParseableProblemSet, CourseSetting,
 	HomeworkSetParams, HomeworkSetDates } from './models';
 
+import { cloneDeep } from 'lodash-es';
+
 export function newUser(): User {
 	return {
 		email: '',
@@ -47,6 +49,16 @@ export function newProblemSet(): ProblemSet {
 		params: {},
 		dates: {}
 	};
+}
+
+export function copyProblemSet(target: ProblemSet, source: ProblemSet) {
+	target.set_id = source.set_id;
+	target.set_name = source.set_name;
+	target.set_visible = source.set_visible;
+	target.set_type = source.set_type;
+	target.course_id = source.course_id;
+	target.dates = cloneDeep(source.dates);
+	target.params = cloneDeep(source.params);
 }
 
 export function parseHW(_set: ParseableProblemSet): HomeworkSet {

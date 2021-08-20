@@ -36,11 +36,11 @@
 <script lang="ts">
 import { defineComponent, reactive, watch, toRefs } from 'vue';
 import { useQuasar } from 'quasar';
-import { cloneDeep } from 'lodash';
+import { cloneDeep } from 'lodash-es';
 
 import DateTimeInput from 'src/components/common/DateTimeInput.vue';
 import { ProblemSet } from 'src/store/models';
-import { newProblemSet } from 'src/store/common';
+import { newProblemSet, copyProblemSet } from 'src/store/common';
 import { useStore } from 'src/store';
 
 export default defineComponent({
@@ -60,15 +60,7 @@ export default defineComponent({
 		const updateSet = () => {
 			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id == set_id.value) ||
 				newProblemSet();
-			// need to copy over all fields deeply.
-			// Object.assign(set, cloneDeep(s));
-			set.set_id = s.set_id;
-			set.set_name = s.set_name;
-			set.set_visible = s.set_visible;
-			set.set_type = s.set_type;
-			set.course_id = s.course_id;
-			set.dates = cloneDeep(s.dates);
-			set.params = cloneDeep(s.params);
+			copyProblemSet(set, s);
 		};
 
 		watch(()=>set_id.value, updateSet);

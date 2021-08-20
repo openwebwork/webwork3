@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Commit } from 'vuex';
 import { StateInterface } from '../index';
-import { isEqual } from 'lodash';
+import { isEqual } from 'lodash-es';
 
 import { ProblemSet, ParseableProblemSet } from 'src/store/models';
 import { parseHW, parseQuiz } from '../common';

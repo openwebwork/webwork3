@@ -295,43 +295,45 @@ throws_ok {
 }
 "DB::Exception::UserNotInCourse", "getCourseUser: try to get a user not enrolled";
 
-# remove the following user if already defined in the course
-my $apu = $user_rs->find({login=>"apu"});
-my $arithmetic = $course_rs->find({course_name => "Arithmetic"});
-my $apu_cu = $cu_rs->find({user_id => $apu->user_id, course_id => $arithmetic->course_id});
-$apu_cu->delete if defined $apu_cu;
 
-my $course_user = {
-	login => "apu",
-	course_name => "Arithmetic",
-	role => "instructor",
-	params => {},
-	recitation => undef,
-	section => undef
-};
 
-my $course_user_from_db = $user_rs->addCourseUser($course_user);
-removeIDs($course_user_from_db);
+# # remove the following user if already defined in the course
+# my $apu = $user_rs->find({login=>"apu"});
+# my $arithmetic = $course_rs->find({course_name => "Arithmetic"});
+# my $apu_cu = $cu_rs->find({user_id => $apu->user_id, course_id => $arithmetic->course_id});
+# $apu_cu->delete if defined $apu_cu;
 
-for my $key (qw/login course_name/) {
-	delete $course_user->{$key};
-}
+# my $course_user = {
+# 	login => "apu",
+# 	course_name => "Arithmetic",
+# 	role => "instructor",
+# 	params => {},
+# 	recitation => undef,
+# 	section => undef
+# };
 
-is_deeply($course_user,$course_user_from_db,"addCourseUser: successfully adding a course user");
+# my $course_user_from_db = $user_rs->addCourseUser($course_user);
+# removeIDs($course_user_from_db);
 
-# try to add a non-existent user from a course:
+# for my $key (qw/login course_name/) {
+# 	delete $course_user->{$key};
+# }
 
-throws_ok {
-	$user_rs->addCourseUser({ course_name => "Arithmetic", login => "non_existent_user"})
-}
-"DB::Exception::UserNotFound", "getCourseUser: try to add a non-existent user to a course";
+# is_deeply($course_user,$course_user_from_db,"addCourseUser: successfully adding a course user");
 
-# check that a non-existent course throws an error:
+# # try to add a non-existent user from a course:
 
-throws_ok {
-	$user_rs->addCourseUser({ course_name => "non_existent_course", login => "bart"})
-}
-"DB::Exception::CourseNotFound", "getCourseUser: try to add a user to a non-existent course";
+# throws_ok {
+# 	$user_rs->addCourseUser({ course_name => "Arithmetic", login => "non_existent_user"})
+# }
+# "DB::Exception::UserNotFound", "getCourseUser: try to add a non-existent user to a course";
+
+# # check that a non-existent course throws an error:
+
+# throws_ok {
+# 	$user_rs->addCourseUser({ course_name => "non_existent_course", login => "bart"})
+# }
+# "DB::Exception::CourseNotFound", "getCourseUser: try to add a user to a non-existent course";
 
 ## TODO: check that adding non-valid parameters throw errors.
 

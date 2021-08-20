@@ -265,30 +265,30 @@ sub getUser {
 
 
 
-sub getCourseUser {
-	my ( $self, $course_user_info, $as_result_set ) = @_;
-	my $course = $self->result_source->schema->resultset("Course")
-		->getCourse(getCourseInfo($course_user_info),1);
-	my $user = $self->getGlobalUser(getUserInfo($course_user_info),1);
-	my @keys = keys %$course_user_info;
+# sub getCourseUser {
+# 	my ( $self, $course_user_info, $as_result_set ) = @_;
+# 	my $course = $self->result_source->schema->resultset("Course")
+# 		->getCourse(getCourseInfo($course_user_info),1);
+# 	my $user = $self->getGlobalUser(getUserInfo($course_user_info),1);
+# 	my @keys = keys %$course_user_info;
 
-	DB::Exception::TooManyParameters->throw(
-		message => "Too many parameters were passed into getCourseUser"
-	) if (scalar(@keys) != 2 );
+# 	DB::Exception::TooManyParameters->throw(
+# 		message => "Too many parameters were passed into getCourseUser"
+# 	) if (scalar(@keys) != 2 );
 
 
 
-	my $course_user = $self->result_source->schema->resultset("CourseUser")
-		->find({course_id => $course->course_id, user_id => $user->user_id});
+# 	my $course_user = $self->result_source->schema->resultset("CourseUser")
+# 		->find({course_id => $course->course_id, user_id => $user->user_id});
 
-	DB::Exception::UserNotInCourse->throw(
-		message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}"
-	) unless defined $course_user;
+# 	DB::Exception::UserNotInCourse->throw(
+# 		message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}"
+# 	) unless defined $course_user;
 
-	return $course_user if $as_result_set;
-	return {$course_user->get_inflated_columns};
+# 	return $course_user if $as_result_set;
+# 	return {$course_user->get_inflated_columns};
 
-}
+# }
 
 ##
 #
@@ -307,42 +307,42 @@ The method returns only the information in the course_user table
 =cut
 
 
-sub addCourseUser {
-	my ( $self, $course_user_params, $as_result_set ) = @_;
-	# warn "in addCourseUser";
-	# warn Dumper $course_user_params;
-	my $course = $self->result_source->schema->resultset("Course")
-		->getCourse(getCourseInfo($course_user_params),1);
-	my $user = $self->getGlobalUser(getUserInfo($course_user_params),1);
+# sub addCourseUser {
+# 	my ( $self, $course_user_params, $as_result_set ) = @_;
+# 	# warn "in addCourseUser";
+# 	# warn Dumper $course_user_params;
+# 	my $course = $self->result_source->schema->resultset("Course")
+# 		->getCourse(getCourseInfo($course_user_params),1);
+# 	my $user = $self->getGlobalUser(getUserInfo($course_user_params),1);
 
-	# check if the user is already in the given course
-	my $cu = $self->result_source->schema->resultset("CourseUser")
-		->find({ user_id => $user->user_id, course_id => $course->course_id});
-	# warn Dumper {$cu->get_inflated_columns} if $cu;
-	DB::Exception::UserAlreadyInCourse->throw(
-		message => "The user with username: ${\$user->username} is already in the course: ${\$course->course_name}"
-	) if defined($cu);
+# 	# check if the user is already in the given course
+# 	my $cu = $self->result_source->schema->resultset("CourseUser")
+# 		->find({ user_id => $user->user_id, course_id => $course->course_id});
+# 	# warn Dumper {$cu->get_inflated_columns} if $cu;
+# 	DB::Exception::UserAlreadyInCourse->throw(
+# 		message => "The user with username: ${\$user->username} is already in the course: ${\$course->course_name}"
+# 	) if defined($cu);
 
-	my $params = clone($course_user_params);
+# 	my $params = clone($course_user_params);
 
-	for my $key (qw/ course_id course_name username user_id/) {
-		delete $params->{$key};
-	}
+# 	for my $key (qw/ course_id course_name username user_id/) {
+# 		delete $params->{$key};
+# 	}
 
 
-	## still need to check params for validity.
+# 	## still need to check params for validity.
 
-	my $course_user = $self->result_source->schema->resultset("CourseUser")
-		->new($params);
-	$course->add_to_users({user_id => $user->user_id});
+# 	my $course_user = $self->result_source->schema->resultset("CourseUser")
+# 		->new($params);
+# 	$course->add_to_users({user_id => $user->user_id});
 
-	my $user_to_return = $self->result_source->schema->resultset("CourseUser")
-		->find({course_id => $course->course_id, user_id => $user->user_id})
-		->update($params);
+# 	my $user_to_return = $self->result_source->schema->resultset("CourseUser")
+# 		->find({course_id => $course->course_id, user_id => $user->user_id})
+# 		->update($params);
 
-	return $user_to_return if $as_result_set;
-	return {$user_to_return->get_inflated_columns};
-}
+# 	return $user_to_return if $as_result_set;
+# 	return {$user_to_return->get_inflated_columns};
+# }
 
 =pod
 =head2 updateCourseUser
@@ -351,16 +351,16 @@ This method updates the course user table
 
 =cut
 
-sub updateCourseUser {
-	my ( $self, $course_user_info, $course_user_params, $as_result_set ) = @_;
-	my $course_user = $self->getCourseUser($course_user_info,1);
+# sub updateCourseUser {
+# 	my ( $self, $course_user_info, $course_user_params, $as_result_set ) = @_;
+# 	my $course_user = $self->getCourseUser($course_user_info,1);
 
-	my $course_user_to_return = $course_user->update($course_user_params);
+# 	my $course_user_to_return = $course_user->update($course_user_params);
 
-	return $course_user_to_return if $as_result_set;
-	return {$course_user_to_return->get_inflated_columns};
+# 	return $course_user_to_return if $as_result_set;
+# 	return {$course_user_to_return->get_inflated_columns};
 
-}
+# }
 
 =pod
 =head2 deleteCourseUser
@@ -369,14 +369,14 @@ This method updates the course user table
 
 =cut
 
-sub deleteCourseUser {
-	my ( $self, $course_user_info, $course_user_params, $as_result_set ) = @_;
-	my $course_user_to_delete = $self->getCourseUser($course_user_info,1)->delete;
+# sub deleteCourseUser {
+# 	my ( $self, $course_user_info, $course_user_params, $as_result_set ) = @_;
+# 	my $course_user_to_delete = $self->getCourseUser($course_user_info,1)->delete;
 
-	return $course_user_to_delete if $as_result_set;
-	return {$course_user_to_delete->get_inflated_columns};
+# 	return $course_user_to_delete if $as_result_set;
+# 	return {$course_user_to_delete->get_inflated_columns};
 
-}
+# }
 
 ####
 #
@@ -445,12 +445,12 @@ An hashref of the added user.
 # 	DB::Exception::UserAlreadyInCourse->throw( course_name => $course_info, username => $params->{username} )
 # 		if defined $user_exists;
 
-	my $course_user_params = clone($params);
-	my $user_params        = {};
-	for my $key ( $self->result_source->columns ) {    # remove all parameters that don't fit in the user table
-		$user_params->{$key} = $params->{$key} if defined $params->{$key};
-		delete $course_user_params->{$key};
-	}
+# 	my $course_user_params = clone($params);
+# 	my $user_params        = {};
+# 	for my $key ( $self->result_source->columns ) {    # remove all parameters that don't fit in the user table
+# 		$user_params->{$key} = $params->{$key} if defined $params->{$key};
+# 		delete $course_user_params->{$key};
+# 	}
 
 # 	my $globalUser = $self->find($user_info);
 # 	$globalUser    = $self->new($user_params) unless (defined($globalUser));
@@ -580,12 +580,12 @@ An hashref of the added user.
 # 	my $course_user_rs = $self->result_source->schema->resultset("CourseUser");
 
 	## get the CourseUser data from the DB
-	my $deleted_course_user = $course_user_rs->find(
-		{
-			course_id => $course->course_id,
-			user_id   => $user->user_id
-		}
-	)->delete;
+	# my $deleted_course_user = $course_user_rs->find(
+	# 	{
+	# 		course_id => $course->course_id,
+	# 		user_id   => $user->user_id
+	# 	}
+	# )->delete;
 
 # 	# my $deleted_course_user = $course_user_db->delete;
 
@@ -645,7 +645,7 @@ sub addCourseUser {
 
 	my $params = clone($course_user_params);
 
-	for my $key (qw/ course_id course_name login user_id/) {
+	for my $key (qw/ course_id course_name username user_id/) {
 		delete $params->{$key};
 	}
 
