@@ -19,16 +19,12 @@ use DB::Exception::InvalidCourseFieldType;
 
 use WeBWorK3;
 
-
 my @allowed_fields = qw/var category subcategory doc doc2 default type options/;
 my @required_fields = qw/var doc type default/;
 
-
-=pod
 =head1 loadDefaultCourseSettings
 
 load the default settings from the conf/course_settings.yaml file
-
 
 =cut
 
@@ -38,7 +34,6 @@ sub getDefaultCourseSettings {
 
 my @course_setting_categories = qw/email optional general permissions problem problem_set/;
 
-=pod
 =head1 getDefaultCourseValues
 
 getDefaultCourseValues returns the values of all default course values and returns
@@ -60,7 +55,6 @@ sub getDefaultCourseValues {
 	return $all_settings;
 }
 
-=pod
 =head1 mergeCourseSettings
 
 mergeCourseSettings takes in two settings and merges them in the following way:
@@ -70,7 +64,6 @@ For each course setting in the first argument (typically from the configuration 
 2. use the value from the first argument
 
 =cut
-
 
 sub mergeCourseSettings {
 	my ($settings,$settings_to_update) = @_;
@@ -105,14 +98,17 @@ sub validateSettingsConfFile {
 	return 1;
 }
 
-
-
 =pod
 
 isValidCourseSettings checks if the course settings are valid including
+
+=over
+
 =item the key is defined in the course setting configuration file
+
 =item the value is appropriate for the given setting.
 
+=back
 
 =cut
 
@@ -131,7 +127,6 @@ sub flattenCourseSettings {
 	}
 	return \@flattened_settings;
 }
-
 
 sub validateCourseSettings {
 	my $course_settings = flattenCourseSettings(shift);
@@ -163,14 +158,21 @@ sub kebobCase {
 	return shift =~ /^[a-z][a-z_\d]*[a-z\d]$/;
 }
 
-=pod
+=head1 validateSettingsConfig
 
 This checks the configuration for a single setting is valid.  This includes
 
+=over
+
 =item Check that the variable name is kebob case
+
 =item Ensure that all fields passed in are valid
+
 =item Ensure that all require fields are present
+
 =item Checks that the default value is appropriate for the type
+
+=back
 
 =cut
 
@@ -241,7 +243,6 @@ sub validateList {
 	my $setting = shift;
 	croak "The options field for the type list in " . $setting->{var} . " is missing " unless defined($setting->{options});
 	croak "The options field for " . $setting->{var} . " is not an ARRAYREF" unless ref($setting->{options}) eq "ARRAY";
-
 
 	# see if the $setting->{options} is an arrayref of strings or hashrefs
 	my @opt = (ref($setting->{options}->[0]) eq "HASH") ?

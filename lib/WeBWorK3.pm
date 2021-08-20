@@ -77,7 +77,6 @@ sub confDirectory {
 	return "$webwork_root/conf";
 }
 
-
 sub load_account {
 	my ($self,$user_id)  = @_;
 	my $user = $self->schema->resultset("User")->getGlobalUser({username => $user_id});
@@ -155,6 +154,5 @@ sub settingsRoutes {
 	$self->routes->get('/webwork3/api/courses/:course_id/settings')->to("Settings#getCourseSettings");
 	return;
 }
-
 
 1;

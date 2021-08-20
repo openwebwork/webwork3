@@ -98,7 +98,6 @@ __PACKAGE__->inflate_column(
 	}
 );
 
-=pod
 =head2 set_type
 
 returns the type (HW, Quiz, JITAR, REVIEW) of the problem set

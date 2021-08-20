@@ -2,10 +2,9 @@ package WeBWorK3::Controller::Settings;
 use warnings;
 use strict;
 
-=pod
 =head1 Description
 
-These are the method that call the database for course settings
+These are the methods that call the database for course settings
 
 =cut
 
