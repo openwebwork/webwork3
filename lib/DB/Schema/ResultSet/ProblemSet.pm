@@ -81,18 +81,9 @@ sub getProblemSets {
 	my $course_rs   = $self->result_source->schema->resultset("Course");
 	my $course      = $course_rs->getCourse( $course_info, 1 );
 
-	my $problem_set_rs = $self->search( { 'me.course_id' => $course->course_id }, { prefetch => ["courses"] } );
-	my @sets = ();
-	while( my $set = $problem_set_rs->next) {
-		my $expanded_set =
-			{
-				$set->get_inflated_columns,
-				set_type => $set->set_type
-			};
-		delete $expanded_set->{type};
-		push(@sets,$expanded_set);
-	}
-	return @sets;
+	my $problem_sets = $self->search( { 'me.course_id' => $course->course_id }, { prefetch => ["courses"] } );
+	my $sets = _formatSets($problem_sets);
+	return @$sets;
 }
 
 =pod
@@ -103,14 +94,10 @@ Get all hw sets for a given course
 
 =cut
 
-sub getHWSets {
-	my ( $self, $course_info, $as_result_set ) = @_;
-	my $search_params = getCourseInfo($course_info);    # pull out the course_info that is passed
-	$search_params->{'me.type'} = 1;                    # set the type to search for.
-
-	my $problem_set_rs = $self->search( $search_params, { prefetch => ["courses"] } );
+sub _formatSets {
+	my $problem_sets = shift;
 	my @sets = ();
-	while( my $set = $problem_set_rs->next) {
+	while( my $set = $problem_sets->next) {
 		my $expanded_set =
 			{
 				$set->get_inflated_columns,
@@ -119,7 +106,17 @@ sub getHWSets {
 		delete $expanded_set->{type};
 		push(@sets,$expanded_set);
 	}
-	return @sets;
+	return \@sets;
+}
+
+sub getHWSets {
+	my ( $self, $course_info, $as_result_set ) = @_;
+	my $search_params = getCourseInfo($course_info);    # pull out the course_info that is passed
+	$search_params->{'me.type'} = 1;                    # set the type to search for.
+
+	my $quizzes = $self->search( $search_params, { prefetch => ["courses"] } );
+	my $sets = _formatSets($quizzes);
+	return @$sets;
 }
 =pod
 =head2 getQuizzes

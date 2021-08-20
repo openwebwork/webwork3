@@ -107,9 +107,12 @@ throws_ok {
 my $arithmetic = $course_rs->find( {course_name => "Arithmetic" });
 my $quimby = $user_rs->find( { username => "quimby" });
 # warn Dumper {$quimby->get_inflated_columns} if $quimby;
-$quimby->delete if defined $quimby;
-my $cu = $schema->resultset("CourseUser")->find( { user_id => $quimby->user_id, course_id => $arithmetic->course_id}) if defined($quimby);
-$cu->delete if defined($cu);
+if( defined($quimby)) {
+	$quimby->delete;
+	my $cu = $schema->resultset("CourseUser")
+		->find( { user_id => $quimby->user_id, course_id => $arithmetic->course_id});
+	$cu->delete if defined($cu);
+}
 # warn Dumper {$cu->get_inflated_columns} if $cu;
 
 my $user_params =

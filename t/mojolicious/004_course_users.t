@@ -49,9 +49,11 @@ else {
 
 # remove the maggie user if exists in the database
 my $maggie = $schema->resultset("User")->find({username => "maggie"});
-my $maggie_cu = $schema->resultset("CourseUser")->search({user_id => $maggie->user_id}) if $maggie;
-$maggie_cu->delete_all if defined($maggie_cu);
-$maggie->delete if defined($maggie);
+if (defined($maggie)) {
+	my $maggie_cu = $schema->resultset("CourseUser")->search({user_id => $maggie->user_id});
+	$maggie_cu->delete_all if defined($maggie_cu);
+	$maggie->delete if defined($maggie);
+}
 
 
 $t->get_ok('/webwork3/api/courses/2/users')
