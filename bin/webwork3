@@ -14,7 +14,7 @@ use Mojolicious::Commands;
 my $webwork_dir = curfile->dirname->dirname("..");
 
 warn qq!The file $webwork_dir/conf/webwork3.yml does not exist.
-	Perhaps you haven't copied webwork3.dist.yml to this file.!
+	Perhaps you haven't copied webwork3.yml.dist to this file.!
 	unless -e "$webwork_dir/conf/webwork3.yml";
 
 # Start command line interface for application
