@@ -14,7 +14,6 @@ sub check_login {
 	my $self = shift;
 	if ($self->authenticate($self->req->param("username"), $self->req->param("password"))) {
 		## redirect
-		warn "here";
 		$self->redirect_to("/users/start");
 	} else {
 		$self->flash(msg => "Incorrect username or password.");
