@@ -17,7 +17,7 @@
 				<q-separator />
 
 				<q-tab-panels v-model="tab" animated>
-					<q-tab-panel v-for="category in categories" :name="category" :key="'panel:'+category" >
+					<q-tab-panel v-for="category in categories" :name="category" :key="'panel:' + category">
 						<q-markup-table separator="horizontal" dense>
 							<template v-for="item in getSettings(category)" :key="item.var">
 								<single-setting :setting="item" :value="getSettingValue(item.var)" />
@@ -41,19 +41,21 @@ export default defineComponent({
 	components: {
 		SingleSetting
 	},
-	setup () {
+	setup() {
 		const store = useStore();
 		const tab = ref('General');
 
 		return {
 			tab,
-			categories: computed(() => [ ...new Set(store.state.settings.default_settings
-				.map((setting: CourseSettingInfo) => setting.category)) ]),
-			getSettings: (cat: string) => store.state.settings.default_settings
-				.filter((setting: CourseSettingInfo) => setting.category === cat),
-			getSettingValue: (var_name: string)  => {
-				const settings = store.state.settings.course_settings
-					.filter((setting: CourseSetting) => setting.var === var_name);
+			categories: computed(() => [
+				...new Set(store.state.settings.default_settings.map((setting: CourseSettingInfo) => setting.category))
+			]),
+			getSettings: (cat: string) =>
+				store.state.settings.default_settings.filter((setting: CourseSettingInfo) => setting.category === cat),
+			getSettingValue: (var_name: string) => {
+				const settings = store.state.settings.course_settings.filter(
+					(setting: CourseSetting) => setting.var === var_name
+				);
 				return settings[0].value;
 			}
 		};

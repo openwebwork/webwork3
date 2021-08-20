@@ -1,5 +1,5 @@
 <template>
-	<h3>Student View for {{course_name}}</h3>
+	<h3>Student View for {{ course_name }}</h3>
 </template>
 
 <script lang="ts">

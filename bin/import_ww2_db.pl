@@ -117,10 +117,10 @@ sub rebuild {
 			# if each user is only in one course, delete the global user
 		if (scalar(@user_courses) == 1) {
 			$user_rs->deleteGlobalUser({user_id => $course_user->{user_id}});
-			say "deleting the global user with login: $course_user->{login}" if $verbose;
+			say "deleting the global user with username: $course_user->{username}" if $verbose;
 		} else {
 			$user_rs->deleteUser({course_name => $course_name, user_id => $course_user->{user_id}});
-			say "From course $course_name, deleting user $course_user->{login}" if $verbose;
+			say "From course $course_name, deleting user $course_user->{username}" if $verbose;
 		}
 	}
 
@@ -172,18 +172,18 @@ sub addUsers {
 
 	for my $r (@$ref) {
 		my $user_params = {
-			login => $r->{user_id},
+			username => $r->{user_id},
 			email => $r->{email_address}
 		};
 		foreach my $key (@user_fields){
 			$user_params->{$key} = $r->{$key} if defined($r->{$key});
 		}
 		# dd $user_params;
-		my $user = $user_rs->find({login => $user_params->{login}});
+		my $user = $user_rs->find({username => $user_params->{username}});
 		$user_rs->addGlobalUser($user_params) unless $user;
-		say "Adding user with login $r->{user_id}" if $verbose && ! defined($user);
+		say "Adding user with username $r->{user_id}" if $verbose && ! defined($user);
 		my $course_user = {
-			login => $r->{user_id},
+			username => $r->{user_id},
 			params => {}
 		};
 		for my $key (@course_user_fields) {

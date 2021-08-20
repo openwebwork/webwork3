@@ -89,13 +89,13 @@ for my $user_set (@all_user_sets) {
 my @user_sets_from_db = $user_set_rs->getUserSetsForUser(
 	{
 		course_name => $course->course_name,
-		login => "homer"
+		username => "homer"
 	}
 );
 
 my @user_sets = map { {%{$_}}; } @all_user_sets; # make a copy of the sets
 
-@user_sets = grep { $_->{course_name} eq $course->course_name && $_->{login} eq "homer" } @user_sets;
+@user_sets = grep { $_->{course_name} eq $course->course_name && $_->{username} eq "homer" } @user_sets;
 
 for my $user_set (@user_sets) {
 	delete $user_set->{course_name};
@@ -130,28 +130,28 @@ is_deeply( \@user_sets_from_db, \@user_sets, "getUserSets: get all user sets for
 ## try to get a user set from a non-existing course
 
 throws_ok {
-	$user_set_rs->getUserSetsForUser( { course_name => "non_existent_course", login => "homer" } );
+	$user_set_rs->getUserSetsForUser( { course_name => "non_existent_course", username => "homer" } );
 }
 "DB::Exception::CourseNotFound", "getUserSets: attempt to get user sets from a nonexistent course";
 
 ## try to get a user set from a non-existing course
 
 throws_ok {
-	$user_set_rs->getUserSetsForUser( { course_name => "Precalculus", login => "non_existent_user" } );
+	$user_set_rs->getUserSetsForUser( { course_name => "Precalculus", username => "non_existent_user" } );
 }
 "DB::Exception::UserNotInCourse", "getUserSets: attempt to get user sets from a nonexistent user";
 
 ## try to get a user set from a user not in the course
 
 throws_ok {
-	$user_set_rs->getUserSetsForUser( { course_name => "non_existent_course", login => "bart" } );
+	$user_set_rs->getUserSetsForUser( { course_name => "non_existent_course", username => "bart" } );
 }
 "DB::Exception::CourseNotFound", "getUserSets: attempt to get user sets from user not in the course";
 
 ## get a single UserSet
 
 my $info = {
-	login       => "homer",
+	username       => "homer",
 	course_name => "Precalculus",
 	set_name    => "HW #1"
 };
@@ -160,7 +160,7 @@ my $user_set = $user_set_rs->getUserSet($info);
 my @sets = map { {%{$_}}; } @all_user_sets; # make a copy
 my $user_set_from_csv = firstval {
 	$_->{course_name} eq "Precalculus"
-		&& $_->{login} eq $info->{login}
+		&& $_->{username} eq $info->{username}
 		&& $_->{set_name} eq $info->{set_name}
 } @sets;
 
@@ -176,7 +176,7 @@ throws_ok {
 	$user_set_rs->getUserSet(
 		{
 			course_name => "non_existent_course",
-			login       => "homer",
+			username       => "homer",
 			set_name    => "HW #1"
 		}
 	);
@@ -189,7 +189,7 @@ throws_ok {
 	$user_set_rs->getUserSet(
 		{
 			course_name => "Precalculus",
-			login       => "non_existent_user",
+			username       => "non_existent_user",
 			set_name    => "HW #1"
 		}
 	);
@@ -201,7 +201,7 @@ throws_ok {
 throws_ok {
 	$user_set_rs->getUserSet(
 		{   course_name => "Precalculus",
-			login       => "marge",
+			username       => "marge",
 			set_name    => "HW #1"
 		}
 	);
@@ -213,7 +213,7 @@ throws_ok {
 throws_ok {
 	$user_set_rs->getUserSet(
 		{   course_name => "Precalculus",
-			login       => "homer",
+			username       => "homer",
 			set_name    => "HW #999"
 		}
 	);
@@ -223,7 +223,7 @@ throws_ok {
 # add a user set
 
 my $new_user_set_info = {
-	login => "otto",
+	username => "otto",
 	course_name => "Precalculus",
 	set_name => "HW #1"
 };
@@ -236,7 +236,7 @@ my $set = firstval {
 		&& $_->{set_name} eq $new_user_set_info->{set_name}
 } @$hw_sets;
 
-$set->{login} = $new_user_set_info->{login};
+$set->{username} = $new_user_set_info->{username};
 removeIDs($new_user_set);
 delete $set->{course_name};
 delete $new_user_set->{type};
@@ -248,7 +248,7 @@ is_deeply($new_user_set,$set,"addUserSet: add a new user set");
 throws_ok {
 	$user_set_rs->addUserSet(
 		{
-			login => "otto",
+			username => "otto",
 			course_name => "non existent course",
 			set_name => "HW #1"
 		}
@@ -261,7 +261,7 @@ throws_ok {
 throws_ok {
 	$user_set_rs->addUserSet(
 		{
-			login => "otto",
+			username => "otto",
 			course_name => "Precalculus",
 			set_name => "HW #99"
 		}
@@ -273,7 +273,7 @@ throws_ok {
 throws_ok {
 	$user_set_rs->addUserSet(
 		{
-			login => "ralph",
+			username => "ralph",
 			course_name => "Precalculus",
 			set_name => "HW #1"
 		}
@@ -285,7 +285,7 @@ throws_ok {
 throws_ok {
 	$user_set_rs->addUserSet(
 		{
-			login => "otto",
+			username => "otto",
 			course_name => "Precalculus",
 			set_name => "HW #2"
 		},
@@ -300,7 +300,7 @@ throws_ok {
 throws_ok {
 	$user_set_rs->addUserSet(
 		{
-			login => "otto",
+			username => "otto",
 			course_name => "Precalculus",
 			set_name => "HW #1"
 		}
@@ -316,7 +316,7 @@ throws_ok {
 
 my $user_set2 = $user_set_rs->addUserSet(
 	{
-		login => "otto",
+		username => "otto",
 		course_name => "Precalculus",
 		set_name => "HW #2"
 	},
@@ -337,7 +337,7 @@ removeIDs($user_set2);
 delete $set2_from_csv->{course_name};
 delete $user_set2->{type};
 $set2_from_csv->{params} = $user_set2->{params};
-$set2_from_csv->{login} = $user_set2->{login};
+$set2_from_csv->{username} = $user_set2->{username};
 
 is_deeply($user_set2,$set2_from_csv,"addUserSet: add a new user set with params");
 
@@ -347,7 +347,7 @@ is_deeply($user_set2,$set2_from_csv,"addUserSet: add a new user set with params"
 throws_ok {
 	$user_set_rs->addUserSet(
 		{
-			login => "otto",
+			username => "otto",
 			course_name => "Precalculus",
 			set_name => "HW #3"
 		},
@@ -370,7 +370,7 @@ $set_to_delete->delete if defined($set_to_delete);
 
 my $user_set3 = $user_set_rs->addUserSet(
 	{
-		login => "otto",
+		username => "otto",
 		course_name => "Precalculus",
 		set_name => "HW #2"
 	},
@@ -393,7 +393,7 @@ my $set3_from_csv = firstval {
 removeIDs($user_set3);
 delete $set3_from_csv->{course_name};
 $set3_from_csv->{dates} = $user_set3->{dates};
-$set3_from_csv->{login} = $user_set3->{login};
+$set3_from_csv->{username} = $user_set3->{username};
 
 is_deeply($user_set3,$set3_from_csv,"addUserSet: add a new user set with dates");
 
@@ -402,7 +402,7 @@ is_deeply($user_set3,$set3_from_csv,"addUserSet: add a new user set with dates")
 throws_ok {
 	$user_set_rs->addUserSet(
 		{
-			login => "otto",
+			username => "otto",
 			course_name => "Precalculus",
 			set_name => "HW #3"
 		},
@@ -419,7 +419,7 @@ throws_ok {
 throws_ok {
 	$user_set_rs->addUserSet(
 		{
-			login => "otto",
+			username => "otto",
 			course_name => "Precalculus",
 			set_name => "HW #3"
 		},
@@ -447,7 +447,7 @@ $set3_from_csv->{dates} = $updated_dates;
 
 my $updated_user_set = $user_set_rs->updateUserSet(
 	{
-		login => "otto",
+		username => "otto",
 		course_name => "Precalculus",
 		set_name => "HW #2"
 	},
@@ -462,7 +462,7 @@ is_deeply($updated_user_set,$set3_from_csv,"updateUserSet: update the dates");
 
 my $updated_user_set2 = $user_set_rs->updateUserSet(
 	{
-		login => "otto",
+		username => "otto",
 		course_name => "Precalculus",
 		set_name => "HW #2"
 	},
@@ -484,7 +484,7 @@ is_deeply($updated_user_set2,$set3_from_csv,"updateUserSet: update the params");
 throws_ok {
 	$user_set_rs->updateUserSet(
 		{
-			login => "otto",
+			username => "otto",
 			course_name => "Precalculus",
 			set_name => "HW #2"
 		},
@@ -499,7 +499,7 @@ throws_ok {
 throws_ok {
 	$user_set_rs->updateUserSet(
 		{
-			login => "otto",
+			username => "otto",
 			course_name => "Precalculus",
 			set_name => "HW #2"
 		},
@@ -517,7 +517,7 @@ throws_ok {
 throws_ok {
 	$user_set_rs->updateUserSet(
 		{
-			login => "otto",
+			username => "otto",
 			course_name => "Precalculus",
 			set_name => "HW #2"
 		},
@@ -532,7 +532,7 @@ throws_ok {
 throws_ok {
 	$user_set_rs->updateUserSet(
 		{
-			login => "otto",
+			username => "otto",
 			course_name => "Precalculus",
 			set_name => "HW #2"
 		},
@@ -548,7 +548,7 @@ throws_ok {
 throws_ok {
 	$user_set_rs->updateUserSet(
 		{
-			login => "otto",
+			username => "otto",
 			course_name => "Precalculus",
 			set_name => "HW #2"
 		},
@@ -563,7 +563,7 @@ throws_ok {
 throws_ok {
 	$user_set_rs->updateUserSet(
 		{
-			login => "otto",
+			username => "otto",
 			course_name => "Precalculus",
 			set_name => "HW #3"
 		},
@@ -581,7 +581,7 @@ throws_ok {
 
 my $deleted_user_set = $user_set_rs->deleteUserSet(
 	{
-		login => "otto",
+		username => "otto",
 		course_name => "Precalculus",
 		set_name => "HW #2"
 	}
@@ -596,7 +596,7 @@ is_deeply($deleted_user_set,$set3_from_csv,"deleteUserSet: successfully delete a
 throws_ok {
 	$user_set_rs->deleteUserSet(
 		{
-			login => "otto",
+			username => "otto",
 			course_name => "Precalculus",
 			set_name => "HW #3"
 		}

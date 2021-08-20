@@ -4,6 +4,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { useRoute } from 'vue-router';
 import { useStore } from 'src/store';
 
 export default defineComponent({
@@ -12,7 +13,7 @@ export default defineComponent({
 		course_name: String,
 		course_id: String
 	},
-	setup (props){
+	setup(props) {
 		const store = useStore();
 
 		if (props.course_id && props.course_name) {
@@ -23,13 +24,14 @@ export default defineComponent({
 			void store.dispatch('session/setCourse', course);
 		}
 	},
-	async created () {
+	async created() {
 		// fetch most data needed for instrutor views
 		const store = useStore();
-		await store.dispatch('users/fetchUsers', store.state.session.course.course_id);
-		await store.dispatch('problem_sets/fetchProblemSets', store.state.session.course.course_id);
+		const route = useRoute();
+		await store.dispatch('users/fetchUsers', route.params.course_id);
+		await store.dispatch('problem_sets/fetchProblemSets', route.params.course_id);
 		await store.dispatch('settings/fetchDefaultSettings');
-		await store.dispatch('settings/fetchCourseSettings', store.state.session.course.course_id);
+		await store.dispatch('settings/fetchCourseSettings', route.params.course_id);
 	}
 });
 </script>

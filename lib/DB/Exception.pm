@@ -32,19 +32,19 @@ use Exception::Class (
 		description => 'The course already exists.'
 	},
 	'DB::Exception::UserNotFound' => {
-		fields => ['login'],
+		fields => ['username'],
 		description => 'The user was not found'
 	},
 	'DB::Exception::UserNotInCourse' => {
-		fields => ['login','course_name'],
+		fields => ['username','course_name'],
 		description => 'The user is not a member of the course'
 	},
 	'DB::Exception::UserAlreadyInCourse' => {
-		fields => ['login','course_name'],
+		fields => ['username','course_name'],
 		description => 'The user is already a member of the course'
 	},
 	'DB::Exception::UserExists' => {
-		fields => ['login'],
+		fields => ['username'],
 		description => 'The user already exists'
 	},
 	'DB::Exception::SetNotInCourse' => {
@@ -56,11 +56,11 @@ use Exception::Class (
 		description => 'The set already exists in the course'
 	},
 	'DB::Exception::UserSetExists' => {
-		fields => ['set_name', 'course_name',"login"],
+		fields => ['set_name', 'course_name',"username"],
 		description => 'The user set already exists in the course'
 	},
 	'DB::Exception::UserSetNotInCourse' => {
-		fields => ['set_name', 'course_name',"login"],
+		fields => ['set_name', 'course_name',"username"],
 		description => 'The user set does not exist in the course'
 	},
 	'DB::Exception::ParametersNeeded' => {

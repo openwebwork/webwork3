@@ -1,4 +1,4 @@
-first_name,last_name,email,login,course_name,student_id,recitation,section,PARAM:comment,role
+first_name,last_name,email,username,course_name,student_id,recitation,section,PARAM:comment,role
 Homer,Simpson,homer@aol.com,homer,Precalculus,12,1,,"hi there",student
 Lisa,Simpson,lisa@google.com,lisa,"Abstract Algebra",23,,,,student
 Lisa,Simpson,lisa@google.com,lisa,"Topology",23,,,,student

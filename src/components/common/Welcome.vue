@@ -9,6 +9,5 @@
 // import { Options, Vue } from 'vue-class-component';
 import { defineComponent } from 'vue';
 
-export default defineComponent({
-});
+export default defineComponent({});
 </script>

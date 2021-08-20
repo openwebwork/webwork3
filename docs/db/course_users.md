@@ -15,7 +15,7 @@ fields
 fields
 
 - `user_id` (PK, auto_increment)
-- `login`
+- `username`
   - what to allow (regexp)?
 - `params`
   - `first_name`

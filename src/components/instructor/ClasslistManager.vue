@@ -8,11 +8,11 @@
 				title="Users"
 				selection="multiple"
 				:filter="filter"
-				:visible-columns="['login','email']"
+				:visible-columns="['username', 'email']"
 				v-model:selected="selected"
 			>
 				<template v-slot:top-right>
-					<span v-if="selected.length>0" style="margin-right: 20px">
+					<span v-if="selected.length > 0" style="margin-right: 20px">
 						<q-btn color="secondary" label="Deleted Selected" @click="deleteUsers" />
 						<q-btn color="secondary" label="Edit Selected" />
 					</span>
@@ -41,12 +41,11 @@
 			</q-table>
 		</div>
 		<q-dialog full-width v-model="open_users_manually">
-			<add-users-manually @close-dialog="open_users_manually = false"/>
+			<add-users-manually @close-dialog="open_users_manually = false" />
 		</q-dialog>
 		<q-dialog full-width v-model="open_users_from_file">
 			<add-users-from-file />
 		</q-dialog>
-
 	</div>
 </template>
 
@@ -74,9 +73,9 @@ export default defineComponent({
 		const open_users_from_file: Ref<boolean> = ref(false);
 		const columns = [
 			{
-				name: 'login',
-				label: 'Login',
-				field: 'login',
+				name: 'username',
+				label: 'username',
+				field: 'username',
 				sortable: true
 			},
 			{
@@ -96,7 +95,8 @@ export default defineComponent({
 				label: 'Role',
 				field: 'role',
 				sortable: true
-			}];
+			}
+		];
 		return {
 			filter,
 			selected,
@@ -105,13 +105,13 @@ export default defineComponent({
 			columns,
 			users: computed(() => store.state.users.users),
 			deleteUsers: () => {
-				const users_to_delete = selected.value.map((u) => u.login).join(', ');
+				const users_to_delete = selected.value.map((u) => u.username).join(', ');
 				var conf = confirm(`Are you sure you want to delete the users: ${users_to_delete}`);
 				if (conf) {
 					selected.value.forEach((_user: User) => {
 						try {
 							void store.dispatch('user/deleteUser', _user);
-							$q.notify(`The user ${_user.login} has been succesfully deleted.`);
+							$q.notify(`The user ${_user.username} has been succesfully deleted.`);
 						} catch (err) {
 							$q.notify(err);
 						}

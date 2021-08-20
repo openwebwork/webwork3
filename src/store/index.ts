@@ -1,10 +1,6 @@
 import { store } from 'quasar/wrappers';
 import { InjectionKey } from 'vue';
-import {
-	createStore,
-	Store as VuexStore,
-	useStore as vuexUseStore
-} from 'vuex';
+import { createStore, Store as VuexStore, useStore as vuexUseStore } from 'vuex';
 import createPersistedState from 'vuex-persistedstate';
 
 import session from './modules/session';
@@ -26,17 +22,17 @@ export interface StateInterface {
 	// Define your own store structure, using submodules if needed
 	// example: ExampleStateInterface;
 	// Declared as unknown to avoid linting issue. Best to strongly type as per the line above.
-	session: SessionState,
-	users: UserState,
-	settings: SettingsState,
-	problem_sets: ProblemSetState,
-	courses: CourseState
+	session: SessionState;
+	users: UserState;
+	settings: SettingsState;
+	problem_sets: ProblemSetState;
+	courses: CourseState;
 }
 
 // provide typings for `this.$store`
 declare module '@vue/runtime-core' {
 	interface ComponentCustomProperties {
-		$store: VuexStore<StateInterface>
+		$store: VuexStore<StateInterface>;
 	}
 }
 

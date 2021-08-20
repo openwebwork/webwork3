@@ -95,7 +95,7 @@ The added course as a <code>DBIx::Class::ResultSet::Course</code> object.
 
 sub addCourse {
 	my ( $self, $course_params, $as_result_set ) = @_;
-	DB::Exception::ParametersNeeded->throw( error => "The parameters must include course_name" )
+	DB::Exception::ParametersNeeded->throw( message => "The parameters must include course_name" )
 		unless defined( $course_params->{course_name} );
 
 	## check if the course exists.  If so throw an error.

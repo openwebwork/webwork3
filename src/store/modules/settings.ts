@@ -5,7 +5,7 @@ import { CourseSetting, CourseSettingInfo, CourseSettingOption } from 'src/store
 import { newCourseSetting } from '../common';
 
 export interface SettingsState {
-	default_settings: Array<CourseSettingInfo>;  // this contains default setting and documentation
+	default_settings: Array<CourseSettingInfo>; // this contains default setting and documentation
 	course_settings: Array<CourseSetting>; // this is the specific settings for the course
 }
 
@@ -17,13 +17,13 @@ function state(): SettingsState {
 }
 
 type Getters = {
-	default_settings(state: SettingsState) : Array<CourseSettingInfo>;
-	course_settings(state: SettingsState) : Array<CourseSetting>;
-}
+	default_settings(state: SettingsState): Array<CourseSettingInfo>;
+	course_settings(state: SettingsState): Array<CourseSetting>;
+};
 
 const getters: GetterTree<SettingsState, StateInterface> & Getters = {
-	course_settings: state => state.course_settings,
-	default_settings: state => state.default_settings
+	course_settings: (state) => state.course_settings,
+	default_settings: (state) => state.default_settings
 };
 
 export default {
@@ -52,12 +52,12 @@ export default {
 			// switch boolean values to javascript true/false
 			_course_settings.forEach((setting: CourseSetting) => {
 				const found_setting = state.default_settings.find(
-					(_setting: CourseSettingInfo) => _setting.var === setting.var);
+					(_setting: CourseSettingInfo) => _setting.var === setting.var
+				);
 				if (found_setting && found_setting.type === CourseSettingOption.boolean) {
 					setting.value = setting.value === 1 ? true : false;
 				}
-			}
-			);
+			});
 			state.course_settings = _course_settings;
 		}
 	},

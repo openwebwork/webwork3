@@ -26,19 +26,19 @@ function state(): SessionState {
 }
 
 type Getters = {
-	logged_in(state: SessionState) : boolean;
+	logged_in(state: SessionState): boolean;
 	user(state: SessionState): User;
 	full_name(state: SessionState): string;
 	course(state: SessionState): CourseInfo;
-}
+};
 
 const getters: GetterTree<SessionState, StateInterface> & Getters = {
-	logged_in: state => state.logged_in,
-	user: state => state.user,
-	full_name: state => {
+	logged_in: (state) => state.logged_in,
+	user: (state) => state.user,
+	full_name: (state) => {
 		return state.user.first_name + ' ' + state.user.last_name;
 	},
-	course: state => state.course
+	course: (state) => state.course
 };
 
 export default {

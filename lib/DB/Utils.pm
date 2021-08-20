@@ -23,7 +23,7 @@ sub getCourseInfo {
 }
 
 sub getUserInfo {
-	return _get_info(shift, qw/user_id login email/);
+	return _get_info(shift, qw/user_id username email/);
 }
 
 sub getSetInfo {
@@ -54,10 +54,12 @@ sub _get_info {
 		$output_info->{$key} = $input_info->{$key} if defined($input_info->{$key});
 	}
 
-	DB::Exception::ParametersNeeded->throw(error=>"You must pass in only one of " . join(", ",@fields) . ".")
-		if scalar(keys %$output_info) >  1;
-	DB::Exception::ParametersNeeded->throw(error=>"You must pass exactly one of " . join(", ",@fields) . ".")
-		if scalar(keys %$output_info) <  1;
+	DB::Exception::ParametersNeeded->throw(
+		message => "You must pass in only one of " . join(", ",@fields) . "."
+	) if scalar(keys %$output_info) >  1;
+	DB::Exception::ParametersNeeded->throw(
+		message => "You must pass exactly one of " . join(", ",@fields) . "."
+	) if scalar(keys %$output_info) <  1;
 
 	return $output_info;
 }

@@ -4,6 +4,7 @@ use warnings;
 use base 'DBIx::Class::ResultSet';
 
 use Carp;
+use Clone qw/clone/;
 use Data::Dump qw/dd dump/;
 
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
@@ -80,18 +81,9 @@ sub getProblemSets {
 	my $course_rs   = $self->result_source->schema->resultset("Course");
 	my $course      = $course_rs->getCourse( $course_info, 1 );
 
-	my $problem_set_rs = $self->search( { 'me.course_id' => $course->course_id }, { prefetch => ["courses"] } );
-	my @sets = ();
-	while( my $set = $problem_set_rs->next) {
-		my $expanded_set =
-			{
-				$set->get_inflated_columns,
-				set_type => $set->set_type
-			};
-		delete $expanded_set->{type};
-		push(@sets,$expanded_set);
-	}
-	return @sets;
+	my $problem_sets = $self->search( { 'me.course_id' => $course->course_id }, { prefetch => ["courses"] } );
+	my $sets = _formatSets($problem_sets);
+	return @$sets;
 }
 
 =pod
@@ -102,14 +94,10 @@ Get all hw sets for a given course
 
 =cut
 
-sub getHWSets {
-	my ( $self, $course_info, $as_result_set ) = @_;
-	my $search_params = getCourseInfo($course_info);    # pull out the course_info that is passed
-	$search_params->{'me.type'} = 1;                    # set the type to search for.
-
-	my $problem_set_rs = $self->search( $search_params, { prefetch => ["courses"] } );
+sub _formatSets {
+	my $problem_sets = shift;
 	my @sets = ();
-	while( my $set = $problem_set_rs->next) {
+	while( my $set = $problem_sets->next) {
 		my $expanded_set =
 			{
 				$set->get_inflated_columns,
@@ -118,7 +106,17 @@ sub getHWSets {
 		delete $expanded_set->{type};
 		push(@sets,$expanded_set);
 	}
-	return @sets;
+	return \@sets;
+}
+
+sub getHWSets {
+	my ( $self, $course_info, $as_result_set ) = @_;
+	my $search_params = getCourseInfo($course_info);    # pull out the course_info that is passed
+	$search_params->{'me.type'} = 1;                    # set the type to search for.
+
+	my $quizzes = $self->search( $search_params, { prefetch => ["courses"] } );
+	my $sets = _formatSets($quizzes);
+	return @$sets;
 }
 =pod
 =head2 getQuizzes
@@ -182,8 +180,11 @@ sub addProblemSet {
 	my $course = $self->result_source->schema->resultset("Course")->getCourse( getCourseInfo($course_info), 1 );
 
 	my $set_params = {%$params};
+	$set_params->{type} = $SET_TYPES->{ $set_params->{set_type} || 'HW' };
+	delete $set_params->{set_type};
 
-	DB::Exception::ParametersNeeded->throw( error => "You must defined the field set_name in the 2nd argument" )
+
+	DB::Exception::ParametersNeeded->throw( message => "You must defined the field set_name in the 2nd argument" )
 		unless defined( $set_params->{set_name} );
 
 	## check if the set exists.
@@ -193,8 +194,6 @@ sub addProblemSet {
 	DB::Exception::SetAlreadyExists->throws( set_name => $set_params->{set_name}, course_name => $course->course_name )
 		if defined($problem_set);
 
-	$set_params->{type} = $SET_TYPES->{ $set_params->{set_type} || 'HW' };
-	delete $set_params->{set_type};
 
 	my $set_obj = $self->new($set_params);
 	## check the parameters are valid.
@@ -205,7 +204,12 @@ sub addProblemSet {
 	my $new_set = $course->add_to_problem_sets( $set_params, 1 );
 
 	return $new_set if $as_result_set;
-	return { $new_set->get_inflated_columns, set_type => $new_set->set_type };
+	my $set = {
+		$new_set->get_inflated_columns,
+		set_type => $new_set->set_type
+	};
+	delete $set->{type};
+	return $set;
 }
 
 =pod
@@ -222,15 +226,27 @@ sub updateProblemSet {
 	my $problem_set = $self->getProblemSet( $course_set_info, 1 );
 	my $set_params  = { $problem_set->get_inflated_columns };
 
-	my $params  = updateAllFields( $set_params, $updated_params );
-	my $set_obj = $self->new($params);
+	my $params = clone($updated_params);
+	if (defined $params->{set_type}) {
+		$params->{type} = $SET_TYPES->{ $params->{set_type}};
+		delete $params->{set_type};
+	}
+
+
+	my $params2  = updateAllFields( $set_params, $params );
+	my $set_obj = $self->new($params2);
 
 	## check the parameters are valid.
 	$set_obj->validDates();
 	$set_obj->validParams();
 	my $updated_set = $problem_set->update( { $set_obj->get_inflated_columns } );
 	return $updated_set if $as_result_set;
-	return { $updated_set->get_inflated_columns, set_type => $updated_set->set_type };
+	my $set = {
+		$updated_set->get_inflated_columns,
+		set_type => $updated_set->set_type
+	};
+	delete $set->{type};
+	return $set;
 }
 
 =pod
@@ -248,7 +264,12 @@ sub deleteProblemSet {
 	$set_to_delete->delete;
 
 	return $set_to_delete if $as_result_set;
-	return { $set_to_delete->get_inflated_columns, set_type => $set_to_delete->set_type };
+	my $set = {
+		$set_to_delete->get_inflated_columns,
+		set_type => $set_to_delete->set_type
+	};
+	delete $set->{type};
+	return $set;
 }
 
 ###
@@ -271,7 +292,7 @@ course_id or course_name
 =item -
 set_id or set_name
 =item -
-login or user_id (optional)
+username or user_id (optional)
 
 =head4 output
 

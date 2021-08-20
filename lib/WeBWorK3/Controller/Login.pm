@@ -12,7 +12,7 @@ sub login_help { shift->render(); return;}
 
 sub check_login {
 	my $self = shift;
-	if ($self->authenticate($self->req->param("login"), $self->req->param("password"))) {
+	if ($self->authenticate($self->req->param("username"), $self->req->param("password"))) {
 		## redirect
 		$self->redirect_to("/users/start");
 	} else {
