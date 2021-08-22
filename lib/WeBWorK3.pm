@@ -5,25 +5,20 @@ use Mojo::File qw(curfile);
 use YAML::XS qw/LoadFile/;
 
 my $webwork_root;
+
 BEGIN {
 	$webwork_root = curfile->dirname->to_string . "/..";
 }
 
-use Data::Dump qw/dd/;
-use Try::Tiny;
-
 use DB::Schema;
-use WeBWorK3::Mojolicious;
-
-# require Exporter;
-# use base qw(Exporter);
-# our @EXPORT_OK = qw/confDirectory/;
+use WeBWorK3::Hooks;
 
 my $perm_table;
 
 # This method will run once at server start
 sub startup {
 	my $self = shift;
+
 	# Load configuration from config file
 	my $config = $self->plugin('NotYAMLConfig');
 
@@ -31,30 +26,37 @@ sub startup {
 	$self->secrets($config->{secrets});
 
 	# Load the database and DBIC plugin
-	my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
-	$self->plugin('DBIC', { schema => $schema });
-
-	# load the authentication plugin
-	$self->plugin(
-		Authentication => {
-				load_user     => sub ($app, $uid) { $self->load_account($uid) },
-				validate_user => sub ($c, $u, $p, $e) { $self->validate($u, $p) ? $u : () },
+	$self->plugin(DBIC => {
+			schema =>
+				DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password})
 		}
 	);
 
-	$self->helper( perm_table => sub ($c) {
-		$perm_table = LoadFile("$webwork_root/conf/permissions.yaml") unless defined($perm_table);
-		return $perm_table;
+	# Load the authentication plugin
+	$self->plugin(Authentication => {
+			load_user => sub ($app, $uid) { $self->load_account($uid) },
+			validate_user => sub ($c, $u, $p, $e) { $self->validate($u, $p) ? $u : undef; }
 	});
 
-	$self->helper( ignore_permissions => sub ($c) { return $config->{ignore_permissions}; });
+	# Set up the session
+	$self->sessions->cookie_name('Webwork3Authen');
+	$self->sessions->default_expiration($config->{cookie_lifetime});
+	$self->sessions->cookie_path('/webwork3');
+	$self->sessions->samesite($config->{cookie_samesite});
+	$self->sessions->secure($config->{cookie_secure});
 
-	## handle all api route exceptions
+	# Load permissions and set up some helpers for dealing with permissions.
+	$perm_table = LoadFile("$webwork_root/conf/permissions.yaml");
 
-	$self->hook( around_dispatch => $WeBWorK3::Mojolicious::exception_handler );
-	$self->hook( around_action   => $WeBWorK3::Mojolicious::check_permission );
+	$self->helper(perm_table => sub ($c) { return $perm_table; });
+	$self->helper(ignore_permissions => sub ($c) { return $config->{ignore_permissions}; });
 
-	## load all routes
+	# Handle all api route exceptions
+	$self->hook(around_dispatch => $WeBWorK3::Hooks::exception_handler);
+
+	$self->hook(around_action   => $WeBWorK3::Hooks::check_permission);
+
+	# Load all routes
 	$self->loginRoutes();
 	$self->coursesRoutes();
 	$self->userRoutes();
@@ -68,33 +70,22 @@ sub confDirectory {
 	return "$webwork_root/conf";
 }
 
-sub load_account {
-	my ($self,$user_id)  = @_;
-	my $user = $self->schema->resultset("User")->getGlobalUser({username => $user_id});
+sub load_account($self, $user_id) {
+	my $user = $self->schema->resultset("User")->getGlobalUser({ username => $user_id });
 	return $user;
 }
 
-sub validate {
-	my ($self,$user,$password) = @_;
+sub validate($self, $user, $password) {
 	return $self->schema->resultset("User")->authenticate($user, $password);
 }
 
-sub loginRoutes {
-	my $self = shift;
-
-	# Normal route to controller
-	$self->routes->get('/login')->to('Login#login_page');
-	$self->routes->get('/login/help')->to('Login#login_help');
-	$self->routes->get('/users/start')->to('Login#user_courses');
-	$self->routes->post('/login')->to('Login#check_login');
-	$self->routes->get('/logout')->to('Login#logout_page');
+sub loginRoutes($self) {
 	$self->routes->post('/webwork3/api/login')->to('Login#login');
 	$self->routes->any('/webwork3/api/logout')->to('Login#logout_user');
 	return;
 }
 
-sub coursesRoutes {
-	my $self = shift;
+sub coursesRoutes($self) {
 	my $course_routes = $self->routes->any('/webwork3/api/courses')->to(controller => 'Course');
 	$course_routes->get('/')->to(action => 'getCourses');
 	$course_routes->get('/:course_id')->to(action => 'getCourse');
@@ -104,21 +95,19 @@ sub coursesRoutes {
 	return;
 }
 
-sub userRoutes {
-	my $self = shift;
-	my $course_routes = $self->routes->any('/webwork3/api/users')->to(controller => 'User');
-	$course_routes->get('/')->to(action => 'getGlobalUsers');
-	$course_routes->post('/')->to(action => 'addGlobalUser');
-	$course_routes->get('/:user')->to(action => 'getGlobalUser');
-	$course_routes->put('/:user_id')->to(action => 'updateGlobalUser');
-	$course_routes->delete('/:user_id')->to(action => 'deleteGlobalUser');
-	$self->routes->get('/webwork3/api/users/:user_id/courses')->to('User#getUserCourses');
+sub userRoutes($self) {
+	my $user_routes = $self->routes->any('/webwork3/api/users')->to(controller => 'User');
+	$user_routes->get('/')->to(action => 'getGlobalUsers');
+	$user_routes->post('/')->to(action => 'addGlobalUser');
+	$user_routes->get('/:user')->to(action => 'getGlobalUser');
+	$user_routes->put('/:user_id')->to(action => 'updateGlobalUser');
+	$user_routes->delete('/:user_id')->to(action => 'deleteGlobalUser');
+	$user_routes->get('/:user_id/courses')->to(action => 'getUserCourses');
 	return;
 }
 
-sub courseUserRoutes {
-	my $self = shift;
-	my $course_user_routes = $self->routes->any('/webwork3/api/courses/:course_id/users')->to(controller =>'User');
+sub courseUserRoutes($self) {
+	my $course_user_routes = $self->routes->any('/webwork3/api/courses/:course_id/users')->to(controller => 'User');
 	$course_user_routes->get('/')->to(action => 'getCourseUsers');
 	$course_user_routes->post('/')->to(action => 'addCourseUser');
 	$course_user_routes->get('/:user_id')->to(action => 'getCourseUser');
@@ -127,20 +116,19 @@ sub courseUserRoutes {
 	return;
 }
 
-sub problemSetRoutes {
-	my $self = shift;
+sub problemSetRoutes($self) {
 	$self->routes->get('/webwork3/api/sets')->to("ProblemSet#getProblemSets");
-	my $course_routes = $self->routes->any('/webwork3/api/courses/:course_id/sets')->to(controller => 'ProblemSet');
-	$course_routes->get('/')->to(action => 'getProblemSets');
-	$course_routes->get('/:set_id')->to(action => 'getProblemSet');
-	$course_routes->put('/:set_id')->to(action => 'updateProblemSet');
-	$course_routes->post('/')->to(action => 'addProblemSet');
-	$course_routes->delete('/:set_id')->to(action => 'deleteProblemSet');
+	my $problem_set_routes =
+		$self->routes->any('/webwork3/api/courses/:course_id/sets')->to(controller => 'ProblemSet');
+	$problem_set_routes->get('/')->to(action => 'getProblemSets');
+	$problem_set_routes->get('/:set_id')->to(action => 'getProblemSet');
+	$problem_set_routes->put('/:set_id')->to(action => 'updateProblemSet');
+	$problem_set_routes->post('/')->to(action => 'addProblemSet');
+	$problem_set_routes->delete('/:set_id')->to(action => 'deleteProblemSet');
 	return;
 }
 
-sub settingsRoutes {
-	my $self = shift;
+sub settingsRoutes($self) {
 	$self->routes->get('/webwork3/api/default_settings')->to("Settings#getDefaultCourseSettings");
 	$self->routes->get('/webwork3/api/courses/:course_id/settings')->to("Settings#getCourseSettings");
 	return;

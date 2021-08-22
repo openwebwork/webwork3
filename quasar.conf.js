@@ -1,5 +1,5 @@
 /* eslint-env node */
-/* eslint-disable @typescript-eslint/no-var-requires */
+
 const { configure } = require('quasar/wrappers');
 const StyleLintPlugin = require('stylelint-webpack-plugin');
 

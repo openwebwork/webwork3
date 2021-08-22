@@ -79,7 +79,7 @@ for my $dir ($webwork3_root, $pg_root) {
 	process_dir($dir);
 }
 
-my $index_fh = new IO::File("$output_dir/index.html", '>')
+my $index_fh = IO::File->new("$output_dir/index.html", '>')
 	or die "failed to open '$output_dir/index.html' for writing: $!\n";
 write_index($index_fh);
 
@@ -94,13 +94,14 @@ sub process_dir {
 	remove_tree($dest_dir);
 	make_path($dest_dir);
 
-	my $htmldocs = new PODtoHTML(
+	my $htmldocs = PODtoHTML->new(
 		source_root => $source_dir,
 		dest_root   => $dest_dir,
 		dest_url    => $base_url,
 		verbose     => $verbose
 	);
 	$htmldocs->convert_pods;
+	return;
 }
 
 sub write_index {
@@ -124,6 +125,7 @@ EOF
 	print $fh q{<li><a href="webwork3">WeBWorK 3</a></li>} if $webwork3_root;
 
 	print $fh "</ul></div></body></html>";
+	return;
 }
 
 1;

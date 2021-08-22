@@ -61,6 +61,7 @@ sub convert_pods {
 
 	find({ wanted => $self->gen_pod_wanted, no_chdir => 1 }, $source_root);
 	$self->write_index("$dest_root/index.html");
+	return;
 }
 
 sub gen_pod_wanted {
@@ -136,9 +137,10 @@ sub process_pod {
 		pod_path => $pod_path,
 		pod_name => $pod_name
 	);
-	my $fh = new IO::File($html_path, '>')
+	my $fh = IO::File->new($html_path, '>')
 		or die "Failed to open file '$html_path' for writing: $!\n";
 	print $fh $html;
+	return;
 }
 
 sub update_index {
@@ -151,6 +153,7 @@ sub update_index {
 	} else {
 		warn "no section for subdir '$subdir'\n";
 	}
+	return;
 }
 
 sub write_index {
@@ -182,14 +185,14 @@ sub write_index {
 	$content_start .= "</ul>";
 	my $date = strftime "%a %b %e %H:%M:%S %Z %Y", localtime;
 
-	my $fh = new IO::File($out_path, '>') or die "Failed to open index '$out_path' for writing: $!\n";
+	my $fh = IO::File->new($out_path, '>') or die "Failed to open index '$out_path' for writing: $!\n";
 	print $fh (get_header($title), $content_start, $content, "<p>Generated $date</p>", get_footer());
+	return;
 }
 
 sub do_pod2html {
-	my $self = shift;
-	my %o    = @_;
-	my $psx  = new PODParser;
+	my ($self, %o) = @_;
+	my $psx  = PODParser->new;
 	$psx->{source_root} = $self->{source_root};
 	$psx->{verbose}     = $self->{verbose};
 	$psx->{base_url}    = ($self->{dest_url} // "") . "/" . (($self->{source_root} // "") =~ s|^.*/||r);

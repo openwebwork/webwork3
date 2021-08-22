@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { api } from 'boot/axios';
 import { Commit, GetterTree } from 'vuex';
 import { StateInterface } from 'src/store/index';
 import { CourseSetting, CourseSettingInfo, CourseSettingOption } from 'src/store/models';
@@ -31,11 +31,11 @@ export default {
 	getters,
 	actions: {
 		async fetchDefaultSettings({ commit }: { commit: Commit }): Promise<void> {
-			const response = await axios.get((process.env.VUE_ROUTER_BASE ?? '') + 'api/default_settings');
+			const response = await api.get('default_settings');
 			commit('SET_DEFAULT_SETTINGS', response.data as Array<CourseSettingInfo>);
 		},
 		async fetchCourseSettings({ commit }: { commit: Commit }, course_id: number): Promise<void> {
-			const response = await axios.get(`${process.env.VUE_ROUTER_BASE ?? ''}api/courses/${course_id}/settings`);
+			const response = await api.get(`courses/${course_id}/settings`);
 			commit('SET_COURSE_SETTINGS', response.data as Array<CourseSetting>);
 		},
 		getCurrentSetting({ state }: { state: SettingsState}, _var: string): CourseSetting {
