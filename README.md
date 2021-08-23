@@ -1,8 +1,9 @@
 # WeBWorK 3
 
 [![GitHub Super-Linter](https://github.com/openwebwork/webwork3/workflows/Lint%20Code%20Base/badge.svg)
-   ](https://github.com/marketplace/actions/super-linter)
-![Unit Tests](https://github.com/openwebwork/webwork3/actions/workflows/unit-tests.yml/badge.svg)
+   ](https://github.com/openwebwork/webwork3/actions/workflows/linter.yml)
+[![Unit Tests](https://github.com/openwebwork/webwork3/actions/workflows/unit-tests.yml/badge.svg)
+   ](https://github.com/openwebwork/webwork3/actions/workflows/unit-tests.yml)
 [![codecov](https://codecov.io/gh/openwebwork/webwork3/branch/main/graph/badge.svg?token=XXXX)
    ](https://codecov.io/gh/openwebwork/webwork3)
 [![GitHub last commit](https://img.shields.io/github/last-commit/openwebwork/webwork3)
