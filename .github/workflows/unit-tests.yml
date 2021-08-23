@@ -28,7 +28,7 @@ jobs:
       #     path: cover_db/
 
       # FIXME: This results in a "400 Bad Request: Could not determine repo and owner", and so is disabled.
-      #- name: push coverage analysis
-      #  env:
-      #    CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      #  run: cover -report codecov
+      - name: push coverage analysis
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: cover -report codecov
