@@ -1,7 +1,8 @@
 # WeBWorK 3
 
 ![Unit Tests](https://github.com/openwebwork/webwork3/actions/workflows/unit-tests.yml/badge.svg)
-[![codecov](https://codecov.io/gh/openwebwork/webwork3/branch/main/graph/badge.svg?token=XXXX)](https://codecov.io/gh/openwebwork/webwork3)
+[![codecov](https://codecov.io/gh/openwebwork/webwork3/branch/main/graph/badge.svg?token=XXXX)
+   ](https://codecov.io/gh/openwebwork/webwork3)
 ![GitHub last commit](https://img.shields.io/github/last-commit/openwebwork/webwork3)
 
 WeBWorK3 is the next generation of WeBWorK, an online open-source homework system.  This version is a complete rewrite
