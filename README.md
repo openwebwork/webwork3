@@ -1,8 +1,13 @@
-# webwork3
+# WeBWorK 3
 
-[![codecov](https://codecov.io/gh/pstaabp/webwork3/branch/main/graph/badge.svg?token=1IDPWGNQ6F)
-](https://codecov.io/gh/pstaabp/webwork3)
-![example workflow](https://github.com/github/docs/actions/workflows/main.yml/badge.svg)
+[![GitHub Super-Linter](https://github.com/openwebwork/webwork3/workflows/Lint%20Code%20Base/badge.svg)
+   ](https://github.com/openwebwork/webwork3/actions/workflows/linter.yml)
+[![Unit Tests](https://github.com/openwebwork/webwork3/actions/workflows/unit-tests.yml/badge.svg)
+   ](https://github.com/openwebwork/webwork3/actions/workflows/unit-tests.yml)
+[![codecov](https://codecov.io/gh/openwebwork/webwork3/branch/main/graph/badge.svg?token=1XBWNRC9AB)
+   ](https://codecov.io/gh/openwebwork/webwork3)
+[![GitHub last commit](https://img.shields.io/github/last-commit/openwebwork/webwork3)
+   ](https://github.com/openwebwork/webwork3/commits/main)
 
 WeBWorK3 is the next generation of WeBWorK, an online open-source homework system.  This version is a complete rewrite
 of the webwork2 system using more modern database, backend and UI frameworks, described below.
