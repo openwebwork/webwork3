@@ -4,7 +4,7 @@
    ](https://github.com/openwebwork/webwork3/actions/workflows/linter.yml)
 [![Unit Tests](https://github.com/openwebwork/webwork3/actions/workflows/unit-tests.yml/badge.svg)
    ](https://github.com/openwebwork/webwork3/actions/workflows/unit-tests.yml)
-[![codecov](https://codecov.io/gh/openwebwork/webwork3/branch/main/graph/badge.svg?token=XXXX)
+[![codecov](https://codecov.io/gh/openwebwork/webwork3/branch/main/graph/badge.svg?token=1XBWNRC9AB)
    ](https://codecov.io/gh/openwebwork/webwork3)
 [![GitHub last commit](https://img.shields.io/github/last-commit/openwebwork/webwork3)
    ](https://github.com/openwebwork/webwork3/commits/main)
