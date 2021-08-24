@@ -20,7 +20,24 @@ use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings mergeCourseSettings
 
 This is the functionality of a Course in WeBWorK.  This package is based on
 C<DBIx::Class::ResultSet>.  The basics are a CRUD for anything on the
-global courses.
+global courses level.
+
+Unless otherwise indicated, all of the methods here return either one of two types:
+
+=over
+
+=item *
+
+A Course described by a C<DBIx::Class:ResultSet::Course> object if C<$as_result_set> is true.
+
+=item *
+
+A Course as a hashref with the fields described in L<DBIx::Class:Result::Course>.
+
+=back
+
+=cut
+
 
 =head2 getCourses
 
@@ -46,7 +63,7 @@ sub getCourses {
 	} @courses;
 }
 
-=head1 getCourse
+=head2 getCourse
 
 This gets a single course that is stored in the database in the C<courses> table.
 
@@ -54,16 +71,20 @@ This gets a single course that is stored in the database in the C<courses> table
 
 =over
 
-=item * C<course_info>, a hashref containing either course_name or course_id
+=item *
 
-=item * C<result_set>, a a boolean if the return is to be a result_set
+C<course_info>, a hashref containing either C<course_name> or C<course_id>
+
+=item *
+
+C<as_result_set>, a boolean if the return is to be a result_set
 
 =back
 
 =head3 output
 
 The course either as a C< DBIx::Class::ResultSet::Course> object or a hashref
-of the fields.
+of the fields. See above.
 
 =cut
 
@@ -76,19 +97,29 @@ sub getCourse {
 	return { $course->get_inflated_columns };
 }
 
-=head1 addCourse
+=head2 addCourse
 
 Adds a single course to the database in the C<courses> table.
 
-=head3 input
+=over
 
-A set of parameters, especially a C<course_name> of type string.
+=item *
+
+C<course_info>, a hashref containing either C<course_name> or C<course_id>
+
+=item *
+
+C<as_result_set>, a boolean if the return is to be a result_set
+
+=back
 
 =head3 output
 
-The added course as a C<DBIx::Class::ResultSet::Course> object.
+The course either as a C< DBIx::Class::ResultSet::Course> object or a hashref
+of the fields. See above.
 
 =cut
+
 
 sub addCourse {
 	my ( $self, $course_params, $as_result_set ) = @_;
@@ -112,21 +143,31 @@ sub addCourse {
 	return { $new_course->get_inflated_columns };
 }
 
-=head1 deleteCourse
+=head2 deleteCourse
 
 This deletes a single course that is stored in the database in the C<courses> table.
 
 =head3 input
 
-C<course_name>, a string, the name of the course to be deleted.
+=over
+
+=item *
+
+C<course_info>, a hashref containing either C<course_name> or C<course_id>
+
+=item *
+
+C<as_result_set>, a boolean if the return is to be a result_set
+
+=back
 
 =head3 output
 
-The deleted course as a C<DBIx::Class::ResultSet::Course> object.
+The deleted course either as a C< DBIx::Class::ResultSet::Course> object or a hashref
+of the fields. See above.
 
 =cut
 
-## TODO: delete everything related to the course from all tables.
 
 sub deleteCourse {
 	my ( $self, $course_info, $as_result_set ) = @_;
