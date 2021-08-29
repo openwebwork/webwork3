@@ -17,7 +17,11 @@ our $SET_TYPES = {
 };
 
 use DB::Exception;
-use Exception::Class ( "DB::Exception::SetNotInCourse", 'DB::Exception::ParametersNeeded' );
+# use Exception::Class (
+# 	'DB::Exception::SetNotInCourse',
+# 	'DB::Exception::ParametersNeeded',
+# 	'DB::Exception::SetAlreadyExists'
+# );
 
 =head1 DESCRIPTION
 
@@ -167,7 +171,7 @@ sub addProblemSet {
 	my ( $self, $course_info, $params, $as_result_set ) = @_;
 	my $course = $self->result_source->schema->resultset("Course")->getCourse( getCourseInfo($course_info), 1 );
 
-	my $set_params = {%$params};
+	my $set_params = clone($params);
 	$set_params->{type} = $SET_TYPES->{ $set_params->{set_type} || 'HW' };
 	delete $set_params->{set_type};
 
@@ -181,9 +185,10 @@ sub addProblemSet {
 	my $problem_set = $self->find( $search_params, prefetch => 'courses' );
 	DB::Exception::SetAlreadyExists->throws( set_name => $set_params->{set_name}, course_name => $course->course_name )
 		if defined($problem_set);
-
-
 	my $set_obj = $self->new($set_params);
+
+	# dd {$set_obj->get_inflated_columns};
+
 	## check the parameters are valid.
 	# $set_obj->setParamsAndDates;
 	$set_obj->validDates();

@@ -40,17 +40,17 @@ __PACKAGE__->add_columns(
 	},
 	dates =>    # store dates as a JSON object
 		{
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => '{}'
+			data_type     => 'text',
+			size          => 256,
+			is_nullable   => 0,
+			default_value => '{}'
 		},
 	params =>    # store params as a JSON object
 		{
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => '{}'
+			data_type     => 'text',
+			size          => 256,
+			is_nullable   => 0,
+			default_value => '{}'
 		}
 );
 
