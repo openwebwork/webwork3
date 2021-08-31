@@ -45,7 +45,9 @@ sub validParamFields {
 	my @inter = intersect(@fields,@valid_fields);
 	if (scalar(@inter) != scalar(@fields)) {
 		my @bad_fields = array_minus(@fields, @valid_fields);
-		DB::Exception::UndefinedParameter->throw(field_names=>join(", ",@bad_fields));
+		DB::Exception::UndefinedParameter->throw(
+			"The following parameters are not allowed for this DB table: " . join(", ",@bad_fields)
+		);
 	}
 	return 1;
 }

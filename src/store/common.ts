@@ -52,6 +52,38 @@ export function newProblemSet(): ProblemSet {
 	};
 }
 
+export function newHomeworkSet(): HomeworkSet {
+	return {
+		set_id: 0,
+		set_name: '',
+		course_id: 0,
+		set_type: ProblemSetType.HW,
+		set_visible: false,
+		params: {},
+		dates: {
+			open: Date.now()/1000,
+			due: Date.now()/1000,
+			answer: Date.now()/1000
+		}
+	};
+}
+
+export function newQuiz(): Quiz {
+	return {
+		set_id: 0,
+		set_name: '',
+		course_id: 0,
+		set_type: ProblemSetType.QUIZ,
+		set_visible: false,
+		params: {},
+		dates: {
+			open: Date.now()/1000,
+			due: Date.now()/1000,
+			answer: Date.now()/1000
+		}
+	};
+}
+
 export function copyProblemSet(target: ProblemSet, source: ProblemSet) {
 	target.set_id = source.set_id;
 	target.set_name = source.set_name;
@@ -91,7 +123,7 @@ export function parseHW(_set: ParseableProblemSet): HomeworkSet {
 		set_id: parseInt(`${_set.set_id}`),
 		set_name: _set.set_name,
 		course_id: parseInt(`${_set.course_id}`),
-		set_visible: 1 ? true : false,
+		set_visible: parseBoolean(_set.set_visible) || false,
 		set_type: ProblemSetType.HW,
 		params: params,
 		dates: dates
@@ -102,7 +134,7 @@ export function parseQuiz(_set: ParseableProblemSet): Quiz {
 
 	const params: QuizParams = {
 		timed: parseBoolean(_set.params.timed),
-		time_length: _set.params.time_length === undefined ? undefined : parseInt(_set.params.time_length)
+		quiz_length: _set.params.quiz_length === undefined ? undefined : parseInt(_set.params.quiz_length)
 	};
 
 	const dates: QuizDates = {
@@ -115,7 +147,7 @@ export function parseQuiz(_set: ParseableProblemSet): Quiz {
 		set_id: parseInt(`${_set.set_id}`),
 		set_name: _set.set_name,
 		course_id: parseInt(`${_set.course_id}`),
-		set_visible: 1 ? true : false,
+		set_visible: parseBoolean(_set.set_visible) || false,
 		set_type: ProblemSetType.QUIZ,
 		params: params,
 		dates: dates
@@ -137,7 +169,7 @@ export function parseReview(_set: ParseableProblemSet): ReviewSet {
 		set_id: parseInt(`${_set.set_id}`),
 		set_name: _set.set_name,
 		course_id: parseInt(`${_set.course_id}`),
-		set_visible: 1 ? true : false,
+		set_visible: parseBoolean(_set.set_visible) || false,
 		set_type: ProblemSetType.REVIEW_SET,
 		params: params,
 		dates: dates

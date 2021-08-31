@@ -1,6 +1,6 @@
 <template>
 	<div class="q-pa-md" style="max-width: 300px">
-		<q-input filled v-model="date_string">
+		<q-input filled v-model="date_string" :rules="rules" @blur="updateDate">
 			<template v-slot:prepend>
 				<q-icon name="event" class="cursor-pointer">
 					<q-popup-proxy transition-show="scale" transition-hide="scale">
@@ -35,24 +35,27 @@ import { date } from 'quasar';
 export default defineComponent({
 	name: 'DateTimeInput',
 	props: {
-		modelValue: Number
-		// type: Number,
-		// required: true
+		modelValue: Number,
+		rules: Array
 	},
 	emits: ['update:modelValue'],
 	setup (props, { emit }) {
-		const date_string: Ref<string> = ref(date.formatDate((props.modelValue || 0)*1000, 'YYYY-MM-DD HH:mm'));
+		const date_string: Ref<string>
+			= ref(date.formatDate((props.modelValue || Date.now())*1000, 'YYYY-MM-DD HH:mm'));
 
 		watch(
 			() => date_string.value,
 			(val) => {
 				const d = date.extractDate(val, 'YYYY-MM-DD HH:mm');
-				emit('update:modelValue', d.getTime());
+				emit('update:modelValue', d.getTime() / 1000);
 			}
 		);
 
 		return {
-			date_string
+			date_string,
+			updateDate: () => {
+				console.log('updating');
+			}
 		};
 	}
 });

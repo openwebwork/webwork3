@@ -18,7 +18,7 @@
 		"lodash-es": "^4.17.21",
 		"quasar": "^2.0.4",
 		"vue-i18n": "^9.1.7",
-		"vue-router": "4.0.10",
+		"vue-router": "4.0.11",
 		"vuex": "^4.0.1",
 		"vuex-persistedstate": "^4.0.0"
 	},
