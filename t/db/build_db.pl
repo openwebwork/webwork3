@@ -3,6 +3,7 @@
 #
 # this file builds a sqlite database file based on a csv file
 #
+
 use warnings;
 use strict;
 
@@ -18,7 +19,6 @@ use lib "$main::lib_dir";
 use Text::CSV qw/csv/;
 use Data::Dump qw/dd/;
 use Carp;
-use JSON;
 use feature "say";
 use DateTime::Format::Strptime;
 use YAML::XS qw/LoadFile/;
@@ -35,19 +35,11 @@ my $verbose = 1;
 
 my $config = LoadFile("$main::lib_dir/../conf/webwork3.yml");
 
-my $schema;
-my $dsn;
 # load the database
-if ($config->{database} eq 'sqlite') {
-	$dsn = $config->{sqlite_dsn};
-	$schema  = DB::Schema->connect($dsn);
-} elsif ($config->{database} eq 'mariadb') {
-	$dsn = $config->{mariadb_dsn};
-	$schema  = DB::Schema->connect($dsn,$config->{database_user},$config->{database_password});
-}
+my $schema  = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-say "restoring the database with dbi: $dsn" if $verbose;
-say $dsn;
+say "restoring the database with dbi: $config->{database_dsn}" if $verbose;
+
 $schema->deploy({ add_drop_table => 1 });  ## create the database based on the schema
 
 

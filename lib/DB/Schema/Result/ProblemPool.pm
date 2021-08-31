@@ -18,7 +18,7 @@ __PACKAGE__->add_columns(
 		is_nullable => 0,
 	},
 	pool_name => {
-		data_type   => 'text',
+		data_type   => 'varchar',
 		size        => 256,
 		is_nullable => 0,
 	}

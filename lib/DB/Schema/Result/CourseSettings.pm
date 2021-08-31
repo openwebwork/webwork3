@@ -3,8 +3,6 @@ use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
 
-use JSON;
-
 our @VALID_DATES    = qw/open end/;
 our @REQUIRED_DATES = qw//;
 our $VALID          = {
@@ -14,6 +12,8 @@ our $VALID          = {
 our $REQUIRED = { _ALL_ => ['visible'] };
 
 __PACKAGE__->table('course_settings');
+
+__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
 
 __PACKAGE__->add_columns(
 	course_settings_id => {
@@ -32,54 +32,53 @@ __PACKAGE__->add_columns(
 		size          => 256,
 		is_nullable   => 0,
 		default_value => "{}",
+		serializer_class => 'JSON',
+		serializer_options => { utf8 => 1 }
 	},
 	optional => {
 		data_type     => 'text',
 		size          => 256,
 		is_nullable   => 0,
 		default_value => "{}",
+		serializer_class => 'JSON',
+		serializer_options => { utf8 => 1 }
 	},
 	problem_set => {
 		data_type     => 'text',
 		size          => 256,
 		is_nullable   => 0,
 		default_value => "{}",
+		serializer_class => 'JSON',
+		serializer_options => { utf8 => 1 }
 	},
 	problem => {
 		data_type     => 'text',
 		size          => 256,
 		is_nullable   => 0,
 		default_value => "{}",
+		serializer_class => 'JSON',
+		serializer_options => { utf8 => 1 }
 	},
 	permissions => {
 		data_type     => 'text',
 		size          => 256,
 		is_nullable   => 0,
 		default_value => "{}",
+		serializer_class => 'JSON',
+		serializer_options => { utf8 => 1 }
 	},
 	email => {
 		data_type     => 'text',
 		size          => 256,
 		is_nullable   => 0,
 		default_value => "{}",
+		serializer_class => 'JSON',
+		serializer_options => { utf8 => 1 }
 	}
 );
 
 __PACKAGE__->set_primary_key('course_settings_id');
 
 __PACKAGE__->belongs_to( course => 'DB::Schema::Result::Course', 'course_id' );
-
-for my $column (qw/general optional problem_set problem permissions email/) {
-	__PACKAGE__->inflate_column(
-		"$column",
-		{   inflate => sub {
-				decode_json shift;
-			},
-			deflate => sub {
-				encode_json shift;
-			}
-		}
-	);
-}
 
 1;

@@ -3,8 +3,6 @@ use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
 
-use JSON;
-
 ### this is the table that stores problems for a given Problem Set
 
 ## Note: we probably also need to store the problem info if it changes.
@@ -14,6 +12,8 @@ use JSON;
 # don't allow the same problem/seed.
 
 __PACKAGE__->table('user_problem');
+
+__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
 
 __PACKAGE__->add_columns(
 	user_problem_id => {
@@ -52,7 +52,9 @@ __PACKAGE__->add_columns(
 		data_type     => 'text',
 		size          => 256,
 		is_nullable   => 0,
-		default_value => '{}'
+		default_value => '{}',
+		serializer_class => 'JSON',
+		serializer_options => { utf8 => 1 }
 	}
 );
 
@@ -60,16 +62,5 @@ __PACKAGE__->set_primary_key('user_problem_id');
 
 __PACKAGE__->belongs_to( problems     => 'DB::Schema::Result::Problem',    'problem_id' );
 __PACKAGE__->belongs_to( course_users => 'DB::Schema::Result::CourseUser', 'user_id' );
-
-__PACKAGE__->inflate_column(
-	'params',
-	{   inflate => sub {
-			decode_json shift;
-		},
-		deflate => sub {
-			encode_json shift;
-		}
-	}
-);
 
 1;

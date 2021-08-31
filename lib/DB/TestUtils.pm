@@ -85,16 +85,8 @@ sub loadSchema {
 
 	my $config = LoadFile("$main::lib_dir/../conf/webwork3.yml");
 
-	my $schema;
-	# load the database
-	if ($config->{database} eq 'sqlite') {
-		$schema  = DB::Schema->connect($config->{sqlite_dsn});
-	} elsif ($config->{database} eq 'mariadb') {
-		$schema  = DB::Schema->connect($config->{mariadb_dsn},$config->{database_user},$config->{database_password});
-	}
-
-	return $schema;
-
+	# Load the database
+	return DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 }
 
 1;

@@ -3,9 +3,6 @@ use base qw/DBIx::Class::Core/;
 
 use strict;
 use warnings;
-use Data::Dump qw/dd/;
-use JSON;
-use Carp;
 
 =head1 DESCRIPTION
 
@@ -74,6 +71,8 @@ __PACKAGE__->load_components(qw/DynamicSubclass Core/);
 
 __PACKAGE__->table('problem_set');
 
+__PACKAGE__->load_components(qw/DynamicSubclass Core/, qw/InflateColumn::Serializer Core/);
+
 __PACKAGE__->add_columns(
 	set_id => {
 		data_type         => 'integer',
@@ -82,7 +81,7 @@ __PACKAGE__->add_columns(
 		is_auto_increment => 1,
 	},
 	set_name => {
-		data_type   => 'text',
+		data_type   => 'varchar',
 		size        => 256,
 		is_nullable => 0,
 	},
@@ -101,20 +100,22 @@ __PACKAGE__->add_columns(
 		default_value => 1,
 		is_nullable   => 0
 	},
-	dates =>    # store dates as a JSON object
-		{
-			data_type     => 'text',
-			size          => 256,
-			is_nullable   => 0,
-			default_value => '{}'
-		},
-	params =>    # store params as a JSON object
-		{
-			data_type     => 'text',
-			size          => 256,
-			is_nullable   => 0,
-			default_value => '{}'
-		}
+	dates => { # store dates as a JSON object
+		data_type     => 'text',
+		size          => 256,
+		is_nullable   => 0,
+		default_value => '{}',
+		serializer_class => 'JSON',
+		serializer_options => { utf8 => 1 }
+	},
+	params => { # store params as a JSON object
+		data_type     => 'text',
+		size          => 256,
+		is_nullable   => 0,
+		default_value => '{}',
+		serializer_class => 'JSON',
+		serializer_options => { utf8 => 1 }
+	}
 );
 
 #
@@ -136,30 +137,6 @@ __PACKAGE__->add_unique_constraint( [qw/course_id set_name/] );
 __PACKAGE__->belongs_to( courses => 'DB::Schema::Result::Course', 'course_id' );
 __PACKAGE__->has_many( problems  => 'DB::Schema::Result::Problem', 'set_id' );
 __PACKAGE__->has_many( user_sets => 'DB::Schema::Result::UserSet', 'set_id' );
-
-### Handle the params column using JSON.
-
-__PACKAGE__->inflate_column(
-	'params',
-	{   inflate => sub {
-			decode_json shift;
-		},
-		deflate => sub {
-			encode_json shift;
-		}
-	}
-);
-
-__PACKAGE__->inflate_column(
-	'dates',
-	{   inflate => sub {
-			decode_json shift;
-		},
-		deflate => sub {
-			encode_json shift;
-		}
-	}
-);
 
 =head2 set_type
 

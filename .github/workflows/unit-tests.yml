@@ -13,7 +13,7 @@ jobs:
     container: drgrice1/webwork3
     steps:
       - uses: actions/checkout@v2
-      - name: Build project and run tests
+      - name: Run unit tests
         env:
           HARNESS_PERL_SWITCHES: -MDevel::Cover
         run: |
@@ -27,8 +27,8 @@ jobs:
       #     name: coverage-report
       #     path: cover_db/
 
-      # FIXME: This results in a "400 Bad Request: Could not determine repo and owner", and so is disabled.
-      #- name: push coverage analysis
-      #  env:
-      #    CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      #  run: cover -report codecov
+      - name: Push coverage analysis
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: cover -report codecov
