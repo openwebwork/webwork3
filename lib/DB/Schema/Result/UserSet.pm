@@ -3,11 +3,9 @@ use base qw(DBIx::Class::Core DB::WithParams DB::WithDates);
 use strict;
 use warnings;
 
-use JSON;
-
-# __PACKAGE__->load_components(qw/DynamicSubclass Core/);
-
 __PACKAGE__->table('user_set');
+
+__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
 
 __PACKAGE__->add_columns(
 	user_set_id => {
@@ -32,20 +30,22 @@ __PACKAGE__->add_columns(
 		is_nullable   => 0,
 		default_value => 1,
 	},
-	dates =>    # store dates as a JSON object
-		{
+	dates => { # store dates as a JSON object
 		data_type     => 'text',
 		size          => 256,
 		is_nullable   => 0,
-		default_value => '{}'
-		},
-	params =>    # store params as a JSON object
-		{
+		default_value => '{}',
+		serializer_class => 'JSON',
+		serializer_options => { utf8 => 1 }
+	},
+	params => { # store params as a JSON object
 		data_type     => 'text',
 		size          => 256,
 		is_nullable   => 0,
-		default_value => '{}'
-		}
+		default_value => '{}',
+		serializer_class => 'JSON',
+		serializer_options => { utf8 => 1 }
+	}
 );
 
 __PACKAGE__->set_primary_key('user_set_id');
@@ -68,30 +68,6 @@ __PACKAGE__->belongs_to( problem_sets => 'DB::Schema::Result::ProblemSet', 'set_
 # 		4 => 'DB::Schema::Result::UserSet::ReviewSet',
 # 	}
 # );
-
-### Handle the params column using JSON.
-
-__PACKAGE__->inflate_column(
-	'params',
-	{   inflate => sub {
-			decode_json shift;
-		},
-		deflate => sub {
-			encode_json shift;
-		}
-	}
-);
-
-__PACKAGE__->inflate_column(
-	'dates',
-	{   inflate => sub {
-			decode_json shift;
-		},
-		deflate => sub {
-			encode_json shift;
-		}
-	}
-);
 
 use Data::Dump qw/dd/;
 
