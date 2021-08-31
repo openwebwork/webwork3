@@ -24,7 +24,7 @@ sub valid_dates {
 	return ['open', 'reduced_scoring', 'due' ,'answer'];
 }
 
-=head2 C<required_dates>
+=head2 C<required_dates>:
 
 subroutine that returns the array for the required dates: C<['open', 'due' ,'answer']>
 
@@ -63,7 +63,7 @@ This is the header to the homework set when a hardcopy (PDF) is generated.
 
 C<set_header> : string
 
-This is hte header to the homework set.
+This is the header to the homework set.
 
 =item *
 

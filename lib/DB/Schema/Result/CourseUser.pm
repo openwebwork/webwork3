@@ -2,6 +2,84 @@ package DB::Schema::Result::CourseUser;
 use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
+=head1 DESCRIPTION
+
+This is the database schema for a CourseUser.  Note: this table has two purposes 1) a relationship table linking
+the course and user tables (many-to-many) and 2) storing information about the user in the given course.
+
+=head2 fields
+
+=over
+
+=item *
+
+C<course_user_id>: database id (primary key, autoincrement integer)
+
+=item *
+
+C<course_id>: the database id of the course (foreign key)
+
+=item *
+
+C<user_id>: the database id of the user (foreign key)
+
+=item *
+
+C<role>: the role of the user (generally a string, but limited to a set of strings)
+
+=item *
+
+C<section>: the section the user is in (string)
+
+=item *
+
+C<recitation>: the recitation the user is in (string)
+
+=item *
+
+C<params>: a JSON object storing parameters.  These are:
+
+=over
+
+=item *
+
+C<comment>: general information that can be stored for the user (string)
+
+=item *
+
+C<useMathQuill>: whether or not the user uses MathQuill (boolean)
+
+=item *
+
+C<useMathView>: whether or not the user uses MathView  (boolean)
+
+=item *
+
+C<displayMode>: the way to display mathematics (Mathjax, etc) a string
+
+=item *
+
+C<status>: the user's status in the course (enrolled, audit, drop), a string
+
+=item *
+
+C<lis_source_did>: information to link an LTI string
+
+=item *
+
+C<useWirisEditor>: whether or not the user uses WirisEditor  (boolean)
+
+=item *
+
+C<showOldAnswers>: whether or not the user shows old answer (boolean)
+
+=back
+
+=back
+
+
+
+=cut
 
 __PACKAGE__->table('course_user');
 
@@ -13,7 +91,7 @@ our $VALID_PARAMS = {
 	useMathView    => q{[01]},
 	displayMode    => q{\w+},
 	status         => q{\w},
-	lis_source_did => q{.*},
+	lis_source_did => q{\w*},
 	useWirisEditor => q{[01]},
 	showOldAnswers => q{[01]}
 };

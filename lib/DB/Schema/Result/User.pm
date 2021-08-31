@@ -3,6 +3,68 @@ use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
 
+=head1 DESCRIPTION
+
+This is the database schema for a User.
+
+=head2 fields
+
+=over
+
+=item *
+
+C<user_id>: database id (primary key, autoincrement integer)
+
+=item *
+
+C<username>: the username of the user (can be a login name or email)
+
+=item *
+
+C<first_name>: the first name of the user
+
+=item *
+
+C<last_name>: the last name of the user
+
+=item *
+
+C<email>: the email address of the user
+
+=item *
+
+C<student_id>: the student id (or some other identification of the user)
+
+=item *
+
+C<is_admin>: whether or not the user is an administrator (boolean)
+
+=item *
+
+C<login_params>: a JSON object storing parameters.  These are:
+
+=over
+
+=item *
+
+C<method>: the method of the login/authentication
+
+=item *
+
+C<encrypt_password>: the encrypted password
+
+=back
+
+=back
+
+=head4
+
+Note: the login_params should be flexible enough to handle other types of login
+or authentication, like LTI or LDAP
+
+=cut
+
+
 __PACKAGE__->table('user');
 
 __PACKAGE__->load_components('InflateColumn::Serializer', 'Core');

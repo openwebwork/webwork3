@@ -235,12 +235,13 @@ sub addUserSets {
 sub addProblemPools {
 	say "adding problem pools" if $verbose;
 	my @problem_pools = loadCSV("$main::test_dir/sample_data/pool_problems.csv");
+
 	for my $pool (@problem_pools) {
 		my $course = $course_rs->find({ course_name=>$pool->{course_name}});
 		croak "The course |$pool->{course_name}| does not exist" unless defined($course);
 
 		my $prob_pool = $problem_pool_rs->find_or_create({course_id => $course->course_id, pool_name => $pool->{pool_name}});
-		$prob_pool->add_to_pool_problems({library_id => $pool->{library_id}});
+		$prob_pool->add_to_pool_problems({params => {library_id => $pool->{params}->{library_id}}});
 
 
 	}

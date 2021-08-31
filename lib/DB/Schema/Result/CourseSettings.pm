@@ -2,6 +2,49 @@ package DB::Schema::Result::CourseSettings;
 use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
+=head1 DESCRIPTION
+
+This is the database schema for a CourseSetting.
+
+=head2 fields
+
+=over
+
+=item *
+
+C<course_settings_id>: database id (autoincrement integer)
+
+=item *
+
+C<course_id>: database id of the course for the setting (foreign key)
+
+=item *
+
+C<general>: a JSON object of general settings
+
+=item *
+
+C<optional>: a JSON object of optional settings
+
+=item *
+
+C<problem_set>: a JSON object that stores settings on the problem set level
+
+=item *
+
+C<problem>: a JSON object that stores settings on the problem level
+
+=item *
+
+C<permissions>: a JSON object that stores settings for permissions
+
+=item *
+
+C<email>: a JSON object that stores email settings
+
+=back
+
+=cut
 
 our @VALID_DATES    = qw/open end/;
 our @REQUIRED_DATES = qw//;

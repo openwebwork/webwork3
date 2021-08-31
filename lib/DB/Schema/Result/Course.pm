@@ -3,8 +3,6 @@ use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
 
-use JSON;
-
 =head1 DESCRIPTION
 
 This is the database schema for a Course.

@@ -63,8 +63,6 @@ L<DB::Schema::Result::ProblemSet::ReviewSet> which gives properties common to re
 
 =back
 
-
-
 =cut
 
 __PACKAGE__->load_components(qw/DynamicSubclass Core/);
