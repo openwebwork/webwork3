@@ -1,4 +1,4 @@
-course_name,set_name,set_visible,DATE:open,DATE:due,DATE:answer,PARAM:timed,PARAM:time_length
+course_name,set_name,set_visible,DATE:open,DATE:due,DATE:answer,PARAM:timed,PARAM:quiz_length
 Precalculus,"Quiz #1",0,2021-01-01T23:59:00,2021-01-10T23:59:00,2021-01-31T23:59:00,1,30
 Precalculus,"Quiz #2",1,2021-01-01T23:59:00,2021-01-10T23:59:00,2021-01-31T23:59:00,1,15
 Precalculus,"Quiz #3",1,2021-01-01T23:59:00,2021-01-10T23:59:00,2021-01-31T23:59:00,0,

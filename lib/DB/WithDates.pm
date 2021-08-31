@@ -6,21 +6,10 @@ use Carp;
 use Array::Utils qw/array_minus intersect/;
 use Data::Dump qw/dd/;
 
-use Exception::Class (
-		'DB::Exception::InvalidDateField',
-		'DB::Exception::InvalidDateFormat',
-		'DB::Exception::RequiredDateFields',
-		'DB::Exception::ImproperDateOrder'
-	);
+use DB::Exception;
 
 my $valid_dates;  # array of allowed/valid dates
 my $required_dates; # array of required dates
-
-# sub setDateInfo {
-# 	my ($self,$dates,$req) = @_;
-# 	$valid_dates = $dates;
-# 	$required_dates = $req;
-# }
 
 sub validDates {
 	my ($self,$type) = @_;
@@ -69,7 +58,9 @@ sub hasRequiredDateFields {
 	my $self = shift;
 	my @fields = keys %{$self->dates};
 	my @bad_fields = array_minus(@$required_dates,@fields);
-	DB::Exception::RequiredDateFields->throw(field_names=>join(", ",@bad_fields)) if (scalar(@bad_fields) != 0);
+	DB::Exception::RequiredDateFields->throw(
+		message => "The field(s) " .join(", ",@bad_fields) . " must be present"
+	) if (scalar(@bad_fields) != 0);
 	return 1;
 }
 
@@ -81,8 +72,9 @@ sub checkDates {
 
 	for my $i (0..(scalar(@date_fields)-2)){
 		next unless defined($self->dates->{$date_fields[$i]}) && defined($self->dates->{$date_fields[$i+1]});
-		DB::Exception::ImproperDateOrder->throw(field_names=>$date_fields[$i] . ", " . $date_fields[$i+1])
-			if ($self->dates->{$date_fields[$i]} > $self->dates->{$date_fields[$i+1]});
+		DB::Exception::ImproperDateOrder->throw(
+			message => "The date/time $date_fields[$i] must occur before $date_fields[$i+1]"
+		) if ($self->dates->{$date_fields[$i]} > $self->dates->{$date_fields[$i+1]});
 	}
 	return 1;
 }

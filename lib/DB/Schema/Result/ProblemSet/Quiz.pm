@@ -2,7 +2,7 @@ package DB::Schema::Result::ProblemSet::Quiz;
 
 use strict;
 use warnings;
-use base qw/DB::Schema::Result::ProblemSet/;
+use base qw(DB::Schema::Result::ProblemSet DB::WithParams DB::WithDates);
 
 =head1 DESCRIPTION
 
@@ -60,7 +60,7 @@ if the quiz is timed, how long should it be open.
 sub valid_params {
 	return {
 		timed => q{^[01]$},
-		time_length => q{\d+},
+		quiz_length => q{\d+},
 	};
 }
 

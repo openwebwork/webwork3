@@ -29,6 +29,10 @@
 			<td class="header">Timed</td>
 			<td><q-toggle v-model="set.params.timed" /></td>
 		</tr>
+		<tr v-if="set.params.timed">
+			<td class="header">Length of Quiz</td>
+			<td><q-input v-model="set.params.quiz_length" :rules="quizLength" debounce="500"/> </td>
+		</tr>
 	</table>
 </template>
 
@@ -38,8 +42,8 @@ import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
 import DateTimeInput from 'src/components/common/DateTimeInput.vue';
-import { ProblemSet } from 'src/store/models';
-import { newProblemSet, copyProblemSet } from 'src/store/common';
+import { Quiz } from 'src/store/models';
+import { newQuiz, copyProblemSet } from 'src/store/common';
 import { useStore } from 'src/store';
 
 export default defineComponent({
@@ -54,11 +58,11 @@ export default defineComponent({
 
 		const { set_id } = toRefs(props);
 
-		const set: ProblemSet = reactive(newProblemSet());
+		const set: Quiz = reactive(newQuiz());
 
 		const updateSet = () => {
 			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id == set_id.value) ||
-				newProblemSet();
+				newQuiz();
 			copyProblemSet(set, s);
 		};
 
@@ -84,6 +88,14 @@ export default defineComponent({
 				{ value: 'REVIEW', label: 'Review set' },
 				{ value: 'QUIZ', label: 'Quiz' },
 				{ value: 'HW', label: 'Homework set' }
+			],
+			checkDates: [
+				() => set.dates.open <= set.dates.due && set.dates.due <=set.dates.answer
+					|| 'The dates must be in order'
+			],
+			quizLength: [
+				(val: string) => /^\d+\s(secs?|mins?)$/.test(val) || // add this RegExp elsewhere
+				'The length of the quiz must be a valid length of time'
 			]
 		};
 	}
