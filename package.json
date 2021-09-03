@@ -12,7 +12,7 @@
 		"build": "quasar build"
 	},
 	"dependencies": {
-		"@quasar/extras": "^1.10.11",
+		"@quasar/extras": "^1.10.12",
 		"axios": "^0.21.1",
 		"core-js": "^3.6.5",
 		"lodash-es": "^4.17.21",
