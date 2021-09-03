@@ -1,6 +1,6 @@
 <template>
 	<div class="q-pa-md" style="max-width: 300px">
-		<q-input filled v-model="date_string" :rules="rules" @blur="updateDate">
+		<q-input filled v-model="date_string" :rules="rules">
 			<template v-slot:prepend>
 				<q-icon name="event" class="cursor-pointer">
 					<q-popup-proxy transition-show="scale" transition-hide="scale">
@@ -52,10 +52,7 @@ export default defineComponent({
 		);
 
 		return {
-			date_string,
-			updateDate: () => {
-				console.log('updating');
-			}
+			date_string
 		};
 	}
 });

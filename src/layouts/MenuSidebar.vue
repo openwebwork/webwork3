@@ -11,10 +11,11 @@
 
 <script lang="ts">
 import { defineComponent, ref, Ref, computed } from 'vue';
-import { instructor_views, admin_views, MenuBarView } from 'src/common';
+import { instructor_views, admin_views, ViewInfo } from 'src/common';
 import { useRouter, useRoute } from 'vue-router';
 
 export default defineComponent({
+	name: 'MenuSidebar',
 	setup() {
 		const route = useRoute();
 		const router = useRouter();
@@ -28,7 +29,7 @@ export default defineComponent({
 						? instructor_views
 						: []
 			),
-			changeView: (view: MenuBarView) => {
+			changeView: (view: ViewInfo) => {
 				void router.push({ name: view.component_name, params: route.params });
 			}
 		};

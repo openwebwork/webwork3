@@ -130,7 +130,7 @@ export default defineComponent({
 
 <style type="text/css" scoped>
 .day {
-	max-width: 10%;
+	max-width: 14%;
 	height: 100px;
 	border: black solid 1px;
 	background: lightyellow;

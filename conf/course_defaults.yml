@@ -160,11 +160,14 @@
   default: true
 
 # this contains all optional features of webwork
+
+# conditional release
 -
   category: optional
   subcategory: conditional_release
   var: enable_conditional_release
-  doc: whether or not problem sets can have conditional release
+  doc: Enable Conditional Release
+  doc2: whether or not problem sets can have conditional release
   type: boolean
   default: false
 
@@ -182,7 +185,7 @@
   subcategory: reduced_scoring
   doc: Value of work done in Reduced Scoring Period
   doc2: >
-    After the Reduced Scoring Date all additional work done by the student
+    After the Reduced Scoring Date all additional work done by the student`
     counts at a reduced rate. Here is where you set the reduced rate which
     must be a percentage. For example if this value is 50% and a student
     views a problem during the Reduced Scoring Period, they will see the message
