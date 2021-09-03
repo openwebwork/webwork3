@@ -134,6 +134,7 @@ sub validateCourseSettings {
 	for my $setting (@$course_settings) {
 		validateSingleCourseSetting($setting, $default_course_settings);
 	}
+	return 1;
 }
 
 sub validateSingleCourseSetting {
@@ -250,6 +251,7 @@ sub validateList {
 		grep { $_ eq $setting->{default} } @{$setting->{options}};
 	croak "The default for variable " . $setting->{var} . " needs to be one of the given options" unless scalar(@opt) == 1;
 
+	return 1;
 }
 
 sub isInteger {

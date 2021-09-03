@@ -31,6 +31,7 @@ sub getProblemSets {
 		$set->{set_visible} = $set->{set_visible} ? true : false;
 	}
 	$self->render(json => \@problem_sets);
+	return;
 }
 
 sub getProblemSet {
