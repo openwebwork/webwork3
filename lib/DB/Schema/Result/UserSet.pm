@@ -42,11 +42,13 @@ C<set_visible>: (boolean) visiblility of the set to a student
 
 =item *
 
-C<dates>: a hash of dates related to the problem set.  Note: different types have different date fields.
+C<dates>: a hash of dates related to the problem set.  Note: different types
+have different date fields.
 
 =item *
 
-C<params>: a hash of additional parameters of the problem set.  Note: different problem set types have different params fields.
+C<params>: a hash of additional parameters of the problem set.  Note: different problem set
+types have different params fields.
 
 =back
 
