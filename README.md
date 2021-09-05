@@ -64,7 +64,8 @@ are assuming terminal/shell commands.
 
 1. Clone the repository with `git clone --recursive https://github.com/drdrew42/renderer`
 
-2. copy `render_app.conf.dist` to `render_app.conf` and make any desired modifications including changing the ports from 3000 to 3001
+2. copy `render_app.conf.dist` to `render_app.conf` and make any desired modifications including changing the ports
+from 3000 to 3001
 
 3. install other dependencies
    a. `cd lib/WeBWorK/htdocs`
