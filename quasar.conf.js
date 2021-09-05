@@ -55,7 +55,16 @@ module.exports = configure(function (ctx) {
 			https: false,
 			port: 8080,
 			open: true, // opens browser window automatically,
-			proxy: { '/webwork3/api': 'http://localhost:3000' }
+			proxy: {
+				'/webwork3/api': 'http://localhost:3000',
+				'/renderer': {
+					target: 'http://localhost:3001',
+					changeOrigin: true,
+					pathRewrite: {
+						'^/renderer': ''
+					}
+				}
+			}
 		}
 	};
 });

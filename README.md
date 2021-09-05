@@ -60,6 +60,23 @@ are assuming terminal/shell commands.
 5. If you get the message `Web application available at http://127.0.0.1:3000` then mojolicious is running and waiting
    for any requests.
 
+### Getting the standalone renderer code running
+
+1. Clone the repository with `git clone --recursive https://github.com/drdrew42/renderer`
+
+2. copy `render_app.conf.dist` to `render_app.conf` and make any desired modifications including changing the ports from 3000 to 3001
+
+3. install other dependencies
+   a. `cd lib/WeBWorK/htdocs`
+   b. `npm install`
+
+4. Either install the webwork open problem library or link to a current one with
+   a. change to the top directory of the renderer
+   b. `ln -s PATH_TO_OPL` (end with `webwork-open-problem-library`)
+
+5. Start the standalone server with `morbo -l "http://*:3001" script/render_app`
+
+
 ### Creating some fake data
 
 There is some fake data to get started with so there are a few courses and users.  The users are all based on Simpson's
