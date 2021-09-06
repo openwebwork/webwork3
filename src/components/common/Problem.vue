@@ -43,7 +43,7 @@ export default defineComponent({
 			// replace the script tags with \( \) or \[ \]
 			if (match) {
 				const m0 = match[0].replace(/<script type="math\/tex mode=display">(.+?)<\/script>/g, '\\[$1\\]');
-				html.value = m0.replace(/<script type="(.*)">(.+?)<\/script>/g, '\\($2\\)');
+				html.value = m0.replace(/<script type="math\/tex">(.+?)<\/script>/g, '\\($1\\)');
 			}
 			Promise.resolve()
 				.then(() => {
