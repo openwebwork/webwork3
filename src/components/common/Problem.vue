@@ -25,14 +25,15 @@ export default defineComponent({
 	setup(props){
 		const html: Ref<string> = ref('');
 		const _file: Ref<string> = ref(props.file);
-		async function loadProblem() {
-			const response = await axios.post('/renderer/render-api',
-				{
-					problemSeed: 1,
-					sourceFilePath: _file.value,
-					outputFormat: 'static'
-				});
-			console.log(response);
+
+ 		async function loadProblem() {
+			const formData = new FormData();
+			formData.append('problemSeed', '1');
+			formData.append('sourceFilePath', _file.value);
+			formData.append('outputFormat', 'static');
+
+			const response = await axios.post('/renderer/render-api', formData,
+				{ headers: { 'Content-Type': 'multipart/form-data' } });
 
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			let value = response.data.renderedHTML as string;
@@ -59,6 +60,7 @@ export default defineComponent({
 
 		watch(() => props.file, () => {
 			_file.value = props.file;
+			console.log('in watch');
 			void loadProblem();
 		});
 
