@@ -19,7 +19,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, Ref, computed } from 'vue';
+import { defineComponent, ref, watch, Ref } from 'vue';
 import MenuSidebar from './MenuSidebar.vue';
 import MenuBar from './MenuBar.vue';
 import { instructor_views, admin_views, ViewInfo } from 'src/common';
