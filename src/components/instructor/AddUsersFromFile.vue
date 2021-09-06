@@ -18,8 +18,15 @@
 						<q-table class="loaded-users-table"
 							:rows="users" row-key="row" :columns="columns"
 							v-model:selected="selected" selection="multiple"
-							:pagination="{ rowsPerPage: 0}"
-							/>
+							:pagination="{ rowsPerPage: 0}">
+
+							<template v-slot:header-cell="props">
+								<q-th :props="props">
+									<q-select :options="user_fields" />
+									{{ props.col.name }}
+								</q-th>
+							</template>
+						</q-table>
 						</div>
 				</div>
 			</q-card-section>
@@ -35,7 +42,7 @@
 import { defineComponent, ref, Ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { parse } from 'papaparse';
-import { CourseUser, Dictionary } from 'src/store/models';
+import { Dictionary } from 'src/store/models';
 
 export default defineComponent({
 	name: 'AddUsersFromFile',
@@ -49,6 +56,7 @@ export default defineComponent({
 			file,
 			users,
 			selected,
+			user_fields: ['Username', 'First Name', 'Last Name'],
 			columns: computed(() => users.value.length === 0 ? [] :
 				Object.keys(users.value[0])
 					.map((v) => ({ name: v, label: v, field: v }))),
@@ -58,7 +66,7 @@ export default defineComponent({
 				reader.onload = (evt: ProgressEvent) => {
 					if (evt && evt.target) {
 						const reader = evt.target as FileReader;
-						const results = parse(reader.result as string, {header: true});
+						const results = parse(reader.result as string, { header: false });
 						if (results.errors && results.errors.length > 0) {
 							console.log(results.errors);
 							$q.notify({
