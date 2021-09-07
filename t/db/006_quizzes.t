@@ -133,6 +133,7 @@ throws_ok {
 			course_name => "Precalculus"
 		},
 		{
+			set_type => 'QUIZ',
 			set_name => "Quiz #99",
 			nonexistent_field => 1,
 		}
@@ -147,6 +148,7 @@ throws_ok {
 			course_name => "Precalculus"
 		},
 		{
+			set_type    => 'QUIZ',
 			set_visible => 1,
 		}
 	);
@@ -160,6 +162,7 @@ throws_ok {
 			course_name => "Precalculus"
 		},
 		{
+			set_type => 'QUIZ',
 			set_name => "Quiz #99",
 			set_visible => 1,
 			params => {
@@ -182,6 +185,7 @@ throws_ok {
 			course_name => "Precalculus"
 		},
 		{
+			set_type => 'QUIZ',
 			set_name => "Quiz #99",
 			set_visible => 1,
 			params => {
@@ -204,6 +208,7 @@ throws_ok {
 			course_name => "Precalculus"
 		},
 		{
+			set_type => 'QUIZ',
 			set_name => "Quiz #99",
 			dates => {
 				open => 10,
@@ -221,6 +226,7 @@ throws_ok {
 			course_name => "Precalculus"
 		},
 		{
+			set_type => 'QUIZ',
 			set_name => "Quiz #99",
 			set_visible => 1,
 			dates => {
@@ -241,6 +247,7 @@ throws_ok {
 			course_name => "Precalculus"
 		},
 		{
+			set_type => 'QUIZ',
 			set_name => "Quiz #99",
 			set_visible => 1,
 			dates => {
