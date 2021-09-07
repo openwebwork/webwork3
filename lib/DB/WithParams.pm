@@ -7,8 +7,9 @@ use Array::Utils qw/array_minus intersect/;
 use Data::Dump qw/dd/;
 use Scalar::Util qw/reftype/;
 
-my $valid_params; # hash of valid parameters and the regexp for the values.
-my $required_params;  # array of the required parameters.
+# shared across subroutines, so 'our' ensures that these do not go out of scope
+our $valid_params; # hash of valid parameters and the regexp for the values.
+our $required_params;  # array of the required parameters.
 
 use DB::Exception;
 use Exception::Class (
@@ -22,11 +23,11 @@ sub validParams {
 	## no critic 'ProhibitStringyEval'
 	## no critic 'RequireCheckingReturnValueOfEval'
 	if (defined($type)) {
-		eval '$valid_params = &' . ref($self) . "::valid_params($type)" unless $valid_params;
-		eval '$required_params = &' . ref($self) . "::required_params($type)" unless $required_params;
+		eval '$valid_params = &' . ref($self) . "::valid_params($type)";
+		eval '$required_params = &' . ref($self) . "::required_params($type)";
 	} else {
-		eval '$valid_params = &' . ref($self) . "::valid_params" unless $valid_params;
-		eval '$required_params = &' . ref($self) . "::required_params" unless $required_params;
+		eval '$valid_params = &' . ref($self) . '::valid_params';
+		eval '$required_params = &' . ref($self) . "::required_params";
 	}
 
 	$self->validParamFields();
