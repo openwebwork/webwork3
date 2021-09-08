@@ -13,6 +13,19 @@
 						<q-btn @click="loadFile">Load File</q-btn>
 					</div>
 				</div>
+			</q-card-section>
+			<q-card-section class="q-pt-none">
+				<div class="row">
+					<div class="col-3">
+						<q-toggle v-model="first_row_header" /> First row is Header
+					</div>
+
+					<div class="col-6">
+
+					</div>
+				</div>
+			</q-card-section>
+			<q-card-section class="q-pt-none">
 				<div class="row">
 					<div class="q-pa-md" v-if="users.length > 0">
 						<q-table class="loaded-users-table"
@@ -22,7 +35,7 @@
 
 							<template v-slot:header-cell="props">
 								<q-th :props="props">
-									<q-select :options="user_fields" />
+									<q-select :options="user_fields" v-model="colheader[props.col.name]"/>
 									{{ props.col.name }}
 								</q-th>
 							</template>
@@ -39,7 +52,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref, computed } from 'vue';
+import { defineComponent, ref, Ref, computed, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { parse } from 'papaparse';
 import { Dictionary } from 'src/store/models';
@@ -51,24 +64,39 @@ export default defineComponent({
 		const file: Ref<File> = ref(new File([], ''));
 		const users: Ref<Array<Dictionary<string|number>>> = ref([]);
 		const selected: Ref<Array<Dictionary<string|number>>> = ref([]);
+		const colheader: Ref<Dictionary<string>> = ref({});
+		const first_row_header: Ref<boolean> = ref(false);
+		const header_row: Ref<Dictionary<string|number>> = ref({});
+
+		watch(() => first_row_header, () => {
+			console.log('in watch');
+			if(first_row_header.value) {
+				const first_row = users.value.shift();
+				if (first_row) {
+					header_row.value = first_row;
+				}
+			} else {
+				users.value.unshift(header_row.value);
+			}
+		});
 
 		return {
 			file,
 			users,
 			selected,
+			first_row_header,
 			user_fields: ['Username', 'First Name', 'Last Name'],
-			columns: computed(() => users.value.length === 0 ? [] :
-				Object.keys(users.value[0])
-					.map((v) => ({ name: v, label: v, field: v }))),
+			colheader,
 			loadFile: () => {
+				console.log('in loadfile');
 				const reader: FileReader = new FileReader();
+
 				reader.readAsText(file.value);
 				reader.onload = (evt: ProgressEvent) => {
 					if (evt && evt.target) {
 						const reader = evt.target as FileReader;
 						const results = parse(reader.result as string, { header: false });
 						if (results.errors && results.errors.length > 0) {
-							console.log(results.errors);
 							$q.notify({
 								message: results.errors[0].message,
 								color: 'red'
@@ -80,7 +108,9 @@ export default defineComponent({
 						}
 					}
 				};
-			}
+			},
+			columns: computed(() => users.value.length === 0 ? [] :
+				Object.keys(users.value[0]).map((v) => ({ name: v, label: v, field: v })))
 		};
 	}
 });
