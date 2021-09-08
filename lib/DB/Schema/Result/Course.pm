@@ -3,6 +3,33 @@ use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
 
+=head1 DESCRIPTION
+
+This is the database schema for a Course.
+
+=head2 fields
+
+=over
+
+=item *
+
+C<course_id>: database id (autoincrement integer)
+
+=item *
+
+C<course_name>: name of the course (string)
+
+=item *
+
+C<course_dates>: a JSON object of course dates (currently open and closed)
+
+=item *
+
+C<visible>: a boolean on whether the course is visible or not.
+
+=back
+
+=cut
 our @VALID_DATES     = qw/open end/;
 our @REQUIRED_DATES  = qw//;
 our $VALID_PARAMS    = { visible => q{[01]} };

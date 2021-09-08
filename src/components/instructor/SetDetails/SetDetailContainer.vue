@@ -1,19 +1,9 @@
 <template>
-	<div class="q-ma-lg">
-		<div class="row">
-			<div class="col-2 offset-8">
-				<q-select v-model="selected_set" :options="problem_set_names"
-					emit-value map-options label="Select Set" />
-			</div>
-		</div>
-		<router-view />
-	</div>
+	<router-view />
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref, computed, watch } from 'vue';
-import { useStore } from 'src/store';
-import { ProblemSet } from 'src/store/models';
+import { defineComponent, ref, Ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 
 export default defineComponent({
@@ -22,7 +12,6 @@ export default defineComponent({
 		set_id: String
 	},
 	setup() {
-		const store = useStore();
 		const router = useRouter();
 		const route = useRoute();
 		const selected_set: Ref<number> = ref(0);
@@ -40,14 +29,14 @@ export default defineComponent({
 		watch(() => selected_set.value, updateSet);
 
 		return {
-			selected_set,
-			problem_set_names: computed(() => {
-				const set_names = store.state.problem_sets.problem_sets
-					.map((_set: ProblemSet) => ({ label: _set.set_name, value: _set.set_id }));
-				set_names.unshift({ label: '', value: 0 });
-				return set_names;
-			})
+			selected_set
 		};
 	}
 });
 </script>
+
+<style scoped>
+#settable {
+	width: 100%
+}
+</style>

@@ -8,7 +8,7 @@ export function formatDate(_date_to_format: string) {
 	return date.formatDate(_date, 'MM-DD-YYYY [at] h:mmA'); // have the format changeable?
 }
 
-export interface MenuBarView {
+export interface ViewInfo {
 	name: string;
 	component_name: string;
 	icon: string;
@@ -42,7 +42,7 @@ export const instructor_views = [
 		component_name: 'Calendar',
 		icon: 'today',
 		route: 'calendar',
-		show_set: false,
+		show_set: true,
 		show_user: false
 	},
 	{
@@ -115,6 +115,9 @@ export const admin_views = [
 	{
 		name: 'Course Manager',
 		component_name: 'CourseManager',
-		icon: 'assessment'
+		icon: 'assessment',
+		route: 'coursemanager',
+		show_set: false,
+		show_user: false
 	}
 ];

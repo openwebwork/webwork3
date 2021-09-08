@@ -160,11 +160,14 @@
   default: true
 
 # this contains all optional features of webwork
+
+# conditional release
 -
   category: optional
   subcategory: conditional_release
   var: enable_conditional_release
-  doc: whether or not problem sets can have conditional release
+  doc: Enable Conditional Release
+  doc2: whether or not problem sets can have conditional release
   type: boolean
   default: false
 

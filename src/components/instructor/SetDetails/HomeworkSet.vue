@@ -17,18 +17,21 @@
 			<td class="header">Enable Reduced Scoring</td>
 			<td><q-toggle v-model="set.params.enable_reduced_scoring" /></td>
 		</tr>
-
 		<tr>
 			<td class="header">Open Date</td>
-			<td><date-time-input v-model="set.dates.open" /></td>
+			<td><date-time-input v-model="set.dates.open" :rules="checkDates"/></td>
+		</tr>
+		<tr v-if="set.params.enable_reduced_scoring">
+			<td class="header">Reduced Scoring Date</td>
+			<td><date-time-input v-model="set.dates.reduced_scoring" :rules="checkDates"/></td>
 		</tr>
 		<tr>
 			<td class="header">Due Date</td>
-			<td><date-time-input v-model="set.dates.due" /></td>
+			<td><date-time-input v-model="set.dates.due" :rules="checkDates"/></td>
 		</tr>
 		<tr>
 			<td class="header">Answer Date</td>
-			<td><date-time-input v-model="set.dates.answer" /></td>
+			<td><date-time-input v-model="set.dates.answer" :rules="checkDates"/></td>
 		</tr>
 	</table>
 </template>
@@ -39,8 +42,8 @@ import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
 import DateTimeInput from 'src/components/common/DateTimeInput.vue';
-import { ProblemSet } from 'src/store/models';
-import { newProblemSet, copyProblemSet } from 'src/store/common';
+import { HomeworkSet } from 'src/store/models';
+import { newHomeworkSet, copyProblemSet } from 'src/store/common';
 import { useStore } from 'src/store';
 
 export default defineComponent({
@@ -55,11 +58,11 @@ export default defineComponent({
 
 		const { set_id } = toRefs(props);
 
-		const set: ProblemSet = reactive(newProblemSet());
+		const set: HomeworkSet = reactive(newHomeworkSet());
 
 		const updateSet = () => {
 			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id == set_id.value) ||
-				newProblemSet();
+				newHomeworkSet();
 			copyProblemSet(set, s);
 		};
 
@@ -86,6 +89,13 @@ export default defineComponent({
 				{ value: 'REVIEW', label: 'Review set' },
 				{ value: 'QUIZ', label: 'Quiz' },
 				{ value: 'HW', label: 'Homework set' }
+			],
+			checkDates: [
+				() => set.params.enable_reduced_scoring && set.dates.reduced_scoring ?
+					set.dates.open <= set.dates.reduced_scoring
+						&& set.dates.reduced_scoring <= set.dates.due  && set.dates.due <=set.dates.answer :
+					set.dates.open <= set.dates.due && set.dates.due <=set.dates.answer
+					|| 'The dates must be in order'
 			]
 		};
 	}

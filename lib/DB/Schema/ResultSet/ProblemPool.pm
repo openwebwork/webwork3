@@ -88,9 +88,11 @@ sub getProblemPool {
 	my $pool = $self->find( $search_info, { join => [qw/courses/] } );
 
 	unless ($pool) {
-		my $pool_info   = getPoolInfo($course_pool_info);
 		my $course_name = $course->course_name;
-		DB::Exception::PoolNotInCourse->throw( pool_name => $pool_info, course_name => $course_name );
+
+		DB::Exception::PoolNotInCourse->throw(
+			message => "The pool with name \{$course_pool_info->{pool_name}} is not in the course $course_name"
+		);
 	}
 	return $pool if $as_result_set;
 	return { $pool->get_columns };
@@ -232,7 +234,7 @@ sub getPoolProblem {
 	else {     # pick a random problem.
 		my $prob = $pool_problems[ rand @pool_problems ];
 		return $prob if $as_result_set;
-		return { $prob->get_columns };
+		return { $prob->get_inflated_columns };
 	}
 }
 
@@ -246,8 +248,10 @@ sub addProblemToPool {
 	my ( $self, $course_pool_info, $problem_params, $as_result_set ) = @_;
 
 	my $pool = $self->getProblemPool( $course_pool_info, 1 );
-	DB::Exception::PoolNotInCourse->throw( course_name => getCourseInfo($course_pool_info) )
-		unless defined($pool);
+	DB::Exception::PoolNotInCourse->throw(
+		message => "The pool with name \{$pool->{pool_name}} is not in the course "
+			. getCourseInfo($course_pool_info)->{course_name}
+	) unless defined($pool);
 
 	my $course_rs = $self->result_source->schema->resultset("Course");
 	my $course    = $course_rs->find( { course_id => $pool->course_id } );
@@ -259,7 +263,7 @@ sub addProblemToPool {
 	my $added_problem = $pool->add_to_pool_problems( { $pool_problem->get_columns } );
 
 	return $added_problem if $as_result_set;
-	return { $added_problem->get_columns };
+	return { $added_problem->get_inflated_columns };
 
 }
 
@@ -299,7 +303,7 @@ sub updatePoolProblem {
 
 	my $prob2 = $prob->update( { $prob_to_update->get_columns } );
 	return $prob2 if $as_result_set;
-	return { $prob2->get_columns };
+	return { $prob2->get_inflated_columns };
 }
 
 1;

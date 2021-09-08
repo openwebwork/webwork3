@@ -7,9 +7,62 @@ use warnings;
 
 use base qw(DBIx::Class::Core DB::WithParams);
 
+=head1 DESCRIPTION
+
+This is the database schema for a CourseUser.  Note: this table has two purposes 1) a relationship table linking
+the course and user tables (many-to-many) and 2) storing information about the user in the given course.
+
+=head2 fields
+
+=over
+
+=item *
+
+C<problem_id>: database id (primary key, autoincrement integer)
+
+=item *
+
+C<set_id>: the database id of the set the problem is in (foreign key)
+
+=item *
+
+C<problem_number>: the number of the problem (integer, non-negative?)
+
+=item *
+
+C<params>: a JSON object storing parameters.  These are:
+
+=over
+
+=item *
+
+C<weight>: the weight of a problem (nonnegative integer)
+
+=item *
+
+C<library_id>: a database id of the problem (foreign key)
+
+=item *
+
+C<problem_path>: alternatively, the path of the problem
+
+=item *
+
+C<problem_pool_id>: if part of a problem pool, the database id of it (foreign key)
+
+=back
+
+=back
+
+=head4
+
+Note: a problem should have only one of a library_id, problem_path or problem_pool_id
+
+=cut
+
 sub valid_params {
 	return {
-		weight          => q{\d+},
+		weight          => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$}, # positive integers or decimals
 		library_id      => q{\d+},
 		problem_path    => q{.*},
 		problem_pool_id => q{\d+}

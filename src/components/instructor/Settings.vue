@@ -43,7 +43,7 @@ export default defineComponent({
 	},
 	setup() {
 		const store = useStore();
-		const tab = ref('General');
+		const tab = ref('general');
 
 		return {
 			tab,

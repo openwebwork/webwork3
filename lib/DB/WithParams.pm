@@ -45,7 +45,9 @@ sub validParamFields {
 	my @inter = intersect(@fields,@valid_fields);
 	if (scalar(@inter) != scalar(@fields)) {
 		my @bad_fields = array_minus(@fields, @valid_fields);
-		DB::Exception::UndefinedParameter->throw(field_names=>join(", ",@bad_fields));
+		DB::Exception::UndefinedParameter->throw(
+			"The following parameters are not allowed for this DB table: " . join(", ",@bad_fields)
+		);
 	}
 	return 1;
 }
@@ -55,7 +57,9 @@ sub validateParams {
 	return 1 unless defined $self->params;
 	for my $key (keys %{$self->params}){
 		my $re = $valid_params->{$key};
-		DB::Exception::InvalidParameter->throw(field_names => $key) unless $self->params->{$key} =~ qr/^$re$/x;
+		DB::Exception::InvalidParameter->throw(
+			message => "The parameter named $key is not valid"
+		) unless $self->params->{$key} =~ qr/^$re$/x;
 	}
 	return 1;
 }

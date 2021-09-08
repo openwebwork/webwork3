@@ -3,6 +3,79 @@ use base qw(DBIx::Class::Core DB::WithParams DB::WithDates);
 use strict;
 use warnings;
 
+
+=head1 DESCRIPTION
+
+This is the database schema for a UserSet, which plays two roles:
+
+=item 1
+
+This overrides any ProblemSet for a particular user
+
+=item 2
+
+This is the super class for a UserSet version of a HomeworkSet, Quiz and ReviewSet.
+
+=head2 fields
+
+=over
+
+=item *
+
+C<set_id>: database id (autoincrement integer)
+
+=item *
+
+C<set_name>: name of the set
+
+=item *
+
+C<course_id>: id of the course the set is in (foreign key)
+
+=item *
+
+C<type>: the type of problem set (see below)
+
+=item *
+
+C<set_visible>: (boolean) visiblility of the set to a student
+
+=item *
+
+C<dates>: a hash of dates related to the problem set.  Note: different types
+have different date fields.
+
+=item *
+
+C<params>: a hash of additional parameters of the problem set.  Note: different problem set
+types have different params fields.
+
+=back
+
+=head3 Problem Set types
+
+The three subtypes of a C<ProblemSet> are
+
+=over
+
+=item *
+
+L<DB::Schema::Result::ProblemSet::HWSet> which gives properties common to homework sets.
+
+=item *
+
+L<DB::Schema::Result::ProblemSet::Quiz> which gives properties common to quizzes.
+
+=item *
+
+L<DB::Schema::Result::ProblemSet::ReviewSet> which gives properties common to review sets.
+
+=back
+
+
+
+=cut
+
 __PACKAGE__->table('user_set');
 
 __PACKAGE__->load_components('InflateColumn::Serializer', 'Core');

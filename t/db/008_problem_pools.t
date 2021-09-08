@@ -165,28 +165,29 @@ is( $prob2->{library_id}, $pool_problem2->{library_id}, "getPoolProblem: get a s
 ## get a random PoolProblem
 
 my $random_prob = $problem_pool_rs->getPoolProblem(
-	{   course_name => $prob2->{course_name},
+	{
+		course_name => $prob2->{course_name},
 		pool_name   => $prob2->{pool_name}
 	}
 );
 
+# dd $random_prob;
+
 my @probs3 = grep { $_->{course_name} eq $prob2->{course_name} and $_->{pool_name} eq $prob2->{pool_name} }
 	@pool_problems_from_file;
-
-my @lib_ids = map { $_->{library_id} } @probs3;
-
-my @arr = grep { $_ == $random_prob->{library_id} } @lib_ids;
+my @lib_ids = map { $_->{params}->{library_id} } @probs3;
+my @arr = grep { $_ == $random_prob->{params}->{library_id} } @lib_ids;
 
 ok( scalar(@arr) == 1, "getPoolProblem: get a random problem from a problem pool" );
 
 ## add a Problem to a pool
 
-my $prob_to_add = { library_id => 8332 };
+my $prob_to_add->{params} = { library_id => 8332 };
 
 my $added_problem = $problem_pool_rs->addProblemToPool( $updated_pool, $prob_to_add );
 
-is( $prob_to_add->{library_id},
-	$added_problem->{library_id},
+is( $prob_to_add->{params}->{library_id},
+	$added_problem->{params}->{library_id},
 	"addProblemToPool: adding a problem to an existing pool."
 );
 
@@ -194,7 +195,8 @@ is( $prob_to_add->{library_id},
 
 throws_ok {
 	$problem_pool_rs->addProblemToPool(
-		{   course_name => "non_existing_course",
+		{
+			course_name => "non_existing_course",
 			pool_name   => "adding fractions"
 		},
 		$prob_to_add
@@ -222,10 +224,10 @@ $course_pool_problem_info->{pool_problem_id} = $added_problem->{pool_problem_id}
 my $updated_library_id = 2839;
 
 my $updated_pool_problem =
-	$problem_pool_rs->updatePoolProblem( $course_pool_problem_info, { library_id => $updated_library_id } );
+	$problem_pool_rs->updatePoolProblem( $course_pool_problem_info, { params => {library_id => $updated_library_id }} );
 
 is( $updated_library_id,
-	$updated_pool_problem->{library_id},
+	$updated_pool_problem->{params}->{library_id},
 	"updatePoolProblem: update an existing problem in an existing pool."
 );
 
@@ -237,7 +239,11 @@ throws_ok {
 			pool_name       => "adding fractions",
 			pool_problem_id => $added_problem->{pool_problem_id}
 		},
-		{ library_id => $updated_library_id }
+		{
+			params=> {
+				library_id => $updated_library_id
+			}
+		}
 	);
 }
 "DB::Exception::CourseNotFound", "updatePoolProblem: try to update a nonexisting course";
