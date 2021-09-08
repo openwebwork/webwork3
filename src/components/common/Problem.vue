@@ -28,9 +28,9 @@ export default defineComponent({
 
  		async function loadProblem() {
 			const formData = new FormData();
-			formData.append('problemSeed', '1');
-			formData.append('sourceFilePath', _file.value);
-			formData.append('outputFormat', 'static');
+			formData.set('problemSeed', '1');
+			formData.set('sourceFilePath', _file.value);
+			formData.set('outputFormat', 'static');
 
 			const response = await axios.post('/renderer/render-api', formData,
 				{ headers: { 'Content-Type': 'multipart/form-data' } });
@@ -43,24 +43,22 @@ export default defineComponent({
 
 			// replace the script tags with \( \) or \[ \]
 			if (match) {
-				const m0 = match[0].replace(/<script type="math\/tex mode=display">(.+?)<\/script>/g, '\\[$1\\]');
-				html.value = m0.replace(/<script type="math\/tex">(.+?)<\/script>/g, '\\($1\\)');
+				html.value = match[0];
+				// const m0 = match[0].replace(/<script type="math\/tex mode=display">(.+?)<\/script>/g, '\\[$1\\]');
+				// html.value = m0.replace(/<script type="math\/tex">(.+?)<\/script>/g, '\\($1\\)');
 			}
-			Promise.resolve()
+			void Promise.resolve()
 				.then(() => {
-					console.log(window.MathJax);
 					/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 					window.MathJax.typesetPromise();
 					/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-					// this.buildAnswerDecorations();
-				})
-				.catch((e) => console.log(e));
+				});
+			// .catch();  // need to figure out a more robust way of handling an error like this.
 
 		}
 
 		watch(() => props.file, () => {
 			_file.value = props.file;
-			console.log('in watch');
 			void loadProblem();
 		});
 

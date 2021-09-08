@@ -48,6 +48,11 @@ are assuming terminal/shell commands.
 2. Change directory to the webwork3 directory: `cd webwork3`
 3. Copy conf/webwork3.yml.dist to conf/webwork3.yml and modify it appropriately if needed.
 
+### Download Quasar
+
+1. Make sure that `node` and `npm` are installed.
+2. Install the Quasar cli using: `npm install -g @quasar/cli`
+
 ### Getting Mojolicious and other needed packages
 
 1. Make sure that you have perl (at least version 5.20) installed.
@@ -62,7 +67,7 @@ are assuming terminal/shell commands.
 
 ### Getting the standalone renderer code running
 
-1. Clone the repository with `git clone --recursive https://github.com/drdrew42/renderer`
+1. Clone the repository with `git clone --recursive https://github.com/openwebwork/renderer`
 
 2. copy `render_app.conf.dist` to `render_app.conf` and make any desired modifications including changing the ports
 from 3000 to 3001
