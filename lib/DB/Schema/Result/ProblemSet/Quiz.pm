@@ -60,7 +60,7 @@ if the quiz is timed, how long should it be open.
 sub valid_params {
 	return {
 		timed => q{^[01]$},
-		quiz_length => q{\d+},
+		quiz_duration => q{\d+},
 	};
 }
 
