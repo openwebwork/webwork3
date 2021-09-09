@@ -41,8 +41,6 @@ C<problem_path>: alternatively, the path of the problem
 
 Note: the C<params> can only have one of the two fields
 
-
-
 =cut
 
 __PACKAGE__->table('pool_problem');

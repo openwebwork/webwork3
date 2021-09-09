@@ -134,7 +134,7 @@ export function parseQuiz(_set: ParseableProblemSet): Quiz {
 
 	const params: QuizParams = {
 		timed: parseBoolean(_set.params.timed),
-		quiz_length: _set.params.quiz_length === undefined ? undefined : parseInt(_set.params.quiz_length)
+		quiz_duration: _set.params.quiz_duration === undefined ? undefined : parseInt(_set.params.quiz_duration)
 	};
 
 	const dates: QuizDates = {
