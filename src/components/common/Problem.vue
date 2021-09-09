@@ -1,8 +1,14 @@
 <template>
-	<div v-html="html" />
+	<iframe 
+		v-resize="{ checkOrigin: false }" 
+		:srcdoc="html" 
+		width="100%" 
+		frameborder="0"
+	></iframe>
 </template>
 <script lang="ts">
 import { defineComponent, Ref, ref, watch } from 'vue';
+import { iframeResizer } from 'iframe-resizer';
 import axios from 'axios';
 
 import './mathjax-config';
@@ -22,6 +28,18 @@ export default defineComponent({
 			default: ''
 		}
 	},
+	directives: {
+		resize: {
+			mounted(el: HTMLElement, { value = {} }) {
+				iframeResizer(value, el);
+			},
+			beforeUnmount(el) {
+				// eslint-disable-next-line max-len
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+				el.iFrameResizer.removeListeners();
+			}
+		}
+	},
 	setup(props){
 		const html: Ref<string> = ref('');
 		const _file: Ref<string> = ref(props.file);
@@ -30,23 +48,23 @@ export default defineComponent({
 			const formData = new FormData();
 			formData.set('problemSeed', '1');
 			formData.set('sourceFilePath', _file.value);
-			formData.set('outputFormat', 'static');
+			formData.set('outputFormat', 'classic');
 
 			const response = await axios.post('/renderer/render-api', formData,
 				{ headers: { 'Content-Type': 'multipart/form-data' } });
 
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			let value = response.data.renderedHTML as string;
+			html.value = value;
 
 			// extract only the form element.
-			const match = /<form(.*)>(.*)<\/form>/s.exec(value);
+			// const match = /<form(.*)>(.*)<\/form>/s.exec(value);
 
 			// replace the script tags with \( \) or \[ \]
-			if (match) {
-				html.value = match[0];
-				// const m0 = match[0].replace(/<script type="math\/tex mode=display">(.+?)<\/script>/g, '\\[$1\\]');
-				// html.value = m0.replace(/<script type="math\/tex">(.+?)<\/script>/g, '\\($1\\)');
-			}
+			// if (match) {
+			// html.value = match[0];
+			// }
+
 			void Promise.resolve()
 				.then(() => {
 					/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */

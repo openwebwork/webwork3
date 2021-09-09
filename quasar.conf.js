@@ -59,10 +59,10 @@ module.exports = configure(function (ctx) {
 				'/webwork3/api': 'http://localhost:3000',
 				'/renderer': {
 					target: 'http://localhost:3001',
-					changeOrigin: true,
-					pathRewrite: {
-						'^/renderer': ''
-					}
+					// changeOrigin: true,
+					// pathRewrite: {
+					// '^/renderer': ''
+					// }
 				}
 			}
 		}
