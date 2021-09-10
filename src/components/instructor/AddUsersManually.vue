@@ -42,7 +42,7 @@ import { defineComponent, ref, Ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 
 import { useStore } from '../../store';
-import { newCourseUser, newUser } from '../../store/common';
+import { newCourseUser, newUser } from '../../store/utils/users';
 
 import { CourseSetting, User, CourseUser, ResponseError } from '../../store/models';
 import { AxiosError } from 'axios';

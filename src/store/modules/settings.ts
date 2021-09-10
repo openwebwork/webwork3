@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { Commit, GetterTree } from 'vuex';
-import { StateInterface } from 'src/store/index';
+import { StateInterface } from 'src/store';
 import { CourseSetting, CourseSettingInfo, CourseSettingOption } from 'src/store/models';
-import { newCourseSetting } from '../common';
+import { newCourseSetting } from '../utils/course_settings';
 
 export interface SettingsState {
 	default_settings: Array<CourseSettingInfo>; // this contains default setting and documentation

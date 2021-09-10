@@ -60,7 +60,8 @@ import { defineComponent, ref, Ref } from 'vue';
 import { useQuasar } from 'quasar';
 
 import { useStore } from '../../store';
-import { newCourse, newCourseUser, newUser } from '../../store/common';
+import { newCourseUser, newUser } from '../../store/utils/users';
+import { newCourse } from 'src/store/utils/courses';
 
 import { Course, ResponseError, User } from '../../store/models';
 import { AxiosError } from 'axios';

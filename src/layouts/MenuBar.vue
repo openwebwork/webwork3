@@ -61,7 +61,7 @@ import { computed, defineComponent, ref } from 'vue';
 import { useStore } from 'src/store';
 import { useRouter } from 'vue-router';
 import { useRoute } from 'vue-router';
-import { UserCourse } from 'src/store/models';
+import { UserCourse } from '@/store/models';
 
 export default defineComponent({
 	name: 'MenuBar',

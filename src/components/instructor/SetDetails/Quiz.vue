@@ -43,7 +43,7 @@ import { cloneDeep } from 'lodash-es';
 
 import DateTimeInput from 'src/components/common/DateTimeInput.vue';
 import { Quiz } from 'src/store/models';
-import { newQuiz, copyProblemSet } from 'src/store/common';
+import { newQuiz, copyProblemSet } from 'src/store/utils/problem_sets';
 import { useStore } from 'src/store';
 
 export default defineComponent({

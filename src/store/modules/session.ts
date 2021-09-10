@@ -1,7 +1,7 @@
 import { Commit, GetterTree } from 'vuex';
 import { StateInterface } from 'src/store';
 import { User, SessionInfo } from 'src/store/models';
-import { newUser } from 'src/store/common';
+import { newUser } from 'src/store/utils/users';
 
 interface CourseInfo {
 	course_name: string;

@@ -29,7 +29,7 @@
 				<div class="row">
 					<div class="q-pa-md" v-if="users.length > 0">
 						<q-table class="loaded-users-table"
-							:rows="users" row-key="row" :columns="columns"
+							:rows="users" row-key="_row" :columns="columns"
 							v-model:selected="selected" selection="multiple"
 							:pagination="{ rowsPerPage: 0}">
 
@@ -55,7 +55,7 @@
 import { defineComponent, ref, Ref, computed, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { parse } from 'papaparse';
-import { Dictionary } from 'src/store/models';
+import { Dictionary } from '@/store/models';
 
 export default defineComponent({
 	name: 'AddUsersFromFile',
@@ -68,7 +68,7 @@ export default defineComponent({
 		const first_row_header: Ref<boolean> = ref(false);
 		const header_row: Ref<Dictionary<string|number>> = ref({});
 
-		watch(() => first_row_header, () => {
+		watch([first_row_header], () => {
 			console.log('in watch');
 			if(first_row_header.value) {
 				const first_row = users.value.shift();
@@ -85,7 +85,7 @@ export default defineComponent({
 			users,
 			selected,
 			first_row_header,
-			user_fields: ['Username', 'First Name', 'Last Name'],
+			user_fields: ['Username', 'First Name', 'Last Name', 'Student ID', 'Email', 'Section', 'Recitation'],
 			colheader,
 			loadFile: () => {
 				console.log('in loadfile');
@@ -103,14 +103,14 @@ export default defineComponent({
 							});
 						} else {
 							const data = results.data as Array<Dictionary<string|number>>;
-							data.forEach((row, index) => {row['row'] = index;});
+							data.forEach((row, index) => {row['_row'] = index;});
 							users.value = data;
 						}
 					}
 				};
 			},
 			columns: computed(() => users.value.length === 0 ? [] :
-				Object.keys(users.value[0]).map((v) => ({ name: v, label: v, field: v })))
+				Object.keys(users.value[0]).filter((v) => v !== '_row').map((v) => ({ name: v, label: v, field: v })))
 		};
 	}
 });
