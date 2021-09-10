@@ -49,7 +49,7 @@ whether or not the quiz should be a timed quiz
 
 =item *
 
-C<quiz_length>: integer
+C<quiz_duration>: integer
 
 if the quiz is timed, how long should it be open.
 
