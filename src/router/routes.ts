@@ -149,7 +149,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "Statistics" */
-								'src/components/instructor/Stastistics.vue'
+								'src/components/instructor/Statistics.vue'
 							)
 					}
 				]

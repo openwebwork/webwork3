@@ -62,6 +62,7 @@ import { useStore } from 'src/store';
 import { useRouter } from 'vue-router';
 import { useRoute } from 'vue-router';
 import { UserCourse } from 'src/store/models';
+import { endSession } from 'src/store/api';
 
 export default defineComponent({
 	name: 'MenuBar',
@@ -99,7 +100,8 @@ export default defineComponent({
 			},
 			open_user_settings: ref(false),
 			current_view,
-			logout: () => {
+			logout: async () => {
+				await endSession();
 				void store.dispatch('session/logout');
 				void router.push('/login');
 			},

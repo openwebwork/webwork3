@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { api } from 'boot/axios';
 import { Commit } from 'vuex';
 
 import { Course } from '../models';
@@ -21,11 +21,11 @@ export default {
 	},
 	actions: {
 		async fetchCourses({ commit }: { commit: Commit }): Promise<void> {
-			const response = await axios.get('/webwork3/api/courses');
+			const response = await api.get('courses');
 			commit('SET_COURSES', response.data as Array<Course>);
 		},
 		async addCourse({ commit }: { commit: Commit }, _course: Course): Promise<Course> {
-			const response = await axios.post('/webwork3/api/courses', _course);
+			const response = await api.post('courses', _course);
 			const course = response.data as Course;
 			commit('ADD_COURSE', course);
 			return course;

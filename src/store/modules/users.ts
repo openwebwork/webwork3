@@ -1,6 +1,6 @@
-import axios from 'axios';
-import { Commit, ActionContext } from 'vuex';
-import { StateInterface } from '../index';
+import { api } from 'boot/axios';
+import type { Commit, ActionContext } from 'vuex';
+import type { StateInterface } from '../index';
 
 import { User, UserCourse, CourseUser, ResponseError } from '../models';
 
@@ -9,14 +9,12 @@ export interface UserState {
 	user_courses: Array<UserCourse>;
 }
 
-const initial_state = {
-	users: [],
-	user_courses: []
-};
-
 export default {
 	namespaced: true,
-	state: initial_state,
+	state: {
+		users: [],
+		user_courses: []
+	},
 	getters: {
 		user_courses(state: UserState): Array<UserCourse> {
 			return state.user_courses;
@@ -34,7 +32,7 @@ export default {
 		async getUser(
 			_context: ActionContext<UserState, StateInterface>,
 			_username: string): Promise<User | undefined> {
-			const response = await axios.get(`/webwork3/api/users/${_username}`);
+			const response = await api.get(`users/${_username}`);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			if (response.data.username && response.data.username !== '') {
 				return response.data as User;
@@ -48,7 +46,7 @@ export default {
 		): Promise<CourseUser | undefined> {
 			const course_id =
 				rootState.session.course.course_id > 0 ? rootState.session.course.course_id : _course_user.course_id;
-			const response = await axios.post(`/webwork3/api/courses/${course_id}/users`, _course_user);
+			const response = await api.post(`courses/${course_id}/users`, _course_user);
 			if (response.status === 200) {
 				const u = response.data as CourseUser;
 				commit('ADD_USER', u);
@@ -62,7 +60,7 @@ export default {
 			_user: User
 		): Promise<User | undefined> {
 			const course_id = rootState.session.course.course_id;
-			const response = await axios.delete(`/webwork3/api/courses/${course_id}/users/${_user.user_id || 0}`);
+			const response = await api.delete(`courses/${course_id}/users/${_user.user_id || 0}`);
 			if (response.status === 200) {
 				commit('DELETE_USER', _user);
 				return response.data as User;
@@ -89,13 +87,13 @@ export default {
 };
 
 async function _fetchUserCourses(user_id: number): Promise<Array<UserCourse>> {
-	const response = await axios.get(`/webwork3/api/users/${user_id}/courses`);
+	const response = await api.get(`users/${user_id}/courses`);
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	return response.data.exception ? [] : (response.data as Array<UserCourse>);
 }
 
 async function _fetchUsers(course_id: number): Promise<Array<User>> {
-	const response = await axios.get(`/webwork3/api/courses/${course_id}/users`);
+	const response = await api.get(`courses/${course_id}/users`);
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	return response.data.exception ? [] : (response.data as Array<User>);
 }
