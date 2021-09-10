@@ -49,7 +49,7 @@ whether or not the quiz should be a timed quiz
 
 =item *
 
-C<quiz_length>: integer
+C<quiz_duration>: integer
 
 if the quiz is timed, how long should it be open.
 
@@ -60,7 +60,7 @@ if the quiz is timed, how long should it be open.
 sub valid_params {
 	return {
 		timed => q{^[01]$},
-		quiz_length => q{\d+},
+		quiz_duration => q{\d+},
 	};
 }
 
