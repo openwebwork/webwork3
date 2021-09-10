@@ -17,6 +17,7 @@
 		"core-js": "^3.6.5",
 		"lodash-es": "^4.17.21",
 		"papaparse": "^5.3.1",
+		"mathjax-full": "^3.2.0",
 		"quasar": "^2.0.4",
 		"vue-i18n": "^9.1.7",
 		"vue-router": "4.0.11",
