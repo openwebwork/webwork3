@@ -18,3 +18,8 @@ database_dsn: dbi:SQLite:/opt/webwork/webwork3/t/db/sample_db.sqlite
 # These are ignored if the 'sqlite' database is used.
 database_user: webworkWrite
 database_password: password
+
+# Cookie control settings
+cookie_samesite: "None"
+cookie_secure: true
+cookie_lifetime: 3600

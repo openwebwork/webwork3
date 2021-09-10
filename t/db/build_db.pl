@@ -63,6 +63,7 @@ sub addCourses {
 		delete $course->{dates};
 		$course_rs->create($course);
 	}
+	return;
 }
 
 sub addUsers {
@@ -245,6 +246,7 @@ sub addProblemPools {
 
 
 	}
+	return;
 }
 
 addCourses;

@@ -12,10 +12,13 @@
 
 -vt=2   # Maximal vertical tightness
 -cti=0  # No extra indentation for closing brackets
--pt=1   # Medium parenthesis tightness
+-pt=2   # Maximum parenthesis tightness
 -bt=1   # Medium brace tightness
 -sbt=1  # Medium square bracket tightness
 -bbt=1  # Medium block brace tightness
 -nsfs   # No space before semicolons
 -nolq   # Don't outdent long quoted strings
-
+-mbl=1  # Do not allow multiple empty lines
+-ce     # Cuddled else
+-cb     # Cuddled blocks
+-nbbc   # Do not add blank lines before full length comments
