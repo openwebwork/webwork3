@@ -97,8 +97,8 @@ export function copyProblemSet(target: ProblemSet, source: ProblemSet) {
 function parseBoolean(_value: boolean | string | number) {
 	if (typeof _value === 'boolean') return _value;
 	if (typeof _value === 'string' && !(/[01]/.exec(_value))) {
-		return _value === 'true' || _value === 'false' ? 
-			_value === 'true' : 
+		return _value === 'true' || _value === 'false' ?
+			_value === 'true' :
 			undefined;
 	} else {
 		return _value === undefined ?
