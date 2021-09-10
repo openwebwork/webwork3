@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { api } from 'boot/axios';
 import { Commit } from 'vuex';
 import { StateInterface } from '../index';
 import { isEqual } from 'lodash-es';
@@ -31,8 +31,7 @@ export default {
 			{ commit, rootState }: { commit: Commit; rootState: StateInterface },
 			 _set: ProblemSet): Promise<ProblemSet> {
 			const course_id = rootState.session.course.course_id;
-			const url = `${process.env.VUE_ROUTER_BASE ?? ''}api/courses/${course_id}/sets/${_set.set_id}`;
-			const response = await axios.put(url, _set);
+			const response = await api.put(`courses/${course_id}/sets/${_set.set_id}`, _set);
 			const set = response.data as ProblemSet;
 			if (isEqual(set, _set)) {
 				commit('UPDATE_PROBLEM_SET', _set);
@@ -54,7 +53,7 @@ export default {
 };
 
 async function _fetchProblemSets(course_id: number): Promise<Array<ProblemSet>> {
-	const response = await axios.get(`${process.env.VUE_ROUTER_BASE ?? ''}api/courses/${course_id}/sets`);
+	const response = await api.get(`courses/${course_id}/sets`);
 	// eslint-disable-next-line
 	if (response.data.exception) {
 		// console.error(response.data);
