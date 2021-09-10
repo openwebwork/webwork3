@@ -13,7 +13,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType, ref, Ref } from 'vue';
-import { CourseSettingInfo, OptionType } from '@/store/models';
+import { CourseSettingInfo, OptionType } from 'src/store/models';
 
 export default defineComponent({
 	name: 'SingleSetting',

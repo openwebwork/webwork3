@@ -45,10 +45,10 @@
 </template>
 
 <script lang="ts">
-import { Dictionary } from '@/store/models';
+import { Dictionary } from 'src/store/models';
 import { defineComponent, computed, ref, Ref } from 'vue';
 import { useStore } from 'src/store';
-import { ProblemSet } from '@/store/models';
+import { ProblemSet } from 'src/store/models';
 import { formatDate } from 'src/common';
 
 export default defineComponent({

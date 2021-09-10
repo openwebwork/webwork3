@@ -55,7 +55,7 @@
 import { defineComponent, ref, Ref, computed, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { parse } from 'papaparse';
-import { Dictionary } from '@/store/models';
+import { Dictionary } from 'src/store/models';
 
 export default defineComponent({
 	name: 'AddUsersFromFile',
@@ -69,7 +69,6 @@ export default defineComponent({
 		const header_row: Ref<Dictionary<string|number>> = ref({});
 
 		watch([first_row_header], () => {
-			console.log('in watch');
 			if(first_row_header.value) {
 				const first_row = users.value.shift();
 				if (first_row) {
@@ -80,6 +79,10 @@ export default defineComponent({
 			}
 		});
 
+		watch(() => selected, () => {
+			console.log('in watch selected');
+		});
+
 		return {
 			file,
 			users,
@@ -88,7 +91,6 @@ export default defineComponent({
 			user_fields: ['Username', 'First Name', 'Last Name', 'Student ID', 'Email', 'Section', 'Recitation'],
 			colheader,
 			loadFile: () => {
-				console.log('in loadfile');
 				const reader: FileReader = new FileReader();
 
 				reader.readAsText(file.value);
@@ -103,7 +105,7 @@ export default defineComponent({
 							});
 						} else {
 							const data = results.data as Array<Dictionary<string|number>>;
-							data.forEach((row, index) => {row['_row'] = index;});
+							data.forEach((row: Dictionary<string|number>, index: number) => { row['_row'] = index; });
 							users.value = data;
 						}
 					}
@@ -115,6 +117,8 @@ export default defineComponent({
 	}
 });
 </script>
+
+<!-- Mainly this is needed to get a table with a sticky header -->
 
 <style lang="sass">
 .loaded-users-table
