@@ -1,3 +1,4 @@
+#!/usr/bin/env perl
 #
 # This tests the basic database CRUD functions of problem sets of type quiz.
 #
