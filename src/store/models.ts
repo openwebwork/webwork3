@@ -142,7 +142,7 @@ export interface QuizDates extends DatesType {
 
 export interface QuizParams extends ParamsType {
 	timed?: boolean;
-	quiz_length?: number;
+	quiz_duration?: number;
 }
 
 export interface Quiz extends ProblemSet {

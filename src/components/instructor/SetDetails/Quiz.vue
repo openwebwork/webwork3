@@ -30,8 +30,8 @@
 			<td><q-toggle v-model="set.params.timed" /></td>
 		</tr>
 		<tr v-if="set.params.timed">
-			<td class="header">Length of Quiz</td>
-			<td><q-input v-model="set.params.quiz_length" :rules="quizLength" debounce="500"/> </td>
+			<td class="header">Duration of Quiz</td>
+			<td><q-input v-model="set.params.quiz_duration" :rules="quizDuration" debounce="500"/> </td>
 		</tr>
 	</table>
 </template>
@@ -93,9 +93,9 @@ export default defineComponent({
 				() => set.dates.open <= set.dates.due && set.dates.due <=set.dates.answer
 					|| 'The dates must be in order'
 			],
-			quizLength: [
+			quizDuration: [
 				(val: string) => /^\d+\s(secs?|mins?)$/.test(val) || // add this RegExp elsewhere
-				'The length of the quiz must be a valid length of time'
+				'The duration of the quiz must be a valid length of time'
 			]
 		};
 	}
