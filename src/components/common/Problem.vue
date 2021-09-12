@@ -62,6 +62,7 @@ export default defineComponent({
 
 					el = document.createElement('link');
 					el.type = 'text/css';
+					el.rel = 'stylesheet';
 					el.href = src;
 					shouldAppend = true;
 				} else {
@@ -84,7 +85,7 @@ export default defineComponent({
 			const formData = new FormData();
 			formData.set('problemSeed', '12345');
 			formData.set('sourceFilePath', _file.value);
-			formData.set('outputFormat', 'test');
+			formData.set('outputFormat', 'ww3');
 
 			let value, js, css;
 			try {
