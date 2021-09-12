@@ -34,13 +34,14 @@ export default defineComponent({
 		async function loadScript(src: string) {
 			console.log('loading scripts...', src);
 			// eslint-disable-line no-param-reassign
-			return new Promise(function (resolve, reject) {
+			return new Promise<void>(function (resolve, reject) {
 				let shouldAppend = false;
 				let el: HTMLScriptElement | HTMLLinkElement | null;
 				create_el: if (/\.js(?:\??[0-9a-zA-Z=]*)$/.exec(src)) {
 					el = document.querySelector('script[src="' + src + '"]');
 					if (el && el.hasAttribute('data-loaded')) {
-						resolve(el);
+						resolve();
+						console.log(`${src} seems to have already been loaded!`);
 						return;
 					} else if (el) {
 						break create_el;
@@ -54,7 +55,8 @@ export default defineComponent({
 				} else if (/\.css(?:\??[0-9a-zA-Z=]*)$/.exec(src)) {
 					el = document.querySelector('link[href="' + src + '"]');
 					if (el && el.hasAttribute('data-loaded')) {
-						resolve(el);
+						console.log(`${src} seems to have already been loaded!`);
+						resolve();
 						return;
 					} else if (el) {
 						break create_el;
@@ -67,15 +69,17 @@ export default defineComponent({
 					shouldAppend = true;
 				} else {
 					console.error(`Received invalid src: ${src}`);
+					reject();
 					return;
 				}
 
-				el.addEventListener('error', reject);
-				el.addEventListener('abort', reject);
-				el.addEventListener('load', function loadScriptHandler() {
+				el.onerror = reject;
+				el.onabort = reject;
+				el.onload = function loadScriptHandler() {
+					console.log(`[onLoad] ${src} successfully loaded!`);
 					el?.setAttribute('data-loaded', 'true');
-					resolve(el);
-				});
+					resolve();
+				};
 
 				if (shouldAppend) document.head.appendChild(el);
 			});
@@ -103,20 +107,25 @@ export default defineComponent({
 			}
 
 			if (!value) return;
-			html.value = value;
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-			js.forEach((jsSource) => {
-				loadScript(jsSource).
-					then(() => console.log(`loaded ${jsSource}`)).
-					catch(() => console.error(`Could not load ${jsSource}`));
-			});
+			await Promise.all(js.map(
+				async (jsSource) => {
+					await loadScript(jsSource).
+						// then(() => console.log(`loaded ${jsSource}`)).
+						catch(() => console.error(`Could not load ${jsSource}`));
+				}
+			));
 
-			css.forEach((jsSource) => {
-				loadScript(jsSource).
-					then(() => console.log(`loaded ${jsSource}`)).
-					catch(() => console.error(`Could not load ${jsSource}`));
-			});
+			await Promise.all(css.map(
+				async (jsSource) => {
+					await loadScript(jsSource).
+						// then(() => console.log(`loaded ${jsSource}`)).
+						catch(() => console.error(`Could not load ${jsSource}`));
+				}
+			));
 
+			console.log('All js and css have been loaded...');
+			html.value = value;
 			/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 			if (window.MathJax && typeof window.MathJax.typesetPromise == 'function') {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
