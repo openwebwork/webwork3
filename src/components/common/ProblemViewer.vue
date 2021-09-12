@@ -18,8 +18,8 @@ export default defineComponent({
 	setup(){
 		const file: Ref<string> = ref('');
 		const probs = [
-			'Library/Hope/Calc1/02-01-Rates-of-change/Thomas12-02-01-03a.pg',
-			'Library/UBC/calculusStewart/arcLength5.pg',
+			'Contrib/CUNY/CityTech/CollegeAlgebra_Trig/ParabolaVertices/vertex-CtS-walkthrough.pg',
+			'Contrib/CUNY/CityTech/CollegeAlgebra_Trig/setGeogebra/line-intercepts-blank-canvas.pg',
 			'Library/UBC/calculusStewart/divergence6.pg'
 		];
 
