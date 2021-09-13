@@ -33,13 +33,12 @@ export default defineComponent({
 		// modified from https://github.com/tserkov/vue-plugin-load-script
 		async function loadScript(src: string) {
 			console.log('loading scripts...', src);
-			// eslint-disable-line no-param-reassign
 			return new Promise<void>(function (resolve, reject) {
 				let shouldAppend = false;
 				let el: HTMLScriptElement | HTMLLinkElement | null;
 				create_el: if (/\.js(?:\??[0-9a-zA-Z=]*)$/.exec(src)) {
 					el = document.querySelector('script[src="' + src + '"]');
-					if (el && el.hasAttribute('data-loaded')) {
+					if (el?.hasAttribute('data-loaded')) {
 						resolve();
 						console.log(`${src} seems to have already been loaded!`);
 						return;
@@ -49,7 +48,7 @@ export default defineComponent({
 
 					el = document.createElement('script');
 					el.type = 'text/javascript';
-					el.async = true;
+					el.defer = true;
 					el.src = src;
 					shouldAppend = true;
 				} else if (/\.css(?:\??[0-9a-zA-Z=]*)$/.exec(src)) {
@@ -73,13 +72,13 @@ export default defineComponent({
 					return;
 				}
 
-				el.onerror = reject;
-				el.onabort = reject;
-				el.onload = function loadScriptHandler() {
+				el.addEventListener('error', reject);
+				el.addEventListener('abort', reject);
+				el.addEventListener('load', function loadScriptHandler() {
 					console.log(`[onLoad] ${src} successfully loaded!`);
 					el?.setAttribute('data-loaded', 'true');
 					resolve();
-				};
+				});
 
 				if (shouldAppend) document.head.appendChild(el);
 			});
@@ -107,8 +106,7 @@ export default defineComponent({
 			}
 
 			if (!value) return;
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-			await Promise.all(js.map(
+			await Promise.all(css.map(
 				async (jsSource) => {
 					await loadScript(jsSource).
 						// then(() => console.log(`loaded ${jsSource}`)).
@@ -116,7 +114,7 @@ export default defineComponent({
 				}
 			));
 
-			await Promise.all(css.map(
+			await Promise.all(js.map(
 				async (jsSource) => {
 					await loadScript(jsSource).
 						// then(() => console.log(`loaded ${jsSource}`)).
@@ -131,6 +129,7 @@ export default defineComponent({
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 				window.MathJax.startup.promise.then(() => window.MathJax.typesetPromise([renderDiv.value]));
 			}
+			/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 		}
 
 		watch(() => props.file, () => {
