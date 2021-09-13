@@ -1,8 +1,8 @@
 <template>
-	<iframe 
-		v-resize="{ checkOrigin: false }" 
-		:srcdoc="html" 
-		width="100%" 
+	<iframe
+		v-resize="{ checkOrigin: false }"
+		:srcdoc="html"
+		width="100%"
 		frameborder="0"
 	></iframe>
 </template>
@@ -62,17 +62,7 @@ export default defineComponent({
 				return;
 			}
 
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			let value = response.data.renderedHTML as string;
 			html.value = value;
-
-			// extract only the form element.
-			// const match = /<form(.*)>(.*)<\/form>/s.exec(value);
-
-			// replace the script tags with \( \) or \[ \]
-			// if (match) {
-			// html.value = match[0];
-			// }
 
 			void Promise.resolve()
 				.then(() => {

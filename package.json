@@ -13,8 +13,10 @@
 	},
 	"dependencies": {
 		"@quasar/extras": "^1.10.12",
+		"@types/iframe-resizer": "^3.5.9",
 		"axios": "^0.21.1",
 		"core-js": "^3.6.5",
+		"iframe-resizer": "^4.3.2",
 		"lodash-es": "^4.17.21",
 		"mathjax-full": "^3.2.0",
 		"quasar": "^2.0.4",
