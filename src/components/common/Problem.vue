@@ -53,7 +53,7 @@ export default defineComponent({
 					shouldAppend = true;
 				} else if (/\.css(?:\??[0-9a-zA-Z=]*)$/.exec(src)) {
 					el = document.querySelector('link[href="' + src + '"]');
-					if (el && el.hasAttribute('data-loaded')) {
+					if (el?.hasAttribute('data-loaded')) {
 						console.log(`${src} seems to have already been loaded!`);
 						resolve();
 						return;
