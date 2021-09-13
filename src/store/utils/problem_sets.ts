@@ -5,7 +5,7 @@ import { ProblemSet, HomeworkSet, ProblemSetType,
 	ReviewSet, ReviewSetParams, ReviewSetDates,
 	HomeworkSetParams, HomeworkSetDates } from 'src/store/models';
 
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, pickBy } from 'lodash-es';
 
 import { parseBoolean } from './common';
 
@@ -86,9 +86,9 @@ export function parseHW(_set: ParseableProblemSet): HomeworkSet {
 		set_id: parseInt(`${_set.set_id}`),
 		set_name: _set.set_name,
 		course_id: parseInt(`${_set.course_id}`),
-		set_visible: parseBoolean(_set.set_visible) || false,
+		set_visible: parseBoolean(_set.set_visible) ?? false,
 		set_type: ProblemSetType.HW,
-		params: params,
+		params: pickBy(params, (v) => v !== undefined),
 		dates: dates
 	};
 }
@@ -110,9 +110,9 @@ export function parseQuiz(_set: ParseableProblemSet): Quiz {
 		set_id: parseInt(`${_set.set_id}`),
 		set_name: _set.set_name,
 		course_id: parseInt(`${_set.course_id}`),
-		set_visible: parseBoolean(_set.set_visible) || false,
+		set_visible: parseBoolean(_set.set_visible) ?? false,
 		set_type: ProblemSetType.QUIZ,
-		params: params,
+		params: pickBy(params, (v) => v !== undefined),
 		dates: dates
 	};
 }
@@ -132,9 +132,9 @@ export function parseReview(_set: ParseableProblemSet): ReviewSet {
 		set_id: parseInt(`${_set.set_id}`),
 		set_name: _set.set_name,
 		course_id: parseInt(`${_set.course_id}`),
-		set_visible: parseBoolean(_set.set_visible) || false,
+		set_visible: parseBoolean(_set.set_visible) ?? false,
 		set_type: ProblemSetType.REVIEW_SET,
-		params: params,
+		params: pickBy(params, (v) => v !== undefined),
 		dates: dates
 	};
 }
