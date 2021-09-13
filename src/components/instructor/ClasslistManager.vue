@@ -3,12 +3,12 @@
 		<div class="q-pa-lg">
 			<q-table
 				:columns="columns"
-				:rows="users"
+				:rows="course_users"
 				row-key="user_id"
 				title="Users"
 				selection="multiple"
 				:filter="filter"
-				:visible-columns="['username', 'email']"
+				:visible-columns="['username', 'first_name', 'last_name', 'email', 'role']"
 				v-model:selected="selected"
 			>
 				<template v-slot:top-right>
@@ -71,11 +71,24 @@ export default defineComponent({
 		const filter: Ref<string> = ref('');
 		const open_users_manually: Ref<boolean> = ref(false);
 		const open_users_from_file: Ref<boolean> = ref(false);
+
 		const columns = [
 			{
 				name: 'username',
 				label: 'username',
 				field: 'username',
+				sortable: true
+			},
+			{
+				name: 'first_name',
+				label: 'First Name',
+				field: 'first_name',
+				sortable: true
+			},
+			{
+				name: 'last_name',
+				label: 'Last Name',
+				field: 'last_name',
 				sortable: true
 			},
 			{
@@ -103,15 +116,15 @@ export default defineComponent({
 			open_users_manually,
 			open_users_from_file,
 			columns,
-			users: computed(() => store.state.users.users),
+			course_users: computed(() => store.state.users.course_users),
 			deleteUsers: () => {
 				const users_to_delete = selected.value.map((u) => u.username).join(', ');
 				var conf = confirm(`Are you sure you want to delete the users: ${users_to_delete}`);
 				if (conf) {
 					selected.value.forEach((_user: User) => {
 						try {
-							void store.dispatch('user/deleteUser', _user);
-							$q.notify(`The user ${_user.username} has been succesfully deleted.`);
+							void store.dispatch('users/deleteUser', _user);
+							$q.notify(`The user '${_user.username}' has been succesfully deleted.`);
 						} catch (err) {
 							$q.notify(err);
 						}

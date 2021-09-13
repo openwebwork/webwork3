@@ -105,10 +105,13 @@ sub addGlobalUser {
 	my ( $self, $user_params, $as_result_set ) = @_;
 	DB::Exception::ParametersNeeded->throw( message => "The parameters must include username" )
 		unless defined( $user_params->{username} );
+	my $params = clone($user_params);
+	# remove the user_id if defined and equal to zero.
+	if ( defined ($params->{user_id}) && $params->{user_id} == 0) {
+		delete $params->{user_id};
+	}
 
-	my $user_obj = $self->new($user_params);
-
-	my $new_user = $self->create( { $user_obj->get_inflated_columns } );
+	my $new_user = $self->create($params);
 	return $new_user if $as_result_set;
 	return removeLoginParams( { $new_user->get_columns } );
 }

@@ -7,27 +7,45 @@ import { User, UserCourse, CourseUser, ResponseError } from '../models';
 export interface UserState {
 	users: Array<User>;
 	user_courses: Array<UserCourse>;
+	course_users: Array<CourseUser>;
 }
 
 export default {
 	namespaced: true,
 	state: {
 		users: [],
+		course_users: [],
 		user_courses: []
 	},
 	getters: {
 		user_courses(state: UserState): Array<UserCourse> {
 			return state.user_courses;
+		},
+		users(state: UserState): Array<User> {
+			return state.users;
 		}
 	},
 	actions: {
-		async fetchUserCourses({ commit }: { commit: Commit }, user_id: number): Promise<void> {
-			const _user_courses = await _fetchUserCourses(user_id);
-			commit('STORE_USER_COURSES', _user_courses);
+		async fetchUserCourses({ commit }: { commit: Commit }, user_id: number):
+			Promise<Array<UserCourse>|ResponseError|undefined> {
+			const response = await api.get(`users/${user_id}/courses`);
+			if (response.status === 200) {
+				const user_courses = response.data as Array<UserCourse>;
+				commit('STORE_USER_COURSES', user_courses);
+			} else if (response.status === 250) {
+				return response.data as ResponseError;
+			}
 		},
-		async fetchUsers({ commit }: { commit: Commit }, course_id: number): Promise<void> {
-			const _users = await _fetchUsers(course_id);
-			commit('SET_USERS', _users);
+		async fetchCourseUsers({ commit }: { commit: Commit }, course_id: number):
+			Promise<Array<CourseUser>|ResponseError|undefined> {
+			const response = await api.get(`courses/${course_id}/users`);
+			if (response.status === 200) {
+				const course_users = response.data as Array<CourseUser>;
+				commit('SET_COURSE_USERS', course_users);
+				return course_users;
+			} else if (response.status === 250) {
+				return response.data as ResponseError;
+			}
 		},
 		async getUser(
 			_context: ActionContext<UserState, StateInterface>,
@@ -38,6 +56,17 @@ export default {
 				return response.data as User;
 			} else {
 				return undefined;
+			}
+		},
+		async addUser({ commit }: { commit: Commit }, _user: User):
+			Promise<User | ResponseError|undefined> {
+			const response = await api.post('users', _user);
+			if (response.status === 200) {
+				const u = response.data as User;
+				commit('ADD_USER', u);
+				return u;
+			} else if (response.status === 400) {
+				return response.data as ResponseError;
 			}
 		},
 		async addCourseUser(
@@ -51,7 +80,7 @@ export default {
 				const u = response.data as CourseUser;
 				commit('ADD_USER', u);
 				return u;
-			} else if (response.status === 400) {
+			} else if (response.status === 250) {
 				throw response.data as ResponseError;
 			}
 		},
@@ -64,7 +93,7 @@ export default {
 			if (response.status === 200) {
 				commit('DELETE_USER', _user);
 				return response.data as User;
-			} else if (response.status === 400) {
+			} else if (response.status === 250) {
 				throw response.data as ResponseError;
 			}
 		}
@@ -82,18 +111,16 @@ export default {
 		DELETE_USER(state: UserState, _user: User): void {
 			const index = state.users.findIndex((u) => u.user_id === _user.user_id);
 			state.users.splice(index, 1);
+		},
+		SET_COURSE_USERS(state: UserState, _users: Array<CourseUser>): void {
+			state.course_users = _users;
+		},
+		ADD_COURSE_USER(state: UserState, _course_user: CourseUser): void {
+			state.course_users.push(_course_user);
+		},
+		DELETE_COURSE_USER(state: UserState, _course_user: CourseUser): void {
+			const index = state.course_users.findIndex((u) => u.course_user_id ===_course_user.course_user_id);
+			state.course_users.splice(index, 1);
 		}
 	}
 };
-
-async function _fetchUserCourses(user_id: number): Promise<Array<UserCourse>> {
-	const response = await api.get(`users/${user_id}/courses`);
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	return response.data.exception ? [] : (response.data as Array<UserCourse>);
-}
-
-async function _fetchUsers(course_id: number): Promise<Array<User>> {
-	const response = await api.get(`courses/${course_id}/users`);
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	return response.data.exception ? [] : (response.data as Array<User>);
-}

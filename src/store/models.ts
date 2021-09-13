@@ -11,7 +11,7 @@ export interface User {
 	last_name: string;
 	username: string;
 	student_id: string;
-	user_id: number | undefined;
+	user_id: number;
 }
 
 export interface UserCourse {
@@ -27,6 +27,7 @@ export interface UserCourse {
 
 export interface CourseUser {
 	course_user_id: number;
+	user_id: number;
 	course_id: number;
 	role: string;
 	section: string;
