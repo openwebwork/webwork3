@@ -9,7 +9,8 @@
 
 <script lang="ts">
 import { defineComponent, Ref, ref, watch } from 'vue';
-import { iframeResizer } from 'iframe-resizer';
+import { IFrameComponent, iframeResizer } from 'iframe-resizer';
+import { ExtendedIFrameComponent } from '../../typings/iframe-resizer';
 import axios from 'axios';
 
 import './mathjax-config';
@@ -31,12 +32,10 @@ export default defineComponent({
 	},
 	directives: {
 		resize: {
-			mounted(el: HTMLElement, { value = {} }) {
+			mounted(el: IFrameComponent, { value = {} }) {
 				iframeResizer(value, el);
 			},
-			beforeUnmount(el) {
-				// eslint-disable-next-line max-len
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+			beforeUnmount(el: ExtendedIFrameComponent) {
 				el.iFrameResizer.removeListeners();
 			}
 		}
