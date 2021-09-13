@@ -115,7 +115,7 @@ export default defineComponent({
 		watch([selected], () => {
 
 			// validate each user
-			let validated = true;
+			// let validated = true;
 			users_to_add.value = [];
 			course_users_to_add.value = [];
 			selected.value.forEach((params) => {
@@ -135,12 +135,12 @@ export default defineComponent({
 						Object.keys(newCourseUser()));
 					course_user.username = user.username;
 					course_user.role = 'student';
-					console.log(course_user);
+					// console.log(course_user);
 					if (validateCourseUser(course_user)) {
 						course_users_to_add.value.push(course_user);
 					}
 				} catch (error) {
-					console.error(error);
+					// console.error(error);
 				}
 			});
 		});
@@ -168,12 +168,13 @@ export default defineComponent({
 		};
 
 		const addUsers = async () => {
-			console.log('in addUsers');
+			// console.log('in addUsers');
 
 			for await (const _user of users_to_add.value) {
 				const user = await store.dispatch('users/addUser', _user) as User;
 				$q.notify({
-					message: `The global user ${user.first_name} ${user.last_name} was successfully added.`
+					message: `The global user ${user.first_name} ${user.last_name} was successfully added.`,
+					color: 'green'
 				});
 			}
 
@@ -182,11 +183,13 @@ export default defineComponent({
 				const user = store.state.users.users.find((u) => u.username === _course_user.username);
 				if (user) {
 
-					const cu = parseCourseUser(omit(_course_user,'username'));
+					const cu = parseCourseUser(omit(_course_user, 'username'));
 					cu.user_id = user.user_id;
-					const course_user = await store.dispatch('users/addCourseUser', _course_user) as CourseUser;
+					await store.dispatch('users/addCourseUser', _course_user) as CourseUser;
+					// need to verify that the result is the same.
 					$q.notify({
-						message: 'The course user  was successfully added.'
+						message: 'The course user  was successfully added.',
+						color: 'green'
 					});
 				}
 			}
@@ -219,23 +222,25 @@ export default defineComponent({
 
 <style lang="sass">
 .loaded-users-table
-  /* height or max-height is important */
-  height: 510px
+	/* height or max-height is important */
+	height: 510px
 
-  .q-table__top,
-  .q-table__bottom,
-  thead tr:first-child th
-    /* bg color is important for th; just specify one */
-    background-color: #c1f4cd
+	.q-table__top,
+	.q-table__bottom,
+	thead tr:first-child th
+		/* bg color is important for th; just specify one */
+		background-color: #c1f4cd
 
-  thead tr th
-    position: sticky
-    z-index: 1
-  thead tr:first-child th
-    top: 0
+	thead tr th
+		position: sticky
+		z-index: 1
 
-  /* this is when the loading indicator appears */
-  &.q-table--loading thead tr:last-child th
-    /* height of all previous header rows */
-    top: 48px
+	thead tr:first-child th
+		top: 0
+
+	/* this is when the loading indicator appears */
+
+	&.q-table--loading thead tr:last-child th
+		/* height of all previous header rows */
+		top: 48px
 </style>
