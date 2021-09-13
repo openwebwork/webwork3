@@ -35,11 +35,11 @@ C<problem_path>: alternatively, the path of the problem
 
 =back
 
+=back
+
 =head4
 
 Note: the C<params> can only have one of the two fields
-
-=back
 
 =cut
 

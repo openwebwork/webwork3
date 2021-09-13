@@ -97,8 +97,8 @@ export function copyProblemSet(target: ProblemSet, source: ProblemSet) {
 function parseBoolean(_value: boolean | string | number) {
 	if (typeof _value === 'boolean') return _value;
 	if (typeof _value === 'string' && !(/[01]/.exec(_value))) {
-		return _value === 'true' || _value === 'false' ? 
-			_value === 'true' : 
+		return _value === 'true' || _value === 'false' ?
+			_value === 'true' :
 			undefined;
 	} else {
 		return _value === undefined ?
@@ -141,7 +141,7 @@ export function parseQuiz(_set: ParseableProblemSet): Quiz {
 
 	const params: QuizParams = {
 		timed: parseBoolean(_set.params.timed),
-		quiz_length: _set.params.quiz_length === undefined ? undefined : parseInt(_set.params.quiz_length)
+		quiz_duration: _set.params.quiz_duration === undefined ? undefined : parseInt(_set.params.quiz_duration)
 	};
 
 	const dates: QuizDates = {

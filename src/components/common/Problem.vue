@@ -6,6 +6,7 @@
 		frameborder="0"
 	></iframe>
 </template>
+
 <script lang="ts">
 import { defineComponent, Ref, ref, watch } from 'vue';
 import { iframeResizer } from 'iframe-resizer';
@@ -17,7 +18,7 @@ import 'mathjax-full/es5/tex-chtml.js';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Window {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-  MathJax: any
+	MathJax: any
 }
 
 export default defineComponent({
@@ -43,15 +44,23 @@ export default defineComponent({
 	setup(props){
 		const html: Ref<string> = ref('');
 		const _file: Ref<string> = ref(props.file);
+		const renderDiv = ref<HTMLElement>();
 
- 		async function loadProblem() {
+		async function loadProblem() {
 			const formData = new FormData();
 			formData.set('problemSeed', '1');
 			formData.set('sourceFilePath', _file.value);
 			formData.set('outputFormat', 'classic');
 
-			const response = await axios.post('/renderer/render-api', formData,
-				{ headers: { 'Content-Type': 'multipart/form-data' } });
+			let value;
+			try {
+				const response = await axios.post('/renderer/render-api', formData,
+					{ headers: { 'Content-Type': 'multipart/form-data' } });
+
+				value = (response.data as { renderedHTML: string }).renderedHTML;
+			} catch(e) {
+				return;
+			}
 
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			let value = response.data.renderedHTML as string;
@@ -81,7 +90,8 @@ export default defineComponent({
 		});
 
 		return {
-			html
+			html,
+			renderDiv
 		};
 	}
 });

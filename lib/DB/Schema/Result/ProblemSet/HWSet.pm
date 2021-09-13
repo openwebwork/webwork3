@@ -24,7 +24,7 @@ sub valid_dates {
 	return ['open', 'reduced_scoring', 'due' ,'answer'];
 }
 
-=head2 C<required_dates>:
+=head2 C<required_dates>
 
 subroutine that returns the array for the required dates: C<['open', 'due' ,'answer']>
 
