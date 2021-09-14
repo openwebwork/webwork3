@@ -1,21 +1,32 @@
 <template>
-	<div ref="renderDiv" v-html="html" />
+	<q-card v-if="html" class="bg-grey-3">
+		<q-card-section class="q-pa-sm">
+			<div ref="renderDiv" v-html="html" class="pg-problem-container" />
+		</q-card-section>
+	</q-card>
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
-import { defineComponent, ref, watch } from 'vue';
-import { RendererResponse } from '../../typings/renderer';
+import { defineComponent, ref, watch, onMounted } from 'vue';
+import type { RendererResponse } from '../../typings/renderer';
 import axios from 'axios';
+import * as jQuery from 'jquery';
 
 import './mathjax-config';
-import 'mathjax-full/es5/tex-chtml.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface Window {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	MathJax: any
+declare global {
+	interface Window {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		MathJax: any
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		$?: any;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		jQuery?: any;
+	}
 }
+
+window.$ = window.jQuery = jQuery;
 
 export default defineComponent({
 	name: 'Problem',
@@ -25,66 +36,54 @@ export default defineComponent({
 			default: ''
 		}
 	},
-	setup(props){
-		const html: Ref<string> = ref('');
-		const _file: Ref<string> = ref(props.file);
+	setup(props) {
+		const html = ref('');
+		const _file = ref(props.file);
 		const renderDiv = ref<HTMLElement>();
 
-		// modified from https://github.com/tserkov/vue-plugin-load-script
-		async function loadScript(src: string) {
-			console.log('loading scripts...', src);
-			return new Promise<void>(function (resolve, reject) {
+		const loadResource = async (src: string, id?: string) => {
+			return new Promise<void>((resolve, reject) => {
 				let shouldAppend = false;
 				let el: HTMLScriptElement | HTMLLinkElement | null;
-				create_el: if (/\.js(?:\??[0-9a-zA-Z=]*)$/.exec(src)) {
-					el = document.querySelector('script[src="' + src + '"]');
-					if (el?.hasAttribute('data-loaded')) {
-						resolve();
-						console.log(`${src} seems to have already been loaded!`);
-						return;
-					} else if (el) {
-						break create_el;
+				if (/\.js(?:\??[0-9a-zA-Z=]*)$/.exec(src)) {
+					el = document.querySelector(`script[src="${src}"]`);
+					if (!el) {
+						el = document.createElement('script');
+						if (id) el.id = id;
+						el.async = false;
+						el.src = src;
+						shouldAppend = true;
 					}
-
-					el = document.createElement('script');
-					el.type = 'text/javascript';
-					el.defer = true;
-					el.src = src;
-					shouldAppend = true;
 				} else if (/\.css(?:\??[0-9a-zA-Z=]*)$/.exec(src)) {
-					el = document.querySelector('link[href="' + src + '"]');
-					if (el?.hasAttribute('data-loaded')) {
-						console.log(`${src} seems to have already been loaded!`);
-						resolve();
-						return;
-					} else if (el) {
-						break create_el;
+					el = document.querySelector(`link[href="${src}"]`);
+					if (!el) {
+						el = document.createElement('link');
+						el.rel = 'stylesheet';
+						el.href = src;
+						shouldAppend = true;
 					}
-
-					el = document.createElement('link');
-					el.type = 'text/css';
-					el.rel = 'stylesheet';
-					el.href = src;
-					shouldAppend = true;
 				} else {
-					console.error(`Received invalid src: ${src}`);
 					reject();
+					return;
+				}
+
+				if (el.dataset.dataLoaded) {
+					resolve();
 					return;
 				}
 
 				el.addEventListener('error', reject);
 				el.addEventListener('abort', reject);
-				el.addEventListener('load', function loadScriptHandler() {
-					console.log(`[onLoad] ${src} successfully loaded!`);
-					el?.setAttribute('data-loaded', 'true');
+				el.addEventListener('load', () => {
+					if (el) el.dataset.dataLoaded = 'true';
 					resolve();
 				});
 
 				if (shouldAppend) document.head.appendChild(el);
 			});
-		}
+		};
 
-		async function loadProblem() {
+		const loadProblem = async () => {
 			const formData = new FormData();
 			formData.set('problemSeed', '12345');
 			formData.set('sourceFilePath', _file.value);
@@ -96,7 +95,6 @@ export default defineComponent({
 					{ headers: { 'Content-Type': 'multipart/form-data' } });
 
 				const data = response.data as RendererResponse;
-				console.log(data);
 
 				value = data.renderedHTML;
 				js = data.resources.js ?? [];
@@ -104,25 +102,22 @@ export default defineComponent({
 			} catch(e) {
 				return;
 			}
-
 			if (!value) return;
+
 			await Promise.all(css.map(
-				async (jsSource) => {
-					await loadScript(jsSource).
-						// then(() => console.log(`loaded ${jsSource}`)).
-						catch(() => console.error(`Could not load ${jsSource}`));
+				async (cssSource) => {
+					await loadResource(cssSource).
+						catch(() => { /* console.error(`Could not load ${cssSource}`) */ });
 				}
 			));
 
 			await Promise.all(js.map(
 				async (jsSource) => {
-					await loadScript(jsSource).
-						// then(() => console.log(`loaded ${jsSource}`)).
-						catch(() => console.error(`Could not load ${jsSource}`));
+					await loadResource(jsSource).
+						catch(() => { /* console.error(`Could not load ${jsSource}`) */ });
 				}
 			));
 
-			console.log('All js and css have been loaded...');
 			html.value = value;
 			/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 			if (window.MathJax && typeof window.MathJax.typesetPromise == 'function') {
@@ -130,11 +125,34 @@ export default defineComponent({
 				window.MathJax.startup.promise.then(() => window.MathJax.typesetPromise([renderDiv.value]));
 			}
 			/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-		}
+		};
 
 		watch(() => props.file, () => {
 			_file.value = props.file;
 			void loadProblem();
+		});
+
+		onMounted(async () => {
+			await Promise.all([
+				'js/MathQuill/mathquill.css',
+				'js/MathQuill/mqeditor.css'
+			].map(
+				async (cssSource) => {
+					await loadResource(cssSource).
+						catch(() => { /* console.error(`Could not load ${cssSource}`) */ });
+				}
+			));
+
+			await Promise.all(([
+				['mathjax/tex-chtml.js', 'MathJax-script'],
+				['js/MathQuill/mathquill.js'],
+				['js/MathQuill/mqeditor.js']
+			] as Array<[string, string?]>).map(
+				async (jsSource) => {
+					await loadResource(...jsSource).
+						catch(() => { /* console.error(`Could not load ${jsSource.src}`) */ });
+				}
+			));
 		});
 
 		return {
@@ -144,3 +162,7 @@ export default defineComponent({
 	}
 });
 </script>
+
+<style lang="scss" scoped>
+@use "src/css/pg.scss";
+</style>
