@@ -58,7 +58,7 @@ module.exports = configure(function (ctx) {
 					chain.plugin('copy-webpack')
 						.tap(args => {
 							args[0].patterns.push({
-								from: path.resolve(__dirname, './node_modules/mathjax-full/es5'),
+								from: path.resolve(__dirname, './node_modules/mathjax/es5'),
 								to: path.resolve(__dirname, './dist/spa/mathjax'),
 								toType: 'dir'
 							});
@@ -96,7 +96,7 @@ module.exports = configure(function (ctx) {
 				'/webwork3/api': 'http://localhost:3000',
 				'/renderer': 'http://localhost:3001'
 			},
-			static: path.join(__dirname, 'node_modules/mathjax-full/es5'),
+			static: path.join(__dirname, 'node_modules/mathjax/es5'),
 			historyApiFallback: {
 				rewrites: [{
 					from: /^\/webwork3\/mathjax\/.*$/,

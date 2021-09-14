@@ -1,13 +1,13 @@
 <template>
-	<div>
+	<div class="q-ma-md">
 		<h3>Problem Viewer</h3>
-		<q-btn @click="loadProblem">Load Problem</q-btn>
+		<q-btn @click="loadProblem" class="q-mb-md">Load Problem</q-btn>
 		<problem :file="file" />
 	</div>
 </template>
 
 <script lang="ts">
-import { defineComponent, Ref, ref } from 'vue';
+import { defineComponent, ref } from 'vue';
 import Problem from './Problem.vue';
 
 export default defineComponent({
@@ -16,7 +16,7 @@ export default defineComponent({
 		Problem
 	},
 	setup(){
-		const file: Ref<string> = ref('');
+		const file = ref('');
 		const probs = [
 			'Contrib/CUNY/CityTech/CollegeAlgebra_Trig/ParabolaVertices/vertex-CtS-walkthrough.pg',
 			'Contrib/CUNY/CityTech/CollegeAlgebra_Trig/setGeogebra/line-intercepts-blank-canvas.pg',
