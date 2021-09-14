@@ -14,7 +14,6 @@ module.exports = {
 		'no-invalid-position-at-import-rule': null,
 		'selector-pseudo-class-no-unknown': [true, {
 			ignorePseudoClasses: ['deep', 'v-deep']
-		}],
-
+		}]
 	}
 }
