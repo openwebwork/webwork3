@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, Ref, ref, watch } from 'vue';
+import { defineComponent, ref, watch } from 'vue';
 import { IFrameComponent, iframeResizer } from 'iframe-resizer';
 import { ExtendedIFrameComponent } from '../../typings/iframe-resizer';
 import axios from 'axios';
@@ -41,8 +41,8 @@ export default defineComponent({
 		}
 	},
 	setup(props){
-		const html: Ref<string> = ref('');
-		const _file: Ref<string> = ref(props.file);
+		const html = ref('');
+		const _file = ref(props.file);
 		const renderDiv = ref<HTMLElement>();
 
 		async function loadProblem() {
