@@ -20,8 +20,10 @@
 						<q-toggle v-model="first_row_header" /> First row is Header
 					</div>
 
-					<div class="col-6">
-
+					<div class="col-6" v-if="!validated">
+						<q-banner dense inline-actions class="text-white bg-red">
+							There are validation errors with the loaded data.
+						</q-banner>
 					</div>
 				</div>
 			</q-card-section>
@@ -36,9 +38,15 @@
 							<template v-slot:header-cell="props">
 								<q-th :props="props">
 									<q-select :options="user_fields.map( (f) => f.label)"
-										v-model="colheader[props.col.name]"/>
+										v-model="column_headers[props.col.name]"/>
 									{{ props.col.name }}
 								</q-th>
+							</template>
+
+							<template v-slot:body-cell="props">
+								<q-td :props="props" :class="hasError(props) ? 'bg-red-3': '' ">
+									{{ props.value }}
+								</q-td>
 							</template>
 						</q-table>
 						</div>
@@ -54,14 +62,31 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref, computed, watch } from 'vue';
+import type { Ref } from 'vue';
+import { defineComponent, ref, computed, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { parse } from 'papaparse';
 
 import { useStore } from 'src/store';
-import { Dictionary, User, CourseUser } from 'src/store/models';
-import { newUser, parseUser, newCourseUser, parseCourseUser, validateCourseUser } from 'src/store/utils/users';
+import type { Dictionary, User, CourseUser } from 'src/store/models';
+import { newUser, parseUser, newCourseUser, parseCourseUser } from 'src/store/utils/users';
 import { pick, fromPairs, values, invert, mapValues, omit } from 'lodash-es';
+
+interface Prop {
+	row: {
+		_row: number;
+	}
+	col: {
+		name: string;
+	}
+}
+
+interface ParseError {
+	row: number;
+	col: number;
+	message: string;
+	field: string;
+}
 
 export default defineComponent({
 	name: 'AddUsersFromFile',
@@ -69,13 +94,18 @@ export default defineComponent({
 		const store = useStore();
 		const $q = useQuasar();
 		const file: Ref<File> = ref(new File([], ''));
-		const users: Ref<Array<Dictionary<string|number>>> = ref([]);
-		const selected: Ref<Array<Dictionary<string|number>>> = ref([]);
-		const colheader: Ref<Dictionary<string>> = ref({});
+		const validated: Ref<boolean> = ref(true);  // true if all selected users validate
+		const invalid_table_cells: Ref<Array<ParseError>> = ref([]);
+		const users: Ref<Array<Dictionary<string|number>>> = ref([]); // stores all users from the file
+		const selected: Ref<Array<Dictionary<string|number>>> = ref([]); // stores the selected users
+		const column_headers: Ref<Dictionary<string>> = ref({});
+		const user_param_map: Ref<Dictionary<string>> = ref({}); // provides a map from column number to field name
+
 		const first_row_header: Ref<boolean> = ref(false);
 		const header_row: Ref<Dictionary<string|number>> = ref({});
 		const users_to_add: Ref<Array<User>> = ref([]);
 		const course_users_to_add: Ref<Array<Dictionary<string|number>>> = ref([]);
+		// const course_users_to_add: Ref<Array<CourseUser>> = ref([]);
 
 		const user_fields = [
 			{ label: 'Username', field: 'username', regexp: /(user)|(login)/i },
@@ -94,11 +124,23 @@ export default defineComponent({
 			Object.keys(header_row.value).forEach((key) => {
 				user_fields.forEach((field) => {
 					if (field.regexp.test(`${header_row.value[key]}`)) {
-						colheader.value[key] = field.label;
+						column_headers.value[key] = field.label;
 					}
 				});
 			});
 		};
+
+		watch([column_headers], () => {
+
+			// these are the defined columns in the table
+			const def_cols = pick(column_headers.value, Object.keys(column_headers.value));
+
+			// this is an object of the fields selected from the table
+			const fields = pick(fromPairs(user_fields.map((obj) => [obj.label, obj.field])), values(def_cols));
+			// mapping of column number to user field
+			user_param_map.value =  invert(mapValues(def_cols, (obj)=>fields[obj]));
+		},
+		{ deep: true });
 
 		watch([first_row_header], () => {
 			if(first_row_header.value) {
@@ -113,34 +155,41 @@ export default defineComponent({
 		});
 
 		watch([selected], () => {
-
-			// validate each user
-			// let validated = true;
+			validated.value = true;
 			users_to_add.value = [];
 			course_users_to_add.value = [];
+			invalid_table_cells.value = [];
 			selected.value.forEach((params) => {
 
-				// these are the defined columns in the table
-				const def_cols = pick(colheader.value, Object.keys(colheader.value));
-
-				// this is an object of the fields selected from the table
-				const fields = pick(fromPairs(user_fields.map((obj) => [obj.label, obj.field])), values(def_cols));
-				// mapping of column number to user field
-				const col_to_field = invert(mapValues(def_cols, (obj)=>fields[obj]));
+				let user: Dictionary<string|number> = {};
+				let course_user: Dictionary<string|number> = {};
 
 				try {
-					const user = pick(mapValues(col_to_field, (obj) => params[obj]), Object.keys(newUser()));
+					user = pick(mapValues(user_param_map.value, (obj) => params[obj]), Object.keys(newUser()));
 					users_to_add.value.push(parseUser(user));
-					const course_user = pick(mapValues(col_to_field, (obj) => params[obj]),
+
+					course_user = pick(mapValues(user_param_map.value, (obj) => params[obj]),
 						Object.keys(newCourseUser()));
+
+					const parsed_course_user = parseCourseUser(course_user);
 					course_user.username = user.username;
-					course_user.role = 'student';
-					// console.log(course_user);
-					if (validateCourseUser(course_user)) {
-						course_users_to_add.value.push(course_user);
-					}
+
+					parsed_course_user.role = parsed_course_user.role ?? 'student';
+					course_users_to_add.value.push(parsed_course_user as unknown as
+						Dictionary<string|number>);
 				} catch (error) {
-					// console.error(error);
+					const err = error as ParseError;
+					validated.value = false;
+					const user_fields = Object.keys(newUser());
+					const course_user_fields = Object.keys(newCourseUser());
+					if (user_fields.indexOf(err.field)>=0 || course_user_fields.indexOf(err.field)>=0){
+						invalid_table_cells.value.push({
+							message: err.message,
+							field: err.field,
+							row: parseInt(`${params._row}`),
+							col: parseInt(`${user_param_map.value[err.field]}`)
+						});
+					}
 				}
 			});
 		});
@@ -205,14 +254,20 @@ export default defineComponent({
 			file,
 			users,
 			selected,
+			validated,
+			invalid_table_cells,
 			first_row_header,
 			user_fields,
-			colheader,
+			column_headers,
 			users_to_add,
 			course_users_to_add,
 			loadFile,
 			addUsers,
-			columns: computed(() => getColumns())
+			columns: computed(() => getColumns()),
+			hasError: (props: Prop) =>
+				invalid_table_cells.value.find((error: ParseError) =>
+					props?.row?._row === error.row && parseInt(props.col.name) === error.col
+				) ? true : false
 		};
 	}
 });

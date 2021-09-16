@@ -74,8 +74,7 @@ export function parseCourseUser(params: Dictionary<string|number>): CourseUser {
 		if (user_fields.indexOf(key)<0) {
 			throw {
 				field: key,
-				message: `The field '${key}' is not valid for a course user`,
-				params: params
+				message: `The field '${key}' is not valid for a course user`
 			};
 		}
 	});
@@ -92,7 +91,10 @@ export function parseCourseUser(params: Dictionary<string|number>): CourseUser {
 export function validateCourseUser(params: Dictionary<string|number>): boolean {
 
 	if (user_roles.findIndex((v) => v === params.role) < 0) {
-		throw { message: `The field '${params.role}' is not a valid role` };
+		throw {
+			field: 'role',
+			message: `The value '${params.role}' is not a valid role`
+		};
 	}
 	return true;
 }
