@@ -201,7 +201,7 @@ export default defineComponent({
 			reader.onload = (evt: ProgressEvent) => {
 				if (evt && evt.target) {
 					const reader = evt.target as FileReader;
-					const results = parse(reader.result as string, { header: false });
+					const results = parse(reader.result as string, { header: false, skipEmptyLines: true });
 					if (results.errors && results.errors.length > 0) {
 						$q.notify({
 							message: results.errors[0].message,
