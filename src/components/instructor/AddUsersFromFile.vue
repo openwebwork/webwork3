@@ -10,7 +10,7 @@
 						<q-file v-model="file" label="Select a classlist file (as CSV)" />
 					</div>
 					<div class="col-3">
-						<q-btn @click="loadFile">Load File</q-btn>
+						<q-btn @click="loadFile" :disable="file.name===''">Load File</q-btn>
 					</div>
 				</div>
 			</q-card-section>
@@ -196,7 +196,6 @@ export default defineComponent({
 
 		const loadFile = () => {
 			const reader: FileReader = new FileReader();
-
 			reader.readAsText(file.value);
 			reader.onload = (evt: ProgressEvent) => {
 				if (evt && evt.target) {
