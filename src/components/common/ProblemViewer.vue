@@ -1,7 +1,10 @@
 <template>
 	<div class="q-ma-md">
-		<h3>Problem Viewer</h3>
-		<q-btn @click="loadProblem" class="q-mb-md">Load Problem</q-btn>
+		<h3 class="q-my-lg">Problem Viewer</h3>
+		<q-form @submit.prevent="loadProblem">
+			<q-input v-model="srcFile" label="Source File" />
+			<q-btn type="submit" class="q-my-md">Load Problem</q-btn>
+		</q-form>
 		<problem :file="file" />
 	</div>
 </template>
@@ -16,19 +19,25 @@ export default defineComponent({
 		Problem
 	},
 	setup(){
+		const srcFile = ref('');
 		const file = ref('');
-		const probs = [
-			'Contrib/CUNY/CityTech/CollegeAlgebra_Trig/ParabolaVertices/vertex-CtS-walkthrough.pg',
-			'Contrib/CUNY/CityTech/CollegeAlgebra_Trig/setGeogebra/line-intercepts-blank-canvas.pg',
-			'Library/UBC/calculusStewart/divergence6.pg'
-		];
+
+		// Test problems:
+		//   # Basic
+		//   Library/UBC/calculusStewart/divergence6.pg
+		//   # Scaffold
+		//   Contrib/CUNY/CityTech/CollegeAlgebra_Trig/ParabolaVertices/vertex-CtS-walkthrough.pg
+		//   # Geogebra
+		//   Contrib/CUNY/CityTech/CollegeAlgebra_Trig/setGeogebra/line-intercepts-blank-canvas.pg
+		//   # Contains image
+		//   Library/Michigan/Chap7Sec5/Q13.pg
+		//   # Uses parserWordCompletion so MathQuill is disabled on some of the inputs
+		//   Library/Hope/Multi1/03-05-Basis-subspace/Basis_11_column_space.pg
 
 		return {
+			srcFile,
 			file,
-			loadProblem: () => {
-				const rand = Math.floor(probs.length*Math.random());
-				file.value = probs[rand];
-			}
+			loadProblem: () => file.value = srcFile.value
 		};
 	}
 });

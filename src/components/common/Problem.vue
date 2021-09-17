@@ -10,23 +10,24 @@
 import { defineComponent, ref, watch, onMounted } from 'vue';
 import type { RendererResponse } from '../../typings/renderer';
 import axios from 'axios';
-import * as jQuery from 'jquery';
+import * as bootstrap from 'bootstrap';
+import type JQueryStatic from 'jquery';
+import JQuery from 'jquery';
 
 import './mathjax-config';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 declare global {
 	interface Window {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		MathJax: any
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		$?: any;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		jQuery?: any;
+		$?: JQueryStatic;
+		jQuery?: JQueryStatic;
+		bootstrap?: typeof bootstrap;
 	}
 }
 
-window.$ = window.jQuery = jQuery;
+window.$ = window.jQuery = JQuery;
+window.bootstrap = bootstrap;
 
 export default defineComponent({
 	name: 'Problem',
@@ -84,6 +85,10 @@ export default defineComponent({
 		};
 
 		const loadProblem = async () => {
+			if (!_file.value) {
+				html.value = '';
+				return;
+			}
 			const formData = new FormData();
 			formData.set('problemSeed', '12345');
 			formData.set('sourceFilePath', _file.value);
@@ -135,7 +140,8 @@ export default defineComponent({
 		onMounted(async () => {
 			await Promise.all([
 				'js/MathQuill/mathquill.css',
-				'js/MathQuill/mqeditor.css'
+				'js/MathQuill/mqeditor.css',
+				'js/ImageView/imageview.css'
 			].map(
 				async (cssSource) => {
 					await loadResource(cssSource).
@@ -146,7 +152,8 @@ export default defineComponent({
 			await Promise.all(([
 				['mathjax/tex-chtml.js', 'MathJax-script'],
 				['js/MathQuill/mathquill.js'],
-				['js/MathQuill/mqeditor.js']
+				['js/MathQuill/mqeditor.js'],
+				['js/ImageView/imageview.js']
 			] as Array<[string, string?]>).map(
 				async (jsSource) => {
 					await loadResource(...jsSource).
@@ -162,6 +169,10 @@ export default defineComponent({
 	}
 });
 </script>
+
+<style lang="scss">
+@import "src/css/bootstrap";
+</style>
 
 <style lang="scss" scoped>
 @use "src/css/pg.scss";

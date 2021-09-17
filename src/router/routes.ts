@@ -7,7 +7,7 @@ const routes: RouteRecordRaw[] = [
 	},
 	{
 		path: '/',
-		component: () => import('src/layouts/MainLayout.vue'),
+		component: () => import(/* webpackChunkName: "MainLayout" */ 'src/layouts/MainLayout.vue'),
 		children: [
 			{
 				path: 'welcome',
@@ -177,7 +177,7 @@ const routes: RouteRecordRaw[] = [
 	},
 	{
 		path: '/:catchAll(.*)*',
-		component: () => import('pages/Error404.vue')
+		component: () => import(/* webpackChunkName: "Error404" */ 'pages/Error404.vue')
 	}
 ];
 
