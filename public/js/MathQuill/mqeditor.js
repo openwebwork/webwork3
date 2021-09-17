@@ -1,21 +1,21 @@
 'use strict';
 
-/* global MathQuill, $ */
+/* global MathQuill, $, bootstrap */
 
 // Global list of all MathQuill answer inputs.
-var answerQuills = {};
+const answerQuills = {};
 
 (() => {
 	// initialize MathQuill
-	var MQ = MathQuill.getInterface(2);
+	const MQ = MathQuill.getInterface(2);
 
 	const setupMQInput = (mq_input) => {
-		var answerLabel = mq_input.id.replace(/^MaThQuIlL_/, '');
-		var input = $('#' + answerLabel);
-		var inputType = input.attr('type');
+		const answerLabel = mq_input.id.replace(/^MaThQuIlL_/, '');
+		const input = $('#' + answerLabel);
+		const inputType = input.attr('type');
 		if (typeof(inputType) != 'string' || inputType.toLowerCase() !== 'text' || !input.hasClass('codeshard')) return;
 
-		var answerQuill = $("<span id='mq-answer-" + answerLabel + "'></span>");
+		const answerQuill = $("<span id='mq-answer-" + answerLabel + "'></span>");
 		answerQuill.input = input;
 		input.addClass('mq-edit');
 		answerQuill.latexInput = $(mq_input);
@@ -23,7 +23,7 @@ var answerQuills = {};
 		input.after(answerQuill);
 
 		// Default options.
-		var cfgOptions = {
+		const cfgOptions = {
 			spaceBehavesLikeTab: true,
 			leftRightIntoCmdGoes: 'up',
 			restrictMismatchedBrackets: true,
@@ -35,12 +35,12 @@ var answerQuills = {};
 		};
 
 		// Merge options that are set by the problem.
-		var optOverrides = answerQuill.latexInput.data('mq-opts');
+		const optOverrides = answerQuill.latexInput.data('mq-opts');
 		if (typeof(optOverrides) == 'object') $.extend(cfgOptions, optOverrides);
 
 		// This is after the option merge to prevent handlers from being overridden.
 		cfgOptions.handlers = {
-			edit: function(mq) {
+			edit: (mq) => {
 				if (mq.text() !== '') {
 					answerQuill.input.val(mq.text().trim());
 					answerQuill.latexInput
@@ -51,12 +51,12 @@ var answerQuills = {};
 				}
 			},
 			// Disable the toolbar when a text block is entered.
-			textBlockEnter: function() {
+			textBlockEnter: () => {
 				if (answerQuill.toolbar)
 					answerQuill.toolbar.find('button').prop('disabled', true);
 			},
 			// Re-enable the toolbar when a text block is exited.
-			textBlockExit: function() {
+			textBlockExit: () => {
 				if (answerQuill.toolbar)
 					answerQuill.toolbar.find('button').prop('disabled', false);
 			}
@@ -84,15 +84,15 @@ var answerQuills = {};
 		];
 
 		// Open the toolbar when the mathquill answer box gains focus.
-		answerQuill.textarea.on('focusin', function() {
+		answerQuill.textarea.on('focusin', () => {
 			answerQuill.hasFocus = true;
 			if (answerQuill.toolbar) return;
 			answerQuill.toolbar = $("<div class='quill-toolbar'>" +
 				answerQuill.buttons.reduce(
-					function(returnString, curButton) {
+					(returnString, curButton) => {
 						return returnString +
 							"<button id='" + curButton.id + '-' + answerQuill.attr('id') +
-							"' class='symbol-button btn' " +
+							"' class='symbol-button btn btn-dark' " +
 							"' data-latex='" + curButton.latex +
 							"' data-toggle='tooltip' title='" + curButton.tooltip + "'>" +
 							"<span id='icon-" + curButton.id + '-' + answerQuill.attr('id') + "'>"
@@ -107,30 +107,12 @@ var answerQuills = {};
 				MQ.StaticMath($('#icon-' + this.id)[0]);
 			});
 
-			// There is a bug in bootstrap version 2.3.2 that makes the "placement: left" option fail for tooltips.
-			// This ugly hackery fixes the position of the tooltip.
-			//function positionTooltip(tooltip, element) {
-			//  var $tooltip = $(tooltip);
-			//  $tooltip.css('display', 'none');
-			//  $tooltip.find('.tooltip-inner').css('display', 'none');
-			//  var $element = $(element);
-			//  setTimeout(() => {
-			//    $tooltip.css('display', 'block');
-			//    $tooltip.find('.tooltip-inner').css({ whiteSpace: 'nowrap', display: 'block' });
-			//    $tooltip.addClass('left')
-			//      .css({
-			//        top: `${$element.position().top + ($element.outerHeight() - $tooltip.outerHeight()) / 2}px`,
-			//        right: `${$element.outerWidth() + 2}px`,
-			//        left: 'unset'
-			//      });
-			//    $tooltip.find('.tooltip-arrow').css({ left: 'unset' });
-			//    $tooltip.addClass('in');
-			//  }, 0);
-			//}
-
-			//$('.symbol-button[data-toggle="tooltip"]').tooltip({
-			//  trigger: 'hover', placement: positionTooltip, delay: { show: 500, hide: 0 }
-			//});
+			answerQuill.toolbar.tooltips = [];
+			document.querySelectorAll('.symbol-button[data-toggle="tooltip"]').forEach((symbolButton) => {
+				answerQuill.toolbar.tooltips.push(new bootstrap.Tooltip(symbolButton, {
+					placement: 'left', trigger: 'hover', delay: { show: 500, hide: 0 }
+				}));
+			});
 
 			$('.symbol-button').on('click', function() {
 				answerQuill.hasFocus = true;
@@ -139,11 +121,12 @@ var answerQuills = {};
 			});
 		});
 
-		answerQuill.textarea.on('focusout', function() {
+		answerQuill.textarea.on('focusout', () => {
 			answerQuill.hasFocus = false;
-			setTimeout(function() {
+			setTimeout(() => {
 				if (!answerQuill.hasFocus && answerQuill.toolbar)
 				{
+					answerQuill.toolbar.tooltips.forEach((tooltip) => tooltip.dispose());
 					answerQuill.toolbar.remove();
 					delete answerQuill.toolbar;
 				}
@@ -151,7 +134,7 @@ var answerQuills = {};
 		});
 
 		// Trigger an answer preview when the enter key is pressed in an answer box.
-		answerQuill.on('keypress.preview', function(e) {
+		answerQuill.on('keypress.preview', (e) => {
 			if (e.key == 'Enter' || e.which == 13 || e.keyCode == 13) {
 				// For homework
 				$('#previewAnswers_id').trigger('click');
@@ -165,7 +148,7 @@ var answerQuills = {};
 		answerQuill.mathField.blur();
 
 		// Give the mathquill answer box the correct/incorrect colors.
-		setTimeout(function() {
+		setTimeout(() => {
 			if (answerQuill.input.hasClass('correct')) answerQuill.addClass('correct');
 			else if (answerQuill.input.hasClass('incorrect')) answerQuill.addClass('incorrect');
 		}, 300);
@@ -173,11 +156,11 @@ var answerQuills = {};
 		// Replace the result table correct/incorrect javascript that gives focus
 		// to the original input, with javascript that gives focus to the mathquill
 		// answer box.
-		var resultsTableRows = $('table.attemptResults tr:not(:first-child)');
+		const resultsTableRows = $('table.attemptResults tr:not(:first-child)');
 		if (resultsTableRows.length) {
 			resultsTableRows.each(function() {
-				var result = $(this).find('td > a');
-				var href = result.attr('href');
+				const result = $(this).find('td > a');
+				const href = result.attr('href');
 				if (result.length && href !== undefined && href.indexOf(answerLabel) != -1) {
 					// Set focus to the mathquill answer box if the correct/incorrect link is clicked.
 					result.attr('href',
@@ -194,19 +177,20 @@ var answerQuills = {};
 	const observer = new MutationObserver((mutationsList) => {
 		mutationsList.forEach((mutation) => {
 			mutation.addedNodes.forEach((node) => {
-				if (node.id && node.id.startsWith('MaThQuIlL_')) {
-					setupMQInput(node);
-				} else if (node.querySelectorAll) {
-					node.querySelectorAll('input[id^=MaThQuIlL_]').forEach((input) => {
-						setupMQInput(input);
-					});
+				if (node instanceof Element) {
+					if (node.id && node.id.startsWith('MaThQuIlL_')) {
+						setupMQInput(node);
+					} else {
+						node.querySelectorAll('input[id^=MaThQuIlL_]').forEach((input) => {
+							setupMQInput(input);
+						});
+					}
 				}
 			});
 		});
 	});
-	observer.observe($('body')[0], { childList: true, subtree: true });
+	observer.observe(document.body, { childList: true, subtree: true });
 
 	// Stop the mutation observer when the window is closed.
-	window.addEventListener('unload', function() { observer.disconnect(); });
-
+	window.addEventListener('unload', () => observer.disconnect());
 })();

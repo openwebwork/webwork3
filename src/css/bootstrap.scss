@@ -1,0 +1,25 @@
+$enable-shadows: true;
+$enable-gradients: true;
+
+// Include functions first (so you can manipulate colors, SVGs, calc, etc)
+@import "bootstrap/scss/functions";
+
+// Variable overrides
+
+// Make modal's have a higher z-index than Quasar's header
+$zindex-modal-backdrop: 2050;
+$zindex-modal: 2055;
+
+// Include the remainder of Bootstrap's scss configuration
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/utilities";
+
+// Layout & components
+@import "bootstrap/scss/root";
+@import "bootstrap/scss/buttons";
+@import "bootstrap/scss/transitions";
+@import "bootstrap/scss/accordion";
+@import "bootstrap/scss/close";
+@import "bootstrap/scss/modal";
+@import "bootstrap/scss/tooltip";
