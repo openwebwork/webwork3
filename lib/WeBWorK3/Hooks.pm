@@ -7,8 +7,6 @@ use Mojo::Log;
 
 our $VERSION = '2.99';
 
-my $log = Mojo::Log->new;
-
 our $exception_handler = sub {
 	my ($next, $c) = @_;
 	## only test requests that start with "/api"
@@ -20,7 +18,7 @@ our $exception_handler = sub {
 			$output->{message} = $_->message
 				if (ref($_) && (ref($_) eq 'Mojo::Exception' || ref($_) =~ /^DB::Exception/x));
 			$output->{message} = $_ if ($_ && ref($_) eq 'DBIx::Class::Exception');
-			$log->error($output->{message});
+			$c->log->error($output->{message});
 			$c->render(json => $output, status => 250);
 		};
 	} else {

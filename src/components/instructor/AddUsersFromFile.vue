@@ -173,7 +173,6 @@ export default defineComponent({
 
 				try {
 					user = pick(mapValues(user_param_map.value, (obj) => params[obj]), Object.keys(newUser()));
-					console.log(user);
 					users_to_add.value.push(parseUser(user));
 
 					course_user = pick(mapValues(user_param_map.value, (obj) => params[obj]),
@@ -187,7 +186,6 @@ export default defineComponent({
 						Dictionary<string|number>);
 				} catch (error) {
 					const err = error as ParseError;
-					console.log(err);
 					validated.value = false;
 					const user_fields = Object.keys(newUser());
 					const course_user_fields = Object.keys(newCourseUser());
