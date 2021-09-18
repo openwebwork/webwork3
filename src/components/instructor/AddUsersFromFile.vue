@@ -45,7 +45,13 @@
 
 							<template v-slot:body-cell="props">
 								<q-td :props="props" :class="hasError(props) ? 'bg-red-3': '' ">
-									{{ props.value }}
+									<span v-if="hasError(props)">  {{ props.value }}
+										<q-badge color="red">?<q-tooltip>
+											{{ getErrorText(props) }}
+											</q-tooltip>
+										</q-badge>
+									</span>
+									<span v-else> {{ props.value }} </span>
 								</q-td>
 							</template>
 						</q-table>
@@ -83,9 +89,10 @@ interface Prop {
 
 interface ParseError {
 	row: number;
-	col: number;
+	col?: number;
 	message: string;
-	field: string;
+	field?: string;
+	entire_row?: boolean;
 }
 
 export default defineComponent({
@@ -166,6 +173,7 @@ export default defineComponent({
 
 				try {
 					user = pick(mapValues(user_param_map.value, (obj) => params[obj]), Object.keys(newUser()));
+					console.log(user);
 					users_to_add.value.push(parseUser(user));
 
 					course_user = pick(mapValues(user_param_map.value, (obj) => params[obj]),
@@ -179,15 +187,26 @@ export default defineComponent({
 						Dictionary<string|number>);
 				} catch (error) {
 					const err = error as ParseError;
+					console.log(err);
 					validated.value = false;
 					const user_fields = Object.keys(newUser());
 					const course_user_fields = Object.keys(newCourseUser());
-					if (user_fields.indexOf(err.field)>=0 || course_user_fields.indexOf(err.field)>=0){
+					// if the error was a missing required field
+					if (err.field === '_all') {
+						invalid_table_cells.value.push({
+							message: err.message,
+							row: parseInt(`${params._row}`),
+							entire_row: true
+						});
+					}
+
+					if (err.field && (user_fields.indexOf(err.field)>=0 || course_user_fields.indexOf(err.field)>=0)) {
 						invalid_table_cells.value.push({
 							message: err.message,
 							field: err.field,
 							row: parseInt(`${params._row}`),
-							col: parseInt(`${user_param_map.value[err.field]}`)
+							col: parseInt(`${user_param_map.value[err.field]}`),
+							entire_row: false
 						});
 					}
 				}
@@ -265,8 +284,16 @@ export default defineComponent({
 			columns: computed(() => getColumns()),
 			hasError: (props: Prop) =>
 				invalid_table_cells.value.find((error: ParseError) =>
+				  error.entire_row && props.row._row === error.row ||
 					props?.row?._row === error.row && parseInt(props.col.name) === error.col
-				) ? true : false
+				) ? true : false,
+			getErrorText: (props: Prop) => {
+				const err = invalid_table_cells.value.find((error: ParseError) =>
+				  error.entire_row && props.row._row === error.row ||
+					props?.row?._row === error.row && parseInt(props.col.name) === error.col
+				);
+				return err?.message;
+			}
 		};
 	}
 });

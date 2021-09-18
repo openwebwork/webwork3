@@ -1,7 +1,10 @@
 // This is utility functions for users
 
+import { intersection, isEqual, difference } from 'lodash';
 import { User, CourseUser, Dictionary } from '../models';
 import { mailRE, usernameRE, user_roles } from './common';
+
+const required_user_params = ['username'];
 
 export function newUser(): User {
 	return {
@@ -14,6 +17,8 @@ export function newUser(): User {
 		user_id: 0
 	};
 }
+
+const required_course_user_params = ['role'];
 
 export function newCourseUser(): CourseUser {
 	return {
@@ -30,12 +35,23 @@ export function newCourseUser(): CourseUser {
 export function parseUser(params: Dictionary<string|number>): User {
 	const user = newUser();
 	const user_fields = Object.keys(user);
+	// check that the required fields are present in the params
+	const common_fields = intersection(required_user_params, Object.keys(params));
+	if (!isEqual(common_fields, required_user_params)) {
+		const diff = difference(required_user_params, common_fields);
+		throw {
+			field: '_all',
+			message: `The fields '${diff.join(', ')}' must be present in the user.`,
+			params
+		};
+	}
+	// validate the individual fields present
 	Object.keys(params).forEach((key) => {
 		if (user_fields.indexOf(key)<0) {
 			throw {
 				field: key,
 				message: `The field '${key}' is not valid for a user`,
-				params: params
+				params
 			};
 		}
 	});
@@ -70,6 +86,15 @@ export function validateUser(params: Dictionary<string|number>): boolean {
 export function parseCourseUser(params: Dictionary<string|number>): CourseUser {
 	const course_user = newCourseUser();
 	const user_fields = Object.keys(course_user);
+	// check that the required fields are present in the params
+	const common_fields = intersection(required_course_user_params, Object.keys(params));
+	if (!isEqual(common_fields, required_course_user_params)) {
+		const diff = difference(required_user_params, common_fields);
+		throw {
+			message: `The fields '${diff.join(', ')}' must be present in the course user.`,
+			params
+		};
+	}
 	Object.keys(params).forEach((key) => {
 		if (user_fields.indexOf(key)<0) {
 			throw {
