@@ -141,7 +141,8 @@ export default defineComponent({
 			await Promise.all([
 				'js/MathQuill/mathquill.css',
 				'js/MathQuill/mqeditor.css',
-				'js/ImageView/imageview.css'
+				'js/ImageView/imageview.css',
+				'js/Knowls/knowl.css'
 			].map(
 				async (cssSource) => {
 					await loadResource(cssSource).
@@ -153,7 +154,8 @@ export default defineComponent({
 				['mathjax/tex-chtml.js', 'MathJax-script'],
 				['js/MathQuill/mathquill.js'],
 				['js/MathQuill/mqeditor.js'],
-				['js/ImageView/imageview.js']
+				['js/ImageView/imageview.js'],
+				['js/Knowls/knowl.js']
 			] as Array<[string, string?]>).map(
 				async (jsSource) => {
 					await loadResource(...jsSource).
