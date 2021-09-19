@@ -7,7 +7,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, onMounted } from 'vue';
+import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
 import type { RendererResponse } from '../../typings/renderer';
 import axios from 'axios';
 import * as bootstrap from 'bootstrap';
@@ -129,7 +129,19 @@ export default defineComponent({
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 				window.MathJax.startup.promise.then(() => window.MathJax.typesetPromise([renderDiv.value]));
 			}
-			/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+
+			await nextTick();
+
+			// Execute any scripts in the pg output.
+			renderDiv.value?.querySelectorAll('script').forEach((origScript) => {
+				const newScript = document.createElement('script');
+				Array.from(origScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
+				newScript.appendChild(document.createTextNode(origScript.innerHTML));
+				origScript.parentNode?.replaceChild(newScript, origScript);
+			});
+
+			await nextTick();
+			window.dispatchEvent(new Event('PGContentLoaded'));
 		};
 
 		watch(() => props.file, () => {

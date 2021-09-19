@@ -3,7 +3,7 @@
 /* global MathQuill, $, bootstrap */
 
 // Global list of all MathQuill answer inputs.
-const answerQuills = {};
+window.answerQuills = {};
 
 (() => {
 	// initialize MathQuill
@@ -170,7 +170,7 @@ const answerQuills = {};
 			);
 		}
 
-		answerQuills[answerLabel] = answerQuill;
+		window.answerQuills[answerLabel] = answerQuill;
 	};
 
 	// Observer that sets up MathQuill inputs.
