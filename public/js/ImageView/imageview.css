@@ -54,3 +54,7 @@
 .image-view-dialog .modal-body svg {
 	overflow: visible;
 }
+
+.image-view-dialog .btn-close {
+	cursor: pointer;
+}
