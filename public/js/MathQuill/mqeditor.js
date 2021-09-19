@@ -94,7 +94,7 @@ window.answerQuills = {};
 							"<button id='" + curButton.id + '-' + answerQuill.attr('id') +
 							"' class='symbol-button btn btn-dark' " +
 							"' data-latex='" + curButton.latex +
-							"' data-toggle='tooltip' title='" + curButton.tooltip + "'>" +
+							"' data-bs-toggle='tooltip' title='" + curButton.tooltip + "'>" +
 							"<span id='icon-" + curButton.id + '-' + answerQuill.attr('id') + "'>"
 							+ curButton.icon +
 							'</span>' +
@@ -108,7 +108,7 @@ window.answerQuills = {};
 			});
 
 			answerQuill.toolbar.tooltips = [];
-			document.querySelectorAll('.symbol-button[data-toggle="tooltip"]').forEach((symbolButton) => {
+			document.querySelectorAll('.symbol-button[data-bs-toggle="tooltip"]').forEach((symbolButton) => {
 				answerQuill.toolbar.tooltips.push(new bootstrap.Tooltip(symbolButton, {
 					placement: 'left', trigger: 'hover', delay: { show: 500, hide: 0 }
 				}));
