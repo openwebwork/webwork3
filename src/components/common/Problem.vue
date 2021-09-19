@@ -1,25 +1,32 @@
 <template>
-	<iframe
+	<iframe v-show="!isLoading"
 		v-resize="{ checkOrigin: false }"
 		:srcdoc="html"
 		width="100%"
 		frameborder="0"
+		ref="problemIframe"
+		@load="insertListeners()"
 	></iframe>
+	<div v-if="isLoading">Loading...</div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, watch } from 'vue';
 import { IFrameComponent, iframeResizer } from 'iframe-resizer';
 import { ExtendedIFrameComponent } from '../../typings/iframe-resizer';
+import { fetchProblem } from '../../APIRequests/renderer';
+import { RENDER_URL } from '../../constants';
 import axios from 'axios';
 
 import './mathjax-config';
 import 'mathjax-full/es5/tex-chtml.js';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface Window {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	MathJax: any
+declare global {
+	interface Window {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		MathJax: any
+		submitAction: () => void
+	}
 }
 
 export default defineComponent({
@@ -43,44 +50,92 @@ export default defineComponent({
 	setup(props){
 		const html = ref('');
 		const _file = ref(props.file);
-		const renderDiv = ref<HTMLElement>();
+		const problemIframe = ref<HTMLIFrameElement>();
+		const isLoading = ref(true);
 
 		async function loadProblem() {
-			const formData = new FormData();
-			formData.set('problemSeed', '1');
-			formData.set('sourceFilePath', _file.value);
-			formData.set('outputFormat', 'classic');
+			isLoading.value = true;
+			html.value = '';
 
-			let value;
-			try {
-				const response = await axios.post('/renderer/render-api', formData,
-					{ headers: { 'Content-Type': 'multipart/form-data' } });
-
-				value = (response.data as { renderedHTML: string }).renderedHTML;
-			} catch(e) {
-				return;
-			}
+			// these overrides should be handled by passing requests
+			// through the backend API, or by using JWE
+			const overrides = {
+				'problemSeed': '1',
+				'sourceFilePath': _file.value,
+				'outputFormat': 'classic'
+			};
+			const value = await fetchProblem(new FormData(), RENDER_URL, overrides);
 
 			html.value = value;
+			console.log('HTML updated...');
 
-			void Promise.resolve()
+			return Promise.resolve()
 				.then(() => {
 					/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 					window.MathJax.typesetPromise();
 					/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 				});
 			// .catch();  // need to figure out a more robust way of handling an error like this.
-
 		}
 
-		watch(() => props.file, () => {
+		async function submitHandler(form: HTMLFormElement, btn: HTMLButtonElement) {
+			const submitUrl = form.getAttribute('action') ?? '/renderer/render-api';
+			// submitAction is a global function from renderer - prepares for submit
+			const submitAction = (window as Window).submitAction;
+       		if(typeof submitAction === 'function') submitAction();
+
+			const formData = new FormData(form);
+			let value = '';
+			if (btn) {
+				const overrides = {
+					[btn.name]: btn.value,
+					// again, we should not be overriding these on the frontend
+					'problemSeed': '1',
+					'outputFormat': 'classic'
+				};
+
+				value = await fetchProblem(formData, submitUrl, overrides);
+			} else {
+				console.error('No button was pressed...');
+			}
+
+			html.value = value;
+
+			return Promise.resolve()
+				.then(() => {
+					/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+					window.MathJax.typesetPromise();
+					/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+				});
+			// .catch();  // need to figure out a more robust way of handling an error like this.
+		}
+
+		function insertListeners() {
+			const problemDoc = problemIframe?.value?.contentWindow?.document;
+			if (!problemDoc) console.error('NO DOM AVAILABLE');
+			const problemForm = problemDoc?.getElementById('problemMainForm') as HTMLFormElement;
+			if (problemForm === undefined || problemForm === null) {
+				console.error('NO PROBLEM FORM FOUND');
+				return;
+			}
+			problemForm.addEventListener('submit', (e: Event) => {
+				e.preventDefault();
+				const clickedButton = problemForm.querySelector('.btn-clicked') as HTMLButtonElement;
+				submitHandler(problemForm, clickedButton).catch((e)=>console.error(e));
+			});
+			isLoading.value = false;
+		}
+
+		watch(() => props.file, async () => {
 			_file.value = props.file;
-			void loadProblem();
+			await loadProblem();
 		});
 
 		return {
 			html,
-			renderDiv
+			isLoading,
+			problemIframe,
+			insertListeners
 		};
 	}
 });
