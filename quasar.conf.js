@@ -85,6 +85,13 @@ module.exports = configure(function (ctx) {
 					pathRewrite: {
 						'^/renderer': ''
 					}
+				},
+				'/opl': {
+					target: 'http://localhost:3030',
+					changeOrigin: true,
+					pathRewrite: {
+						'^/opl': ''
+					}
 				}
 			},
 			static: path.join(__dirname, 'node_modules/mathjax-full/es5'),
