@@ -8,8 +8,8 @@
 
 <script lang="ts">
 import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
-import { fetchProblem } from '../../APIRequests/renderer';
-import { RENDER_URL } from '../../constants';
+import { fetchProblem } from 'src/APIRequests/renderer';
+import { RENDER_URL } from 'src/constants';
 import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
 import JQuery from 'jquery';
@@ -23,7 +23,6 @@ declare global {
 		$?: JQueryStatic;
 		jQuery?: JQueryStatic;
 		bootstrap?: typeof bootstrap;
-		submitAction: () => void
 	}
 }
 
@@ -85,16 +84,7 @@ export default defineComponent({
 			});
 		};
 
-		const loadFresh = async () => {
-			const overrides = {
-				'problemSeed': '12345',
-				'sourceFilePath': _file.value,
-				'outputFormat': 'ww3'
-			};
-			await loadProblem(new FormData(), RENDER_URL, overrides);
-		};
-
-		const loadProblem = async (formData: FormData, url: string, overrides: {[k:string]: string}) => {
+		const loadProblem = async (formData: FormData, url: string, overrides: { [key: string]: string }) => {
 			if (!_file.value) {
 				html.value = '';
 				return;
@@ -104,23 +94,19 @@ export default defineComponent({
 
 			if (!renderedHTML) return;
 
-			if (css?.length > 0) {
-				await Promise.all(css.map(
-					async (cssSource) => {
-						await loadResource(cssSource).
-							catch(() => { /* console.error(`Could not load ${cssSource}`) */ });
-					}
-				));
-			}
+			await Promise.all(css.map(
+				async (cssSource) => {
+					await loadResource(cssSource).
+						catch(() => { /* console.error(`Could not load ${cssSource}`) */ });
+				}
+			));
 
-			if (js?.length > 0) {
-				await Promise.all(js.map(
-					async (jsSource) => {
-						await loadResource(jsSource).
-							catch(() => { /* console.error(`Could not load ${jsSource}`) */ });
-					}
-				));
-			}
+			await Promise.all(js.map(
+				async (jsSource) => {
+					await loadResource(jsSource).
+						catch(() => { /* console.error(`Could not load ${jsSource}`) */ });
+				}
+			));
 
 			html.value = renderedHTML;
 			/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
@@ -140,59 +126,48 @@ export default defineComponent({
 			});
 
 			await nextTick();
+
 			window.dispatchEvent(new Event('PGContentLoaded'));
+
 			insertListeners();
 		};
 
-		function insertListeners() {
+		const insertListeners = () => {
 			const problemForm = renderDiv.value?.querySelector('form#problemMainForm') as HTMLFormElement;
 
-			if (problemForm === undefined || problemForm === null) {
+			if (!problemForm) {
 				// console.error('NO PROBLEM FORM FOUND');
 				return;
 			}
 
-			problemForm.querySelectorAll('input[type=submit]').forEach(button => {
-				button.addEventListener('click', () => {
-					// keep ONLY the last button clicked
-					problemForm.querySelectorAll('input[type=submit]').forEach(clean => {
-						clean.classList.remove('btn-clicked');
-					}); // clear all clicks
-					button.classList.add('btn-clicked');
+			let submitButton: HTMLInputElement | null = null;
+			problemForm.querySelectorAll('input[type=submit]').forEach((button) => {
+				button.addEventListener('click', () => submitButton = button as HTMLInputElement);
+			});
+
+			problemForm.addEventListener('submit', (e) => {
+				e.preventDefault();
+				if (!submitButton) {
+					// console.error('No button was pressed...');
+					return;
+				}
+				void loadProblem(new FormData(problemForm), problemForm.action ?? RENDER_URL, {
+					[submitButton.name]: submitButton.value,
+					// Again, we should not be overriding these on the frontend
+					'problemSeed': '12345',
+					'outputFormat': 'ww3'
 				});
 			});
-
-			problemForm.addEventListener('submit', (e: Event) => {
-				e.preventDefault();
-				const clickedButton = problemForm.querySelector('.btn-clicked') as HTMLButtonElement;
-				void submitHandler(problemForm, clickedButton);
-			});
-		}
-
-		async function submitHandler(form: HTMLFormElement, btn: HTMLButtonElement) {
-			const submitUrl = form.getAttribute('action') ?? RENDER_URL;
-
-			// submitAction is a global function from renderer - prepares for submit
-			// e.g. updating hidden inputs from GeoGebra applet
-			const submitAction = (window as Window).submitAction;
-       		if(typeof submitAction === 'function') submitAction();
-
-			if (btn) {
-				const overrides = {
-					[btn.name]: btn.value,
-					// again, we should not be overriding these on the frontend
-					'problemSeed': '1',
-					'outputFormat': 'ww3'
-				};
-				await loadProblem(new FormData(form), submitUrl, overrides);
-			} else {
-				// console.error('No button was pressed...');
-			}
-		}
+		};
 
 		watch(() => props.file, () => {
 			_file.value = props.file;
-			void loadFresh();
+			void loadProblem(new FormData(), RENDER_URL, {
+				// We should not be overriding these on the frontend.
+				'problemSeed': '12345',
+				'sourceFilePath': _file.value,
+				'outputFormat': 'ww3'
+			});
 		});
 
 		onMounted(async () => {
@@ -213,7 +188,8 @@ export default defineComponent({
 				['js/MathQuill/mathquill.js'],
 				['js/MathQuill/mqeditor.js'],
 				['js/ImageView/imageview.js'],
-				['js/Knowls/knowl.js']
+				['js/Knowls/knowl.js'],
+				['js/InputColor/color.js']
 			] as Array<[string, string?]>).map(
 				async (jsSource) => {
 					await loadResource(...jsSource).
