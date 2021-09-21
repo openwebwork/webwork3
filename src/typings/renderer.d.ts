@@ -20,8 +20,13 @@ interface Flags {
     extra_css_files: Array<ExternalDeps>;
 }
 
+interface HTML {
+	problemText?: string;
+	answerTemplate?: string;
+}
+
 export interface RendererResponse {
-    renderedHTML: string;
+    renderedHTML: HTML | string;
     flags: Flags;
     resources: Resources;
 }

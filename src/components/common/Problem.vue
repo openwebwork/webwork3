@@ -1,7 +1,11 @@
 <template>
-	<q-card v-if="html" class="bg-grey-3">
+	<q-card v-if="problemText" class="bg-grey-3">
+		<q-card-section v-if="answerTemplate" class="q-pa-sm bg-white">
+			<div ref="answerTemplateDiv" v-html="answerTemplate" class="pg-answer-template-container" />
+		</q-card-section>
+		<q-separator v-if="answerTemplate" />
 		<q-card-section class="q-pa-sm">
-			<div ref="renderDiv" v-html="html" class="pg-problem-container" />
+			<div ref="problemTextDiv" v-html="problemText" class="pg-problem-container" />
 		</q-card-section>
 	</q-card>
 </template>
@@ -38,9 +42,11 @@ export default defineComponent({
 		}
 	},
 	setup(props) {
-		const html = ref('');
+		const problemText = ref('');
+		const answerTemplate = ref('');
 		const _file = ref(props.file);
-		const renderDiv = ref<HTMLElement>();
+		const problemTextDiv = ref<HTMLElement>();
+		const answerTemplateDiv = ref<HTMLElement>();
 
 		const loadResource = async (src: string, id?: string) => {
 			return new Promise<void>((resolve, reject) => {
@@ -86,13 +92,21 @@ export default defineComponent({
 
 		const loadProblem = async (formData: FormData, url: string, overrides: { [key: string]: string }) => {
 			if (!_file.value) {
-				html.value = '';
+				problemText.value = '';
+				answerTemplate.value = '';
 				return;
 			}
 
 			const { renderedHTML, js, css } = await fetchProblem(formData, url, overrides);
 
 			if (!renderedHTML) return;
+
+			if (typeof renderedHTML === 'string') {
+				problemText.value = renderedHTML;
+				return;
+			}
+
+			if (!renderedHTML.problemText) return;
 
 			await Promise.all(css.map(
 				async (cssSource) => {
@@ -108,17 +122,29 @@ export default defineComponent({
 				}
 			));
 
-			html.value = renderedHTML;
+			problemText.value = renderedHTML.problemText;
+			answerTemplate.value = renderedHTML.answerTemplate ?? '';
+
 			/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 			if (window.MathJax && typeof window.MathJax.typesetPromise == 'function') {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-				window.MathJax.startup.promise.then(() => window.MathJax.typesetPromise([renderDiv.value]));
+				window.MathJax.startup.promise.then(() => window.MathJax.typesetPromise([problemTextDiv.value]));
+				if (answerTemplate.value)
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+					window.MathJax.startup.promise.then(() => window.MathJax.typesetPromise([answerTemplateDiv.value]));
+
 			}
 
 			await nextTick();
 
 			// Execute any scripts in the pg output.
-			renderDiv.value?.querySelectorAll('script').forEach((origScript) => {
+			problemTextDiv.value?.querySelectorAll('script').forEach((origScript) => {
+				const newScript = document.createElement('script');
+				Array.from(origScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
+				newScript.appendChild(document.createTextNode(origScript.innerHTML));
+				origScript.parentNode?.replaceChild(newScript, origScript);
+			});
+			answerTemplateDiv.value?.querySelectorAll('script').forEach((origScript) => {
 				const newScript = document.createElement('script');
 				Array.from(origScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
 				newScript.appendChild(document.createTextNode(origScript.innerHTML));
@@ -133,7 +159,7 @@ export default defineComponent({
 		};
 
 		const insertListeners = () => {
-			const problemForm = renderDiv.value?.querySelector('form#problemMainForm') as HTMLFormElement;
+			const problemForm = problemTextDiv.value?.querySelector('form#problemMainForm') as HTMLFormElement;
 
 			if (!problemForm) {
 				// console.error('NO PROBLEM FORM FOUND');
@@ -199,8 +225,10 @@ export default defineComponent({
 		});
 
 		return {
-			html,
-			renderDiv,
+			problemText,
+			problemTextDiv,
+			answerTemplate,
+			answerTemplateDiv,
 			insertListeners
 		};
 	}

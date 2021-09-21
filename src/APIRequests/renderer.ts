@@ -1,14 +1,14 @@
 // This should more than likely be redirected at the backend rather
 // than the renderer, unless we're going to go with the JWE route.
 import axios from 'axios';
-import type { RendererResponse } from 'src/typings/renderer';
+import type { HTML, RendererResponse } from 'src/typings/renderer';
 
 export async function fetchProblem(formData: FormData, url: string, overrides: { [key: string]: string }) {
 	for (const key in overrides) {
 		formData.set(key, overrides[key]);
 	}
 
-	let renderedHTML = '';
+	let renderedHTML: string | HTML;
 	let js: Array<string> = [];
 	let css: Array<string> = [];
 	try {

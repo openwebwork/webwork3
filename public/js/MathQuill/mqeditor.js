@@ -136,6 +136,11 @@ window.answerQuills = {};
 		// Trigger an answer preview when the enter key is pressed in an answer box.
 		answerQuill.on('keypress.preview', (e) => {
 			if (e.key == 'Enter' || e.which == 13 || e.keyCode == 13) {
+				// Ensure that the toolbar and any open tooltips are removed.
+				answerQuill.toolbar?.tooltips.forEach((tooltip) => tooltip.dispose());
+				answerQuill.toolbar?.remove();
+				delete answerQuill.toolbar;
+
 				// For homework
 				$('#previewAnswers_id').trigger('click');
 				// For gateway quizzes
