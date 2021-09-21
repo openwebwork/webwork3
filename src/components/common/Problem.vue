@@ -153,6 +153,13 @@ export default defineComponent({
 
 			await nextTick();
 
+			// Activate the popovers in the results table.
+			answerTemplateDiv.value?.querySelectorAll('.answer-preview[data-bs-toggle="popover"]')
+				.forEach((preview) => {
+					if ((preview as HTMLElement).dataset.bsContent)
+						new bootstrap.Popover(preview);
+				});
+
 			window.dispatchEvent(new Event('PGContentLoaded'));
 
 			insertListeners();
@@ -228,8 +235,7 @@ export default defineComponent({
 			problemText,
 			problemTextDiv,
 			answerTemplate,
-			answerTemplateDiv,
-			insertListeners
+			answerTemplateDiv
 		};
 	}
 });
