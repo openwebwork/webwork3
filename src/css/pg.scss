@@ -180,7 +180,7 @@
 		}
 	}
 
-	div {
+	div, label, span {
 		&.WarningMessage {
 			background-color: #d69191; /* red */
 			padding: 3px;
@@ -200,7 +200,9 @@
 			color: #ca5000; /* orange */
 			background-color: inherit;
 		}
+	}
 
+	div {
 		&.showMeAnotherBox {
 			background-color: #ede275; /* bright gold border and harvest gold background */
 			border-radius: 5px;
@@ -210,49 +212,7 @@
 		}
 	}
 
-	label {
-		&.WarningMessage {
-			background-color: #D69191; /* red */
-			padding: 3px;
-		}
-
-		&.ResultsWithoutError {
-			color: inherit;
-			background-color: #8F8; /* green */
-		}
-
-		&.ResultsWithError {
-			color: #bf5454; /* red */
-			background-color: inherit;
-		}
-
-		&.ResultsAlert {
-			color: #ca5000; /* orange */
-			background-color: inherit;
-		}
-	}
-
 	span {
-		&.WarningMessage {
-			background-color: #D69191; /* red */
-			padding: 3px;
-		}
-
-		&.ResultsWithoutError {
-			color: inherit;
-			background-color: #8F8; /* green */
-		}
-
-		&.ResultsWithError {
-			color: #bf5454; /* red */
-			background-color: inherit;
-		}
-
-		&.ResultsAlert {
-			color: #ca5000; /* orange */
-			background-color: inherit;
-		}
-
 		&.correct {
 			color: inherit; /* green */
 			background-color: #8f8;
