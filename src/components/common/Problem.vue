@@ -7,8 +7,8 @@
 		<q-card-section class="q-pa-sm">
 			<div ref="problemTextDiv" v-html="problemText" class="pg-problem-container" />
 		</q-card-section>
-		<q-separator />
-		<q-card-actions class="q-pa-sm bg-white">
+		<q-separator v-if="submitButtons.length"/>
+		<q-card-actions class="q-pa-sm bg-white" v-if="submitButtons.length">
 			<q-btn v-for="button of submitButtons" :key="button.name" :name="button.name" :id="button.name"
 				type="submit" form="problemMainForm" color="primary" @click="submitButton = button" no-caps>
 				{{ button.value }}
@@ -100,23 +100,25 @@ export default defineComponent({
 			});
 		};
 
+		const clearUI = () => {
+			problemText.value = '';
+			answerTemplate.value = '';
+			submitButtons.value = [];
+		};
+
 		const loadProblem = async (formData: FormData, url: string, overrides: { [key: string]: string }) => {
 			if (!_file.value) {
-				problemText.value = '';
-				answerTemplate.value = '';
+				clearUI();
 				return;
 			}
 
-			const { renderedHTML, js, css } = await fetchProblem(formData, url, overrides);
+			const { renderedHTML, js, css, renderError } = await fetchProblem(formData, url, overrides);
 
-			if (!renderedHTML) return;
-
-			if (typeof renderedHTML === 'string') {
-				problemText.value = renderedHTML;
+			if (!renderedHTML || !renderedHTML.problemText) {
+				clearUI();
+				if (renderError) problemText.value = renderError;
 				return;
 			}
-
-			if (!renderedHTML.problemText) return;
 
 			await Promise.all(css.map(
 				async (cssSource) => {

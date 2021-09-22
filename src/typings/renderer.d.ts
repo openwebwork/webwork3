@@ -32,7 +32,7 @@ export interface HTML {
 }
 
 export interface RendererResponse {
-    renderedHTML: HTML | string;
+    renderedHTML: HTML;
     flags: Flags;
     resources: Resources;
 }

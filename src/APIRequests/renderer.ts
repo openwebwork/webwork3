@@ -8,21 +8,23 @@ export async function fetchProblem(formData: FormData, url: string, overrides: {
 		formData.set(key, overrides[key]);
 	}
 
-	let renderedHTML: string | HTML;
-	let js: Array<string> = [];
-	let css: Array<string> = [];
+	let renderedHTML: HTML = {},
+		js: Array<string> = [],
+		css: Array<string> = [],
+		renderError = '';
+
 	try {
 		const response = await axios.post(url, formData,
 			{ headers: { 'Content-Type': 'multipart/form-data' } });
 
 		const data = response.data as RendererResponse;
 
-		renderedHTML = data.renderedHTML;
+		renderedHTML = data.renderedHTML ?? {};
 		js = data.resources.js ?? [];
 		css = data.resources.css ?? [];
 	} catch(e) {
-		renderedHTML = (e as Error).message;
+		renderError = (e as Error).message;
 	}
 
-	return { renderedHTML, js, css };
+	return { renderedHTML, js, css, renderError };
 }

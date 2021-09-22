@@ -2,7 +2,7 @@
 	<div class="q-ma-md">
 		<h3 class="q-my-lg">Problem Viewer</h3>
 		<q-form @submit.prevent="loadProblem">
-			<q-input v-model="srcFile" label="Source File" />
+			<q-input v-model="srcFile" label="Source File" autocomplete />
 			<q-btn type="submit" class="q-my-md">Load Problem</q-btn>
 		</q-form>
 		<problem :file="file" />
