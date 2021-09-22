@@ -27,27 +27,43 @@
 			<q-btn @click="loadProblems">Load Problems</q-btn>
 		</div>
 	</div>
+	<div>
+		<problem :raw_source="problems[0].raw_source" v-if="problems.length >0" />
+	</div>
 </template>
 
 <script lang="ts">
-// import type { Ref } from 'vue';
+import axios from 'axios';
+import type { Ref } from 'vue';
 import { defineComponent, ref, computed, watch } from 'vue';
 import { useStore } from 'src/store';
 import { Discipline, LibrarySubject } from 'src/store/models';
+import Problem from 'src/components/common/Problem.vue';
 
 interface SelectItem {
 	label: string;
 	id: number;
 }
 
+interface LibraryProblem {
+	id: number;
+	source_code: string;
+	raw_source: string;
+
+}
+
 export default defineComponent({
 	name: 'LibPanelOpl',
+	components: {
+		Problem
+	},
 	setup() {
 		const store = useStore();
 		const discipline = ref(null);
 		const subject    = ref(null);
 		const chapter    = ref(null);
 		const section    = ref(null);
+		const problems: Ref<Array<LibraryProblem>> = ref([]);
 
 		watch([discipline], async () => {
 			void store.dispatch('library/resetSections');
@@ -97,8 +113,11 @@ export default defineComponent({
 				store.state.library.sections.map(
 					(obj: LibrarySubject) => ({ label: obj.name, id: obj.id })
 				)),
-			loadProblems: () => {
-				console.log('in loadProblems');
+			problems,
+			loadProblems: async () => {
+				const sect = section.value as unknown as SelectItem;
+				const response = await axios.get(`/opl/api/problems/sections/${sect.id}`);
+				problems.value = response.data as Array<LibraryProblem>;
 			}
 		};
 	},

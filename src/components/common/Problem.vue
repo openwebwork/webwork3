@@ -22,11 +22,16 @@ export default defineComponent({
 		file: {
 			type: String,
 			default: ''
+		},
+		raw_source: {
+			type: String,
+			default: ''
 		}
 	},
 	setup(props){
 		const html: Ref<string> = ref('');
 		const _file: Ref<string> = ref(props.file);
+		const raw_source: Ref<string> = ref(props.raw_source);
 		const renderDiv = ref<HTMLElement>();
 
 		async function loadProblem() {
