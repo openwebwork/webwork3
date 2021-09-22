@@ -141,10 +141,12 @@ window.answerQuills = {};
 				answerQuill.toolbar?.remove();
 				delete answerQuill.toolbar;
 
-				// For homework
+				// For ww2 homework
 				$('#previewAnswers_id').trigger('click');
 				// For gateway quizzes
 				$('input[name=previewAnswers]').trigger('click');
+				// For ww3
+				$('#previewAnswers').trigger('click');
 			}
 		});
 

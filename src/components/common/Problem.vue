@@ -7,11 +7,19 @@
 		<q-card-section class="q-pa-sm">
 			<div ref="problemTextDiv" v-html="problemText" class="pg-problem-container" />
 		</q-card-section>
+		<q-separator />
+		<q-card-actions class="q-pa-sm bg-white">
+			<q-btn v-for="button of submitButtons" :key="button.name" :name="button.name" :id="button.name"
+				type="submit" form="problemMainForm" color="primary" @click="submitButton = button" no-caps>
+				{{ button.value }}
+			</q-btn>
+		</q-card-actions>
 	</q-card>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
+import type { SubmitButton } from 'src/typings/renderer';
 import { fetchProblem } from 'src/APIRequests/renderer';
 import { RENDER_URL } from 'src/constants';
 import * as bootstrap from 'bootstrap';
@@ -47,6 +55,8 @@ export default defineComponent({
 		const _file = ref(props.file);
 		const problemTextDiv = ref<HTMLElement>();
 		const answerTemplateDiv = ref<HTMLElement>();
+		const submitButtons = ref<Array<SubmitButton>>([]);
+		const submitButton = ref<SubmitButton>();
 
 		const loadResource = async (src: string, id?: string) => {
 			return new Promise<void>((resolve, reject) => {
@@ -124,32 +134,30 @@ export default defineComponent({
 
 			problemText.value = renderedHTML.problemText;
 			answerTemplate.value = renderedHTML.answerTemplate ?? '';
+			submitButtons.value = renderedHTML.submitButtons ?? [];
+
+			let outputDivs: Array<HTMLElement> = [];
 
 			/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 			if (window.MathJax && typeof window.MathJax.typesetPromise == 'function') {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-				window.MathJax.startup.promise.then(() => window.MathJax.typesetPromise([problemTextDiv.value]));
-				if (answerTemplate.value)
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-					window.MathJax.startup.promise.then(() => window.MathJax.typesetPromise([answerTemplateDiv.value]));
-
+				window.MathJax.startup.promise.then(() => window.MathJax.typesetPromise(outputDivs));
 			}
 
 			await nextTick();
 
+			if (problemTextDiv.value) outputDivs.push(problemTextDiv.value);
+			if (answerTemplateDiv.value) outputDivs.push(answerTemplateDiv.value);
+
 			// Execute any scripts in the pg output.
-			problemTextDiv.value?.querySelectorAll('script').forEach((origScript) => {
-				const newScript = document.createElement('script');
-				Array.from(origScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
-				newScript.appendChild(document.createTextNode(origScript.innerHTML));
-				origScript.parentNode?.replaceChild(newScript, origScript);
-			});
-			answerTemplateDiv.value?.querySelectorAll('script').forEach((origScript) => {
-				const newScript = document.createElement('script');
-				Array.from(origScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
-				newScript.appendChild(document.createTextNode(origScript.innerHTML));
-				origScript.parentNode?.replaceChild(newScript, origScript);
-			});
+			for (const div of outputDivs) {
+				div.querySelectorAll('script').forEach((origScript) => {
+					const newScript = document.createElement('script');
+					Array.from(origScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
+					newScript.appendChild(document.createTextNode(origScript.innerHTML));
+					origScript.parentNode?.replaceChild(newScript, origScript);
+				});
+			}
 
 			await nextTick();
 
@@ -162,10 +170,11 @@ export default defineComponent({
 
 			window.dispatchEvent(new Event('PGContentLoaded'));
 
-			insertListeners();
+			insertNativeListeners();
 		};
 
-		const insertListeners = () => {
+		// Add listeners to native form elements in the problem.
+		const insertNativeListeners = () => {
 			const problemForm = problemTextDiv.value?.querySelector('form#problemMainForm') as HTMLFormElement;
 
 			if (!problemForm) {
@@ -173,22 +182,29 @@ export default defineComponent({
 				return;
 			}
 
-			let submitButton: HTMLInputElement | null = null;
+			// Add a click handler to any submit buttons in the problem form.
+			// Some Geogebra problems add one of these for example.
 			problemForm.querySelectorAll('input[type=submit]').forEach((button) => {
-				button.addEventListener('click', () => submitButton = button as HTMLInputElement);
+				button.addEventListener('click', () => {
+					const inputBtn = button as HTMLInputElement;
+					submitButton.value = { name: inputBtn.name, value: inputBtn.value };
+				});
 			});
 
 			problemForm.addEventListener('submit', (e) => {
 				e.preventDefault();
-				if (!submitButton) {
+				if (!submitButton.value) {
 					// console.error('No button was pressed...');
 					return;
 				}
 				void loadProblem(new FormData(problemForm), problemForm.action ?? RENDER_URL, {
-					[submitButton.name]: submitButton.value,
+					[submitButton.value.name]: submitButton.value.value,
 					// Again, we should not be overriding these on the frontend
-					'problemSeed': '12345',
-					'outputFormat': 'ww3'
+					problemSeed: '12345',
+					outputFormat: 'ww3',
+					showPreviewButton: '1',
+					showCheckAnswersButton: '1',
+					showCorrectAnswersButton: '1'
 				});
 			});
 		};
@@ -197,9 +213,12 @@ export default defineComponent({
 			_file.value = props.file;
 			void loadProblem(new FormData(), RENDER_URL, {
 				// We should not be overriding these on the frontend.
-				'problemSeed': '12345',
-				'sourceFilePath': _file.value,
-				'outputFormat': 'ww3'
+				problemSeed: '12345',
+				sourceFilePath: _file.value,
+				outputFormat: 'ww3',
+				showPreviewButton: '1',
+				showCheckAnswersButton: '1',
+				showCorrectAnswersButton: '1'
 			});
 		});
 
@@ -235,7 +254,9 @@ export default defineComponent({
 			problemText,
 			problemTextDiv,
 			answerTemplate,
-			answerTemplateDiv
+			answerTemplateDiv,
+			submitButtons,
+			submitButton
 		};
 	}
 });
