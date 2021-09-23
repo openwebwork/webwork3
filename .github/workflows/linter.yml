@@ -1,8 +1,6 @@
 ---
 ###########################
-###########################
 ## Linter GitHub Actions ##
-###########################
 ###########################
 name: Lint Code Base
 
@@ -10,10 +8,8 @@ defaults:
   run:
     shell: bash
 
-#
 # Documentation:
 # https://help.github.com/en/articles/workflow-syntax-for-github-actions
-#
 
 #############################
 # Start the job on all push #
@@ -29,7 +25,7 @@ on:
 # Set the Job #
 ###############
 jobs:
-  build:
+  lint:
     # Name the Job
     name: Lint Code Base
     # Set the agent to run on
@@ -78,12 +74,21 @@ jobs:
           VALIDATE_JAVASCRIPT_STANDARD: false
           FILTER_REGEX_EXCLUDE: .*/we_b_wor_k3.yml
 
-      # This doesn't work and so is disabled.
-      # This either should be in a separate workflow or the workflow shoule be renamed.
-      ##################
-      # Run Perl tests #
-      ##################
-      #- name: Run Perl Tests
-      #  uses: skx/github-action-tester@master
-      #  with:
-      #    script: .github/run-perl-tests.sh
+  perltidy:
+    name: Run perltidy on Perl Files
+    runs-on: ubuntu-latest
+    container:
+      image: perl:5.32
+    steps:
+      - uses: actions/checkout@v2
+      - name: perl -V
+        run: perl -V
+      - name: Install dependencies
+        run: cpanm -n Perl::Tidy
+      - name: perltidy --version
+        run: perltidy --version
+      - name: Run perltidy
+        shell: bash
+        run: |
+          shopt -s extglob globstar nullglob
+          perltidy --pro=./.perltidyrc -b -bext='/' ./**/*.p[lm] ./**/*.t && git diff --exit-code
