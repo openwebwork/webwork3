@@ -3,7 +3,7 @@
 import axios from 'axios';
 import type { HTML, RendererResponse } from 'src/typings/renderer';
 
-export async function fetchProblem(formData: FormData, url: string, overrides: { [key: string]: string }) {
+export async function fetchProblem(url: string, formData: FormData, overrides: { [key: string]: string }) {
 	for (const key in overrides) {
 		formData.set(key, overrides[key]);
 	}

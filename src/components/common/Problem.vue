@@ -106,13 +106,13 @@ export default defineComponent({
 			submitButtons.value = [];
 		};
 
-		const loadProblem = async (formData: FormData, url: string, overrides: { [key: string]: string }) => {
+		const loadProblem = async (url: string, formData: FormData, overrides: { [key: string]: string }) => {
 			if (!_file.value) {
 				clearUI();
 				return;
 			}
 
-			const { renderedHTML, js, css, renderError } = await fetchProblem(formData, url, overrides);
+			const { renderedHTML, js, css, renderError } = await fetchProblem(url, formData, overrides);
 
 			if (!renderedHTML || !renderedHTML.problemText) {
 				clearUI();
@@ -199,7 +199,7 @@ export default defineComponent({
 					// console.error('No button was pressed...');
 					return;
 				}
-				void loadProblem(new FormData(problemForm), problemForm.action ?? RENDER_URL, {
+				void loadProblem(problemForm.action ?? RENDER_URL, new FormData(problemForm), {
 					[submitButton.value.name]: submitButton.value.value,
 					// Again, we should not be overriding these on the frontend
 					problemSeed: '12345',
@@ -213,7 +213,7 @@ export default defineComponent({
 
 		watch(() => props.file, () => {
 			_file.value = props.file;
-			void loadProblem(new FormData(), RENDER_URL, {
+			void loadProblem(RENDER_URL, new FormData(), {
 				// We should not be overriding these on the frontend.
 				problemSeed: '12345',
 				sourceFilePath: _file.value,

@@ -34,7 +34,7 @@
 			outline: 0;
 			outline: thin dotted \9;
 			box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(81, 153, 81, 0.6);
-			color: inherit; 
+			color: inherit;
 		}
 
 		&.incorrect {
@@ -42,7 +42,7 @@
 			outline: 0;
 			outline: thin dotted \9;
 			box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(191,84,84,.6);
-			color:inherit; 
+			color:inherit;
 		}
 
 		&.changed {
@@ -97,9 +97,9 @@
 	}
 
 	table.attemptResults {
-		border-style: outset; 
-		border-width: 1px; 
-		margin-bottom: 1em; 
+		border-style: outset;
+		border-width: 1px;
+		margin-bottom: 1em;
 		border-spacing: 1px;
 		width: 100%;
 		border: 1px solid #ddd;
@@ -135,9 +135,9 @@
 		}
 
 		td, th {
-			border-style: inset; 
-			border-width: 1px; 
-			text-align: center; 
+			border-style: inset;
+			border-width: 1px;
+			text-align: center;
 			vertical-align: middle;
 			padding: 2px 5px;
 			color: inherit;
@@ -199,16 +199,6 @@
 		&.ResultsAlert {
 			color: #ca5000; /* orange */
 			background-color: inherit;
-		}
-	}
-
-	div {
-		&.showMeAnotherBox {
-			background-color: #ede275; /* bright gold border and harvest gold background */
-			border-radius: 5px;
-			border: 2px solid #fdd017;
-			padding: 3px;
-			margin-bottom: 5px;
 		}
 	}
 
