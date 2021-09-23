@@ -13,7 +13,6 @@ const baseRules = {
 	'space-in-parens': ['error', 'never'],
 	'object-curly-spacing': ['error', 'always'],
 	'comma-spacing': ['error', { before: false, after: true }],
-	'comma-dangle': ['error', 'never'],
 	'semi': ['error', 'always'],
 	'generator-star-spacing': 'off',
 	'arrow-parens': 'off',
