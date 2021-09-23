@@ -1,5 +1,16 @@
 <template>
-	<div ref="renderDiv" v-html="html" />
+	<q-card>
+		<q-card-section v-if="problem_type=='library'">
+			<q-btn-group push>
+				<q-btn size="sm" push icon="add" />
+				<q-btn size="sm" push icon="edit" />
+				<q-btn size="sm" push icon="shuffle" />
+			</q-btn-group>
+		</q-card-section>
+		<q-card-section>
+			<div ref="renderDiv" v-html="html" />
+		</q-card-section>
+	</q-card>
 </template>
 
 <script lang="ts">
@@ -26,18 +37,24 @@ export default defineComponent({
 		raw_source: {
 			type: String,
 			default: ''
+		},
+		type: {
+			type: String,
+			default: ''
 		}
 	},
 	setup(props){
 		const html: Ref<string> = ref('');
-		const _file: Ref<string> = ref(props.file);
-		const raw_source: Ref<string> = ref(props.raw_source);
+		const file_path: Ref<string> = ref(props.file);
+		const problem_type: Ref<string> = ref(props.type);
 		const renderDiv = ref<HTMLElement>();
+
+		console.log(props);
 
 		async function loadProblem() {
 			const formData = new FormData();
 			formData.set('problemSeed', '1');
-			formData.set('sourceFilePath', _file.value);
+			formData.set('sourceFilePath', file_path.value);
 			formData.set('outputFormat', 'static');
 
 			let value;
@@ -64,12 +81,17 @@ export default defineComponent({
 			/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 		}
 
-		watch(() => props.file, () => {
-			_file.value = props.file;
+		if (file_path.value) {
+			void loadProblem();
+		}
+
+		watch([file_path], () => {
 			void loadProblem();
 		});
 
 		return {
+			file_path,
+			problem_type,
 			html,
 			renderDiv
 		};

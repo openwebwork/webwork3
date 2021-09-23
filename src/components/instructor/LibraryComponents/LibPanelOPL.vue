@@ -27,8 +27,13 @@
 			<q-btn @click="loadProblems">Load Problems</q-btn>
 		</div>
 	</div>
-	<div>
-		<problem :raw_source="problems[0].raw_source" v-if="problems.length >0" />
+	<div v-if="problems.length >0" class="scroll" style="height: 500px">
+		<problem
+			v-for="problem in problems"
+			:file="problem.file_path"
+			:key="problem.id"
+			type="library"
+			/>
 	</div>
 </template>
 
@@ -47,9 +52,9 @@ interface SelectItem {
 
 interface LibraryProblem {
 	id: number;
-	source_code: string;
-	raw_source: string;
-
+	source_code?: string;
+	raw_source?: string;
+	file_path?: string;
 }
 
 export default defineComponent({
@@ -59,36 +64,36 @@ export default defineComponent({
 	},
 	setup() {
 		const store = useStore();
-		const discipline = ref(null);
-		const subject    = ref(null);
-		const chapter    = ref(null);
-		const section    = ref(null);
+		const discipline: Ref<SelectItem|null>     = ref(null); // start with the select field to be empty.
+		const subject: Ref<SelectItem|null>        = ref(null);
+		const chapter: Ref<SelectItem|null>        = ref(null);
+		const section: Ref<SelectItem|null>        = ref(null);
 		const problems: Ref<Array<LibraryProblem>> = ref([]);
 
 		watch([discipline], async () => {
 			void store.dispatch('library/resetSections');
 			void store.dispatch('library/resetChapters');
 			void store.dispatch('library/resetSubjects');
-			const d = discipline.value as unknown as SelectItem;
-			await store.dispatch('library/fetchSubjects', { disc_id: d.id });
+			const d = discipline.value;
+			await store.dispatch('library/fetchSubjects', { disc_id: d?.id });
 		});
 
 		watch([subject], async () => {
 			void store.dispatch('library/resetSections');
 			void store.dispatch('library/resetChapters');
-			const subj = subject.value as unknown as SelectItem;
-			const d = discipline.value as unknown as SelectItem;
-			await store.dispatch('library/fetchChapters', { disc_id: d.id, subj_id: subj.id });
+			const subj = subject.value;
+			const d = discipline.value;
+			await store.dispatch('library/fetchChapters', { disc_id: d?.id, subj_id: subj?.id });
 		});
 
 		watch([chapter], async () => {
 			void store.dispatch('library/resetSections');
-			const ch = chapter.value as unknown as SelectItem;
-			const subj = subject.value as unknown as SelectItem;
-			const d = discipline.value as unknown as SelectItem;
+			const ch = chapter.value;
+			const subj = subject.value;
+			const d = discipline.value;
 			await store.dispatch('library/fetchSections',
 				{
-					disc_id: d.id, subj_id: subj.id, chap_id: ch.id
+					disc_id: d?.id, subj_id: subj?.id, chap_id: ch?.id
 				}
 			);
 		});
@@ -115,8 +120,8 @@ export default defineComponent({
 				)),
 			problems,
 			loadProblems: async () => {
-				const sect = section.value as unknown as SelectItem;
-				const response = await axios.get(`/opl/api/problems/sections/${sect.id}`);
+				const sect = section.value;
+				const response = await axios.get(`/opl/api/problems/sections/${sect?.id || 0}`);
 				problems.value = response.data as Array<LibraryProblem>;
 			}
 		};
