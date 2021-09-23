@@ -57,6 +57,7 @@ export default defineComponent({
 		const answerTemplateDiv = ref<HTMLElement>();
 		const submitButtons = ref<Array<SubmitButton>>([]);
 		const submitButton = ref<SubmitButton>();
+		const activePopovers: Array<InstanceType<typeof bootstrap.Popover>> = [];
 
 		const loadResource = async (src: string, id?: string) => {
 			return new Promise<void>((resolve, reject) => {
@@ -107,6 +108,12 @@ export default defineComponent({
 		};
 
 		const loadProblem = async (url: string, formData: FormData, overrides: { [key: string]: string }) => {
+			// Make sure that any popovers left open from a previous rendering are removed.
+			for (const popover of activePopovers) {
+				popover.dispose();
+			}
+			activePopovers.length = 0;
+
 			if (!_file.value) {
 				clearUI();
 				return;
@@ -167,7 +174,7 @@ export default defineComponent({
 			answerTemplateDiv.value?.querySelectorAll('.answer-preview[data-bs-toggle="popover"]')
 				.forEach((preview) => {
 					if ((preview as HTMLElement).dataset.bsContent)
-						new bootstrap.Popover(preview);
+						activePopovers.push(new bootstrap.Popover(preview));
 				});
 
 			window.dispatchEvent(new Event('PGContentLoaded'));

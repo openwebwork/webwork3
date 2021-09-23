@@ -18,7 +18,7 @@ export default defineComponent({
 	components: {
 		Problem
 	},
-	setup(){
+	setup() {
 		const srcFile = ref('');
 		const file = ref('');
 
