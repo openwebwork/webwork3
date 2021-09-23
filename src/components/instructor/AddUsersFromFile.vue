@@ -29,7 +29,7 @@
 			</q-card-section>
 			<q-card-section class="q-pt-none">
 				<div class="row">
-					<div class="q-pa-md" v-if="users.length > 0">
+					<div class="col-12 q-pa-md" v-if="users.length > 0">
 						<q-table class="loaded-users-table"
 							:rows="users" row-key="_row" :columns="columns"
 							v-model:selected="selected" selection="multiple"
@@ -55,7 +55,7 @@
 								</q-td>
 							</template>
 						</q-table>
-						</div>
+					</div>
 				</div>
 			</q-card-section>
 
@@ -299,27 +299,32 @@ export default defineComponent({
 
 <!-- Mainly this is needed to get a table with a sticky header -->
 
-<style lang="sass">
-.loaded-users-table
+<style lang="scss">
+.loaded-users-table {
 	/* height or max-height is important */
-	height: 510px
+	height: 510px;
 
 	.q-table__top,
 	.q-table__bottom,
-	thead tr:first-child th
+	thead tr:first-child th {
 		/* bg color is important for th; just specify one */
-		background-color: #c1f4cd
+		background-color: #c1f4cd;
+	}
 
-	thead tr th
-		position: sticky
-		z-index: 1
+	thead tr th {
+		position: sticky;
+		z-index: 1;
+	}
 
-	thead tr:first-child th
-		top: 0
+	thead tr:first-child th {
+		top: 0;
+	}
 
 	/* this is when the loading indicator appears */
 
-	&.q-table--loading thead tr:last-child th
+	&.q-table--loading thead tr:last-child th {
 		/* height of all previous header rows */
-		top: 48px
+		top: 48px;
+	}
+}
 </style>
