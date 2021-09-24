@@ -26,6 +26,7 @@ use DB::WithParams;
 use DB::WithDates;
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
+use DB::Utils qw/removeLoginParams/;
 
 my $schema = loadSchema();
 # $schema->storage->debug(1);  # print out the SQL commands.
@@ -47,9 +48,23 @@ for my $student (@precalc_students) {
 }
 @precalc_students = sort { $a->{username} cmp $b->{username} } @precalc_students;
 
+## get the course_id for Precalc
+
+my $precalc = $course_rs->getCourse({course_name => "Precalculus"});
+
 ## test getUsers
 
-my @users                    = $user_rs->getCourseUsers( { course_name => "Precalculus" } );
+my @results                  = $user_rs->search( { 'course_users.course_id' => $precalc->{course_id} }, { prefetch => ["course_users"] } );
+my @users = map {
+		removeLoginParams(
+			{
+				$_->get_columns,
+				$_->course_users->first->get_columns,
+				params => $_->course_users->first->get_inflated_column("params")
+			}
+		);
+	} @results;
+
 my @precalc_students_from_db = sort { $a->{username} cmp $b->{username} } @users;
 my $precalc_students_from_db = removeCourseUserIDs( \@precalc_students_from_db );
 
@@ -241,7 +256,6 @@ throws_ok {
 "DB::Exception::CourseNotFound", "getCourseUser: try to add a user to a non-existent course";
 
 ## TODO: check that adding non-valid parameters throw errors.
-
 
 $course_user->{recitation} = "2";
 

@@ -1,7 +1,7 @@
 // This is utility functions for users
 
 import { intersection, isEqual, difference } from 'lodash';
-import { User, CourseUser, Dictionary } from '../models';
+import { User, CourseUser, Dictionary, DetailedCourseUser } from 'src/store/models';
 import { mailRE, usernameRE, user_roles } from './common';
 
 const required_user_params = ['username'];
@@ -25,6 +25,23 @@ export function newCourseUser(): CourseUser {
 		course_user_id: 0,
 		user_id: 0,
 		course_id: 0,
+		role: 'student',
+		section: '',
+		recitation: '',
+		params: {}
+	};
+}
+
+export function newDetailedCourseUser(): DetailedCourseUser {
+	return {
+		course_user_id: 0,
+		user_id: 0,
+		course_id: 0,
+		email: '',
+		username: '',
+		first_name: '',
+		last_name: '',
+		is_admin: false,
 		role: 'student',
 		section: '',
 		recitation: '',

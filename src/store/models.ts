@@ -35,6 +35,21 @@ export interface CourseUser {
 	params: Dictionary<string>;
 }
 
+export interface DetailedCourseUser {
+	course_user_id: number;
+	user_id: number;
+	course_id: number;
+	username: string;
+	email: string;
+	first_name: string;
+	last_name: string;
+	is_admin: boolean;
+	role: string;
+	section: string;
+	recitation: string;
+	params: Dictionary<string>;
+}
+
 export interface SessionInfo {
 	user: User;
 	logged_in: boolean;
@@ -71,7 +86,7 @@ export enum CourseSettingOption {
 
 export interface CourseSetting {
 	var: string;
-	value: string | number | boolean;
+	value: string | number | boolean | Array<string>;
 }
 
 export interface OptionType {

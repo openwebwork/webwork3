@@ -121,12 +121,12 @@ __PACKAGE__->add_columns(
 		is_nullable => 1
 	},
 	section => {
-		data_type   => 'integer',
+		data_type   => 'text',
 		size        => 16,
 		is_nullable => 1,
 	},
 	recitation => {
-		data_type   => 'integer',
+		data_type   => 'text',
 		size        => 16,
 		is_nullable => 1,
 	},

@@ -235,7 +235,8 @@ sub getCourseUsers {
 	return \@users if $as_result_set;
 	return map {
 		removeLoginParams(
-			{   $_->get_columns,
+			{
+				# $_->get_columns,
 				$_->course_users->first->get_columns,
 				params => $_->course_users->first->get_inflated_column("params")
 			}
@@ -342,7 +343,10 @@ sub addCourseUser {
 	# check if the user is already in the given course
 	my $cu = $self->result_source->schema->resultset("CourseUser")
 		->find({ user_id => $user->user_id, course_id => $course->course_id});
-	# warn Dumper {$cu->get_inflated_columns} if $cu;
+
+	## remove the course_user_id if it is 0 (it's new)
+	delete $course_user_params->{course_user_id} if $course_user_params->{course_user_id} == 0;
+
 	DB::Exception::UserAlreadyInCourse->throw(
 		message => "The user with username: ${\$user->username} is already in the course: ${\$course->course_name}"
 	) if defined($cu);

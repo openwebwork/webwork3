@@ -26,12 +26,22 @@ export default {
 		}
 	},
 	actions: {
+		async fetchUsers({ commit }: {commit: Commit }): Promise<Array<User>|ResponseError> {
+			const response = await api.get('users');
+			if (response.status === 200) {
+				const users = response.data as Array<User>;
+				commit('SET_USERS', users);
+				return users;
+			} else {
+				return response.data as ResponseError;
+			}
+		},
 		async fetchUserCourses({ commit }: { commit: Commit }, user_id: number):
 			Promise<Array<UserCourse>|ResponseError|undefined> {
 			const response = await api.get(`users/${user_id}/courses`);
 			if (response.status === 200) {
 				const user_courses = response.data as Array<UserCourse>;
-				commit('STORE_USER_COURSES', user_courses);
+				commit('SET_USER_COURSES', user_courses);
 			} else if (response.status === 250) {
 				return response.data as ResponseError;
 			}
@@ -58,15 +68,14 @@ export default {
 				return undefined;
 			}
 		},
-		async addUser({ commit }: { commit: Commit }, _user: User):
-			Promise<User | ResponseError|undefined> {
+		async addUser({ commit }: { commit: Commit }, _user: User): Promise<User |undefined> {
 			const response = await api.post('users', _user);
 			if (response.status === 200) {
 				const u = response.data as User;
 				commit('ADD_USER', u);
 				return u;
 			} else if (response.status === 400) {
-				return response.data as ResponseError;
+				throw response.data as ResponseError;
 			}
 		},
 		async addCourseUser(
@@ -78,18 +87,25 @@ export default {
 			const response = await api.post(`courses/${course_id}/users`, _course_user);
 			if (response.status === 200) {
 				const u = response.data as CourseUser;
-				commit('ADD_USER', u);
+				commit('ADD_COURSE_USER', u);
 				return u;
 			} else if (response.status === 250) {
 				throw response.data as ResponseError;
 			}
 		},
-		async deleteUser(
-			{ commit, rootState }: { commit: Commit; rootState: StateInterface },
-			_user: User
-		): Promise<User | undefined> {
+		async deleteCourseUser({ commit, rootState }: { commit: Commit; rootState: StateInterface },
+			_course_user: CourseUser) {
 			const course_id = rootState.session.course.course_id;
-			const response = await api.delete(`courses/${course_id}/users/${_user.user_id || 0}`);
+			const response = await api.delete(`courses/${course_id}/users/${_course_user.user_id || 0}`);
+			if (response.status === 200) {
+				commit('DELETE_COURSE_USER', _course_user);
+				return response.data as User;
+			} else if (response.status === 250) {
+				throw response.data as ResponseError;
+			}
+		},
+		async deleteUser({ commit }: { commit: Commit}, _user: User): Promise<User | undefined> {
+			const response = await api.delete(`/users/${_user.user_id || 0}`);
 			if (response.status === 200) {
 				commit('DELETE_USER', _user);
 				return response.data as User;
@@ -99,7 +115,7 @@ export default {
 		}
 	},
 	mutations: {
-		STORE_USER_COURSES(state: UserState, _user_courses: Array<UserCourse>): void {
+		SET_USER_COURSES(state: UserState, _user_courses: Array<UserCourse>): void {
 			state.user_courses = _user_courses;
 		},
 		SET_USERS(state: UserState, _users: Array<User>): void {
