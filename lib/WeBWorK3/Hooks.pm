@@ -3,7 +3,6 @@ use warnings;
 use strict;
 
 use Try::Tiny;
-use Mojo::Log;
 
 our $VERSION = '2.99';
 
