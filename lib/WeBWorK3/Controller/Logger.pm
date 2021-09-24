@@ -1,4 +1,4 @@
-package WeBWorK3::Controller::Utility;
+package WeBWorK3::Controller::Logger;
 use warnings;
 use strict;
 
@@ -7,7 +7,7 @@ use Mojo::File qw(path);
 use Mojo::Log;
 use JSON qw(decode_json);
 
-my $path = path("$ENV{WW3_ROOT}/logs")->make_path->child('clientLog.log')->touch;
+my $path = path("$ENV{WW3_ROOT}/logs")->make_path->child('clientLog.log');
 my $clientLogFile = Mojo::Log->new(path => $path);
 
 sub clientLog($c) {

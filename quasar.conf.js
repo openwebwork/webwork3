@@ -73,7 +73,7 @@ module.exports = configure(function (ctx) {
 							plugin.options.exclude = /.*mathjax.*/;
 					});
 				}
-				// cfg.plugins.push(new NodePolyfillPlugin({}));
+
 				cfg.module.rules.push ({
 					test: /\.m?js/,
 					resolve: {

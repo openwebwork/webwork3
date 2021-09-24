@@ -1,5 +1,3 @@
-/* eslint-disable no-tabs */
-// import winston = require('winston');
 import winston from 'winston';
 import 'setimmediate';
 
@@ -16,15 +14,13 @@ const logger = winston.createLogger({
 			level: 'error',
 			host: 'localhost',
 			port: 8080,
-			path: '/webwork3/api/utility/client-logs',
+			path: '/webwork3/api/client-logs',
 			handleExceptions: true
 		})
 	]
 });
 
-//
 // If we're not in production then log to the console
-//
 if (process.env.NODE_ENV !== 'production') {
 	logger.add(new winston.transports.Console({
 		format: winston.format.combine(

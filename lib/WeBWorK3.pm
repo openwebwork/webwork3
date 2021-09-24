@@ -20,7 +20,7 @@ sub startup {
 
 	# log to file if we're in production mode
 	if ($ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'production') {
-		my $path = path("$ENV{WW3_ROOT}/logs")->make_path->child('webwork3.log')->touch;
+		my $path = path("$ENV{WW3_ROOT}/logs")->make_path->child('webwork3.log');
 		$self->log->path($path);
 	}
 
@@ -70,10 +70,6 @@ sub startup {
 	$self->settingsRoutes();
 	$self->utilityRoutes();
 	return;
-}
-
-sub confDirectory {
-	return "$ENV{WW3_ROOT}/conf";
 }
 
 sub load_account($self, $user_id) {
@@ -141,7 +137,7 @@ sub settingsRoutes($self) {
 }
 
 sub utilityRoutes($self) {
-	$self->routes->post('/webwork3/api/utility/client-logs')->to("Utility#clientLog");
+	$self->routes->post('/webwork3/api/client-logs')->to("Logger#clientLog");
 	return;
 }
 
