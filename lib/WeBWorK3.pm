@@ -5,6 +5,7 @@ use Mojo::File qw(curfile path);
 use YAML::XS qw/LoadFile/;
 
 BEGIN {
+	## no critic (RequireLocalizedPunctuationVars)
 	$ENV{WW3_ROOT} = curfile->dirname->dirname->to_string;
 }
 
@@ -141,6 +142,7 @@ sub settingsRoutes($self) {
 
 sub utilityRoutes($self) {
 	$self->routes->post('/webwork3/api/utility/client-logs')->to("Utility#clientLog");
+	return;
 }
 
 1;

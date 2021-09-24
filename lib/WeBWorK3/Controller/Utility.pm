@@ -25,6 +25,7 @@ sub clientLog($c) {
 
 	$c->log->$level($logEntry->{message});
 	$c->rendered(200);
+	return;
 };
 
 1;
