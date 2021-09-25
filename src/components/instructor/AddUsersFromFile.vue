@@ -17,10 +17,11 @@
 			<q-card-section class="q-pt-none">
 				<div class="row">
 					<div class="col-3">
-						<q-toggle v-model="first_row_header" /> First row is Header
+						<q-toggle v-model="first_row_header" :disable="users.length==''"/>
+						First row is Header
 					</div>
 
-					<div class="col-6" v-if="!validated">
+					<div class="col-6" v-if="invalid_table_cells.length>0">
 						<q-banner dense inline-actions class="text-white bg-red">
 							There are validation errors with the loaded data.
 						</q-banner>
@@ -101,7 +102,6 @@ export default defineComponent({
 		const store = useStore();
 		const $q = useQuasar();
 		const file: Ref<File> = ref(new File([], ''));
-		const validated: Ref<boolean> = ref(true);  // true if all selected users validate
 		const invalid_table_cells: Ref<Array<ParseError>> = ref([]);
 		const users: Ref<Array<Dictionary<string|number>>> = ref([]); // stores all users from the file
 		const selected: Ref<Array<Dictionary<string|number>>> = ref([]); // stores the selected users
@@ -162,7 +162,6 @@ export default defineComponent({
 		});
 
 		watch([selected], () => {
-			validated.value = true;
 			users_to_add.value = [];
 			course_users_to_add.value = [];
 			invalid_table_cells.value = [];
@@ -178,15 +177,15 @@ export default defineComponent({
 					course_user = pick(mapValues(user_param_map.value, (obj) => params[obj]),
 						Object.keys(newCourseUser()));
 
+					course_user.role = course_user.role ?? 'student';
 					const parsed_course_user = parseCourseUser(course_user);
 					course_user.username = user.username;
+					console.log(parsed_course_user);
 
-					parsed_course_user.role = parsed_course_user.role ?? 'student';
 					course_users_to_add.value.push(parsed_course_user as unknown as
 						Dictionary<string|number>);
 				} catch (error) {
 					const err = error as ParseError;
-					validated.value = false;
 					const user_fields = Object.keys(newUser());
 					const course_user_fields = Object.keys(newCourseUser());
 					// if the error was a missing required field
@@ -253,7 +252,7 @@ export default defineComponent({
 					await store.dispatch('users/addCourseUser', _course_user) as CourseUser;
 					// need to verify that the result is the same.
 					$q.notify({
-						message: 'The course user  was successfully added.',
+						message: 'The course user was successfully added.',
 						color: 'green'
 					});
 				}
@@ -270,7 +269,6 @@ export default defineComponent({
 			file,
 			users,
 			selected,
-			validated,
 			invalid_table_cells,
 			first_row_header,
 			user_fields,

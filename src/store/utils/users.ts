@@ -106,7 +106,7 @@ export function parseCourseUser(params: Dictionary<string|number>): CourseUser {
 	// check that the required fields are present in the params
 	const common_fields = intersection(required_course_user_params, Object.keys(params));
 	if (!isEqual(common_fields, required_course_user_params)) {
-		const diff = difference(required_user_params, common_fields);
+		const diff = difference(required_course_user_params, common_fields);
 		throw {
 			message: `The fields '${diff.join(', ')}' must be present in the course user.`,
 			params
