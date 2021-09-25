@@ -23,3 +23,19 @@ database_password: password
 cookie_samesite: "None"
 cookie_secure: true
 cookie_lifetime: 3600
+
+# Production server configuration
+hypnotoad:
+  listen:
+    - http://*:3000
+  accepts: 400
+  workers: 10
+  spare: 5
+  clients: 100
+  graceful_timeout: 45
+  inactivity_timeout: 30
+  keep_alive_timeout: 30
+  requests: 5
+  # Uncomment the next two lines for the apache2 production setup
+  #pid_file: /var/run/webwork3/webwork3.pid
+  #proxy: 1
