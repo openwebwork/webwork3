@@ -1,3 +1,4 @@
+import { boot } from 'quasar/wrappers';
 import winston from 'winston';
 import 'setimmediate';
 
@@ -14,7 +15,7 @@ const logger = winston.createLogger({
 			level: 'error',
 			host: 'localhost',
 			port: 8080,
-			path: '/webwork3/api/client-logs',
+			path: `${process.env.VUE_ROUTER_BASE ?? ''}api/client-logs`,
 			handleExceptions: true
 		})
 	]
@@ -31,4 +32,9 @@ if (process.env.NODE_ENV !== 'production') {
 	}));
 }
 
-export default logger;
+export default boot(({ app }) => {
+	// For use inside Vue files (Options API) through this.$logger
+	app.config.globalProperties.$logger = logger;
+});
+
+export { logger };
