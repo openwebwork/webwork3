@@ -2,8 +2,22 @@ import { boot } from 'quasar/wrappers';
 import winston from 'winston';
 import 'setimmediate';
 
+const consoleFormat = winston.format.combine(
+	winston.format.simple(),
+	winston.format.printf(msg =>
+		winston.format.colorize().colorize(msg.level, `[${msg.level}] ${msg.message}`)
+	)
+);
+
+winston.addColors({
+	debug: 'magenta',
+	info: 'cyan',
+	warn: 'yellow',
+	error: 'red',
+});
+
 const logger = winston.createLogger({
-	level: 'info',
+	level: 'debug',
 	format: winston.format.simple(),
 	defaultMeta: {
 		get location() { return window.location.href; },
@@ -16,7 +30,7 @@ const logger = winston.createLogger({
 			host: 'localhost',
 			port: 8080,
 			path: `${process.env.VUE_ROUTER_BASE ?? ''}api/client-logs`,
-			handleExceptions: true
+			handleExceptions: true,
 		})
 	]
 });
@@ -24,10 +38,7 @@ const logger = winston.createLogger({
 // If we're not in production then log to the console
 if (process.env.NODE_ENV !== 'production') {
 	logger.add(new winston.transports.Console({
-		format: winston.format.combine(
-			winston.format.colorize({ all: true }),
-			winston.format.simple()
-		),
+		format: consoleFormat,
 		handleExceptions: true
 	}));
 }
