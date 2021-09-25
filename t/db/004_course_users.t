@@ -54,7 +54,14 @@ my $precalc = $course_rs->getCourse({course_name => "Precalculus"});
 
 ## test getUsers
 
-my @results                  = $user_rs->search( { 'course_users.course_id' => $precalc->{course_id} }, { prefetch => ["course_users"] } );
+my @results = $user_rs->search(
+	{
+		'course_users.course_id' => $precalc->{course_id}
+	},
+	{
+		prefetch => ["course_users"]
+	}
+);
 my @users = map {
 		removeLoginParams(
 			{
