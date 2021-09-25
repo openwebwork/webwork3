@@ -29,7 +29,7 @@ load the default settings from the conf/course_settings.yaml file
 =cut
 
 sub getDefaultCourseSettings {
-	return LoadFile(WeBWorK3::confDirectory()."/course_defaults.yml");
+	return LoadFile("$ENV{WW3_ROOT}/conf/course_defaults.yml");
 }
 
 my @course_setting_categories = qw/email optional general permissions problem problem_set/;

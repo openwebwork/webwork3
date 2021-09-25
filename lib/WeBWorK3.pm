@@ -1,13 +1,12 @@
 package WeBWorK3;
 use Mojo::Base 'Mojolicious', -signatures;
 
-use Mojo::File qw(curfile);
+use Mojo::File qw(curfile path);
 use YAML::XS qw/LoadFile/;
 
-my $webwork_root;
-
 BEGIN {
-	$webwork_root = curfile->dirname->to_string . "/..";
+	## no critic (RequireLocalizedPunctuationVars)
+	$ENV{WW3_ROOT} = curfile->dirname->dirname->to_string;
 }
 
 use DB::Schema;
@@ -18,6 +17,12 @@ my $perm_table;
 # This method will run once at server start
 sub startup {
 	my $self = shift;
+
+	# log to file if we're in production mode
+	if ($ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'production') {
+		my $path = path("$ENV{WW3_ROOT}/logs")->make_path->child('webwork3.log');
+		$self->log->path($path);
+	}
 
 	# Load configuration from config file
 	my $config = $self->plugin('NotYAMLConfig');
@@ -46,7 +51,7 @@ sub startup {
 	$self->sessions->secure($config->{cookie_secure});
 
 	# Load permissions and set up some helpers for dealing with permissions.
-	$perm_table = LoadFile("$webwork_root/conf/permissions.yaml");
+	$perm_table = LoadFile("$ENV{WW3_ROOT}/conf/permissions.yaml");
 
 	$self->helper(perm_table => sub ($c) { return $perm_table; });
 	$self->helper(ignore_permissions => sub ($c) { return $config->{ignore_permissions}; });
@@ -63,11 +68,8 @@ sub startup {
 	$self->courseUserRoutes();
 	$self->problemSetRoutes();
 	$self->settingsRoutes();
+	$self->utilityRoutes();
 	return;
-}
-
-sub confDirectory {
-	return "$webwork_root/conf";
 }
 
 sub load_account($self, $user_id) {
@@ -131,6 +133,11 @@ sub problemSetRoutes($self) {
 sub settingsRoutes($self) {
 	$self->routes->get('/webwork3/api/default_settings')->to("Settings#getDefaultCourseSettings");
 	$self->routes->get('/webwork3/api/courses/:course_id/settings')->to("Settings#getCourseSettings");
+	return;
+}
+
+sub utilityRoutes($self) {
+	$self->routes->post('/webwork3/api/client-logs')->to("Logger#clientLog");
 	return;
 }
 
