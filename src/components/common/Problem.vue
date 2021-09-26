@@ -151,7 +151,6 @@ export default defineComponent({
 			if (problemTextDiv.value) outputDivs.push(problemTextDiv.value);
 			if (answerTemplateDiv.value) outputDivs.push(answerTemplateDiv.value);
 
-			html.value = renderedHTML;
 			/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 			if (window.MathJax && typeof window.MathJax.typesetPromise == 'function') {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
