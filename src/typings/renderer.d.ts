@@ -1,17 +1,17 @@
-interface ExternalDeps {
+export interface ExternalDeps {
     attributes: string;
     external: 0 | 1;
     file: string;
 }
 
-interface Resources {
+export interface Resources {
     css: Array<string>;
     js: Array<string>;
     regex: Array<string>;
     tags: Array<string>;
 }
 
-interface Flags {
+export interface Flags {
     ANSWER_ENTRY_ORDER: Array<string>;
     KEPT_EXTRA_ANSWERS: Array<string>;
     comment: string;
@@ -20,8 +20,19 @@ interface Flags {
     extra_css_files: Array<ExternalDeps>;
 }
 
+export interface SubmitButton {
+	name: string;
+	value: string;
+}
+
+export interface HTML {
+	problemText?: string;
+	answerTemplate?: string;
+	submitButtons?: Array<SubmitButton>;
+}
+
 export interface RendererResponse {
-    renderedHTML: string;
+    renderedHTML: HTML;
     flags: Flags;
     resources: Resources;
 }
