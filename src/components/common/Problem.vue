@@ -85,7 +85,7 @@ export default defineComponent({
 					return;
 				}
 
-				if (el.dataset.dataLoaded) {
+				if (el.dataset.loaded) {
 					resolve();
 					return;
 				}
@@ -93,7 +93,7 @@ export default defineComponent({
 				el.addEventListener('error', reject);
 				el.addEventListener('abort', reject);
 				el.addEventListener('load', () => {
-					if (el) el.dataset.dataLoaded = 'true';
+					if (el) el.dataset.loaded = 'true';
 					resolve();
 				});
 
@@ -145,18 +145,17 @@ export default defineComponent({
 			answerTemplate.value = renderedHTML.answerTemplate ?? '';
 			submitButtons.value = renderedHTML.submitButtons ?? [];
 
-			let outputDivs: Array<HTMLElement> = [];
+			await nextTick();
+
+			const outputDivs: Array<HTMLElement> = [];
+			if (problemTextDiv.value) outputDivs.push(problemTextDiv.value);
+			if (answerTemplateDiv.value) outputDivs.push(answerTemplateDiv.value);
 
 			/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 			if (window.MathJax && typeof window.MathJax.typesetPromise == 'function') {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 				window.MathJax.startup.promise.then(() => window.MathJax.typesetPromise(outputDivs));
 			}
-
-			await nextTick();
-
-			if (problemTextDiv.value) outputDivs.push(problemTextDiv.value);
-			if (answerTemplateDiv.value) outputDivs.push(answerTemplateDiv.value);
 
 			// Execute any scripts in the pg output.
 			for (const div of outputDivs) {
