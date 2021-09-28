@@ -1,3 +1,5 @@
+@use "quasar.variables" as quasar;
+
 $enable-shadows: true;
 $enable-gradients: true;
 
@@ -5,6 +7,8 @@ $enable-gradients: true;
 @import "bootstrap/scss/functions";
 
 // Variable overrides
+$primary: quasar.$primary;
+$secondary: quasar.$secondary;
 
 // Make modal's have a higher z-index than Quasar's header
 $zindex-modal-backdrop: 2050;
