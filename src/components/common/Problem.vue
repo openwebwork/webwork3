@@ -9,8 +9,9 @@
 		</q-card-section>
 		<q-separator v-if="submitButtons.length"/>
 		<q-card-actions class="q-pa-sm bg-white" v-if="submitButtons.length">
-			<q-btn v-for="button of submitButtons" :key="button.name" :name="button.name" :id="button.name"
-				type="submit" form="problemMainForm" color="primary" @click="submitButton = button" no-caps>
+			<q-btn v-for="button in submitButtons" :key="button.name" :name="button.name"
+				:id="`${problemPrefix}${button.name}`" type="submit" :form="`${problemPrefix}problemMainForm`"
+				color="primary" @click="submitButton = button" no-caps>
 				{{ button.value }}
 			</q-btn>
 		</q-card-actions>
@@ -25,8 +26,9 @@ import { RENDER_URL } from 'src/constants';
 import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
 import JQuery from 'jquery';
+import { logger } from 'boot/logger';
 
-import './mathjax-config';
+import typeset from './mathjax-config';
 
 declare global {
 	interface Window {
@@ -44,7 +46,11 @@ window.bootstrap = bootstrap;
 export default defineComponent({
 	name: 'Problem',
 	props: {
-		file: {
+		sourceFilePath: {
+			type: String,
+			default: ''
+		},
+		problemPrefix: {
 			type: String,
 			default: ''
 		}
@@ -52,7 +58,7 @@ export default defineComponent({
 	setup(props) {
 		const problemText = ref('');
 		const answerTemplate = ref('');
-		const _file = ref(props.file);
+		const file = ref(props.sourceFilePath);
 		const problemTextDiv = ref<HTMLElement>();
 		const answerTemplateDiv = ref<HTMLElement>();
 		const submitButtons = ref<Array<SubmitButton>>([]);
@@ -114,7 +120,7 @@ export default defineComponent({
 			}
 			activePopovers.length = 0;
 
-			if (!_file.value) {
+			if (!file.value) {
 				clearUI();
 				return;
 			}
@@ -130,14 +136,14 @@ export default defineComponent({
 			await Promise.all(css.map(
 				async (cssSource) => {
 					await loadResource(cssSource).
-						catch(() => { /* console.error(`Could not load ${cssSource}`) */ });
+						catch(() => logger.log('error', `Could not load ${cssSource}`));
 				}
 			));
 
 			await Promise.all(js.map(
 				async (jsSource) => {
 					await loadResource(jsSource).
-						catch(() => { /* console.error(`Could not load ${jsSource}`) */ });
+						catch(() => logger.log('error', `Could not load ${jsSource}`));
 				}
 			));
 
@@ -151,15 +157,12 @@ export default defineComponent({
 			if (problemTextDiv.value) outputDivs.push(problemTextDiv.value);
 			if (answerTemplateDiv.value) outputDivs.push(answerTemplateDiv.value);
 
-			/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-			if (window.MathJax && typeof window.MathJax.typesetPromise == 'function') {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-				window.MathJax.startup.promise.then(() => window.MathJax.typesetPromise(outputDivs));
-			}
+			await typeset(outputDivs);
 
 			// Execute any scripts in the pg output.
 			for (const div of outputDivs) {
 				div.querySelectorAll('script').forEach((origScript) => {
+					if (origScript.type && /^math\/tex/.test(origScript.type)) return;
 					const newScript = document.createElement('script');
 					Array.from(origScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
 					newScript.appendChild(document.createTextNode(origScript.innerHTML));
@@ -181,54 +184,61 @@ export default defineComponent({
 			insertNativeListeners();
 		};
 
+		const problemForm = ref<HTMLFormElement>();
+
 		// Add listeners to native form elements in the problem.
 		const insertNativeListeners = () => {
-			const problemForm = problemTextDiv.value?.querySelector('form#problemMainForm') as HTMLFormElement;
-
-			if (!problemForm) {
-				// console.error('NO PROBLEM FORM FOUND');
+			problemForm.value = problemTextDiv.value?.querySelector('form[name=problemMainForm]') as HTMLFormElement;
+			if (!problemForm.value) {
+				logger.log('error', 'NO PROBLEM FORM FOUND');
 				return;
 			}
 
+			problemForm.value.id = `${props.problemPrefix}problemMainForm`;
+
 			// Add a click handler to any submit buttons in the problem form.
 			// Some Geogebra problems add one of these for example.
-			problemForm.querySelectorAll('input[type=submit]').forEach((button) => {
+			problemForm.value.querySelectorAll('input[type=submit]').forEach((button) => {
 				button.addEventListener('click', () => {
 					const inputBtn = button as HTMLInputElement;
 					submitButton.value = { name: inputBtn.name, value: inputBtn.value };
 				});
 			});
 
-			problemForm.addEventListener('submit', (e) => {
+			problemForm.value.addEventListener('submit', (e) => {
 				e.preventDefault();
 				if (!submitButton.value) {
-					// console.error('No button was pressed...');
+					logger.log('error', 'No button was pressed...');
 					return;
 				}
-				void loadProblem(problemForm.action ?? RENDER_URL, new FormData(problemForm), {
+				void loadProblem(problemForm.value?.action ?? RENDER_URL, new FormData(problemForm.value), {
 					[submitButton.value.name]: submitButton.value.value,
 					// Again, we should not be overriding these on the frontend
 					problemSeed: '12345',
 					outputFormat: 'ww3',
 					showPreviewButton: '1',
 					showCheckAnswersButton: '1',
-					showCorrectAnswersButton: '1'
+					showCorrectAnswersButton: '1',
+					answerPrefix: props.problemPrefix
 				});
 			});
 		};
 
-		watch(() => props.file, () => {
-			_file.value = props.file;
+		const initialLoad = () => {
+			file.value = props.sourceFilePath;
 			void loadProblem(RENDER_URL, new FormData(), {
 				// We should not be overriding these on the frontend.
 				problemSeed: '12345',
-				sourceFilePath: _file.value,
+				sourceFilePath: file.value,
 				outputFormat: 'ww3',
 				showPreviewButton: '1',
 				showCheckAnswersButton: '1',
-				showCorrectAnswersButton: '1'
+				showCorrectAnswersButton: '1',
+				answerPrefix: props.problemPrefix
 			});
-		});
+		};
+
+		watch(() => props.sourceFilePath, initialLoad);
 
 		onMounted(async () => {
 			await Promise.all([
@@ -239,7 +249,7 @@ export default defineComponent({
 			].map(
 				async (cssSource) => {
 					await loadResource(cssSource).
-						catch(() => { /* console.error(`Could not load ${cssSource}`) */ });
+						catch(() => logger.log('error', `Could not load ${cssSource}`));
 				}
 			));
 
@@ -253,9 +263,13 @@ export default defineComponent({
 			] as Array<[string, string?]>).map(
 				async (jsSource) => {
 					await loadResource(...jsSource).
-						catch(() => { /* console.error(`Could not load ${jsSource.src}`) */ });
+						catch(() => logger.log('error', `Could not load ${jsSource[0]}`));
 				}
 			));
+
+			await nextTick();
+
+			if (props.sourceFilePath) initialLoad();
 		});
 
 		return {

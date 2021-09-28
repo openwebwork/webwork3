@@ -5,7 +5,7 @@
 			<q-input v-model="srcFile" label="Source File" autocomplete />
 			<q-btn type="submit" class="q-my-md">Load Problem</q-btn>
 		</q-form>
-		<problem :file="file" />
+		<problem :sourceFilePath="file" />
 	</div>
 </template>
 
