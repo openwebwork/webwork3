@@ -52,8 +52,8 @@
 <script lang="ts">
 import { useQuasar } from 'quasar';
 import { defineComponent, computed, ref, Ref } from 'vue';
-import { useStore } from '../../store';
-import { User } from '../../store/models';
+import { useStore } from 'src/store';
+import { User } from 'src/store/models';
 import AddUsersManually from './AddUsersManually.vue';
 import AddUsersFromFile from './AddUsersFromFile.vue';
 

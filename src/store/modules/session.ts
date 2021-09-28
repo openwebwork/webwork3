@@ -1,7 +1,7 @@
 import { Commit, GetterTree } from 'vuex';
 import { StateInterface } from 'src/store';
 import { User, SessionInfo } from 'src/store/models';
-import { newUser } from 'src/store/common';
+// import { newUser } from 'src/store/common';
 
 interface CourseInfo {
 	course_name: string;
@@ -17,7 +17,7 @@ export interface SessionState {
 function state(): SessionState {
 	return {
 		logged_in: false,
-		user: newUser(),
+		user: new User(),
 		course: {
 			course_id: 0,
 			course_name: ''
@@ -36,7 +36,7 @@ const getters: GetterTree<SessionState, StateInterface> & Getters = {
 	logged_in: (state) => state.logged_in,
 	user: (state) => state.user,
 	full_name: (state) => {
-		return state.user.first_name + ' ' + state.user.last_name;
+		return `${state.user.first_name}  ${state.user.last_name}`;
 	},
 	course: (state) => state.course
 };
@@ -61,9 +61,9 @@ export default {
 			state.logged_in = _session_info.logged_in;
 			if (state.logged_in) {
 				state.user = _session_info.user;
-				state.user.is_admin = _session_info.user.is_admin === 1 || _session_info.user.is_admin ? true : false;
+				// state.user.is_admin = _session_info.user.is_admin;
 			} else {
-				state.user = newUser();
+				state.user = new User();
 			}
 		},
 		SET_COURSE(state: SessionState, _course: CourseInfo): void {

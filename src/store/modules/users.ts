@@ -2,7 +2,7 @@ import { api } from 'boot/axios';
 import type { Commit, ActionContext } from 'vuex';
 import type { StateInterface } from '../index';
 
-import { User, UserCourse, CourseUser, ResponseError } from '../models';
+import { User, UserCourse, CourseUser, ResponseError, ParseableUser } from '../models';
 
 export interface UserState {
 	users: Array<User>;
@@ -26,8 +26,18 @@ export default {
 			commit('STORE_USER_COURSES', _user_courses);
 		},
 		async fetchUsers({ commit }: { commit: Commit }, course_id: number): Promise<void> {
-			const _users = await _fetchUsers(course_id);
-			commit('SET_USERS', _users);
+			const response = await api.get(`courses/${course_id}/users`);
+			const parseable_users = response.data as Array<ParseableUser>;
+			try {
+				if (response.status === 200) {
+					const users = parseable_users.map((u)=> new User(u));
+					commit('SET_USERS', users);
+				} else {
+					throw response.data as ResponseError;
+				}
+			} catch (err) {
+				// handle the error
+			}
 		},
 		async getUser(
 			_context: ActionContext<UserState, StateInterface>,
@@ -90,10 +100,4 @@ async function _fetchUserCourses(user_id: number): Promise<Array<UserCourse>> {
 	const response = await api.get(`users/${user_id}/courses`);
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	return response.data.exception ? [] : (response.data as Array<UserCourse>);
-}
-
-async function _fetchUsers(course_id: number): Promise<Array<User>> {
-	const response = await api.get(`courses/${course_id}/users`);
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	return response.data.exception ? [] : (response.data as Array<User>);
 }

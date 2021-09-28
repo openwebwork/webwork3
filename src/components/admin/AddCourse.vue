@@ -59,10 +59,10 @@
 import { defineComponent, ref, Ref } from 'vue';
 import { useQuasar } from 'quasar';
 
-import { useStore } from '../../store';
-import { newCourse, newCourseUser, newUser } from '../../store/common';
+import { useStore } from 'src/store';
+import { newCourse, newCourseUser } from 'src/store/common';
 
-import { Course, ResponseError, User } from '../../store/models';
+import { Course, ResponseError, User } from 'src/store/models';
 import { AxiosError } from 'axios';
 
 interface DateRange {
@@ -78,7 +78,7 @@ export default defineComponent({
 		const store = useStore();
 
 		const course: Ref<Course> = ref(newCourse());
-		const user: Ref<User> = ref(newUser());
+		const user: Ref<User> = ref(new User());
 		const username: Ref<string> = ref('');
 		const instructor_exists = ref(false);
 		const course_dates: Ref<DateRange> = ref({ to: '', from: '' });

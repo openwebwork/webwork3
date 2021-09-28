@@ -3,8 +3,7 @@ import { Commit } from 'vuex';
 import { StateInterface } from '../index';
 import { isEqual } from 'lodash-es';
 
-import { ProblemSet, ParseableProblemSet } from 'src/store/models';
-import { parseHW, parseQuiz, parseReview } from '../common';
+import { ProblemSet, ParseableProblemSet, parseProblemSet } from 'src/store/models';
 
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;
@@ -24,8 +23,10 @@ export default {
 	},
 	actions: {
 		async fetchProblemSets({ commit }: { commit: Commit }, course_id: number): Promise<void> {
-			const _problem_sets = await _fetchProblemSets(course_id);
-			commit('SET_PROBLEM_SETS', _problem_sets);
+			const response = await api.get(`courses/${course_id}/sets`);
+			const _sets_to_parse = response.data as Array<ParseableProblemSet>;
+			console.log(_sets_to_parse);
+			commit('SET_PROBLEM_SETS', _sets_to_parse.map((set)=> parseProblemSet(set)));
 		},
 		async updateSet(
 			{ commit, rootState }: { commit: Commit; rootState: StateInterface },
@@ -51,28 +52,3 @@ export default {
 		}
 	}
 };
-
-async function _fetchProblemSets(course_id: number): Promise<Array<ProblemSet>> {
-	const response = await api.get(`courses/${course_id}/sets`);
-	// eslint-disable-next-line
-	if (response.data.exception) {
-		// console.error(response.data);
-	}
-	const all_sets = response.data as Array<ParseableProblemSet>;
-	const problem_sets: Array<ProblemSet> = [];
-	all_sets.forEach((_set: ParseableProblemSet) => {
-		if (_set.set_type === 'HW') {
-			problem_sets.push(parseHW(_set));
-		} else if (_set.set_type === 'QUIZ') {
-			problem_sets.push(parseQuiz(_set));
-		} else if (_set.set_type === 'REVIEW') {
-			problem_sets.push(parseReview(_set));
-		} else {
-			// console.error('Unexpected Problem type: ');
-			// console.error(_set);
-		}
-	});
-
-	return problem_sets;
-
-}

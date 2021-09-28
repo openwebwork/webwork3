@@ -37,13 +37,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, watch, toRefs } from 'vue';
+import type { Ref } from 'vue';
+import { defineComponent, ref, watch, toRefs } from 'vue';
 import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
 import DateTimeInput from 'src/components/common/DateTimeInput.vue';
-import { HomeworkSet } from 'src/store/models';
-import { newHomeworkSet, copyProblemSet } from 'src/store/common';
+import { HomeworkSet, HomeworkSetDates, HomeworkSetParams } from 'src/store/models';
 import { useStore } from 'src/store';
 
 export default defineComponent({
@@ -57,13 +57,14 @@ export default defineComponent({
 		const $q = useQuasar();
 
 		const { set_id } = toRefs(props);
+		const hw: Ref<HomeworkSet> = ref(new HomeworkSet());
 
-		const set: HomeworkSet = reactive(newHomeworkSet());
+		const set = ref(hw);
 
 		const updateSet = () => {
-			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id == set_id.value) ||
-				newHomeworkSet();
-			copyProblemSet(set, s);
+			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id === set_id.value) ||
+				new HomeworkSet();
+			set.value = cloneDeep(s);
 		};
 
 		watch(()=>set_id.value, updateSet);
@@ -71,7 +72,7 @@ export default defineComponent({
 
 		// see the docs at https://v3.vuejs.org/guide/reactivity-computed-watchers.html#watching-reactive-objects
 		// for why we need to do a cloneDeep here
-		watch(() => cloneDeep(set), (new_set, old_set) => {
+		watch(() => cloneDeep(set.value), (new_set, old_set) => {
 			if (new_set.set_id == old_set.set_id) {
 				void store.dispatch('problem_sets/updateSet', new_set);
 				$q.notify({
@@ -91,11 +92,14 @@ export default defineComponent({
 				{ value: 'HW', label: 'Homework set' }
 			],
 			checkDates: [
-				() => set.params.enable_reduced_scoring && set.dates.reduced_scoring ?
-					set.dates.open <= set.dates.reduced_scoring
-						&& set.dates.reduced_scoring <= set.dates.due  && set.dates.due <=set.dates.answer :
-					set.dates.open <= set.dates.due && set.dates.due <=set.dates.answer
-					|| 'The dates must be in order'
+				() => {
+					const d = set.value.dates as HomeworkSetDates;
+					const p = set.value.set_params as HomeworkSetParams;
+					return p.enable_reduced_scoring && d.reduced_scoring ?
+						(d.open <= d.reduced_scoring && d.reduced_scoring <= d.due  && d.due <= d.answer) :
+						(d.open <= d.due && d.due <= d.answer)
+						|| 'The dates must be in order';
+				}
 			]
 		};
 	}
