@@ -19,9 +19,6 @@ test('Test that parsing fields is working', () => {
 		const set1 = new HomeworkSet({ set_id: -1 });
 	};
 	expect(t1).toThrow(ParseError);
-	const t2 = () => {
-		const set = new HomeworkSet({ set_visible: 'T' });
-		console.log(set);
-	};
-	expect(t2).toThrow(ParseError);
+	const set2 =  new HomeworkSet({ set_visible: 1 });
+	expect(set2.set_visible).toBe(true);
 });
