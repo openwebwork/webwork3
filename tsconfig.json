@@ -1,7 +1,10 @@
 {
 	"extends": "@quasar/app/tsconfig-preset.json",
 	"compilerOptions": {
-		"baseUrl": "."
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"]
+		}
 	},
 	"exclude": ["dist", ".quasar", "node_modules"]
 }

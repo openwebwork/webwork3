@@ -13,14 +13,27 @@ export class Model {
 
 }
 
+export class ParseError {
+	type: string;
+	message: string;
+	constructor(type: string, message: string){
+		this.type = type;
+		this.message = message;
+	}
+}
+
 export const mailRE = /(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,9})/;
 export const usernameRE = /^[a-zA-Z]([a-zA-Z._0-9])+$/;
 
 function parseNonNegInt(val: string | number) {
-	if (typeof val !== 'boolean' && (/\s*(\d+)\s*/.test(`${val}`))) {
+	console.log(val);
+	if (/^\s*(\d+)\s*$/.test(`${val}`)) {
 		return parseInt(`${val}`);
 	} else {
-		throw `The value ${val.toString()} is not a non-negative integer`;
+		throw new ParseError(
+			'NonNegIntException',
+			`The value ${val} is not a non-negative integer`
+		);
 	}
 }
 
@@ -258,13 +271,13 @@ export interface ResponseError {
 /* Problem Set (HomeworkSet, Quiz, ReviewSet ) classes */
 
 export interface ParseableProblemSet {
-	set_id: string | number;
-	set_name: string;
-	course_id: string | number;
-	set_type: string;
-	set_visible: string | number;
-	params: Dictionary<string>;
-	dates: Dictionary<string>;
+	set_id?: string | number;
+	set_name?: string;
+	course_id?: string | number;
+	set_type?: string;
+	set_visible?: string | number;
+	params?: Dictionary<string>;
+	dates?: Dictionary<string>;
 }
 
 export class ProblemSet {
@@ -293,18 +306,18 @@ export class Quiz extends ProblemSet {
 		super(params);
 		this.set_type = ProblemSetType.QUIZ;
 		// parse the params
-		const timed = params?.params.timed ? parseBoolean(params?.params.timed) : false;
+		const timed = params?.params?.timed ? parseBoolean(params?.params.timed) : false;
 		this.set_params = {
 			timed: timed ?? false,
-			quiz_duration: params?.params.quiz_duration ?
+			quiz_duration: params?.params?.quiz_duration ?
 				parseNonNegInt(params?.params?.quiz_duration) :
 				0
 		};
 		// parse the dates
 		const _quiz_dates: QuizDates = {
-			open: params?.params.open ? parseNonNegInt(params?.dates.open) : 0,
-			due: params?.params.due ? parseNonNegInt(params?.dates.due) : 0,
-			answer: params?.params.answer ? parseNonNegInt(params?.dates.answer) : 0,
+			open: params?.dates?.open ? parseNonNegInt(params?.dates.open) : 0,
+			due: params?.dates?.due ? parseNonNegInt(params?.dates.due) : 0,
+			answer: params?.dates?.answer ? parseNonNegInt(params?.dates.answer) : 0,
 		};
 		this.dates = _quiz_dates;
 	}
@@ -315,25 +328,25 @@ export class HomeworkSet extends ProblemSet {
 		super(params);
 		this.set_type = ProblemSetType.HW;
 		// parse the params
-		const rs = params?.params.enable_reduced_scoring ?
+		const rs = params?.params?.enable_reduced_scoring ?
 			parseBoolean(params?.params.enable_reduced_scoring) : false;
-		const hh = params?.params.hide_hint ?
+		const hh = params?.params?.hide_hint ?
 			parseBoolean(params?.params.hide_hint) : false;
 		const _set_params: HomeworkSetParams = {
 			enable_reduced_scoring: rs,
 			hide_hint: hh,
-			hardcopy_header: params?.params.hardcopy_header ?? '',
-			set_header: params?.params.set_header ?? '',
-			description: params?.params.description ?? '',
+			hardcopy_header: params?.params?.hardcopy_header ?? '',
+			set_header: params?.params?.set_header ?? '',
+			description: params?.params?.description ?? '',
 		};
 		this.set_params = _set_params;
 		// parse the dates
 		const _hw_dates: HomeworkSetDates = {
-			open: params?.params.open ? parseNonNegInt(params?.dates.open) : 0,
-			reduced_scoring: params?.params.reduced_scoring ?
+			open: params?.dates?.open ? parseNonNegInt(params?.dates.open) : 0,
+			reduced_scoring: params?.dates?.reduced_scoring ?
 				parseNonNegInt(params?.dates.reduced_scoring) : 0,
-			due: params?.params.due ? parseNonNegInt(params?.dates.due) : 0,
-			answer: params?.params.answer ? parseNonNegInt(params?.dates.answer) : 0,
+			due: params?.dates?.due ? parseNonNegInt(params?.dates.due) : 0,
+			answer: params?.dates?.answer ? parseNonNegInt(params?.dates.answer) : 0,
 		};
 		this.dates = _hw_dates;
 	}
@@ -357,6 +370,6 @@ export function parseProblemSet(set: ParseableProblemSet) {
 	} else if (set.set_type === 'REVIEW') {
 		return new ReviewSet(set);
 	} else {
-		throw `The problem set type '${set.set_type}' is not valid.'`;
+		throw `The problem set type '${set?.set_type || ''}' is not valid.'`;
 	}
 }
