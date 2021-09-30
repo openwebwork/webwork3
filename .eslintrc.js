@@ -13,7 +13,6 @@ const baseRules = {
 	'space-in-parens': ['error', 'never'],
 	'object-curly-spacing': ['error', 'always'],
 	'comma-spacing': ['error', { before: false, after: true }],
-	'comma-dangle': ['error', 'never'],
 	'semi': ['error', 'always'],
 	'generator-star-spacing': 'off',
 	'arrow-parens': 'off',
@@ -30,7 +29,7 @@ module.exports = {
 	root: true,
 
 	parserOptions: {
-		ecmaVersion: 2018, // Allows for the parsing of modern ECMAScript features
+		ecmaVersion: 2020, // Allows for the parsing of modern ECMAScript features
 		sourceType: 'module' // Allows for the use of imports
 	},
 

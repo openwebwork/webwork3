@@ -3,6 +3,7 @@
 const { configure } = require('quasar/wrappers');
 const StyleLintPlugin = require('stylelint-webpack-plugin');
 const path = require('path');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 module.exports = configure(function (ctx) {
 	return {
@@ -17,7 +18,8 @@ module.exports = configure(function (ctx) {
 
 		boot: [
 			'axios',
-			'i18n'
+			'i18n',
+			'logger'
 		],
 
 		css: [
@@ -50,11 +52,13 @@ module.exports = configure(function (ctx) {
 					exclude: ['node_modules', 'dist']
 				}));
 
+				chain.plugin('nodePolyfills').use(NodePolyfillPlugin);
+
 				if (ctx.prod) {
 					chain.plugin('copy-webpack')
 						.tap(args => {
 							args[0].patterns.push({
-								from: path.resolve(__dirname, './node_modules/mathjax-full/es5'),
+								from: path.resolve(__dirname, './node_modules/mathjax/es5'),
 								to: path.resolve(__dirname, './dist/spa/mathjax'),
 								toType: 'dir'
 							});
@@ -70,6 +74,17 @@ module.exports = configure(function (ctx) {
 							plugin.options.exclude = /.*mathjax.*/;
 					});
 				}
+
+				cfg.module.rules.push ({
+					test: /\.m?js/,
+					resolve: {
+						fullySpecified: false,
+						fallback: {
+							crypto: false,
+							fs: false
+						}
+					}
+				});
 			}
 		},
 
@@ -79,15 +94,9 @@ module.exports = configure(function (ctx) {
 			open: true, // opens browser window automatically,
 			proxy: {
 				'/webwork3/api': 'http://localhost:3000',
-				'/renderer': {
-					target: 'http://localhost:3001',
-					changeOrigin: true,
-					pathRewrite: {
-						'^/renderer': ''
-					}
-				}
+				'/renderer': 'http://localhost:3001'
 			},
-			static: path.join(__dirname, 'node_modules/mathjax-full/es5'),
+			static: path.join(__dirname, 'node_modules/mathjax/es5'),
 			historyApiFallback: {
 				rewrites: [{
 					from: /^\/webwork3\/mathjax\/.*$/,
