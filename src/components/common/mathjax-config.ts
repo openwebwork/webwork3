@@ -45,3 +45,12 @@ window.MathJax = {
 	}
 
 };
+
+export default (elements: Array<Element>) => {
+	if (window.MathJax && typeof window.MathJax.typesetPromise == 'function') {
+		window.MathJax.startup.promise = window.MathJax.startup.promise.then(
+			() => window.MathJax.typesetPromise(elements)
+		);
+		return window.MathJax.startup.promise;
+	}
+};
