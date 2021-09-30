@@ -54,6 +54,14 @@ export const instructor_views = [
 		show_user: false
 	},
 	{
+		name: 'Multiple Problem Viewer',
+		component_name: 'MultipleProblemViewer',
+		icon: 'preview',
+		route: 'multi-viewer',
+		show_set: false,
+		show_user: false
+	},
+	{
 		name: 'Classlist Manager',
 		component_name: 'ClasslistManager',
 		icon: 'people',

@@ -84,6 +84,15 @@ const routes: RouteRecordRaw[] = [
 							)
 					},
 					{
+						path: 'multi-viewer',
+						name: 'MultipleProblemViewer',
+						component: () =>
+							import(
+								/* webpackChunkName: "MultipleProblemViewer" */
+								'src/components/common/MultipleProblemViewer.vue'
+							)
+					},
+					{
 						path: 'classlist',
 						name: 'ClasslistManager',
 						component: () =>
