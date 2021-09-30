@@ -126,7 +126,13 @@ sudo apt install nodejs
 
 4. Copy `webwork3/dist/spa` to `/var/www/html/webwork3` (or create a link).
 
-5. Copy `conf/apache2/webwork3-apache2.dist.conf` to `conf/apache2/webwork3-apache2.conf`, and create a link to that
+5. Enable the necessary apache2 modules.
+
+```sh
+sudo a2enmod headers proxy proxy_http rewrite
+```
+
+6. Copy `conf/apache2/webwork3-apache2.dist.conf` to `conf/apache2/webwork3-apache2.conf`, and create a link to that
    file in `/etc/apache2/conf-enabled`.  This can be accomplished by executing the following commands from the webwork3
    directory.
 
@@ -135,16 +141,16 @@ cp conf/apache2/webwork3-apache2.dist.conf conf/apache2/webwork3-apache2.conf
 sudo ln -s $(pwd)/conf/apache2/webwork3-apache2.conf /etc/apache2/conf-enabled
 ```
 
-6. Restart apache2 with `sudo systemctl restart apache2`.
+7. Restart apache2 with `sudo systemctl restart apache2`.
 
-7. Set up permissions for the api with the following commands executed from the webwork3 directory.
+8. Set up permissions for the api with the following commands executed from the webwork3 directory.
 
 ```sh
 sudo chown -R youruser:www-data logs
 sudo chmod g+rw logs/*
 ```
 
-8. Copy `conf/apache2/webwork3.dist.service` to `conf/apache2/webwork3.service` and modify `WorkingDirectory` with the
+9. Copy `conf/apache2/webwork3.dist.service` to `conf/apache2/webwork3.service` and modify `WorkingDirectory` with the
    correct path to the webwork3 location.  Make sure to uncomment the hypnotoad `pid_file` setting in the `webwork3.yml`
    file.  Then enable and start the webwork3 api service by executing the following from within the `webwork3`
    directory.
@@ -154,7 +160,7 @@ sudo systemctl enable $(pwd)/conf/apache2/webwork3.service
 sudo systemctl start webwork3
 ```
 
-9. Set up permissions for the renderer with the following commands executed from the renderer directory.
+10. Set up permissions for the renderer with the following commands executed from the renderer directory.
 
 ```sh
 sudo chown -R youruser:www-data logs 
@@ -162,7 +168,7 @@ sudo chmod g+rw logs/standalone_results.log
 sudo chmod -R g+rw lib/WeBWorK/tmp/* lib/WeBWorK/htdocs/tmp/*
 ```
 
-10. Copy `conf/apache2/renderer.dist.service` to `conf/apache2/renderer.service` and modify `WorkingDirectory` in the
+11. Copy `conf/apache2/renderer.dist.service` to `conf/apache2/renderer.service` and modify `WorkingDirectory` in the
    copied file with the correct path to the webwork3 location.  Add `pid_file => '/var/run/webwork3/renderer.pid'` and
    `proxy => 1` to the hypnotoad configuration in the `render_app.conf` file.  Then enable and start the renderer
    service by executing the following from within the `webwork3` directory.
@@ -174,4 +180,4 @@ sudo systemctl start renderer
 
    Note that anytime the server is rebooted the webwork3 api and renderer services will be automatically started.
 
-11. Visit `localhost/webwork3`.
+12. Visit `localhost/webwork3`.
