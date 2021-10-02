@@ -4,9 +4,9 @@ import type { StateInterface } from 'src/store/index';
 import { remove } from 'lodash-es';
 
 import { User, UserCourse, CourseUser, ParseableCourseUser,
-	MergedCourseUser, ResponseError } from 'src/store/models';
+	MergedCourseUser, ParseableUser, ResponseError } from 'src/store/models';
 
-import { parseCourseUser } from 'src/store/utils/users';
+import { parseCourseUser, parseUser } from 'src/store/utils/users';
 
 export interface UserState {
 	users: Array<User>;
@@ -84,11 +84,11 @@ export default {
 		},
 		async getUser(
 			_context: ActionContext<UserState, StateInterface>,
-			_username: string): Promise<User | undefined> {
+			_username: string): Promise<ParseableUser | undefined> {
 			const response = await api.get(`users/${_username}`);
 			console.log(response);
 			if (response.status === 200) {
-				return response.data as User;
+				return response.data as ParseableUser;
 			} else if (response.status === 250) {
 				throw response.data as ResponseError;
 			}
@@ -96,7 +96,7 @@ export default {
 		async addUser({ commit }: { commit: Commit }, _user: User): Promise<User |undefined> {
 			const response = await api.post('users', _user);
 			if (response.status === 200) {
-				const u = response.data as User;
+				const u = response.data as ParseableUser;
 				commit('ADD_USER', u);
 				return parseUser(u);
 			} else if (response.status === 400) {

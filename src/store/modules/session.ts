@@ -61,7 +61,6 @@ export default {
 			state.logged_in = _session_info.logged_in;
 			if (state.logged_in) {
 				state.user = _session_info.user;
-				state.user.is_admin = _session_info.user.is_admin === 1 || _session_info.user.is_admin ? true : false;
 			} else {
 				state.user = newUser();
 			}

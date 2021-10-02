@@ -1,7 +1,7 @@
 // This is utility functions for users
 
 import { intersection, isEqual, difference } from 'lodash';
-import { User, CourseUser, Dictionary, MergedCourseUser, ParseableCourseUser } from 'src/store/models';
+import { User, CourseUser, MergedCourseUser, ParseableCourseUser, ParseableUser } from 'src/store/models';
 import { mailRE, usernameRE, user_roles } from './common';
 
 const required_user_params = ['username'];
@@ -50,7 +50,7 @@ export function newMergedCourseUser(): MergedCourseUser {
 	};
 }
 
-export function parseUser(params: Dictionary<string|number>): User {
+export function parseUser(params: ParseableUser): User {
 	const user = newUser();
 	const user_fields = Object.keys(user);
 	// check that the required fields are present in the params
@@ -75,24 +75,24 @@ export function parseUser(params: Dictionary<string|number>): User {
 	});
 	validateUser(params);
 
-	user.username = `${params.username}` || '';
-	user.email = `${params.email}` || '';
-	user.first_name = `${params.first_name}` || '';
-	user.last_name = `${params.last_name}` || '';
-	user.student_id = `${params.student_id}` || '';
+	user.username = `${params.username || ''}` ;
+	user.email = `${params.email || ''}`;
+	user.first_name = `${params.first_name || ''}`;
+	user.last_name = `${params.last_name || ''}`;
+	user.student_id = `${params.student_id || ''}`;
 
 	return user;
 }
 
-export function validateUser(params: Dictionary<string|number>): boolean {
-	if (!mailRE.test(`${params.email}`)) {
+export function validateUser(params: ParseableUser): boolean {
+	if (params.email && !mailRE.test(`${params.email}`)) {
 		throw {
 			field: 'email',
 			message: `The field '${params.email}' is not an email address`
 		};
 	}
 
-	if (!(mailRE.test(`${params.username}`) || usernameRE.test(`${params.username}`))) {
+	if (params.username && !(mailRE.test(`${params.username}`) || usernameRE.test(`${params.username}`))) {
 		throw {
 			field: 'username',
 			message: `The field '${params.username}' is not a valid username`

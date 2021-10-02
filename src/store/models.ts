@@ -7,11 +7,21 @@ export interface Dictionary<T> {
 export interface User {
 	email: string;
 	first_name: string;
-	is_admin: boolean | number; // it comes in as a 0/1 boolean
+	is_admin: boolean; // it comes in as a 0/1 boolean
 	last_name: string;
 	username: string;
 	student_id: string;
 	user_id: number;
+}
+
+export interface ParseableUser {
+	email?: string;
+	first_name?: string;
+	is_admin?: boolean | number; // it comes in as a 0/1 boolean
+	last_name?: string;
+	username?: string;
+	student_id?: string;
+	user_id?: number;
 }
 
 export interface UserCourse {
