@@ -44,6 +44,13 @@ sub deleteGlobalUser {
 
 ## the following subs are related to users within a given course.
 
+sub getMergedCourseUsers ($c) {
+	my @course_users = $c->schema->resultset("User")->getMergedCourseUsers(
+		{course_id => int($c->param("course_id"))});
+	$c->render(json => \@course_users);
+	return;
+}
+
 sub getCourseUsers {
 	my $self = shift;
 	my @course_users = $self->schema->resultset("User")->getCourseUsers(

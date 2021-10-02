@@ -1,7 +1,7 @@
 // This is utility functions for users
 
 import { intersection, isEqual, difference } from 'lodash';
-import { User, CourseUser, Dictionary, DetailedCourseUser } from 'src/store/models';
+import { User, CourseUser, Dictionary, MergedCourseUser, ParseableCourseUser } from 'src/store/models';
 import { mailRE, usernameRE, user_roles } from './common';
 
 const required_user_params = ['username'];
@@ -32,7 +32,7 @@ export function newCourseUser(): CourseUser {
 	};
 }
 
-export function newDetailedCourseUser(): DetailedCourseUser {
+export function newMergedCourseUser(): MergedCourseUser {
 	return {
 		course_user_id: 0,
 		user_id: 0,
@@ -42,6 +42,7 @@ export function newDetailedCourseUser(): DetailedCourseUser {
 		first_name: '',
 		last_name: '',
 		is_admin: false,
+		student_id: '',
 		role: 'student',
 		section: '',
 		recitation: '',
@@ -100,19 +101,20 @@ export function validateUser(params: Dictionary<string|number>): boolean {
 	return true;
 }
 
-export function parseCourseUser(params: Dictionary<string|number>): CourseUser {
-	const course_user = newCourseUser();
+export function parseCourseUser(_course_user: ParseableCourseUser): MergedCourseUser {
+	const course_user = newMergedCourseUser();
 	const user_fields = Object.keys(course_user);
+
 	// check that the required fields are present in the params
-	const common_fields = intersection(required_course_user_params, Object.keys(params));
+	const common_fields = intersection(required_course_user_params, Object.keys(_course_user));
 	if (!isEqual(common_fields, required_course_user_params)) {
 		const diff = difference(required_course_user_params, common_fields);
 		throw {
-			message: `The fields '${diff.join(', ')}' must be present in the course user.`,
-			params
+			message: `The field(s) '${diff.join(', ')}' must be present in the course user.`,
+			course_user: _course_user
 		};
 	}
-	Object.keys(params).forEach((key) => {
+	Object.keys(_course_user).forEach((key) => {
 		if (user_fields.indexOf(key)<0) {
 			throw {
 				field: key,
@@ -120,22 +122,42 @@ export function parseCourseUser(params: Dictionary<string|number>): CourseUser {
 			};
 		}
 	});
-	validateCourseUser(params);
+	validateCourseUser(_course_user);
 
-	course_user.user_id = parseInt(`${params.user_id}`) || 0;
-	course_user.role = `${params.role}` || '';
-	course_user.section = `${params.section}` || '';
-	course_user.recitation = `${params.recitation}` || '';
+	// need to find a more robust way to handle this.
+
+	course_user.username = _course_user.username ?? '';
+	course_user.first_name = _course_user.first_name ?? '';
+	course_user.last_name = _course_user.last_name ?? '';
+	course_user.email = _course_user.email ?? '';
+	course_user.user_id = _course_user.user_id ? parseInt(`${_course_user.user_id}`) : 0;
+	course_user.course_user_id = _course_user.course_user_id ? parseInt(`${_course_user.course_user_id}`) : 0 ;
+	course_user.course_id = _course_user.course_id ? parseInt(`${_course_user.course_id}`) : 0 ;
+	course_user.role = _course_user.role ? `${_course_user.role}` : '';
+	course_user.section = _course_user.section ? `${_course_user.section}` : '';
+	course_user.recitation = _course_user.recitation ? `${_course_user.recitation}` : '';
 
 	return course_user;
 }
 
-export function validateCourseUser(params: Dictionary<string|number>): boolean {
+export function validateCourseUser(_course_user: ParseableCourseUser): boolean {
+	if (!mailRE.test(`${_course_user.email || ''}`)) {
+		throw {
+			field: 'email',
+			message: `The field '${_course_user.email || ''}' is not an email address`
+		};
+	}
 
-	if (user_roles.findIndex((v) => v === params.role) < 0) {
+	if (!(mailRE.test(`${_course_user.username || ''}`) || usernameRE.test(`${_course_user.username || ''}`))) {
+		throw {
+			field: 'username',
+			message: `The field '${_course_user.username || ''}' is not a valid username`
+		};
+	}
+	if (user_roles.findIndex((v) => v === _course_user.role) < 0) {
 		throw {
 			field: 'role',
-			message: `The value '${params.role}' is not a valid role`
+			message: `The value '${_course_user.role || ''}' is not a valid role`
 		};
 	}
 	return true;

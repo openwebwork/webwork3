@@ -244,6 +244,45 @@ sub getCourseUsers {
 	} @users;
 }
 
+=head1 getMergedUsers
+
+This returns all users in a given course as a merge between global users
+and course users.
+
+=head3 input
+
+=over
+
+=item * C<course_name>, a string OR
+=item * C<course_id>, a key
+
+=back
+
+=head3 output
+
+An array of MergedCourseUsers (as hashrefs)
+
+=cut
+
+sub getMergedCourseUsers {
+	my ( $self, $course_info ) = @_;
+	my $course_rs = $self->result_source->schema->resultset("Course");
+	my $course    = $course_rs->getCourse( getCourseInfo($course_info), 1 );
+	my @users = $self->search( { 'course_users.course_id' => $course->course_id }, { prefetch => ["course_users"] } );
+
+	return map {
+		removeLoginParams(
+			{
+				$_->get_columns,
+				$_->course_users->first->get_columns,
+				params => $_->course_users->first->get_inflated_column("params")
+			}
+		);
+	} @users;
+}
+
+
+
 ###
 #
 # CRUD for users in a course

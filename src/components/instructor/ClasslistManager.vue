@@ -14,7 +14,7 @@
 				<template v-slot:top-right>
 					<span v-if="selected.length > 0" style="margin-right: 20px">
 						<q-btn color="secondary" label="Deleted Selected" @click="deleteCourseUsers" />
-						<q-btn color="secondary" label="Edit Selected" />
+						<q-btn color="secondary" label="Edit Selected" @click="open_edit_dialog = true" />
 					</span>
 					<q-input dense debounce="300" v-model="filter" placeholder="Search">
 						<template v-slot:append>
@@ -46,26 +46,30 @@
 		<q-dialog full-width v-model="open_users_from_file">
 			<add-users-from-file />
 		</q-dialog>
+		<q-dialog v-model="open_edit_dialog">
+			<edit-users :users_to_edit="selected"/>
+		</q-dialog>
 	</div>
 </template>
 
 <script lang="ts">
 import { useQuasar } from 'quasar';
 import { defineComponent, computed, ref, Ref } from 'vue';
-import { assign } from 'lodash-es';
 
+import { pick } from 'lodash-es';
 import { useStore } from 'src/store';
 import { api } from 'boot/axios';
-import { User, CourseUser, UserCourse, DetailedCourseUser, ResponseError } from 'src/store/models';
-import { newDetailedCourseUser } from 'src/store/utils/users';
-import AddUsersManually from './AddUsersManually.vue';
-import AddUsersFromFile from './AddUsersFromFile.vue';
+import { User, UserCourse, CourseUser, ResponseError } from 'src/store/models';
+import AddUsersManually from './ClasslistManagerComponents/AddUsersManually.vue';
+import AddUsersFromFile from './ClasslistManagerComponents/AddUsersFromFile.vue';
+import EditUsers from './ClasslistManagerComponents/EditUsers.vue';
 
 export default defineComponent({
 	name: 'ClasslistManager',
 	components: {
 		AddUsersManually,
-		AddUsersFromFile
+		AddUsersFromFile,
+		EditUsers
 	},
 	emits: ['closeDialog'],
 	setup() {
@@ -75,6 +79,7 @@ export default defineComponent({
 		const filter: Ref<string> = ref('');
 		const open_users_manually: Ref<boolean> = ref(false);
 		const open_users_from_file: Ref<boolean> = ref(false);
+		const open_edit_dialog: Ref<boolean> = ref(false);
 
 		const columns = [
 			{
@@ -119,27 +124,32 @@ export default defineComponent({
 			selected,
 			open_users_manually,
 			open_users_from_file,
+			open_edit_dialog,
 			columns,
-			detailed_course_users: computed(() => {
-				const dcu: Array<DetailedCourseUser> = [];
-				store.state.users.course_users.forEach((_course_user: CourseUser) => {
-					const _user = store.state.users.users.find((_u: User) => _u.user_id === _course_user.user_id);
-					const course_user = newDetailedCourseUser();
-					assign(course_user, _user, _course_user);
-					dcu.push(course_user);
-				});
-				return dcu;
-			}),
+			detailed_course_users: computed(() => store.state.users.merged_course_users),
+			// const dcu: Array<MergedCourseUser> = [];
+			// store.state.users.course_users.forEach((_course_user: CourseUser) => {
+			// const _user = store.state.users.users.find((_u: User) => _u.user_id === _course_user.user_id);
+			// const course_user = newMergedCourseUser();
+			// assign(course_user, _user, _course_user);
+			// dcu.push(course_user);
+			// });
+			// return dcu;
+			// }),
 			deleteCourseUsers: async () => {
 				const users_to_delete = selected.value.map((u) => u.username).join(', ');
 				var conf = confirm(`Are you sure you want to delete the users: ${users_to_delete}`);
 				if (conf) {
-					for await (const _user_to_delete of selected.value) {
+					for await (const _user of selected.value) {
+						const username = _user.username;
+						const _user_to_delete = pick(_user,
+							['user_id', 'username', 'course_user_id']) as unknown as CourseUser;
+
 						try {
+							// _user_to_delete.user_id = _user.user_id;
 							await store.dispatch('users/deleteCourseUser', _user_to_delete);
 							$q.notify({
-								message: `The user '${_user_to_delete.username}' ` +
-									'has been succesfully deleted from the course.',
+								message: `The user '${username}' has been succesfully deleted from the course.`,
 								color: 'green'
 							});
 						} catch (err) {
@@ -154,7 +164,7 @@ export default defineComponent({
 							try {
 								await store.dispatch('users/deleteUser', _user_to_delete);
 								$q.notify({
-									message: `The user '${_user_to_delete.username}' has been succesfully deleted.`,
+									message: `The user '${username}' has been succesfully deleted.`,
 									color: 'green'
 								});
 							} catch (err) {
@@ -162,6 +172,7 @@ export default defineComponent({
 								$q.notify({ message: error.message, color: 'red' });
 							}
 						}
+						void store.dispatch('users/deleteMergedCourseUser', _user_to_delete);
 					}
 				}
 			}

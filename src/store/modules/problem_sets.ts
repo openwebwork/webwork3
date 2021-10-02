@@ -4,7 +4,7 @@ import { StateInterface } from '../index';
 import { isEqual } from 'lodash-es';
 
 import { ProblemSet, ParseableProblemSet } from 'src/store/models';
-import { parseHW, parseQuiz, parseReview } from '../utils/problem_sets';
+import { parseHW, parseQuiz, parseReview } from 'src/store/utils/problem_sets';
 
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;

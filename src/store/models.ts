@@ -35,7 +35,10 @@ export interface CourseUser {
 	params: Dictionary<string>;
 }
 
-export interface DetailedCourseUser {
+/* This is a join between a User and a CourseUser, which
+is much more appropriate for the client side in the instructor */
+
+export interface MergedCourseUser {
 	course_user_id: number;
 	user_id: number;
 	course_id: number;
@@ -44,10 +47,27 @@ export interface DetailedCourseUser {
 	first_name: string;
 	last_name: string;
 	is_admin: boolean;
+	student_id: string;
 	role: string;
 	section: string;
 	recitation: string;
 	params: Dictionary<string>;
+}
+
+export interface ParseableCourseUser {
+	course_user_id?: number;
+	user_id?: number;
+	course_id?: number;
+	username?: string;
+	email?: string;
+	first_name?: string;
+	last_name?: string;
+	is_admin?: boolean;
+	student_id?: string;
+	role?: string;
+	section?: string;
+	recitation?: string;
+	params?: Dictionary<string>;
 }
 
 export interface SessionInfo {
