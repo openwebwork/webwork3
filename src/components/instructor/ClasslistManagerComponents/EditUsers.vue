@@ -23,7 +23,7 @@
 			</q-card-section>
 
 			<q-card-actions align="right" class="bg-white text-teal">
-				<q-btn flat label="Save Changes and Close"/>
+				<q-btn flat label="Save Changes and Close" @click="updateUsers"/>
 				<q-btn flat label="Cancel" v-close-popup />
 			</q-card-actions>
 
@@ -36,19 +36,26 @@ import type { Ref } from 'vue';
 import { defineComponent, ref, computed } from 'vue';
 import { cloneDeep, clone, remove } from 'lodash-es';
 
-import { MergedCourseUser, CourseSetting } from 'src/store/models';
+import { MergedUser, CourseSetting } from 'src/store/models';
 import { useStore } from 'src/store';
+import { logger } from 'boot/logger';
 
 export default defineComponent({
 	props: {
 		users_to_edit: Array,
 	},
 	setup(props) {
-		const merged_users: Ref<Array<MergedCourseUser>> = props.users_to_edit ?
-			ref(cloneDeep(props.users_to_edit) as unknown as Array<MergedCourseUser>) : ref([]);
+		const merged_users: Ref<Array<MergedUser>> = props.users_to_edit ?
+			ref(cloneDeep(props.users_to_edit) as unknown as Array<MergedUser>) : ref([]);
 		const store = useStore();
+
+		const updateUsers = () => {
+			logger.info('in updateUsers');
+		};
+
 		return {
 			merged_users,
+			updateUsers,
 			// this is just copied over from AddUsersManually. perhaps put in a central location.
 			roles: computed(() => { // return an array of the roles in the course
 				const all_roles = store.state.settings.course_settings.find(

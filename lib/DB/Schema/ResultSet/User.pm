@@ -384,7 +384,8 @@ sub addCourseUser {
 		->find({ user_id => $user->user_id, course_id => $course->course_id});
 
 	## remove the course_user_id if it is 0 (it's new)
-	# delete $course_user_params->{course_user_id} if $course_user_params->{course_user_id} == 0;
+	delete $course_user_params->{course_user_id}
+		if defined($course_user_params->{course_user_id}) && $course_user_params->{course_user_id} == 0;
 
 	DB::Exception::UserAlreadyInCourse->throw(
 		message => "The user with username: ${\$user->username} is already in the course: ${\$course->course_name}"

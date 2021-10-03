@@ -17,7 +17,7 @@
 			<q-card-section class="q-pt-none">
 				<div class="row">
 					<div class="col-3">
-						<q-toggle v-model="first_row_header" :disable="users.length==''"/>
+						<q-toggle v-model="first_row_header" :disable="merged_users.length==''"/>
 						First row is Header
 					</div>
 
@@ -30,9 +30,9 @@
 			</q-card-section>
 			<q-card-section class="q-pt-none">
 				<div class="row">
-					<div class="col-12 q-pa-md" v-if="users.length > 0">
+					<div class="col-12 q-pa-md" v-if="merged_users.length > 0">
 						<q-table class="loaded-users-table"
-							:rows="users" row-key="_row" :columns="columns"
+							:rows="merged_users" row-key="_row" :columns="columns"
 							v-model:selected="selected" selection="multiple"
 							:pagination="{ rowsPerPage: 0}">
 
@@ -73,11 +73,13 @@ import type { Ref } from 'vue';
 import { defineComponent, ref, computed, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { parse } from 'papaparse';
+import { AxiosError } from 'axios';
+import { logger } from 'boot/logger';
 
 import { useStore } from 'src/store';
-import type { Dictionary, User, CourseUser } from 'src/store/models';
-import { newUser, parseUser, newCourseUser, parseCourseUser } from 'src/store/utils/users';
-import { pick, fromPairs, values, invert, mapValues, omit } from 'lodash-es';
+import type { Dictionary, MergedUser, User, ResponseError } from 'src/store/models';
+import { newUser, parseMergedUser, newCourseUser } from 'src/store/utils/users';
+import { pick, fromPairs, values, invert, mapValues } from 'lodash-es';
 
 interface Prop {
 	row: {
@@ -98,21 +100,20 @@ interface ParseError {
 
 export default defineComponent({
 	name: 'AddUsersFromFile',
-	setup() {
+	emits: ['closeDialog'],
+	setup(props, context) {
 		const store = useStore();
 		const $q = useQuasar();
 		const file: Ref<File> = ref(new File([], ''));
 		const invalid_table_cells: Ref<Array<ParseError>> = ref([]);
-		const users: Ref<Array<Dictionary<string|number>>> = ref([]); // stores all users from the file
+		const merged_users: Ref<Array<Dictionary<string|number>>> = ref([]); // stores all users from the file
 		const selected: Ref<Array<Dictionary<string|number>>> = ref([]); // stores the selected users
 		const column_headers: Ref<Dictionary<string>> = ref({});
 		const user_param_map: Ref<Dictionary<string>> = ref({}); // provides a map from column number to field name
 
 		const first_row_header: Ref<boolean> = ref(false);
 		const header_row: Ref<Dictionary<string|number>> = ref({});
-		const users_to_add: Ref<Array<User>> = ref([]);
-		const course_users_to_add: Ref<Array<Dictionary<string|number>>> = ref([]);
-		// const course_users_to_add: Ref<Array<CourseUser>> = ref([]);
+		const merged_users_to_add: Ref<Array<MergedUser>> = ref([]);
 
 		const user_fields = [
 			{ label: 'Username', field: 'username', regexp: /(user)|(login)/i },
@@ -151,39 +152,24 @@ export default defineComponent({
 
 		watch([first_row_header], () => {
 			if(first_row_header.value) {
-				const first_row = users.value.shift();
+				const first_row = merged_users.value.shift();
 				if (first_row) {
 					header_row.value = first_row;
 					fillHeaders();
 				}
 			} else {
-				users.value.unshift(header_row.value);
+				merged_users.value.unshift(header_row.value);
 			}
 		});
 
 		watch([selected], () => {
-			users_to_add.value = [];
-			course_users_to_add.value = [];
+			merged_users_to_add.value = [];
 			invalid_table_cells.value = [];
 			selected.value.forEach((params) => {
 
-				let user: Dictionary<string|number> = {};
-				let course_user: Dictionary<string|number> = {};
-
 				try {
-					user = pick(mapValues(user_param_map.value, (obj) => params[obj]), Object.keys(newUser()));
-					users_to_add.value.push(parseUser(user));
-
-					course_user = pick(mapValues(user_param_map.value, (obj) => params[obj]),
-						Object.keys(newCourseUser()));
-
-					course_user.role = course_user.role ?? 'student';
-					const parsed_course_user = parseCourseUser(course_user);
-					course_user.username = user.username;
-					console.log(parsed_course_user);
-
-					course_users_to_add.value.push(parsed_course_user as unknown as
-						Dictionary<string|number>);
+					const user = pick(mapValues(user_param_map.value, (obj) => params[obj]), Object.keys(newUser()));
+					merged_users_to_add.value.push(parseMergedUser(user));
 				} catch (error) {
 					const err = error as ParseError;
 					const user_fields = Object.keys(newUser());
@@ -195,9 +181,8 @@ export default defineComponent({
 							row: parseInt(`${params._row}`),
 							entire_row: true
 						});
-					}
-
-					if (err.field && (user_fields.indexOf(err.field)>=0 || course_user_fields.indexOf(err.field)>=0)) {
+					} else if (err.field &&
+						(user_fields.indexOf(err.field)>=0 || course_user_fields.indexOf(err.field)>=0)) {
 						invalid_table_cells.value.push({
 							message: err.message,
 							field: err.field,
@@ -225,7 +210,7 @@ export default defineComponent({
 					} else {
 						const data = results.data as Array<Dictionary<string|number>>;
 						data.forEach((row: Dictionary<string|number>, index: number) => { row['_row'] = index; });
-						users.value = data;
+						merged_users.value = data;
 					}
 				}
 			};
@@ -234,47 +219,54 @@ export default defineComponent({
 		const addUsers = async () => {
 			// console.log('in addUsers');
 
-			for await (const _user of users_to_add.value) {
-				const user = await store.dispatch('users/addUser', _user) as User;
-				$q.notify({
-					message: `The global user ${user.first_name} ${user.last_name} was successfully added.`,
-					color: 'green'
-				});
-			}
-
-			for await (const _course_user of course_users_to_add.value) {
-				// need to look up the user_id
-				const user = store.state.users.users.find((u) => u.username === _course_user.username);
-				if (user) {
-
-					const cu = parseCourseUser(omit(_course_user, 'username'));
-					cu.user_id = user.user_id;
-					await store.dispatch('users/addCourseUser', _course_user) as CourseUser;
-					// need to verify that the result is the same.
+			for await (const _user of merged_users_to_add.value) {
+				_user.course_id = store.state.session.course.course_id;
+				try {
+					const u = await store.dispatch('users/getUser', _user.username) as User;
+					_user.user_id = u.user_id;
+				} catch (err) {
+					const error = err as ResponseError;
+					// this will occur is the user is not a global user
+					if (error.exception !== 'DB::Exception::UserNotFound') {
+						logger.error(error.message);
+					}
+				}
+				try {
+					const merged_user = await store.dispatch('users/addMergedUser', _user) as MergedUser;
 					$q.notify({
-						message: 'The course user was successfully added.',
+						message: `The user ${merged_user.first_name} ${merged_user.last_name}` +
+							' was successfully added to the course.',
 						color: 'green'
 					});
+					context.emit('closeDialog');
+				} catch (err) {
+					const error = err as AxiosError;
+					logger.error(error);
+					const data = error?.response?.data as ResponseError || { exception: '' };
+					$q.notify({
+						message: data.exception,
+						color: 'red'
+					});
 				}
+
 			}
 		};
 
 		const getColumns = () => {
-			return users.value.length === 0 ? [] :
-				Object.keys(users.value[0]).filter((v) => v !== '_row')
+			return merged_users.value.length === 0 ? [] :
+				Object.keys(merged_users.value[0]).filter((v) => v !== '_row')
 					.map((v) => ({ name: v, label: v, field: v }));
 		};
 
 		return {
 			file,
-			users,
+			merged_users,
 			selected,
 			invalid_table_cells,
 			first_row_header,
 			user_fields,
 			column_headers,
-			users_to_add,
-			course_users_to_add,
+			merged_users_to_add,
 			loadFile,
 			addUsers,
 			columns: computed(() => getColumns()),

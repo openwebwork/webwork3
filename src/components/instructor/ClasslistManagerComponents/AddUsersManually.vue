@@ -43,27 +43,30 @@
 import type { Ref } from 'vue';
 import { defineComponent, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
+import { logger } from 'boot/logger';
 
+import { useRoute } from 'vue-router';
 import { useStore } from 'src/store';
-import { newMergedCourseUser } from 'src/store/utils/users';
+import { newMergedUser } from 'src/store/utils/users';
 
-import { CourseSetting, User, MergedCourseUser, ResponseError, CourseUser } from 'src/store/models';
+import { CourseSetting, User, MergedUser, ResponseError } from 'src/store/models';
 import { AxiosError } from 'axios';
-import { pick, remove, clone } from 'lodash';
+import { isArray, remove, clone } from 'lodash';
 
 export default defineComponent({
 	name: 'AddUsersManually',
 	emits: ['closeDialog'],
 	setup(props, context) {
 		const $q = useQuasar();
-		const course_user: Ref<MergedCourseUser> = ref(newMergedCourseUser());
+		const course_user: Ref<MergedUser> = ref(newMergedUser());
 		const user_exists: Ref<boolean> = ref(true);
 		const store = useStore();
+		const route = useRoute();
 
 		return {
 			course_user,
 			user_exists,
-			// see if the user exists already and fill in the known fiels
+			// see if the user exists already and fill in the known fields
 			checkUser: async () => {
 				try {
 					const _user = await store.dispatch('users/getUser', course_user.value.username) as User;
@@ -75,8 +78,11 @@ export default defineComponent({
 					course_user.value.email = _user.email;
 				} catch (err) {
 					const error = err as ResponseError;
+					// this will occur is the user is not a global user
 					if (error.exception === 'DB::Exception::UserNotFound') {
 						user_exists.value = false;
+					} else {
+						logger.error(error.message);
 					}
 				}
 			},
@@ -90,22 +96,19 @@ export default defineComponent({
 			}),
 			addUser: async () => {
 				try {
-					if (! user_exists.value) {
-						const user = pick(course_user.value, ['username', 'first_name', 'last_name', 'email']);
-						const u = (await store.dispatch('users/addUser', user)) as User;
-						course_user.value.user_id = u.user_id;
-					}
-					const _course_user = pick(course_user.value, ['role', 'user_id']);
-					const cu = await store.dispatch('users/addCourseUser', _course_user) as unknown as CourseUser;
+					const course_id = isArray(route.params.course_id) ?
+						route.params.course_id[0] :
+						route.params.course_id;
+					course_user.value.course_id = parseInt(course_id);
+					await store.dispatch('users/addMergedUser', course_user.value);
 					$q.notify({
-						message: `The user ${course_user.value.username} was successfully added to the course.`,
+						message: `The user with username '${course_user.value.username}' was added successfully.`,
 						color: 'green'
 					});
-					course_user.value.course_user_id = cu.course_user_id;
-					void store.dispatch('users/addMergedCourseUser', course_user.value);
 					context.emit('closeDialog');
 				} catch (err) {
 					const error = err as AxiosError;
+					logger.error(error);
 					const data = error?.response?.data as ResponseError || { exception: '' };
 					$q.notify({
 						message: data.exception,

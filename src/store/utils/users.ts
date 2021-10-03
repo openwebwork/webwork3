@@ -1,8 +1,9 @@
 // This is utility functions for users
 
 import { intersection, isEqual, difference } from 'lodash';
-import { User, CourseUser, MergedCourseUser, ParseableCourseUser, ParseableUser } from 'src/store/models';
-import { mailRE, usernameRE, user_roles } from './common';
+import { User, CourseUser, MergedUser, ParseableCourseUser,
+	ParseableMergedUser, ParseableUser } from 'src/store/models';
+import { mailRE, parseBoolean, usernameRE, user_roles } from './common';
 
 const required_user_params = ['username'];
 
@@ -32,7 +33,7 @@ export function newCourseUser(): CourseUser {
 	};
 }
 
-export function newMergedCourseUser(): MergedCourseUser {
+export function newMergedUser(): MergedUser {
 	return {
 		course_user_id: 0,
 		user_id: 0,
@@ -80,6 +81,7 @@ export function parseUser(params: ParseableUser): User {
 	user.first_name = `${params.first_name || ''}`;
 	user.last_name = `${params.last_name || ''}`;
 	user.student_id = `${params.student_id || ''}`;
+	user.user_id = parseInt(`${params.user_id || ''}`) || 0;
 
 	return user;
 }
@@ -101,8 +103,22 @@ export function validateUser(params: ParseableUser): boolean {
 	return true;
 }
 
-export function parseCourseUser(_course_user: ParseableCourseUser): MergedCourseUser {
-	const course_user = newMergedCourseUser();
+export function parseMergedUser(_merged_user: ParseableMergedUser): MergedUser {
+	const merged_user = newMergedUser();
+
+	merged_user.username = _merged_user.username ?? '';
+	merged_user.first_name = _merged_user.first_name ?? '';
+	merged_user.last_name = _merged_user.last_name ?? '';
+	merged_user.email = _merged_user.email ?? '';
+	merged_user.user_id = _merged_user.user_id ? parseInt(`${_merged_user.user_id}`) : 0;
+	merged_user.course_id = _merged_user.course_id ? parseInt(`${_merged_user.course_id}`) : 0;
+	merged_user.course_user_id = _merged_user.course_user_id ? parseInt(`${_merged_user.course_user_id}`) : 0;
+	merged_user.is_admin = _merged_user.is_admin ? (parseBoolean(_merged_user.is_admin) ?? false) : false;
+	return merged_user;
+}
+
+export function parseCourseUser(_course_user: ParseableCourseUser): CourseUser {
+	const course_user = newCourseUser();
 	const user_fields = Object.keys(course_user);
 
 	// check that the required fields are present in the params
@@ -126,11 +142,6 @@ export function parseCourseUser(_course_user: ParseableCourseUser): MergedCourse
 
 	// need to find a more robust way to handle this.
 
-	course_user.username = _course_user.username ?? '';
-	course_user.first_name = _course_user.first_name ?? '';
-	course_user.last_name = _course_user.last_name ?? '';
-	course_user.email = _course_user.email ?? '';
-	course_user.user_id = _course_user.user_id ? parseInt(`${_course_user.user_id}`) : 0;
 	course_user.course_user_id = _course_user.course_user_id ? parseInt(`${_course_user.course_user_id}`) : 0 ;
 	course_user.course_id = _course_user.course_id ? parseInt(`${_course_user.course_id}`) : 0 ;
 	course_user.role = _course_user.role ? `${_course_user.role}` : '';
@@ -141,19 +152,6 @@ export function parseCourseUser(_course_user: ParseableCourseUser): MergedCourse
 }
 
 export function validateCourseUser(_course_user: ParseableCourseUser): boolean {
-	if (!mailRE.test(`${_course_user.email || ''}`)) {
-		throw {
-			field: 'email',
-			message: `The field '${_course_user.email || ''}' is not an email address`
-		};
-	}
-
-	if (!(mailRE.test(`${_course_user.username || ''}`) || usernameRE.test(`${_course_user.username || ''}`))) {
-		throw {
-			field: 'username',
-			message: `The field '${_course_user.username || ''}' is not a valid username`
-		};
-	}
 	if (user_roles.findIndex((v) => v === _course_user.role) < 0) {
 		throw {
 			field: 'role',

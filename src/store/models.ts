@@ -21,7 +21,7 @@ export interface ParseableUser {
 	last_name?: string;
 	username?: string;
 	student_id?: string;
-	user_id?: number;
+	user_id?: number | string;
 }
 
 export interface UserCourse {
@@ -45,10 +45,20 @@ export interface CourseUser {
 	params: Dictionary<string>;
 }
 
+export interface ParseableCourseUser {
+	course_user_id?: number;
+	user_id?: number;
+	course_id?: number;
+	role?: string;
+	section?: string;
+	recitation?: string;
+	params?: Dictionary<string>;
+}
+
 /* This is a join between a User and a CourseUser, which
 is much more appropriate for the client side in the instructor */
 
-export interface MergedCourseUser {
+export interface MergedUser {
 	course_user_id: number;
 	user_id: number;
 	course_id: number;
@@ -64,7 +74,7 @@ export interface MergedCourseUser {
 	params: Dictionary<string>;
 }
 
-export interface ParseableCourseUser {
+export interface ParseableMergedUser {
 	course_user_id?: number;
 	user_id?: number;
 	course_id?: number;

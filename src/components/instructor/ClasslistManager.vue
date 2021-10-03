@@ -43,8 +43,8 @@
 		<q-dialog v-model="open_users_manually">
 			<add-users-manually @close-dialog="open_users_manually = false" />
 		</q-dialog>
-		<q-dialog full-width v-model="open_users_from_file">
-			<add-users-from-file />
+		<q-dialog full-width v-model="open_users_from_file" >
+			<add-users-from-file @close-dialog="open_users_from_file = false"/>
 		</q-dialog>
 		<q-dialog v-model="open_edit_dialog">
 			<edit-users :users_to_edit="selected"/>
@@ -173,6 +173,7 @@ export default defineComponent({
 							}
 						}
 						void store.dispatch('users/deleteMergedCourseUser', _user_to_delete);
+						selected.value = [];
 					}
 				}
 			}
