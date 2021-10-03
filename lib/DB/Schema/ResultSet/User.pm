@@ -384,7 +384,7 @@ sub addCourseUser {
 		->find({ user_id => $user->user_id, course_id => $course->course_id});
 
 	## remove the course_user_id if it is 0 (it's new)
-	delete $course_user_params->{course_user_id} if $course_user_params->{course_user_id} == 0;
+	# delete $course_user_params->{course_user_id} if $course_user_params->{course_user_id} == 0;
 
 	DB::Exception::UserAlreadyInCourse->throw(
 		message => "The user with username: ${\$user->username} is already in the course: ${\$course->course_name}"
@@ -398,8 +398,7 @@ sub addCourseUser {
 
 	## still need to check params for validity.
 
-	my $course_user = $self->result_source->schema->resultset("CourseUser")
-		->new($params);
+	my $course_user = $self->result_source->schema->resultset("CourseUser")->new($params);
 	$course->add_to_users({user_id => $user->user_id});
 
 	my $user_to_return = $self->result_source->schema->resultset("CourseUser")

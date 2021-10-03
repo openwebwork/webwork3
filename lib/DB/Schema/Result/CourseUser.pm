@@ -146,9 +146,6 @@ __PACKAGE__->add_unique_constraint( [qw/course_id user_id/] );
 __PACKAGE__->belongs_to( users   => 'DB::Schema::Result::User',   'user_id' );
 __PACKAGE__->belongs_to( courses => 'DB::Schema::Result::Course', 'course_id' );
 
-__PACKAGE__->has_many( user_sets => 'DB::Schema::Result::UserSet', 'user_id' );
-
-# __PACKAGE__->belongs_to( user_id => 'DB::Schema::Result::User' );
-# __PACKAGE__->belongs_to( course_id => 'DB::Schema::Result::Course' );
+__PACKAGE__->has_many( user_sets => 'DB::Schema::Result::UserSet', 'course_user_id' );
 
 1;

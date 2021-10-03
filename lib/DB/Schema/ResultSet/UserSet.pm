@@ -43,15 +43,11 @@ get all UserSet for a given course and either a given user or given set
 
 sub getUserSetsForUser {
 	my ( $self, $info, $as_result_set ) = @_;
-	my $course = $self->_getCourse($info);
+	my $course      = $self->_getCourse($info);
+	my $user        = $self->_getUser($info);
+	my $course_user = $self->_getCourseUser($info);
 
-	my $user = $self->_getUser(
-		{
-			course_id => $course->course_id,
-			%{getUserInfo($info)}
-		}, 1 );
-
-	my @user_sets   = $self->search( { user_id => $user->user_id } );
+	my @user_sets   = $self->search( { course_user_id => $course_user->course_user_id } );
 	my @user_setids = map { { set_id => $_->set_id }; } @user_sets;
 
 	my @problem_sets = $course->problem_sets->search( \@user_setids );
@@ -108,13 +104,14 @@ sub getUserSet {
 	my ( $self, $user_set_info, $as_result_set ) = @_;
 
 	my $problem_set    = $self->_getProblemSet( $user_set_info);
-	my $user           = $self->_getUser( $user_set_info);
+	my $user           = $self->_getUser($user_set_info);
+	my $course_user    = $self->_getCourseUser( $user_set_info);
 
 	my $user_set = $self->find(
 		{
 			'problem_sets.course_id' => $problem_set->course_id,
 			'problem_sets.set_id'    => $problem_set->set_id,
-			user_id                  => $user->user_id,
+			course_user_id           => $course_user->course_user_id,
 		},
 		{ prefetch => [qw/problem_sets/] }
 	);
@@ -133,6 +130,7 @@ sub addUserSet {
 
 	my $problem_set = $self->_getProblemSet($user_set_info);
 	my $user = $self->_getUser($user_set_info);
+	my $course_user = $self->_getCourseUser($user_set_info);
 
 	DB::Exception::UserSetExists->throw(
 		username => $user->username,
@@ -141,7 +139,7 @@ sub addUserSet {
 	) if $self->getUserSet($user_set_info,1);
 
 	my $params = {
-		user_id => $user->user_id,
+		course_user_id => $course_user->course_user_id,
 		set_id  => $problem_set->set_id
 	};
 
@@ -271,6 +269,20 @@ sub _getUser {
 sub _getCourse {
 	my ($self,$info) = @_;
 	return $self->_course_rs->getCourse(getCourseInfo($info),1);
+}
+
+# return the course user with the given data
+
+sub _getCourseUser {
+	my ($self,$info) = @_;
+	my $course = $self->_getCourse($info);
+	my $user = $self->_getUser(
+		{
+			course_id => $course->course_id,
+			%{getUserInfo($info)}
+		}, 1 );
+	return $self->result_source->schema->resultset("CourseUser")
+		->find({course_id => $course->course_id, user_id => $user->user_id});
 }
 
 # merge the user set data with the problem set information
