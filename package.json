@@ -13,15 +13,22 @@
 	},
 	"dependencies": {
 		"@quasar/extras": "^1.10.12",
+		"@types/bootstrap": "^5.1.4",
+		"@types/jquery": "^3.5.6",
 		"axios": "^0.21.1",
+		"bootstrap": "^5.1.1",
 		"core-js": "^3.6.5",
+		"jquery": "^3.6.0",
 		"lodash-es": "^4.17.21",
-		"mathjax-full": "^3.2.0",
+		"mathjax": "^3.2.0",
+		"node-polyfill-webpack-plugin": "^1.1.4",
 		"quasar": "^2.0.4",
+		"setimmediate": "^1.0.5",
 		"vue-i18n": "^9.1.7",
 		"vue-router": "4.0.11",
 		"vuex": "^4.0.1",
-		"vuex-persistedstate": "^4.0.0"
+		"vuex-persistedstate": "^4.0.0",
+		"winston": "^3.3.3"
 	},
 	"devDependencies": {
 		"@babel/eslint-parser": "^7.13.14",
