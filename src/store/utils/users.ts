@@ -114,6 +114,9 @@ export function parseMergedUser(_merged_user: ParseableMergedUser): MergedUser {
 	merged_user.course_id = _merged_user.course_id ? parseInt(`${_merged_user.course_id}`) : 0;
 	merged_user.course_user_id = _merged_user.course_user_id ? parseInt(`${_merged_user.course_user_id}`) : 0;
 	merged_user.is_admin = _merged_user.is_admin ? (parseBoolean(_merged_user.is_admin) ?? false) : false;
+	merged_user.role = _merged_user.role ?? 'student';
+	merged_user.recitation = _merged_user.recitation ?? '';
+	merged_user.section = _merged_user.section ?? '';
 	return merged_user;
 }
 

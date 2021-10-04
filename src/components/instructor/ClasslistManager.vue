@@ -8,7 +8,7 @@
 				title="Users"
 				selection="multiple"
 				:filter="filter"
-				:visible-columns="['username', 'first_name', 'last_name', 'email', 'role']"
+				:visible-columns="['username', 'first_name', 'last_name', 'email', 'section', 'recitation', 'role']"
 				v-model:selected="selected"
 			>
 				<template v-slot:top-right>
@@ -40,21 +40,22 @@
 				</template>
 			</q-table>
 		</div>
-		<q-dialog v-model="open_users_manually">
+		<q-dialog full-width v-model="open_users_manually">
 			<add-users-manually @close-dialog="open_users_manually = false" />
 		</q-dialog>
 		<q-dialog full-width v-model="open_users_from_file" >
 			<add-users-from-file @close-dialog="open_users_from_file = false"/>
 		</q-dialog>
-		<q-dialog v-model="open_edit_dialog">
-			<edit-users :users_to_edit="selected"/>
+		<q-dialog full-width v-model="open_edit_dialog">
+			<edit-users :users_to_edit="selected" @close-dialog="open_edit_dialog = false"/>
 		</q-dialog>
 	</div>
 </template>
 
 <script lang="ts">
 import { useQuasar } from 'quasar';
-import { defineComponent, computed, ref, Ref } from 'vue';
+import type { Ref } from 'vue';
+import { defineComponent, computed, ref } from 'vue';
 
 import { pick } from 'lodash-es';
 import { useStore } from 'src/store';
@@ -84,7 +85,7 @@ export default defineComponent({
 		const columns = [
 			{
 				name: 'username',
-				label: 'username',
+				label: 'Username',
 				field: 'username',
 				sortable: true
 			},
@@ -107,6 +108,16 @@ export default defineComponent({
 				sortable: true
 			},
 			{
+				name: 'section',
+				label: 'Section',
+				field: 'section',
+			},
+			{
+				name: 'recitation',
+				label: 'Recitation',
+				field: 'recitation',
+			},
+			{
 				name: 'user_id',
 				label: 'user_id',
 				field: 'user_id',
@@ -119,6 +130,7 @@ export default defineComponent({
 				sortable: true
 			}
 		];
+
 		return {
 			filter,
 			selected,
@@ -126,16 +138,7 @@ export default defineComponent({
 			open_users_from_file,
 			open_edit_dialog,
 			columns,
-			detailed_course_users: computed(() => store.state.users.merged_course_users),
-			// const dcu: Array<MergedCourseUser> = [];
-			// store.state.users.course_users.forEach((_course_user: CourseUser) => {
-			// const _user = store.state.users.users.find((_u: User) => _u.user_id === _course_user.user_id);
-			// const course_user = newMergedCourseUser();
-			// assign(course_user, _user, _course_user);
-			// dcu.push(course_user);
-			// });
-			// return dcu;
-			// }),
+			detailed_course_users: computed(() => store.state.users.merged_users),
 			deleteCourseUsers: async () => {
 				const users_to_delete = selected.value.map((u) => u.username).join(', ');
 				var conf = confirm(`Are you sure you want to delete the users: ${users_to_delete}`);

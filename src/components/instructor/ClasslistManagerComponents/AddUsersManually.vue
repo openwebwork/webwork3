@@ -16,13 +16,19 @@
 					<div class="col">
 						<q-input outlined v-model="course_user.last_name" label="Last Name" :disable="user_exists"/>
 					</div>
-				</div>
-				<div class="row">
 					<div class="col">
 						<q-input outlined v-model="course_user.email" label="Email" :disable="user_exists" />
 					</div>
+				</div>
+				<div class="row">
 					<div class="col">
 						<q-input outlined v-model="course_user.student_id" label="Student ID" :disable="user_exists" />
+					</div>
+					<div class="col">
+						<q-input outlined v-model="course_user.recitation" label="Recitation" :disable="user_exists" />
+					</div>
+					<div class="col">
+						<q-input outlined v-model="course_user.section" label="Section" :disable="user_exists" />
 					</div>
 					<div class="col">
 						<q-select outlined v-model="course_user.role" :options="roles" label="Role" />
@@ -31,8 +37,8 @@
 			</q-card-section>
 
 			<q-card-actions align="right" class="bg-white text-teal">
-				<q-btn flat label="Add This User and Another One" @click="addUser" />
-				<q-btn flat label="Add This User and Close" @click="addUser" />
+				<q-btn flat label="Add This User and Another One" @click="addUser(false)" />
+				<q-btn flat label="Add This User and Close" @click="addUser(true)" />
 				<q-btn flat label="Cancel" v-close-popup />
 			</q-card-actions>
 		</q-card>
@@ -94,7 +100,7 @@ export default defineComponent({
 				remove(r, (v)=> v==='admin'); // don't allow to set admin level here.
 				return r;
 			}),
-			addUser: async () => {
+			addUser: async (close: boolean) => {
 				try {
 					const course_id = isArray(route.params.course_id) ?
 						route.params.course_id[0] :
@@ -105,7 +111,11 @@ export default defineComponent({
 						message: `The user with username '${course_user.value.username}' was added successfully.`,
 						color: 'green'
 					});
-					context.emit('closeDialog');
+					if (close) {
+						context.emit('closeDialog');
+					} else {
+						course_user.value = newMergedUser();
+					}
 				} catch (err) {
 					const error = err as AxiosError;
 					logger.error(error);

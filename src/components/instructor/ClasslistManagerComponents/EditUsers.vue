@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<q-card style="width: 600px">
+		<q-card>
 			<q-card-section>
 				<div class="text-h6">Add Users</div>
 			</q-card-section>
@@ -11,6 +11,8 @@
 					<div class="col header">First Name</div>
 					<div class="col header">Last Name</div>
 					<div class="col header">Course Role</div>
+					<div class="col header">Section</div>
+					<div class="col header">Recitation</div>
 				</div>
 				<div class="row" v-for="user in merged_users" :key="user.username">
 					<div class="col"> {{ user.username}} </div>
@@ -19,6 +21,13 @@
 					<div class="col">
 						<q-select :options="roles" v-model="user.role"/>
 					</div>
+					<div class="col">
+						<q-input v-model="user.section"/>
+					</div>
+					<div class="col">
+						<q-input v-model="user.recitation"/>
+					</div>
+
 				</div>
 			</q-card-section>
 
@@ -34,23 +43,31 @@
 <script lang="ts">
 import type { Ref } from 'vue';
 import { defineComponent, ref, computed } from 'vue';
-import { cloneDeep, clone, remove } from 'lodash-es';
+import { cloneDeep, clone, remove, pick } from 'lodash-es';
 
 import { MergedUser, CourseSetting } from 'src/store/models';
 import { useStore } from 'src/store';
 import { logger } from 'boot/logger';
+import { newCourseUser } from 'src/store/utils/users';
 
 export default defineComponent({
 	props: {
 		users_to_edit: Array,
 	},
-	setup(props) {
+	emits: ['closeDialog'],
+	setup(props, context) {
 		const merged_users: Ref<Array<MergedUser>> = props.users_to_edit ?
 			ref(cloneDeep(props.users_to_edit) as unknown as Array<MergedUser>) : ref([]);
 		const store = useStore();
 
-		const updateUsers = () => {
+		const updateUsers = async () => {
 			logger.info('in updateUsers');
+			for await (const _user of merged_users.value) {
+				const u = pick(_user, Object.keys(newCourseUser()));
+				await store.dispatch('users/updateCourseUser', u);
+				void store.dispatch('users/updateMergedUser', _user);
+			}
+			context.emit('closeDialog');
 		};
 
 		return {
