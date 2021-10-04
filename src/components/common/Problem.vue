@@ -69,12 +69,17 @@ export default defineComponent({
 		type: {
 			type: String,
 			default: ''
+		},
+		problemType: {
+			type: String,
+			default: 'library'
 		}
 	},
 	setup(props) {
 		const problemText = ref('');
 		const answerTemplate = ref('');
 		const file = ref(props.sourceFilePath);
+		const problem_type = ref(props.problemType);
 		const problemTextDiv = ref<HTMLElement>();
 		const answerTemplateDiv = ref<HTMLElement>();
 		const submitButtons = ref<Array<SubmitButton>>([]);
@@ -289,6 +294,7 @@ export default defineComponent({
 		});
 
 		return {
+			problem_type,
 			problemText,
 			problemTextDiv,
 			answerTemplate,

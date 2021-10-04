@@ -29,9 +29,11 @@
 	</div>
 	<div v-if="problems.length >0" class="scroll" style="height: 500px">
 		<problem
-			v-for="problem in problems"
-			:file="problem.file_path"
+			v-for="(problem,index) in problems"
+			:sourceFilePath="problem.file_path"
 			:key="problem.id"
+			:problemPrefix="`QUESTION_${index + 1}_`"
+			class="q-mb-md"
 			type="library"
 			/>
 	</div>
@@ -42,11 +44,12 @@ import axios from 'axios';
 import type { Ref } from 'vue';
 import { defineComponent, ref, computed, watch } from 'vue';
 import { useStore } from 'src/store';
-import { Discipline, LibrarySubject } from 'src/store/models';
+// import { Discipline, LibrarySubject } from 'src/store/models';
 import Problem from 'src/components/common/Problem.vue';
 
 interface SelectItem {
-	label: string;
+	label?: string;
+	name?: string;
 	id: number;
 }
 
@@ -98,26 +101,17 @@ export default defineComponent({
 			);
 		});
 
+		const getLabelId = (item: SelectItem): SelectItem =>  ({ label: item.name, id: item.id });
+
 		return {
 			discipline,
-		  disciplines: computed(() =>
-				store.state.library.disciplines.map(
-					(obj: Discipline) => ({ label: obj.name, id: obj.id }))),
+		  disciplines: computed(() => store.state.library.disciplines.map(getLabelId)),
 			subject,
-			subjects: computed(() =>
-				store.state.library.subjects.map(
-					(obj: LibrarySubject) => ({ label: obj.name, id: obj.id })
-				)),
+			subjects: computed(() => store.state.library.subjects.map(getLabelId)),
 			chapter,
-			chapters: computed(() =>
-				store.state.library.chapters.map(
-					(obj: LibrarySubject) => ({ label: obj.name, id: obj.id })
-				)),
+			chapters: computed(() => store.state.library.chapters.map(getLabelId)),
 			section,
-			sections: computed(() =>
-				store.state.library.sections.map(
-					(obj: LibrarySubject) => ({ label: obj.name, id: obj.id })
-				)),
+			sections: computed(() => store.state.library.sections.map(getLabelId)),
 			problems,
 			loadProblems: async () => {
 				const sect = section.value;
