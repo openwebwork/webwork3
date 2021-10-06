@@ -4,7 +4,7 @@
 		<div class="row">
 			<div class="col col-md-3 col-12 q-my-auto" style="background-color:#1048ae">
 				<q-toolbar>
-					<q-btn flat @click="$emit('toggle')" round dense icon="menu" />
+					<q-btn flat @click="$emit('toggle-menu')" round dense icon="menu" />
 					<q-toolbar-title>
 						<q-img src="images/webwork_logo.svg" position="0 50%" width="190px" fit="scale-down" />
 					</q-toolbar-title>
@@ -35,6 +35,7 @@
 							</template>
 						</q-list>
 					</q-btn-dropdown>
+					<q-btn flat @click="$emit('toggle-sidebar')" round dense icon="vertical_split" />
 				</q-toolbar>
 			</div>
 		</div>
@@ -66,7 +67,7 @@ import { endSession } from 'src/store/api';
 
 export default defineComponent({
 	name: 'MenuBar',
-	emits: ['toggle'],
+	emits: ['toggle-menu', 'toggle-sidebar'],
 	setup() {
 		const store = useStore();
 		const router = useRouter();

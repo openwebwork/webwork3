@@ -2,7 +2,7 @@
 	<q-card v-if="problemText" class="bg-grey-3">
 		<q-card-section v-if="problem_type=='library'">
 			<q-btn-group push>
-				<q-btn size="sm" push icon="add" />
+				<q-btn size="sm" push icon="add" @click="$emit('addProblem')" />
 				<q-btn size="sm" push icon="edit" />
 				<q-btn size="sm" push icon="shuffle" />
 			</q-btn-group>
@@ -75,7 +75,8 @@ export default defineComponent({
 			default: 'library'
 		}
 	},
-	setup(props) {
+	emits: ['addProblem'],
+	setup(props, context) {
 		const problemText = ref('');
 		const answerTemplate = ref('');
 		const file = ref(props.sourceFilePath);

@@ -35,12 +35,15 @@
 			:problemPrefix="`QUESTION_${index + 1}_`"
 			class="q-mb-md"
 			type="library"
+			@add-problem="addProblem(problem)"
 			/>
 	</div>
 </template>
 
 <script lang="ts">
 import axios from 'axios';
+import { api } from 'boot/axios';
+
 import type { Ref } from 'vue';
 import { defineComponent, ref, computed, watch } from 'vue';
 import { useStore } from 'src/store';
@@ -101,6 +104,10 @@ export default defineComponent({
 			);
 		});
 
+		watch(() => store.state.app_state.library_state.target_set_id, () => {
+			console.log(store.state.app_state.library_state.target_set_id);
+		});
+
 		const getLabelId = (item: SelectItem): SelectItem =>  ({ label: item.name, id: item.id });
 
 		return {
@@ -117,6 +124,15 @@ export default defineComponent({
 				const sect = section.value;
 				const response = await axios.get(`/opl/api/problems/sections/${sect?.id || 0}`);
 				problems.value = response.data as Array<LibraryProblem>;
+			},
+			addProblem: async (problem: LibraryProblem) => {
+				const set_id = store.state.app_state.library_state.target_set_id;
+				const course_id = store.state.session.course.course_id;
+				if (set_id > 0) {
+					const url = `/courses/${course_id}/sets/${set_id}/problems`;
+					await api.post(url, problem);
+				}
+				console.log(problem);
 			}
 		};
 	},
