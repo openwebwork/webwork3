@@ -13,10 +13,13 @@
 			<router-view />
 		</q-page-container>
 
+<!-- this only opens the first sidebar in the list
+	TODO: if the sidebars array has length >0, need to be able to select
+	the sidebar -->
 		<q-drawer :width="250" show-if-above v-if="right_sidebar_open" side="right" bordered class="bg-grey-1" >
-			<problem-set-list v-if="show_problem_sets"/>
-			<user-list v-if="show_users" />
-			<library-sidebar />
+			<problem-set-list v-if="sidebars[0] === 'problem_sets'"/>
+			<user-list v-else-if="sidebars[0] === 'users'" />
+			<library-sidebar v-else-if="sidebars[0] === 'library'"/>
 		</q-drawer>
 
 	</q-layout>
@@ -45,6 +48,7 @@ export default defineComponent({
 		const route = useRoute();
 		const left_sidebar_open: Ref<boolean> = ref(true);
 		const right_sidebar_open: Ref<boolean> = ref(false);
+		const sidebars: Ref<Array<string>> = ref([]);
 		const show_problem_sets: Ref<boolean> = ref(false);
 		const show_users: Ref<boolean> = ref(false);
 
@@ -57,6 +61,7 @@ export default defineComponent({
 						: [];
 				const current_view = views.find((view: ViewInfo) => view.component_name === route.name);
 				if (current_view) {
+					sidebars.value = current_view.sidebars;
 					if (current_view.sidebars.length>0) {
 						right_sidebar_open.value = true;
 					}
@@ -66,8 +71,7 @@ export default defineComponent({
 		return {
 			left_sidebar_open,
 			right_sidebar_open,
-			show_problem_sets,
-			show_users
+			sidebars
 		};
 	}
 });

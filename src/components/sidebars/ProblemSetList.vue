@@ -1,9 +1,26 @@
 <template>
-	<template v-for="set in problem_sets" :key="set.set_id">
-		<q-item clickable @click="changeSet(set.set_id)">
-			<q-item-section>{{ set.set_name }}</q-item-section>
-		</q-item>
-	</template>
+	<q-card>
+		<q-card-section>
+			<div class="text-h6 text-center">Problem Sets</div>
+		</q-card-section>
+		<q-card-section>
+
+			<q-list dense>
+				<q-item clickable
+					v-for="set in problem_sets"
+					:key="set.set_id"
+					@click="changeSet(set.set_id)"
+					>
+					<span>
+						<q-badge color="green" v-if="set.set_type === 'HW'">H</q-badge>
+						<q-badge color="purple" v-if="set.set_type === 'QUIZ'">Q</q-badge>
+						<q-badge color="orange" v-if="set.set_type === 'REVIEW'">R</q-badge>
+							{{ set.set_name }}
+					</span>
+				</q-item>
+			</q-list>
+		</q-card-section>
+	</q-card>
 </template>
 
 <script lang="ts">
