@@ -24,6 +24,7 @@ const logger = winston.createLogger({
 // If we're not in production then log to the console
 if (process.env.NODE_ENV !== 'production') {
 	logger.add(new winston.transports.Console({
+		level: 'debug',
 		stderrLevels: ['error'],
 		consoleWarnLevels: ['warn', 'debug'],
 		format: winston.format.printf((info) => {return `[${info.level}] ${info.message}`;}),
