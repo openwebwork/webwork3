@@ -150,11 +150,57 @@ export interface UserCourse {
 
 export interface CourseUser {
 	course_user_id: number;
+	user_id: number;
 	course_id: number;
 	role: string;
 	section: string;
 	recitation: string;
 	params: Dictionary<string>;
+}
+
+export interface ParseableCourseUser {
+	course_user_id?: number;
+	user_id?: number;
+	course_id?: number;
+	role?: string;
+	section?: string;
+	recitation?: string;
+	params?: Dictionary<string>;
+}
+
+/* This is a join between a User and a CourseUser, which
+is much more appropriate for the client side in the instructor */
+
+export interface MergedUser {
+	course_user_id: number;
+	user_id: number;
+	course_id: number;
+	username: string;
+	email: string;
+	first_name: string;
+	last_name: string;
+	is_admin: boolean;
+	student_id: string;
+	role: string;
+	section: string;
+	recitation: string;
+	params: Dictionary<string>;
+}
+
+export interface ParseableMergedUser {
+	course_user_id?: number;
+	user_id?: number;
+	course_id?: number;
+	username?: string;
+	email?: string;
+	first_name?: string;
+	last_name?: string;
+	is_admin?: boolean;
+	student_id?: string;
+	role?: string;
+	section?: string;
+	recitation?: string;
+	params?: Dictionary<string>;
 }
 
 export interface SessionInfo {
@@ -193,7 +239,7 @@ export enum CourseSettingOption {
 
 export interface CourseSetting {
 	var: string;
-	value: string | number | boolean;
+	value: string | number | boolean | Array<string>;
 }
 
 export interface OptionType {

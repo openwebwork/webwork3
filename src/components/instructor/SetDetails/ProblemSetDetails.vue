@@ -12,6 +12,7 @@ import { useRoute } from 'vue-router';
 
 import { useStore } from 'src/store';
 import { ProblemSet } from 'src/store/models';
+import { newProblemSet } from 'src/store/utils/problem_sets';
 import HomeworkSet from './HomeworkSet.vue';
 import Quiz from './Quiz.vue';
 import ReviewSet from './ReviewSet.vue';

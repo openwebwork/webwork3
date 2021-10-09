@@ -1,0 +1,4 @@
+username,first,last,email,section,role
+user1,Jane,Student,bad@email@address,2,student
+"bad username",Jane,Student,jane@univ.edu,2,student
+user3,Jane,Student,jane@univ.edu,2,superhero

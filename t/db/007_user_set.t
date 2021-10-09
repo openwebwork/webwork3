@@ -38,12 +38,14 @@ my $strp = DateTime::Format::Strptime->new( pattern => '%FT%T',on_error  => 'cro
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 
-my $user_set_rs = $schema->resultset("UserSet");
-my $course_rs   = $schema->resultset("Course");
-my $course      = $course_rs->find( { course_id => 1 } );
+my $user_set_rs    = $schema->resultset("UserSet");
+my $course_rs      = $schema->resultset("Course");
+my $course_user_rs = $schema->resultset("CourseUser");
+my $course         = $course_rs->find( { course_id => 1 } );
 
 # temporarily delete the added set
-my $user_sets_to_delete = $user_set_rs->search({user_id => 12});
+my $u = $course_user_rs->find({user_id => 12 });
+my $user_sets_to_delete = $user_set_rs->search({course_user_id => $u->course_user_id});
 $user_sets_to_delete->delete_all if $user_sets_to_delete;
 
 
@@ -363,8 +365,8 @@ throws_ok {
 
 
 # delete the user set from from above
-
-my $set_to_delete = $user_set_rs->find({user_id=>12, set_id => 2});
+my $cu = $course_user_rs->find({user_id => 12},1);
+my $set_to_delete = $user_set_rs->find({course_user_id => $cu->course_user_id, set_id => 2});
 $set_to_delete->delete if defined($set_to_delete);
 
 ## add a user set with a new date
