@@ -378,6 +378,7 @@ table {
 	.cell-error {
 		background-color: rgb(248, 91, 91);
 	}
+
 	.cell-warn {
 		background-color: rgb(247, 247, 162);
 	}
