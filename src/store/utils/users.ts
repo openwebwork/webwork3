@@ -1,9 +1,10 @@
 // This is utility functions for users
 
-import { intersection, isEqual, difference } from 'lodash';
+import { intersection, isEqual, difference, assign, pick } from 'lodash';
 import { User, CourseUser, MergedUser, ParseableCourseUser,
 	ParseableMergedUser, ParseableUser } from 'src/store/models';
-import { mailRE, parseBoolean, usernameRE, user_roles } from './common';
+
+import { mailRE, usernameRE, user_roles, parseBoolean } from './common';
 
 const required_user_params = ['username'];
 
@@ -53,7 +54,7 @@ export function newMergedUser(): MergedUser {
 
 export function parseUser(params: ParseableUser): User {
 	const user = newUser();
-	const user_fields = Object.keys(user);
+	const user_fields = Object.keys(params);
 	// check that the required fields are present in the params
 	const common_fields = intersection(required_user_params, Object.keys(params));
 	if (!isEqual(common_fields, required_user_params)) {
@@ -82,7 +83,8 @@ export function parseUser(params: ParseableUser): User {
 	user.last_name = `${params.last_name || ''}`;
 	user.student_id = `${params.student_id || ''}`;
 	user.user_id = parseInt(`${params.user_id || ''}`) || 0;
-
+	// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+	user.is_admin = parseBoolean(`${params.is_admin}`) || false;
 	return user;
 }
 
@@ -105,31 +107,26 @@ export function validateUser(params: ParseableUser): boolean {
 
 export function parseMergedUser(_merged_user: ParseableMergedUser): MergedUser {
 	const merged_user = newMergedUser();
+	const course_user_params = pick(_merged_user, Object.keys(newCourseUser()));
+	assign(merged_user, parseCourseUser(course_user_params));
 
-	merged_user.username = _merged_user.username ?? '';
-	merged_user.first_name = _merged_user.first_name ?? '';
-	merged_user.last_name = _merged_user.last_name ?? '';
-	merged_user.email = _merged_user.email ?? '';
-	merged_user.user_id = _merged_user.user_id ? parseInt(`${_merged_user.user_id}`) : 0;
-	merged_user.course_id = _merged_user.course_id ? parseInt(`${_merged_user.course_id}`) : 0;
-	merged_user.course_user_id = _merged_user.course_user_id ? parseInt(`${_merged_user.course_user_id}`) : 0;
-	merged_user.is_admin = _merged_user.is_admin ? (parseBoolean(_merged_user.is_admin) ?? false) : false;
-	merged_user.role = _merged_user.role ?? 'student';
-	merged_user.recitation = _merged_user.recitation ?? '';
-	merged_user.section = _merged_user.section ?? '';
+	const user_params = pick(_merged_user, Object.keys(newUser()));
+	assign(merged_user, parseUser(user_params));
+
 	return merged_user;
 }
 
 export function parseCourseUser(_course_user: ParseableCourseUser): CourseUser {
-	const course_user = newCourseUser();
-	const user_fields = Object.keys(course_user);
+	// const course_user = newCourseUser();
+	const user_fields = Object.keys(_course_user);
 
 	// check that the required fields are present in the params
-	const common_fields = intersection(required_course_user_params, Object.keys(_course_user));
+	const common_fields = intersection(required_course_user_params, user_fields);
 	if (!isEqual(common_fields, required_course_user_params)) {
 		const diff = difference(required_course_user_params, common_fields);
 		throw {
 			message: `The field(s) '${diff.join(', ')}' must be present in the course user.`,
+			field: undefined,
 			course_user: _course_user
 		};
 	}
@@ -144,7 +141,7 @@ export function parseCourseUser(_course_user: ParseableCourseUser): CourseUser {
 	validateCourseUser(_course_user);
 
 	// need to find a more robust way to handle this.
-
+	const course_user = newCourseUser();
 	course_user.course_user_id = _course_user.course_user_id ? parseInt(`${_course_user.course_user_id}`) : 0 ;
 	course_user.course_id = _course_user.course_id ? parseInt(`${_course_user.course_id}`) : 0 ;
 	course_user.role = _course_user.role ? `${_course_user.role}` : '';
@@ -158,7 +155,8 @@ export function validateCourseUser(_course_user: ParseableCourseUser): boolean {
 	if (user_roles.findIndex((v) => v === _course_user.role) < 0) {
 		throw {
 			field: 'role',
-			message: `The value '${_course_user.role || ''}' is not a valid role`
+			message: `The value '${_course_user.role || ''}' is not a valid role`,
+			entire_row: true
 		};
 	}
 	return true;

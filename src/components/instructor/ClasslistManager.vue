@@ -3,12 +3,13 @@
 		<div class="q-pa-lg">
 			<q-table
 				:columns="columns"
-				:rows="detailed_course_users"
+				:rows="merged_users"
 				row-key="user_id"
 				title="Users"
 				selection="multiple"
 				:filter="filter"
-				:visible-columns="['username', 'first_name', 'last_name', 'email', 'section', 'recitation', 'role']"
+				:visible-columns="['username', 'first_name', 'last_name', 'email', 'student_id',
+					'section', 'recitation', 'role']"
 				v-model:selected="selected"
 			>
 				<template v-slot:top-right>
@@ -60,7 +61,7 @@ import { defineComponent, computed, ref } from 'vue';
 import { pick } from 'lodash-es';
 import { useStore } from 'src/store';
 import { api } from 'boot/axios';
-import { User, UserCourse, CourseUser, ResponseError } from 'src/store/models';
+import { MergedUser, UserCourse, ResponseError } from 'src/store/models';
 import AddUsersManually from './ClasslistManagerComponents/AddUsersManually.vue';
 import AddUsersFromFile from './ClasslistManagerComponents/AddUsersFromFile.vue';
 import EditUsers from './ClasslistManagerComponents/EditUsers.vue';
@@ -76,7 +77,7 @@ export default defineComponent({
 	setup() {
 		const $q = useQuasar();
 		const store = useStore();
-		const selected: Ref<Array<User>> = ref([]);
+		const selected: Ref<Array<MergedUser>> = ref([]);
 		const filter: Ref<string> = ref('');
 		const open_users_manually: Ref<boolean> = ref(false);
 		const open_users_from_file: Ref<boolean> = ref(false);
@@ -108,20 +109,26 @@ export default defineComponent({
 				sortable: true
 			},
 			{
+				name: 'student_id',
+				label: 'Student ID',
+				field: 'student_id',
+				sortable: true
+			},
+			{
 				name: 'section',
 				label: 'Section',
 				field: 'section',
+				sortable: true
 			},
 			{
 				name: 'recitation',
 				label: 'Recitation',
 				field: 'recitation',
+				sortable: true
 			},
 			{
 				name: 'user_id',
-				label: 'user_id',
 				field: 'user_id',
-				sortable: true
 			},
 			{
 				name: 'role',
@@ -138,15 +145,14 @@ export default defineComponent({
 			open_users_from_file,
 			open_edit_dialog,
 			columns,
-			detailed_course_users: computed(() => store.state.users.merged_users),
+			merged_users: computed(() => store.state.users.merged_users),
 			deleteCourseUsers: async () => {
 				const users_to_delete = selected.value.map((u) => u.username).join(', ');
 				var conf = confirm(`Are you sure you want to delete the users: ${users_to_delete}`);
 				if (conf) {
 					for await (const _user of selected.value) {
 						const username = _user.username;
-						const _user_to_delete = pick(_user,
-							['user_id', 'username', 'course_user_id']) as unknown as CourseUser;
+						const _user_to_delete = pick(_user, ['user_id', 'username', 'course_user_id']);
 
 						try {
 							// _user_to_delete.user_id = _user.user_id;

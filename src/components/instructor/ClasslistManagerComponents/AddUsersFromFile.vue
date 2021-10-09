@@ -15,15 +15,29 @@
 				</div>
 			</q-card-section>
 			<q-card-section class="q-pt-none">
-				<div class="row">
+				<div class="row" v-if="merged_users.length !== 0">
 					<div class="col-3">
-						<q-toggle v-model="first_row_header" :disable="merged_users.length==''"/>
+						<q-toggle v-model="first_row_header" />
 						First row is Header
 					</div>
-
-					<div class="col-6" v-if="invalid_table_cells.length>0">
-						<q-banner dense inline-actions class="text-white bg-red">
-							There are validation errors with the loaded data.
+					<div class="col-3">
+						<q-toggle v-model="use_single_role"/> Import All users as
+					</div>
+					<div class="col-3">
+							<q-select :options="roles" v-model="common_role" />
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-5 q-pa q-ma-lg" v-show="selected_user_error">
+						<q-banner dense inline-actions class="text-white bg-red rounded-borders">
+							There are validation errors with the loaded data. Any data row with an
+							error will not be added.
+						</q-banner>
+					</div>
+					<div class="col-5 q-pa q-ma-lg" v-show="users_already_in_course">
+						<q-banner dense inline-actions class="bg-yellow-3 rounded-borders">
+							The highlighted users below are already present in the course and will not
+							be added.
 						</q-banner>
 					</div>
 				</div>
@@ -34,27 +48,36 @@
 						<q-table class="loaded-users-table"
 							:rows="merged_users" row-key="_row" :columns="columns"
 							v-model:selected="selected" selection="multiple"
-							:pagination="{ rowsPerPage: 0}">
+							:pagination="{ rowsPerPage: 0 }"
+							:loading="loading"
+						>
 
 							<template v-slot:header-cell="props">
 								<q-th :props="props">
 									<q-select :options="user_fields.map( (f) => f.label)"
 										v-model="column_headers[props.col.name]"/>
-									{{ props.col.name }}
 								</q-th>
 							</template>
 
 							<template v-slot:body-cell="props">
-								<q-td :props="props" :class="hasError(props) ? 'bg-red-3': '' ">
-									<span v-if="hasError(props)">  {{ props.value }}
-										<q-badge color="red">?<q-tooltip>
-											{{ getErrorText(props) }}
-											</q-tooltip>
-										</q-badge>
-									</span>
-									<span v-else> {{ props.value }} </span>
+								<q-td :class="getErrorClass(props.col.name, props.row._error)">
+										<span  v-if="hasError(props)">
+											{{ props.value }}
+											<q-badge
+												color="black"
+												v-if="props.row._error.type === 'error' "
+											>?
+												<q-tooltip>
+													{{ props.row._error.message }}
+												</q-tooltip>
+											</q-badge>
+										</span>
+										<span v-else>
+											{{ props.value }}
+										</span>
 								</q-td>
 							</template>
+
 						</q-table>
 					</div>
 				</div>
@@ -62,7 +85,7 @@
 
 			<q-card-actions align="right" class="bg-white text-teal">
 				<q-btn flat label="Cancel" v-close-popup />
-				<q-btn flat label="Add Users" @click="addUsers" />
+				<q-btn flat :label="`Add ${merged_users_to_add.length} Users and Close`" @click="addUsers" />
 			</q-card-actions>
 		</q-card>
 	</div>
@@ -78,25 +101,23 @@ import { logger } from 'boot/logger';
 
 import { useStore } from 'src/store';
 import type { Dictionary, MergedUser, User, ResponseError } from 'src/store/models';
-import { newUser, parseMergedUser, newCourseUser } from 'src/store/utils/users';
-import { pick, fromPairs, values, invert, mapValues } from 'lodash-es';
-
-interface Prop {
-	row: {
-		_row: number;
-	}
-	col: {
-		name: string;
-	}
-}
+import { newUser, parseMergedUser, newCourseUser, newMergedUser } from 'src/store/utils/users';
+import { pick, fromPairs, values, invert, mapValues, clone, isUndefined, assign, filter } from 'lodash-es';
 
 interface ParseError {
-	row: number;
-	col?: number;
+	type: string;
+	col?: string;
 	message: string;
 	field?: string;
 	entire_row?: boolean;
 }
+
+type UserFromFile = {
+	_row?: number;
+	_error?: ParseError
+} & {
+	[prop: string]: string
+};
 
 export default defineComponent({
 	name: 'AddUsersFromFile',
@@ -105,15 +126,20 @@ export default defineComponent({
 		const store = useStore();
 		const $q = useQuasar();
 		const file: Ref<File> = ref(new File([], ''));
-		const invalid_table_cells: Ref<Array<ParseError>> = ref([]);
-		const merged_users: Ref<Array<Dictionary<string|number>>> = ref([]); // stores all users from the file
-		const selected: Ref<Array<Dictionary<string|number>>> = ref([]); // stores the selected users
+		// stores all users from the file as well as parsing errors
+		const merged_users: Ref<Array<UserFromFile>> = ref([]);
+		const selected: Ref<Array<UserFromFile>> = ref([]); // stores the selected users
 		const column_headers: Ref<Dictionary<string>> = ref({});
 		const user_param_map: Ref<Dictionary<string>> = ref({}); // provides a map from column number to field name
+		const use_single_role: Ref<boolean> = ref(false);
+		const common_role: Ref<string|null> = ref(null);
+		const loading: Ref<boolean> = ref(false); // used to indicate parsing is occurring
 
 		const first_row_header: Ref<boolean> = ref(false);
-		const header_row: Ref<Dictionary<string|number>> = ref({});
+		const header_row: Ref<UserFromFile> = ref({});
 		const merged_users_to_add: Ref<Array<MergedUser>> = ref([]);
+		const selected_user_error: Ref<boolean> = ref(false);
+		const users_already_in_course: Ref<boolean> = ref(false);
 
 		const user_fields = [
 			{ label: 'Username', field: 'username', regexp: /(user)|(login)/i },
@@ -139,7 +165,6 @@ export default defineComponent({
 		};
 
 		watch([column_headers], () => {
-
 			// these are the defined columns in the table
 			const def_cols = pick(column_headers.value, Object.keys(column_headers.value));
 
@@ -151,6 +176,7 @@ export default defineComponent({
 		{ deep: true });
 
 		watch([first_row_header], () => {
+			selected.value = [];
 			if(first_row_header.value) {
 				const first_row = merged_users.value.shift();
 				if (first_row) {
@@ -162,40 +188,84 @@ export default defineComponent({
 			}
 		});
 
-		watch([selected], () => {
+		watch([selected, user_param_map, common_role], () => {
+			loading.value = true;
 			merged_users_to_add.value = [];
-			invalid_table_cells.value = [];
-			selected.value.forEach((params) => {
+			selected_user_error.value = false;
+			users_already_in_course.value = false;
+
+			// reset all of the errors
+			filter(merged_users.value, ((u: UserFromFile) => u._error?.type !== 'none'))
+				.forEach(u => {
+					u._error = { // reset the error for each selected row
+						type: 'none',
+						message: ''
+					};
+				});
+
+			selected.value.forEach((params: UserFromFile) => {
+				let parse_error: ParseError|null = null;
+				const row = parseInt(`${params?._row || -1}`);
 
 				try {
-					const user = pick(mapValues(user_param_map.value, (obj) => params[obj]), Object.keys(newUser()));
-					merged_users_to_add.value.push(parseMergedUser(user));
+					const merged_user = pick(mapValues(user_param_map.value, (obj) => params[obj]),
+						Object.keys(newMergedUser()));
+					if(use_single_role.value && common_role.value) {
+						merged_user.role = common_role.value;
+					}
+
+					// if the user is already in the course, show a warning
+					const u = store.state.users.merged_users.find(_u => _u.username === merged_user.username);
+					if (u) {
+						users_already_in_course.value = true;
+						parse_error = {
+							type: 'warn',
+							message: `The user with username '${merged_user.username}'`
+								+' is already enrolled in the course.',
+							entire_row: true
+						};
+					} else {
+						merged_users_to_add.value.push(parseMergedUser(merged_user));
+					}
 				} catch (error) {
 					const err = error as ParseError;
+					selected_user_error.value = true;
 					const user_fields = Object.keys(newUser());
 					const course_user_fields = Object.keys(newCourseUser());
-					// if the error was a missing required field
+
+					parse_error = {
+						type: 'error',
+						message: err.message
+					};
+
 					if (err.field === '_all') {
-						invalid_table_cells.value.push({
-							message: err.message,
-							row: parseInt(`${params._row}`),
-							entire_row: true
-						});
+						assign(parse_error, { entire_row: true });
 					} else if (err.field &&
 						(user_fields.indexOf(err.field)>=0 || course_user_fields.indexOf(err.field)>=0)) {
-						invalid_table_cells.value.push({
-							message: err.message,
-							field: err.field,
-							row: parseInt(`${params._row}`),
-							col: parseInt(`${user_param_map.value[err.field]}`),
-							entire_row: false
+						assign(parse_error, {
+							col: user_param_map.value[err.field],
+							entire_row: isUndefined(user_param_map.value[err.field])
 						});
+					} else if (isUndefined(err.field)) { // missing field
+						assign(parse_error, { entire_row: true });
+					}
+				}
+
+				if(parse_error) {
+					const row_index = merged_users.value.findIndex((u: UserFromFile) => u._row === row);
+					if (row_index >= 0) {
+						const user = clone(merged_users.value[row_index]);
+						user._error = parse_error;
+						merged_users.value.splice(row_index, 1, user);
 					}
 				}
 			});
+			loading.value = false; // turn off the loading UI on table
 		});
 
 		const loadFile = () => {
+			header_row.value = {};
+			first_row_header.value = false; // reset the toggle when loading the file.
 			const reader: FileReader = new FileReader();
 			reader.readAsText(file.value);
 			reader.onload = (evt: ProgressEvent) => {
@@ -208,9 +278,21 @@ export default defineComponent({
 							color: 'red'
 						});
 					} else {
-						const data = results.data as Array<Dictionary<string|number>>;
-						data.forEach((row: Dictionary<string|number>, index: number) => { row['_row'] = index; });
-						merged_users.value = data;
+						const users: Array<UserFromFile> = [];
+						const data = results.data as Array<Array<string>>;
+						data.forEach((row: Array<string>, index: number) => {
+							const d: UserFromFile = {};
+							d._error =  {
+								type: 'none',
+								message: ''
+							};
+							d._row = index;
+							row.forEach((v: string, i: number) => {
+								d[`col${i+1}`] = v;
+							});
+							users.push(d);
+						});
+						merged_users.value = users;
 					}
 				}
 			};
@@ -251,10 +333,9 @@ export default defineComponent({
 
 			}
 		};
-
 		const getColumns = () => {
 			return merged_users.value.length === 0 ? [] :
-				Object.keys(merged_users.value[0]).filter((v) => v !== '_row')
+				Object.keys(merged_users.value[0]).filter((v: string) => (v !== '_row' && v !== '_error'))
 					.map((v) => ({ name: v, label: v, field: v }));
 		};
 
@@ -262,25 +343,28 @@ export default defineComponent({
 			file,
 			merged_users,
 			selected,
-			invalid_table_cells,
 			first_row_header,
 			user_fields,
 			column_headers,
 			merged_users_to_add,
+			selected_user_error,
+			users_already_in_course,
+			loading,
 			loadFile,
 			addUsers,
+			use_single_role,
+			common_role,
+			roles: ref(['student', 'TA', 'instructor']),
 			columns: computed(() => getColumns()),
-			hasError: (props: Prop) =>
-				invalid_table_cells.value.find((error: ParseError) =>
-				  error.entire_row && props.row._row === error.row ||
-					props?.row?._row === error.row && parseInt(props.col.name) === error.col
-				) ? true : false,
-			getErrorText: (props: Prop) => {
-				const err = invalid_table_cells.value.find((error: ParseError) =>
-				  error.entire_row && props.row._row === error.row ||
-					props?.row?._row === error.row && parseInt(props.col.name) === error.col
-				);
-				return err?.message;
+			getErrorClass: (col_name: string, err: ParseError) => {
+				if (col_name === err.col || err.entire_row) {
+					return err.type === 'none' ?
+						'' : (err.type === 'error') ? 'cell-error' : 'cell-warn';
+				}
+			},
+			hasError(props: { col: {name: string}; row: { _error: ParseError }}) {
+				return props.row._error.type !== 'none' &&
+					(props.col.name === props.row._error.col || props.row._error.entire_row);
 			}
 		};
 	}
@@ -290,6 +374,15 @@ export default defineComponent({
 <!-- Mainly this is needed to get a table with a sticky header -->
 
 <style lang="scss">
+table {
+	.cell-error {
+		background-color: rgb(248, 91, 91);
+	}
+	.cell-warn {
+		background-color: rgb(247, 247, 162);
+	}
+}
+
 .loaded-users-table {
 	/* height or max-height is important */
 	height: 510px;

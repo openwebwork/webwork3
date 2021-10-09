@@ -15,4 +15,4 @@ export function parseBoolean(_value: boolean | string | number) {
 
 export const mailRE = /(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,9})/;
 export const usernameRE = /^[a-zA-Z]([a-zA-Z._0-9])+$/;
-export const user_roles = ['admin', 'instructor', 'student'];
+export const user_roles = ['admin', 'instructor', 'TA', 'student'];
