@@ -60,8 +60,10 @@ import { defineComponent, computed, ref } from 'vue';
 
 import { pick } from 'lodash-es';
 import { useStore } from 'src/store';
-import { api } from 'boot/axios';
-import { MergedUser, UserCourse, ResponseError } from 'src/store/models';
+import { api } from 'src/boot/axios';
+import { MergedUser } from 'src/store/models/users';
+import { UserCourse } from 'src/store/models/courses';
+import { ResponseError } from 'src/store/models';
 import AddUsersManually from './ClasslistManagerComponents/AddUsersManually.vue';
 import AddUsersFromFile from './ClasslistManagerComponents/AddUsersFromFile.vue';
 import EditUsers from './ClasslistManagerComponents/EditUsers.vue';

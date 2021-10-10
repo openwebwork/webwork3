@@ -56,13 +56,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref } from 'vue';
+import type { Ref } from 'vue';
+import { defineComponent, ref } from 'vue';
 import { useQuasar } from 'quasar';
 
 import { useStore } from 'src/store';
-import { newCourse, newCourseUser } from 'src/store/common';
+// import { newCourse, newCourseUser } from 'src/store/common';
 
-import { Course, ResponseError, User } from 'src/store/models';
+import { Course } from 'src/store/models/courses';
+import { ResponseError } from 'src/store/models';
+import { User, CourseUser } from 'src/store/models/users';
 import { AxiosError } from 'axios';
 
 interface DateRange {
@@ -77,7 +80,7 @@ export default defineComponent({
 		const $q = useQuasar();
 		const store = useStore();
 
-		const course: Ref<Course> = ref(newCourse());
+		const course: Ref<Course> = ref(new Course({}));
 		const user: Ref<User> = ref(new User());
 		const username: Ref<string> = ref('');
 		const instructor_exists = ref(false);
@@ -112,7 +115,7 @@ export default defineComponent({
 						void (await store.dispatch('users/addGlobalUser', user.value));
 					}
 					// add the user to the course
-					const _course_user = newCourseUser();
+					const _course_user = new CourseUser({});
 					_course_user.role = 'instructor';
 					_course_user.course_id = _course.course_id;
 					await store.dispatch('users/addCourseUser', _course_user);
@@ -123,10 +126,8 @@ export default defineComponent({
 					context.emit('closeDialog');
 				} catch (err) {
 					const error = err as AxiosError;
-					const data = (error && error.response && (error.response.data as ResponseError))
-						|| { exception: '' };
+					const data = error?.response?.data as ResponseError || { exception: '' };
 					$q.notify({
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 						message: data.exception,
 						color: 'red'
 					});

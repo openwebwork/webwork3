@@ -49,13 +49,14 @@
 import type { Ref } from 'vue';
 import { defineComponent, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
-import { logger } from 'boot/logger';
+import { logger } from 'src/boot/logger';
 
 import { useRoute } from 'vue-router';
 import { useStore } from 'src/store';
-import { newMergedUser } from 'src/store/utils/users';
 
-import { CourseSetting, User, MergedUser, ResponseError } from 'src/store/models';
+import { User, MergedUser } from 'src/store/models/users';
+import { ResponseError } from 'src/store/models';
+import { CourseSetting } from 'src/store/models/settings';
 import { AxiosError } from 'axios';
 import { isArray, remove, clone } from 'lodash';
 
@@ -64,7 +65,7 @@ export default defineComponent({
 	emits: ['closeDialog'],
 	setup(props, context) {
 		const $q = useQuasar();
-		const course_user: Ref<MergedUser> = ref(newMergedUser());
+		const course_user: Ref<MergedUser> = ref(new MergedUser());
 		const user_exists: Ref<boolean> = ref(true);
 		const store = useStore();
 		const route = useRoute();
@@ -114,7 +115,7 @@ export default defineComponent({
 					if (close) {
 						context.emit('closeDialog');
 					} else {
-						course_user.value = newMergedUser();
+						course_user.value = new MergedUser();
 					}
 				} catch (err) {
 					const error = err as AxiosError;

@@ -1,9 +1,9 @@
-import { api } from 'boot/axios';
+import { api } from 'src/boot/axios';
 import { Commit } from 'vuex';
 import { StateInterface } from '../index';
 import { isEqual } from 'lodash-es';
 
-import { ProblemSet, ParseableProblemSet, parseProblemSet } from 'src/store/models';
+import { ProblemSet, ParseableProblemSet } from 'src/store/models/problem_sets';
 
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;
@@ -25,7 +25,7 @@ export default {
 		async fetchProblemSets({ commit }: { commit: Commit }, course_id: number): Promise<void> {
 			const response = await api.get(`courses/${course_id}/sets`);
 			const _sets_to_parse = response.data as Array<ParseableProblemSet>;
-			commit('SET_PROBLEM_SETS', _sets_to_parse.map((set)=> parseProblemSet(set)));
+			commit('SET_PROBLEM_SETS', _sets_to_parse.map((set)=> new ProblemSet(set)));
 		},
 		async updateSet(
 			{ commit, rootState }: { commit: Commit; rootState: StateInterface },

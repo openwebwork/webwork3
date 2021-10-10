@@ -43,8 +43,7 @@ import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
 import DateTimeInput from 'src/components/common/DateTimeInput.vue';
-import { HomeworkSet } from 'src/store/models';
-import { newHomeworkSet, copyProblemSet } from 'src/store/utils/problem_sets';
+import { HomeworkSet, HomeworkSetParams, HomeworkSetDates } from 'src/store/models/problem_sets';
 import { useStore } from 'src/store';
 
 export default defineComponent({

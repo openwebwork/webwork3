@@ -1,7 +1,7 @@
 //FizzBuzz.test.ts
 /// <reference types="jest" />
 
-import { HomeworkSet, ProblemSet } from '@/store/models';
+import { HomeworkSet, ProblemSet } from '@/store/models/problem_sets';
 import { ParseError } from '@/store/models';
 
 test('Build a HomeworkSet', () => {

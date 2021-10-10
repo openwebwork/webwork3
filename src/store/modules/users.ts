@@ -1,9 +1,14 @@
-import { api } from 'boot/axios';
+import { api } from 'src/boot/axios';
+
 import type { Commit, ActionContext } from 'vuex';
 import type { StateInterface } from 'src/store/index';
 import { remove, pick, assign } from 'lodash-es';
 
-import { User, UserCourse, CourseUser, ResponseError, ParseableUser } from '../models';
+import { logger } from 'src/boot/logger';
+import { User, MergedUser, CourseUser, ParseableCourseUser, ParseableMergedUser,
+	ParseableUser } from 'src/store/models/users';
+import { ResponseError } from 'src/store/models';
+import { UserCourse } from 'src/store/models/courses';
 
 export interface UserState {
 	users: Array<User>;
@@ -59,27 +64,13 @@ export default {
 			const response = await api.get(`courses/${course_id}/users`);
 			if (response.status === 200) {
 				const _course_users = response.data as Array<ParseableCourseUser>;
-				const course_users = _course_users.map(parseCourseUser);
+				const course_users = _course_users.map(u => new CourseUser(u));
 
 				commit('SET_COURSE_USERS', course_users);
 				return course_users;
 			} else if (response.status === 250) {
 				logger.error(response.data);
 				return response.data as ResponseError;
-			}
-		},
-		async fetchUsers({ commit }: { commit: Commit }, course_id: number): Promise<void> {
-			const response = await api.get(`courses/${course_id}/users`);
-			const parseable_users = response.data as Array<ParseableUser>;
-			try {
-				if (response.status === 200) {
-					const users = parseable_users.map((u)=> new User(u));
-					commit('SET_USERS', users);
-				} else {
-					throw response.data as ResponseError;
-				}
-			} catch (err) {
-				// handle the error
 			}
 		},
 		async getUser(_context: ActionContext<UserState, StateInterface>,
@@ -98,20 +89,19 @@ export default {
 			}
 			return u;
 		},
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		async addCourseUser(_context: ActionContext<UserState, StateInterface>,
 			_course_user: CourseUser): Promise<CourseUser | undefined> {
 			return await addCourseUser(_course_user);
 		},
 		async addMergedUser({ commit }: { commit: Commit }, _merged_user: MergedUser): Promise<MergedUser> {
-			let merged_user = newMergedUser();
+			let merged_user = new MergedUser({});
 			if (_merged_user.user_id === 0) { // this is a new user
-				const u = pick(_merged_user, Object.keys(newUser())) as User;
-				merged_user = await addUser(u) as MergedUser;
+				const u = pick(_merged_user, Object.keys(new User())) as MergedUser;
+				merged_user = await addMergedUser(u) as MergedUser;
 			} else {
-				merged_user = pick(_merged_user, Object.keys(newUser())) as MergedUser;
+				merged_user = pick(_merged_user, Object.keys(new MergedUser({}))) as MergedUser;
 			}
-			const _course_user = pick(_merged_user, Object.keys(newCourseUser())) as CourseUser;
+			const _course_user = pick(_merged_user, Object.keys(new CourseUser({}))) as CourseUser;
 			_course_user.user_id = merged_user.user_id;
 			const cu = await addCourseUser(_course_user);
 			merged_user = assign(merged_user, cu, _course_user) as MergedUser;
@@ -203,7 +193,29 @@ async function addUser(_user: User) {
 	const response = await api.post('users', _user);
 	if (response.status === 200) {
 		const u = response.data as ParseableUser;
-		return parseUser(u);
+		return new User(u);
+	} else if (response.status === 250) {
+		logger.error(response.data);
+		throw response.data as ResponseError;
+	}
+}
+
+async function addCourseUser(_course_user: CourseUser) {
+	const response = await api.post('users', _course_user);
+	if (response.status === 200) {
+		const u = response.data as ParseableCourseUser;
+		return new CourseUser(u);
+	} else if (response.status === 250) {
+		logger.error(response.data);
+		throw response.data as ResponseError;
+	}
+}
+
+async function addMergedUser(_merged_user: MergedUser) {
+	const response = await api.post('users', _merged_user);
+	if (response.status === 200) {
+		const u = response.data as ParseableMergedUser;
+		return new MergedUser(u);
 	} else if (response.status === 250) {
 		logger.error(response.data);
 		throw response.data as ResponseError;
