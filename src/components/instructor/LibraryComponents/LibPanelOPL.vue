@@ -81,6 +81,7 @@ export default defineComponent({
 			void store.dispatch('library/resetChapters');
 			void store.dispatch('library/resetSubjects');
 			const d = discipline.value;
+			subject.value = chapter.value = section.value = null;
 			await store.dispatch('library/fetchSubjects', { disc_id: d?.id });
 		});
 
@@ -89,6 +90,7 @@ export default defineComponent({
 			void store.dispatch('library/resetChapters');
 			const subj = subject.value;
 			const d = discipline.value;
+			chapter.value = section.value = null;
 			await store.dispatch('library/fetchChapters', { disc_id: d?.id, subj_id: subj?.id });
 		});
 
@@ -97,6 +99,7 @@ export default defineComponent({
 			const ch = chapter.value;
 			const subj = subject.value;
 			const d = discipline.value;
+			section.value = null;
 			await store.dispatch('library/fetchSections',
 				{
 					disc_id: d?.id, subj_id: subj?.id, chap_id: ch?.id
