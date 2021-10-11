@@ -1,13 +1,10 @@
+// general classes and parsing functions
+
+import { intersection, isEqual, difference } from 'lodash';
+
 export interface Dictionary<T> {
 	[key: string]: T;
 }
-
-// export class Model {
-// constructor(params: Dictionary<string|number|boolean>) {
-// // parse the individual fields
-// }
-
-// }
 
 export interface ResponseError {
 	exception: string;
@@ -83,18 +80,41 @@ export function parseBoolean(_value: boolean | string | number) {
 	if (typeof _value === 'number' && (_value === 1 || _value === 0)) {
 		return _value === 1;
 	}
-	// if (typeof _value === 'string' && !(/[01]/.exec(_value))) {
-	// return _value === 'true' || _value === 'false' ?
-	// _value === 'true' :
-	// undefined;
-	// } else {
-	// return _value === undefined ?
-	// undefined :
-	// parseInt(`${_value}`) === 1;
-	// }
 	if (typeof _value === 'string' && booleanRE.test(_value)){
 		return booleanTrue.test(_value);
 	}
 	throw new BooleanParseException(`The value '${_value}' is not a boolean`);
 
+}
+
+export class RequiredFieldsException extends ParseError {
+	constructor(_field: string, message: string,){
+		super('RequiredFieldsException', message);
+		super.field = _field;
+	}
+}
+
+export class Model {
+	_required_fields: Array<string> = [];
+	_optional_fields?: Array<string> = [];
+
+	get all_fields(): Array<string> {
+		return [];
+	}
+
+	get required_fields() {
+		return this._required_fields;
+	}
+
+	constructor(_params: Dictionary<number|string|boolean> = {}){
+		// check that required fields are present
+		const common_fields = intersection(this.required_fields, Object.keys(_params));
+
+		if (!isEqual(common_fields, this.required_fields)) {
+			const diff = difference(this.required_fields, common_fields);
+			throw new RequiredFieldsException('_all',
+				`The field(s) '${diff.join(', ')}' must be present in the model.`
+			);
+		}
+	}
 }

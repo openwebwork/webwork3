@@ -1,8 +1,8 @@
 // tests parsing and handling of users
 
-import { BooleanParseException, EmailParseException, NonNegIntException, UsernameParseException } from '@/store/models';
-import { RequiredFieldsException, User } from '@/store/models/users';
-// import { ParseError, RequiredFieldsException } from '@/store/models';
+import { BooleanParseException, EmailParseException, NonNegIntException, UsernameParseException,
+	RequiredFieldsException } from '@/store/models';
+import { User } from '@/store/models/users';
 
 test('Create a Valid User', () => {
 	const user1 = new User({ username: 'test' });
