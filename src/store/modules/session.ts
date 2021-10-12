@@ -17,7 +17,7 @@ export interface SessionState {
 function state(): SessionState {
 	return {
 		logged_in: false,
-		user: new User(),
+		user: new User({ username: '__new__' }),
 		course: {
 			course_id: 0,
 			course_name: ''
@@ -63,7 +63,7 @@ export default {
 				state.user = _session_info.user;
 				// state.user.is_admin = _session_info.user.is_admin;
 			} else {
-				state.user = new User();
+				state.user = new User({ username: '__NEW__' });
 			}
 		},
 		SET_COURSE(state: SessionState, _course: CourseInfo): void {

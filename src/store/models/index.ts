@@ -36,7 +36,7 @@ export function parseNonNegInt(val: string | number) {
 }
 
 export const mailRE = /^[\w.]+@([a-zA-Z_.]+)+\.[a-zA-Z]{2,9}$/;
-export const usernameRE = /^[a-zA-Z]([a-zA-Z._0-9])+$/;
+export const usernameRE = /^[_a-zA-Z]([a-zA-Z._0-9])+$/;
 
 export class UsernameParseException extends ParseError {
 	constructor(message: string){

@@ -61,7 +61,7 @@ import { defineComponent, computed, ref } from 'vue';
 import { pick } from 'lodash-es';
 import { useStore } from 'src/store';
 import { api } from 'src/boot/axios';
-import { MergedUser } from 'src/store/models/users';
+import { MergedUser, CourseUser } from 'src/store/models/users';
 import { UserCourse } from 'src/store/models/courses';
 import { ResponseError } from 'src/store/models';
 import AddUsersManually from './ClasslistManagerComponents/AddUsersManually.vue';
@@ -154,10 +154,10 @@ export default defineComponent({
 				if (conf) {
 					for await (const _user of selected.value) {
 						const username = _user.username;
-						const _user_to_delete = pick(_user, ['user_id', 'username', 'course_user_id']);
+						const _user_to_delete = pick(_user, CourseUser.ALL_FIELDS) as CourseUser;
 
 						try {
-							// _user_to_delete.user_id = _user.user_id;
+
 							await store.dispatch('users/deleteCourseUser', _user_to_delete);
 							$q.notify({
 								message: `The user '${username}' has been succesfully deleted from the course.`,
@@ -183,7 +183,7 @@ export default defineComponent({
 								$q.notify({ message: error.message, color: 'red' });
 							}
 						}
-						void store.dispatch('users/deleteMergedCourseUser', _user_to_delete);
+						void store.dispatch('users/deleteMergedCourseUser', _user);
 						selected.value = [];
 					}
 				}

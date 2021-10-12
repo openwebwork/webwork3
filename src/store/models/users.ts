@@ -1,7 +1,7 @@
 // This is utility functions for users
 
 import { Dictionary, parseBoolean, parseNonNegInt, parseEmail, parseUsername,
-	ParseError, Model } from '@/store/models/index';
+	ParseError, Model } from 'src/store/models/index';
 
 import { isUndefined } from 'lodash';
 
@@ -162,8 +162,8 @@ export interface ParseableMergedUser {
 }
 
 export class MergedUser extends Model {
-	course_user_id?: number;
-	user_id?: number;
+	course_user_id: number;
+	user_id: number;
 	course_id?: number;
 	username: string;
 	email?: string;
@@ -192,6 +192,7 @@ export class MergedUser extends Model {
 
 	constructor(params: ParseableMergedUser = {}) {
 		super(params as Dictionary<string|number|boolean>);
+		this.course_user_id = 0;
 		this.user_id = 0;
 		this.username = '';
 		this.is_admin = false;

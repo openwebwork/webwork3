@@ -1,4 +1,4 @@
-import { Dictionary, parseNonNegInt, Model, parseBoolean } from '@/store/models/index';
+import { Dictionary, parseNonNegInt, Model, parseBoolean } from 'src/store/models/index';
 import { isUndefined } from 'lodash';
 
 export interface UserCourse {

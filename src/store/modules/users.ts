@@ -94,12 +94,12 @@ export default {
 			return await addCourseUser(_course_user);
 		},
 		async addMergedUser({ commit }: { commit: Commit }, _merged_user: MergedUser): Promise<MergedUser> {
-			let merged_user = new MergedUser({});
+			let merged_user = new MergedUser({ username: '__NEW__' });
 			if (_merged_user.user_id === 0) { // this is a new user
-				const u = pick(_merged_user, Object.keys(new User())) as MergedUser;
+				const u = pick(_merged_user, User.ALL_FIELDS) as MergedUser;
 				merged_user = await addMergedUser(u) as MergedUser;
 			} else {
-				merged_user = pick(_merged_user, Object.keys(new MergedUser({}))) as MergedUser;
+				merged_user = pick(_merged_user, MergedUser.ALL_FIELDS) as MergedUser;
 			}
 			const _course_user = pick(_merged_user, Object.keys(new CourseUser({}))) as CourseUser;
 			_course_user.user_id = merged_user.user_id;
@@ -110,7 +110,7 @@ export default {
 		},
 		async updateCourseUser(_context: ActionContext<UserState, StateInterface>, _course_user: CourseUser)
 			: Promise<CourseUser|undefined> {
-			const url = `courses/${_course_user.course_id}/users/${_course_user.user_id}`;
+			const url = `courses/${_course_user.course_id || 0}/users/${_course_user.user_id}`;
 			const response = await api.put(url, _course_user);
 			if (response.status === 200) {
 				return response.data as CourseUser;

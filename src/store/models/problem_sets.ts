@@ -1,6 +1,6 @@
 /* These are Problem Set interfaces */
 
-import { Dictionary, parseNonNegInt, parseBoolean, Model, ParseError } from '@/store/models';
+import { Dictionary, parseNonNegInt, parseBoolean, Model, ParseError } from 'src/store/models';
 import { isUndefined } from 'lodash';
 
 // const problem_set_types = [/hw/i, /quiz/i, /review/i];
@@ -167,8 +167,8 @@ export class ProblemSet extends Model {
 		}
 	}
 
-	validate() {
-		throw 'You must override the validate() method';
+	isValid() {
+		throw 'You must override the isValid() method';
 	}
 }
 
@@ -190,19 +190,21 @@ export class Quiz extends ProblemSet {
 
 	set(params: ParseableProblemSet) {
 		super.setBaseParams(params);
-		this.setParams(params.set_params as ParseableQuizParams);
-		this.setDates(params.set_dates as ParseableQuizDates);
+		if (params.set_params) {
+			this.setParams(params.set_params as ParseableQuizParams);
+		}
+		if (params.set_dates) {
+			this.setDates(params.set_dates as ParseableQuizDates);
+		}
 	}
 
 	setParams(quiz_params: ParseableQuizParams) {
-		const _set_params: QuizParams = {};
 		if (!isUndefined(quiz_params.timed)) {
-			_set_params.timed = parseBoolean(quiz_params.timed);
+			this.set_params.timed = parseBoolean(quiz_params.timed);
 		}
 		if (!isUndefined(quiz_params.quiz_duration)) {
-			_set_params.quiz_duration = parseNonNegInt(quiz_params.quiz_duration);
+			this.set_params.quiz_duration = parseNonNegInt(quiz_params.quiz_duration);
 		}
-		this.set_params = _set_params;
 	}
 
 	setDates(quiz_dates: ParseableQuizDates) {
@@ -213,7 +215,7 @@ export class Quiz extends ProblemSet {
 		};
 	}
 
-	validate() {
+	isValid() {
 		return this.set_dates.open <= this.set_dates.due &&
 			this.set_dates.due <= this.set_dates.answer;
 	}
@@ -243,23 +245,21 @@ export class HomeworkSet extends ProblemSet {
 
 	setParams(hw_params: ParseableHWParams = {}) {
 		// parse the params
-		const _set_params: HomeworkSetParams = {};
 		if (!isUndefined(hw_params.enable_reduced_scoring)) {
-			_set_params.enable_reduced_scoring = parseBoolean(hw_params.enable_reduced_scoring);
+			this.set_params.enable_reduced_scoring = parseBoolean(hw_params.enable_reduced_scoring);
 		}
 		if (!isUndefined(hw_params.hide_hint)) {
-			_set_params.hide_hint = parseBoolean(hw_params.hide_hint);
+			this.set_params.hide_hint = parseBoolean(hw_params.hide_hint);
 		}
 		if (!isUndefined(hw_params.hardcopy_header)) {
-			_set_params.hardcopy_header = hw_params.hardcopy_header;
+			this.set_params.hardcopy_header = hw_params.hardcopy_header;
 		}
 		if (!isUndefined(hw_params.set_header)) {
-			_set_params.set_header = hw_params.set_header;
+			this.set_params.set_header = hw_params.set_header;
 		}
 		if (!isUndefined(hw_params.description)) {
-			_set_params.description = hw_params.description;
+			this.set_params.description = hw_params.description;
 		}
-		this.set_params = _set_params;
 	}
 
 	setDates(hw_dates: ParseableHWDates = {}) {
@@ -272,7 +272,7 @@ export class HomeworkSet extends ProblemSet {
 		};
 	}
 
-	validate() {
+	isValid() {
 		const params = this.set_params;
 		const dates = this.set_dates;
 		if (params.enable_reduced_scoring) {

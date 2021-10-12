@@ -1,12 +1,11 @@
 // tests parsing and handling of users
 
-import { MergedUser  } from '@/store/models/users';
+import { MergedUser  } from 'src/store/models/users';
 import { NonNegIntException, EmailParseException, UsernameParseException,
-	RequiredFieldsException, ParseError } from '@/store/models';
+	RequiredFieldsException, ParseError } from 'src/store/models';
 
 test('Create a Valid MergedUser', () => {
 	const merged_user1 = new MergedUser({ username: 'test' });
-	console.log(merged_user1);
 	expect(merged_user1 instanceof MergedUser).toBe(true);
 	const merged_user2 = new MergedUser({ username: 'test', user_id: 0, is_admin: false });
 	expect(merged_user1).toStrictEqual(merged_user2);

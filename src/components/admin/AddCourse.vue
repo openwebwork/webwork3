@@ -107,7 +107,7 @@ export default defineComponent({
 					const _course = (await store.dispatch('courses/addCourse', course.value)) as unknown as Course;
 
 					$q.notify({
-						message: `The course ${_course.course_name} was successfully added.`,
+						message: `The course '${_course.course_name || ''}' was successfully added.`,
 						color: 'green'
 					});
 					if (!instructor_exists.value) {

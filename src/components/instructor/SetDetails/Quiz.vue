@@ -43,7 +43,7 @@ import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
 import DateTimeInput from 'src/components/common/DateTimeInput.vue';
-import { Quiz, QuizDates } from 'src/store/models/problem_sets';
+import { Quiz } from 'src/store/models/problem_sets';
 import { useStore } from 'src/store';
 
 export default defineComponent({
@@ -63,7 +63,7 @@ export default defineComponent({
 		const updateSet = () => {
 			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id == set_id.value) ||
 				new Quiz();
-			set.value = cloneDeep(s);
+			set.value = cloneDeep(s as Quiz);
 		};
 
 		watch(()=>set_id.value, updateSet);
@@ -75,7 +75,7 @@ export default defineComponent({
 			if (new_set.set_id == old_set.set_id) {
 				void store.dispatch('problem_sets/updateSet', new_set);
 				$q.notify({
-					message: `The problem set ${new_set.set_name} was successfully updated.`,
+					message: `The problem set '${new_set.set_name ?? ''}' was successfully updated.`,
 					color: 'green'
 				});
 			}
@@ -91,7 +91,7 @@ export default defineComponent({
 			],
 			checkDates: [
 				() => {
-					const d = set.value.dates as QuizDates;
+					const d = set.value.set_dates;
 					return d.open <= d.due && d.due <=d.answer || 'The dates must be in order';
 				}
 			],

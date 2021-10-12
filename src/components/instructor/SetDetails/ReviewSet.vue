@@ -67,7 +67,7 @@ export default defineComponent({
 			if (new_set.set_id == old_set.set_id) {
 				void store.dispatch('problem_sets/updateSet', new_set);
 				$q.notify({
-					message: `The problem set ${new_set.set_name} was successfully updated.`,
+					message: `The problem set '${new_set.set_name ?? ''}' was successfully updated.`,
 					color: 'green'
 				});
 			}

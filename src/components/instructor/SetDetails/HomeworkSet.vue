@@ -43,7 +43,7 @@ import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
 import DateTimeInput from 'src/components/common/DateTimeInput.vue';
-import { HomeworkSet, HomeworkSetParams, HomeworkSetDates } from 'src/store/models/problem_sets';
+import { HomeworkSet } from 'src/store/models/problem_sets';
 import { useStore } from 'src/store';
 
 export default defineComponent({
@@ -64,7 +64,7 @@ export default defineComponent({
 		const updateSet = () => {
 			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id === set_id.value) ||
 				new HomeworkSet();
-			set.value = cloneDeep(s);
+			set.value = cloneDeep(s as HomeworkSet);
 		};
 
 		watch(()=>set_id.value, updateSet);
@@ -76,7 +76,7 @@ export default defineComponent({
 			if (new_set.set_id == old_set.set_id) {
 				void store.dispatch('problem_sets/updateSet', new_set);
 				$q.notify({
-					message: `The problem set ${new_set.set_name} was successfully updated.`,
+					message: `The problem set '${new_set.set_name ?? ''}' was successfully updated.`,
 					color: 'green'
 				});
 
@@ -93,8 +93,8 @@ export default defineComponent({
 			],
 			checkDates: [
 				() => {
-					const d = set.value.dates as HomeworkSetDates;
-					const p = set.value.set_params as HomeworkSetParams;
+					const d = set.value.set_dates;
+					const p = set.value.set_params;
 					return p.enable_reduced_scoring && d.reduced_scoring ?
 						(d.open <= d.reduced_scoring && d.reduced_scoring <= d.due  && d.due <= d.answer) :
 						(d.open <= d.due && d.due <= d.answer)

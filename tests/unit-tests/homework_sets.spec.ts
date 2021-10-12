@@ -1,8 +1,8 @@
 //FizzBuzz.test.ts
 /// <reference types="jest" />
 
-import { HomeworkSet, ProblemSet } from '@/store/models/problem_sets';
-import { BooleanParseException, NonNegIntException } from '@/store/models';
+import { HomeworkSet, ProblemSet } from 'src/store/models/problem_sets';
+import { BooleanParseException, NonNegIntException } from 'src/store/models';
 
 test('Build a HomeworkSet', () => {
 	const set = new HomeworkSet();
@@ -42,4 +42,48 @@ test('Test valid Homework Set params', () => {
 test('Test the homework set dates', () => {
 	const set = new HomeworkSet();
 	set.set({ set_params: { enable_reduced_scoring: true } });
+	expect(set.set_params.enable_reduced_scoring).toBe(true);
+
+	set.set({
+		set_dates: {
+			open: 0,
+			reduced_scoring: 10,
+			due: 10,
+			answer: 20
+		}
+	});
+	expect(set.isValid()).toBe(true);
+
+	set.set({
+		set_dates: {
+			open: 0,
+			reduced_scoring: 30,
+			due: 10,
+			answer: 20
+		}
+	});
+	expect(set.isValid()).toBe(false);
+
+	set.set({
+		set_dates: {
+			open: 0,
+			reduced_scoring: 10,
+			due: 20,
+			answer: 15
+		}
+	});
+	expect(set.isValid()).toBe(false);
+
+	set.set({ set_params: { enable_reduced_scoring: false } });
+	expect(set.set_params.enable_reduced_scoring).toBe(false);
+
+	set.set({
+		set_dates: {
+			open: 0,
+			reduced_scoring: 100,
+			due: 10,
+			answer: 15
+		}
+	});
+	expect(set.isValid()).toBe(true);
 });
