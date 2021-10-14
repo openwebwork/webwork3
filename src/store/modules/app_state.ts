@@ -34,7 +34,6 @@ export default {
 	},
 	mutations: {
 		SET_TARGET_SET_ID(state: AppState, _target_set_id: number): void {
-			console.log(_target_set_id);
 			state.library_state.target_set_id = _target_set_id;
 		}
 	}

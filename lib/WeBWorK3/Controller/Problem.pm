@@ -16,7 +16,8 @@ sub addProblem ($self) {
 	my $problem_params = {
 		params => {
 			weight          => 1,
-			library_id      => $self->req->json->{id},
+			# TODO: finalize OPL DB and migrate away from paths
+			# library_id      => $self->req->json->{id},
 			problem_path    => $self->req->json->{file_path}
 		}
 	};

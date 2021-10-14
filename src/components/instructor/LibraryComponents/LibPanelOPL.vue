@@ -49,10 +49,12 @@ import { defineComponent, ref, computed, watch } from 'vue';
 import { useStore } from 'src/store';
 // import { Discipline, LibrarySubject } from 'src/store/models';
 import Problem from 'src/components/common/Problem.vue';
+import { logger } from 'src/boot/logger';
 
 interface SelectItem {
 	label?: string;
 	name?: string;
+	crossref?: number;
 	id: number;
 }
 
@@ -108,14 +110,14 @@ export default defineComponent({
 		});
 
 		watch(() => store.state.app_state.library_state.target_set_id, () => {
-			console.log(store.state.app_state.library_state.target_set_id);
+			logger.debug(`[LibPanelOPL] update target set: ${store.state.app_state.library_state.target_set_id}`);
 		});
 
-		const getLabelId = (item: SelectItem): SelectItem =>  ({ label: item.name, id: item.id });
+		const getLabelId = (item: SelectItem): SelectItem =>  ({ label: item.name, id: item.crossref ?? item.id });
 
 		return {
 			discipline,
-		  disciplines: computed(() => store.state.library.disciplines.map(getLabelId)),
+			disciplines: computed(() => store.state.library.disciplines.map(getLabelId)),
 			subject,
 			subjects: computed(() => store.state.library.subjects.map(getLabelId)),
 			chapter,
@@ -135,7 +137,7 @@ export default defineComponent({
 					const url = `/courses/${course_id}/sets/${set_id}/problems`;
 					await api.post(url, problem);
 				}
-				console.log(problem);
+				logger.debug(`[LibPanelOPL/addProblem] set_id: ${set_id}; adding: ${JSON.stringify(problem)}`);
 			}
 		};
 	},

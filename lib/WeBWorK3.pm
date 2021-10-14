@@ -135,6 +135,7 @@ sub problemRoutes($self) {
 	my $problem_routes = $self->routes->any('/webwork3/api/courses/:course_id/sets/:set_id/problems')
 		->to(controller => 'Problem');
 	$problem_routes->post('/')->to(action => 'addProblem');
+	return;
 }
 
 sub settingsRoutes($self) {
