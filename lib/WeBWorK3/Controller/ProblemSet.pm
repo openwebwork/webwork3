@@ -6,12 +6,7 @@ use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 use Data::Dumper;
 use Try::Tiny;
-
 use Mojo::JSON qw/true false/;
-use Mojo::Log;
-use Data::Dumper;
-
-my $log = Mojo::Log->new;
 
 sub getAllProblemSets {
 	my $self = shift;
@@ -22,12 +17,10 @@ sub getAllProblemSets {
 
 sub getProblemSets {
 	my $self = shift;
-	# $log->debug($self->param("course_id"));
 	my @problem_sets = $self->schema->resultset("ProblemSet")
 		->getProblemSets({ course_id => int($self->param("course_id")) });
 	# convert booleans
 	for my $set (@problem_sets) {
-		# $log->debug(Dumper($set));
 		$set->{set_visible} = $set->{set_visible} ? true : false;
 	}
 	$self->render(json => \@problem_sets);

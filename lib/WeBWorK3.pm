@@ -67,6 +67,7 @@ sub startup {
 	$self->userRoutes();
 	$self->courseUserRoutes();
 	$self->problemSetRoutes();
+	$self->problemRoutes();
 	$self->settingsRoutes();
 	$self->utilityRoutes();
 	return;
@@ -128,6 +129,13 @@ sub problemSetRoutes($self) {
 	$problem_set_routes->put('/:set_id')->to(action => 'updateProblemSet');
 	$problem_set_routes->post('/')->to(action => 'addProblemSet');
 	$problem_set_routes->delete('/:set_id')->to(action => 'deleteProblemSet');
+	return;
+}
+
+sub problemRoutes($self) {
+	my $problem_routes = $self->routes->any('/webwork3/api/courses/:course_id/sets/:set_id/problems')
+		->to(controller => 'Problem');
+	$problem_routes->post('/')->to(action => 'addProblem');
 	return;
 }
 

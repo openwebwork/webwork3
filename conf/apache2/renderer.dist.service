@@ -1,0 +1,22 @@
+[Unit]
+Description=Standalone Renderer for WeBWorK 3
+After=network.target
+
+[Service]
+Type=forking
+User=www-data
+Group=www-data
+PIDFile=/var/run/webwork3/renderer.pid
+PermissionsStartOnly=true
+ExecStartPre=-/bin/mkdir /var/run/webwork3
+ExecStartPre=/bin/chown -R www-data:www-data /var/run/webwork3
+# Change /path/to to the full path to the renderer directory.
+WorkingDirectory=/path/to/renderer
+ExecStart=/usr/local/bin/hypnotoad script/render_app
+ExecReload=/usr/local/bin/hypnotoad script/render_app
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
+
+# vim: syntax=systemd
