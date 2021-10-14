@@ -105,10 +105,13 @@ sub addGlobalUser {
 	my ( $self, $user_params, $as_result_set ) = @_;
 	DB::Exception::ParametersNeeded->throw( message => "The parameters must include username" )
 		unless defined( $user_params->{username} );
+	my $params = clone($user_params);
+	# remove the user_id if defined and equal to zero.
+	if ( defined ($params->{user_id}) && $params->{user_id} == 0) {
+		delete $params->{user_id};
+	}
 
-	my $user_obj = $self->new($user_params);
-
-	my $new_user = $self->create( { $user_obj->get_inflated_columns } );
+	my $new_user = $self->create($params);
 	return $new_user if $as_result_set;
 	return removeLoginParams( { $new_user->get_columns } );
 }
@@ -232,13 +235,53 @@ sub getCourseUsers {
 	return \@users if $as_result_set;
 	return map {
 		removeLoginParams(
-			{   $_->get_columns,
+			{
+				# $_->get_columns,
 				$_->course_users->first->get_columns,
 				params => $_->course_users->first->get_inflated_column("params")
 			}
 		);
 	} @users;
 }
+
+=head1 getMergedUsers
+
+This returns all users in a given course as a merge between global users
+and course users.
+
+=head3 input
+
+=over
+
+=item * C<course_name>, a string OR
+=item * C<course_id>, a key
+
+=back
+
+=head3 output
+
+An array of MergedCourseUsers (as hashrefs)
+
+=cut
+
+sub getMergedCourseUsers {
+	my ( $self, $course_info ) = @_;
+	my $course_rs = $self->result_source->schema->resultset("Course");
+	my $course    = $course_rs->getCourse( getCourseInfo($course_info), 1 );
+	my @users = $self->search( { 'course_users.course_id' => $course->course_id }, { prefetch => ["course_users"] } );
+
+	return map {
+		removeLoginParams(
+			{
+				$_->get_columns,
+				$_->course_users->first->get_columns,
+				params => $_->course_users->first->get_inflated_column("params")
+			}
+		);
+	} @users;
+}
+
+
 
 ###
 #
@@ -339,7 +382,11 @@ sub addCourseUser {
 	# check if the user is already in the given course
 	my $cu = $self->result_source->schema->resultset("CourseUser")
 		->find({ user_id => $user->user_id, course_id => $course->course_id});
-	# warn Dumper {$cu->get_inflated_columns} if $cu;
+
+	## remove the course_user_id if it is 0 (it's new)
+	delete $course_user_params->{course_user_id}
+		if defined($course_user_params->{course_user_id}) && $course_user_params->{course_user_id} == 0;
+
 	DB::Exception::UserAlreadyInCourse->throw(
 		message => "The user with username: ${\$user->username} is already in the course: ${\$course->course_name}"
 	) if defined($cu);
@@ -352,8 +399,7 @@ sub addCourseUser {
 
 	## still need to check params for validity.
 
-	my $course_user = $self->result_source->schema->resultset("CourseUser")
-		->new($params);
+	my $course_user = $self->result_source->schema->resultset("CourseUser")->new($params);
 	$course->add_to_users({user_id => $user->user_id});
 
 	my $user_to_return = $self->result_source->schema->resultset("CourseUser")

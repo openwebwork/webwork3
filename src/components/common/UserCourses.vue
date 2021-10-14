@@ -61,7 +61,7 @@
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
 // import { useRoute } from 'vue-router';
-import { useStore } from '../../store';
+import { useStore } from 'src/store';
 
 import { UserCourse } from 'src/store/models';
 

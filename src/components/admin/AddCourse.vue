@@ -59,10 +59,11 @@
 import { defineComponent, ref, Ref } from 'vue';
 import { useQuasar } from 'quasar';
 
-import { useStore } from '../../store';
-import { newCourse, newCourseUser, newUser } from '../../store/common';
+import { useStore } from 'src/store';
+import { newCourseUser, newUser } from 'src/store/utils/users';
+import { newCourse } from 'src/store/utils/courses';
 
-import { Course, ResponseError, User } from '../../store/models';
+import { Course, ResponseError, User } from 'src/store/models';
 import { AxiosError } from 'axios';
 
 interface DateRange {

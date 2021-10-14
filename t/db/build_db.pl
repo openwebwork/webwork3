@@ -38,6 +38,9 @@ my $config = LoadFile("$main::lib_dir/../conf/webwork3.yml");
 # load the database
 my $schema  = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
+
+# $schema->storage->debug(1);  # print out the SQL commands.
+
 say "restoring the database with dbi: $config->{database_dsn}" if $verbose;
 
 $schema->deploy({ add_drop_table => 1 });  ## create the database based on the schema
@@ -214,8 +217,12 @@ sub addUserSets {
 	for my $user_set (@user_sets){
 		# check if the course_name/set_name/user_name exists
 		my $course = $course_rs->find({ course_name=>$user_set->{course_name}});
-		my $user_course = $course->users->find({username=>$user_set->{username}});
-		if( defined $user_course) {
+		my $user_in_course = $course->users->find({username=>$user_set->{username}});
+		my $course_user = $course_user_rs->find({
+			user_id => $user_in_course->user_id,
+			course_id => $course->course_id
+		});
+		if( defined $course_user) {
 			my $problem_set = $schema->resultset('ProblemSet')->find(
 				{
 					course_id => $course->course_id,
@@ -225,7 +232,7 @@ sub addUserSets {
 			for my $key (qw/course_name set_name type username/) {
 				delete $user_set->{$key};
 			}
-			$user_set->{user_id} = $user_course->user_id;
+			$user_set->{course_user_id} = $course_user->course_user_id;
 			$user_set->{set_id} = $problem_set->set_id;
 			$problem_set->add_to_user_sets($user_set);
 		}

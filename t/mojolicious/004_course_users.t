@@ -58,11 +58,13 @@ if (defined($maggie)) {
 }
 
 
-$t->get_ok('/webwork3/api/courses/2/users')
+$t->get_ok('/webwork3/api/courses/4/users')
 	->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')
-	->json_is( '/1/first_name' => "Apu" )
-	->json_is( '/0/email' => 'lisa@google.com' );
+	->json_is( '/0/role' => "instructor" )
+	->json_is( '/1/role' => 'student' );
+
+print Dumper($t->tx->res->json);
 
 # Pull out the id from the response
 my $user_id = $t->tx->res->json('/0/user_id');
