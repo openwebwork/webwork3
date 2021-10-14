@@ -1,8 +1,8 @@
 // tests parsing and handling of users
 
-import { MergedUser  } from 'src/store/models/users';
+import { MergedUser  } from '@/store/models/users';
 import { NonNegIntException, EmailParseException, UsernameParseException,
-	RequiredFieldsException, ParseError } from 'src/store/models';
+	RequiredFieldsException, ParseError } from '@/store/models';
 
 test('Create a Valid MergedUser', () => {
 	const merged_user1 = new MergedUser({ username: 'test' });
@@ -32,7 +32,7 @@ test('Invalid user_id', () => {
 
 test('Invalid username', () => {
 	expect(() => {
-		new MergedUser({ username: '_test' });
+		new MergedUser({ username: '@test' });
 	}).toThrow(UsernameParseException);
 	expect(() => {
 		new MergedUser({ username: '123test' });

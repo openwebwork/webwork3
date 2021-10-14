@@ -1,9 +1,13 @@
 // This is utility functions for users
 
 import { Dictionary, parseBoolean, parseNonNegInt, parseEmail, parseUsername,
-	ParseError, Model } from 'src/store/models/index';
+	ParseError, Model } from '@/store/models/index';
 
-import { isUndefined } from 'lodash';
+// import { isUndefined, isNull } from 'lodash';
+
+// function defined(_value: any) {
+// return !isUndefined(_value) && !isNull(_value);
+// }
 
 export const user_roles = ['admin', 'instructor', 'TA', 'student'];
 
@@ -59,25 +63,25 @@ export class User extends Model {
 	}
 
 	set(params: ParseableUser) {
-		if (!isUndefined(params.user_id)) {
+		if (params.user_id != null) {
 			this.user_id = parseNonNegInt(params.user_id);
 		}
-		if (!isUndefined(params.username)) {
+		if (params.username != null) {
 			this.username = parseUsername(params.username);
 		}
-		if (!isUndefined(params.email)) {
+		if (params.email != null) {
 			this.email = parseEmail(params.email);
 		}
-		if (!isUndefined(params.first_name)) {
+		if (params.first_name != null) {
 			this.first_name = params?.first_name;
 		}
-		if (!isUndefined(params.last_name)) {
+		if (params.last_name != null) {
 			this.last_name = params?.last_name;
 		}
-		if (!isUndefined(params.is_admin)){
+		if (params.is_admin != null){
 			this.is_admin = parseBoolean(params?.is_admin);
 		}
-		if (!isUndefined(params.student_id)) {
+		if (params.student_id != null) {
 			this.student_id = params.student_id?.toString();
 		}
 	}
@@ -122,24 +126,36 @@ export class CourseUser extends Model {
 	}
 
 	set(params: ParseableCourseUser = {}) {
-		if (!isUndefined(params.course_user_id)) {
+		if (params.course_user_id != null) {
 			this.course_user_id = parseNonNegInt(params.course_user_id);
 		}
-		if (!isUndefined(params.course_id)) {
+		if (params.course_id != null) {
 			this.course_id = parseNonNegInt(params.course_id);
 		}
-		if (!isUndefined(params.user_id)) {
+		if (params.user_id != null) {
 			this.user_id = parseNonNegInt(params.user_id);
 		}
-		if (!isUndefined(params.role)) {
+		if (params.role != null) {
 			this.role = parseUserRole(params.role);
 		}
-		if (!isUndefined(params.section)) {
+		if (params.section != null) {
 			this.section = `${params.section}`;
 		}
-		if (!isUndefined(params.recitation)) {
+		if (params.recitation != null) {
 			this.recitation = `${params.recitation}`;
 		}
+	}
+
+	asObject(fields?: Array<string>) {
+		const f = fields ?? this.all_fields;
+		const obj: Dictionary<string|number|boolean|undefined> = {};
+		if(f.indexOf('course_user_id')) { obj.course_user_id = this.course_user_id;}
+		if(f.indexOf('user_id')) { obj.user_id = this.user_id; }
+		if(f.indexOf('course_id')) { obj.course_id = this.course_id;}
+		if(f.indexOf('role')) { obj.role = this.role; }
+		if(f.indexOf('section')) { obj.section = this.section;}
+		if(f.indexOf('course_id')) { obj.recitation = this.recitation;}
+		return obj;
 	}
 }
 
@@ -200,44 +216,61 @@ export class MergedUser extends Model {
 	}
 
 	set(params: ParseableMergedUser) {
-		if (!isUndefined(params.user_id)) {
+		if (params.user_id != null) {
 			this.user_id = parseNonNegInt(params.user_id);
 		}
-		if (!isUndefined(params.username)) {
+		if (params.username != null) {
 			this.username = parseUsername(params.username);
 		}
-		if (!isUndefined(params.email)) {
+		if (params.email != null) {
 			this.email = parseEmail(params.email);
 		}
-		if (!isUndefined(params.first_name)) {
-			this.first_name = params?.first_name;
+		if (params.first_name != null) {
+			this.first_name = params.first_name;
 		}
-		if (!isUndefined(params.last_name)) {
-			this.last_name = params?.last_name;
+		if (params.last_name != null) {
+			this.last_name = params.last_name;
 		}
-		if (!isUndefined(params.is_admin)){
-			this.is_admin = parseBoolean(params?.is_admin);
+		if (params.is_admin != null){
+			this.is_admin = parseBoolean(params.is_admin);
 		}
-		if (!isUndefined(params.student_id)) {
-			this.student_id = params.student_id?.toString();
+		if (params.student_id != null) {
+			this.student_id = params.student_id.toString();
 		}
-		if (!isUndefined(params.course_user_id)) {
+		if (params.course_user_id != null) {
 			this.course_user_id = parseNonNegInt(params.course_user_id);
 		}
-		if (!isUndefined(params.course_id)) {
+		if (params.course_id != null) {
 			this.course_id = parseNonNegInt(params.course_id);
 		}
-		if (!isUndefined(params.user_id)) {
+		if (params.user_id != null) {
 			this.user_id = parseNonNegInt(params.user_id);
 		}
-		if (!isUndefined(params.role)) {
+		if (params.role != null) {
 			this.role = parseUserRole(params.role);
 		}
-		if (!isUndefined(params.section)) {
+		if (params.section != null) {
 			this.section = `${params.section}`;
 		}
-		if (!isUndefined(params.recitation)) {
+		if (params.recitation != null) {
 			this.recitation = `${params.recitation}`;
 		}
+	}
+
+	asObject(fields?: Array<string>) {
+		const f = fields ?? this.all_fields;
+		const obj: ParseableMergedUser = {};
+		if(f.indexOf('username')>=0) { obj.username = this.username;}
+		if(f.indexOf('email')>=0) { obj.email = this.email;}
+		if(f.indexOf('first_name')>=0) { obj.first_name = this.first_name;}
+		if(f.indexOf('last_name')>=0) { obj.last_name = this.last_name;}
+		if(f.indexOf('is_admin')>=0) { obj.is_admin = this.is_admin;}
+		if(f.indexOf('student_id')>=0) { obj.student_id = this.student_id;}
+		if(f.indexOf('user_id')>=0) { obj.user_id = this.user_id; }
+		if(f.indexOf('course_id')>=0) { obj.course_id = this.course_id;}
+		if(f.indexOf('role')>=0) { obj.role = this.role; }
+		if(f.indexOf('section')>=0) { obj.section = this.section;}
+		if(f.indexOf('course_id')>=0) { obj.recitation = this.recitation;}
+		return obj;
 	}
 }

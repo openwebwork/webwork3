@@ -1,7 +1,7 @@
 // This tests the parsing of various formats
 
 import { parseNonNegInt, parseBoolean, parseEmail, parseUsername, EmailParseException,
-	NonNegIntException, BooleanParseException, UsernameParseException } from 'src/store/models';
+	NonNegIntException, BooleanParseException, UsernameParseException } from '@/store/models';
 
 test('parsing nonnegative integers', () => {
 	expect(parseNonNegInt(1)).toBe(1);
@@ -38,7 +38,7 @@ test('parsing emails', () => {
 test('parsing usernames', () => {
 	expect(parseUsername('login')).toBe('login');
 	expect(parseUsername('login123')).toBe('login123');
-	expect(() => {parseUsername('_login');}).toThrow(UsernameParseException);
+	expect(() => {parseUsername('@login');}).toThrow(UsernameParseException);
 	expect(() => {parseUsername('1234login');}).toThrow(UsernameParseException);
 
 	expect(parseUsername('user@site.com')).toBe('user@site.com');

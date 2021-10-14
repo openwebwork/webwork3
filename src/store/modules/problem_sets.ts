@@ -1,9 +1,9 @@
-import { api } from 'src/boot/axios';
+import { api } from '@/boot/axios';
 import { Commit } from 'vuex';
 import { StateInterface } from '../index';
 import { isEqual } from 'lodash-es';
 
-import { ProblemSet, ParseableProblemSet } from 'src/store/models/problem_sets';
+import { ProblemSet, ParseableProblemSet } from '@/store/models/problem_sets';
 
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;

@@ -1,14 +1,14 @@
-import { api } from 'src/boot/axios';
+import { api } from '@/boot/axios';
 
 import type { Commit, ActionContext } from 'vuex';
-import type { StateInterface } from 'src/store/index';
+import type { StateInterface } from '@/store/index';
 import { remove, pick, assign } from 'lodash-es';
 
-import { logger } from 'src/boot/logger';
+import { logger } from '@/boot/logger';
 import { User, MergedUser, CourseUser, ParseableCourseUser, ParseableMergedUser,
-	ParseableUser } from 'src/store/models/users';
-import { ResponseError } from 'src/store/models';
-import { UserCourse } from 'src/store/models/courses';
+	ParseableUser } from '@/store/models/users';
+import { ResponseError } from '@/store/models';
+import { UserCourse } from '@/store/models/courses';
 
 export interface UserState {
 	users: Array<User>;
@@ -73,6 +73,20 @@ export default {
 				return response.data as ResponseError;
 			}
 		},
+		async fetchMergedUsers({ commit }: { commit: Commit }, course_id: number):
+		Promise<Array<MergedUser>|ResponseError|undefined> {
+			const response = await api.get(`courses/${course_id}/courseusers`);
+			if (response.status === 200) {
+				const _merged_users = response.data as Array<ParseableMergedUser>;
+				const merged_users = _merged_users.map(u => new MergedUser(u));
+
+				commit('SET_MERGED_USERS', merged_users);
+				return merged_users;
+			} else if (response.status === 250) {
+				logger.error(response.data);
+				return response.data as ResponseError;
+			}
+		},
 		async getUser(_context: ActionContext<UserState, StateInterface>,
 			_username: string): Promise<ParseableUser | undefined> {
 			const response = await api.get(`users/${_username}`);
@@ -94,17 +108,18 @@ export default {
 			return await addCourseUser(_course_user);
 		},
 		async addMergedUser({ commit }: { commit: Commit }, _merged_user: MergedUser): Promise<MergedUser> {
-			let merged_user = new MergedUser({ username: '__NEW__' });
 			if (_merged_user.user_id === 0) { // this is a new user
-				const u = pick(_merged_user, User.ALL_FIELDS) as MergedUser;
-				merged_user = await addMergedUser(u) as MergedUser;
-			} else {
-				merged_user = pick(_merged_user, MergedUser.ALL_FIELDS) as MergedUser;
+				const u = pick(_merged_user, User.ALL_FIELDS) as User;
+				console.log(u);
+				const _user = await addUser(u) as User;
+				_merged_user.user_id = _user.user_id;
+				_merged_user.username = _user.username;
 			}
-			const _course_user = pick(_merged_user, Object.keys(new CourseUser({}))) as CourseUser;
-			_course_user.user_id = merged_user.user_id;
+			const f = CourseUser.ALL_FIELDS;
+			const _course_user = _merged_user.asObject(f) as CourseUser;
+			console.log(_course_user);
 			const cu = await addCourseUser(_course_user);
-			merged_user = assign(merged_user, cu, _course_user) as MergedUser;
+			const merged_user = assign(_merged_user, cu, _course_user) as MergedUser;
 			commit('ADD_MERGED_USER', merged_user);
 			return merged_user;
 		},
@@ -205,17 +220,6 @@ async function addCourseUser(_course_user: CourseUser) {
 	if (response.status === 200) {
 		const u = response.data as ParseableCourseUser;
 		return new CourseUser(u);
-	} else if (response.status === 250) {
-		logger.error(response.data);
-		throw response.data as ResponseError;
-	}
-}
-
-async function addMergedUser(_merged_user: MergedUser) {
-	const response = await api.post('users', _merged_user);
-	if (response.status === 200) {
-		const u = response.data as ParseableMergedUser;
-		return new MergedUser(u);
 	} else if (response.status === 250) {
 		logger.error(response.data);
 		throw response.data as ResponseError;

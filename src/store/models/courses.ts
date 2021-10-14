@@ -1,5 +1,4 @@
-import { Dictionary, parseNonNegInt, Model, parseBoolean } from 'src/store/models/index';
-import { isUndefined } from 'lodash';
+import { Dictionary, parseNonNegInt, Model, parseBoolean } from '@/store/models/index';
 
 export interface UserCourse {
 	course_id: number;
@@ -53,13 +52,13 @@ export class Course extends Model {
 	}
 
 	set(params: ParseableCourse) {
-		if (!isUndefined(params.course_id)) {
+		if (params.course_id != null) {
 			this.course_id = parseNonNegInt(params.course_id);
 		}
-		if (!isUndefined(params.course_name)) {
+		if (params.course_name != null) {
 			this.course_name = params.course_name;
 		}
-		if (!isUndefined(params.visible)) {
+		if (params.visible != null) {
 			this.visible = parseBoolean(params.visible);
 		}
 		if (params.course_dates?.start) {

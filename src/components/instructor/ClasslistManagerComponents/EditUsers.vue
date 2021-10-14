@@ -64,7 +64,7 @@ export default defineComponent({
 		const updateUsers = async () => {
 			logger.info('in updateUsers');
 			for await (const _user of merged_users.value) {
-				const u = pick(_user, Object.keys(new CourseUser()));
+				const u = pick(_user, CourseUser.ALL_FIELDS);
 				await store.dispatch('users/updateCourseUser', u);
 				void store.dispatch('users/updateMergedUser', _user);
 			}

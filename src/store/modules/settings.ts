@@ -1,7 +1,7 @@
-import { api } from 'src/boot/axios';
+import { api } from '@/boot/axios';
 import { Commit, GetterTree } from 'vuex';
-import { StateInterface } from 'src/store';
-import { CourseSetting, CourseSettingInfo, CourseSettingOption } from 'src/store/models/settings';
+import { StateInterface } from '@/store';
+import { CourseSetting, CourseSettingInfo, CourseSettingOption } from '@/store/models/settings';
 
 export interface SettingsState {
 	default_settings: Array<CourseSettingInfo>; // this contains default setting and documentation

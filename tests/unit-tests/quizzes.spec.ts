@@ -1,8 +1,8 @@
 //FizzBuzz.test.ts
 /// <reference types="jest" />
 
-import { Quiz, ProblemSet } from 'src/store/models/problem_sets';
-import { BooleanParseException, NonNegIntException } from 'src/store/models';
+import { Quiz, ProblemSet } from '@/store/models/problem_sets';
+import { BooleanParseException, NonNegIntException } from '@/store/models';
 
 test('Build a Quiz', () => {
 	const quiz = new Quiz();
