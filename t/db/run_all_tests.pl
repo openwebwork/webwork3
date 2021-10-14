@@ -15,11 +15,9 @@ my $test_dir = dirname(__FILE__);
 
 my @test_files = glob("$test_dir/*.t");
 
-
-my %args = ( verbosity => 0, lib => [ '.',]);
-my $harness = TAP::Harness->new( \%args );
+my %args    = (verbosity => 0, lib => [ '.', ]);
+my $harness = TAP::Harness->new(\%args);
 
 $harness->runtests(@test_files);
-
 
 1;
