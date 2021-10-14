@@ -19,6 +19,9 @@ database_dsn: dbi:SQLite:/opt/webwork/webwork3/t/db/sample_db.sqlite
 database_user: webworkWrite
 database_password: password
 
+# URL for the Problem Library (OPLv3)
+opl_url: http:/localhost:3030
+
 # Cookie control settings
 cookie_samesite: "None"
 cookie_secure: true

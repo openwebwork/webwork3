@@ -94,7 +94,14 @@ module.exports = configure(function (ctx) {
 			open: true, // opens browser window automatically,
 			proxy: {
 				'/webwork3/api': 'http://localhost:3000',
-				'/renderer': 'http://localhost:3001'
+				'/renderer': 'http://localhost:3001',
+				'/opl': {
+					target: 'http://localhost:3030',
+					changeOrigin: true,
+					pathRewrite: {
+						'^/opl': ''
+					}
+				}
 			},
 			static: path.join(__dirname, 'node_modules/mathjax/es5'),
 			historyApiFallback: {

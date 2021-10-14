@@ -155,15 +155,15 @@ Add a single problem to an existing problem set within a course
 =cut
 
 sub addSetProblem {
-	my ( $self, $course_set_info, $new_set_params, $as_result_set ) = @_;
+	my ( $self, $course_set_info, $new_problem_params, $as_result_set ) = @_;
 	my $problem_set = $self->result_source->schema->resultset("ProblemSet")->getProblemSet( $course_set_info, 1 );
+	# set the problem number to one more than the set's largest
+	$new_problem_params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0);
 
-	my $problem_to_add = $self->new($new_set_params);
-	$problem_to_add->validParams();
-	my $added_problem = $problem_set->add_to_problems($new_set_params);
-	return $added_problem if $as_result_set;
-	return { $added_problem->get_inflated_columns };
+	$self->new($new_problem_params)->validParams();
+	my $added_problem = $problem_set->add_to_problems($new_problem_params);
 
+	return $as_result_set ? $added_problem : { $added_problem->get_inflated_columns };
 }
 
 =head2 deleteSetProblem
