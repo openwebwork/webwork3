@@ -1,3 +1,4 @@
+#!/usr/bin/env perl
 #
 # This tests the basic database CRUD functions of course users.
 #
@@ -57,6 +58,7 @@ sub removeCourseUserIDs {
 	for my $user (@$users) {
 		removeIDs($user);
 	}
+	return;
 }
 
 is_deeply( \@precalc_students, \@precalc_students_from_db, "getUsers: get users from a course" );

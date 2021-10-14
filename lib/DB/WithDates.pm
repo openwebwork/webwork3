@@ -8,8 +8,8 @@ use Data::Dump qw/dd/;
 
 use DB::Exception;
 
-my $valid_dates;  # array of allowed/valid dates
-my $required_dates; # array of required dates
+our $valid_dates;  # array of allowed/valid dates
+our $required_dates; # array of required dates
 
 sub validDates {
 	my ($self,$type) = @_;
@@ -17,11 +17,11 @@ sub validDates {
 	## no critic 'ProhibitStringyEval'
 	## no critic 'RequireCheckingReturnValueOfEval'
 	if (defined($type)) {
-		eval '$valid_dates = &' . ref($self) . "::valid_dates($type)" unless $valid_dates;
-		eval '$required_dates = &' . ref($self) . "::required_dates($type)" unless $required_dates;
+		eval '$valid_dates = &' . ref($self) . "::valid_dates($type)";
+		eval '$required_dates = &' . ref($self) . "::required_dates($type)";
 	} else {
-		eval '$valid_dates = &' . ref($self) . "::valid_dates" unless $valid_dates;
-		eval '$required_dates = &' . ref($self) . "::required_dates" unless $required_dates;
+		eval '$valid_dates = &' . ref($self) . "::valid_dates";
+		eval '$required_dates = &' . ref($self) . "::required_dates";
 	}
 
 	$self->validDateFields();

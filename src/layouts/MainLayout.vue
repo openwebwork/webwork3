@@ -10,7 +10,7 @@
 			<router-view />
 		</q-page-container>
 
-		<q-drawer :width="250" show-if-above v-model="right_sidebar_open" side="right" bordered class="bg-grey-1" >
+		<q-drawer :width="250" show-if-above v-if="right_sidebar_open" side="right" bordered class="bg-grey-1" >
 			<problem-set-list v-if="show_problem_sets"/>
 			<user-list v-if="show_users" />
 		</q-drawer>

@@ -3,7 +3,7 @@ import { User, Course, CourseUser, ProblemSet, HomeworkSet, ProblemSetType,
 	ReviewSet, ReviewSetParams, ReviewSetDates,
 	HomeworkSetParams, HomeworkSetDates } from './models';
 
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, pickBy } from 'lodash-es';
 
 export function newUser(): User {
 	return {
@@ -94,10 +94,17 @@ export function copyProblemSet(target: ProblemSet, source: ProblemSet) {
 	target.params = cloneDeep(source.params);
 }
 
-function parseBoolean(_value: string | number) {
-	return _value === undefined ?
-		undefined :
-		parseInt(`${_value}`)===1 ? true: false ;
+function parseBoolean(_value: boolean | string | number) {
+	if (typeof _value === 'boolean') return _value;
+	if (typeof _value === 'string' && !(/[01]/.exec(_value))) {
+		return _value === 'true' || _value === 'false' ?
+			_value === 'true' :
+			undefined;
+	} else {
+		return _value === undefined ?
+			undefined :
+			parseInt(`${_value}`) === 1;
+	}
 }
 
 export function parseHW(_set: ParseableProblemSet): HomeworkSet {
@@ -123,9 +130,9 @@ export function parseHW(_set: ParseableProblemSet): HomeworkSet {
 		set_id: parseInt(`${_set.set_id}`),
 		set_name: _set.set_name,
 		course_id: parseInt(`${_set.course_id}`),
-		set_visible: parseBoolean(_set.set_visible) || false,
+		set_visible: parseBoolean(_set.set_visible) ?? false,
 		set_type: ProblemSetType.HW,
-		params: params,
+		params: pickBy(params, (v) => v !== undefined),
 		dates: dates
 	};
 }
@@ -147,9 +154,9 @@ export function parseQuiz(_set: ParseableProblemSet): Quiz {
 		set_id: parseInt(`${_set.set_id}`),
 		set_name: _set.set_name,
 		course_id: parseInt(`${_set.course_id}`),
-		set_visible: parseBoolean(_set.set_visible) || false,
+		set_visible: parseBoolean(_set.set_visible) ?? false,
 		set_type: ProblemSetType.QUIZ,
-		params: params,
+		params: pickBy(params, (v) => v !== undefined),
 		dates: dates
 	};
 }
@@ -169,9 +176,9 @@ export function parseReview(_set: ParseableProblemSet): ReviewSet {
 		set_id: parseInt(`${_set.set_id}`),
 		set_name: _set.set_name,
 		course_id: parseInt(`${_set.course_id}`),
-		set_visible: parseBoolean(_set.set_visible) || false,
+		set_visible: parseBoolean(_set.set_visible) ?? false,
 		set_type: ProblemSetType.REVIEW_SET,
-		params: params,
+		params: pickBy(params, (v) => v !== undefined),
 		dates: dates
 	};
 }

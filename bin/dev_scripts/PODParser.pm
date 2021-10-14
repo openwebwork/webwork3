@@ -64,9 +64,7 @@ sub pod_wanted {
 		my $path     = $File::Find::name;
 		my $dir      = $File::Find::dir;
 
-		$File::Find::prune = 1, return if ($self->{pod_found});
-
-		if (-d $path && $filename =~ /^(\.git|\.github|t|htdocs)$/) {
+		if ($self->{pod_found} || -d $path && $filename =~ /^(\.git|\.github|t|htdocs)$/) {
 			$File::Find::prune = 1;
 			return;
 		}

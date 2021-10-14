@@ -1,7 +1,9 @@
 /* eslint-env node */
-/* eslint-disable @typescript-eslint/no-var-requires */
+
 const { configure } = require('quasar/wrappers');
 const StyleLintPlugin = require('stylelint-webpack-plugin');
+const path = require('path');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 module.exports = configure(function (ctx) {
 	return {
@@ -16,7 +18,8 @@ module.exports = configure(function (ctx) {
 
 		boot: [
 			'axios',
-			'i18n'
+			'i18n',
+			'logger'
 		],
 
 		css: [
@@ -48,6 +51,40 @@ module.exports = configure(function (ctx) {
 					files: ['**/*.{vue,html,css,scss,sass}'],
 					exclude: ['node_modules', 'dist']
 				}));
+
+				chain.plugin('nodePolyfills').use(NodePolyfillPlugin);
+
+				if (ctx.prod) {
+					chain.plugin('copy-webpack')
+						.tap(args => {
+							args[0].patterns.push({
+								from: path.resolve(__dirname, './node_modules/mathjax/es5'),
+								to: path.resolve(__dirname, './dist/spa/mathjax'),
+								toType: 'dir'
+							});
+							return args;
+						});
+				}
+			},
+
+			extendWebpack(cfg) {
+				if (cfg.optimization && cfg.optimization.minimizer instanceof Array) {
+					cfg.optimization.minimizer.forEach((plugin) => {
+						if (plugin.constructor.name == 'TerserPlugin')
+							plugin.options.exclude = /.*mathjax.*/;
+					});
+				}
+
+				cfg.module.rules.push ({
+					test: /\.m?js/,
+					resolve: {
+						fullySpecified: false,
+						fallback: {
+							crypto: false,
+							fs: false
+						}
+					}
+				});
 			}
 		},
 
@@ -55,7 +92,17 @@ module.exports = configure(function (ctx) {
 			https: false,
 			port: 8080,
 			open: true, // opens browser window automatically,
-			proxy: { '/webwork3/api': 'http://localhost:3000' }
+			proxy: {
+				'/webwork3/api': 'http://localhost:3000',
+				'/renderer': 'http://localhost:3001'
+			},
+			static: path.join(__dirname, 'node_modules/mathjax/es5'),
+			historyApiFallback: {
+				rewrites: [{
+					from: /^\/webwork3\/mathjax\/.*$/,
+					to: (context) => context.parsedUrl.pathname.replace(/^\/webwork3\/mathjax/, '')
+				}]
+			}
 		}
 	};
 });
