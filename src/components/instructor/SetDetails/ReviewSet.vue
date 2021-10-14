@@ -35,7 +35,7 @@ import { cloneDeep } from 'lodash-es';
 
 import DateTimeInput from 'src/components/common/DateTimeInput.vue';
 import { ProblemSet } from 'src/store/models';
-import { newProblemSet, copyProblemSet } from 'src/store/common';
+import { newProblemSet, copyProblemSet } from 'src/store/utils/problem_sets';
 import { useStore } from 'src/store';
 
 export default defineComponent({

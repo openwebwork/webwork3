@@ -115,6 +115,7 @@ sub courseUserRoutes($self) {
 	$course_user_routes->get('/:user_id')->to(action => 'getCourseUser');
 	$course_user_routes->put('/:user_id')->to(action => 'updateCourseUser');
 	$course_user_routes->delete('/:user_id')->to(action => 'deleteCourseUser');
+	$self->routes->any('/webwork3/api/courses/:course_id/courseusers')->to('User#getMergedCourseUsers');
 	return;
 }
 

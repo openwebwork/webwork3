@@ -1,44 +1,13 @@
-import { User, Course, CourseUser, ProblemSet, HomeworkSet, ProblemSetType,
-	Quiz, QuizDates, QuizParams, ParseableProblemSet, CourseSetting,
+// This is utility functions for problem set
+
+import { ProblemSet, HomeworkSet, ProblemSetType,
+	Quiz, QuizDates, QuizParams, ParseableProblemSet,
 	ReviewSet, ReviewSetParams, ReviewSetDates,
-	HomeworkSetParams, HomeworkSetDates } from './models';
+	HomeworkSetParams, HomeworkSetDates } from 'src/store/models';
 
 import { cloneDeep, pickBy } from 'lodash-es';
 
-export function newUser(): User {
-	return {
-		email: '',
-		first_name: '',
-		is_admin: false,
-		last_name: '',
-		username: '',
-		student_id: '',
-		user_id: undefined
-	};
-}
-
-export function newCourseUser(): CourseUser {
-	return {
-		course_user_id: 0,
-		course_id: 0,
-		role: 'student',
-		section: '',
-		recitation: '',
-		params: {}
-	};
-}
-
-export function newCourse(): Course {
-	return {
-		course_id: 0,
-		course_name: '',
-		visible: false,
-		course_dates: {
-			end: '',
-			start: ''
-		}
-	};
-}
+import { parseBoolean } from './common';
 
 export function newProblemSet(): ProblemSet {
 	return {
@@ -92,19 +61,6 @@ export function copyProblemSet(target: ProblemSet, source: ProblemSet) {
 	target.course_id = source.course_id;
 	target.dates = cloneDeep(source.dates);
 	target.params = cloneDeep(source.params);
-}
-
-function parseBoolean(_value: boolean | string | number) {
-	if (typeof _value === 'boolean') return _value;
-	if (typeof _value === 'string' && !(/[01]/.exec(_value))) {
-		return _value === 'true' || _value === 'false' ?
-			_value === 'true' :
-			undefined;
-	} else {
-		return _value === undefined ?
-			undefined :
-			parseInt(`${_value}`) === 1;
-	}
 }
 
 export function parseHW(_set: ParseableProblemSet): HomeworkSet {
@@ -180,12 +136,5 @@ export function parseReview(_set: ParseableProblemSet): ReviewSet {
 		set_type: ProblemSetType.REVIEW_SET,
 		params: pickBy(params, (v) => v !== undefined),
 		dates: dates
-	};
-}
-
-export function newCourseSetting(): CourseSetting {
-	return {
-		var: '',
-		value: ''
 	};
 }
