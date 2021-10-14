@@ -234,3 +234,17 @@ export interface ResponseError {
 	exception: string;
 	message: string;
 }
+
+/* Library interfaces */
+
+export interface Discipline {
+	id: number;
+	name: string;
+	official: boolean;
+}
+
+export interface LibrarySubject {
+	id: number;
+	name: string;
+	official: boolean;
+}

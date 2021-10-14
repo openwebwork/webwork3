@@ -13,8 +13,7 @@ export interface ViewInfo {
 	component_name: string;
 	icon: string;
 	route: string;
-	show_set: boolean;
-	show_user: boolean;
+	sidebars: Array<string>;
 }
 
 export const student_views = [
@@ -23,16 +22,14 @@ export const student_views = [
 		componentName: 'Calendar',
 		icon: 'today',
 		route: 'student-calendar',
-		show_set: false,
-		show_user: false
+		sidebars: []
 	},
 	{
 		name: 'Problem Viewer',
 		componentName: 'ProblemViewer',
 		icon: 'preview',
 		route: 'student-problems',
-		show_set: false,
-		show_user: false
+		sidebars: []
 	}
 ];
 
@@ -42,72 +39,63 @@ export const instructor_views = [
 		component_name: 'Calendar',
 		icon: 'today',
 		route: 'calendar',
-		show_set: true,
-		show_user: false
+		sidebars: ['problem_sets']
 	},
 	{
 		name: 'Problem Viewer',
 		component_name: 'ProblemViewer',
 		icon: 'preview',
 		route: 'viewer',
-		show_set: false,
-		show_user: false
+		sidebars: []
 	},
 	{
 		name: 'Classlist Manager',
 		component_name: 'ClasslistManager',
 		icon: 'people',
 		route: 'classlist',
-		show_set: false,
-		show_user: false
+		sidebars: []
 	},
 	{
 		name: 'Problem Set Details',
 		component_name: 'SetDetailContainer',
 		icon: 'info',
 		route: 'set-view',
-		show_set: true,
-		show_user: false
+		sidebars: ['problem_sets']
 	},
 	{
 		name: 'Library Browser',
 		component_name: 'LibraryBrowser',
 		icon: 'book',
 		route: 'library',
-		show_set: true,
-		show_user: false
+		sidebars: ['library']
 	},
 	{
 		name: 'Problem Sets Manager',
 		component_name: 'ProblemSetsManager',
 		icon: 'list',
 		route: 'problem-sets',
-		show_set: false,
-		show_user: true
+		sidebars: ['problem_sets']
 	},
 	{
 		name: 'Problem Editor',
 		component_name: 'ProblemEditor',
 		icon: 'edit ',
 		route: 'editor',
-		show_set: false,
-		show_user: false
+		sidebars: []
 	},
 	{
 		name: 'Statistics',
 		component_name: 'Statistics',
 		icon: 'assessment',
 		route: 'statistics',
-		show_set: false,
-		show_user: false
+		sidebars: []
 	},
 	{
 		name: 'Settings',
 		component_name: 'Settings',
 		icon: 'settings',
 		route: 'settings',
-		show_set: false,
-		show_user: false
+		sidebars: []
 	}
 ];
 
@@ -117,7 +105,6 @@ export const admin_views = [
 		component_name: 'CourseManager',
 		icon: 'assessment',
 		route: 'coursemanager',
-		show_set: false,
-		show_user: false
+		sidebars: []
 	}
 ];

@@ -1,0 +1,21 @@
+[Unit]
+Description=WeBWorK 3
+After=network.target
+
+[Service]
+Type=forking
+User=www-data
+Group=www-data
+PIDFile=/var/run/webwork3/webwork3.pid
+PermissionsStartOnly=true
+ExecStartPre=-/bin/mkdir /var/run/webwork3
+ExecStartPre=/bin/chown -R www-data:www-data /var/run/webwork3
+# Change /path/to to the full path to the webwork3 directory.
+ExecStart=/usr/local/bin/hypnotoad /path/to/webwork3/bin/webwork3
+ExecReload=/usr/local/bin/hypnotoad /path/to/webwork3/bin/webwork3
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
+
+# vim: syntax=systemd

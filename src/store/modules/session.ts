@@ -36,7 +36,7 @@ const getters: GetterTree<SessionState, StateInterface> & Getters = {
 	logged_in: (state) => state.logged_in,
 	user: (state) => state.user,
 	full_name: (state) => {
-		return state.user.first_name + ' ' + state.user.last_name;
+		return `${state.user.first_name} ${state.user.last_name}`;
 	},
 	course: (state) => state.course
 };

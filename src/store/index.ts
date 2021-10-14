@@ -18,6 +18,12 @@ import { ProblemSetState } from './modules/problem_sets';
 import courses from './modules/courses';
 import { CourseState } from './modules/courses';
 
+import library from './modules/library';
+import { LibraryState } from './modules/library';
+
+import app_state from './modules/app_state';
+import { AppState } from './modules/app_state';
+
 export interface StateInterface {
 	// Define your own store structure, using submodules if needed
 	// example: ExampleStateInterface;
@@ -27,6 +33,8 @@ export interface StateInterface {
 	settings: SettingsState;
 	problem_sets: ProblemSetState;
 	courses: CourseState;
+	library: LibraryState;
+	app_state: AppState;
 }
 
 // provide typings for `this.$store`
@@ -46,7 +54,9 @@ export default store(function () {
 			users,
 			settings,
 			problem_sets,
-			courses
+			courses,
+			library,
+			app_state
 		},
 
 		// Save the current state to session storage
