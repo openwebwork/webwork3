@@ -76,7 +76,7 @@ export default defineComponent({
 		}
 	},
 	emits: ['addProblem'],
-	setup(props, context) {
+	setup(props) {
 		const problemText = ref('');
 		const answerTemplate = ref('');
 		const file = ref(props.sourceFilePath);
