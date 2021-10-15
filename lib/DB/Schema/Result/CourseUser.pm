@@ -2,6 +2,7 @@ package DB::Schema::Result::CourseUser;
 use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
+
 =head1 DESCRIPTION
 
 This is the database schema for a CourseUser.  Note: this table has two purposes 1) a relationship table linking
@@ -130,22 +131,22 @@ __PACKAGE__->add_columns(
 		size        => 16,
 		is_nullable => 1,
 	},
-	params => { # store params as a JSON object
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => '{}',
-		serializer_class => 'JSON',
+	params => {    # store params as a JSON object
+		data_type          => 'text',
+		size               => 256,
+		is_nullable        => 0,
+		default_value      => '{}',
+		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}
 );
 
 __PACKAGE__->set_primary_key('course_user_id');
-__PACKAGE__->add_unique_constraint( [qw/course_id user_id/] );
+__PACKAGE__->add_unique_constraint([qw/course_id user_id/]);
 
-__PACKAGE__->belongs_to( users   => 'DB::Schema::Result::User',   'user_id' );
-__PACKAGE__->belongs_to( courses => 'DB::Schema::Result::Course', 'course_id' );
+__PACKAGE__->belongs_to(users   => 'DB::Schema::Result::User',   'user_id');
+__PACKAGE__->belongs_to(courses => 'DB::Schema::Result::Course', 'course_id');
 
-__PACKAGE__->has_many( user_sets => 'DB::Schema::Result::UserSet', 'course_user_id' );
+__PACKAGE__->has_many(user_sets => 'DB::Schema::Result::UserSet', 'course_user_id');
 
 1;

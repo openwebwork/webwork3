@@ -2,6 +2,7 @@ package DB::Schema::Result::CourseSettings;
 use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
+
 =head1 DESCRIPTION
 
 This is the database schema for a CourseSetting.
@@ -71,57 +72,57 @@ __PACKAGE__->add_columns(
 		is_nullable => 0,
 	},
 	general => {
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => "{}",
-		serializer_class => 'JSON',
+		data_type          => 'text',
+		size               => 256,
+		is_nullable        => 0,
+		default_value      => "{}",
+		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
 	optional => {
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => "{}",
-		serializer_class => 'JSON',
+		data_type          => 'text',
+		size               => 256,
+		is_nullable        => 0,
+		default_value      => "{}",
+		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
 	problem_set => {
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => "{}",
-		serializer_class => 'JSON',
+		data_type          => 'text',
+		size               => 256,
+		is_nullable        => 0,
+		default_value      => "{}",
+		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
 	problem => {
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => "{}",
-		serializer_class => 'JSON',
+		data_type          => 'text',
+		size               => 256,
+		is_nullable        => 0,
+		default_value      => "{}",
+		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
 	permissions => {
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => "{}",
-		serializer_class => 'JSON',
+		data_type          => 'text',
+		size               => 256,
+		is_nullable        => 0,
+		default_value      => "{}",
+		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
 	email => {
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => "{}",
-		serializer_class => 'JSON',
+		data_type          => 'text',
+		size               => 256,
+		is_nullable        => 0,
+		default_value      => "{}",
+		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}
 );
 
 __PACKAGE__->set_primary_key('course_settings_id');
 
-__PACKAGE__->belongs_to( course => 'DB::Schema::Result::Course', 'course_id' );
+__PACKAGE__->belongs_to(course => 'DB::Schema::Result::Course', 'course_id');
 
 1;

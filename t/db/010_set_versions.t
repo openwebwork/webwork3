@@ -8,8 +8,8 @@ use strict;
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir = abs_path( dirname(__FILE__) );
-	$main::lib_dir  = dirname( dirname($main::test_dir) ) . '/lib';
+	$main::test_dir = abs_path(dirname(__FILE__));
+	$main::lib_dir  = dirname(dirname($main::test_dir)) . '/lib';
 }
 
 use lib "$main::lib_dir";
@@ -45,11 +45,11 @@ my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
 for my $set (@hw_sets) {
 	$set->{type}        = 1;
 	$set->{set_type}    = "HW";
-	$set->{set_version} = 1 unless defined( $set->{set_version} );
+	$set->{set_version} = 1 unless defined($set->{set_version});
 }
 
-$problem_set_rs->newSetVersion( { course_id => 1, set_id => 1 } );
+$problem_set_rs->newSetVersion({ course_id => 1, set_id => 1 });
 
-is_deeply( { test => 1 }, { test => 1 }, 'fake test' );
+is_deeply({ test => 1 }, { test => 1 }, 'fake test');
 
 done_testing;

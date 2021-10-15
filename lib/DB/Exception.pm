@@ -4,63 +4,63 @@ use strict;
 
 use Exception::Class (
 	'DB::Exception::UndefinedCourseField' => {
-		fields => ['message'],
+		fields      => ['message'],
 		description => 'There is an undefined course setting field'
 	},
 	'DB::Exception::InvalidCourseField' => {
-		fields => ['message'],
+		fields      => ['message'],
 		description => 'There is an invalid parameter'
 	},
 	'DB::Exception::InvalidCourseFieldType' => {
-		fields => ['message'],
+		fields      => ['message'],
 		description => 'There is an invalid field type'
 	},
 	'DB::Exception::UndefinedParameter' => {
-		fields => ['field_names'],
+		fields      => ['field_names'],
 		description => 'There is an undefined parameter'
-		},
-	'DB::Exception::InvalidParameter'  => {
-		fields => ['field_names'],
+	},
+	'DB::Exception::InvalidParameter' => {
+		fields      => ['field_names'],
 		description => 'There is an invalid parameter'
 	},
 	'DB::Exception::CourseNotFound' => {
-		fields => ['course_name'],
+		fields      => ['course_name'],
 		description => 'The given course is not found.'
 	},
 	'DB::Exception::CourseExists' => {
-		fields => ['course_name'],
+		fields      => ['course_name'],
 		description => 'The course already exists.'
 	},
 	'DB::Exception::UserNotFound' => {
-		fields => ['username'],
+		fields      => ['username'],
 		description => 'The user was not found'
 	},
 	'DB::Exception::UserNotInCourse' => {
-		fields => ['username','course_name'],
+		fields      => [ 'username', 'course_name' ],
 		description => 'The user is not a member of the course'
 	},
 	'DB::Exception::UserAlreadyInCourse' => {
-		fields => ['username','course_name'],
+		fields      => [ 'username', 'course_name' ],
 		description => 'The user is already a member of the course'
 	},
 	'DB::Exception::UserExists' => {
-		fields => ['username'],
+		fields      => ['username'],
 		description => 'The user already exists'
 	},
 	'DB::Exception::SetNotInCourse' => {
-		fields => ['set_name','course_name'],
+		fields      => [ 'set_name', 'course_name' ],
 		description => 'The set is not in the course'
 	},
 	'DB::Exception::SetAlreadyExists' => {
-		fields => ['set_name', 'course_name'],
+		fields      => [ 'set_name', 'course_name' ],
 		description => 'The set already exists in the course'
 	},
 	'DB::Exception::UserSetExists' => {
-		fields => ['set_name', 'course_name',"username"],
+		fields      => [ 'set_name', 'course_name', "username" ],
 		description => 'The user set already exists in the course'
 	},
 	'DB::Exception::UserSetNotInCourse' => {
-		fields => ['set_name', 'course_name',"username"],
+		fields      => [ 'set_name', 'course_name', "username" ],
 		description => 'The user set does not exist in the course'
 	},
 	'DB::Exception::ParametersNeeded' => {
@@ -70,31 +70,31 @@ use Exception::Class (
 		description => 'Too many parameters are passed in.'
 	},
 	'DB::Exception::InvalidDateField' => {
-		fields => ['field_names'],
+		fields      => ['field_names'],
 		description => 'The date fields are invalid',
 	},
 	'DB::Exception::InvalidDateFormat' => {
-		fields => ['date'],
+		fields      => ['date'],
 		description => 'The date format is invalid'
 	},
 	'DB::Exception::RequiredDateFields' => {
-		fields => ['field_names'],
+		fields      => ['field_names'],
 		description => 'Missing required date fields'
 	},
 	'DB::Exception::ImproperDateOrder' => {
-		fields => ['field_names'],
+		fields      => ['field_names'],
 		description => 'The dates are not in the proper order'
 	},
 	'DB::Exception::PoolNotInCourse' => {
-		fields => ['pool_name','course_name'],
+		fields      => [ 'pool_name', 'course_name' ],
 		description => 'The selected problem pool is not in the course'
 	},
 	'DB::Exception::PoolAlreadyInCourse' => {
-		fields => ['course_name', 'pool_name'],
+		fields      => [ 'course_name', 'pool_name' ],
 		description => 'The selected problem pool is already in the course'
 	},
 	'DB::Exception::PoolProblemNotInPool' => {
-		fields => ['info'],
+		fields      => ['info'],
 		description => 'The requested problem is not in the selected problem pool'
 	}
 );

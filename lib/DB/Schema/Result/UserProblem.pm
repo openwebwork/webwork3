@@ -49,18 +49,18 @@ __PACKAGE__->add_columns(
 		default_value => 1,
 	},
 	params => {
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => '{}',
-		serializer_class => 'JSON',
+		data_type          => 'text',
+		size               => 256,
+		is_nullable        => 0,
+		default_value      => '{}',
+		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}
 );
 
 __PACKAGE__->set_primary_key('user_problem_id');
 
-__PACKAGE__->belongs_to( problems     => 'DB::Schema::Result::Problem',    'problem_id' );
-__PACKAGE__->belongs_to( course_users => 'DB::Schema::Result::CourseUser', 'user_id' );
+__PACKAGE__->belongs_to(problems     => 'DB::Schema::Result::Problem',    'problem_id');
+__PACKAGE__->belongs_to(course_users => 'DB::Schema::Result::CourseUser', 'user_id');
 
 1;

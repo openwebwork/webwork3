@@ -64,7 +64,6 @@ or authentication, like LTI or LDAP
 
 =cut
 
-
 __PACKAGE__->table('user');
 
 __PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
@@ -103,19 +102,19 @@ __PACKAGE__->add_columns(
 		default_value => 0,
 	},
 	login_params => {
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => '{}',
-		serializer_class => 'JSON',
+		data_type          => 'text',
+		size               => 256,
+		is_nullable        => 0,
+		default_value      => '{}',
+		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}
 );
 
 __PACKAGE__->set_primary_key('user_id');
-__PACKAGE__->add_unique_constraint( [qw/username/] );
+__PACKAGE__->add_unique_constraint([qw/username/]);
 
-__PACKAGE__->has_many( course_users => 'DB::Schema::Result::CourseUser', { 'foreign.user_id' => 'self.user_id' } );
-__PACKAGE__->many_to_many( courses => 'course_users', 'courses' );
+__PACKAGE__->has_many(course_users => 'DB::Schema::Result::CourseUser', { 'foreign.user_id' => 'self.user_id' });
+__PACKAGE__->many_to_many(courses => 'course_users', 'courses');
 
 1;

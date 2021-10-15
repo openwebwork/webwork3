@@ -60,30 +60,28 @@ __PACKAGE__->add_columns(
 		is_nullable => 0
 	},
 	params => {
-		data_type   => 'text',
-		size        => 256,
-		is_nullable => 0,
-		default_value => '{}',
-		serializer_class => 'JSON',
-		serializer_options => { utf8 => 1}
+		data_type          => 'text',
+		size               => 256,
+		is_nullable        => 0,
+		default_value      => '{}',
+		serializer_class   => 'JSON',
+		serializer_options => { utf8 => 1 }
 	}
 );
 
 sub valid_params {
 	return {
-		library_id => q{\d+},
+		library_id   => q{\d+},
 		problem_path => q{((\w)+\/?)+}
 	};
 }
 
 sub required_params {
-	return {
-		'_ONE_OF_' => ['library_id','problem_path']
-	};
+	return { '_ONE_OF_' => [ 'library_id', 'problem_path' ] };
 }
 
 __PACKAGE__->set_primary_key('pool_problem_id');
 
-__PACKAGE__->belongs_to( problem_pool_id => 'DB::Schema::Result::ProblemPool' );
+__PACKAGE__->belongs_to(problem_pool_id => 'DB::Schema::Result::ProblemPool');
 
 1;

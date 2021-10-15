@@ -192,7 +192,7 @@ sub write_index {
 
 sub do_pod2html {
 	my ($self, %o) = @_;
-	my $psx  = PODParser->new;
+	my $psx = PODParser->new;
 	$psx->{source_root} = $self->{source_root};
 	$psx->{verbose}     = $self->{verbose};
 	$psx->{base_url}    = ($self->{dest_url} // "") . "/" . (($self->{source_root} // "") =~ s|^.*/||r);

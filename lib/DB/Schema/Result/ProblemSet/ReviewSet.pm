@@ -20,7 +20,7 @@ subroutine that returns the array for the valid dates: C<['open', 'closed']>
 =cut
 
 sub valid_dates {
-	return ['open' ,'closed'];
+	return [ 'open', 'closed' ];
 }
 
 =head2 C<required_dates>
@@ -30,7 +30,7 @@ subroutine that returns the array for the required dates: C<['open', 'closed']>
 =cut
 
 sub required_dates {
-	return ['open' ,'closed'];
+	return [ 'open', 'closed' ];
 }
 
 =head2 C<valid_params>
@@ -48,7 +48,6 @@ sub valid_params {
 subroutine that returns the hashref for the required parameters:  (currently empty)
 
 =cut
-
 
 sub required_params {
 	return {};

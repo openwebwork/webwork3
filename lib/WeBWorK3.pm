@@ -31,17 +31,20 @@ sub startup {
 	$self->secrets($config->{secrets});
 
 	# Load the database and DBIC plugin
-	$self->plugin(DBIC => {
+	$self->plugin(
+		DBIC => {
 			schema =>
 				DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password})
 		}
 	);
 
 	# Load the authentication plugin
-	$self->plugin(Authentication => {
-			load_user => sub ($app, $uid) { $self->load_account($uid) },
-			validate_user => sub ($c, $u, $p, $e) { $self->validate($u, $p) ? $u : undef; }
-	});
+	$self->plugin(
+		Authentication => {
+			load_user     => sub ($app, $uid) { $self->load_account($uid) },
+			validate_user => sub ($c,   $u, $p, $e) { $self->validate($u, $p) ? $u : undef; }
+		}
+	);
 
 	# Set up the session
 	$self->sessions->cookie_name('Webwork3Authen');
@@ -53,13 +56,13 @@ sub startup {
 	# Load permissions and set up some helpers for dealing with permissions.
 	$perm_table = LoadFile("$ENV{WW3_ROOT}/conf/permissions.yaml");
 
-	$self->helper(perm_table => sub ($c) { return $perm_table; });
+	$self->helper(perm_table         => sub ($c) { return $perm_table; });
 	$self->helper(ignore_permissions => sub ($c) { return $config->{ignore_permissions}; });
 
 	# Handle all api route exceptions
 	$self->hook(around_dispatch => $WeBWorK3::Hooks::exception_handler);
 
-	$self->hook(around_action   => $WeBWorK3::Hooks::check_permission);
+	$self->hook(around_action => $WeBWorK3::Hooks::check_permission);
 
 	# Load all routes
 	$self->loginRoutes();
@@ -73,22 +76,22 @@ sub startup {
 	return;
 }
 
-sub load_account($self, $user_id) {
+sub load_account ($self, $user_id) {
 	my $user = $self->schema->resultset("User")->getGlobalUser({ username => $user_id });
 	return $user;
 }
 
-sub validate($self, $user, $password) {
+sub validate ($self, $user, $password) {
 	return $self->schema->resultset("User")->authenticate($user, $password);
 }
 
-sub loginRoutes($self) {
+sub loginRoutes ($self) {
 	$self->routes->post('/webwork3/api/login')->to('Login#login');
 	$self->routes->any('/webwork3/api/logout')->to('Login#logout_user');
 	return;
 }
 
-sub coursesRoutes($self) {
+sub coursesRoutes ($self) {
 	my $course_routes = $self->routes->any('/webwork3/api/courses')->to(controller => 'Course');
 	$course_routes->get('/')->to(action => 'getCourses');
 	$course_routes->get('/:course_id')->to(action => 'getCourse');
@@ -98,7 +101,7 @@ sub coursesRoutes($self) {
 	return;
 }
 
-sub userRoutes($self) {
+sub userRoutes ($self) {
 	my $user_routes = $self->routes->any('/webwork3/api/users')->to(controller => 'User');
 	$user_routes->get('/')->to(action => 'getGlobalUsers');
 	$user_routes->post('/')->to(action => 'addGlobalUser');
@@ -109,7 +112,7 @@ sub userRoutes($self) {
 	return;
 }
 
-sub courseUserRoutes($self) {
+sub courseUserRoutes ($self) {
 	my $course_user_routes = $self->routes->any('/webwork3/api/courses/:course_id/users')->to(controller => 'User');
 	$course_user_routes->get('/')->to(action => 'getCourseUsers');
 	$course_user_routes->post('/')->to(action => 'addCourseUser');
@@ -120,7 +123,7 @@ sub courseUserRoutes($self) {
 	return;
 }
 
-sub problemSetRoutes($self) {
+sub problemSetRoutes ($self) {
 	$self->routes->get('/webwork3/api/sets')->to("ProblemSet#getProblemSets");
 	my $problem_set_routes =
 		$self->routes->any('/webwork3/api/courses/:course_id/sets')->to(controller => 'ProblemSet');
@@ -132,20 +135,20 @@ sub problemSetRoutes($self) {
 	return;
 }
 
-sub problemRoutes($self) {
-	my $problem_routes = $self->routes->any('/webwork3/api/courses/:course_id/sets/:set_id/problems')
-		->to(controller => 'Problem');
+sub problemRoutes ($self) {
+	my $problem_routes =
+		$self->routes->any('/webwork3/api/courses/:course_id/sets/:set_id/problems')->to(controller => 'Problem');
 	$problem_routes->post('/')->to(action => 'addProblem');
 	return;
 }
 
-sub settingsRoutes($self) {
+sub settingsRoutes ($self) {
 	$self->routes->get('/webwork3/api/default_settings')->to("Settings#getDefaultCourseSettings");
 	$self->routes->get('/webwork3/api/courses/:course_id/settings')->to("Settings#getCourseSettings");
 	return;
 }
 
-sub utilityRoutes($self) {
+sub utilityRoutes ($self) {
 	$self->routes->post('/webwork3/api/client-logs')->to("Logger#clientLog");
 	return;
 }

@@ -3,7 +3,6 @@ use base qw(DBIx::Class::Core DB::WithParams DB::WithDates);
 use strict;
 use warnings;
 
-
 =head1 DESCRIPTION
 
 This is the database schema for a UserSet, which plays two roles:
@@ -103,31 +102,31 @@ __PACKAGE__->add_columns(
 		is_nullable   => 0,
 		default_value => 1,
 	},
-	dates => { # store dates as a JSON object
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => '{}',
-		serializer_class => 'JSON',
+	dates => {    # store dates as a JSON object
+		data_type          => 'text',
+		size               => 256,
+		is_nullable        => 0,
+		default_value      => '{}',
+		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
-	params => { # store params as a JSON object
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => '{}',
-		serializer_class => 'JSON',
+	params => {    # store params as a JSON object
+		data_type          => 'text',
+		size               => 256,
+		is_nullable        => 0,
+		default_value      => '{}',
+		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}
 );
 
 __PACKAGE__->set_primary_key('user_set_id');
-__PACKAGE__->add_unique_constraint( [qw/set_id course_user_id set_version/] );
+__PACKAGE__->add_unique_constraint([qw/set_id course_user_id set_version/]);
 __PACKAGE__->belongs_to(
 	course_users => 'DB::Schema::Result::CourseUser',
 	{ 'foreign.course_user_id' => 'self.course_user_id' }
 );
-__PACKAGE__->belongs_to( problem_sets => 'DB::Schema::Result::ProblemSet', 'set_id' );
+__PACKAGE__->belongs_to(problem_sets => 'DB::Schema::Result::ProblemSet', 'set_id');
 
 #
 # This defines the non-abstract classes of ProblemSets.
