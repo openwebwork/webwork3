@@ -216,7 +216,7 @@ async function addUser(_user: User) {
 }
 
 async function addCourseUser(_course_user: CourseUser) {
-	const response = await api.post('users', _course_user);
+	const response = await api.post(`courses/${_course_user.course_id ?? 0}/users`, _course_user);
 	if (response.status === 200) {
 		const u = response.data as ParseableCourseUser;
 		return new CourseUser(u);

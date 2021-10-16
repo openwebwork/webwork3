@@ -1,4 +1,4 @@
-import { api } from '@/boot/axios';
+import { api } from 'boot/axios';
 import { Commit, GetterTree } from 'vuex';
 import { StateInterface } from '@/store';
 import { CourseSetting, CourseSettingInfo, CourseSettingOption } from '@/store/models/settings';

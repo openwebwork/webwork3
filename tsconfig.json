@@ -3,7 +3,8 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["src/*"]
+			"@/*": ["src/*"],
+			"boot/*": ["src/boot/*"]
 		}
 	},
 	"exclude": ["dist", ".quasar", "node_modules"]
