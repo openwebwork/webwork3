@@ -19,6 +19,7 @@ const baseRules = {
 	'one-var': 'off',
 	'no-void': 'off',
 	'multiline-ternary': 'off',
+	'@typescript-eslint/restrict-template-expressions': ['error', {allowBoolean: true, allNumbers: true }],
 
 	// allow console and debugger during development only
 	'no-console': process.env.NODE_ENV === 'development' ? 'off' : 'error',

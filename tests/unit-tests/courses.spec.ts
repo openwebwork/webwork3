@@ -1,9 +1,9 @@
 // tests parsing and handling of users
 
-import { Course } from '@/store/models/courses';
-import { NonNegIntException } from '@/store/models';
+import { Course, ParseableCourse } from '@/store/models/courses';
+import { NonNegIntException, InvalidFieldsException } from '@/store/models';
 
-test('Create a Valid CourseUser', () => {
+test('Create a Valid Course', () => {
 	const course = new Course();
 	expect(course instanceof Course).toBe(true);
 
@@ -12,6 +12,13 @@ test('Create a Valid CourseUser', () => {
 		course_dates: { start: '', end: '' } });
 	expect(course1).toStrictEqual(course2);
 
+});
+
+test('Create a course with invalid params', () => {
+	// make a generic object and cast it as a Course
+	const p = { CourseName: 'Arithmetic' };
+	expect(() => { new Course(p as ParseableCourse);})
+		.toThrow(InvalidFieldsException);
 });
 
 test('Course with invalid course_id', () => {

@@ -9,7 +9,6 @@ test('Create a Valid User', () => {
 	expect(user1 instanceof User).toBe(true);
 	const user2 = new User({ username: 'test', user_id: 0, is_admin: false });
 	expect(user1).toStrictEqual(user2);
-
 });
 
 test('Missing Username', () => {
@@ -26,6 +25,9 @@ test('Invalid user_id', () => {
 	}).toThrow(NonNegIntException);
 	expect(() => {
 		new User({ username: 'test', user_id: 'one' });
+	}).toThrow(NonNegIntException);
+	expect(() => {
+		new User({ username: 'test', user_id: false });
 	}).toThrow(NonNegIntException);
 });
 

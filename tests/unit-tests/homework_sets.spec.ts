@@ -41,49 +41,41 @@ test('Test valid Homework Set params', () => {
 
 test('Test the homework set dates', () => {
 	const set = new HomeworkSet();
-	set.set({ set_params: { enable_reduced_scoring: true } });
+	set.setParams({ enable_reduced_scoring: true });
 	expect(set.set_params.enable_reduced_scoring).toBe(true);
 
-	set.set({
-		set_dates: {
-			open: 0,
-			reduced_scoring: 10,
-			due: 10,
-			answer: 20
-		}
+	set.setDates({
+		open: 0,
+		reduced_scoring: 10,
+		due: 10,
+		answer: 20
 	});
 	expect(set.isValid()).toBe(true);
 
-	set.set({
-		set_dates: {
-			open: 0,
-			reduced_scoring: 30,
-			due: 10,
-			answer: 20
-		}
+	set.setDates({
+		open: 0,
+		reduced_scoring: 30,
+		due: 10,
+		answer: 20
 	});
 	expect(set.isValid()).toBe(false);
 
-	set.set({
-		set_dates: {
-			open: 0,
-			reduced_scoring: 10,
-			due: 20,
-			answer: 15
-		}
+	set.setDates({
+		open: 0,
+		reduced_scoring: 10,
+		due: 20,
+		answer: 15
 	});
 	expect(set.isValid()).toBe(false);
 
-	set.set({ set_params: { enable_reduced_scoring: false } });
+	set.setParams({ enable_reduced_scoring: false });
 	expect(set.set_params.enable_reduced_scoring).toBe(false);
 
-	set.set({
-		set_dates: {
-			open: 0,
-			reduced_scoring: 100,
-			due: 10,
-			answer: 15
-		}
+	set.setDates({
+		open: 0,
+		reduced_scoring: 100,
+		due: 10,
+		answer: 15
 	});
 	expect(set.isValid()).toBe(true);
 });

@@ -1,6 +1,8 @@
 /* These are Problem Set interfaces */
 
-import { Dictionary, parseNonNegInt, parseBoolean, Model, ParseError } from '@/store/models';
+import { Dictionary, parseNonNegInt, parseBoolean, Model, ParseError, generic,
+	InvalidFieldsException } from '@/store/models';
+import { difference } from 'lodash';
 
 // const problem_set_types = [/hw/i, /quiz/i, /review/i];
 
@@ -24,14 +26,14 @@ function parseProblemSetType(type: string) {
 
 // Homework Set interfaces
 
-export interface ParseableHWDates {
+export interface ParseableHWDates extends Dictionary<generic|undefined> {
 	open?: number;
 	reduced_scoring?: number;
 	due?: number;
 	answer?: number;
 }
 
-export interface ParseableHWParams {
+export interface ParseableHWParams extends Dictionary<generic|undefined> {
 	enable_reduced_scoring?: boolean|string|number;
 	hide_hint?: boolean|string|number;
 	hardcopy_header?: string;
@@ -39,7 +41,7 @@ export interface ParseableHWParams {
 	description?: string;
 }
 
-export interface HomeworkSetParams {
+export interface HomeworkSetParams extends Dictionary<generic|undefined> {
 	enable_reduced_scoring?: boolean;
 	hide_hint?: boolean;
 	hardcopy_header?: string;
@@ -47,7 +49,7 @@ export interface HomeworkSetParams {
 	description?: string;
 }
 
-export interface HomeworkSetDates {
+export interface HomeworkSetDates extends Dictionary<generic|undefined> {
 	open: number;
 	reduced_scoring?: number;
 	due: number;
@@ -56,31 +58,31 @@ export interface HomeworkSetDates {
 
 // Quiz interfaces
 
-export interface ParseableQuizDates {
+export interface ParseableQuizDates extends Dictionary<generic|undefined> {
 	open?: number|string;
 	due?: number|string;
 	answer?: number|string;
 }
 
-export interface QuizDates {
+export interface QuizDates extends Dictionary<generic|undefined> {
 	open: number;
 	due: number;
 	answer:number;
 }
 
-export interface ParseableQuizParams {
+export interface ParseableQuizParams extends Dictionary<generic|undefined>{
 	timed?: boolean|string|number;
 	quiz_duration?: number|string;
 }
 
-export interface QuizParams  {
+export interface QuizParams extends Dictionary<generic|undefined> {
 	timed?: boolean;
 	quiz_duration?: number;
 }
 
 // ReviewSet interfaces
 
-export interface ParseableReviewParams {
+export interface ParseableReviewParams extends Dictionary<generic|undefined> {
 	allow?: boolean|string|number;
 }
 
@@ -106,96 +108,77 @@ export interface ParseableProblemSet {
 	course_id?: string | number;
 	set_type?: string;
 	set_visible?: string | number | boolean;
-	set_params?: ParseableHWParams|ParseableQuizParams|ParseableReviewParams;
-	set_dates?: ParseableHWDates|ParseableQuizDates|ParseableReviewDates;
+	// set_params?: ParseableHWParams|ParseableQuizParams|ParseableReviewParams;
+	set_params?: Dictionary<generic|undefined>;
+	set_dates?: Dictionary<generic|undefined>;
 }
 
 export interface ParseableHWSet extends ParseableProblemSet {
 	set_params: ParseableHWParams;
-	set_dates: HomeworkSetDates;
+	set_dates: ParseableHWDates;
 }
 
-export class ProblemSet extends Model {
-	set_id: number;
-	set_name?: string;
-	course_id: number;
-	set_type: ProblemSetType;
-	set_visible: boolean;
-	set_params?: HomeworkSetParams|QuizParams|ReviewSetParams;
-	set_dates?: HomeworkSetDates|QuizDates|ReviewSetDates;
-
+export class ProblemSet extends Model(
+	[], ['set_type', 'set_id', 'set_name', 'course_id', 'set_visible', 'set_params', 'set_dates'],
+	{
+		set_type: { field_type: 'string', default_value: 'UNKNOWN' },
+		set_id: { field_type: 'non_neg_int', default_value: 0 },
+		set_name: { field_type: 'string' },
+		course_id: { field_type: 'non_neg_int', default_value: 0 },
+		set_visible: { field_type: 'boolean', default_value: false },
+		set_params: { field_type: 'dictionary' },
+		set_dates: { field_type: 'dictionary' }
+	}) {
 	static REQUIRED_FIELDS = ['set_type'];
 	static OPTIONAL_FIELDS = ['set_id', 'set_name', 'course_id', 'set_visible', 'set_params', 'set_dates'];
 
-	get required_fields() {
-		return (this._required_fields?.length==0) ? ProblemSet.REQUIRED_FIELDS : [];
-	}
-
-	get all_fields() {
-		return [...ProblemSet.REQUIRED_FIELDS, ...ProblemSet.OPTIONAL_FIELDS];
-	}
-
-	static get ALL_FIELDS() {
-		return [...ProblemSet.REQUIRED_FIELDS, ...ProblemSet.OPTIONAL_FIELDS];
-	}
-
-	constructor(params: ParseableProblemSet = {}) {
-		super(params as Dictionary<string|number|boolean>);
-		this.set_id = 0;
-		this.course_id = 0;
-		this.set_type = ProblemSetType.UNKNOWN;
-		this.set_visible = false;
-		this.setBaseParams(params);
-	}
-
-	setBaseParams(params: ParseableProblemSet) {
-		if (params.set_id != null) {
-			this.set_id = parseNonNegInt(params.set_id);
-		}
-		if (params.course_id != null) {
-			this.course_id = parseNonNegInt(params.course_id);
-		}
-		if (params.set_name != null) {
-			this.set_name = params.set_name;
-		}
-		if (params.set_visible != null) {
-			this.set_visible = parseBoolean(params.set_visible);
-		}
-		if (params.set_type != null) {
-			this.set_type = parseProblemSetType(params.set_type);
-		}
-	}
+	_date_fields: Array<string> = [];
 
 	isValid() {
 		throw 'You must override the isValid() method';
 	}
+
+	setDates(dates: Dictionary<generic>){
+		// check that only valid dates are present
+		const invalid_dates = difference(Object.keys(dates), this._date_fields);
+		if (invalid_dates.length !== 0) {
+			throw new InvalidFieldsException('_all',
+				`The dates(s) '${invalid_dates.join(', ')}' are not valid for ${this.constructor.name}.`);
+		}
+
+		/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-member-access,
+		  @typescript-eslint/no-explicit-any */
+		Object.keys(dates).forEach(key => {
+			if (dates != null) {
+				(this.set_dates as any)[key] = parseNonNegInt((dates as any)[key]);
+			}
+		});
+		// eslint-enable
+	}
 }
 
 export class Quiz extends ProblemSet {
-	set_params: QuizParams;
-	set_dates: QuizDates;
-	constructor(params: ParseableProblemSet = {}){
-		params.set_type = 'QUIZ';
-		super(params);
-		this.set_dates = {
-			open: 0,
-			due: 0,
-			answer: 0
-		};
-		this.set_params = {};
-		// parse the params
-		this.set(params);
-	}
+	set_params: QuizParams = {};
+	set_dates: QuizDates = {
+		open: 0,
+		due: 0,
+		answer: 0
+	};
+	_date_fields = ['open', 'due', 'answer'];
 
-	set(params: ParseableProblemSet) {
-		super.setBaseParams(params);
-		if (params.set_params) {
-			this.setParams(params.set_params as ParseableQuizParams);
-		}
-		if (params.set_dates) {
-			this.setDates(params.set_dates as ParseableQuizDates);
-		}
-	}
+	// constructor(params: ParseableProblemSet = {}){
+	// super(params);
+	// }
+
+	// set(params: ParseableProblemSet) {
+	// super.set(params);
+	// if (params.set_params) {
+	// this.setParams(params.set_params as ParseableQuizParams);
+	// }
+	// if (params.set_dates) {
+	// this.setDates(params.set_dates as ParseableQuizDates);
+	// }
+	// }
 
 	setParams(quiz_params: ParseableQuizParams) {
 		if (quiz_params.timed != null) {
@@ -206,17 +189,8 @@ export class Quiz extends ProblemSet {
 		}
 	}
 
-	setDates(quiz_dates: ParseableQuizDates) {
-		this.set_dates =  {
-			open: parseNonNegInt(quiz_dates.open ?? 0),
-			due: parseNonNegInt(quiz_dates.due ?? 0),
-			answer: parseNonNegInt(quiz_dates.answer ?? 0)
-		};
-	}
-
 	isValid() {
-		return this.set_dates.open <= this.set_dates.due &&
-			this.set_dates.due <= this.set_dates.answer;
+		return this.set_dates.open <= this.set_dates.due && this.set_dates.due <= this.set_dates.answer;
 	}
 }
 
@@ -236,11 +210,11 @@ export class HomeworkSet extends ProblemSet {
 		this.set(params);
 	}
 
-	set(params: ParseableProblemSet) {
-		super.setBaseParams(params);
-		this.setParams(params.set_params as ParseableHWParams);
-		this.setDates(params.set_dates as ParseableHWDates);
-	}
+	// set(params: ParseableProblemSet) {
+	// super.set(params);
+	// this.setParams(params.set_params as ParseableHWParams);
+	// this.setDates(params.set_dates as ParseableHWDates);
+	// }
 
 	setParams(hw_params: ParseableHWParams = {}) {
 		// parse the params

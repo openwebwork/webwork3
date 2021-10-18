@@ -101,7 +101,6 @@ export default defineComponent({
 			}),
 			addUser: async (close: boolean) => {
 				try {
-					console.log(merged_user.value);
 					merged_user.value.course_id = store.state.session.course.course_id;
 					const user = await store.dispatch('users/addMergedUser', new MergedUser(merged_user.value)) as User;
 					$q.notify({
@@ -115,7 +114,6 @@ export default defineComponent({
 					}
 				} catch (err) {
 					const error = err as AxiosError;
-					console.log(error);
 					logger.error(error);
 					const data = error?.response?.data as ResponseError || { exception: '' };
 					$q.notify({

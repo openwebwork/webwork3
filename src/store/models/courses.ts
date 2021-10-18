@@ -1,4 +1,4 @@
-import { Dictionary, parseNonNegInt, Model, parseBoolean } from '@/store/models/index';
+import { Dictionary, Model, generic } from '@/store/models/index';
 
 export interface UserCourse {
 	course_id: number;
@@ -11,7 +11,7 @@ export interface UserCourse {
 	role: string;
 }
 
-export interface CourseDates {
+export interface CourseDates extends Dictionary<generic> {
 	start: string;
 	end: string;
 }
@@ -23,50 +23,19 @@ export interface ParseableCourse {
 	course_dates?: CourseDates;
 }
 
-export class Course extends Model {
-	course_id: number;
-	course_name?: string;
-	visible?: boolean;
-	course_dates: CourseDates;
+export class Course extends Model([], ['course_id', 'course_name', 'visible', 'course_dates'],
+	{
+		course_id: { field_type: 'non_neg_int', default_value: 0 },
+		course_name: { field_type: 'string' },
+		visible: { field_type: 'boolean', default_value: false },
+		course_dates: { field_type: 'dictionary' }
+	}) {
+	course_dates: CourseDates = { start: '', end: '' };
 
 	static REQUIRED_FIELDS = [];
 	static OPTIONAL_FIELDS = ['course_id', 'course_name', 'visible', 'course_dates'];
 
-	get required_fields() {
-		return (this._required_fields?.length==0) ? Course.REQUIRED_FIELDS : [];
-	}
-
-	get all_fields() {
-		return [...Course.REQUIRED_FIELDS, ...Course.OPTIONAL_FIELDS];
-	}
-
-	static get ALL_FIELDS() {
-		return [...Course.REQUIRED_FIELDS, ...Course.OPTIONAL_FIELDS];
-	}
-
 	constructor(params: ParseableCourse = {}) {
-		super(params as Dictionary<string|number|boolean>);
-		this.course_dates = { start: '', end: '' };
-		this.course_id = 0;
-		this.set(params);
+		super(params as Dictionary<generic>);
 	}
-
-	set(params: ParseableCourse) {
-		if (params.course_id != null) {
-			this.course_id = parseNonNegInt(params.course_id);
-		}
-		if (params.course_name != null) {
-			this.course_name = params.course_name;
-		}
-		if (params.visible != null) {
-			this.visible = parseBoolean(params.visible);
-		}
-		if (params.course_dates?.start) {
-			this.course_dates.start = params.course_dates?.start;
-		}
-		if (params.course_dates?.end) {
-			this.course_dates.end = params.course_dates?.end;
-		}
-	}
-
 }
