@@ -2,7 +2,7 @@
 /// <reference types="jest" />
 
 import { Quiz, ProblemSet } from '@/store/models/problem_sets';
-import { BooleanParseException, NonNegIntException } from '@/store/models';
+import { BooleanParseException, InvalidFieldsException, NonNegIntException } from '@/store/models';
 
 test('Build a Quiz', () => {
 	const quiz = new Quiz();
@@ -41,34 +41,67 @@ test('Test valid Quiz params', () => {
 
 test('Test the quiz dates', () => {
 	const quiz = new Quiz();
-	quiz.set({ set_params: { timed: true } });
+	quiz.setParams({ timed: true });
 	expect(quiz.set_params.timed).toBe(true);
 
-	quiz.set({
-		set_dates: {
-			open: 0,
-			due: 10,
-			answer: 20
-		}
+	quiz.setDates({
+		open: 0,
+		due: 10,
+		answer: 20
 	});
 	expect(quiz.isValid()).toBe(true);
 
-	quiz.set({
-		set_dates: {
-			open: 0,
-			due: 30,
-			answer: 20
-		}
+	quiz.setDates({
+		open: 0,
+		due: 30,
+		answer: 20
 	});
 	expect(quiz.isValid()).toBe(false);
 
-	quiz.set({
-		set_dates: {
-			open: 0,
-			reduced_scoring: 10,
-			due: 20,
-			answer: 15
-		}
+	quiz.setDates({
+		open: 0,
+		due: 20,
+		answer: 15
 	});
 	expect(quiz.isValid()).toBe(false);
+});
+
+test('Test more quiz dates', () => {
+	const quiz = new Quiz();
+	quiz.setDates({
+		open: '0',
+		due: '20',
+		answer: '30'
+	});
+	expect(quiz.isValid()).toBe(true);
+
+	quiz.setDates({
+		open: '0',
+		due: '120',
+		answer: '30'
+	});
+	expect(quiz.isValid()).toBe(false);
+
+});
+
+test('Test invalid date values', () => {
+	const quiz = new Quiz();
+	expect(() => {quiz.setDates({
+		open: -1
+	});
+	}).toThrow(NonNegIntException);
+
+	expect(() => {quiz.setDates({
+		open: 'false'
+	});
+	}).toThrow(NonNegIntException);
+});
+
+test('Test setting invalid dates', () => {
+	const quiz = new Quiz();
+	expect(() => {
+		quiz.setDates({
+			reduced_scoring: 50
+		});
+	}).toThrow(InvalidFieldsException);
 });
