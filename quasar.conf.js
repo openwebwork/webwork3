@@ -85,6 +85,14 @@ module.exports = configure(function (ctx) {
 						}
 					}
 				});
+
+				// For i18n resources (json/json5/yaml)
+				cfg.module.rules.push({
+					test: /\.(json5?|ya?ml)$/,
+					type: 'javascript/auto',
+					include: [ path.resolve(__dirname, './src/locales') ],
+					loader: '@intlify/vue-i18n-loader'
+				});
 			}
 		},
 

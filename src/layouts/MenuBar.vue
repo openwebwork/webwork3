@@ -18,8 +18,10 @@
 					<q-space />
 					<q-btn-dropdown v-if="logged_in" color="secondary" icon="person" :label="full_name">
 						<q-list>
-							<q-item clickable @click="open_user_settings = true">User Settings</q-item>
-							<q-item clickable v-close-popup @click="logout">Logout</q-item>
+							<q-item clickable v-close-popup @click="open_user_settings = true">
+								{{ $t('menu_bar.user_settings') }}
+							</q-item>
+							<q-item clickable v-close-popup @click="logout">{{ $t('authentication.logout') }}</q-item>
 						</q-list>
 					</q-btn-dropdown>
 					<q-btn-dropdown color="secondary" :label="current_course_name" v-if="current_course_name"
@@ -35,7 +37,7 @@
 							</template>
 						</q-list>
 					</q-btn-dropdown>
-					<q-btn flat @click="$emit('toggle-sidebar')" round dense icon="vertical_split" />
+					<q-btn flat @click="$emit('toggle-sidebar')" round dense icon="vertical_split" class="q-ml-xs" />
 				</q-toolbar>
 			</div>
 		</div>
@@ -43,11 +45,12 @@
 	<q-dialog medium v-model="open_user_settings">
 		<q-card style="width: 300px">
 			<q-card-section>
-				<div class="text-h6">User Settings</div>
+				<div class="text-h6">{{ $t('menu_bar.user_settings') }}</div>
 			</q-card-section>
 
 			<q-card-section class="q-pt-none">
-				<q-select label="Language" v-model="$i18n.locale" :options="$i18n.availableLocales" />
+				<q-select label="Language" v-model="currentLocale" :options="availableLocales" emit-value map-options
+					@update:model-value="setI18nLanguage" />
 			</q-card-section>
 			<q-card-actions align="right" class="bg-white text-teal">
 				<q-btn flat label="OK" v-close-popup />
@@ -63,7 +66,10 @@ import { useStore } from 'src/store';
 import { useRouter } from 'vue-router';
 import { useRoute } from 'vue-router';
 import { UserCourse } from 'src/store/models/courses';
+import type { CourseSettingInfo } from 'src/store/models/settings';
 import { endSession } from 'src/api-requests/session';
+import { useI18n } from 'vue-i18n';
+import { setI18nLanguage } from 'boot/i18n';
 
 export default defineComponent({
 	name: 'MenuBar',
@@ -73,6 +79,7 @@ export default defineComponent({
 		const router = useRouter();
 		const route = useRoute();
 		const current_view = ref('');
+		const currentLocale = ref(useI18n({ useScope: 'global' }).locale.value);
 
 		const current_course_name = computed(() => store.state.session.course.course_name);
 
@@ -100,6 +107,14 @@ export default defineComponent({
 				}
 				void store.dispatch('session/setCourse', { course_name, course_id });
 			},
+			currentLocale,
+			availableLocales: computed(() => {
+				const language_setting = store.state.settings.default_settings.find(
+					(setting: CourseSettingInfo) => setting.var === 'language'
+				);
+				return language_setting?.options;
+			}),
+			setI18nLanguage,
 			open_user_settings: ref(false),
 			current_view,
 			logout: async () => {
