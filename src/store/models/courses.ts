@@ -23,19 +23,29 @@ export interface ParseableCourse {
 	course_dates?: CourseDates;
 }
 
-export class Course extends Model([], ['course_id', 'course_name', 'visible', 'course_dates'],
+export class Course extends Model([], ['course_id', 'course_name', 'visible'],
+	['course_dates'],
 	{
 		course_id: { field_type: 'non_neg_int', default_value: 0 },
 		course_name: { field_type: 'string' },
-		visible: { field_type: 'boolean', default_value: false },
-		course_dates: { field_type: 'dictionary' }
+		visible: { field_type: 'boolean', default_value: false }
 	}) {
+
 	course_dates: CourseDates = { start: '', end: '' };
 
 	static REQUIRED_FIELDS = [];
-	static OPTIONAL_FIELDS = ['course_id', 'course_name', 'visible', 'course_dates'];
+	static OPTIONAL_FIELDS = ['course_id', 'course_name', 'visible'];
 
 	constructor(params: ParseableCourse = {}) {
 		super(params as Dictionary<generic>);
+	}
+
+	setDates(dates: Partial<CourseDates>) {
+		if (dates.start != null){
+			this.course_dates.start = dates.start;
+		}
+		if (dates.end != null){
+			this.course_dates.end = dates.end;
+		}
 	}
 }

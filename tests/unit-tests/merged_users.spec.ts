@@ -10,6 +10,10 @@ test('Create a Valid MergedUser', () => {
 	const merged_user2 = new MergedUser({ username: 'test', user_id: 0, is_admin: false });
 	expect(merged_user1).toStrictEqual(merged_user2);
 
+	const merged_user_params = { username: 'test', user_id: 15 } as MergedUser;
+	const merged_user = new MergedUser(merged_user_params);
+	expect(merged_user instanceof MergedUser).toBe(true);
+
 });
 
 test('MergedUser without required fields', () => {

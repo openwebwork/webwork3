@@ -13,7 +13,7 @@ export interface ParseableUser {
 }
 
 export class User extends Model(
-	['username'], ['email', 'user_id', 'first_name', 'last_name', 'is_admin', 'student_id'],
+	['username'], ['email', 'user_id', 'first_name', 'last_name', 'is_admin', 'student_id'], [],
 	{
 		username: { field_type: 'username' },
 		email: { field_type: 'email' },
@@ -25,6 +25,7 @@ export class User extends Model(
 	}) {
 	static REQUIRED_FIELDS = ['username'];
 	static OPTIONAL_FIELDS = ['email', 'user_id', 'first_name', 'last_name', 'is_admin', 'student_id'];
+	static ALL_FIELDS = [...User.REQUIRED_FIELDS, ...User.OPTIONAL_FIELDS];
 
 }
 
@@ -38,7 +39,7 @@ export interface ParseableCourseUser {
 }
 
 export class CourseUser extends Model(
-	[], ['course_user_id', 'user_id', 'course_id', 'role', 'section', 'recitation'],
+	[], ['course_user_id', 'user_id', 'course_id', 'role', 'section', 'recitation'], [],
 	{
 		course_user_id: { field_type: 'non_neg_int', default_value: 0 },
 		course_id: { field_type: 'non_neg_int', default_value: 0 },
@@ -49,6 +50,7 @@ export class CourseUser extends Model(
 	}) {
 	static REQUIRED_FIELDS = [];
 	static OPTIONAL_FIELDS = ['course_user_id', 'user_id', 'course_id', 'role', 'section', 'recitation'];
+	static ALL_FIELDS = [...CourseUser.REQUIRED_FIELDS, ...CourseUser.OPTIONAL_FIELDS];
 
 }
 
@@ -59,7 +61,7 @@ export interface ParseableMergedUser {
 	course_user_id?: number | string;
 	user_id?: number | string;
 	course_id?: number | string;
-	username?: string;
+	username: string;
 	email?: string;
 	first_name?: string;
 	last_name?: string;
@@ -73,7 +75,7 @@ export interface ParseableMergedUser {
 export class MergedUser extends Model(
 	['username'],
 	['email', 'user_id', 'first_name', 'last_name', 'is_admin', 'student_id', 'course_user_id',
-		'course_id', 'role', 'section', 'recitation'],
+		'course_id', 'role', 'section', 'recitation'], [],
 	{
 		username: { field_type: 'username' },
 		email: { field_type: 'email' },
@@ -90,5 +92,6 @@ export class MergedUser extends Model(
 	}) {
 	static REQUIRED_FIELDS = ['username'];
 	static OPTIONAL_FIELDS = [...User.OPTIONAL_FIELDS, ...CourseUser.OPTIONAL_FIELDS];
+	static ALL_FIELDS = [...MergedUser.REQUIRED_FIELDS, ...MergedUser.OPTIONAL_FIELDS];
 
 }

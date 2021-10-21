@@ -13,7 +13,7 @@ export enum ProblemSetType {
 	UNKNOWN = 'UNKNOWN'
 }
 
-function parseProblemSetType(type: string) {
+export function parseProblemSetType(type: string) {
 	if (/hw/i.test(type)) {
 		return ProblemSetType.HW;
 	} else if (/quiz/i.test(type)) {
@@ -22,6 +22,104 @@ function parseProblemSetType(type: string) {
 		return ProblemSetType.REVIEW_SET;
 	}
 	throw new ParseError('ProblemSetType', `The problem set type '${type}' is not valid.`);
+}
+
+/* Problem Set (HomeworkSet, Quiz, ReviewSet ) classes */
+
+export interface ParseableProblemSet {
+	set_id?: string | number;
+	set_name?: string;
+	course_id?: string | number;
+	set_type?: string;
+	set_visible?: string | number | boolean;
+	// set_params?: ParseableHWParams|ParseableQuizParams|ParseableReviewParams;
+	set_params?: Dictionary<generic|undefined>;
+	set_dates?: Dictionary<generic|undefined>;
+}
+
+export class ProblemSet extends Model(
+	[], ['set_type', 'set_id', 'set_name', 'course_id', 'set_visible'],
+	['set_params', 'set_dates'],
+	{
+		set_type: { field_type: 'string', default_value: 'UNKNOWN' },
+		set_id: { field_type: 'non_neg_int', default_value: 0 },
+		set_name: { field_type: 'string' },
+		course_id: { field_type: 'non_neg_int', default_value: 0 },
+		set_visible: { field_type: 'boolean', default_value: false },
+	}) {
+	static REQUIRED_FIELDS = ['set_type'];
+	static OPTIONAL_FIELDS = ['set_id', 'set_name', 'course_id', 'set_visible'];
+
+	_date_fields: Array<string> = [];
+
+	isValid() {
+		throw 'You must override the isValid() method';
+	}
+
+	setDates(dates: Dictionary<generic>){
+		// check that only valid dates are present
+		const invalid_dates = difference(Object.keys(dates), this._date_fields);
+		if (invalid_dates.length !== 0) {
+			throw new InvalidFieldsException('_all',
+				`The dates(s) '${invalid_dates.join(', ')}' are not valid for ${this.constructor.name}.`);
+		}
+
+		/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-member-access,
+		  @typescript-eslint/no-explicit-any */
+		Object.keys(dates).forEach(key => {
+			if (dates != null) {
+				(this.set_dates as any)[key] = parseNonNegInt((dates as any)[key]);
+			}
+		});
+		// eslint-enable
+	}
+}
+
+// Quiz interfaces
+
+export interface ParseableQuizDates extends Dictionary<generic|undefined> {
+	open?: number|string;
+	due?: number|string;
+	answer?: number|string;
+}
+
+export interface QuizDates extends Dictionary<generic|undefined> {
+	open: number;
+	due: number;
+	answer:number;
+}
+
+export interface ParseableQuizParams extends Dictionary<generic|undefined>{
+	timed?: boolean|string|number;
+	quiz_duration?: number|string;
+}
+
+export interface QuizParams extends Dictionary<generic|undefined> {
+	timed?: boolean;
+	quiz_duration?: number;
+}
+
+export class Quiz extends ProblemSet {
+	set_params: QuizParams = {};
+	set_dates: QuizDates = {
+		open: 0,
+		due: 0,
+		answer: 0
+	};
+	_date_fields = ['open', 'due', 'answer'];
+
+	setParams(quiz_params: ParseableQuizParams) {
+		if (quiz_params.timed != null) {
+			this.set_params.timed = parseBoolean(quiz_params.timed);
+		}
+		if (quiz_params.quiz_duration != null) {
+			this.set_params.quiz_duration = parseNonNegInt(quiz_params.quiz_duration);
+		}
+	}
+
+	isValid() {
+		return this.set_dates.open <= this.set_dates.due && this.set_dates.due <= this.set_dates.answer;
+	}
 }
 
 // Homework Set interfaces
@@ -56,142 +154,9 @@ export interface HomeworkSetDates extends Dictionary<generic|undefined> {
 	answer:number;
 }
 
-// Quiz interfaces
-
-export interface ParseableQuizDates extends Dictionary<generic|undefined> {
-	open?: number|string;
-	due?: number|string;
-	answer?: number|string;
-}
-
-export interface QuizDates extends Dictionary<generic|undefined> {
-	open: number;
-	due: number;
-	answer:number;
-}
-
-export interface ParseableQuizParams extends Dictionary<generic|undefined>{
-	timed?: boolean|string|number;
-	quiz_duration?: number|string;
-}
-
-export interface QuizParams extends Dictionary<generic|undefined> {
-	timed?: boolean;
-	quiz_duration?: number;
-}
-
-// ReviewSet interfaces
-
-export interface ParseableReviewParams extends Dictionary<generic|undefined> {
-	allow?: boolean|string|number;
-}
-
-export interface ReviewSetParams {
-	allow?: boolean;
-}
-
-export interface ParseableReviewDates {
-	open?: number|string;
-	closed?: number|string;
-}
-
-export interface ReviewSetDates {
-	open: number;
-	closed: number;
-}
-
-/* Problem Set (HomeworkSet, Quiz, ReviewSet ) classes */
-
-export interface ParseableProblemSet {
-	set_id?: string | number;
-	set_name?: string;
-	course_id?: string | number;
-	set_type?: string;
-	set_visible?: string | number | boolean;
-	// set_params?: ParseableHWParams|ParseableQuizParams|ParseableReviewParams;
-	set_params?: Dictionary<generic|undefined>;
-	set_dates?: Dictionary<generic|undefined>;
-}
-
 export interface ParseableHWSet extends ParseableProblemSet {
 	set_params: ParseableHWParams;
 	set_dates: ParseableHWDates;
-}
-
-export class ProblemSet extends Model(
-	[], ['set_type', 'set_id', 'set_name', 'course_id', 'set_visible', 'set_params', 'set_dates'],
-	{
-		set_type: { field_type: 'string', default_value: 'UNKNOWN' },
-		set_id: { field_type: 'non_neg_int', default_value: 0 },
-		set_name: { field_type: 'string' },
-		course_id: { field_type: 'non_neg_int', default_value: 0 },
-		set_visible: { field_type: 'boolean', default_value: false },
-		set_params: { field_type: 'dictionary' },
-		set_dates: { field_type: 'dictionary' }
-	}) {
-	static REQUIRED_FIELDS = ['set_type'];
-	static OPTIONAL_FIELDS = ['set_id', 'set_name', 'course_id', 'set_visible', 'set_params', 'set_dates'];
-
-	_date_fields: Array<string> = [];
-
-	isValid() {
-		throw 'You must override the isValid() method';
-	}
-
-	setDates(dates: Dictionary<generic>){
-		// check that only valid dates are present
-		const invalid_dates = difference(Object.keys(dates), this._date_fields);
-		if (invalid_dates.length !== 0) {
-			throw new InvalidFieldsException('_all',
-				`The dates(s) '${invalid_dates.join(', ')}' are not valid for ${this.constructor.name}.`);
-		}
-
-		/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-member-access,
-		  @typescript-eslint/no-explicit-any */
-		Object.keys(dates).forEach(key => {
-			if (dates != null) {
-				(this.set_dates as any)[key] = parseNonNegInt((dates as any)[key]);
-			}
-		});
-		// eslint-enable
-	}
-}
-
-export class Quiz extends ProblemSet {
-	set_params: QuizParams = {};
-	set_dates: QuizDates = {
-		open: 0,
-		due: 0,
-		answer: 0
-	};
-	_date_fields = ['open', 'due', 'answer'];
-
-	// constructor(params: ParseableProblemSet = {}){
-	// super(params);
-	// }
-
-	// set(params: ParseableProblemSet) {
-	// super.set(params);
-	// if (params.set_params) {
-	// this.setParams(params.set_params as ParseableQuizParams);
-	// }
-	// if (params.set_dates) {
-	// this.setDates(params.set_dates as ParseableQuizDates);
-	// }
-	// }
-
-	setParams(quiz_params: ParseableQuizParams) {
-		if (quiz_params.timed != null) {
-			this.set_params.timed = parseBoolean(quiz_params.timed);
-		}
-		if (quiz_params.quiz_duration != null) {
-			this.set_params.quiz_duration = parseNonNegInt(quiz_params.quiz_duration);
-		}
-	}
-
-	isValid() {
-		return this.set_dates.open <= this.set_dates.due && this.set_dates.due <= this.set_dates.answer;
-	}
 }
 
 export class HomeworkSet extends ProblemSet {
@@ -209,12 +174,6 @@ export class HomeworkSet extends ProblemSet {
 		this.set_params = {};
 		this.set(params);
 	}
-
-	// set(params: ParseableProblemSet) {
-	// super.set(params);
-	// this.setParams(params.set_params as ParseableHWParams);
-	// this.setDates(params.set_dates as ParseableHWDates);
-	// }
 
 	setParams(hw_params: ParseableHWParams = {}) {
 		// parse the params
@@ -260,6 +219,26 @@ export class HomeworkSet extends ProblemSet {
 		}
 		return false;
 	}
+}
+
+// ReviewSet interfaces
+
+export interface ParseableReviewParams extends Dictionary<generic|undefined> {
+	allow?: boolean|string|number;
+}
+
+export interface ReviewSetParams {
+	allow?: boolean;
+}
+
+export interface ParseableReviewDates {
+	open?: number|string;
+	closed?: number|string;
+}
+
+export interface ReviewSetDates {
+	open: number;
+	closed: number;
 }
 
 export class ReviewSet extends ProblemSet {

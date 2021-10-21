@@ -8,8 +8,8 @@ test('Create a Valid Course', () => {
 	expect(course instanceof Course).toBe(true);
 
 	const course1 = new Course({ course_name: 'Arithmetic' });
-	const course2 = new Course({ course_name: 'Arithmetic', course_id: 0,
-		course_dates: { start: '', end: '' } });
+	const course2 = new Course({ course_name: 'Arithmetic', course_id: 0 });
+	course2.setDates({ start: '', end: '' });
 	expect(course1).toStrictEqual(course2);
 
 });

@@ -112,34 +112,35 @@ export class InvalidFieldsException extends ParseError {
 	}
 }
 
+export type generic = string|number|boolean;
+
 interface ModelField  {
 	[k: string]: {
-		field_type: 'string'|'boolean'|'number'|'non_neg_int'|'username'|'dictionary'|'email'|'role';
-		default_value?: generic|Dictionary<generic|undefined>;
+		field_type: 'string'|'boolean'|'number'|'non_neg_int'|'username'|'email'|'role';
+		default_value?: generic;
 	}
 }
-
-export type generic = string|number|boolean;
 
 /* This creates a general Model to be used for all others (Course, User, etc.)
 
 The original structure of this was from a SO answer at
 https://stackoverflow.com/questions/69590729/creating-a-class-using-typescript-with-specific-fields */
 
-export const Model = <R extends string, O extends string, F extends ModelField>
-	(requiredFields: R[], optionalFields: O[], fields: F) => {
+export const Model = <Req extends string, Opt extends string, Dic extends string, F extends ModelField>
+	(requiredFields: Req[], optionalFields: Opt[], dictionaryFields: Dic[], fields: F) => {
 
-	type ModelObject<R extends string, O extends string> =
-			Record<R, generic|Dictionary<generic>>
-				& Partial<Record<O, generic|Dictionary<generic|undefined>>> extends
-				infer T ? { [K in keyof T]: T[K] } : never;
+	type ModelObject<Req extends string, Opt extends string, Dic extends string> =
+			Record<Req, generic> & Partial<Record<Opt, generic>> &
+			Partial<Record<Dic, Partial<Dictionary<generic>>>> extends
+				 infer T ? { [K in keyof T]: T[K] } : never;
 
 	class _Model {
-		_required_fields: Array<R> = requiredFields;
-		_optional_fields?: Array<O> = optionalFields;
+		_required_fields: Array<Req> = requiredFields;
+		_optional_fields?: Array<Opt> = optionalFields;
+		_dictionary_fields?: Array<Dic> = dictionaryFields;
 		_fields: F = fields;
 
-		constructor(params?: ModelObject<R, O>) {
+		constructor(params?: ModelObject<Req, Opt, Dic>) {
 			// check that required fields are present
 
 			const common_fields = intersection(this._required_fields, Object.keys(params ?? {}));
@@ -162,7 +163,7 @@ export const Model = <R extends string, O extends string, F extends ModelField>
 		/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access,
 			@typescript-eslint/no-explicit-any */
 
-		set(params: Partial<ModelObject<R, O>>) {
+		set(params: Partial<ModelObject<Req, Opt, Dic>>) {
 			this.all_fields.forEach(key => {
 				// if the field is undefined in the params, but there is a default value, set it
 				if ((params as any)[key] === undefined && this._fields[key].default_value !== undefined) {
@@ -185,7 +186,7 @@ export const Model = <R extends string, O extends string, F extends ModelField>
 			});
 		}
 
-		get all_fields(): Array<R | O> {
+		get all_fields(): Array<Req | Opt> {
 			return [...this._required_fields, ...this._optional_fields ?? []];
 		}
 
@@ -207,36 +208,11 @@ export const Model = <R extends string, O extends string, F extends ModelField>
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return _Model as any as new (params?: ModelObject<R, O>) =>
-		ModelObject<R, O> & {
-			set(params: Partial<ModelObject<R, O>>): void,
+	return _Model as any as new (params?: ModelObject<Req, Opt, Dic>) =>
+		ModelObject<Req, Opt, Dic> & {
+			set(params: Partial<ModelObject<Req, Opt, Dic>>): void,
 			toObject(): Dictionary<generic>,
-			all_fields: Array<R | O>;
-			required_fields: R[];
+			all_fields: Array<Req | Opt>;
+			required_fields: Req[];
 		} extends infer T ? { [K in keyof T]: T[K] } : never;
 };
-
-// export class Model {
-// _required_fields: Array<string> = [];
-// _optional_fields?: Array<string> = [];
-
-// get all_fields(): Array<string> {
-// return [];
-// }
-
-// get required_fields() {
-// return this._required_fields;
-// }
-
-// constructor(_params: Dictionary<number|string|boolean> = {}){
-// // check that required fields are present
-// const common_fields = intersection(this.required_fields, Object.keys(_params));
-
-// if (!isEqual(common_fields, this.required_fields)) {
-// const diff = difference(this.required_fields, common_fields);
-// throw new RequiredFieldsException('_all',
-// `The field(s) '${diff.join(', ')}' must be present in the model.`
-// );
-// }
-// }
-// }
