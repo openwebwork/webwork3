@@ -31,7 +31,7 @@ export default {
 			{ commit, rootState }: { commit: Commit; rootState: StateInterface },
 			 _set: ProblemSet): Promise<ProblemSet> {
 			const course_id = rootState.session.course.course_id;
-			const response = await api.put(`courses/${course_id}/sets/${_set.set_id}`, _set);
+			const response = await api.put(`courses/${course_id}/sets/${_set.set_id ?? 0}`, _set);
 			const set = response.data as ProblemSet;
 			if (isEqual(set, _set)) {
 				commit('UPDATE_PROBLEM_SET', _set);

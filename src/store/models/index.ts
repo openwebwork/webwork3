@@ -1,6 +1,6 @@
 // general classes and parsing functions
 
-import { intersection, isEqual, difference } from 'lodash';
+import { intersection, isEqual, difference, assign } from 'lodash';
 
 export interface Dictionary<T> {
 	[key: string]: T;
@@ -150,7 +150,6 @@ export const Model = <Req extends string, Opt extends string, Dic extends string
 				throw new RequiredFieldsException('_all',
 					`The field(s) '${diff.join(', ')}' must be present in ${this.constructor.name}`);
 			}
-
 			// check that no invalid params are set
 			const invalid_fields = difference(Object.keys(params ?? {}), this.all_fields);
 			if (invalid_fields.length !== 0) {
@@ -164,7 +163,8 @@ export const Model = <Req extends string, Opt extends string, Dic extends string
 			@typescript-eslint/no-explicit-any */
 
 		set(params: Partial<ModelObject<Req, Opt, Dic>>) {
-			this.all_fields.forEach(key => {
+			const fields = [...this._optional_fields ?? [], ...this._required_fields];
+			fields.forEach(key => {
 				// if the field is undefined in the params, but there is a default value, set it
 				if ((params as any)[key] === undefined && this._fields[key].default_value !== undefined) {
 					(params as any)[key] = this._fields[key].default_value;
@@ -184,10 +184,11 @@ export const Model = <Req extends string, Opt extends string, Dic extends string
 					(this as any)[key] = parseUserRole((params as any)[key]);
 				}
 			});
+			assign(this, params, this._dictionary_fields);
 		}
 
-		get all_fields(): Array<Req | Opt> {
-			return [...this._required_fields, ...this._optional_fields ?? []];
+		get all_fields(): Array<Req | Opt | Dic> {
+			return [...this._required_fields, ...this._optional_fields ?? [], ...this._dictionary_fields ?? []];
 		}
 
 		get required_fields() {
@@ -195,9 +196,10 @@ export const Model = <Req extends string, Opt extends string, Dic extends string
 		}
 
 		// converts the instance of the class to an regular object.
-		toObject() {
+		toObject(_fields?: Array<string>) {
 			const obj: Dictionary<generic> = {};
-			this.all_fields.forEach(key => {
+			const fields = _fields ?? this.all_fields;
+			fields.forEach(key => {
 				if((this as any)[key] !== undefined){
 					obj[key] = (this as any)[key];
 				}
@@ -211,8 +213,8 @@ export const Model = <Req extends string, Opt extends string, Dic extends string
 	return _Model as any as new (params?: ModelObject<Req, Opt, Dic>) =>
 		ModelObject<Req, Opt, Dic> & {
 			set(params: Partial<ModelObject<Req, Opt, Dic>>): void,
-			toObject(): Dictionary<generic>,
-			all_fields: Array<Req | Opt>;
+			toObject(_fields?: Array<string>): Dictionary<generic>,
+			all_fields: Array<Req | Opt | Dic>;
 			required_fields: Req[];
 		} extends infer T ? { [K in keyof T]: T[K] } : never;
 };

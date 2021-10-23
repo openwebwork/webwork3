@@ -83,6 +83,9 @@ sub removeCourseUserIDs {
 	return;
 }
 
+print Dumper $precalc_students[3];
+print Dumper $precalc_students_from_db[3];
+
 is_deeply( \@precalc_students, \@precalc_students_from_db, "getUsers: get users from a course" );
 
 ## getUsers: test that an unknown course results in an error

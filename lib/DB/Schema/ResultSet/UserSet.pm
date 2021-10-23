@@ -11,7 +11,7 @@ use warnings;
 use base 'DBIx::Class::ResultSet';
 
 use Try::Tiny;
-use Data::Dump qw/dd/;
+use Data::Dumper;
 
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 use DB::WithDates;
@@ -150,8 +150,8 @@ sub addUserSet {
 	## make sure the parameters and dates are valid.
 	my $new_user_set = $self->new($params);
 
-	$new_user_set->validParams($problem_set->type) if $new_user_set->params;
-	$new_user_set->validDates($problem_set->type) if $new_user_set->dates;
+	$new_user_set->validParams($problem_set->type,"set_params") if $new_user_set->set_params;
+	$new_user_set->validDates($problem_set->type,'set_dates') if $new_user_set->set_dates;
 
 	my $user_set = $problem_set->add_to_user_sets($params);
 
@@ -181,7 +181,7 @@ sub updateUserSet {
 
 	## only allow params and dates to be updated
 	for my $field (keys %$user_set_params) {
-		my @allowed_fields = grep { $_ eq $field } qw/params dates/;
+		my @allowed_fields = grep { $_ eq $field } qw/set_params set_dates/;
 		DB::Exception::InvalidParameter->throw(field_names => $field)
 			unless scalar(@allowed_fields) == 1;
 	}
@@ -192,8 +192,8 @@ sub updateUserSet {
 	## make sure the parameters and dates are valid.
 	my $new_user_set = $self->new($user_set_params);
 
-	$new_user_set->validParams($problem_set->type) if $new_user_set->params;
-	$new_user_set->validDates($problem_set->type) if $new_user_set->dates;
+	$new_user_set->validParams($problem_set->type,'set_params') if $new_user_set->set_params;
+	$new_user_set->validDates($problem_set->type,'set_dates') if $new_user_set->set_dates;
 
 	my $updated_user_set = $user_set->update($user_set_params);
 
@@ -291,23 +291,23 @@ sub _mergeUserSet {
 	my ($problem_set,$user_set,$user) = @_;
 
 	# override the user set params
-	my $params = updateAllFields( $problem_set->params, $user_set->params );
+	my $params = updateAllFields( $problem_set->set_params, $user_set->set_params );
 	# my $dates  = updateAllFields( $problem_set->dates,  $user_set->dates );
 
-	my $user_set_dates = $user_set->dates || {};
+	my $user_set_dates = $user_set->set_dates || {};
 
 	# check if there are dates in the user_set
 	# and use the user_set dates otherwise use the problem_set ones.
 	my @date_fields = keys %$user_set_dates;
-	my $dates = (scalar(@date_fields) > 0) ? $user_set_dates : $problem_set->dates;
+	my $dates = (scalar(@date_fields) > 0) ? $user_set_dates : $problem_set->set_dates;
 
 	return {
 		$user_set->get_columns,
 		set_type => $problem_set->set_type,
 		set_name => $problem_set->set_name,
 		set_visible => $problem_set->set_visible,
-		dates  => $dates,
-		params => $params,
+		set_dates  => $dates,
+		set_params => $params,
 		username => $user->username
 	};
 }

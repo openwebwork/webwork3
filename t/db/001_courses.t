@@ -14,7 +14,7 @@ BEGIN {
 
 use lib "$main::lib_dir";
 
-use Data::Dump qw/dd/;
+use Data::Dumper;
 use List::MoreUtils qw(uniq);
 
 use Test::More;
@@ -39,25 +39,9 @@ my $course_rs = $schema->resultset("Course");
 ## get a list of courses from the CSV file
 
 my @courses = loadCSV("$main::test_dir/sample_data/courses.csv");
-for my $course (@courses) {
 
-	# my $course_settings = {
-	# 	general => {},
-	# 	optional => {},
-	# 	problem_set => {},
-	# 	problem => {},
-	# 	permissions => {},
-	# 	email => {}
-	# };
-	# for my $key (keys %{$course->{params}}) {
-	# 	my @fields = split(/:/,$key);
-	# 	$course_settings->{$fields[0]}->{$fields[1]} = $course->{params}->{$key};
-	# }
-	# $course->{course_settings} = $course_settings;
-	# $course->{course_params} = $course->{params};
-	delete $course->{params};
-	$course->{course_dates} = $course->{dates};
-	delete $course->{dates};
+for my $course (@courses) {
+	delete $course->{course_params};
 }
 @courses = sortByCourseName( \@courses );
 

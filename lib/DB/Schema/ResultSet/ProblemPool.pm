@@ -4,7 +4,7 @@ use warnings;
 use base 'DBIx::Class::ResultSet';
 
 use Carp;
-use Data::Dump qw/dd dump/;
+use Data::Dumper;
 use Scalar::Util qw/reftype/;
 use Try::Tiny;
 
@@ -174,8 +174,7 @@ sub deleteProblemPool {
 
 	my $deleted_pool = $pool->delete();
 
-	return $deleted_pool if $as_result_set;
-	return { $deleted_pool->get_columns };
+	return $as_result_set ? $deleted_pool : { $deleted_pool->get_columns };
 }
 
 #####
@@ -228,13 +227,11 @@ sub getPoolProblem {
 	my @pool_problems = $problem_pool->search_related( "pool_problems", $pool_problem_info )->all;
 
 	if ( scalar(@pool_problems) == 1 ) {
-		return $pool_problems[0] if $as_result_set;
-		return { $pool_problems[0]->get_columns };
+		return $as_result_set ? $pool_problems[0] : { $pool_problems[0]->get_inflated_columns };
 	}
 	else {     # pick a random problem.
 		my $prob = $pool_problems[ rand @pool_problems ];
-		return $prob if $as_result_set;
-		return { $prob->get_inflated_columns };
+		return $as_result_set ? $prob : { $prob->get_inflated_columns };
 	}
 }
 

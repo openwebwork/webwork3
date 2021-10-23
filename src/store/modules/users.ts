@@ -110,14 +110,12 @@ export default {
 		async addMergedUser({ commit }: { commit: Commit }, _merged_user: MergedUser): Promise<MergedUser> {
 			if (_merged_user.user_id === 0) { // this is a new user
 				const u = pick(_merged_user, User.ALL_FIELDS) as User;
-				console.log(u);
 				const _user = await addUser(u) as User;
 				_merged_user.user_id = _user.user_id;
 				_merged_user.username = _user.username;
 			}
 			const f = CourseUser.ALL_FIELDS;
-			const _course_user = _merged_user.asObject(f) as CourseUser;
-			console.log(_course_user);
+			const _course_user = _merged_user.toObject(f) as unknown as CourseUser;
 			const cu = await addCourseUser(_course_user);
 			const merged_user = assign(_merged_user, cu, _course_user) as MergedUser;
 			commit('ADD_MERGED_USER', merged_user);
@@ -125,7 +123,7 @@ export default {
 		},
 		async updateCourseUser(_context: ActionContext<UserState, StateInterface>, _course_user: CourseUser)
 			: Promise<CourseUser|undefined> {
-			const url = `courses/${_course_user.course_id || 0}/users/${_course_user.user_id}`;
+			const url = `courses/${_course_user.course_id || 0}/users/${_course_user.user_id ?? 0}`;
 			const response = await api.put(url, _course_user);
 			if (response.status === 200) {
 				return response.data as CourseUser;
@@ -208,6 +206,7 @@ async function addUser(_user: User) {
 	const response = await api.post('users', _user);
 	if (response.status === 200) {
 		const u = response.data as ParseableUser;
+		u.username;
 		return new User(u);
 	} else if (response.status === 250) {
 		logger.error(response.data);

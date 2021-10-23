@@ -4,7 +4,7 @@ use warnings;
 use base 'DBIx::Class::ResultSet';
 
 use Carp;
-use Data::Dump qw/dd dump/;
+use Data::Dumper;
 
 # use List::Util qw/first/;
 
@@ -159,10 +159,10 @@ sub addSetProblem {
 	my $problem_set = $self->result_source->schema->resultset("ProblemSet")->getProblemSet( $course_set_info, 1 );
 
 	my $problem_to_add = $self->new($new_set_params);
-	$problem_to_add->validParams();
+	$problem_to_add->validParams(undef, 'params');
+
 	my $added_problem = $problem_set->add_to_problems($new_set_params);
-	return $added_problem if $as_result_set;
-	return { $added_problem->get_inflated_columns };
+	return  $as_result_set ? $added_problem : { $added_problem->get_inflated_columns };
 
 }
 
@@ -196,10 +196,6 @@ sub deleteSetProblem {
 	return { $deleted_problem->get_inflated_columns };
 
 }
-
-# sub addPoolProblem {
-# 	my ( $self, $course_set_info, $new_set_params, $as_result_set ) = @_;
-# }
 
 =head2 deleteSetProblem
 

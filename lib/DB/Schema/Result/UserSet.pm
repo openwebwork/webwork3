@@ -103,7 +103,7 @@ __PACKAGE__->add_columns(
 		is_nullable   => 0,
 		default_value => 1,
 	},
-	dates => { # store dates as a JSON object
+	set_dates => { # store dates as a JSON object
 		data_type     => 'text',
 		size          => 256,
 		is_nullable   => 0,
@@ -111,7 +111,7 @@ __PACKAGE__->add_columns(
 		serializer_class => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
-	params => { # store params as a JSON object
+	set_params => { # store params as a JSON object
 		data_type     => 'text',
 		size          => 256,
 		is_nullable   => 0,

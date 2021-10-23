@@ -15,7 +15,7 @@ BEGIN {
 use lib "$main::lib_dir";
 
 use Text::CSV qw/csv/;
-use Data::Dump qw/dd/;
+use Data::Dumper;
 use DateTime::Format::Strptime;
 
 use Test::More;
@@ -55,9 +55,9 @@ my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
 for my $hw_set (@hw_sets) {
 	$hw_set->{set_type} = "HW";
 	$hw_set->{set_version} = 1 unless defined( $hw_set->{set_version} );
-	for my $date (keys %{$hw_set->{dates}}) {
-		my $dt = $strp->parse_datetime( $hw_set->{dates}->{$date});
-		$hw_set->{dates}->{$date} = $dt->epoch;
+	for my $date (keys %{$hw_set->{set_dates}}) {
+		my $dt = $strp->parse_datetime( $hw_set->{set_dates}->{$date});
+		$hw_set->{set_dates}->{$date} = $dt->epoch;
 	}
 }
 my @all_user_sets = loadCSV("$main::test_dir/sample_data/user_sets.csv");
@@ -72,16 +72,16 @@ for my $user_set (@all_user_sets) {
 	@hw_sets;
 
 	# determine params and dates overrides
-	my $params = clone($hw_set->{params});    # copy the params from the hw_set
-	for my $key ( keys %{ $user_set->{params} } ) {
-		$params->{$key} = $user_set->{params}->{$key};
+	my $params = clone($hw_set->{set_params});    # copy the params from the hw_set
+	for my $key ( keys %{ $user_set->{set_params} } ) {
+		$params->{$key} = $user_set->{set_params}->{$key};
 	}
-	my $problem_set_dates = clone($hw_set->{dates});
-	my @date_fields = keys %{$user_set->{dates}};
-	my $dates = (scalar(@date_fields) > 0) ? $user_set->{dates} : $problem_set_dates;
+	my $problem_set_dates = clone($hw_set->{set_dates});
+	my @date_fields = keys %{$user_set->{set_dates}};
+	my $dates = (scalar(@date_fields) > 0) ? $user_set->{set_dates} : $problem_set_dates;
 
-	$user_set->{params}      = {%$params};
-	$user_set->{dates}       = {%$dates};
+	$user_set->{set_params}      = {%$params};
+	$user_set->{set_dates}       = {%$dates};
 	$user_set->{set_version} = 1 unless defined( $user_set->{set_version} );
 	$user_set->{set_type}    = $hw_set->{set_type};
 	$user_set->{set_visible} = $hw_set->{set_visible};
@@ -203,8 +203,9 @@ throws_ok {
 
 throws_ok {
 	$user_set_rs->getUserSet(
-		{   course_name => "Precalculus",
-			username       => "marge",
+		{
+			course_name => "Precalculus",
+			username    => "marge",
 			set_name    => "HW #1"
 		}
 	);
@@ -215,8 +216,9 @@ throws_ok {
 
 throws_ok {
 	$user_set_rs->getUserSet(
-		{   course_name => "Precalculus",
-			username       => "homer",
+		{
+			course_name => "Precalculus",
+			username    => "homer",
 			set_name    => "HW #999"
 		}
 	);
@@ -226,9 +228,9 @@ throws_ok {
 # add a user set
 
 my $new_user_set_info = {
-	username => "otto",
+	username    => "otto",
 	course_name => "Precalculus",
-	set_name => "HW #1"
+	set_name    => "HW #1"
 };
 
 my $new_user_set = $user_set_rs->addUserSet($new_user_set_info);
@@ -251,9 +253,9 @@ is_deeply($new_user_set,$set,"addUserSet: add a new user set");
 throws_ok {
 	$user_set_rs->addUserSet(
 		{
-			username => "otto",
+			username    => "otto",
 			course_name => "non existent course",
-			set_name => "HW #1"
+			set_name    => "HW #1"
 		}
 	);
 } "DB::Exception::CourseNotFound", "addUserSet: add a user set to a non-existent course";
@@ -264,9 +266,9 @@ throws_ok {
 throws_ok {
 	$user_set_rs->addUserSet(
 		{
-			username => "otto",
+			username    => "otto",
 			course_name => "Precalculus",
-			set_name => "HW #99"
+			set_name    => "HW #99"
 		}
 	);
 } "DB::Exception::SetNotInCourse", "addUserSet: try to add a user set to a non-existent set";
@@ -324,7 +326,7 @@ my $user_set2 = $user_set_rs->addUserSet(
 		set_name => "HW #2"
 	},
 	{
-		params => {
+		set_params => {
 			description => "This is the description for HW #2"
 		}
 	}
@@ -339,7 +341,7 @@ my $set2_from_csv = firstval {
 removeIDs($user_set2);
 delete $set2_from_csv->{course_name};
 delete $user_set2->{type};
-$set2_from_csv->{params} = $user_set2->{params};
+$set2_from_csv->{set_params} = $user_set2->{set_params};
 $set2_from_csv->{username} = $user_set2->{username};
 
 is_deeply($user_set2,$set2_from_csv,"addUserSet: add a new user set with params");
@@ -355,7 +357,7 @@ throws_ok {
 			set_name => "HW #3"
 		},
 		{
-			params => {
+			set_params => {
 				bad_field => 12
 			}
 		}
@@ -378,7 +380,7 @@ my $user_set3 = $user_set_rs->addUserSet(
 		set_name => "HW #2"
 	},
 	{
-		dates => {
+		set_dates => {
 			open => 1,
 			due => 900,
 			answer => 1000
@@ -395,7 +397,7 @@ my $set3_from_csv = firstval {
 
 removeIDs($user_set3);
 delete $set3_from_csv->{course_name};
-$set3_from_csv->{dates} = $user_set3->{dates};
+$set3_from_csv->{set_dates} = $user_set3->{set_dates};
 $set3_from_csv->{username} = $user_set3->{username};
 
 is_deeply($user_set3,$set3_from_csv,"addUserSet: add a new user set with dates");
@@ -410,7 +412,7 @@ throws_ok {
 			set_name => "HW #3"
 		},
 		{
-			dates => {
+			set_dates => {
 				open => 100,
 				due => 9,
 				answer => 1000
@@ -427,7 +429,7 @@ throws_ok {
 			set_name => "HW #3"
 		},
 		{
-			dates => {
+			set_dates => {
 				open => 100,
 				due => 900,
 				answer => 800
@@ -446,7 +448,7 @@ my $updated_dates = {
 	answer => 20
 };
 
-$set3_from_csv->{dates} = $updated_dates;
+$set3_from_csv->{set_dates} = $updated_dates;
 
 my $updated_user_set = $user_set_rs->updateUserSet(
 	{
@@ -454,7 +456,9 @@ my $updated_user_set = $user_set_rs->updateUserSet(
 		course_name => "Precalculus",
 		set_name => "HW #2"
 	},
-	{dates => $updated_dates}
+	{
+		set_dates => $updated_dates
+	}
 );
 
 removeIDs($updated_user_set);
@@ -470,7 +474,7 @@ my $updated_user_set2 = $user_set_rs->updateUserSet(
 		set_name => "HW #2"
 	},
 	{
-		params => {
+		set_params => {
 			hide_hint => 1,
 		}
 	}
@@ -478,7 +482,7 @@ my $updated_user_set2 = $user_set_rs->updateUserSet(
 
 removeIDs($updated_user_set2);
 
-$set3_from_csv->{params}->{hide_hint} = 1;
+$set3_from_csv->{set_params}->{hide_hint} = 1;
 
 is_deeply($updated_user_set2,$set3_from_csv,"updateUserSet: update the params");
 
@@ -507,7 +511,7 @@ throws_ok {
 			set_name => "HW #2"
 		},
 		{
-			params => {
+			set_params => {
 				not_a_valid_param => "bad"
 			}
 		}
@@ -525,7 +529,7 @@ throws_ok {
 			set_name => "HW #2"
 		},
 		{
-			dates => {open => 1, closed=>2}
+			set_dates => {open => 1, closed=>2}
 		}
 	);
 } "DB::Exception::InvalidDateField", "updateUserSet: try to update an invalid date field";
@@ -540,7 +544,7 @@ throws_ok {
 			set_name => "HW #2"
 		},
 		{
-			dates => {open => 1, due=>2}
+			set_dates => {open => 1, due=>2}
 		}
 	);
 } "DB::Exception::RequiredDateFields", "updateUserSet: try to update with missing required dates";
@@ -556,7 +560,7 @@ throws_ok {
 			set_name => "HW #2"
 		},
 		{
-			dates => {open => 100, due=>2, answer=>200}
+			set_dates => {open => 100, due=>2, answer=>200}
 		}
 	);
 } "DB::Exception::ImproperDateOrder", "updateUserSet: try to update with out of order dates";
@@ -571,7 +575,7 @@ throws_ok {
 			set_name => "HW #3"
 		},
 		{
-			params => {
+			set_params => {
 				hide_hint => 1
 			}
 		}

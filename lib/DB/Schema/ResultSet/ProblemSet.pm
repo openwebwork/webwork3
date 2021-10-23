@@ -5,7 +5,7 @@ use base 'DBIx::Class::ResultSet';
 
 use Carp;
 use Clone qw/clone/;
-use Data::Dump qw/dd dump/;
+use Data::Dumper;
 
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 
@@ -187,12 +187,8 @@ sub addProblemSet {
 		if defined($problem_set);
 	my $set_obj = $self->new($set_params);
 
-	# dd {$set_obj->get_inflated_columns};
-
-	## check the parameters are valid.
-	# $set_obj->setParamsAndDates;
-	$set_obj->validDates();
-	$set_obj->validParams();
+	$set_obj->validDates(undef,'set_dates');
+	$set_obj->validParams(undef,'set_params');
 
 	my $new_set = $course->add_to_problem_sets( $set_params, 1 );
 
@@ -228,8 +224,8 @@ sub updateProblemSet {
 	my $set_obj = $self->new($params2);
 
 	## check the parameters are valid.
-	$set_obj->validDates();
-	$set_obj->validParams();
+	$set_obj->validDates(undef,'set_dates');
+	$set_obj->validParams(undef,'set_params');
 	my $updated_set = $problem_set->update( { $set_obj->get_inflated_columns } );
 	return $updated_set if $as_result_set;
 	my $set = {
