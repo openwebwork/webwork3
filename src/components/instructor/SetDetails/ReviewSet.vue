@@ -15,15 +15,15 @@
 		</tr>
 		<tr>
 			<td class="header">Open Date</td>
-			<td><date-time-input v-model="set.dates.open" /></td>
+			<td><date-time-input v-model="set.set_dates.open" /></td>
 		</tr>
 		<tr>
 			<td class="header">Closed Date</td>
-			<td><date-time-input v-model="set.dates.closed" /></td>
+			<td><date-time-input v-model="set.set_dates.closed" /></td>
 		</tr>
 		<tr>
 			<td class="header">Other</td>
-			<td><q-toggle v-model="set.params.allow" /></td>
+			<td><q-toggle v-model="set.set_params.allow" /></td>
 		</tr>
 	</table>
 </template>

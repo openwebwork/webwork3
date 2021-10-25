@@ -14,6 +14,7 @@ export interface ViewInfo {
 	icon: string;
 	route: string;
 	sidebars: Array<string>;
+	children?: Array<string>;
 }
 
 export const student_views: Array<ViewInfo> = [
@@ -60,7 +61,8 @@ export const instructor_views: Array<ViewInfo> = [
 		component_name: 'SetDetailContainer',
 		icon: 'info',
 		route: 'set-view',
-		sidebars: ['problem_sets']
+		sidebars: ['problem_sets'],
+		children: ['ProblemSetDetails']
 	},
 	{
 		name: 'Library Browser',

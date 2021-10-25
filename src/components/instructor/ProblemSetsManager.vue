@@ -57,41 +57,20 @@ export default defineComponent({
 		const selected: Ref<Array<ProblemSet>> = ref([]);
 		const filter: Ref<string> = ref('');
 		const columns = [
+			{ name: 'set_name', label: 'Set Name', field: 'set_name', sortable: true },
+			{ name: 'set_id', label: 'set_id', field: 'set_id', sortable: true },
+			{ name: 'set_visible', label: 'Visible', field: 'set_visible', sortable: true },
 			{
-				name: 'set_name',
-				label: 'Set Name',
-				field: 'set_name',
-				sortable: true
+				name: 'open_date', label: 'Open Date', field: 'set_dates',
+				format: (val: QuizDates) => formatDate(`${val?.open ?? ''}`)
 			},
 			{
-				name: 'set_id',
-				label: 'set_id',
-				field: 'set_id',
-				sortable: true
+				name: 'due_date', label: 'Due Date', field: 'set_dates',
+				format: (val: QuizDates) => formatDate(`${val?.due ?? ''}`)
 			},
 			{
-				name: 'set_visible',
-				label: 'Visible',
-				field: 'set_visible',
-				sortable: true
-			},
-			{
-				name: 'open_date',
-				label: 'Open Date',
-				field: 'dates',
-				format: (val: QuizDates) => formatDate(`${val.open ?? 0}`)
-			},
-			{
-				name: 'due_date',
-				label: 'Due Date',
-				field: 'dates',
-				format: (val: QuizDates) => formatDate(`${val.due ?? 0}`)
-			},
-			{
-				name: 'answer_date',
-				label: 'Answer Date',
-				field: 'dates',
-				format: (val: QuizDates) => formatDate(`${val.answer ?? 0}`)
+				name: 'answer_date', label: 'Answer Date', field: 'set_dates',
+				format: (val: QuizDates) => formatDate(`${val?.answer ?? ''}`)
 			}
 		];
 

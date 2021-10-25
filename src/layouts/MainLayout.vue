@@ -26,7 +26,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, Ref } from 'vue';
+import type { Ref } from 'vue';
+import { defineComponent, ref, watch } from 'vue';
+import { isUndefined } from 'lodash-es';
+
 import MenuSidebar from './MenuSidebar.vue';
 import MenuBar from './MenuBar.vue';
 
@@ -61,10 +64,13 @@ export default defineComponent({
 				: /^\/courses\/\d+\/instructor/.exec(route.path)
 					? instructor_views
 					: [];
-			const current_view = views.find((view: ViewInfo) => view.component_name === route.name);
-			logger.info(route.name);
-			logger.info(current_view);
-			console.log(views);
+			let current_view = views.find((view: ViewInfo) => view.component_name === route.name);
+
+			if (! current_view) { // it may be a child component
+				current_view = views.find((view: ViewInfo) =>
+				 isUndefined(view.children) ? false : view.children?.indexOf(route.name as string)> -1);
+			}
+
 			logger.debug(`[MainLayout/updateViews] name: ${current_view?.name || 'no name!'}`);
 			if (current_view) {
 				sidebars.value = current_view.sidebars;

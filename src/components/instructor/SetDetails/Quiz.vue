@@ -15,23 +15,23 @@
 		</tr>
 		<tr>
 			<td class="header">Open Date</td>
-			<td><date-time-input v-model="set.dates.open" /></td>
+			<td><date-time-input v-model="set.set_dates.open" /></td>
 		</tr>
 		<tr>
 			<td class="header">Due Date</td>
-			<td><date-time-input v-model="set.dates.due" /></td>
+			<td><date-time-input v-model="set.set_dates.due" /></td>
 		</tr>
 		<tr>
 			<td class="header">Answer Date</td>
-			<td><date-time-input v-model="set.dates.answer" /></td>
+			<td><date-time-input v-model="set.set_dates.answer" /></td>
 		</tr>
 		<tr>
 			<td class="header">Timed</td>
-			<td><q-toggle v-model="set.params.timed" /></td>
+			<td><q-toggle v-model="set.set_params.timed" /></td>
 		</tr>
-		<tr v-if="set.params.timed">
+		<tr v-if="set.set_params.timed">
 			<td class="header">Duration of Quiz</td>
-			<td><q-input v-model="set.params.quiz_duration" :rules="quizDuration" debounce="500"/> </td>
+			<td><q-input v-model="set.set_params.quiz_duration" :rules="quizDuration" debounce="500"/> </td>
 		</tr>
 	</table>
 </template>
