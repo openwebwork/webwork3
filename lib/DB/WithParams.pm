@@ -71,7 +71,7 @@ sub checkRequiredParams {
 
 	if (reftype($required_params) eq "HASH") {
 		for my $key (keys %$required_params) {
-			$self->_check_params($key,$required_params->{$key});
+			last unless $self->_check_params($key,$required_params->{$key});
 		}
 	}
 	return 1;
@@ -81,25 +81,31 @@ sub checkRequiredParams {
 
 sub _check_params {
 	my ($self,$type,$value) = @_;
+	my $valid = 0;  ## assume that it is not valid;
 	if ($type eq "_ALL_") {
 		croak "The value of the _ALL_ required type needs to be an array ref." unless reftype($value) eq "ARRAY";
-		my $valid = "";  ## assume that it is not valid;
 		for my $el (@$value) {
-			if(! defined(reftype($el))) { # assume it is a string
-				$valid = grep {/^$el$/x } @$value;
+			if (!defined(reftype($el))) { # assume it is a string
+				$valid = grep {/^$el$/x } keys %{$self->params};
+				DB::Exception::ParametersNeeded->throw(
+					message => "Request must include: $el"
+				) unless $valid;
 			} elsif( reftype($el) eq "HASH") {
 				for my $key (keys %$el) {
 					$valid = $self->_check_params($key,$el->{$key});
 				}
 			}
-			next unless ($valid); # if the current element in the loop is not valid, break out.
+			last unless ($valid); # if the current element in the loop is not valid, break out.
 		}
 	} elsif ($type eq "_ONE_OF_") {
 		croak "The value of the _ONE_OF_ required type needs to be an array ref." unless reftype($value) eq "ARRAY";
 		my @fields = keys %{$self->params};
-		return scalar(intersect(@fields,@$value)) == 1;
+		$valid = scalar(intersect(@fields,@$value)) == 1;
+		DB::Exception::ParametersNeeded->throw(
+			message => "Request must include exactly ONE of the following parameters: " . join(', ', @$value)
+		) unless $valid;
 	}
-	return 1;
+	return $valid;
 }
 
 1;

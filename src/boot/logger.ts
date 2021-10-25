@@ -2,20 +2,6 @@ import { boot } from 'quasar/wrappers';
 import winston from 'winston';
 import 'setimmediate';
 
-const consoleFormat = winston.format.combine(
-	winston.format.simple(),
-	winston.format.printf(msg =>
-		winston.format.colorize().colorize(msg.level, `[${msg.level}] ${msg.message}`)
-	)
-);
-
-winston.addColors({
-	debug: 'magenta',
-	info: 'cyan',
-	warn: 'yellow',
-	error: 'red',
-});
-
 const logger = winston.createLogger({
 	level: 'debug',
 	format: winston.format.simple(),
@@ -38,7 +24,10 @@ const logger = winston.createLogger({
 // If we're not in production then log to the console
 if (process.env.NODE_ENV !== 'production') {
 	logger.add(new winston.transports.Console({
-		format: consoleFormat,
+		level: 'debug',
+		stderrLevels: ['error'],
+		consoleWarnLevels: ['warn', 'debug'],
+		format: winston.format.printf((info) => {return `[${info.level}] ${info.message}`;}),
 		handleExceptions: true
 	}));
 }

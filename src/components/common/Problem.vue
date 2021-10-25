@@ -1,5 +1,13 @@
 <template>
 	<q-card v-if="problemText" class="bg-grey-3">
+		<q-card-section v-if="problem_type=='library'">
+			<q-btn-group push>
+				<q-btn size="sm" push icon="add" @click="$emit('addProblem')" />
+				<q-btn size="sm" push icon="edit" />
+				<q-btn size="sm" push icon="shuffle" />
+			</q-btn-group>
+		</q-card-section>
+
 		<q-card-section v-if="answerTemplate" class="q-pa-sm bg-white">
 			<div ref="answerTemplateDiv" v-html="answerTemplate" class="pg-answer-template-container" />
 		</q-card-section>
@@ -53,12 +61,26 @@ export default defineComponent({
 		problemPrefix: {
 			type: String,
 			default: ''
+		},
+		raw_source: {
+			type: String,
+			default: ''
+		},
+		type: {
+			type: String,
+			default: ''
+		},
+		problemType: {
+			type: String,
+			default: 'library'
 		}
 	},
-	setup(props) {
+	emits: ['addProblem'],
+	setup(props, context) {
 		const problemText = ref('');
 		const answerTemplate = ref('');
 		const file = ref(props.sourceFilePath);
+		const problem_type = ref(props.problemType);
 		const problemTextDiv = ref<HTMLElement>();
 		const answerTemplateDiv = ref<HTMLElement>();
 		const submitButtons = ref<Array<SubmitButton>>([]);
@@ -273,6 +295,7 @@ export default defineComponent({
 		});
 
 		return {
+			problem_type,
 			problemText,
 			problemTextDiv,
 			answerTemplate,
