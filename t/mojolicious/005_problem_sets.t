@@ -53,45 +53,37 @@ if ($TEST_PERMISSIONS) {
 my @hw_sets = loadCSV("$main::lib_dir/../t/db/sample_data/hw_sets.csv");
 for my $set (@hw_sets) {
 	$set->{set_type} = "HW";
-	for my $date (keys %{$set->{set_dates}}) {
-		my $dt = $strp->parse_datetime( $set->{set_dates}->{$date});
+	for my $date (keys %{ $set->{set_dates} }) {
+		my $dt = $strp->parse_datetime($set->{set_dates}->{$date});
 		$set->{set_dates}->{$date} = $dt->epoch;
 	}
 }
 
-
-
-$t->get_ok('/webwork3/api/courses/2/sets')
-	->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')
-	->json_is( '/1/set_name' => $hw_sets[1]->{set_name} )
-	->json_is( '/1/set_dates/open' => $hw_sets[1]->{set_dates}->{open} );
+$t->get_ok('/webwork3/api/courses/2/sets')->status_is(200)->content_type_is('application/json;charset=UTF-8')
+	->json_is('/1/set_name'       => $hw_sets[1]->{set_name})
+	->json_is('/1/set_dates/open' => $hw_sets[1]->{set_dates}->{open});
 
 # Pull out the id from the response
 my $set_id = $t->tx->res->json('/2/set_id');
 
-
 # Disabled for now until this is fixed.
-$t->get_ok("/webwork3/api/courses/2/sets/$set_id")
-	->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')
-	->json_is( '/set_name' => $hw_sets[2]->{set_name} )
-	->json_is( '/set_type' => $hw_sets[2]->{set_type} )
-	->json_is( '/set_dates/open' => $hw_sets[2]->{set_dates}->{open} );
+$t->get_ok("/webwork3/api/courses/2/sets/$set_id")->status_is(200)->content_type_is('application/json;charset=UTF-8')
+	->json_is('/set_name'       => $hw_sets[2]->{set_name})->json_is('/set_type' => $hw_sets[2]->{set_type})
+	->json_is('/set_dates/open' => $hw_sets[2]->{set_dates}->{open});
 
 # new problem set
 
 my $new_set = {
-	set_name => 'HW #9',
-	set_dates    => {
+	set_name  => 'HW #9',
+	set_dates => {
 		open   => 100,
 		due    => 500,
 		answer => 500
 	},
 };
 
-$t->post_ok( "/webwork3/api/courses/2/sets" => json => $new_set )->content_type_is('application/json;charset=UTF-8')
-	->json_is( '/set_name' => 'HW #9' )->json_is( '/set_type' => 'HW' )->json_is( '/set_dates/answer' => 500 );
+$t->post_ok("/webwork3/api/courses/2/sets" => json => $new_set)->content_type_is('application/json;charset=UTF-8')
+	->json_is('/set_name' => 'HW #9')->json_is('/set_type' => 'HW')->json_is('/set_dates/answer' => 500);
 
 my $new_set_id = $t->tx->res->json('/set_id');
 

@@ -225,10 +225,9 @@ sub getPoolProblem {
 
 	my @pool_problems = $problem_pool->search_related("pool_problems", $pool_problem_info)->all;
 
-	if ( scalar(@pool_problems) == 1 ) {
+	if (scalar(@pool_problems) == 1) {
 		return $as_result_set ? $pool_problems[0] : { $pool_problems[0]->get_inflated_columns };
-	}
-	else {     # pick a random problem.
+	} else {     # pick a random problem.
 		my $prob = $pool_problems[ rand @pool_problems ];
 		return $as_result_set ? $prob : { $prob->get_inflated_columns };
 	}

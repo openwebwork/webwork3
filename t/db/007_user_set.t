@@ -52,10 +52,10 @@ $user_sets_to_delete->delete_all if $user_sets_to_delete;
 
 my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
 for my $hw_set (@hw_sets) {
-	$hw_set->{set_type} = "HW";
-	$hw_set->{set_version} = 1 unless defined( $hw_set->{set_version} );
-	for my $date (keys %{$hw_set->{set_dates}}) {
-		my $dt = $strp->parse_datetime( $hw_set->{set_dates}->{$date});
+	$hw_set->{set_type}    = "HW";
+	$hw_set->{set_version} = 1 unless defined($hw_set->{set_version});
+	for my $date (keys %{ $hw_set->{set_dates} }) {
+		my $dt = $strp->parse_datetime($hw_set->{set_dates}->{$date});
 		$hw_set->{set_dates}->{$date} = $dt->epoch;
 	}
 }
@@ -72,16 +72,16 @@ for my $user_set (@all_user_sets) {
 
 	# determine params and dates overrides
 	my $params = clone($hw_set->{set_params});    # copy the params from the hw_set
-	for my $key ( keys %{ $user_set->{set_params} } ) {
+	for my $key (keys %{ $user_set->{set_params} }) {
 		$params->{$key} = $user_set->{set_params}->{$key};
 	}
 	my $problem_set_dates = clone($hw_set->{set_dates});
-	my @date_fields = keys %{$user_set->{set_dates}};
-	my $dates = (scalar(@date_fields) > 0) ? $user_set->{set_dates} : $problem_set_dates;
+	my @date_fields       = keys %{ $user_set->{set_dates} };
+	my $dates             = (scalar(@date_fields) > 0) ? $user_set->{set_dates} : $problem_set_dates;
 
-	$user_set->{set_params}      = {%$params};
-	$user_set->{set_dates}       = {%$dates};
-	$user_set->{set_version} = 1 unless defined( $user_set->{set_version} );
+	$user_set->{set_params}  = {%$params};
+	$user_set->{set_dates}   = {%$dates};
+	$user_set->{set_version} = 1 unless defined($user_set->{set_version});
 	$user_set->{set_type}    = $hw_set->{set_type};
 	$user_set->{set_visible} = $hw_set->{set_visible};
 }
@@ -201,26 +201,22 @@ throws_ok {
 ## try to get a user set from a user not in the course
 
 throws_ok {
-	$user_set_rs->getUserSet(
-		{
-			course_name => "Precalculus",
-			username    => "marge",
-			set_name    => "HW #1"
-		}
-	);
+	$user_set_rs->getUserSet({
+		course_name => "Precalculus",
+		username    => "marge",
+		set_name    => "HW #1"
+	});
 }
 "DB::Exception::UserNotInCourse", "getUserSet: try to get a user set not in the course";
 
 ## try to get a user set from a non-existent set
 
 throws_ok {
-	$user_set_rs->getUserSet(
-		{
-			course_name => "Precalculus",
-			username    => "homer",
-			set_name    => "HW #999"
-		}
-	);
+	$user_set_rs->getUserSet({
+		course_name => "Precalculus",
+		username    => "homer",
+		set_name    => "HW #999"
+	});
 }
 "DB::Exception::SetNotInCourse", "getUserSet: try to get a user set from a non-existent set";
 
@@ -251,27 +247,24 @@ is_deeply($new_user_set, $set, "addUserSet: add a new user set");
 # try to add a user set to a course that doesn't exist
 
 throws_ok {
-	$user_set_rs->addUserSet(
-		{
-			username    => "otto",
-			course_name => "non existent course",
-			set_name    => "HW #1"
-		}
-	);
-} "DB::Exception::CourseNotFound", "addUserSet: add a user set to a non-existent course";
-
+	$user_set_rs->addUserSet({
+		username    => "otto",
+		course_name => "non existent course",
+		set_name    => "HW #1"
+	});
+}
+"DB::Exception::CourseNotFound", "addUserSet: add a user set to a non-existent course";
 
 # try to add a user set for a set that does not exist in a course
 
 throws_ok {
-	$user_set_rs->addUserSet(
-		{
-			username    => "otto",
-			course_name => "Precalculus",
-			set_name    => "HW #99"
-		}
-	);
-} "DB::Exception::SetNotInCourse", "addUserSet: try to add a user set to a non-existent set";
+	$user_set_rs->addUserSet({
+		username    => "otto",
+		course_name => "Precalculus",
+		set_name    => "HW #99"
+	});
+}
+"DB::Exception::SetNotInCourse", "addUserSet: try to add a user set to a non-existent set";
 
 # try to add a user set for a user that is not in a course
 
@@ -341,7 +334,7 @@ removeIDs($user_set2);
 delete $set2_from_csv->{course_name};
 delete $user_set2->{type};
 $set2_from_csv->{set_params} = $user_set2->{set_params};
-$set2_from_csv->{username} = $user_set2->{username};
+$set2_from_csv->{username}   = $user_set2->{username};
 
 is_deeply($user_set2, $set2_from_csv, "addUserSet: add a new user set with params");
 
@@ -378,8 +371,8 @@ my $user_set3 = $user_set_rs->addUserSet(
 	},
 	{
 		set_dates => {
-			open => 1,
-			due => 900,
+			open   => 1,
+			due    => 900,
 			answer => 1000
 		}
 	}
@@ -396,7 +389,7 @@ my $set3_from_csv = firstval {
 removeIDs($user_set3);
 delete $set3_from_csv->{course_name};
 $set3_from_csv->{set_dates} = $user_set3->{set_dates};
-$set3_from_csv->{username} = $user_set3->{username};
+$set3_from_csv->{username}  = $user_set3->{username};
 
 is_deeply($user_set3, $set3_from_csv, "addUserSet: add a new user set with dates");
 
@@ -411,8 +404,8 @@ throws_ok {
 		},
 		{
 			set_dates => {
-				open => 100,
-				due => 9,
+				open   => 100,
+				due    => 9,
 				answer => 1000
 			}
 		}
@@ -429,8 +422,8 @@ throws_ok {
 		},
 		{
 			set_dates => {
-				open => 100,
-				due => 900,
+				open   => 100,
+				due    => 900,
 				answer => 800
 			}
 		}
@@ -530,7 +523,7 @@ throws_ok {
 			set_name    => "HW #2"
 		},
 		{
-			set_dates => {open => 1, closed=>2}
+			set_dates => { open => 1, closed => 2 }
 		}
 	);
 }
@@ -546,7 +539,7 @@ throws_ok {
 			set_name    => "HW #2"
 		},
 		{
-			set_dates => {open => 1, due=>2}
+			set_dates => { open => 1, due => 2 }
 		}
 	);
 }
@@ -562,7 +555,7 @@ throws_ok {
 			set_name    => "HW #2"
 		},
 		{
-			set_dates => {open => 100, due=>2, answer=>200}
+			set_dates => { open => 100, due => 2, answer => 200 }
 		}
 	);
 }

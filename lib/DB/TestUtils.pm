@@ -23,17 +23,17 @@ field starting with PARAM: and DATE: respectively.
 =cut
 
 sub buildHash {
-	my $input = shift;
+	my $input  = shift;
 	my $output = {};
 	for my $key (keys %{$input}) {
 		if ($key =~ /^([A-Z_]+):(.*)/x) {
-			$output->{lc($1)} = {} unless defined($output->{lc($1)});
-			$output->{lc($1)}->{$2} = $input->{$key} if defined($input->{$key});
+			$output->{ lc($1) } = {} unless defined($output->{ lc($1) });
+			$output->{ lc($1) }->{$2} = $input->{$key} if defined($input->{$key});
 		} else {
 			$output->{$key} = $input->{$key};
 		}
 	}
-	my @date_fields = keys %{$output->{set_dates}};
+	my @date_fields = keys %{ $output->{set_dates} };
 	delete $output->{set_dates} if (scalar(@date_fields) == 0);
 	return $output;
 }

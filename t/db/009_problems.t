@@ -136,13 +136,11 @@ is_deeply($new_problem, $prob1, "addProblem: add a valid problem to a set");
 
 ## delete a problem from a set
 
-my $deleted_problem = $problem_rs->deleteSetProblem(
-	{
-		course_name    => "Precalculus",
-		set_name       => "HW #1",
-		problem_number => 4,
-	}
-);
+my $deleted_problem = $problem_rs->deleteSetProblem({
+	course_name    => "Precalculus",
+	set_name       => "HW #1",
+	problem_number => 4,
+});
 removeIDs($deleted_problem);
 $new_problem->{problem_version} = 1 unless defined($new_problem->{problem_version});
 

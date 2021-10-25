@@ -150,8 +150,8 @@ sub addUserSet {
 	## make sure the parameters and dates are valid.
 	my $new_user_set = $self->new($params);
 
-	$new_user_set->validParams($problem_set->type,'set_params') if $new_user_set->set_params;
-	$new_user_set->validDates($problem_set->type,'set_dates')  if $new_user_set->set_dates;
+	$new_user_set->validParams($problem_set->type, 'set_params') if $new_user_set->set_params;
+	$new_user_set->validDates($problem_set->type, 'set_dates')   if $new_user_set->set_dates;
 
 	my $user_set = $problem_set->add_to_user_sets($params);
 
@@ -192,8 +192,8 @@ sub updateUserSet {
 	## make sure the parameters and dates are valid.
 	my $new_user_set = $self->new($user_set_params);
 
-	$new_user_set->validParams($problem_set->type,'set_params') if $new_user_set->set_params;
-	$new_user_set->validDates($problem_set->type,'set_dates') if $new_user_set->set_dates;
+	$new_user_set->validParams($problem_set->type, 'set_params') if $new_user_set->set_params;
+	$new_user_set->validDates($problem_set->type, 'set_dates')   if $new_user_set->set_dates;
 
 	my $updated_user_set = $user_set->update($user_set_params);
 
@@ -293,7 +293,7 @@ sub _mergeUserSet {
 	my ($problem_set, $user_set, $user) = @_;
 
 	# override the user set params
-	my $params = updateAllFields( $problem_set->set_params, $user_set->set_params );
+	my $params = updateAllFields($problem_set->set_params, $user_set->set_params);
 	# my $dates  = updateAllFields( $problem_set->dates,  $user_set->dates );
 
 	my $user_set_dates = $user_set->set_dates || {};
@@ -301,16 +301,16 @@ sub _mergeUserSet {
 	# check if there are dates in the user_set
 	# and use the user_set dates otherwise use the problem_set ones.
 	my @date_fields = keys %$user_set_dates;
-	my $dates = (scalar(@date_fields) > 0) ? $user_set_dates : $problem_set->set_dates;
+	my $dates       = (scalar(@date_fields) > 0) ? $user_set_dates : $problem_set->set_dates;
 
 	return {
 		$user_set->get_columns,
 		set_type    => $problem_set->set_type,
 		set_name    => $problem_set->set_name,
 		set_visible => $problem_set->set_visible,
-		set_dates  => $dates,
-		set_params => $params,
-		username => $user->username
+		set_dates   => $dates,
+		set_params  => $params,
+		username    => $user->username
 	};
 }
 

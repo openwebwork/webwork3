@@ -45,8 +45,6 @@ for my $pool (@problem_pools_from_file) {
 	delete $pool->{params};
 }
 
-
-
 ## get an array of unique problem pools by pool_name
 my %seen;
 @problem_pools_from_file = grep { !$seen{ $_->{pool_name} }++ } @problem_pools_from_file;

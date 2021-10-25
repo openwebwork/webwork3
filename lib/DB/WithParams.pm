@@ -15,7 +15,7 @@ use DB::Exception;
 use Exception::Class ('DB::Exception::UndefinedParameter', 'DB::Exception::InvalidParameter',);
 
 sub validParams {
-	my ($self,$type,$field_name) = @_;
+	my ($self, $type, $field_name) = @_;
 	# the following stops the carping of perlcritic
 	## no critic 'ProhibitStringyEval'
 	## no critic 'RequireCheckingReturnValueOfEval'
@@ -36,11 +36,11 @@ sub validParams {
 # check if the param fields are valid (depending on the type of ProblemSet)
 
 sub validParamFields {
-	my ($self,$field_name) = @_;
+	my ($self, $field_name) = @_;
 	return 1 unless defined($self->get_inflated_column($field_name));
 	my @valid_fields = keys %$valid_params;
-	my @fields = keys %{$self->get_inflated_column($field_name)};
-	my @inter = intersect(@fields,@valid_fields);
+	my @fields       = keys %{ $self->get_inflated_column($field_name) };
+	my @inter        = intersect(@fields, @valid_fields);
 	if (scalar(@inter) != scalar(@fields)) {
 		my @bad_fields = array_minus(@fields, @valid_fields);
 		DB::Exception::UndefinedParameter->throw(
@@ -50,13 +50,12 @@ sub validParamFields {
 }
 
 sub validateParams {
-	my ($self,$field_name) = @_;
+	my ($self, $field_name) = @_;
 	return 1 unless defined $self->get_inflated_column($field_name);
-	for my $key (keys %{$self->get_inflated_column($field_name)}){
+	for my $key (keys %{ $self->get_inflated_column($field_name) }) {
 		my $re = $valid_params->{$key};
-		DB::Exception::InvalidParameter->throw(
-			message => "The parameter named $key is not valid"
-		) unless $self->get_inflated_column($field_name)->{$key} =~ qr/^$re$/x;
+		DB::Exception::InvalidParameter->throw(message => "The parameter named $key is not valid")
+			unless $self->get_inflated_column($field_name)->{$key} =~ qr/^$re$/x;
 	}
 	return 1;
 }

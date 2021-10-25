@@ -100,20 +100,20 @@ __PACKAGE__->add_columns(
 		default_value => 1,
 		is_nullable   => 0
 	},
-	set_dates => { # store dates as a JSON object
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => '{}',
-		serializer_class => 'JSON',
+	set_dates => {    # store dates as a JSON object
+		data_type          => 'text',
+		size               => 256,
+		is_nullable        => 0,
+		default_value      => '{}',
+		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
-	set_params => { # store params as a JSON object
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => '{}',
-		serializer_class => 'JSON',
+	set_params => {    # store params as a JSON object
+		data_type          => 'text',
+		size               => 256,
+		is_nullable        => 0,
+		default_value      => '{}',
+		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}
 );
