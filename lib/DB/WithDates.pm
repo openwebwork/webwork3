@@ -8,8 +8,8 @@ use Data::Dumper;
 
 use DB::Exception;
 
-our $valid_dates;  # array of allowed/valid dates
-our $required_dates; # array of required dates
+our $valid_dates;       # array of allowed/valid dates
+our $required_dates;    # array of required dates
 
 sub validDates {
 	my ($self,$type,$field_name) = @_;

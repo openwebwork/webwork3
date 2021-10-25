@@ -8,14 +8,11 @@ use Data::Dump qw/dd/;
 use Scalar::Util qw/reftype/;
 
 # shared across subroutines, so 'our' ensures that these do not go out of scope
-our $valid_params; # hash of valid parameters and the regexp for the values.
-our $required_params;  # array of the required parameters.
+our $valid_params;       # hash of valid parameters and the regexp for the values.
+our $required_params;    # array of the required parameters.
 
 use DB::Exception;
-use Exception::Class (
-		'DB::Exception::UndefinedParameter',
-		'DB::Exception::InvalidParameter',
-	);
+use Exception::Class ('DB::Exception::UndefinedParameter', 'DB::Exception::InvalidParameter',);
 
 sub validParams {
 	my ($self,$type,$field_name) = @_;
@@ -47,8 +44,7 @@ sub validParamFields {
 	if (scalar(@inter) != scalar(@fields)) {
 		my @bad_fields = array_minus(@fields, @valid_fields);
 		DB::Exception::UndefinedParameter->throw(
-			"The following parameters are not allowed for this DB table: " . join(", ",@bad_fields)
-		);
+			"The following parameters are not allowed for this DB table: " . join(", ", @bad_fields));
 	}
 	return 1;
 }
@@ -71,7 +67,7 @@ sub checkRequiredParams {
 
 	if (reftype($required_params) eq "HASH") {
 		for my $key (keys %$required_params) {
-			last unless $self->_check_params($key,$required_params->{$key});
+			last unless $self->_check_params($key, $required_params->{$key});
 		}
 	}
 	return 1;
@@ -80,30 +76,29 @@ sub checkRequiredParams {
 ## the following is an internal subroutine to check the struture of a hashref for $required_params.
 
 sub _check_params {
-	my ($self,$type,$value) = @_;
-	my $valid = 0;  ## assume that it is not valid;
+	my ($self, $type, $value) = @_;
+	my $valid = 0;    ## assume that it is not valid;
 	if ($type eq "_ALL_") {
 		croak "The value of the _ALL_ required type needs to be an array ref." unless reftype($value) eq "ARRAY";
 		for my $el (@$value) {
-			if (!defined(reftype($el))) { # assume it is a string
-				$valid = grep {/^$el$/x } keys %{$self->params};
-				DB::Exception::ParametersNeeded->throw(
-					message => "Request must include: $el"
-				) unless $valid;
-			} elsif( reftype($el) eq "HASH") {
+			if (!defined(reftype($el))) {    # assume it is a string
+				$valid = grep {/^$el$/x} keys %{ $self->params };
+				DB::Exception::ParametersNeeded->throw(message => "Request must include: $el")
+					unless $valid;
+			} elsif (reftype($el) eq "HASH") {
 				for my $key (keys %$el) {
-					$valid = $self->_check_params($key,$el->{$key});
+					$valid = $self->_check_params($key, $el->{$key});
 				}
 			}
-			last unless ($valid); # if the current element in the loop is not valid, break out.
+			last unless ($valid);            # if the current element in the loop is not valid, break out.
 		}
 	} elsif ($type eq "_ONE_OF_") {
 		croak "The value of the _ONE_OF_ required type needs to be an array ref." unless reftype($value) eq "ARRAY";
-		my @fields = keys %{$self->params};
-		$valid = scalar(intersect(@fields,@$value)) == 1;
+		my @fields = keys %{ $self->params };
+		$valid = scalar(intersect(@fields, @$value)) == 1;
 		DB::Exception::ParametersNeeded->throw(
-			message => "Request must include exactly ONE of the following parameters: " . join(', ', @$value)
-		) unless $valid;
+			message => "Request must include exactly ONE of the following parameters: " . join(', ', @$value))
+			unless $valid;
 	}
 	return $valid;
 }

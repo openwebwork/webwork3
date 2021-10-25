@@ -8,8 +8,8 @@ use strict;
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir = abs_path( dirname(__FILE__) );
-	$main::lib_dir  = dirname( dirname($main::test_dir) ) . '/lib';
+	$main::test_dir = abs_path(dirname(__FILE__));
+	$main::lib_dir  = dirname(dirname($main::test_dir)) . '/lib';
 }
 
 use lib "$main::lib_dir";
@@ -28,15 +28,13 @@ use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
 
 my $schema = loadSchema();
 
-
 # $schema->storage->debug(1);  # print out the SQL commands.
 
 my $users_rs = $schema->resultset("User");
 
 # remove the maggie user if exists in the database
-my $maggie = $users_rs->find({username => "maggie"});
+my $maggie = $users_rs->find({ username => "maggie" });
 $maggie->delete if defined($maggie);
-
 
 ## get a list of users from the CSV file
 my @students = loadCSV("$main::test_dir/sample_data/students.csv");
@@ -58,12 +56,12 @@ for my $student (@students) {
 push(
 	@students,
 	{
-		username       => "admin",
-		email       => 'admin@google.com',
-		is_admin    => 1,
-		first_name  => "Andrea",
-		last_name   => "Administrator",
-		student_id  => undef
+		username   => "admin",
+		email      => 'admin@google.com',
+		is_admin   => 1,
+		first_name => "Andrea",
+		last_name  => "Administrator",
+		student_id => undef
 	}
 );
 my @all_students = sort { $a->{username} cmp $b->{username} } @students;
@@ -76,39 +74,39 @@ for my $user (@users_from_db) {
 }
 @users_from_db = sort { $a->{username} cmp $b->{username} } @users_from_db;
 
-is_deeply( \@all_students, \@users_from_db, "getUsers: all users" );
+is_deeply(\@all_students, \@users_from_db, "getUsers: all users");
 
 # dd \@all_students;
 # dd \@users_from_db;
 
 ## get one user that exists
 
-my $user = $users_rs->getGlobalUser( { username => $all_students[0]->{username} } );
+my $user = $users_rs->getGlobalUser({ username => $all_students[0]->{username} });
 removeIDs($user);
 delete $user->{role};
-is_deeply( $all_students[0], $user, "getUser: by username" );
+is_deeply($all_students[0], $user, "getUser: by username");
 
-$user = $users_rs->getGlobalUser( { user_id => 2 } );
+$user = $users_rs->getGlobalUser({ user_id => 2 });
 removeIDs($user);
 my @stud2 = grep { $_->{username} eq $user->{username} } @all_students;
-is_deeply( $stud2[0], $user, "getUser: by user_id" );
+is_deeply($stud2[0], $user, "getUser: by user_id");
 
 ## get one user that does not exist
 
 throws_ok {
-	$user = $users_rs->getGlobalUser( { user_id => -9 } );
+	$user = $users_rs->getGlobalUser({ user_id => -9 });
 }
 "DB::Exception::UserNotFound", "getUser: undefined user_id";
 
 throws_ok {
-	$user = $users_rs->getGlobalUser( { username => "non_existent_user" } );
+	$user = $users_rs->getGlobalUser({ username => "non_existent_user" });
 }
 "DB::Exception::UserNotFound", "getUser: undefined username";
 
 ## add one user
 
 $user = {
-	username      => "wiggam",
+	username   => "wiggam",
 	last_name  => "Wiggam",
 	first_name => "Clancy",
 	email      => 'wiggam@springfieldpd.gov',
@@ -118,51 +116,51 @@ $user = {
 
 my $new_user = $users_rs->addGlobalUser($user);
 removeIDs($new_user);
-is_deeply( $user, $new_user, "addUser: adding a user" );
+is_deeply($user, $new_user, "addUser: adding a user");
 
 ## update a user
 
 my $updated_user = {%$user};    # make a copy of $user;
 $updated_user->{email} = 'spring.cop@gmail.com';
-my $up_user_from_db = $users_rs->updateGlobalUser( { username => $updated_user->{username} }, $updated_user );
+my $up_user_from_db = $users_rs->updateGlobalUser({ username => $updated_user->{username} }, $updated_user);
 removeIDs($up_user_from_db);
-is_deeply( $updated_user, $up_user_from_db, "updateUser: updating a user" );
+is_deeply($updated_user, $up_user_from_db, "updateUser: updating a user");
 
 ## try to update a user without passing username info:
 
 throws_ok {
-	$users_rs->updateGlobalUser( { username_name => "wiggam" }, $updated_user );
+	$users_rs->updateGlobalUser({ username_name => "wiggam" }, $updated_user);
 }
 "DB::Exception::ParametersNeeded", "updateUser: wrong user_info sent";
 
 ## try to update a user that doesn't exist:
 
 throws_ok {
-	$users_rs->updateGlobalUser( { username => "non_existent_user" }, $updated_user );
+	$users_rs->updateGlobalUser({ username => "non_existent_user" }, $updated_user);
 }
 "DB::Exception::UserNotFound", "updateUser: update user for a non-existing username";
 
 throws_ok {
-	$users_rs->updateGlobalUser( { user_id => -5 }, $updated_user );
+	$users_rs->updateGlobalUser({ user_id => -5 }, $updated_user);
 }
 "DB::Exception::UserNotFound", "updateUser: update user for a non-existing user_id";
 
 ## delete a user
 
-my $user_to_delete = $users_rs->deleteGlobalUser( { username => $user->{username} } );
+my $user_to_delete = $users_rs->deleteGlobalUser({ username => $user->{username} });
 
 delete $user_to_delete->{user_id};
-is_deeply( $updated_user, $user_to_delete, "deleteUser: delete a user" );
+is_deeply($updated_user, $user_to_delete, "deleteUser: delete a user");
 
 ## delete a user that doesn't exist.
 
 throws_ok {
-	$user = $users_rs->deleteGlobalUser( { username => "undefined_username" } );
+	$user = $users_rs->deleteGlobalUser({ username => "undefined_username" });
 }
 "DB::Exception::UserNotFound", "deleteUser: trying to delete with undefined username";
 
 throws_ok {
-	$user = $users_rs->deleteGlobalUser( { user_id => -3 } );
+	$user = $users_rs->deleteGlobalUser({ user_id => -3 });
 }
 "DB::Exception::UserNotFound", "deleteUser: trying to delete with undefined user_id";
 

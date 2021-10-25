@@ -6,8 +6,8 @@ use strict;
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir = abs_path( dirname(__FILE__) );
-	$main::lib_dir  = dirname( dirname($main::test_dir) ) . '/lib';
+	$main::test_dir = abs_path(dirname(__FILE__));
+	$main::lib_dir  = dirname(dirname($main::test_dir)) . '/lib';
 }
 
 use lib "$main::lib_dir";
@@ -30,7 +30,7 @@ my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
 
 my $course_user_rs = $schema->resultset("CourseUser");
 
-my $u = $course_user_rs->find({course_id=>1,user_id=>1});
+my $u = $course_user_rs->find({ course_id => 1, user_id => 1 });
 
 my $u2 = $u->get_inflated_columns;
 

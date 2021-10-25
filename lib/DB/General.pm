@@ -30,7 +30,7 @@ use List::Util qw/first/;
 use Clone qw/clone/;
 use DB::Utils qw/getCourseInfo getUserInfo/;
 use DB::Exception;
-use Exception::Class ( 'DB::Exception::CourseNotFound', 'DB::Exception::CourseExists' );
+use Exception::Class ('DB::Exception::CourseNotFound', 'DB::Exception::CourseExists');
 
 use DB::TestUtils qw/removeIDs/;
 use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings mergeCourseSettings

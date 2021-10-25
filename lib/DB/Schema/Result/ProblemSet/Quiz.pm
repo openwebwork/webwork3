@@ -21,7 +21,7 @@ subroutine that returns the array for the valid dates: C<['open', 'due' ,'answer
 =cut
 
 sub valid_dates {
-	return ['open', 'due' ,'answer'];
+	return [ 'open', 'due', 'answer' ];
 }
 
 =head2 C<required_dates>
@@ -30,9 +30,8 @@ subroutine that returns the array for the required dates: C<['open', 'due' ,'ans
 
 =cut
 
-
 sub required_dates {
-	return ['open', 'due' ,'answer'];
+	return [ 'open', 'due', 'answer' ];
 }
 
 =head2 C<valid_params>
@@ -59,7 +58,7 @@ if the quiz is timed, how long should it be open.
 
 sub valid_params {
 	return {
-		timed => q{^[01]$},
+		timed         => q{^[01]$},
 		quiz_duration => q{\d+},
 	};
 }
@@ -69,7 +68,6 @@ sub valid_params {
 No parameters are required for the homework set.
 
 =cut
-
 
 sub required_params {
 	return {};

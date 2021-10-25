@@ -32,7 +32,7 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 =cut
 
 sub getGlobalProblems {
-	my ( $self, $as_result_set ) = @_;
+	my ($self, $as_result_set) = @_;
 	my @problems = $self->search();
 	return @problems if $as_result_set;
 	return map {
@@ -74,12 +74,12 @@ An arrayref of the problems.
 =cut
 
 sub getProblems {
-	my ( $self, $course_info, $as_result_set ) = @_;
+	my ($self, $course_info, $as_result_set) = @_;
 	my $course_rs = $self->result_source->schema->resultset("Course");
-	my $course    = $course_rs->getCourse( $course_info, 1 );
+	my $course    = $course_rs->getCourse($course_info, 1);
 
 	my @problems =
-		$self->search( { 'problem_set.course_id' => $course->course_id }, { prefetch => [qw/problem_set/] } );
+		$self->search({ 'problem_set.course_id' => $course->course_id }, { prefetch => [qw/problem_set/] });
 
 	return \@problems if $as_result_set;
 	return map {
@@ -91,13 +91,13 @@ sub getProblems {
 }
 
 sub getSetProblems {
-	my ( $self, $course_set_info, $as_result_set ) = @_;
+	my ($self, $course_set_info, $as_result_set) = @_;
 
 	my $course_rs      = $self->result_source->schema->resultset("Course");
 	my $problem_set_rs = $self->result_source->schema->resultset("ProblemSet");
 
-	my $problem_set = $problem_set_rs->getProblemSet( $course_set_info, 1 );
-	my @problems    = $self->search( { 'set_id' => $problem_set->set_id } );
+	my $problem_set = $problem_set_rs->getProblemSet($course_set_info, 1);
+	my @problems    = $self->search({ 'set_id' => $problem_set->set_id });
 
 	return \@problems if $as_result_set;
 	return map {
@@ -126,10 +126,10 @@ A hashref containing
 =cut
 
 sub getSetProblem {
-	my ( $self, $course_set_problem_info, $as_result_set ) = @_;
+	my ($self, $course_set_problem_info, $as_result_set) = @_;
 	my $course_set_info = { %{ getCourseInfo($course_set_problem_info) }, %{ getSetInfo($course_set_problem_info) } };
 	my $problem_set_rs  = $self->result_source->schema->resultset("ProblemSet");
-	my $problem_set     = $problem_set_rs->getProblemSet( $course_set_info, 1 );
+	my $problem_set     = $problem_set_rs->getProblemSet($course_set_info, 1);
 
 	my $problem_info = getProblemInfo($course_set_problem_info);
 	my $problem      = $problem_set->problems->find($problem_info);
@@ -155,8 +155,8 @@ Add a single problem to an existing problem set within a course
 =cut
 
 sub addSetProblem {
-	my ( $self, $course_set_info, $new_problem_params, $as_result_set ) = @_;
-	my $problem_set = $self->result_source->schema->resultset("ProblemSet")->getProblemSet( $course_set_info, 1 );
+	my ($self, $course_set_info, $new_problem_params, $as_result_set) = @_;
+	my $problem_set = $self->result_source->schema->resultset("ProblemSet")->getProblemSet($course_set_info, 1);
 	# set the problem number to one more than the set's largest
 	$new_problem_params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0);
 
@@ -186,12 +186,12 @@ delete a single problem to an existing problem set within a course
 =cut
 
 sub deleteSetProblem {
-	my ( $self, $course_set_problem_info, $problem_params, $as_result_set ) = @_;
-	my $set_problem = $self->getSetProblem( $course_set_problem_info, 1 );
+	my ($self, $course_set_problem_info, $problem_params, $as_result_set) = @_;
+	my $set_problem = $self->getSetProblem($course_set_problem_info, 1);
 	my $problem_set = $self->result_source->schema->resultset("ProblemSet")
-		->getProblemSet( { course_id => $set_problem->problem_set->course_id, set_id => $set_problem->set_id }, 1 );
+		->getProblemSet({ course_id => $set_problem->problem_set->course_id, set_id => $set_problem->set_id }, 1);
 
-	my $problem = $problem_set->search_related( "problems", getProblemInfo($course_set_problem_info) )->single;
+	my $problem = $problem_set->search_related("problems", getProblemInfo($course_set_problem_info))->single;
 
 	my $deleted_problem = $problem->delete;
 

@@ -62,7 +62,7 @@ Note: a problem should have only one of a library_id, problem_path or problem_po
 
 sub valid_params {
 	return {
-		weight          => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$}, # positive integers or decimals
+		weight          => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},    # positive integers or decimals
 		library_id      => q{\d+},
 		problem_path    => q{.*},
 		problem_pool_id => q{\d+}
@@ -70,9 +70,7 @@ sub valid_params {
 }
 
 sub required_params {
-	return {
-		'_ALL_' => [ 'weight', { '_ONE_OF_' => [ 'library_id', 'problem_path', 'problem_pool_id' ] } ]
-	};
+	return { '_ALL_' => [ 'weight', { '_ONE_OF_' => [ 'library_id', 'problem_path', 'problem_pool_id' ] } ] };
 }
 
 ### this is the table that stores problems for a given Problem Set
@@ -104,12 +102,12 @@ __PACKAGE__->add_columns(
 		is_nullable   => 0,
 		default_value => 1
 	},
-	params => { # store params as a JSON object
-		data_type     => 'text',
-		size          => 256,
-		is_nullable   => 0,
-		default_value => '{}',
-		serializer_class => 'JSON',
+	params => {    # store params as a JSON object
+		data_type          => 'text',
+		size               => 256,
+		is_nullable        => 0,
+		default_value      => '{}',
+		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}
 );
@@ -117,10 +115,10 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('problem_id');
 
 # maybe we don't need this.
-__PACKAGE__->add_unique_constraint( [qw/problem_id set_id problem_version problem_number/] );
+__PACKAGE__->add_unique_constraint([qw/problem_id set_id problem_version problem_number/]);
 
-__PACKAGE__->belongs_to( problem_set => 'DB::Schema::Result::ProblemSet', 'set_id' );
+__PACKAGE__->belongs_to(problem_set => 'DB::Schema::Result::ProblemSet', 'set_id');
 
-__PACKAGE__->has_many( user_problem => 'DB::Schema::Result::UserProblem', 'problem_id' );
+__PACKAGE__->has_many(user_problem => 'DB::Schema::Result::UserProblem', 'problem_id');
 
 1;
