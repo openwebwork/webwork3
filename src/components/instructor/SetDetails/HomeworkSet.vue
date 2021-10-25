@@ -21,7 +21,7 @@
 			<td class="header">Open Date</td>
 			<td><date-time-input v-model="set.set_dates.open" :rules="checkDates"/></td>
 		</tr>
-		<tr v-if="set.params.enable_reduced_scoring">
+		<tr v-if="set.set_params.enable_reduced_scoring">
 			<td class="header">Reduced Scoring Date</td>
 			<td><date-time-input v-model="set.set_dates.reduced_scoring" :rules="checkDates"/></td>
 		</tr>
@@ -43,8 +43,8 @@ import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
 import DateTimeInput from 'src/components/common/DateTimeInput.vue';
-import { HomeworkSet } from 'src/store/models/problem_sets';
-import { useStore } from 'src/store';
+import { HomeworkSet } from '@/store/models/problem_sets';
+import { useStore } from '@/store';
 
 export default defineComponent({
 	components: { DateTimeInput },

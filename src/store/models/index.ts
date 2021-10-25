@@ -1,6 +1,6 @@
 // general classes and parsing functions
 
-import { intersection, isEqual, difference, assign, pick, pickBy } from 'lodash';
+import { intersection, isEqual, difference, pickBy } from 'lodash';
 
 export interface Dictionary<T> {
 	[key: string]: T;
@@ -124,6 +124,34 @@ export interface ModelField  {
 	}
 }
 
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access,
+			@typescript-eslint/no-explicit-any */
+
+export function parseParams(_params: Dictionary<generic>,  _fields: ModelField){
+	const output_params: Dictionary<generic> = {};
+	Object.keys(_fields).forEach((key: string) => {
+		if ((_params as any)[key] == null && _fields[key].default_value !== undefined) {
+			(_params as any)[key] = _fields[key].default_value;
+		}
+		// parse each field
+		if ((_params as any)[key] != null && _fields[key].field_type === 'boolean') {
+			(output_params as any)[key] = parseBoolean((_params as any)[key]);
+		} else if ((_params as any)[key] != null && _fields[key].field_type === 'string') {
+			(output_params as any)[key] = `${(_params as any)[key] as string}`;
+		} else if ((_params as any)[key] != null && _fields[key].field_type === 'non_neg_int') {
+			(output_params as any)[key] = parseNonNegInt((_params as any)[key]);
+		} else if ((_params as any)[key] != null && _fields[key].field_type === 'username') {
+			(output_params as any)[key] = parseUsername((_params as any)[key]);
+		} else if ((_params as any)[key] != null && _fields[key].field_type === 'email') {
+			(output_params as any)[key] = parseEmail((_params as any)[key]);
+		} else if ((_params as any)[key] != null && _fields[key].field_type === 'role') {
+			(output_params as any)[key] = parseUserRole((_params as any)[key]);
+		}
+	});
+	return output_params;
+}
+// eslint-enable
+
 /* This creates a general Model to be used for all others (Course, User, etc.)
 
 The original structure of this was from a SO answer at
@@ -190,7 +218,7 @@ export const Model = <Bool extends string, Num extends string, Str extends strin
 					(this as any)[key] = parseUserRole((params as any)[key]);
 				}
 			});
-			assign(this, pick(params, this._dictionary_field_names));
+			// assign(this, pick(params, this._dictionary_field_names));
 		}
 		/* eslint-enable */
 

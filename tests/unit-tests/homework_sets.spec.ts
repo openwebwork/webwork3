@@ -12,6 +12,50 @@ test('Build a HomeworkSet', () => {
 	expect(set1 instanceof HomeworkSet).toBe(true);
 	expect(set1.set_visible).toBe(false);
 
+	const set2 = new HomeworkSet({
+		course_id:4,
+		set_dates: {
+			answer: 1613951940,
+			due: 1612137540,
+			open: 1609545540,
+			reduced_scoring: 1610323140
+		},
+		set_id:7,
+		set_name: 'HW #1',
+		set_params: {
+			enable_reduced_scoring: '1'
+		},
+		set_type: 'HW',
+		set_visible:true
+	});
+	const params = {
+		course_id: 4,
+		set_dates: {
+			answer: 1613951940,
+			due: 1612137540,
+			open: 1609545540,
+			reduced_scoring: 1610323140
+		},
+		set_id:7,
+		set_name: 'HW #1',
+		set_params: {
+			enable_reduced_scoring: true
+		},
+		set_type: 'HW',
+		set_visible: true
+	};
+	expect(set2.toObject()).toStrictEqual(params);
+
+});
+
+test('Check that the param defaults are working', () => {
+	const set1 = new HomeworkSet({ set_name: 'HW #1' });
+	const set2 = new HomeworkSet({ set_name: 'HW #1', set_params: { enable_reduced_scoring: false } });
+	expect(set1).toStrictEqual(set2);
+	const set3 = new HomeworkSet({ set_name: 'HW #1', set_dates: {
+		open: 0
+	} });
+	expect(set3.set_dates.open).toBe(set1.set_dates.open);
 });
 
 test('Test invalid Homework Set params', () => {

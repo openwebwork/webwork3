@@ -22,7 +22,6 @@ test('Parsing of undefined and null values', () => {
 	// the following allow to pass in non-valid parameters for testing
 	const params = { course_name: 'Arithmetic', course_id: null };
 	const course3 = new Course(params as unknown as ParseableCourse);
-	console.log(course3);
 	expect(course1).toStrictEqual(course3);
 });
 

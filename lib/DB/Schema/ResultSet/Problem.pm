@@ -160,10 +160,10 @@ sub addSetProblem {
 	# set the problem number to one more than the set's largest
 	$new_problem_params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0);
 
-	my $problem_to_add = $self->new($new_set_params);
+	my $problem_to_add = $self->new($new_problem_params);
 	$problem_to_add->validParams(undef, 'params');
 
-	my $added_problem = $problem_set->add_to_problems($new_set_params);
+	my $added_problem = $problem_set->add_to_problems($new_problem_params);
 	return  $as_result_set ? $added_problem : { $added_problem->get_inflated_columns };
 
 	return $as_result_set ? $added_problem : { $added_problem->get_inflated_columns };

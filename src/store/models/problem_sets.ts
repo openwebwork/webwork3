@@ -1,7 +1,7 @@
 /* These are Problem Set interfaces */
 
-import { Dictionary, parseNonNegInt, parseBoolean, Model, ParseError, generic,
-	InvalidFieldsException, ParseableModel } from '@/store/models';
+import { Dictionary, parseNonNegInt, Model, ParseError, generic,
+	InvalidFieldsException, ParseableModel, ModelField, parseParams } from '@/store/models/index';
 import { difference } from 'lodash';
 
 // const problem_set_types = [/hw/i, /quiz/i, /review/i];
@@ -24,6 +24,9 @@ export function parseProblemSetType(type: string) {
 	throw new ParseError('ProblemSetType', `The problem set type '${type}' is not valid.`);
 }
 
+type ProblemSetParams = ParseableHWParams | ParseableQuizParams | ParseableReviewParams;
+type ProblemSetDates = ParseableHWDates | ParseableQuizDates | ParseableReviewDates;
+
 /* Problem Set (HomeworkSet, Quiz, ReviewSet ) classes */
 
 export interface ParseableProblemSet {
@@ -32,9 +35,9 @@ export interface ParseableProblemSet {
 	course_id?: string | number;
 	set_type?: string;
 	set_visible?: string | number | boolean;
-	set_params?: ParseableHWParams|ParseableQuizParams|ParseableReviewParams;
+	set_params?: ProblemSetParams;
 	// set_params?: Dictionary<generic>;
-	set_dates?: ParseableHWDates|ParseableQuizDates|ParseableReviewDates;
+	set_dates?: ProblemSetDates;
 }
 
 export class ProblemSet extends Model(
@@ -51,6 +54,7 @@ export class ProblemSet extends Model(
 	static OPTIONAL_FIELDS = ['set_id', 'set_name', 'course_id', 'set_visible'];
 
 	_date_fields: Array<string> = [];
+	_param_fields: ModelField = {};
 	set_params = {};
 	set_dates = {};
 
@@ -62,7 +66,7 @@ export class ProblemSet extends Model(
 		throw 'You must override the isValid() method';
 	}
 
-	setDates(dates: Dictionary<generic>){
+	setDates(dates: Dictionary<generic> = {}){
 		// check that only valid dates are present
 		const invalid_dates = difference(Object.keys(dates), this._date_fields);
 		if (invalid_dates.length !== 0) {
@@ -73,11 +77,13 @@ export class ProblemSet extends Model(
 		/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-member-access,
 		  @typescript-eslint/no-explicit-any */
 		Object.keys(dates).forEach(key => {
-			if (dates != null) {
-				(this.set_dates as any)[key] = parseNonNegInt((dates as any)[key]);
-			}
+			(this.set_dates as any)[key] = parseNonNegInt((dates as any)[key]);
 		});
 		// eslint-enable
+	}
+
+	setParams(params: Dictionary<generic> = {}) {
+		this.set_params = parseParams(params, this._param_fields);
 	}
 }
 
@@ -106,36 +112,32 @@ export interface QuizParams {
 }
 
 export class Quiz extends ProblemSet {
-	set_params: QuizParams = {};
-	set_dates: QuizDates = {
-		open: 0,
-		due: 0,
-		answer: 0
-	};
-	_date_fields = ['open', 'due', 'answer'];
-
+	set_dates: QuizDates;
+	set_params: QuizParams;
 	constructor(params: ParseableProblemSet = {}) {
-		super(params as ParseableModel);
 		params.set_type = 'QUIZ';
-		this.set(params as ParseableModel);
-	}
-
-	setParams(quiz_params: ParseableQuizParams) {
-		if (quiz_params.timed != null) {
-			this.set_params.timed = parseBoolean(quiz_params.timed);
-		}
-		if (quiz_params.quiz_duration != null) {
-			this.set_params.quiz_duration = parseNonNegInt(quiz_params.quiz_duration);
-		}
-	}
-
-	setDates(hw_dates: ParseableQuizDates = {}) {
-		// parse the dates
-		this.set_dates = {
-			open: parseNonNegInt(hw_dates.open ?? 0),
-			due: parseNonNegInt(hw_dates.due ?? 0),
-			answer: parseNonNegInt(hw_dates.answer ?? 0)
+		super(params as ParseableModel);
+		this._date_fields = ['open', 'due', 'answer'];
+		this._param_fields = {
+			timed: {
+				field_type: 'boolean'
+			},
+			quiz_duration: {
+				field_type: 'non_neg_int'
+			}
 		};
+		this.set_dates = {
+			open: 0,
+			due: 0,
+			answer:0
+		};
+		if (params.set_dates) {
+			this.setDates(params.set_dates as Dictionary<generic>);
+		}
+		this.set_params = {};
+		if (params.set_params) {
+			this.setParams(params.set_params as Dictionary<generic>);
+		}
 	}
 
 	isValid() {
@@ -186,43 +188,35 @@ export class HomeworkSet extends ProblemSet {
 	constructor(params: ParseableProblemSet = {}) {
 		params.set_type = 'HW';
 		super(params as ParseableModel);
+		this._date_fields = ['open', 'reduced_scoring', 'due', 'answer'];
+
+		this._param_fields = {
+			enable_reduced_scoring: {
+				field_type: 'boolean',
+				default_value: false
+			},
+			hide_hint: {
+				field_type: 'boolean'
+			},
+			hardcopy_header: {
+				field_type: 'string'
+			},
+			set_header: {
+				field_type: 'string'
+			},
+			description: {
+				field_type: 'string'
+			}
+		};
 		this.set_dates = {
 			open: 0,
 			reduced_scoring: 0,
 			due: 0,
-			answer: 0
+			answer:0
 		};
+		this.setDates(params.set_dates as Dictionary<generic>);
 		this.set_params = {};
-		this.set(params as ParseableModel);
-	}
-
-	setParams(hw_params: ParseableHWParams = {}) {
-		// parse the params
-		if (hw_params.enable_reduced_scoring != null) {
-			this.set_params.enable_reduced_scoring = parseBoolean(hw_params.enable_reduced_scoring);
-		}
-		if (hw_params.hide_hint != null) {
-			this.set_params.hide_hint = parseBoolean(hw_params.hide_hint);
-		}
-		if (hw_params.hardcopy_header != null) {
-			this.set_params.hardcopy_header = hw_params.hardcopy_header;
-		}
-		if (hw_params.set_header != null) {
-			this.set_params.set_header = hw_params.set_header;
-		}
-		if (hw_params.description != null) {
-			this.set_params.description = hw_params.description;
-		}
-	}
-
-	setDates(hw_dates: ParseableHWDates = {}) {
-		// parse the dates
-		this.set_dates = {
-			open: parseNonNegInt(hw_dates.open ?? 0),
-			reduced_scoring: parseNonNegInt(hw_dates.reduced_scoring ?? 0),
-			due: parseNonNegInt(hw_dates.due ?? 0),
-			answer: parseNonNegInt(hw_dates.answer ?? 0)
-		};
+		this.setParams(params.set_params as Dictionary<generic>);
 	}
 
 	isValid() {
