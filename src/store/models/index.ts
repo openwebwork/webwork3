@@ -1,15 +1,24 @@
-// general classes and parsing functions
+/* This find contains three types of functionality
+	1) some basic interfaces for non-specific models.
+	2) some parsing functions for most types
+	3) the general Model class for handling parsing of all basic object types (Course, ProblemSet, User)
 
-import { intersection, isEqual, difference, pickBy } from 'lodash';
+*/
+
+import { intersection, isEqual, difference, pickBy, pick } from 'lodash';
 
 export interface Dictionary<T> {
 	[key: string]: T;
 }
 
+// General Error coming from the API service
+
 export interface ResponseError {
 	exception: string;
 	message: string;
 }
+
+// General Parsing error
 
 export class ParseError {
 	type: string;
@@ -21,11 +30,48 @@ export class ParseError {
 	}
 }
 
+// Some specific parsing errors/exceptions
+
 export class NonNegIntException extends ParseError {
 	constructor(message: string){
 		super('NonNegIntException', message);
 	}
 }
+
+export class UsernameParseException extends ParseError {
+	constructor(message: string){
+		super('UsernameParseExcpeption', message);
+	}
+}
+
+export class EmailParseException extends ParseError {
+	constructor(message: string){
+		super('EmailParseException', message);
+	}
+}
+
+export class BooleanParseException extends ParseError {
+	constructor(message: string){
+		super('BooleanParseException', message);
+	}
+}
+
+export class RequiredFieldsException extends ParseError {
+	constructor(_field: string, message: string){
+		super('RequiredFieldsException', message);
+		super.field = _field;
+	}
+}
+
+export class InvalidFieldsException extends ParseError {
+	constructor(_field: string, message: string) {
+		super('InvalidFieldsException', message);
+		super.field = _field;
+	}
+}
+
+
+// Parsing functions
 
 export function parseNonNegInt(val: string | number) {
 	if (/^\s*(\d+)\s*$/.test(`${val}`)) {
@@ -38,12 +84,6 @@ export function parseNonNegInt(val: string | number) {
 export const mailRE = /^[\w.]+@([a-zA-Z_.]+)+\.[a-zA-Z]{2,9}$/;
 export const usernameRE = /^[_a-zA-Z]([a-zA-Z._0-9])+$/;
 
-export class UsernameParseException extends ParseError {
-	constructor(message: string){
-		super('UsernameParseExcpeption', message);
-	}
-}
-
 export function parseUsername(val: string | undefined) {
 	if (typeof val === 'string' && (mailRE.test(`${val}`) || usernameRE.test(`${val}`))) {
 		return val;
@@ -52,23 +92,11 @@ export function parseUsername(val: string | undefined) {
 	}
 }
 
-export class EmailParseException extends ParseError {
-	constructor(message: string){
-		super('EmailParseException', message);
-	}
-}
-
 export function parseEmail(val: string|undefined): string|undefined {
 	if (typeof val === 'string' && mailRE.test(`${val}`)) {
 		return val;
 	} else {
 		throw new EmailParseException(`The value '${val?.toString() ?? ''}' is not a value email`);
-	}
-}
-
-export class BooleanParseException extends ParseError {
-	constructor(message: string){
-		super('BooleanParseException', message);
 	}
 }
 
@@ -96,20 +124,6 @@ export function parseUserRole(role: string) {
 		throw err;
 	}
 	return role;
-}
-
-export class RequiredFieldsException extends ParseError {
-	constructor(_field: string, message: string){
-		super('RequiredFieldsException', message);
-		super.field = _field;
-	}
-}
-
-export class InvalidFieldsException extends ParseError {
-	constructor(_field: string, message: string) {
-		super('InvalidFieldsException', message);
-		super.field = _field;
-	}
 }
 
 export type generic = string|number|boolean;
@@ -197,28 +211,15 @@ export const Model = <Bool extends string, Num extends string, Str extends strin
 			@typescript-eslint/no-explicit-any */
 
 		set(params: Dictionary<generic | Dictionary<generic>>) {
+			// parse the non-object fields;
 			const fields = [...this._boolean_field_names, ...this._number_field_names, ...this._string_field_names];
+			const parsed_params = parseParams(pick(params, fields), this._fields);
+
 			fields.forEach(key => {
-				// if the field is undefined or null in the params, but there is a default value, set it
-				if ((params as any)[key] == null && this._fields[key].default_value !== undefined) {
-					(params as any)[key] = this._fields[key].default_value;
-				}
-				// parse each field
-				if ((params as any)[key] != null && this._fields[key].field_type === 'boolean') {
-					(this as any)[key] = parseBoolean((params as any)[key]);
-				} else if ((params as any)[key] != null && this._fields[key].field_type === 'string') {
-					(this as any)[key] = `${(params as any)[key] as string}`;
-				} else if ((params as any)[key] != null && this._fields[key].field_type === 'non_neg_int') {
-					(this as any)[key] = parseNonNegInt((params as any)[key]);
-				} else if ((params as any)[key] != null && this._fields[key].field_type === 'username') {
-					(this as any)[key] = parseUsername((params as any)[key]);
-				} else if ((params as any)[key] != null && this._fields[key].field_type === 'email') {
-					(this as any)[key] = parseEmail((params as any)[key]);
-				} else if ((params as any)[key] != null && this._fields[key].field_type === 'role') {
-					(this as any)[key] = parseUserRole((params as any)[key]);
+				if ((parsed_params as any)[key] != null) {
+					(this as any)[key] = (parsed_params as any)[key];
 				}
 			});
-			// assign(this, pick(params, this._dictionary_field_names));
 		}
 		/* eslint-enable */
 
