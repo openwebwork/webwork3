@@ -23,7 +23,7 @@ export interface ParseableCourse {
 	course_dates?: CourseDates;
 }
 
-export class Course extends Model([], ['course_id', 'course_name', 'visible'],
+export class Course extends Model(['visible'], ['course_id'], ['course_name', 'visible'],
 	['course_dates'],
 	{
 		course_id: { field_type: 'non_neg_int', default_value: 0 },

@@ -27,7 +27,7 @@ test('Invalid user_id', () => {
 		new User({ username: 'test', user_id: 'one' });
 	}).toThrow(NonNegIntException);
 	expect(() => {
-		new User({ username: 'test', user_id: false });
+		new User({ username: 'test', user_id: 'false' });
 	}).toThrow(NonNegIntException);
 });
 

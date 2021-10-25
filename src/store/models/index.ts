@@ -1,6 +1,6 @@
 // general classes and parsing functions
 
-import { intersection, isEqual, difference, assign } from 'lodash';
+import { intersection, isEqual, difference, assign, pick, pickBy } from 'lodash';
 
 export interface Dictionary<T> {
 	[key: string]: T;
@@ -114,10 +114,13 @@ export class InvalidFieldsException extends ParseError {
 
 export type generic = string|number|boolean;
 
-interface ModelField  {
+export type ParseableModel = Dictionary<generic|Dictionary<generic>>;
+
+export interface ModelField  {
 	[k: string]: {
 		field_type: 'string'|'boolean'|'number'|'non_neg_int'|'username'|'email'|'role';
 		default_value?: generic;
+		required?: boolean;
 	}
 }
 
@@ -126,27 +129,30 @@ interface ModelField  {
 The original structure of this was from a SO answer at
 https://stackoverflow.com/questions/69590729/creating-a-class-using-typescript-with-specific-fields */
 
-export const Model = <Req extends string, Opt extends string, Dic extends string, F extends ModelField>
-	(requiredFields: Req[], optionalFields: Opt[], dictionaryFields: Dic[], fields: F) => {
+export const Model = <Bool extends string, Num extends string, Str extends string, Dic extends string,
+	F extends ModelField>
+	(boolean_fields: Bool[], Num_neg_int_fields: Num[], string_fields: Str[], dictionary_fields: Dic[],
+		fields: F) => {
 
-	type ModelObject<Req extends string, Opt extends string, Dic extends string> =
-			Record<Req, generic> & Partial<Record<Opt, generic>> &
-			Partial<Record<Dic, Partial<Dictionary<generic>>>> extends
+	type ModelObject<Bool extends string, Num extends string, Str extends string, Dic extends string> =
+			Partial<Record<Bool, boolean>> & Partial<Record<Num, number>> &
+			Partial<Record<Str, string>> & Partial<Record<Dic, Dictionary<generic>>> extends
 				 infer T ? { [K in keyof T]: T[K] } : never;
 
 	class _Model {
-		_required_fields: Array<Req> = requiredFields;
-		_optional_fields?: Array<Opt> = optionalFields;
-		_dictionary_fields?: Array<Dic> = dictionaryFields;
+		_boolean_field_names: Array<Bool> = boolean_fields;
+		_number_field_names: Array<Num> = Num_neg_int_fields;
+		_string_field_names: Array<Str> = string_fields;
+		_dictionary_field_names: Array<Dic> = dictionary_fields;
 		_fields: F = fields;
 
-		constructor(params?: ModelObject<Req, Opt, Dic>) {
+		constructor(params: Dictionary<generic | Dictionary<generic>>= {}) {
 			// check that required fields are present
 
-			const common_fields = intersection(this._required_fields, Object.keys(params ?? {}));
+			const common_fields = intersection(this.required_fields, Object.keys(params));
 
-			if (!isEqual(common_fields, this._required_fields)) {
-				const diff = difference(this._required_fields, common_fields);
+			if (!isEqual(common_fields, this.required_fields)) {
+				const diff = difference(this.required_fields, common_fields);
 				throw new RequiredFieldsException('_all',
 					`The field(s) '${diff.join(', ')}' must be present in ${this.constructor.name}`);
 			}
@@ -156,44 +162,49 @@ export const Model = <Req extends string, Opt extends string, Dic extends string
 				throw new InvalidFieldsException('_all',
 					`The field(s) '${invalid_fields.join(', ')}' are not valid for ${this.constructor.name}.`);
 			}
-			this.set(params ?? {});
+			this.set(params);
 		}
 
 		/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access,
 			@typescript-eslint/no-explicit-any */
 
-		set(params: Partial<ModelObject<Req, Opt, Dic>>) {
-			const fields = [...this._optional_fields ?? [], ...this._required_fields];
+		set(params: Dictionary<generic | Dictionary<generic>>) {
+			const fields = [...this._boolean_field_names, ...this._number_field_names, ...this._string_field_names];
 			fields.forEach(key => {
-				// if the field is undefined in the params, but there is a default value, set it
-				if ((params as any)[key] === undefined && this._fields[key].default_value !== undefined) {
+				// if the field is undefined or null in the params, but there is a default value, set it
+				if ((params as any)[key] == null && this._fields[key].default_value !== undefined) {
 					(params as any)[key] = this._fields[key].default_value;
 				}
 				// parse each field
-				if ((params as any)[key] !== undefined && this._fields[key].field_type === 'boolean') {
+				if ((params as any)[key] != null && this._fields[key].field_type === 'boolean') {
 					(this as any)[key] = parseBoolean((params as any)[key]);
-				} else if ((params as any)[key] !== undefined && this._fields[key].field_type === 'string') {
+				} else if ((params as any)[key] != null && this._fields[key].field_type === 'string') {
 					(this as any)[key] = `${(params as any)[key] as string}`;
-				} else if ((params as any)[key] !== undefined && this._fields[key].field_type === 'non_neg_int') {
+				} else if ((params as any)[key] != null && this._fields[key].field_type === 'non_neg_int') {
 					(this as any)[key] = parseNonNegInt((params as any)[key]);
-				} else if ((params as any)[key] !== undefined && this._fields[key].field_type === 'username') {
+				} else if ((params as any)[key] != null && this._fields[key].field_type === 'username') {
 					(this as any)[key] = parseUsername((params as any)[key]);
-				} else if ((params as any)[key] !== undefined && this._fields[key].field_type === 'email') {
+				} else if ((params as any)[key] != null && this._fields[key].field_type === 'email') {
 					(this as any)[key] = parseEmail((params as any)[key]);
-				} else if ((params as any)[key] !== undefined && this._fields[key].field_type === 'role') {
+				} else if ((params as any)[key] != null && this._fields[key].field_type === 'role') {
 					(this as any)[key] = parseUserRole((params as any)[key]);
 				}
 			});
-			assign(this, params, this._dictionary_fields);
+			assign(this, pick(params, this._dictionary_field_names));
 		}
+		/* eslint-enable */
 
-		get all_fields(): Array<Req | Opt | Dic> {
-			return [...this._required_fields, ...this._optional_fields ?? [], ...this._dictionary_fields ?? []];
+		get all_fields(): Array<Bool | Num | Str | Dic> {
+			return [...this._boolean_field_names, ...this._number_field_names,
+				...this._string_field_names, ...this._dictionary_field_names];
 		}
 
 		get required_fields() {
-			return this._required_fields;
+			return Object.keys(pickBy(this._fields, (val: { required?: boolean}) => val.required || false));
 		}
+
+		/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access,
+			@typescript-eslint/no-explicit-any */
 
 		// converts the instance of the class to an regular object.
 		toObject(_fields?: Array<string>) {
@@ -206,15 +217,14 @@ export const Model = <Req extends string, Opt extends string, Dic extends string
 			});
 			return obj;
 		}
-		/* eslint-enable */
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return _Model as any as new (params?: ModelObject<Req, Opt, Dic>) =>
-		ModelObject<Req, Opt, Dic> & {
-			set(params: Partial<ModelObject<Req, Opt, Dic>>): void,
-			toObject(_fields?: Array<string>): Dictionary<generic>,
-			all_fields: Array<Req | Opt | Dic>;
-			required_fields: Req[];
-		} extends infer T ? { [K in keyof T]: T[K] } : never;
+	return _Model as any as new (params?: Dictionary<generic | Dictionary<generic>>) =>
+	ModelObject<Bool, Num, Str, Dic> & {
+		set(params: Dictionary<generic | Dictionary<generic>>): void,
+		toObject(_fields?: Array<string>): Dictionary<generic>,
+		all_fields: Array<Bool | Num | Str | Dic>;
+		required_fields: Array<Bool | Num | Str | Dic>[];
+	} extends infer T ? { [K in keyof T]: T[K] } : never;
 };

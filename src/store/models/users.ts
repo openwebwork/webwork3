@@ -1,10 +1,10 @@
 // This is utility functions for users
 
-import { Model } from '@/store/models/index';
+import { Model, ParseableModel } from '@/store/models/index';
 
 export interface ParseableUser {
 	user_id?: number | string;
-	username: string;
+	username?: string;
 	email?: string;
 	first_name?: string;
 	last_name?: string;
@@ -13,9 +13,9 @@ export interface ParseableUser {
 }
 
 export class User extends Model(
-	['username'], ['email', 'user_id', 'first_name', 'last_name', 'is_admin', 'student_id'], [],
+	['is_admin'], ['user_id'], ['username', 'email', 'first_name', 'last_name', 'student_id'], [],
 	{
-		username: { field_type: 'username' },
+		username: { field_type: 'username', required: true },
 		email: { field_type: 'email' },
 		user_id: { field_type: 'non_neg_int', default_value: 0 },
 		first_name: { field_type: 'string' },
@@ -26,6 +26,10 @@ export class User extends Model(
 	static REQUIRED_FIELDS = ['username'];
 	static OPTIONAL_FIELDS = ['email', 'user_id', 'first_name', 'last_name', 'is_admin', 'student_id'];
 	static ALL_FIELDS = [...User.REQUIRED_FIELDS, ...User.OPTIONAL_FIELDS];
+
+	constructor(params: ParseableUser = {}) {
+		super(params as ParseableModel);
+	}
 
 }
 
@@ -39,7 +43,7 @@ export interface ParseableCourseUser {
 }
 
 export class CourseUser extends Model(
-	[], ['course_user_id', 'user_id', 'course_id', 'role', 'section', 'recitation'], ['params'],
+	[], ['course_user_id', 'user_id', 'course_id'], ['role', 'section', 'recitation'], ['params'],
 	{
 		course_user_id: { field_type: 'non_neg_int', default_value: 0 },
 		course_id: { field_type: 'non_neg_int', default_value: 0 },
@@ -52,6 +56,9 @@ export class CourseUser extends Model(
 	static OPTIONAL_FIELDS = ['course_user_id', 'user_id', 'course_id', 'role', 'section', 'recitation', 'params'];
 	static ALL_FIELDS = [...CourseUser.REQUIRED_FIELDS, ...CourseUser.OPTIONAL_FIELDS];
 
+	constructor(params: ParseableCourseUser = {}) {
+		super(params as ParseableModel);
+	}
 }
 
 /* This is a join between a User and a CourseUser, which
@@ -61,7 +68,7 @@ export interface ParseableMergedUser {
 	course_user_id?: number | string;
 	user_id?: number | string;
 	course_id?: number | string;
-	username: string;
+	username?: string;
 	email?: string;
 	first_name?: string;
 	last_name?: string;
@@ -73,11 +80,11 @@ export interface ParseableMergedUser {
 }
 
 export class MergedUser extends Model(
-	['username'],
-	['email', 'user_id', 'first_name', 'last_name', 'is_admin', 'student_id', 'course_user_id',
-		'course_id', 'role', 'section', 'recitation'], ['params'],
+	['is_admin'], ['user_id', 'course_id', 'course_user_id'],
+	['username', 'email', 'first_name', 'last_name', 'student_id', 'course_user_id', 'role', 'section', 'recitation'],
+	['params'],
 	{
-		username: { field_type: 'username' },
+		username: { field_type: 'username', required: true },
 		email: { field_type: 'email' },
 		user_id: { field_type: 'non_neg_int', default_value: 0 },
 		first_name: { field_type: 'string' },
@@ -93,5 +100,9 @@ export class MergedUser extends Model(
 	static REQUIRED_FIELDS = ['username'];
 	static OPTIONAL_FIELDS = [...User.OPTIONAL_FIELDS, ...CourseUser.OPTIONAL_FIELDS];
 	static ALL_FIELDS = [...MergedUser.REQUIRED_FIELDS, ...MergedUser.OPTIONAL_FIELDS];
+
+	constructor(params: ParseableMergedUser = {}) {
+		super(params as ParseableModel);
+	}
 
 }

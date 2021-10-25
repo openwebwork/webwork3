@@ -153,7 +153,7 @@ export default defineComponent({
 				var conf = confirm(`Are you sure you want to delete the users: ${users_to_delete}`);
 				if (conf) {
 					for await (const _user of selected.value) {
-						const username = _user.username;
+						const username = _user.username as string;
 						const _user_to_delete = pick(_user, CourseUser.ALL_FIELDS) as CourseUser;
 
 						try {
@@ -168,7 +168,8 @@ export default defineComponent({
 							$q.notify({ message: error.message, color: 'red' });
 						}
 						// delete the user if they have no other courses
-						const response = await api.get(`users/${_user_to_delete.user_id}/courses`);
+						const user_id = _user_to_delete.user_id as number;
+						const response = await api.get(`users/${user_id}/courses`);
 						const user_courses = response.data as  Array<UserCourse>;
 
 						if (user_courses.length === 0){

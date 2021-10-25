@@ -15,23 +15,23 @@
 		</tr>
 			<tr>
 			<td class="header">Enable Reduced Scoring</td>
-			<td><q-toggle v-model="set.params.enable_reduced_scoring" /></td>
+			<td><q-toggle v-model="set.set_params.enable_reduced_scoring" /></td>
 		</tr>
 		<tr>
 			<td class="header">Open Date</td>
-			<td><date-time-input v-model="set.dates.open" :rules="checkDates"/></td>
+			<td><date-time-input v-model="set.set_dates.open" :rules="checkDates"/></td>
 		</tr>
 		<tr v-if="set.params.enable_reduced_scoring">
 			<td class="header">Reduced Scoring Date</td>
-			<td><date-time-input v-model="set.dates.reduced_scoring" :rules="checkDates"/></td>
+			<td><date-time-input v-model="set.set_dates.reduced_scoring" :rules="checkDates"/></td>
 		</tr>
 		<tr>
 			<td class="header">Due Date</td>
-			<td><date-time-input v-model="set.dates.due" :rules="checkDates"/></td>
+			<td><date-time-input v-model="set.set_dates.due" :rules="checkDates"/></td>
 		</tr>
 		<tr>
 			<td class="header">Answer Date</td>
-			<td><date-time-input v-model="set.dates.answer" :rules="checkDates"/></td>
+			<td><date-time-input v-model="set.set_dates.answer" :rules="checkDates"/></td>
 		</tr>
 	</table>
 </template>

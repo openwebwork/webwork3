@@ -45,11 +45,10 @@
 </template>
 
 <script lang="ts">
-import type { Dictionary } from 'src/store/models';
 import { defineComponent, computed, ref, Ref } from 'vue';
-import { useStore } from 'src/store';
-import { ProblemSet } from 'src/store/models/problem_sets';
-import { formatDate } from 'src/common';
+import { useStore } from '@/store';
+import { ProblemSet, QuizDates } from '@/store/models/problem_sets';
+import { formatDate } from '@/common';
 
 export default defineComponent({
 	name: 'ProblemSetsManager',
@@ -80,19 +79,19 @@ export default defineComponent({
 				name: 'open_date',
 				label: 'Open Date',
 				field: 'dates',
-				format: (val: Dictionary<string>) => formatDate(val.open)
+				format: (val: QuizDates) => formatDate(`${val.open ?? 0}`)
 			},
 			{
 				name: 'due_date',
 				label: 'Due Date',
 				field: 'dates',
-				format: (val: Dictionary<string>) => formatDate(val.due)
+				format: (val: QuizDates) => formatDate(`${val.due ?? 0}`)
 			},
 			{
 				name: 'answer_date',
 				label: 'Answer Date',
 				field: 'dates',
-				format: (val: Dictionary<string>) => formatDate(val.answer)
+				format: (val: QuizDates) => formatDate(`${val.answer ?? 0}`)
 			}
 		];
 

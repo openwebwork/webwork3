@@ -64,7 +64,7 @@ export default defineComponent({
 	emits: ['closeDialog'],
 	setup(props, context) {
 		const $q = useQuasar();
-		const merged_user: Ref<ParseableMergedUser> = ref({});
+		const merged_user: Ref<ParseableMergedUser> = ref({ username: '__NEW__' });
 		const user_exists: Ref<boolean> = ref(true);
 		const store = useStore();
 
@@ -76,11 +76,11 @@ export default defineComponent({
 				try {
 					const _user = await store.dispatch('users/getUser', merged_user.value.username) as User;
 					user_exists.value = true;
-					merged_user.value.user_id = _user.user_id;
-					merged_user.value.username = _user.username;
-					merged_user.value.first_name = _user.first_name;
-					merged_user.value.last_name = _user.last_name;
-					merged_user.value.email = _user.email;
+					merged_user.value.user_id = _user.user_id as number;
+					merged_user.value.username = _user.username as string;
+					merged_user.value.first_name = _user.first_name as string;
+					merged_user.value.last_name = _user.last_name as string;
+					merged_user.value.email = _user.email as string;
 				} catch (err) {
 					const error = err as ResponseError;
 					// this will occur is the user is not a global user
@@ -104,13 +104,13 @@ export default defineComponent({
 					merged_user.value.course_id = store.state.session.course.course_id;
 					const user = await store.dispatch('users/addMergedUser', new MergedUser(merged_user.value)) as User;
 					$q.notify({
-						message: `The user with username '${user.username}' was added successfully.`,
+						message: `The user with username '${user.username ?? ''}' was added successfully.`,
 						color: 'green'
 					});
 					if (close) {
 						context.emit('closeDialog');
 					} else {
-						merged_user.value = {};
+						merged_user.value = { username: '__NEW__' };
 					}
 				} catch (err) {
 					const error = err as AxiosError;

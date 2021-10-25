@@ -14,6 +14,18 @@ test('Create a Valid Course', () => {
 
 });
 
+test('Parsing of undefined and null values', () => {
+	const course1 = new Course({ course_name: 'Arithmetic' });
+	const course2 = new Course({ course_name: 'Arithmetic', course_id: undefined });
+	expect(course1).toStrictEqual(course2);
+
+	// the following allow to pass in non-valid parameters for testing
+	const params = { course_name: 'Arithmetic', course_id: null };
+	const course3 = new Course(params as unknown as ParseableCourse);
+	console.log(course3);
+	expect(course1).toStrictEqual(course3);
+});
+
 test('Create a course with invalid params', () => {
 	// make a generic object and cast it as a Course
 	const p = { CourseName: 'Arithmetic' };

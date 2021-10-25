@@ -96,12 +96,3 @@ test('Test invalid date values', () => {
 	});
 	}).toThrow(NonNegIntException);
 });
-
-test('Test setting invalid dates', () => {
-	const quiz = new Quiz();
-	expect(() => {
-		quiz.setDates({
-			reduced_scoring: 50
-		});
-	}).toThrow(InvalidFieldsException);
-});

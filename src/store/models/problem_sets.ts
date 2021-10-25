@@ -1,7 +1,7 @@
 /* These are Problem Set interfaces */
 
 import { Dictionary, parseNonNegInt, parseBoolean, Model, ParseError, generic,
-	InvalidFieldsException } from '@/store/models';
+	InvalidFieldsException, ParseableModel } from '@/store/models';
 import { difference } from 'lodash';
 
 // const problem_set_types = [/hw/i, /quiz/i, /review/i];
@@ -32,13 +32,13 @@ export interface ParseableProblemSet {
 	course_id?: string | number;
 	set_type?: string;
 	set_visible?: string | number | boolean;
-	// set_params?: ParseableHWParams|ParseableQuizParams|ParseableReviewParams;
-	set_params?: Dictionary<generic|undefined>;
-	set_dates?: Dictionary<generic|undefined>;
+	set_params?: ParseableHWParams|ParseableQuizParams|ParseableReviewParams;
+	// set_params?: Dictionary<generic>;
+	set_dates?: ParseableHWDates|ParseableQuizDates|ParseableReviewDates;
 }
 
 export class ProblemSet extends Model(
-	[], ['set_type', 'set_id', 'set_name', 'course_id', 'set_visible'],
+	['set_visible'], ['set_id', 'course_id'], ['set_type', 'set_name'],
 	['set_params', 'set_dates'],
 	{
 		set_type: { field_type: 'string', default_value: 'UNKNOWN' },
@@ -51,6 +51,12 @@ export class ProblemSet extends Model(
 	static OPTIONAL_FIELDS = ['set_id', 'set_name', 'course_id', 'set_visible'];
 
 	_date_fields: Array<string> = [];
+	set_params = {};
+	set_dates = {};
+
+	constructor(params: ParseableProblemSet = {}) {
+		super(params as ParseableModel);
+	}
 
 	isValid() {
 		throw 'You must override the isValid() method';
@@ -77,24 +83,24 @@ export class ProblemSet extends Model(
 
 // Quiz interfaces
 
-export interface ParseableQuizDates extends Dictionary<generic|undefined> {
+export interface ParseableQuizDates {
 	open?: number|string;
 	due?: number|string;
 	answer?: number|string;
 }
 
-export interface QuizDates extends Dictionary<generic|undefined> {
+export interface QuizDates {
 	open: number;
 	due: number;
 	answer:number;
 }
 
-export interface ParseableQuizParams extends Dictionary<generic|undefined>{
+export interface ParseableQuizParams {
 	timed?: boolean|string|number;
 	quiz_duration?: number|string;
 }
 
-export interface QuizParams extends Dictionary<generic|undefined> {
+export interface QuizParams {
 	timed?: boolean;
 	quiz_duration?: number;
 }
@@ -108,6 +114,12 @@ export class Quiz extends ProblemSet {
 	};
 	_date_fields = ['open', 'due', 'answer'];
 
+	constructor(params: ParseableProblemSet = {}) {
+		super(params as ParseableModel);
+		params.set_type = 'QUIZ';
+		this.set(params as ParseableModel);
+	}
+
 	setParams(quiz_params: ParseableQuizParams) {
 		if (quiz_params.timed != null) {
 			this.set_params.timed = parseBoolean(quiz_params.timed);
@@ -117,6 +129,15 @@ export class Quiz extends ProblemSet {
 		}
 	}
 
+	setDates(hw_dates: ParseableQuizDates = {}) {
+		// parse the dates
+		this.set_dates = {
+			open: parseNonNegInt(hw_dates.open ?? 0),
+			due: parseNonNegInt(hw_dates.due ?? 0),
+			answer: parseNonNegInt(hw_dates.answer ?? 0)
+		};
+	}
+
 	isValid() {
 		return this.set_dates.open <= this.set_dates.due && this.set_dates.due <= this.set_dates.answer;
 	}
@@ -124,14 +145,14 @@ export class Quiz extends ProblemSet {
 
 // Homework Set interfaces
 
-export interface ParseableHWDates extends Dictionary<generic|undefined> {
+export interface ParseableHWDates {
 	open?: number;
 	reduced_scoring?: number;
 	due?: number;
 	answer?: number;
 }
 
-export interface ParseableHWParams extends Dictionary<generic|undefined> {
+export interface ParseableHWParams {
 	enable_reduced_scoring?: boolean|string|number;
 	hide_hint?: boolean|string|number;
 	hardcopy_header?: string;
@@ -139,7 +160,7 @@ export interface ParseableHWParams extends Dictionary<generic|undefined> {
 	description?: string;
 }
 
-export interface HomeworkSetParams extends Dictionary<generic|undefined> {
+export interface HomeworkSetParams {
 	enable_reduced_scoring?: boolean;
 	hide_hint?: boolean;
 	hardcopy_header?: string;
@@ -147,14 +168,14 @@ export interface HomeworkSetParams extends Dictionary<generic|undefined> {
 	description?: string;
 }
 
-export interface HomeworkSetDates extends Dictionary<generic|undefined> {
+export interface HomeworkSetDates {
 	open: number;
 	reduced_scoring?: number;
 	due: number;
 	answer:number;
 }
 
-export interface ParseableHWSet extends ParseableProblemSet {
+export interface ParseableHWSet {
 	set_params: ParseableHWParams;
 	set_dates: ParseableHWDates;
 }
@@ -164,7 +185,7 @@ export class HomeworkSet extends ProblemSet {
 	set_dates: HomeworkSetDates;
 	constructor(params: ParseableProblemSet = {}) {
 		params.set_type = 'HW';
-		super(params);
+		super(params as ParseableModel);
 		this.set_dates = {
 			open: 0,
 			reduced_scoring: 0,
@@ -172,7 +193,7 @@ export class HomeworkSet extends ProblemSet {
 			answer: 0
 		};
 		this.set_params = {};
-		this.set(params);
+		this.set(params as ParseableModel);
 	}
 
 	setParams(hw_params: ParseableHWParams = {}) {
@@ -244,7 +265,7 @@ export interface ReviewSetDates {
 export class ReviewSet extends ProblemSet {
 	constructor(params: ParseableProblemSet = {}){
 		params.set_type = 'REVIEW';
-		super(params);
+		super(params as ParseableModel);
 		// parse the params
 
 		// parse the dates

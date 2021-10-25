@@ -120,7 +120,7 @@ export default defineComponent({
 					_course_user.course_id = _course.course_id;
 					await store.dispatch('users/addCourseUser', _course_user);
 					$q.notify({
-						message: `The user ${user.value.username} was successfully added to the course.`,
+						message: `The user ${user.value.username ?? ''} was successfully added to the course.`,
 						color: 'green'
 					});
 					context.emit('closeDialog');

@@ -97,12 +97,11 @@ import { defineComponent, ref, computed, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { parse } from 'papaparse';
 import { AxiosError } from 'axios';
-import { logger } from 'src/boot/logger';
+import { logger } from 'boot/logger';
 
-import { useStore } from 'src/store';
-import type { Dictionary, ResponseError } from 'src/store/models';
-import { MergedUser, CourseUser, User } from 'src/store/models/users';
-// import { newUser, parseMergedUser, newCourseUser, newMergedUser } from 'src/store/utils/users';
+import { useStore } from '@/store';
+import type { Dictionary, ResponseError } from '@/store/models';
+import { MergedUser, CourseUser, User, ParseableMergedUser } from '@/store/models/users';
 import { pick, fromPairs, values, invert, mapValues, clone, isUndefined,
 	assign, filter } from 'lodash-es';
 
@@ -117,9 +116,7 @@ interface ParseError {
 type UserFromFile = {
 	_row?: number;
 	_error?: ParseError
-} & {
-	[prop: string]: string
-};
+} & Dictionary<string>;
 
 export default defineComponent({
 	name: 'AddUsersFromFile',
@@ -211,7 +208,7 @@ export default defineComponent({
 
 				try {
 					const merged_user = pick(mapValues(user_param_map.value, (obj) => params[obj]),
-						Object.keys(new MergedUser()));
+						MergedUser.ALL_FIELDS) as unknown as ParseableMergedUser;
 					if(use_single_role.value && common_role.value) {
 						merged_user.role = common_role.value;
 					}
@@ -222,7 +219,7 @@ export default defineComponent({
 						users_already_in_course.value = true;
 						parse_error = {
 							type: 'warn',
-							message: `The user with username '${merged_user.username}'`
+							message: `The user with username '${merged_user.username ?? ''}'`
 								+' is already enrolled in the course.',
 							entire_row: true
 						};
@@ -317,9 +314,9 @@ export default defineComponent({
 				}
 				try {
 					const merged_user = await store.dispatch('users/addMergedUser', _user) as MergedUser;
+					const full_name = `${merged_user.first_name as string} ${merged_user.last_name as string}`;
 					$q.notify({
-						message: `The user ${merged_user.first_name || ''} ${merged_user.last_name || ''}` +
-							' was successfully added to the course.',
+						message: `The user ${full_name} was successfully added to the course.`,
 						color: 'green'
 					});
 					context.emit('closeDialog');
