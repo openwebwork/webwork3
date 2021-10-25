@@ -10,18 +10,18 @@ const { compilerOptions } = require('./tsconfig')
 
 
 module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
+	preset: 'ts-jest',
+	testEnvironment: 'node',
 	globals: {
-    "ts-jest": {
-      "tsconfig": "tsconfig.json",
-      "diagnostics": true
-    }
-  },
+		"ts-jest": {
+			"tsconfig": "tsconfig.json",
+			"diagnostics": true
+		}
+	},
 	// A map from regular expressions to module names that allow to stub out resources with a single module
 	// moduleNameMapper: {
-  //   '^@/(.*)$': '<rootDir>/src/$1',
-  // },
+	//   '^@/(.*)$': '<rootDir>/src/$1',
+	// },
 	moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths , { prefix: '<rootDir>/' } ),
 	testRegex: "(/tests/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
 };

@@ -72,7 +72,7 @@ jobs:
           CSS_FILE_NAME: .stylelintrc.js
           VALIDATE_TYPESCRIPT_STANDARD: false
           VALIDATE_JAVASCRIPT_STANDARD: false
-          FILTER_REGEX_EXCLUDE: .*/we_b_wor_k3.yml
+          FILTER_REGEX_EXCLUDE: .*/we_b_wor_k3.yml,t/**/*.csv
 
   perltidy:
     name: Run perltidy on Perl Files
