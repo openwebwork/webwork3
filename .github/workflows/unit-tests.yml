@@ -13,7 +13,7 @@ jobs:
     container: drgrice1/webwork3
     steps:
       - uses: actions/checkout@v2
-      - name: Run unit tests
+      - name: Run perl unit tests
         env:
           HARNESS_PERL_SWITCHES: -MDevel::Cover
         run: |
@@ -32,3 +32,5 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: cover -report codecov
+      - name: Run typescript (client-side) tests
+        run: npm run test
