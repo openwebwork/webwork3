@@ -8,11 +8,10 @@ use strict;
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir = abs_path(dirname(__FILE__));
-	$main::lib_dir  = dirname(dirname($main::test_dir)) . '/lib';
+	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
-use lib "$main::lib_dir";
+use lib "$main::ww3_dir/lib";
 
 use Text::CSV qw/csv/;
 use Data::Dump qw/dd/;
@@ -29,7 +28,18 @@ use DB::WithDates;
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs filterBySetType loadSchema/;
 
-my $schema = loadSchema();
+# load the database
+my $config;
+my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
+if (-e $config_file) {
+	$config = LoadFile($config_file);
+} else {
+	die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?";
+}
+
+my $schema = DB::Schema->connect($config->{test_database_dsn}, $config->{test_database_user},
+	$config->{test_database_password});
+
 my $strp   = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 
 # $schema->storage->debug(1);  # print out the SQL commands.
@@ -43,7 +53,7 @@ my $user_rs        = $schema->resultset("User");
 
 my @all_problem_sets;    # stores all problem_sets
 
-my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
+my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
 	$quiz->{type}     = 2;
 	$quiz->{set_type} = "QUIZ";

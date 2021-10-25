@@ -8,14 +8,13 @@ use strict;
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir = abs_path(dirname(__FILE__));
-	$main::lib_dir  = dirname(dirname($main::test_dir)) . '/lib';
+	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
-use lib "$main::lib_dir";
+use lib "$main::ww3_dir/lib";
 
 use Text::CSV qw/csv/;
-use Data::Dump qw/dd/;
+use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Test::More;
 use Test::Exception;
@@ -31,7 +30,16 @@ use DB::WithDates;
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs filterBySetType loadSchema/;
 
-my $schema = loadSchema();
+my $config;
+my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
+if (-e $config_file) {
+	$config = LoadFile($config_file);
+} else {
+	die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?";
+}
+
+my $schema = DB::Schema->connect($config->{test_database_dsn}, $config->{test_database_user},
+	$config->{test_database_password});
 
 my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 
@@ -45,7 +53,7 @@ my $course_rs      = $schema->resultset("Course");
 my $user_rs        = $schema->resultset("User");
 
 # load HW sets from CSV file
-my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
+my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
 for my $set (@hw_sets) {
 	$set->{set_type} = "HW";
 	for my $date (keys %{ $set->{dates} }) {
@@ -53,7 +61,7 @@ for my $set (@hw_sets) {
 		$set->{dates}->{$date} = $dt->epoch;
 	}
 }
-my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
+my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
 	$quiz->{set_type} = "QUIZ";
 	for my $date (keys %{ $quiz->{dates} }) {
@@ -62,7 +70,7 @@ for my $quiz (@quizzes) {
 	}
 }
 
-my @review_sets = loadCSV("$main::test_dir/sample_data/review_sets.csv");
+my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv");
 for my $set (@review_sets) {
 	$set->{set_type} = "REVIEW";
 	for my $date (keys %{ $set->{dates} }) {

@@ -10,28 +10,40 @@ use DateTime::Format::Strptime;
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir = abs_path(dirname(__FILE__));
-	$main::lib_dir  = dirname(dirname($main::test_dir)) . '/lib';
+	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
+
+use lib "$main::ww3_dir/lib";
 
 use Getopt::Long;
 my $TEST_PERMISSIONS;
 GetOptions("perm" => \$TEST_PERMISSIONS);    # check for the flag --perm when running this.
 
-use lib "$main::lib_dir";
+
 use DB::Schema;
-use DB::TestUtils qw/loadCSV loadSchema/;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
+use DB::TestUtils qw/loadCSV/;
 
-my $config = clone(LoadFile("$main::lib_dir/../conf/webwork3.yml"));
+my $config;
+my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
+if (-e $config_file) {
+	$config = clone(LoadFile($config_file));
+	$config->{database_dsn} = $config->{test_database_dsn};
+	$config->{database_user} = $config->{test_database_user};
+	$config->{database_password} = $config->{test_database_password};
+} else {
+	die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?";
+}
 
 my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 
 # Test the api with common "sets" routes
 
-# load the database
-my $schema = loadSchema();
+
+# set up the database:
+my $schema = DB::Schema->connect($config->{test_database_dsn}, $config->{test_database_user},
+	$config->{test_database_password});
 
 my $t;
 
@@ -50,7 +62,7 @@ if ($TEST_PERMISSIONS) {
 
 # load the homework sets
 
-my @hw_sets = loadCSV("$main::lib_dir/../t/db/sample_data/hw_sets.csv");
+my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
 for my $set (@hw_sets) {
 	$set->{set_type} = "HW";
 	for my $date (keys %{ $set->{dates} }) {

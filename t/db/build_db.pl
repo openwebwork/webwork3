@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 #
-# this file builds a sqlite database file based on a csv file
+# this file fills a database with sample data for testing.
 #
 
 use warnings;
@@ -10,11 +10,10 @@ use strict;
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir = abs_path(dirname(__FILE__));
-	$main::lib_dir  = dirname(dirname($main::test_dir)) . '/lib';
+	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
-use lib "$main::lib_dir";
+use lib "$main::ww3_dir/lib";
 
 use Text::CSV qw/csv/;
 use Data::Dump qw/dd/;
@@ -32,15 +31,21 @@ use DB::TestUtils qw/loadCSV/;
 
 # load some configuration for the database:
 my $verbose = 1;
-
-my $config = LoadFile("$main::lib_dir/../conf/webwork3.yml");
+my $config;
+my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
+if (-e $config_file) {
+	$config = LoadFile($config_file);
+} else {
+	die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?";
+}
 
 # load the database
-my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
+my $schema = DB::Schema->connect($config->{test_database_dsn}, $config->{test_database_user},
+	$config->{test_database_password});
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 
-say "restoring the database with dbi: $config->{database_dsn}" if $verbose;
+say "restoring the database with dbi: $config->{test_database_dsn}" if $verbose;
 
 $schema->deploy({ add_drop_table => 1 });    ## create the database based on the schema
 
@@ -52,7 +57,7 @@ my $problem_pool_rs = $schema->resultset('ProblemPool');
 
 sub addCourses {
 	say "adding courses" if $verbose;
-	my @courses = loadCSV("$main::test_dir/sample_data/courses.csv");
+	my @courses = loadCSV("$main::ww3_dir/t/db/sample_data/courses.csv");
 	for my $course (@courses) {
 		$course->{course_settings} = {};
 		for my $key (keys %{ $course->{params} }) {
@@ -71,7 +76,7 @@ sub addUsers {
 	# add some users
 	say "adding users" if $verbose;
 
-	my @all_students = loadCSV("$main::test_dir/sample_data/students.csv");
+	my @all_students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
 
 	# add an admin user
 	my $admin = {
@@ -121,7 +126,7 @@ sub addSets {
 	## add some problem sets
 	say "adding problem sets" if $verbose;
 
-	my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
+	my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
 	for my $set (@hw_sets) {
 		my $course = $course_rs->find({ course_name => $set->{course_name} });
 		if (!defined($course)) {
@@ -139,7 +144,7 @@ sub addSets {
 	## add quizzes
 	say "adding quizzes" if $verbose;
 
-	my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
+	my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
 	for my $quiz (@quizzes) {
 		my $course = $course_rs->search({ course_name => $quiz->{course_name} })->single;
 		if (!defined($course)) {
@@ -157,7 +162,7 @@ sub addSets {
 
 	say "adding review sets" if $verbose;
 
-	my @review_sets = loadCSV("$main::test_dir/sample_data/review_sets.csv");
+	my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv");
 	for my $set (@review_sets) {
 		my $course = $course_rs->find({ course_name => $set->{course_name} });
 		croak "The course |$set->{course_name}| does not exist" unless defined($course);
@@ -177,7 +182,7 @@ sub addSets {
 sub addProblems {
 	## add some problems
 	say "adding problems" if $verbose;
-	my @problems = loadCSV("$main::test_dir/sample_data/problems.csv");
+	my @problems = loadCSV("$main::ww3_dir/t/db/sample_data/problems.csv");
 	for my $prob (@problems) {
 		# check if the course_name/set_name exists
 		my $set = $problem_set_rs->search(
@@ -208,7 +213,7 @@ sub addProblems {
 sub addUserSets {
 	## add some users to problem sets
 	say "adding user sets" if $verbose;
-	my @user_sets = loadCSV("$main::test_dir/sample_data/user_sets.csv");
+	my @user_sets = loadCSV("$main::ww3_dir/t/db/sample_data/user_sets.csv");
 	for my $user_set (@user_sets) {
 		# check if the course_name/set_name/user_name exists
 		my $course         = $course_rs->find({ course_name => $user_set->{course_name} });
@@ -235,7 +240,7 @@ sub addUserSets {
 
 sub addProblemPools {
 	say "adding problem pools" if $verbose;
-	my @problem_pools = loadCSV("$main::test_dir/sample_data/pool_problems.csv");
+	my @problem_pools = loadCSV("$main::ww3_dir/t/db/sample_data/pool_problems.csv");
 
 	for my $pool (@problem_pools) {
 		my $course = $course_rs->find({ course_name => $pool->{course_name} });
