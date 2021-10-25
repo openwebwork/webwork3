@@ -13,7 +13,6 @@ BEGIN {
 
 use lib "$main::ww3_dir/lib";
 
-
 use Text::CSV qw/csv/;
 use Data::Dumper;
 use List::Util qw(uniq);
@@ -36,8 +35,8 @@ if (-e $config_file) {
 	die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?";
 }
 
-my $schema = DB::Schema->connect($config->{test_database_dsn}, $config->{test_database_user},
-	$config->{test_database_password});
+my $schema =
+	DB::Schema->connect($config->{test_database_dsn}, $config->{test_database_user}, $config->{test_database_password});
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 

@@ -15,7 +15,6 @@ BEGIN {
 
 use lib "$main::ww3_dir/lib";
 
-
 use Getopt::Long;
 my $TEST_PERMISSIONS;
 GetOptions("perm" => \$TEST_PERMISSIONS);    # check for the flag --perm when running this.
@@ -25,15 +24,14 @@ use Clone qw/clone/;
 
 # this tests the api with common courses routes
 
-
 use YAML::XS qw/LoadFile/;
 
 my $config;
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
 if (-e $config_file) {
-	$config = clone(LoadFile($config_file));
-	$config->{database_dsn} = $config->{test_database_dsn};
-	$config->{database_user} = $config->{test_database_user};
+	$config                      = clone(LoadFile($config_file));
+	$config->{database_dsn}      = $config->{test_database_dsn};
+	$config->{database_user}     = $config->{test_database_user};
 	$config->{database_password} = $config->{test_database_password};
 } else {
 	die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?";
