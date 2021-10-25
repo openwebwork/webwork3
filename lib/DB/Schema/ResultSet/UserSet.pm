@@ -150,8 +150,8 @@ sub addUserSet {
 	## make sure the parameters and dates are valid.
 	my $new_user_set = $self->new($params);
 
-	$new_user_set->validParams($problem_set->type) if $new_user_set->params;
-	$new_user_set->validDates($problem_set->type)  if $new_user_set->dates;
+	$new_user_set->validParams($problem_set->type,'set_params') if $new_user_set->set_params;
+	$new_user_set->validDates($problem_set->type,'set_dates')  if $new_user_set->set_dates;
 
 	my $user_set = $problem_set->add_to_user_sets($params);
 
