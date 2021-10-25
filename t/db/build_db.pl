@@ -55,9 +55,9 @@ sub addCourses {
 	my @courses = loadCSV("$main::test_dir/sample_data/courses.csv");
 	for my $course (@courses) {
 		$course->{course_settings} = {};
-		for my $key (keys %{$course->{course_params}}) {
+		for my $key (keys %{ $course->{course_params} }) {
 			my @fields = split(/:/, $key);
-			$course->{course_settings}->{$fields[0]} = {$fields[1] => $course->{course_params}->{$key}};
+			$course->{course_settings}->{ $fields[0] } = { $fields[1] => $course->{course_params}->{$key} };
 		}
 		delete $course->{course_params};
 		$course_rs->create($course);
@@ -83,7 +83,7 @@ sub addUsers {
 	$user_rs->create($admin);
 
 	for my $student (@all_students) {
-		my $course = $course_rs->find({course_name => $student->{course_name}});
+		my $course    = $course_rs->find({ course_name => $student->{course_name} });
 		my $stud_info = {};
 		for my $key (qw/username first_name last_name email student_id/) {
 			$stud_info->{$key} = $student->{$key};
@@ -125,8 +125,8 @@ sub addSets {
 		if (!defined($course)) {
 			croak "The course " . $set->{course_name} . " does not exist";
 		}
-		for my $date (keys %{$set->{set_dates}}) {
-			my $dt = $strp->parse_datetime( $set->{set_dates}->{$date});
+		for my $date (keys %{ $set->{set_dates} }) {
+			my $dt = $strp->parse_datetime($set->{set_dates}->{$date});
 			$set->{set_dates}->{$date} = $dt->epoch;
 		}
 
@@ -143,8 +143,8 @@ sub addSets {
 		if (!defined($course)) {
 			croak "The course " . $quiz->{course_name} . " does not exist";
 		}
-		for my $date (keys %{$quiz->{set_dates}}) {
-			my $dt = $strp->parse_datetime( $quiz->{set_dates}->{$date});
+		for my $date (keys %{ $quiz->{set_dates} }) {
+			my $dt = $strp->parse_datetime($quiz->{set_dates}->{$date});
 			$quiz->{set_dates}->{$date} = $dt->epoch;
 		}
 
@@ -159,8 +159,8 @@ sub addSets {
 	for my $set (@review_sets) {
 		my $course = $course_rs->find({ course_name => $set->{course_name} });
 		croak "The course |$set->{course_name}| does not exist" unless defined($course);
-		for my $date (keys %{$set->{set_dates}}) {
-			my $dt = $strp->parse_datetime( $set->{set_dates}->{$date});
+		for my $date (keys %{ $set->{set_dates} }) {
+			my $dt = $strp->parse_datetime($set->{set_dates}->{$date});
 			$set->{set_dates}->{$date} = $dt->epoch;
 		}
 
