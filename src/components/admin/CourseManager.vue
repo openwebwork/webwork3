@@ -46,9 +46,9 @@
 
 <script lang="ts">
 import { defineComponent, computed, Ref, ref } from 'vue';
-import { useStore } from '../../store';
+import { useStore } from 'src/store';
 
-import { Course } from '../../store/models';
+import { Course } from 'src/store/models/courses';
 
 import NewCourseDialog from './AddCourse.vue';
 

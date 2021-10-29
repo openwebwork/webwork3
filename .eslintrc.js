@@ -46,9 +46,7 @@ module.exports = {
 		__statics: 'readonly',
 		process: 'readonly'
 	},
-
 	rules: baseRules,
-
 	overrides: [{
 		files: ['*.ts', '*.tsx', '*.vue'],
 
@@ -81,7 +79,8 @@ module.exports = {
 
 			// TypeScript
 			'@typescript-eslint/explicit-function-return-type': 'off',
-			'@typescript-eslint/explicit-module-boundary-types': 'off'
+			'@typescript-eslint/explicit-module-boundary-types': 'off',
+			'@typescript-eslint/restrict-template-expressions': ['error', {allowBoolean: true, allNumbers: true }],
 		}
 
 	}],

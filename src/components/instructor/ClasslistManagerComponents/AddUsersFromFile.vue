@@ -99,10 +99,11 @@ import { parse } from 'papaparse';
 import { AxiosError } from 'axios';
 import { logger } from 'boot/logger';
 
-import { useStore } from 'src/store';
-import type { Dictionary, MergedUser, User, ResponseError } from 'src/store/models';
-import { newUser, parseMergedUser, newCourseUser, newMergedUser } from 'src/store/utils/users';
-import { pick, fromPairs, values, invert, mapValues, clone, isUndefined, assign, filter } from 'lodash-es';
+import { useStore } from '@/store';
+import type { Dictionary, ResponseError } from '@/store/models';
+import { MergedUser, CourseUser, User, ParseableMergedUser } from '@/store/models/users';
+import { pick, fromPairs, values, invert, mapValues, clone, isUndefined,
+	assign, filter } from 'lodash-es';
 
 interface ParseError {
 	type: string;
@@ -115,9 +116,7 @@ interface ParseError {
 type UserFromFile = {
 	_row?: number;
 	_error?: ParseError
-} & {
-	[prop: string]: string
-};
+} & Dictionary<string>;
 
 export default defineComponent({
 	name: 'AddUsersFromFile',
@@ -156,7 +155,7 @@ export default defineComponent({
 		// field names.
 		const fillHeaders = () => {
 			Object.keys(header_row.value).forEach((key) => {
-				user_fields.forEach((field) => {
+				user_fields.forEach((field: { regexp: RegExp; label: string}) => {
 					if (field.regexp.test(`${header_row.value[key]}`)) {
 						column_headers.value[key] = field.label;
 					}
@@ -209,7 +208,7 @@ export default defineComponent({
 
 				try {
 					const merged_user = pick(mapValues(user_param_map.value, (obj) => params[obj]),
-						Object.keys(newMergedUser()));
+						MergedUser.ALL_FIELDS) as unknown as ParseableMergedUser;
 					if(use_single_role.value && common_role.value) {
 						merged_user.role = common_role.value;
 					}
@@ -220,18 +219,18 @@ export default defineComponent({
 						users_already_in_course.value = true;
 						parse_error = {
 							type: 'warn',
-							message: `The user with username '${merged_user.username}'`
+							message: `The user with username '${merged_user.username ?? ''}'`
 								+' is already enrolled in the course.',
 							entire_row: true
 						};
 					} else {
-						merged_users_to_add.value.push(parseMergedUser(merged_user));
+						merged_users_to_add.value.push(new MergedUser(merged_user));
 					}
 				} catch (error) {
 					const err = error as ParseError;
 					selected_user_error.value = true;
-					const user_fields = Object.keys(newUser());
-					const course_user_fields = Object.keys(newCourseUser());
+					const user_fields = Object.keys(new User());
+					const course_user_fields = Object.keys(new CourseUser());
 
 					parse_error = {
 						type: 'error',
@@ -315,9 +314,9 @@ export default defineComponent({
 				}
 				try {
 					const merged_user = await store.dispatch('users/addMergedUser', _user) as MergedUser;
+					const full_name = `${merged_user.first_name as string} ${merged_user.last_name as string}`;
 					$q.notify({
-						message: `The user ${merged_user.first_name} ${merged_user.last_name}` +
-							' was successfully added to the course.',
+						message: `The user ${full_name} was successfully added to the course.`,
 						color: 'green'
 					});
 					context.emit('closeDialog');

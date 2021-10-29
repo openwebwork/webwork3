@@ -26,16 +26,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, Ref } from 'vue';
+import type { Ref } from 'vue';
+import { defineComponent, ref, watch } from 'vue';
+import { isUndefined } from 'lodash-es';
+
 import MenuSidebar from './MenuSidebar.vue';
 import MenuBar from './MenuBar.vue';
 
-import { instructor_views, admin_views, ViewInfo } from 'src/common';
+import { instructor_views, admin_views, ViewInfo } from '@/common';
 import { useRoute } from 'vue-router';
-import ProblemSetList from 'src/components/sidebars/ProblemSetList.vue';
-import UserList from 'src/components/sidebars/UserList.vue';
-import LibrarySidebar from 'src/components/sidebars/LibrarySidebar.vue';
-import { logger } from 'src/boot/logger';
+import ProblemSetList from '@/components/sidebars/ProblemSetList.vue';
+import UserList from '@/components/sidebars/UserList.vue';
+import LibrarySidebar from '@/components/sidebars/LibrarySidebar.vue';
+import { logger } from '@/boot/logger';
 
 export default defineComponent({
 	components: {
@@ -61,12 +64,18 @@ export default defineComponent({
 				: /^\/courses\/\d+\/instructor/.exec(route.path)
 					? instructor_views
 					: [];
-			const current_view = views.find((view: ViewInfo) => view.component_name === route.name);
+			let current_view = views.find((view: ViewInfo) => view.component_name === route.name);
+
+			if (! current_view) { // it may be a child component
+				current_view = views.find((view: ViewInfo) =>
+				 isUndefined(view.children) ? false : view.children?.indexOf(route.name as string)> -1);
+			}
+
 			logger.debug(`[MainLayout/updateViews] name: ${current_view?.name || 'no name!'}`);
 			if (current_view) {
 				sidebars.value = current_view.sidebars;
 				if (current_view.sidebars.length>0) {
-					logger.debug(`[MainLayout/updateViews] sidebar: ${current_view.sidebars.toString()}`);
+					logger.debug(`[MainLayout/updateViews] sidebar: ${current_view.sidebars.join(', ')}`);
 					right_sidebar_open.value = true;
 				} else {
 					logger.debug('[MainLayout/updateViews] empty sidebar -- hiding right sidebar!');

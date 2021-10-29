@@ -45,11 +45,10 @@
 </template>
 
 <script lang="ts">
-import { Dictionary } from 'src/store/models';
 import { defineComponent, computed, ref, Ref } from 'vue';
-import { useStore } from 'src/store';
-import { ProblemSet } from 'src/store/models';
-import { formatDate } from 'src/common';
+import { useStore } from '@/store';
+import { ProblemSet, QuizDates } from '@/store/models/problem_sets';
+import { formatDate } from '@/common';
 
 export default defineComponent({
 	name: 'ProblemSetsManager',
@@ -58,41 +57,20 @@ export default defineComponent({
 		const selected: Ref<Array<ProblemSet>> = ref([]);
 		const filter: Ref<string> = ref('');
 		const columns = [
+			{ name: 'set_name', label: 'Set Name', field: 'set_name', sortable: true },
+			{ name: 'set_id', label: 'set_id', field: 'set_id', sortable: true },
+			{ name: 'set_visible', label: 'Visible', field: 'set_visible', sortable: true },
 			{
-				name: 'set_name',
-				label: 'Set Name',
-				field: 'set_name',
-				sortable: true
+				name: 'open_date', label: 'Open Date', field: 'set_dates',
+				format: (val: QuizDates) => formatDate(`${val?.open ?? ''}`)
 			},
 			{
-				name: 'set_id',
-				label: 'set_id',
-				field: 'set_id',
-				sortable: true
+				name: 'due_date', label: 'Due Date', field: 'set_dates',
+				format: (val: QuizDates) => formatDate(`${val?.due ?? ''}`)
 			},
 			{
-				name: 'set_visible',
-				label: 'Visible',
-				field: 'set_visible',
-				sortable: true
-			},
-			{
-				name: 'open_date',
-				label: 'Open Date',
-				field: 'dates',
-				format: (val: Dictionary<string>) => formatDate(val.open)
-			},
-			{
-				name: 'due_date',
-				label: 'Due Date',
-				field: 'dates',
-				format: (val: Dictionary<string>) => formatDate(val.due)
-			},
-			{
-				name: 'answer_date',
-				label: 'Answer Date',
-				field: 'dates',
-				format: (val: Dictionary<string>) => formatDate(val.answer)
+				name: 'answer_date', label: 'Answer Date', field: 'set_dates',
+				format: (val: QuizDates) => formatDate(`${val?.answer ?? ''}`)
 			}
 		];
 

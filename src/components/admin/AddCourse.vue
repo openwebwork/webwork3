@@ -56,14 +56,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref } from 'vue';
+import type { Ref } from 'vue';
+import { defineComponent, ref } from 'vue';
 import { useQuasar } from 'quasar';
 
 import { useStore } from 'src/store';
-import { newCourseUser, newUser } from 'src/store/utils/users';
-import { newCourse } from 'src/store/utils/courses';
+// import { newCourse, newCourseUser } from 'src/store/common';
 
-import { Course, ResponseError, User } from 'src/store/models';
+import { Course } from 'src/store/models/courses';
+import { ResponseError } from 'src/store/models';
+import { User, CourseUser } from 'src/store/models/users';
 import { AxiosError } from 'axios';
 
 interface DateRange {
@@ -78,8 +80,8 @@ export default defineComponent({
 		const $q = useQuasar();
 		const store = useStore();
 
-		const course: Ref<Course> = ref(newCourse());
-		const user: Ref<User> = ref(newUser());
+		const course: Ref<Course> = ref(new Course({}));
+		const user: Ref<User> = ref(new User());
 		const username: Ref<string> = ref('');
 		const instructor_exists = ref(false);
 		const course_dates: Ref<DateRange> = ref({ to: '', from: '' });
@@ -105,7 +107,7 @@ export default defineComponent({
 					const _course = (await store.dispatch('courses/addCourse', course.value)) as unknown as Course;
 
 					$q.notify({
-						message: `The course ${_course.course_name} was successfully added.`,
+						message: `The course '${_course.course_name || ''}' was successfully added.`,
 						color: 'green'
 					});
 					if (!instructor_exists.value) {
@@ -113,21 +115,19 @@ export default defineComponent({
 						void (await store.dispatch('users/addGlobalUser', user.value));
 					}
 					// add the user to the course
-					const _course_user = newCourseUser();
+					const _course_user = new CourseUser({});
 					_course_user.role = 'instructor';
 					_course_user.course_id = _course.course_id;
 					await store.dispatch('users/addCourseUser', _course_user);
 					$q.notify({
-						message: `The user ${user.value.username} was successfully added to the course.`,
+						message: `The user ${user.value.username ?? ''} was successfully added to the course.`,
 						color: 'green'
 					});
 					context.emit('closeDialog');
 				} catch (err) {
 					const error = err as AxiosError;
-					const data = (error && error.response && (error.response.data as ResponseError))
-						|| { exception: '' };
+					const data = error?.response?.data as ResponseError || { exception: '' };
 					$q.notify({
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 						message: data.exception,
 						color: 'red'
 					});

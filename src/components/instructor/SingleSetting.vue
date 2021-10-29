@@ -13,7 +13,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType, ref, Ref } from 'vue';
-import { CourseSettingInfo, OptionType } from 'src/store/models';
+import { CourseSettingInfo, OptionType } from 'src/store/models/settings';
 
 export default defineComponent({
 	name: 'SingleSetting',
@@ -25,7 +25,8 @@ export default defineComponent({
 		const val = ref(props.value);
 		const option: Ref<OptionType> = ref({ value: '', label: '' });
 		const options: Ref<Array<OptionType>> = ref([]);
-		if (props.setting && props.setting.options) {
+
+		if (props.setting?.options) {
 			options.value = props.setting.options.map((opt: string | OptionType) =>
 				typeof opt === 'string' ? { label: opt, value: opt } : opt
 			);

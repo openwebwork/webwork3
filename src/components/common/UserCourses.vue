@@ -63,7 +63,7 @@ import { defineComponent, computed } from 'vue';
 // import { useRoute } from 'vue-router';
 import { useStore } from 'src/store';
 
-import { UserCourse } from 'src/store/models';
+import { UserCourse } from 'src/store/models/courses';
 
 export default defineComponent({
 	name: 'UserCourses',

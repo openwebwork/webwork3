@@ -14,26 +14,27 @@ export interface ViewInfo {
 	icon: string;
 	route: string;
 	sidebars: Array<string>;
+	children?: Array<string>;
 }
 
-export const student_views = [
+export const student_views: Array<ViewInfo> = [
 	{
 		name: 'Calendar',
-		componentName: 'Calendar',
+		component_name: 'Calendar',
 		icon: 'today',
 		route: 'student-calendar',
 		sidebars: []
 	},
 	{
 		name: 'Problem Viewer',
-		componentName: 'ProblemViewer',
+		component_name: 'ProblemViewer',
 		icon: 'preview',
 		route: 'student-problems',
 		sidebars: []
 	}
 ];
 
-export const instructor_views = [
+export const instructor_views: Array<ViewInfo> = [
 	{
 		name: 'Calendar',
 		component_name: 'Calendar',
@@ -60,7 +61,8 @@ export const instructor_views = [
 		component_name: 'SetDetailContainer',
 		icon: 'info',
 		route: 'set-view',
-		sidebars: ['problem_sets']
+		sidebars: ['problem_sets'],
+		children: ['ProblemSetDetails']
 	},
 	{
 		name: 'Library Browser',
@@ -99,7 +101,7 @@ export const instructor_views = [
 	}
 ];
 
-export const admin_views = [
+export const admin_views: Array<ViewInfo> = [
 	{
 		name: 'Course Manager',
 		component_name: 'CourseManager',

@@ -16,7 +16,7 @@ BEGIN {
 use lib "$main::ww3_dir/lib";
 
 use Text::CSV qw/csv/;
-use Data::Dump qw/dd/;
+use Data::Dumper;
 use Carp;
 use feature "say";
 use DateTime::Format::Strptime;
@@ -60,13 +60,11 @@ sub addCourses {
 	my @courses = loadCSV("$main::ww3_dir/t/db/sample_data/courses.csv");
 	for my $course (@courses) {
 		$course->{course_settings} = {};
-		for my $key (keys %{ $course->{params} }) {
+		for my $key (keys %{ $course->{course_params} }) {
 			my @fields = split(/:/, $key);
-			$course->{course_settings}->{ $fields[0] } = { $fields[1] => $course->{params}->{$key} };
+			$course->{course_settings}->{ $fields[0] } = { $fields[1] => $course->{course_params}->{$key} };
 		}
-		delete $course->{params};
-		$course->{course_dates} = $course->{dates};
-		delete $course->{dates};
+		delete $course->{course_params};
 		$course_rs->create($course);
 	}
 	return;
@@ -90,7 +88,6 @@ sub addUsers {
 	$user_rs->create($admin);
 
 	for my $student (@all_students) {
-		# dd $student;
 		my $course    = $course_rs->find({ course_name => $student->{course_name} });
 		my $stud_info = {};
 		for my $key (qw/username first_name last_name email student_id/) {
@@ -109,6 +106,7 @@ sub addUsers {
 		for my $key (qw/section recitation params role/) {
 			$params->{$key} = $student->{$key};
 		}
+		$params->{params} = {} unless defined $params->{params};
 		my $u = $course_user->update($params);
 	}
 	return;
@@ -132,9 +130,9 @@ sub addSets {
 		if (!defined($course)) {
 			croak "The course " . $set->{course_name} . " does not exist";
 		}
-		for my $date (keys %{ $set->{dates} }) {
-			my $dt = $strp->parse_datetime($set->{dates}->{$date});
-			$set->{dates}->{$date} = $dt->epoch;
+		for my $date (keys %{ $set->{set_dates} }) {
+			my $dt = $strp->parse_datetime($set->{set_dates}->{$date});
+			$set->{set_dates}->{$date} = $dt->epoch;
 		}
 
 		delete $set->{course_name};
@@ -150,9 +148,9 @@ sub addSets {
 		if (!defined($course)) {
 			croak "The course " . $quiz->{course_name} . " does not exist";
 		}
-		for my $date (keys %{ $quiz->{dates} }) {
-			my $dt = $strp->parse_datetime($quiz->{dates}->{$date});
-			$quiz->{dates}->{$date} = $dt->epoch;
+		for my $date (keys %{ $quiz->{set_dates} }) {
+			my $dt = $strp->parse_datetime($quiz->{set_dates}->{$date});
+			$quiz->{set_dates}->{$date} = $dt->epoch;
 		}
 
 		$quiz->{type} = 2;
@@ -166,9 +164,9 @@ sub addSets {
 	for my $set (@review_sets) {
 		my $course = $course_rs->find({ course_name => $set->{course_name} });
 		croak "The course |$set->{course_name}| does not exist" unless defined($course);
-		for my $date (keys %{ $set->{dates} }) {
-			my $dt = $strp->parse_datetime($set->{dates}->{$date});
-			$set->{dates}->{$date} = $dt->epoch;
+		for my $date (keys %{ $set->{set_dates} }) {
+			my $dt = $strp->parse_datetime($set->{set_dates}->{$date});
+			$set->{set_dates}->{$date} = $dt->epoch;
 		}
 
 		$set->{type} = 4;

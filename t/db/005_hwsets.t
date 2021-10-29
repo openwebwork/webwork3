@@ -56,27 +56,30 @@ my $user_rs        = $schema->resultset("User");
 my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
 for my $set (@hw_sets) {
 	$set->{set_type} = "HW";
-	for my $date (keys %{ $set->{dates} }) {
-		my $dt = $strp->parse_datetime($set->{dates}->{$date});
-		$set->{dates}->{$date} = $dt->epoch;
+	for my $date (keys %{ $set->{set_dates} }) {
+		my $dt = $strp->parse_datetime($set->{set_dates}->{$date});
+		$set->{set_dates}->{$date} = $dt->epoch;
 	}
+	$set->{set_params} = {} unless defined $set->{set_params};
 }
 my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
 	$quiz->{set_type} = "QUIZ";
-	for my $date (keys %{ $quiz->{dates} }) {
-		my $dt = $strp->parse_datetime($quiz->{dates}->{$date});
-		$quiz->{dates}->{$date} = $dt->epoch;
+	for my $date (keys %{ $quiz->{set_dates} }) {
+		my $dt = $strp->parse_datetime($quiz->{set_dates}->{$date});
+		$quiz->{set_dates}->{$date} = $dt->epoch;
 	}
+	$quiz->{set_params} = {} unless defined $quiz->{set_params};
 }
 
 my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv");
 for my $set (@review_sets) {
 	$set->{set_type} = "REVIEW";
-	for my $date (keys %{ $set->{dates} }) {
-		my $dt = $strp->parse_datetime($set->{dates}->{$date});
-		$set->{dates}->{$date} = $dt->epoch;
+	for my $date (keys %{ $set->{set_dates} }) {
+		my $dt = $strp->parse_datetime($set->{set_dates}->{$date});
+		$set->{set_dates}->{$date} = $dt->epoch;
 	}
+	$set->{set_params} = {} unless defined $set->{set_params};
 }
 my @all_problem_sets = (@hw_sets, @quizzes, @review_sets);
 
@@ -168,9 +171,9 @@ throws_ok {
 ## add a new problem set
 
 my $new_set_params = {
-	set_name => "HW #9",
-	dates    => { open => 100, reduced_scoring => 120, due => 140, answer => 200 },
-	set_type => "HW"
+	set_name  => "HW #9",
+	set_dates => { open => 100, reduced_scoring => 120, due => 140, answer => 200 },
+	set_type  => "HW"
 };
 
 my $new_set    = $problem_set_rs->addProblemSet({ course_name => "Precalculus" }, $new_set_params);
@@ -183,9 +186,9 @@ is_deeply($new_set_params, $new_set, "addProblemSet: add one homework");
 ## try to add a homework without set_name
 
 my $new_set2 = {
-	name     => "HW #11",
-	dates    => { open => 100, due => 140, answer => 200 },
-	set_type => "HW"
+	name      => "HW #11",
+	set_dates => { open => 100, due => 140, answer => 200 },
+	set_type  => "HW"
 };
 
 throws_ok {
@@ -196,9 +199,9 @@ throws_ok {
 ## try to add a homework with bad date fields
 
 my $new_set3 = {
-	set_name => "HW #11",
-	dates    => { open_set => 100, due => 140, answer => 200 },
-	set_type => "HW"
+	set_name  => "HW #11",
+	set_dates => { open_set => 100, due => 140, answer => 200 },
+	set_type  => "HW"
 };
 
 throws_ok {
@@ -209,9 +212,9 @@ throws_ok {
 ## try to add a homework set without all required date fields
 
 my $new_set4 = {
-	set_name => "HW #11",
-	dates    => { open => 100, due => 140 },
-	set_type => "HW"
+	set_name  => "HW #11",
+	set_dates => { open => 100, due => 140 },
+	set_type  => "HW"
 };
 
 throws_ok {
@@ -222,9 +225,9 @@ throws_ok {
 ## try to add a homework set without all required date fields
 
 my $new_set5 = {
-	set_name => "HW #11",
-	dates    => { open => 100, due => 140, answer => "1234s" },
-	set_type => "HW"
+	set_name  => "HW #11",
+	set_dates => { open => 100, due => 140, answer => "1234s" },
+	set_type  => "HW"
 };
 throws_ok {
 	$problem_set_rs->addProblemSet({ course_name => "Precalculus" }, $new_set5);
@@ -234,10 +237,10 @@ throws_ok {
 ## try to add a homework set without invalid date order
 
 my $new_set6 = {
-	set_name => "HW #11",
-	dates    => { open => 100, due => 140, answer => 10 },
-	set_type => "HW",
-	params   => {}
+	set_name   => "HW #11",
+	set_dates  => { open => 100, due => 140, answer => 10 },
+	set_type   => "HW",
+	set_params => {}
 };
 throws_ok {
 	$problem_set_rs->addProblemSet({ course_name => "Precalculus" }, $new_set6);
@@ -247,10 +250,10 @@ throws_ok {
 ## check for undefined parameter fields
 
 my $new_set7 = {
-	set_name => "HW #11",
-	dates    => { open => 100, due => 140, answer => 200 },
-	set_type => "HW",
-	params   => { enable_reduced_scoring => 0, not_a_valid_field => 5 }
+	set_name   => "HW #11",
+	set_dates  => { open => 100, due => 140, answer => 200 },
+	set_type   => "HW",
+	set_params => { enable_reduced_scoring => 0, not_a_valid_field => 5 }
 };
 
 throws_ok {
@@ -261,10 +264,10 @@ throws_ok {
 ## check for invalid parameter fields
 
 my $new_set8 = {
-	set_name => "HW #11",
-	dates    => { open => 100, due => 140, answer => 200 },
-	set_type => "HW",
-	params   => { enable_reduced_scoring => 0, hide_hint => "yes" }
+	set_name   => "HW #11",
+	set_dates  => { open => 100, due => 140, answer => 200 },
+	set_type   => "HW",
+	set_params => { enable_reduced_scoring => 0, hide_hint => "yes" }
 };
 throws_ok {
 	$problem_set_rs->addProblemSet({ course_name => "Precalculus" }, $new_set8);
@@ -273,12 +276,12 @@ throws_ok {
 
 ## update a set
 
-$new_set_params->{set_name} = "HW #8";
-$new_set_params->{params}   = { enable_reduced_scoring => 1 };
-$new_set_params->{type}     = 1;
+$new_set_params->{set_name}   = "HW #8";
+$new_set_params->{set_params} = { enable_reduced_scoring => 1 };
+$new_set_params->{type}       = 1;
 
 my $updated_set = $problem_set_rs->updateProblemSet({ course_name => "Precalculus", set_id => $new_set_id },
-	{ set_name => $new_set_params->{set_name}, params => { enable_reduced_scoring => 1 } });
+	{ set_name => $new_set_params->{set_name}, set_params => { enable_reduced_scoring => 1 } });
 removeIDs($updated_set);
 delete $updated_set->{set_visible};
 delete $new_set_params->{type};
@@ -309,7 +312,7 @@ throws_ok {
 
 throws_ok {
 	$problem_set_rs->updateProblemSet({ course_name => "Precalculus", set_id => $new_set_id },
-		{ dates => { bad_date => 99 } });
+		{ set_dates => { bad_date => 99 } });
 }
 "DB::Exception::InvalidDateField", "updateSet: invalid date field passed in.";
 
@@ -317,7 +320,7 @@ throws_ok {
 
 throws_ok {
 	$problem_set_rs->updateProblemSet({ course_name => "Precalculus", set_id => $new_set_id },
-		{ dates => { open => 999, answer => 100 } });
+		{ set_dates => { open => 999, answer => 100 } });
 }
 "DB::Exception::ImproperDateOrder", "updateSet: adding an illegal date order.";
 
