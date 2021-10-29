@@ -70,7 +70,6 @@ export class InvalidFieldsException extends ParseError {
 	}
 }
 
-
 // Parsing functions
 
 export function parseNonNegInt(val: string | number) {
@@ -130,6 +129,8 @@ export type generic = string|number|boolean;
 
 export type ParseableModel = Dictionary<generic|Dictionary<generic>>;
 
+// This interface is a general field for a model.
+
 export interface ModelField  {
 	[k: string]: {
 		field_type: 'string'|'boolean'|'number'|'non_neg_int'|'username'|'email'|'role';
@@ -141,7 +142,7 @@ export interface ModelField  {
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access,
 			@typescript-eslint/no-explicit-any */
 
-export function parseParams(_params: Dictionary<generic>,  _fields: ModelField){
+export function parseParams(_params: Dictionary<generic | Dictionary<generic>>,  _fields: ModelField){
 	const output_params: Dictionary<generic> = {};
 	Object.keys(_fields).forEach((key: string) => {
 		if ((_params as any)[key] == null && _fields[key].default_value !== undefined) {
@@ -169,7 +170,33 @@ export function parseParams(_params: Dictionary<generic>,  _fields: ModelField){
 /* This creates a general Model to be used for all others (Course, User, etc.)
 
 The original structure of this was from a SO answer at
-https://stackoverflow.com/questions/69590729/creating-a-class-using-typescript-with-specific-fields */
+https://stackoverflow.com/questions/69590729/creating-a-class-using-typescript-with-specific-fields
+
+This is a factory that will build a new class.  It takes 5 arguments.  The first is each is an array of strings.
+* array of boolean field names
+* array of number field names
+* array of string field names
+* array of dictionary field names
+* dictionary of field types (see ModelField above)
+
+To create a new class, extend Model.
+
+For example a User model will be
+
+export class User extends Model(
+	['is_admin'], ['user_id'], ['username', 'email', 'first_name', 'last_name', 'student_id'], [],
+	{
+		username: { field_type: 'username', required: true },
+		email: { field_type: 'email' },
+		user_id: { field_type: 'non_neg_int', default_value: 0 },
+		first_name: { field_type: 'string' },
+		last_name: { field_type: 'string' },
+		is_admin: { field_type: 'boolean', default_value: false },
+		student_id: { field_type: 'string' }
+	})
+)
+
+*/
 
 export const Model = <Bool extends string, Num extends string, Str extends string, Dic extends string,
 	F extends ModelField>
