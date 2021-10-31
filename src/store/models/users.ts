@@ -13,7 +13,7 @@ export interface ParseableUser {
 }
 
 export class User extends Model(
-	['is_admin'], ['user_id'], ['username', 'email', 'first_name', 'last_name', 'student_id'], [],
+	['is_admin'], ['user_id'], ['username', 'email', 'first_name', 'last_name', 'student_id'], [], [],
 	{
 		username: { field_type: 'username', required: true },
 		email: { field_type: 'email' },
@@ -43,7 +43,7 @@ export interface ParseableCourseUser {
 }
 
 export class CourseUser extends Model(
-	[], ['course_user_id', 'user_id', 'course_id'], ['role', 'section', 'recitation'], ['params'],
+	[], ['course_user_id', 'user_id', 'course_id'], ['role', 'section', 'recitation'], ['params'], [],
 	{
 		course_user_id: { field_type: 'non_neg_int', default_value: 0 },
 		course_id: { field_type: 'non_neg_int', default_value: 0 },
@@ -82,7 +82,7 @@ export interface ParseableMergedUser {
 export class MergedUser extends Model(
 	['is_admin'], ['user_id', 'course_id', 'course_user_id'],
 	['username', 'email', 'first_name', 'last_name', 'student_id', 'course_user_id', 'role', 'section', 'recitation'],
-	['params'],
+	['params'], [],
 	{
 		username: { field_type: 'username', required: true },
 		email: { field_type: 'email' },

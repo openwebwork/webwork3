@@ -3,7 +3,9 @@ import { Dictionary, generic, ModelField, parseBoolean, parseEmail, parseUserRol
 	parseNonNegInt, parseUsername, RequiredFieldsException, InvalidFieldsException } from './index';
 import { assign, intersection, isEqual, difference } from 'lodash';
 
-/* the follow is the previous version of Model */
+/* the follow is the previous version of Model and some space to try other things.
+
+*/
 
 export const Model = <Req extends string, Opt extends string, Dic extends string, F extends ModelField>
 	(requiredFields: Req[], optionalFields: Opt[], dictionaryFields: Dic[], fields: F) => {
@@ -97,3 +99,61 @@ export const Model = <Req extends string, Opt extends string, Dic extends string
 			required_fields: Req[];
 		} extends infer T ? { [K in keyof T]: T[K] } : never;
 };
+
+interface ModelParams {
+	field_name: string;
+	field_type: 'string'|'boolean'|'number'|'non_neg_int'|'username'|'email'|'role'|'array';
+	default_value?: generic|Dictionary<generic>|Array<Dictionary<generic>>;
+	required?: boolean;
+}
+
+const NewModel = <NF extends string, BF extends string, F extends Array<ModelParams>>
+	(fields: F) => {
+
+		type ModelObject <NF extends string, BF extends string> =
+				Partial<Record<NF, generic>> & Partial<Record<BF, generic>> extends
+					infer T ? { [K in keyof T]: T[K] } : never;
+
+		class _Model {
+		_number_fields: Array<NF> = [];
+		_boolean_fields: Array<BF> = [];
+		_field_params = fields;
+
+		constructor(params: Dictionary<generic | Dictionary<generic>>= {}) {
+			console.log(params);
+			this._field_params.forEach(p => {
+				if (p.field_type === 'boolean') {
+					this._boolean_fields.push(p.field_name as BF);
+				} else if (p.field_type === 'non_neg_int') {
+					this._number_fields.push(p.field_name as NF);
+				}
+			});
+		}
+		}
+
+		return _Model as unknown as new (params?: Dictionary<generic | Dictionary<generic>>) =>
+	ModelObject<NF, BF> & {
+		set(params: Dictionary<generic | Dictionary<generic>>): void,
+		// toObject(_fields?: Array<string>): Dictionary<generic>,
+		// all_fields: Array<NF | BF>;
+		// required_fields: Array<NF | BF>;
+	} extends infer T ? { [K in keyof T]: T[K] } : never;
+};
+
+export class User extends NewModel([
+	{ field_name: 'username', field_type: 'username', required: true },
+	{ field_name: 'email', field_type: 'email' },
+	{ field_name: 'user_id', field_type: 'non_neg_int', default_value: 0 },
+	{ field_name: 'first_name', field_type: 'string' },
+	{ field_name: 'last_name', field_type: 'string' },
+	{ field_name: 'is_admin', field_type: 'boolean', default_value: false },
+	{ field_name: 'student_id', field_type: 'string' }
+]) {
+
+}
+
+const user = new User();
+user.username = 'fred';
+user.flfe;
+
+console.log(user);

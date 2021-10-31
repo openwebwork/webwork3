@@ -3,6 +3,7 @@ use Mojo::Base 'Mojolicious', -signatures;
 
 use Mojo::File qw(curfile path);
 use YAML::XS qw/LoadFile/;
+use Data::Dumper;
 
 BEGIN {
 	## no critic (RequireLocalizedPunctuationVars)

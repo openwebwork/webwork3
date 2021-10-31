@@ -51,6 +51,7 @@ sub getAllProblemSets {
 		my $expanded_set =
 			{ $set->get_inflated_columns, $set->courses->get_inflated_columns, set_type => $set->set_type };
 		delete $expanded_set->{type};
+		$expanded_set->{problems} = $self->_getProblems($expanded_set);
 		push(@all_sets, $expanded_set);
 	}
 
@@ -77,24 +78,10 @@ sub getProblemSets {
 
 	my $problem_sets = $self->search({ 'me.course_id' => $course->course_id }, { prefetch => ["courses"] });
 	my $sets         = _formatSets($problem_sets);
-	return @$sets;
-}
-
-=head2 getHWSets
-
-Get all hw sets for a given course
-
-=cut
-
-sub _formatSets {
-	my $problem_sets = shift;
-	my @sets         = ();
-	while (my $set = $problem_sets->next) {
-		my $expanded_set = { $set->get_inflated_columns, set_type => $set->set_type };
-		delete $expanded_set->{type};
-		push(@sets, $expanded_set);
+	for my $set (@$sets) {
+		$set->{problems} = $self->_getProblems($set);
 	}
-	return \@sets;
+	return @$sets;
 }
 
 sub getHWSets {
@@ -102,8 +89,11 @@ sub getHWSets {
 	my $search_params = getCourseInfo($course_info);    # pull out the course_info that is passed
 	$search_params->{'me.type'} = 1;                    # set the type to search for.
 
-	my $quizzes = $self->search($search_params, { prefetch => ["courses"] });
-	my $sets    = _formatSets($quizzes);
+	my $problem_sets = $self->search($search_params, { prefetch => ["courses"] });
+	my $sets    = _formatSets($problem_sets);
+	for my $set (@$sets) {
+		$set->{problems} = $self->_getProblems($set);
+	}
 	return @$sets;
 }
 
@@ -118,12 +108,33 @@ sub getQuizzes {
 	my $search_params = getCourseInfo($course_info);    # pull out the course_info that is passed
 	$search_params->{'me.type'} = 2;                    # set the type to search for.
 
-	my @sets = $self->search($search_params, { prefetch => ["courses"] });
-	return \@sets if $as_result_set;
-	return map {
-		{ $_->get_inflated_columns, set_type => $_->set_type };
-	} @sets;
+	my $problem_sets = $self->search($search_params, { prefetch => ["courses"] });
+	my $sets    = _formatSets($problem_sets);
+	for my $set (@$sets) {
+		$set->{problems} = $self->_getProblems($set);
+	}
+	return @$sets;
 }
+
+=head2 getReviewSets
+
+Get all review sets for a given course
+
+=cut
+
+sub getReviewSets {
+	my ($self, $course_info, $as_result_set) = @_;
+	my $search_params = getCourseInfo($course_info);    # pull out the course_info that is passed
+	$search_params->{'me.type'} = 3;                    # set the type to search for.
+
+	my $problem_sets = $self->search($search_params, { prefetch => ["courses"] });
+	my $sets    = _formatSets($problem_sets);
+	for my $set (@$sets) {
+		$set->{problems} = $self->_getProblems($set);
+	}
+	return @$sets;
+}
+
 
 =head2 getProblemSet
 
@@ -146,6 +157,7 @@ sub getProblemSet {
 	return $problem_set if $as_result_set;
 	my $set = { $problem_set->get_inflated_columns, set_type => $problem_set->set_type };
 	delete $set->{type};
+	$set->{problems} = $self->_getProblems($set);
 	return $set;
 
 }
@@ -291,6 +303,36 @@ sub newSetVersion {
 
 sub _course_rs {
 	return shift->result_source->schema->resultset("Course");
+}
+
+# return the Problem resultset
+
+sub _problem_rs {
+	return shift->result_source->schema->resultset("Problem");
+}
+
+# return all problems from a given set
+
+sub _getProblems {
+	my ($self,$set) = @_;
+	my @problems = $self->_problem_rs->getSetProblems(
+		{
+			course_id => $set->{course_id},
+			set_id => $set->{set_id}
+		}
+	);
+	return \@problems;
+}
+
+sub _formatSets {
+	my $problem_sets = shift;
+	my @sets         = ();
+	while (my $set = $problem_sets->next) {
+		my $expanded_set = { $set->get_inflated_columns, set_type => $set->set_type };
+		delete $expanded_set->{type};
+		push(@sets, $expanded_set);
+	}
+	return \@sets;
 }
 
 1;

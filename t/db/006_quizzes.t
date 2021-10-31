@@ -45,13 +45,30 @@ my @all_problem_sets;    # stores all problem_sets
 
 my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
-	$quiz->{type}     = 2;
 	$quiz->{set_type} = "QUIZ";
 	for my $date (keys %{ $quiz->{set_dates} }) {
 		my $dt = $strp->parse_datetime($quiz->{set_dates}->{$date});
 		$quiz->{set_dates}->{$date} = $dt->epoch;
 	}
 }
+
+
+
+# Load all of the problems
+my @all_problems = loadCSV("$main::test_dir/sample_data/problems.csv");
+
+# add the problems
+for my $set (@quizzes) {
+	my @problems = grep {
+		$_->{set_name} eq $set->{set_name} && $_->{course_name} eq $set->{course_name}
+	} @all_problems;
+	$set->{problems} = \@problems;
+	for my $prob (@{$set->{problems}}) {
+		# add a problem set_version if it doesn't exist.
+		$prob->{problem_version} = 1 unless defined($prob->{problem_version});
+	}
+}
+
 
 ## remove the quiz: Quiz #9 if it exists:
 

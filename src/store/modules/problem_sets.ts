@@ -25,6 +25,7 @@ export default {
 		async fetchProblemSets({ commit }: { commit: Commit }, course_id: number): Promise<void> {
 			const response = await api.get(`courses/${course_id}/sets`);
 			const _sets_to_parse = response.data as Array<ParseableProblemSet>;
+			console.log(_sets_to_parse);
 			commit('SET_PROBLEM_SETS', _sets_to_parse.map((set)=> parseProblemSet(set)));
 		},
 		async updateSet(

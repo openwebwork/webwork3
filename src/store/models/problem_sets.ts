@@ -3,6 +3,7 @@
 import { Dictionary, parseNonNegInt, Model, ParseError, generic,
 	InvalidFieldsException, ParseableModel, ModelField, parseParams } from '@/store/models/index';
 import { difference } from 'lodash';
+import { LibraryProblem, ParseableLibraryProblem } from './library';
 
 // const problem_set_types = [/hw/i, /quiz/i, /review/i];
 
@@ -38,20 +39,23 @@ export interface ParseableProblemSet {
 	set_params?: ProblemSetParams;
 	// set_params?: Dictionary<generic>;
 	set_dates?: ProblemSetDates;
+	problems?: Array<ParseableLibraryProblem>;
 }
 
 export class ProblemSet extends Model(
 	['set_visible'], ['set_id', 'course_id'], ['set_type', 'set_name'],
-	['set_params', 'set_dates'],
+	['set_params', 'set_dates'], ['problems'],
 	{
 		set_type: { field_type: 'string', default_value: 'UNKNOWN' },
 		set_id: { field_type: 'non_neg_int', default_value: 0 },
 		set_name: { field_type: 'string' },
 		course_id: { field_type: 'non_neg_int', default_value: 0 },
 		set_visible: { field_type: 'boolean', default_value: false },
+		problems: { field_type: 'array', default_value: [] }
 	}) {
+
 	static REQUIRED_FIELDS = ['set_type'];
-	static OPTIONAL_FIELDS = ['set_id', 'set_name', 'course_id', 'set_visible'];
+	static OPTIONAL_FIELDS = ['set_id', 'set_name', 'course_id', 'set_visible', 'problems'];
 
 	_date_fields: Array<string> = [];
 	_param_fields: ModelField = {};
@@ -60,6 +64,13 @@ export class ProblemSet extends Model(
 
 	constructor(params: ParseableProblemSet = {}) {
 		super(params as ParseableModel);
+		this.problems = [];
+		this.setProblems(params.problems);
+	}
+
+	setProblems(_problems: Array<ParseableLibraryProblem> = []) {
+		console.log(_problems);
+		this.problems = _problems.map(prob  => (new LibraryProblem(prob)).toObject());
 	}
 
 	isValid() {
@@ -75,7 +86,7 @@ export class ProblemSet extends Model(
 		}
 
 		/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-member-access,
-		  @typescript-eslint/no-explicit-any */
+		  @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
 		Object.keys(dates).forEach(key => {
 			(this.set_dates as any)[key] = parseNonNegInt((dates as any)[key]);
 		});
