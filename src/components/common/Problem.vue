@@ -8,6 +8,10 @@
 			</q-btn-group>
 		</q-card-section>
 
+		<q-card-section v-if="problem_type==='set'">
+			<span class="div-h6 number-border">{{problem.problem_number}}</span>
+		</q-card-section>
+
 		<q-card-section v-if="answerTemplate" class="q-pa-sm bg-white">
 			<div ref="answerTemplateDiv" v-html="answerTemplate" class="pg-answer-template-container" />
 		</q-card-section>
@@ -28,6 +32,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
+import type { Ref } from 'vue';
 import type { SubmitButton } from 'src/typings/renderer';
 import { fetchProblem } from 'src/APIRequests/renderer';
 import { RENDER_URL } from '@/constants';
@@ -37,6 +42,7 @@ import JQuery from 'jquery';
 import { logger } from 'src/boot/logger';
 
 import typeset from './mathjax-config';
+import { LibraryProblem } from '@/store/models/library';
 
 declare global {
 	interface Window {
@@ -66,14 +72,11 @@ export default defineComponent({
 			type: String,
 			default: ''
 		},
-		type: {
-			type: String,
-			default: ''
-		},
 		problemType: {
 			type: String,
 			default: 'library'
-		}
+		},
+		library_problem: Object
 	},
 	emits: ['addProblem'],
 	setup(props) {
@@ -86,6 +89,7 @@ export default defineComponent({
 		const submitButtons = ref<Array<SubmitButton>>([]);
 		const submitButton = ref<SubmitButton>();
 		const activePopovers: Array<InstanceType<typeof bootstrap.Popover>> = [];
+		const problem: Ref<LibraryProblem> = ref(props.library_problem as LibraryProblem);
 
 		const loadResource = async (src: string, id?: string) => {
 			return new Promise<void>((resolve, reject) => {
@@ -301,7 +305,8 @@ export default defineComponent({
 			answerTemplate,
 			answerTemplateDiv,
 			submitButtons,
-			submitButton
+			submitButton,
+			problem
 		};
 	}
 });
@@ -313,4 +318,9 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @use "src/css/pg.scss";
+
+.number-border {
+	border: 1px black solid;
+	padding: 3px;
+}
 </style>

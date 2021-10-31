@@ -69,7 +69,6 @@ export class ProblemSet extends Model(
 	}
 
 	setProblems(_problems: Array<ParseableLibraryProblem> = []) {
-		console.log(_problems);
 		this.problems = _problems.map(prob  => (new LibraryProblem(prob)).toObject());
 	}
 

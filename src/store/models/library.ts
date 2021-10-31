@@ -1,6 +1,7 @@
 /* Library interfaces */
 
 import { Dictionary, generic, Model, ParseableModel } from './index';
+import { clone } from 'lodash-es';
 
 export interface Discipline {
 	id: number;
@@ -39,5 +40,6 @@ export class LibraryProblem extends Model(
 ) {
 	constructor(params: ParseableLibraryProblem = {}) {
 		super(params as ParseableModel);
+		this.params = clone(params.params);
 	}
 }
