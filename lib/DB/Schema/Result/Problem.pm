@@ -102,7 +102,7 @@ __PACKAGE__->add_columns(
 		is_nullable   => 0,
 		default_value => 1
 	},
-	params => {    # store params as a JSON object
+	problem_params => {    # store params as a JSON object
 		data_type          => 'text',
 		size               => 256,
 		is_nullable        => 0,

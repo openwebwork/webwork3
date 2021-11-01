@@ -46,6 +46,10 @@ my $user_rs        = $schema->resultset("User");
 
 # Load all of the problems
 my @all_problems = loadCSV("$main::test_dir/sample_data/problems.csv");
+for my $prob (@all_problems) {
+	$prob->{problem_params} = clone($prob->{params});
+	delete $prob->{params};
+}
 
 # load HW sets from CSV file
 my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");

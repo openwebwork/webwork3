@@ -61,12 +61,12 @@ sub validateParams {
 }
 
 sub checkRequiredParams {
-	my $self = shift;
+	my ($self, $field_name) = @_;
 	## depending on the data type of the $required_params, check different things
 
 	if (reftype($required_params) eq "HASH") {
 		for my $key (keys %$required_params) {
-			last unless $self->_check_params($key, $required_params->{$key});
+			last unless $self->_check_params($field_name, $key, $required_params->{$key});
 		}
 	}
 	return 1;
@@ -75,13 +75,13 @@ sub checkRequiredParams {
 ## the following is an internal subroutine to check the struture of a hashref for $required_params.
 
 sub _check_params {
-	my ($self, $type, $value) = @_;
+	my ($self, $field_name, $type, $value) = @_;
 	my $valid = 0;    ## assume that it is not valid;
 	if ($type eq "_ALL_") {
 		croak "The value of the _ALL_ required type needs to be an array ref." unless reftype($value) eq "ARRAY";
 		for my $el (@$value) {
 			if (!defined(reftype($el))) {    # assume it is a string
-				$valid = grep {/^$el$/x} keys %{ $self->params };
+				$valid = grep {/^$el$/x} keys %{ $self->get_inflated_column($field_name) };
 				DB::Exception::ParametersNeeded->throw(message => "Request must include: $el")
 					unless $valid;
 			} elsif (reftype($el) eq "HASH") {
@@ -93,7 +93,7 @@ sub _check_params {
 		}
 	} elsif ($type eq "_ONE_OF_") {
 		croak "The value of the _ONE_OF_ required type needs to be an array ref." unless reftype($value) eq "ARRAY";
-		my @fields = keys %{ $self->params };
+		my @fields = keys %{ $self->get_inflated_column($field_name) };
 		$valid = scalar(intersect(@fields, @$value)) == 1;
 		DB::Exception::ParametersNeeded->throw(
 			message => "Request must include exactly ONE of the following parameters: " . join(', ', @$value))

@@ -27,8 +27,7 @@ export default {
 			const _sets_to_parse = response.data as Array<ParseableProblemSet>;
 			commit('SET_PROBLEM_SETS', _sets_to_parse.map((set)=> parseProblemSet(set)));
 		},
-		async updateSet(
-			{ commit, rootState }: { commit: Commit; rootState: StateInterface },
+		async updateSet({ commit, rootState }: { commit: Commit; rootState: StateInterface },
 			 _set: ProblemSet): Promise<ProblemSet> {
 			const course_id = rootState.session.course.course_id;
 			const response = await api.put(`courses/${course_id}/sets/${_set.set_id ?? 0}`, _set);

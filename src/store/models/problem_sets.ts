@@ -57,6 +57,9 @@ export class ProblemSet extends Model(
 	static REQUIRED_FIELDS = ['set_type'];
 	static OPTIONAL_FIELDS = ['set_id', 'set_name', 'course_id', 'set_visible', 'problems'];
 
+	static ALL_FIELDS = [...ProblemSet.REQUIRED_FIELDS, ...ProblemSet.OPTIONAL_FIELDS,
+		...['set_params', 'set_dates', 'problems']];
+
 	_date_fields: Array<string> = [];
 	_param_fields: ModelField = {};
 	set_params = {};

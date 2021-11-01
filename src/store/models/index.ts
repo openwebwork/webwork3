@@ -59,14 +59,14 @@ export class BooleanParseException extends ParseError {
 export class RequiredFieldsException extends ParseError {
 	constructor(_field: string, message: string){
 		super('RequiredFieldsException', message);
-		super.field = _field;
+		this.field = _field;
 	}
 }
 
 export class InvalidFieldsException extends ParseError {
 	constructor(_field: string, message: string) {
 		super('InvalidFieldsException', message);
-		super.field = _field;
+		this.field = _field;
 	}
 }
 

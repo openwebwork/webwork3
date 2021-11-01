@@ -33,10 +33,15 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 
 sub getGlobalProblems {
 	my ($self, $as_result_set) = @_;
-	my @problems = $self->search();
+	my @problems = $self->search( {},
+		{
+			join => 'problem_set',
+			'+select' => ['problem_set.set_name'],
+		}
+	);
 	return @problems if $as_result_set;
 	return map {
-		{ $_->get_inflated_columns };
+		{ $_->get_inflated_columns, $_->problem_set->get_inflated_columns };
 	} @problems;
 }
 
@@ -161,11 +166,9 @@ sub addSetProblem {
 	$new_problem_params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0);
 
 	my $problem_to_add = $self->new($new_problem_params);
-	$problem_to_add->validParams(undef, 'params');
+	$problem_to_add->validParams(undef, 'problem_params');
 
 	my $added_problem = $problem_set->add_to_problems($new_problem_params);
-	return $as_result_set ? $added_problem : { $added_problem->get_inflated_columns };
-
 	return $as_result_set ? $added_problem : { $added_problem->get_inflated_columns };
 }
 

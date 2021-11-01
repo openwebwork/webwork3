@@ -1,5 +1,5 @@
-course_name,set_name,problem_number,PARAMS:library_id,PARAMS:weight
-Precalculus,"HW #1",1,1,1
+course_name,set_name,problem_number,PARAMS:library_id,PARAMS:weight,PARAMS:file_path
+Precalculus,"HW #1",1,1,1,
 Precalculus,"HW #1",2,2,1
 Precalculus,"HW #1",3,3,1
 Precalculus,"HW #2",1,4,1
@@ -10,3 +10,6 @@ Precalculus,"HW #2",3,6,1
 "Abstract Algebra","HW #1",3,12,1
 "Abstract Algebra","HW #1",4,13,1
 "Abstract Algebra","HW #1",5,14,1
+Arithmetic,"HW #1",1,,1,"Library/UVA-FinancialMath/setFinancialMath-Sect10-AlgebraPrereqs/math114-0-01.pg"
+Arithmetic,"HW #1",2,,2,"Library/MC/PreAlgebra/setPreAlgebraC01S06/SUbtractingIntegers03.pg"
+Arithmetic,"HW #1",3,,3,"Library/PCC/BasicAlgebra/SignedNumbersArithemtic/AdditionWithNegativeNumbers10.pg"
