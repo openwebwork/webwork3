@@ -30,7 +30,7 @@ export interface ParseableLibraryProblem {
 }
 
 export class LibraryProblem extends Model(
-	[], ['problem_id', 'problem_number', 'problem_version', 'set_id'], [], ['params'], [],
+	[], ['problem_id', 'problem_number', 'problem_version', 'set_id'], [], ['params'],
 	{
 		problem_id: { field_type: 'non_neg_int', default_value: 0 },
 		problem_number: { field_type: 'non_neg_int', default_value: 0 },

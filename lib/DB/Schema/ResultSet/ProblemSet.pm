@@ -17,11 +17,6 @@ our $SET_TYPES = {
 };
 
 use DB::Exception;
-# use Exception::Class (
-# 	'DB::Exception::SetNotInCourse',
-# 	'DB::Exception::ParametersNeeded',
-# 	'DB::Exception::SetAlreadyExists'
-# );
 
 =head1 DESCRIPTION
 
@@ -51,7 +46,6 @@ sub getAllProblemSets {
 		my $expanded_set =
 			{ $set->get_inflated_columns, $set->courses->get_inflated_columns, set_type => $set->set_type };
 		delete $expanded_set->{type};
-		$expanded_set->{problems} = $self->_getProblems($expanded_set);
 		push(@all_sets, $expanded_set);
 	}
 
@@ -78,10 +72,7 @@ sub getProblemSets {
 
 	my $problem_sets = $self->search({ 'me.course_id' => $course->course_id }, { prefetch => ["courses"] });
 	my $sets         = _formatSets($problem_sets);
-	for my $set (@$sets) {
-		$set->{problems} = $self->_getProblems($set);
-	}
-	return @$sets;
+	return $as_result_set ? $problem_sets : @$sets;
 }
 
 sub getHWSets {
@@ -91,10 +82,7 @@ sub getHWSets {
 
 	my $problem_sets = $self->search($search_params, { prefetch => ["courses"] });
 	my $sets    = _formatSets($problem_sets);
-	for my $set (@$sets) {
-		$set->{problems} = $self->_getProblems($set);
-	}
-	return @$sets;
+	return $as_result_set ? $problem_sets : @$sets;
 }
 
 =head2 getQuizzes
@@ -110,10 +98,7 @@ sub getQuizzes {
 
 	my $problem_sets = $self->search($search_params, { prefetch => ["courses"] });
 	my $sets    = _formatSets($problem_sets);
-	for my $set (@$sets) {
-		$set->{problems} = $self->_getProblems($set);
-	}
-	return @$sets;
+	return $as_result_set ? $problem_sets : @$sets;
 }
 
 =head2 getReviewSets
@@ -129,10 +114,7 @@ sub getReviewSets {
 
 	my $problem_sets = $self->search($search_params, { prefetch => ["courses"] });
 	my $sets    = _formatSets($problem_sets);
-	for my $set (@$sets) {
-		$set->{problems} = $self->_getProblems($set);
-	}
-	return @$sets;
+	return $as_result_set ? $problem_sets : @$sets;
 }
 
 
@@ -157,7 +139,6 @@ sub getProblemSet {
 	return $problem_set if $as_result_set;
 	my $set = { $problem_set->get_inflated_columns, set_type => $problem_set->set_type };
 	delete $set->{type};
-	$set->{problems} = $self->_getProblems($set);
 	return $set;
 
 }
@@ -311,18 +292,6 @@ sub _problem_rs {
 	return shift->result_source->schema->resultset("Problem");
 }
 
-# return all problems from a given set
-
-sub _getProblems {
-	my ($self,$set) = @_;
-	my @problems = $self->_problem_rs->getSetProblems(
-		{
-			course_id => $set->{course_id},
-			set_id => $set->{set_id}
-		}
-	);
-	return \@problems;
-}
 
 sub _formatSets {
 	my $problem_sets = shift;

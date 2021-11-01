@@ -2,8 +2,8 @@
 
 import { Dictionary, parseNonNegInt, Model, ParseError, generic,
 	InvalidFieldsException, ParseableModel, ModelField, parseParams } from '@/store/models/index';
+import { ParseableLibraryProblem } from './library';
 import { difference } from 'lodash';
-import { LibraryProblem, ParseableLibraryProblem } from './library';
 
 // const problem_set_types = [/hw/i, /quiz/i, /review/i];
 
@@ -44,7 +44,7 @@ export interface ParseableProblemSet {
 
 export class ProblemSet extends Model(
 	['set_visible'], ['set_id', 'course_id'], ['set_type', 'set_name'],
-	['set_params', 'set_dates'], ['problems'],
+	['set_params', 'set_dates'],
 	{
 		set_type: { field_type: 'string', default_value: 'UNKNOWN' },
 		set_id: { field_type: 'non_neg_int', default_value: 0 },
@@ -67,12 +67,6 @@ export class ProblemSet extends Model(
 
 	constructor(params: ParseableProblemSet = {}) {
 		super(params as ParseableModel);
-		this.problems = [];
-		this.setProblems(params.problems);
-	}
-
-	setProblems(_problems: Array<ParseableLibraryProblem> = []) {
-		this.problems = _problems.map(prob  => (new LibraryProblem(prob)).toObject());
 	}
 
 	isValid() {

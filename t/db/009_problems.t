@@ -158,16 +158,6 @@ my $set = $problem_set_rs->getProblemSet(
 	}
 );
 
-# renumber the 2nd and 3 problems
-
-$set->{problems}[1]->{problem_number} = 3;
-$set->{problems}[2]->{problem_number} = 2;
-
-my $updated_set = $problem_set_rs->updateProblemSet($set);
-
-print Dumper $updated_set;
-
+# my $updated_set = $problem_set_rs->updateProblemSet($set);
 
 done_testing;
-
-1;

@@ -199,15 +199,13 @@ export class User extends Model(
 */
 
 export const Model = <Bool extends string, Num extends string, Str extends string, Dic extends string,
-	Arr extends string, F extends ModelField>
+	F extends ModelField>
 	(boolean_fields: Bool[], Num_neg_int_fields: Num[], string_fields: Str[], dictionary_fields: Dic[],
-		array_fields: Arr[], fields: F) => {
+		fields: F) => {
 
-	type ModelObject<Bool extends string, Num extends string, Str extends string, Dic extends string,
-		Arr extends string> =
+	type ModelObject<Bool extends string, Num extends string, Str extends string, Dic extends string> =
 			Partial<Record<Bool, boolean>> & Partial<Record<Num, number>> &
-			Partial<Record<Str, string>> & Partial<Record<Dic, Dictionary<generic>>> &
-			Partial<Record<Arr, Array<Dictionary<generic>>>> extends
+			Partial<Record<Str, string>> & Partial<Record<Dic, Dictionary<generic>>> extends
 				 infer T ? { [K in keyof T]: T[K] } : never;
 
 	class _Model {
@@ -215,7 +213,6 @@ export const Model = <Bool extends string, Num extends string, Str extends strin
 		_number_field_names: Array<Num> = Num_neg_int_fields;
 		_string_field_names: Array<Str> = string_fields;
 		_dictionary_field_names: Array<Dic> = dictionary_fields;
-		_array_field_names: Array<Arr> = array_fields;
 		_fields: F = fields;
 
 		constructor(params: Dictionary<generic | Dictionary<generic> | Array<Dictionary<generic>>>= {}) {
@@ -253,10 +250,9 @@ export const Model = <Bool extends string, Num extends string, Str extends strin
 		}
 		/* eslint-enable */
 
-		get all_fields(): Array<Bool | Num | Str | Arr | Dic> {
+		get all_fields(): Array<Bool | Num | Str | Dic> {
 			return [...this._boolean_field_names, ...this._number_field_names,
-				...this._string_field_names, ...this._array_field_names,
-				...this._dictionary_field_names];
+				...this._string_field_names, ...this._dictionary_field_names];
 		}
 
 		get required_fields() {
@@ -282,7 +278,7 @@ export const Model = <Bool extends string, Num extends string, Str extends strin
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return _Model as any as
 		new (params?: Dictionary<generic | Dictionary<generic> | Array<Dictionary<generic>>>) =>
-	ModelObject<Bool, Num, Str, Dic, Arr> & {
+	ModelObject<Bool, Num, Str, Dic> & {
 		set(params: Dictionary<generic | Dictionary<generic> >): void,
 		toObject(_fields?: Array<string>): Dictionary<generic>,
 		all_fields: Array<Bool | Num | Str | Dic>;

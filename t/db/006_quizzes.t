@@ -52,24 +52,6 @@ for my $quiz (@quizzes) {
 	}
 }
 
-
-
-# Load all of the problems
-my @all_problems = loadCSV("$main::test_dir/sample_data/problems.csv");
-
-# add the problems
-for my $set (@quizzes) {
-	my @problems = grep {
-		$_->{set_name} eq $set->{set_name} && $_->{course_name} eq $set->{course_name}
-	} @all_problems;
-	$set->{problems} = \@problems;
-	for my $prob (@{$set->{problems}}) {
-		# add a problem set_version if it doesn't exist.
-		$prob->{problem_version} = 1 unless defined($prob->{problem_version});
-	}
-}
-
-
 ## remove the quiz: Quiz #9 if it exists:
 
 my $quiz_to_delete = $problem_set_rs->find({ set_name => "Quiz #9" });

@@ -44,13 +44,6 @@ my $problem_set_rs = $schema->resultset("ProblemSet");
 my $course_rs      = $schema->resultset("Course");
 my $user_rs        = $schema->resultset("User");
 
-# Load all of the problems
-my @all_problems = loadCSV("$main::test_dir/sample_data/problems.csv");
-for my $prob (@all_problems) {
-	$prob->{problem_params} = clone($prob->{params});
-	delete $prob->{params};
-}
-
 # load HW sets from CSV file
 my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
 
@@ -82,19 +75,6 @@ for my $set (@review_sets) {
 	$set->{set_params} = {} unless defined $set->{set_params};
 }
 my @all_problem_sets = (@hw_sets, @quizzes, @review_sets);
-
-# add the problems if they exist
-
-for my $set (@all_problem_sets) {
-	my @problems = grep {
-		$_->{set_name} eq $set->{set_name} && $_->{course_name} eq $set->{course_name}
-	} @all_problems;
-	$set->{problems} = \@problems;
-	for my $prob (@{$set->{problems}}) {
-		# add a problem set_version if it doesn't exist.
-		$prob->{problem_version} = 1 unless defined($prob->{problem_version});
-	}
-}
 
 for my $set (@all_problem_sets) {
 	for my $prob (@{$set->{problems}}) {
