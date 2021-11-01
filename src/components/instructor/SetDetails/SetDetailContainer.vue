@@ -46,13 +46,20 @@ export default defineComponent({
 
 		const updateSet = (_set_id: number) => {
 			void router.push({ name: 'ProblemSetDetails', params: { set_id: _set_id } });
+			set_details_tab.value = 'details'; // reset the tabs to the first one.
 		};
-		if(route.params.set_id){
+
+		const updateSetID = () => {
 			const s = route.params.set_id; // a param is either a string or an array of strings
 			const set_id = Array.isArray(s) ? parseInt(s[0]) : parseInt(s);
 			selected_set.value = set_id;
-			updateSet(set_id);
+		};
+
+		if(route.params.set_id){
+			updateSetID();
 		}
+
+		watch(() => route.fullPath, updateSetID);
 
 		watch(() => selected_set.value, updateSet);
 

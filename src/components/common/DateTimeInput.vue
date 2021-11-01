@@ -1,5 +1,5 @@
 <template>
-	<div class="q-pa-md" style="max-width: 300px">
+	<div style="max-width: 300px">
 		<q-input filled v-model="date_string" :rules="rules">
 			<template v-slot:prepend>
 				<q-icon name="event" class="cursor-pointer">

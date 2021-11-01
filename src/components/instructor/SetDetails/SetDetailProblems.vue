@@ -2,7 +2,7 @@
 	<div v-if="problem_set && problem_set.problems.length >0" class="scroll" style="height: 500px">
 		<problem
 			v-for="(problem,index) in problem_set.problems"
-			:sourceFilePath="problem.params.problem_path"
+			:sourceFilePath="problem.params.file_path"
 			:key="problem.id"
 			:problemPrefix="`QUESTION_${index + 1}_`"
 			class="q-mb-md"

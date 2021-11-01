@@ -40,7 +40,7 @@
 import type { Ref } from 'vue';
 import { defineComponent, ref, watch, toRefs } from 'vue';
 import { useQuasar } from 'quasar';
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, pick } from 'lodash-es';
 
 import DateTimeInput from 'src/components/common/DateTimeInput.vue';
 import { HomeworkSet } from '@/store/models/problem_sets';
@@ -74,7 +74,7 @@ export default defineComponent({
 		// for why we need to do a cloneDeep here
 		watch(() => cloneDeep(set.value), (new_set, old_set) => {
 			if (new_set.set_id == old_set.set_id) {
-				void store.dispatch('problem_sets/updateSet', new_set);
+				void store.dispatch('problem_sets/updateSet', pick(new_set, HomeworkSet.ALL_FIELDS));
 				$q.notify({
 					message: `The problem set '${new_set.set_name ?? ''}' was successfully updated.`,
 					color: 'green'
