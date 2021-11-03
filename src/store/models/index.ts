@@ -150,7 +150,7 @@ export function parseParams(_params: Dictionary<generic>,  _fields: ModelField){
 	});
 	return output_params;
 }
-// eslint-enable
+/* eslint-enable */
 
 /* This creates a general Model to be used for all others (Course, User, etc.)
 
