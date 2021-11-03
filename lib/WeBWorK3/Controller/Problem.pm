@@ -13,17 +13,18 @@ sub addProblem ($self) {
 		course_id => int($self->param("course_id")),
 		set_id    => int($self->param("set_id"))
 	};
-	my $problem_params = {
-		params => {
-			weight => 1,
-			# TODO: finalize OPL DB and migrate away from paths
-			# library_id      => $self->req->json->{id},
-			problem_path => $self->req->json->{file_path}
-		}
-	};
 
-	my $problem = $self->schema->resultset("Problem")->addSetProblem($course_set_params, $problem_params);
+	my $problem = $self->schema->resultset("Problem")->addSetProblem($course_set_params, $self->req->json);
 	$self->render(json => $problem);
+	return;
+}
+
+sub getAllProblems ($self) {
+	my $course_info = {
+		course_id => int($self->param("course_id"))
+	};
+	my @problems = $self->schema->resultset("Problem")->getProblems($course_info);
+	$self->render(json => \@problems);
 	return;
 }
 

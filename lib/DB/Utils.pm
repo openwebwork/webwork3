@@ -9,7 +9,7 @@ our @EXPORT_OK = qw/getCourseInfo getUserInfo getSetInfo updateAllFields
 
 use Carp;
 use Clone qw/clone/;
-use Data::Dump qw/dd/;
+use Data::Dumper;
 use List::Util qw/first/;
 use Scalar::Util qw/reftype/;
 
@@ -69,6 +69,7 @@ This returns the hashref with both the original and any replacements.
 sub updateAllFields {
 	my ($current_fields, $updated_fields) = @_;
 	my $fields_to_return = clone($current_fields);
+	# print Dumper $fields_to_return;
 	for my $key (keys %$updated_fields) {
 		if (defined(reftype($updated_fields->{$key})) && reftype($updated_fields->{$key}) eq "HASH") {
 			$fields_to_return->{$key} = updateAllFields($current_fields->{$key} || {}, $updated_fields->{$key});

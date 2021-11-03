@@ -8,7 +8,7 @@ use Data::Dumper;
 
 # use List::Util qw/first/;
 
-use DB::Utils qw/getCourseInfo getSetInfo getProblemInfo/;
+use DB::Utils qw/getCourseInfo getSetInfo getProblemInfo updateAllFields/;
 
 =head1 DESCRIPTION
 
@@ -70,7 +70,7 @@ This gets all problems in a given course.
 =back
 
 =head3 notes:
-if either the course or username doesn't exist, an error will be thrown.
+if either the course or course_id doesn't exist, an error will be thrown.
 
 =head3 output
 
@@ -87,12 +87,7 @@ sub getProblems {
 		$self->search({ 'problem_set.course_id' => $course->course_id }, { prefetch => [qw/problem_set/] });
 
 	return \@problems if $as_result_set;
-	return map {
-		{
-			$_->get_inflated_columns, set_name => $_->problem_set->set_name
-		};
-	} @problems;
-
+	return map { {$_->get_inflated_columns}; } @problems;
 }
 
 sub getSetProblems {
@@ -171,6 +166,36 @@ sub addSetProblem {
 	my $added_problem = $problem_set->add_to_problems($new_problem_params);
 	return $as_result_set ? $added_problem : { $added_problem->get_inflated_columns };
 }
+
+=head2 updateSetProblem
+
+update a single problem in a problem set within a course
+
+=head3 Note
+
+=over
+
+=item * If either the problem set or course does not exist an error will be thrown
+
+=item * If the problem parameters are not valid, an error will be thrown.
+
+=back
+
+=cut
+
+sub updateSetProblem {
+	my ($self, $course_set_problem_info, $new_problem_params, $as_result_set) = @_;
+	my $problem = $self->getSetProblem($course_set_problem_info,1);
+	my $params = updateAllFields({$problem->get_inflated_columns}, $new_problem_params);
+
+	## check that the new params are valid:
+	my $updated_problem = $self->new($params);
+	$updated_problem->validParams(undef, 'problem_params');
+
+	my $up_problem = $problem->update($params);
+	return $as_result_set ? $up_problem : { $up_problem->get_inflated_columns };
+}
+
 
 =head2 deleteSetProblem
 
