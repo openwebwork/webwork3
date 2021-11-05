@@ -8,13 +8,11 @@ use strict;
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir = abs_path(dirname(__FILE__));
-	$main::lib_dir  = dirname(dirname($main::test_dir)) . '/lib';
+	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
-use lib "$main::lib_dir";
+use lib "$main::ww3_dir/lib";
 
-# use Text::CSV qw/csv/;
 use Data::Dumper;
 use Test::More;
 use Test::Exception;
@@ -31,7 +29,17 @@ use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
 use DB::Utils qw/updateAllFields/;
 
-my $schema = loadSchema();
+# set up the database
+my $config;
+my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
+if (-e $config_file) {
+	$config = LoadFile($config_file);
+} else {
+	die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?";
+}
+
+my $schema =
+	DB::Schema->connect($config->{test_database_dsn}, $config->{test_database_user}, $config->{test_database_password});
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 
@@ -39,7 +47,10 @@ my $problem_rs = $schema->resultset("Problem");
 my $problem_set_rs = $schema->resultset("ProblemSet");
 
 # load all problems from the CVS files
-my @problems_from_csv = loadCSV("$main::test_dir/sample_data/problems.csv");
+my @problems_from_csv = loadCSV("$main::ww3_dir/t/db/sample_data/problems.csv");
+for my $problem (@problems_from_csv) {
+	$problem->{problem_version} = 1 unless defined($problem->{problem_version});
+}
 
 # filter out precalc problems
 my @precalc_problems = grep { $_->{course_name} eq "Precalculus" } @problems_from_csv;

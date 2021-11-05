@@ -11,28 +11,38 @@ use DateTime::Format::Strptime;
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir = abs_path(dirname(__FILE__));
-	$main::lib_dir  = dirname(dirname($main::test_dir)) . '/lib';
+	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
+
+use lib "$main::ww3_dir/lib";
 
 use Getopt::Long;
 my $TEST_PERMISSIONS;
 GetOptions("perm" => \$TEST_PERMISSIONS);    # check for the flag --perm when running this.
 
-use lib "$main::lib_dir";
-
 use DB::Schema;
 use DB::TestUtils qw/loadSchema loadCSV/;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
-my $config = clone(LoadFile("$main::lib_dir/../conf/webwork3.yml"));
+
+my $config;
+my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
+if (-e $config_file) {
+	$config                      = clone(LoadFile($config_file));
+	$config->{database_dsn}      = $config->{test_database_dsn};
+	$config->{database_user}     = $config->{test_database_user};
+	$config->{database_password} = $config->{test_database_password};
+} else {
+	die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?";
+}
 
 my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 
 # this tests the api with common courses routes
 
-# load the database
-my $schema = loadSchema();
+# set up the database:
+my $schema =
+	DB::Schema->connect($config->{test_database_dsn}, $config->{test_database_user}, $config->{test_database_password});
 
 my $t;
 
@@ -52,7 +62,7 @@ if ($TEST_PERMISSIONS) {
 
 # load the quizzes
 
-my @quizzes = loadCSV("$main::lib_dir/../t/db/sample_data/quizzes.csv");
+my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
 	$quiz->{set_type} = "QUIZ";
 	for my $date (keys %{ $quiz->{dates} }) {
