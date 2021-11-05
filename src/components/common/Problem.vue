@@ -99,12 +99,12 @@ export default defineComponent({
 		const activePopovers: Array<InstanceType<typeof bootstrap.Popover>> = [];
 		const problem: Ref<LibraryProblem> = ref(props.library_problem as LibraryProblem);
 
-		file.value = problem.value.problem_params ?
-			problem.value.problem_params.file_path as string :
-			'';
+		file.value = problem.value.problem_params.file_path;
 
 		watch(() => props.library_problem, () => {
+			logger.debug('problem updated');
 			problem.value = props.library_problem as LibraryProblem;
+			file.value = problem.value.problem_params.file_path;
 		}, { deep: true });
 
 		const loadResource = async (src: string, id?: string) => {
@@ -162,12 +162,13 @@ export default defineComponent({
 			}
 			activePopovers.length = 0;
 
-			if (!file.value) {
+			if (!url) {
 				clearUI();
 				return;
 			}
 
-			const { renderedHTML, js, css, renderError } = await fetchProblem(url, formData, overrides);
+			const { renderedHTML, js, css, renderError }
+			= await fetchProblem(url, formData, overrides);
 
 			if (!renderedHTML || !renderedHTML.problemText) {
 				clearUI();
@@ -268,9 +269,7 @@ export default defineComponent({
 		};
 
 		const initialLoad = () => {
-			file.value = problem.value.problem_params ?
-				problem.value.problem_params.file_path as string:
-				'';
+			file.value = problem.value.problem_params.file_path;
 			void loadProblem(RENDER_URL, new FormData(), {
 				// We should not be overriding these on the frontend.
 				problemSeed: '12345',

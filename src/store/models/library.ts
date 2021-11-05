@@ -1,7 +1,8 @@
 /* Library interfaces */
 
+import { parseNonNegInt } from './index';
 import { Dictionary, generic, Model, ParseableModel } from './index';
-import { clone } from 'lodash-es';
+// import { clone } from 'lodash-es';
 
 export interface Discipline {
 	id: number;
@@ -15,6 +16,8 @@ export interface LibrarySubject {
 	official: boolean;
 }
 
+export type ParseableLibraryParams = Partial<LibraryProblemParams>;
+
 export interface LibraryProblemParams extends Dictionary<generic> {
 	file_path: string;
 	weight: number;
@@ -26,7 +29,7 @@ export interface ParseableLibraryProblem {
 	problem_number?: number|string;
 	problem_version?: number|string;
 	set_id?: number|string;
-	problem_params?: LibraryProblemParams;
+	problem_params?: Partial<LibraryProblemParams>;
 }
 
 export class LibraryProblem extends Model(
@@ -38,8 +41,26 @@ export class LibraryProblem extends Model(
 		set_id: { field_type: 'non_neg_int', default_value: 0 },
 	}
 ) {
+	problem_params: LibraryProblemParams = {
+		file_path: '',
+		weight: 1,
+		library_problem_id: 0
+	};
+
 	constructor(params: ParseableLibraryProblem = {}) {
 		super(params as ParseableModel);
-		this.problem_params = clone(params.problem_params);
+		this.setParams(params.problem_params as ParseableLibraryParams);
+	}
+
+	setParams(params: ParseableLibraryParams = {}) {
+		if (params.file_path) {
+			this.problem_params.file_path = params.file_path;
+		}
+		if (params.library_problem_id){
+			this.problem_params.library_problem_id = parseNonNegInt(`${params.library_problem_id}`);
+		}
+		if (params.weight) {
+			this.problem_params.weight = parseFloat(`${params.weight}`);
+		}
 	}
 }
