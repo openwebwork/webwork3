@@ -10,16 +10,28 @@
 
 		<q-card-section v-if="problem_type==='set'">
 			<span class="div-h6 number-border">{{problem.problem_number}}</span>
+			<q-btn-group push>
+				<q-btn size="sm" push icon="shuffle" />
+				<q-btn size="sm" icon="height" class="move-handle" />
+			</q-btn-group>
 		</q-card-section>
 
 		<q-card-section v-if="answerTemplate" class="q-pa-sm bg-white">
 			<div ref="answerTemplateDiv" v-html="answerTemplate" class="pg-answer-template-container" />
 		</q-card-section>
+
 		<q-separator v-if="answerTemplate" />
-		<q-card-section class="q-pa-sm">
+
+		<q-card-section class="q-pa-sm" v-if="problemText">
 			<div ref="problemTextDiv" v-html="problemText" class="pg-problem-container" />
 		</q-card-section>
+
+		<q-card-section v-else>
+			<div><q-spinner-ios color="primary" size="2em" /></div>
+		</q-card-section>
+
 		<q-separator v-if="submitButtons.length"/>
+
 		<q-card-actions class="q-pa-sm bg-white" v-if="submitButtons.length">
 			<q-btn v-for="button in submitButtons" :key="button.name" :name="button.name"
 				:id="`${problemPrefix}${button.name}`" type="submit" :form="`${problemPrefix}problemMainForm`"
@@ -60,10 +72,6 @@ window.bootstrap = bootstrap;
 export default defineComponent({
 	name: 'Problem',
 	props: {
-		sourceFilePath: {
-			type: String,
-			default: ''
-		},
 		problemPrefix: {
 			type: String,
 			default: ''
@@ -82,7 +90,7 @@ export default defineComponent({
 	setup(props) {
 		const problemText = ref('');
 		const answerTemplate = ref('');
-		const file = ref(props.sourceFilePath);
+		const file = ref('');
 		const problem_type = ref(props.problemType);
 		const problemTextDiv = ref<HTMLElement>();
 		const answerTemplateDiv = ref<HTMLElement>();
@@ -90,6 +98,15 @@ export default defineComponent({
 		const submitButton = ref<SubmitButton>();
 		const activePopovers: Array<InstanceType<typeof bootstrap.Popover>> = [];
 		const problem: Ref<LibraryProblem> = ref(props.library_problem as LibraryProblem);
+
+		file.value = problem.value.problem_params ?
+			problem.value.problem_params.file_path as string :
+			'';
+
+		watch(() => props.library_problem, () => {
+			logger.debug('problem is updated');
+			problem.value = props.library_problem as LibraryProblem;
+		}, { deep: true });
 
 		const loadResource = async (src: string, id?: string) => {
 			return new Promise<void>((resolve, reject) => {
@@ -193,6 +210,7 @@ export default defineComponent({
 					Array.from(origScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
 					newScript.appendChild(document.createTextNode(origScript.innerHTML));
 					origScript.parentNode?.replaceChild(newScript, origScript);
+
 				});
 			}
 
@@ -251,7 +269,9 @@ export default defineComponent({
 		};
 
 		const initialLoad = () => {
-			file.value = props.sourceFilePath;
+			file.value = problem.value.problem_params ?
+				problem.value.problem_params.file_path as string:
+				'';
 			void loadProblem(RENDER_URL, new FormData(), {
 				// We should not be overriding these on the frontend.
 				problemSeed: '12345',
@@ -264,7 +284,7 @@ export default defineComponent({
 			});
 		};
 
-		watch(() => props.sourceFilePath, initialLoad);
+		watch(() => file.value, initialLoad);
 
 		onMounted(async () => {
 			await Promise.all([
@@ -295,7 +315,7 @@ export default defineComponent({
 
 			await nextTick();
 
-			if (props.sourceFilePath) initialLoad();
+			if (file.value) initialLoad();
 		});
 
 		return {

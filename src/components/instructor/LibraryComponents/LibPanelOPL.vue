@@ -42,7 +42,6 @@
 
 <script lang="ts">
 import axios from 'axios';
-import { api } from 'boot/axios';
 
 import type { Ref } from 'vue';
 import { defineComponent, ref, computed, watch } from 'vue';
@@ -50,19 +49,13 @@ import { useStore } from 'src/store';
 // import { Discipline, LibrarySubject } from 'src/store/models';
 import Problem from 'src/components/common/Problem.vue';
 import { logger } from 'src/boot/logger';
+import { LibraryProblemParams } from '@/store/models/library';
 
 interface SelectItem {
 	label?: string;
 	name?: string;
 	crossref?: number;
 	id: number;
-}
-
-interface LibraryProblem {
-	id: number;
-	source_code?: string;
-	raw_source?: string;
-	file_path?: string;
 }
 
 export default defineComponent({
@@ -76,7 +69,7 @@ export default defineComponent({
 		const subject: Ref<SelectItem|null>        = ref(null);
 		const chapter: Ref<SelectItem|null>        = ref(null);
 		const section: Ref<SelectItem|null>        = ref(null);
-		const problems: Ref<Array<LibraryProblem>> = ref([]);
+		const problems: Ref<Array<LibraryProblemParams>> = ref([]);
 
 		watch([discipline], async () => {
 			void store.dispatch('library/resetSections');
@@ -128,16 +121,27 @@ export default defineComponent({
 			loadProblems: async () => {
 				const sect = section.value;
 				const response = await axios.get(`/opl/api/problems/sections/${sect?.id || 0}`);
-				problems.value = response.data as Array<LibraryProblem>;
+				const r = response.data as Array<{id: number; file_path: string}>;
+				problems.value = r.map(pr => ({
+					library_problem_id: pr.id,
+					file_path: pr.file_path,
+					weight: 1,
+
+				}));
 			},
-			addProblem: async (problem: LibraryProblem) => {
+			addProblem: async (params: LibraryProblemParams) => {
+				console.log(params);
 				const set_id = store.state.app_state.library_state.target_set_id;
 				const course_id = store.state.session.course.course_id;
 				if (set_id > 0) {
-					const url = `/courses/${course_id}/sets/${set_id}/problems`;
-					await api.post(url, problem);
+					await store.dispatch('problem_sets/addSetProblem', { course_id,
+						problem: {
+							set_id,
+							problem_params: params
+						}
+					});
 				}
-				logger.debug(`[LibPanelOPL/addProblem] set_id: ${set_id}; adding: ${JSON.stringify(problem)}`);
+				logger.debug(`[LibPanelOPL/addProblem] set_id: ${set_id}; adding: ${JSON.stringify(params)}`);
 			}
 		};
 	},

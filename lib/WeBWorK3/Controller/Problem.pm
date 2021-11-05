@@ -28,4 +28,17 @@ sub getAllProblems ($self) {
 	return;
 }
 
+sub updateProblem ($self) {
+	my $course_set_problem_params = {
+		course_id     => int($self->param("course_id")),
+		set_id        => int($self->param("set_id")),
+		problem_id    => int($self->param("problem_id"))
+	};
+
+	my $updated_problem = $self->schema->resultset("Problem")
+		->updateSetProblem($course_set_problem_params, $self->req->json);
+	$self->render(json => $updated_problem);
+	return;
+}
+
 1;

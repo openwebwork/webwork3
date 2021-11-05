@@ -137,9 +137,11 @@ sub problemSetRoutes ($self) {
 }
 
 sub problemRoutes ($self) {
-	my $problem_routes =
-		$self->routes->any('/webwork3/api/courses/:course_id/sets/:set_id/problems')->to(controller => 'Problem');
-	$problem_routes->post('/')->to(action => 'addProblem');
+	my $problem_routes = $self->routes->any('/webwork3/api/courses/:course_id')->to(controller => 'Problem');
+	$problem_routes->get('/problems')->to(action => 'getAllProblems');
+	$problem_routes->post('/sets/:set_id/problems')->to(action => 'addProblem');
+	$problem_routes->put('/sets/:set_id/problems/:problem_id')->to(action => 'updateProblem');
+
 	return;
 }
 
