@@ -30,7 +30,7 @@
 	<div v-if="problems.length >0" class="scroll" style="height: 500px">
 		<problem
 			v-for="(problem,index) in problems"
-			:sourceFilePath="problem.file_path"
+			:library_problem="problem"
 			:key="problem.id"
 			:problemPrefix="`QUESTION_${index + 1}_`"
 			class="q-mb-md"
@@ -49,7 +49,7 @@ import { useStore } from 'src/store';
 // import { Discipline, LibrarySubject } from 'src/store/models';
 import Problem from 'src/components/common/Problem.vue';
 import { logger } from 'src/boot/logger';
-import { LibraryProblemParams } from '@/store/models/library';
+import { LibraryProblem } from '@/store/models/library';
 
 interface SelectItem {
 	label?: string;
@@ -69,7 +69,7 @@ export default defineComponent({
 		const subject: Ref<SelectItem|null>        = ref(null);
 		const chapter: Ref<SelectItem|null>        = ref(null);
 		const section: Ref<SelectItem|null>        = ref(null);
-		const problems: Ref<Array<LibraryProblemParams>> = ref([]);
+		const problems: Ref<Array<LibraryProblem>> = ref([]);
 
 		watch([discipline], async () => {
 			void store.dispatch('library/resetSections');
@@ -120,28 +120,27 @@ export default defineComponent({
 			problems,
 			loadProblems: async () => {
 				const sect = section.value;
+				problems.value = [];
 				const response = await axios.get(`/opl/api/problems/sections/${sect?.id || 0}`);
 				const r = response.data as Array<{id: number; file_path: string}>;
-				problems.value = r.map(pr => ({
+				logger.debug(`Loading problems from section ${sect?.label ?? ''}`);
+				problems.value = r.map(pr => new LibraryProblem({ problem_params: {
 					library_problem_id: pr.id,
 					file_path: pr.file_path,
 					weight: 1,
-
-				}));
+				} }));
 			},
-			addProblem: async (params: LibraryProblemParams) => {
-				console.log(params);
+			addProblem: async (prob: LibraryProblem) => {
+				console.log(prob);
 				const set_id = store.state.app_state.library_state.target_set_id;
 				const course_id = store.state.session.course.course_id;
 				if (set_id > 0) {
 					await store.dispatch('problem_sets/addSetProblem', { course_id,
-						problem: {
-							set_id,
-							problem_params: params
-						}
+						problem: prob
 					});
 				}
-				logger.debug(`[LibPanelOPL/addProblem] set_id: ${set_id}; adding: ${JSON.stringify(params)}`);
+				const problem_info = JSON.stringify(prob.problem_params);
+				logger.debug(`[LibPanelOPL/addProblem] set_id: ${set_id}; adding: ${problem_info}`);
 			}
 		};
 	},

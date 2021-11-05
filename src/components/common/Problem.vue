@@ -104,7 +104,6 @@ export default defineComponent({
 			'';
 
 		watch(() => props.library_problem, () => {
-			logger.debug('problem is updated');
 			problem.value = props.library_problem as LibraryProblem;
 		}, { deep: true });
 
