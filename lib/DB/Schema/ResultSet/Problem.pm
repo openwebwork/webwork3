@@ -33,9 +33,10 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 
 sub getGlobalProblems {
 	my ($self, $as_result_set) = @_;
-	my @problems = $self->search( {},
+	my @problems = $self->search(
+		{},
 		{
-			join => 'problem_set',
+			join      => 'problem_set',
 			'+select' => ['problem_set.set_name'],
 		}
 	);
@@ -87,7 +88,9 @@ sub getProblems {
 		$self->search({ 'problem_set.course_id' => $course->course_id }, { prefetch => [qw/problem_set/] });
 
 	return \@problems if $as_result_set;
-	return map { {$_->get_inflated_columns}; } @problems;
+	return map {
+		{ $_->get_inflated_columns };
+	} @problems;
 }
 
 sub getSetProblems {
@@ -185,8 +188,8 @@ update a single problem in a problem set within a course
 
 sub updateSetProblem {
 	my ($self, $course_set_problem_info, $new_problem_params, $as_result_set) = @_;
-	my $problem = $self->getSetProblem($course_set_problem_info,1);
-	my $params = updateAllFields({$problem->get_inflated_columns}, $new_problem_params);
+	my $problem = $self->getSetProblem($course_set_problem_info, 1);
+	my $params  = updateAllFields({ $problem->get_inflated_columns }, $new_problem_params);
 
 	## check that the new params are valid:
 	my $updated_problem = $self->new($params);
@@ -195,7 +198,6 @@ sub updateSetProblem {
 	my $up_problem = $problem->update($params);
 	return $as_result_set ? $up_problem : { $up_problem->get_inflated_columns };
 }
-
 
 =head2 deleteSetProblem
 

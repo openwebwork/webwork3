@@ -43,7 +43,7 @@ my $schema =
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 
-my $problem_rs = $schema->resultset("Problem");
+my $problem_rs     = $schema->resultset("Problem");
 my $problem_set_rs = $schema->resultset("ProblemSet");
 
 # load all problems from the CVS files
@@ -60,7 +60,7 @@ my @precalc_problems1 = grep { $_->{set_name} eq "HW #1" } @precalc_problems;
 
 for my $problem (@problems_from_csv) {
 	$problem->{problem_version} = 1 unless defined($problem->{problem_version});
-	$problem->{problem_params} = clone($problem->{params});
+	$problem->{problem_params}  = clone($problem->{params});
 	for my $key (qw/course_name params/) {
 		delete $problem->{$key};
 	}
@@ -91,7 +91,6 @@ is_deeply(\@precalc_problems, \@precalc_problems_from_db, "getProblems: get all 
 ## get all problems in one course from one set.
 
 my @set_problems1 = $problem_rs->getSetProblems({ course_name => "Precalculus", set_name => "HW #1" });
-
 
 for my $problem (@set_problems1) {
 	removeIDs($problem);
@@ -132,9 +131,9 @@ is_deeply($expected_problem, $set_problem, "getSetProblem: get a single problem 
 
 my $new_problem = {
 	problem_number => 4,
-	problem_params         => {
+	problem_params => {
 		library_problem_id => 13245,
-		weight     => 1
+		weight             => 1
 	}
 };
 
@@ -159,7 +158,7 @@ my $updated_params = {
 	}
 };
 
-my $all_params = updateAllFields( $new_problem, $updated_params);
+my $all_params      = updateAllFields($new_problem, $updated_params);
 my $updated_problem = $problem_rs->updateSetProblem(
 	{
 		course_name => "Precalculus",
@@ -172,7 +171,7 @@ removeIDs($updated_problem);
 
 $all_params->{problem_version} = 1 unless defined $all_params->{problem_version};
 
-is_deeply($all_params,$updated_problem, "updateProblem: update a problem");
+is_deeply($all_params, $updated_problem, "updateProblem: update a problem");
 
 ## delete a problem from a set
 

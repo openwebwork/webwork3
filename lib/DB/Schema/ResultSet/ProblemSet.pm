@@ -81,7 +81,7 @@ sub getHWSets {
 	$search_params->{'me.type'} = 1;                    # set the type to search for.
 
 	my $problem_sets = $self->search($search_params, { prefetch => ["courses"] });
-	my $sets    = _formatSets($problem_sets);
+	my $sets         = _formatSets($problem_sets);
 	return $as_result_set ? $problem_sets : @$sets;
 }
 
@@ -97,7 +97,7 @@ sub getQuizzes {
 	$search_params->{'me.type'} = 2;                    # set the type to search for.
 
 	my $problem_sets = $self->search($search_params, { prefetch => ["courses"] });
-	my $sets    = _formatSets($problem_sets);
+	my $sets         = _formatSets($problem_sets);
 	return $as_result_set ? $problem_sets : @$sets;
 }
 
@@ -113,10 +113,9 @@ sub getReviewSets {
 	$search_params->{'me.type'} = 3;                    # set the type to search for.
 
 	my $problem_sets = $self->search($search_params, { prefetch => ["courses"] });
-	my $sets    = _formatSets($problem_sets);
+	my $sets         = _formatSets($problem_sets);
 	return $as_result_set ? $problem_sets : @$sets;
 }
-
 
 =head2 getProblemSet
 
@@ -291,7 +290,6 @@ sub _course_rs {
 sub _problem_rs {
 	return shift->result_source->schema->resultset("Problem");
 }
-
 
 sub _formatSets {
 	my $problem_sets = shift;
