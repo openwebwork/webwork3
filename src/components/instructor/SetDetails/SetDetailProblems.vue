@@ -4,7 +4,7 @@
 			class="dragArea list-group w-full"
 			handle=".move-handle"
 			v-model="problems"
-			@change="log">
+			@change="reorderProblems">
 			<problem
 				v-for="(problem,index) in problems"
 				:key="problem.id"
@@ -51,7 +51,6 @@ export default defineComponent({
 		const updateProblemSet = () => {
 			problems.value = sortBy(store.state.problem_sets.problems
 				.filter(set => set.set_id === local_set_id.value), (prob: LibraryProblem) => prob.problem_number);
-			console.log(problems.value.map(p=>({ num: p.problem_number, id: p.problem_id })));
 			problem_set.value = store.state.problem_sets.problem_sets
 				.find(set => set.set_id === local_set_id.value) || new ProblemSet();
 		};
@@ -63,9 +62,8 @@ export default defineComponent({
 			problem_set,
 			local_set_id,
 			problems,
-			log: () => {
+			reorderProblems: () => {
 				problems.value.forEach((prob, i) => {
-					console.log([prob.problem_number, i+1]);
 					if (prob.problem_number !== i+1) {
 						void store.dispatch('problem_sets/updateSetProblem',
 							{ prob, props: { problem_number: i+1 } });

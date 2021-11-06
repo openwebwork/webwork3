@@ -3,17 +3,20 @@ import { Commit } from 'vuex';
 import { StateInterface } from '@/store';
 import { isEqual } from 'lodash-es';
 
-import { parseProblemSet, ProblemSet, ParseableProblemSet } from '@/store/models/problem_sets';
+import { parseProblemSet, ProblemSet, ParseableProblemSet, UserSet } from
+	'@/store/models/problem_sets';
 import { LibraryProblem, ParseableLibraryProblem } from '@/store/models/library';
 
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;
 	problems: Array<LibraryProblem>;
+	user_sets: Array<UserSet>;
 }
 
 const initial_state = {
 	problem_sets: [],
-	problems: []
+	problems: [],
+	user_sets: []
 };
 
 export default {
@@ -66,6 +69,14 @@ export default {
 			const problem = response.data as LibraryProblem;
 			// TODO: check for errors
 			commit('UPDATE_SET_PROBLEM', problem);
+		},
+		async fetchUserSets({ commit }: { commit: Commit },
+			params: {course_id: number, set_id: number }): Promise<void> {
+			const url = `courses/${params.course_id}/sets/${params.set_id}/users`;
+			const response = await api.get(url);
+			const user_sets = response.data as Array<UserSet>;
+			// TODO: check for errors
+			commit('SET_USER_SETS', user_sets);
 		}
 	},
 	mutations: {
@@ -85,6 +96,9 @@ export default {
 		UPDATE_SET_PROBLEM(state: ProblemSetState, _problem: LibraryProblem): void {
 			const index = state.problems.findIndex(prob => prob.problem_id === _problem.problem_id);
 			state.problems[index] = _problem;
+		},
+		SET_USER_SETS(state: ProblemSetState, _user_sets: Array<UserSet>): void {
+			state.user_sets = _user_sets;
 		}
 	}
 };

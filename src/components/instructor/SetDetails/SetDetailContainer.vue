@@ -18,8 +18,7 @@
 				<set-detail-problems :set_id="set_id"/>
 			</q-tab-panel>
 			<q-tab-panel name="users">
-				<div class="text-h6">Mails</div>
-				Lorem ipsum dolor sit amet consectetur adipisicing elit.
+				<set-users/>
 			</q-tab-panel>
 		</q-tab-panels>
 	</div>
@@ -29,6 +28,7 @@
 import { defineComponent, ref, Ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import SetDetailProblems from './SetDetailProblems.vue';
+import SetUsers from './SetUsers.vue';
 
 export default defineComponent({
 	name: 'SetDetailContainer',
@@ -36,7 +36,8 @@ export default defineComponent({
 		set_id: String
 	},
 	components: {
-		SetDetailProblems
+		SetDetailProblems,
+		SetUsers
 	},
 	setup() {
 		const router = useRouter();

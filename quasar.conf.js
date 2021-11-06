@@ -54,7 +54,7 @@ module.exports = configure(function (ctx) {
 
 				chain.plugin('nodePolyfills').use(NodePolyfillPlugin);
 				/* allow paths to start with @/ */
-				chain.resolve.alias.set('@', path.resolve(__dirname, './src'))
+				chain.resolve.alias.set('@', path.resolve(__dirname, './src'));
 
 				if (ctx.prod) {
 					chain.plugin('copy-webpack')
@@ -93,7 +93,7 @@ module.exports = configure(function (ctx) {
 		devServer: {
 			https: false,
 			port: 8080,
-			open: true, // opens browser window automatically,
+			open: false, // opens browser window automatically,
 			proxy: {
 				'/webwork3/api': 'http://localhost:3000',
 				'/renderer': 'http://localhost:3001',

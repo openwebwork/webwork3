@@ -284,3 +284,25 @@ export function parseProblemSet(set: ParseableProblemSet) {
 		throw `The problem set type '${set?.set_type || ''}' is not valid.'`;
 	}
 }
+
+export interface ParseableUserSet {
+	user_set_id?: number | string;
+	set_id?: number | string;
+	course_user_id?: number | string;
+	set_version?: number | string;
+}
+
+export class UserSet extends Model(
+	[], ['user_set_id', 'set_id', 'course_user_id', 'set_version'], [],
+	['set_dates', 'set_params'],
+	 {
+		user_set_id: { field_type: 'non_neg_int' },
+		set_id: { field_type: 'non_neg_int' },
+		course_user_id: { field_type: 'non_neg_int' },
+		set_version: { field_type: 'non_neg_int' },
+	}) {
+
+	constructor(params: ParseableUserSet = {}) {
+		super(params as ParseableModel);
+	}
+}

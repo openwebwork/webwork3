@@ -14,7 +14,7 @@ export interface UserState {
 	users: Array<User>;
 	user_courses: Array<UserCourse>;
 	course_users: Array<CourseUser>;
-	 merged_users: Array<MergedUser>;
+	merged_users: Array<MergedUser>;
 }
 
 export default {
@@ -22,8 +22,9 @@ export default {
 	state: {
 		users: [],
 		course_users: [],
-		 merged_users: [],
-		user_courses: []
+		merged_users: [],
+		user_courses: [],
+		set_users: []
 	},
 	getters: {
 		user_courses(state: UserState): Array<UserCourse> {
