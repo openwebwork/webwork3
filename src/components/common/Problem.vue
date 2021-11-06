@@ -4,7 +4,7 @@
 			<q-btn-group push>
 				<q-btn size="sm" push icon="add" @click="$emit('addProblem')" />
 				<q-btn size="sm" push icon="edit" />
-				<q-btn size="sm" push icon="shuffle" />
+				<q-btn size="sm" push icon="shuffle" @click="randomize"/>
 			</q-btn-group>
 		</q-card-section>
 
@@ -45,13 +45,13 @@
 <script lang="ts">
 import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
 import type { Ref } from 'vue';
-import type { SubmitButton } from 'src/typings/renderer';
-import { fetchProblem } from 'src/APIRequests/renderer';
+import type { SubmitButton } from '@/typings/renderer';
+import { fetchProblem } from '@/APIRequests/renderer';
 import { RENDER_URL } from '@/constants';
 import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
 import JQuery from 'jquery';
-import { logger } from 'src/boot/logger';
+import { logger } from '@/boot/logger';
 
 import typeset from './mathjax-config';
 import { LibraryProblem } from '@/store/models/library';
@@ -106,6 +106,21 @@ export default defineComponent({
 			problem.value = props.library_problem as LibraryProblem;
 			file.value = problem.value.problem_params.file_path;
 		}, { deep: true });
+
+		const randomize = () => {
+			const new_seed = Math.round(100000*Math.random());
+			logger.debug(`rerandomizing problem with seed ${new_seed}`);
+			void loadProblem(RENDER_URL, new FormData(), {
+				// We should not be overriding these on the frontend.
+				problemSeed: `${new_seed}`,
+				sourceFilePath: file.value,
+				outputFormat: 'ww3',
+				showPreviewButton: '1',
+				showCheckAnswersButton: '1',
+				showCorrectAnswersButton: '1',
+				answerPrefix: props.problemPrefix
+			});
+		};
 
 		const loadResource = async (src: string, id?: string) => {
 			return new Promise<void>((resolve, reject) => {
@@ -167,8 +182,7 @@ export default defineComponent({
 				return;
 			}
 
-			const { renderedHTML, js, css, renderError }
-			= await fetchProblem(url, formData, overrides);
+			const { renderedHTML, js, css, renderError } = await fetchProblem(url, formData, overrides);
 
 			if (!renderedHTML || !renderedHTML.problemText) {
 				clearUI();
@@ -324,7 +338,8 @@ export default defineComponent({
 			answerTemplateDiv,
 			submitButtons,
 			submitButton,
-			problem
+			problem,
+			randomize
 		};
 	}
 });
