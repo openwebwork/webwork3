@@ -1,12 +1,19 @@
 /* This file contains common functions and constants needs for general use */
 
 import { date } from 'quasar';
+import { HomeworkSetDates } from './store/models/problem_sets';
 
-export function formatDate(_date_to_format: string) {
+export function formatDate(_date_to_format: string | number) {
 	const _date = new Date();
-	_date.setTime(parseInt(_date_to_format) * 1000); //js dates have milliseconds instead of standard unix epoch
+	_date.setTime(parseInt(`${_date_to_format}`) * 1000); //js dates have milliseconds instead of standard unix epoch
 	return date.formatDate(_date, 'MM-DD-YYYY [at] h:mmA'); // have the format changeable?
 }
+
+export const checkHWDates = (dates: HomeworkSetDates, enable_reduced_scoring?: boolean) =>
+	enable_reduced_scoring && dates.reduced_scoring ?
+		(dates.open <= dates.reduced_scoring && dates.reduced_scoring <= dates.due  && dates.due <= dates.answer) :
+		(dates.open <= dates.due && dates.due <= dates.answer) ||
+		'The dates must be in order';
 
 export interface ViewInfo {
 	name: string;

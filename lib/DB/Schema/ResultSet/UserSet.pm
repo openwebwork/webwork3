@@ -104,8 +104,10 @@ sub getUserSet {
 	my ($self, $user_set_info, $as_result_set) = @_;
 
 	my $problem_set = $self->_getProblemSet($user_set_info);
-	my $user        = $self->_getUser($user_set_info);
 	my $course_user = $self->_getCourseUser($user_set_info);
+	my $user = $course_user->users;
+
+	print Dumper {$user->get_inflated_columns};
 
 	my $user_set = $self->find(
 		{
@@ -170,8 +172,12 @@ update a single UserSet for a given course, user, and ProblemSet
 
 sub updateUserSet {
 	my ($self, $user_set_info, $user_set_params, $as_result_set) = @_;
+	print Dumper $user_set_info;
+	print Dumper $user_set_params;
 
 	my $user_set = $self->getUserSet($user_set_info, 1);
+
+	print Dumper { $user_set->get_inflated_columns};
 
 	DB::Exception::UserSetNotInCourse->throw(
 		set_name    => $user_set_info->{set_name},
@@ -180,14 +186,18 @@ sub updateUserSet {
 	) unless defined($user_set);
 
 	## only allow params and dates to be updated
-	for my $field (keys %$user_set_params) {
-		my @allowed_fields = grep { $_ eq $field } qw/set_params set_dates/;
-		DB::Exception::InvalidParameter->throw(field_names => $field)
-			unless scalar(@allowed_fields) == 1;
-	}
+	# for my $field (keys %$user_set_params) {
+	# 	my @allowed_fields = grep { $_ eq $field } qw/set_params set_dates/;
+	# 	DB::Exception::InvalidParameter->throw(
+	# 		message => "The field $field is not allowed"
+	# 	) unless scalar(@allowed_fields) == 1;
+	# }
 
-	my $problem_set = $self->_getProblemSet($user_set_info);
-	my $user        = $self->_getUser($user_set_info);
+
+
+	my $problem_set = $self->_problem_set_rs->find({set_id => $user_set->set_id});
+	my $user        = $self->_course_user_rs
+		->find({course_user_id => $user_set->course_user_id})->users;
 
 	## make sure the parameters and dates are valid.
 	my $new_user_set = $self->new($user_set_params);
@@ -197,11 +207,8 @@ sub updateUserSet {
 
 	my $updated_user_set = $user_set->update($user_set_params);
 
-	## update not getting all values, so get the user_set
-	my $s = $self->find({ user_set_id => $user_set->user_set_id });
-
 	return $updated_user_set if $as_result_set;
-	return _mergeUserSet($problem_set, $s, $user);
+	return _mergeUserSet($problem_set, $updated_user_set, $user);
 }
 
 =head2 deleteUserSet
@@ -248,6 +255,12 @@ sub _user_rs {
 	return shift->result_source->schema->resultset("User");
 }
 
+# return the User resultset
+sub _course_user_rs {
+	return shift->result_source->schema->resultset("CourseUser");
+}
+
+
 # return the course/set info given the user_set_info is passed in
 
 sub _getProblemSet {
@@ -261,6 +274,7 @@ sub _getProblemSet {
 sub _getUser {
 	my ($self, $info) = @_;
 	my $user_info = { %{ getCourseInfo($info) }, %{ getUserInfo($info) } };
+	print Dumper $user_info;
 	return $self->_user_rs->getUser($user_info, 1);
 }
 
@@ -275,6 +289,12 @@ sub _getCourse {
 
 sub _getCourseUser {
 	my ($self, $info) = @_;
+	print Dumper $info;
+
+	if ($info->{course_user_id}) {
+		return $self->result_source->schema->resultset("CourseUser")
+			->find({ course_user_id => $info->{course_user_id} });
+	}
 	my $course = $self->_getCourse($info);
 	my $user   = $self->_getUser(
 		{

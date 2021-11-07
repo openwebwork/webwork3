@@ -29,19 +29,26 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, watch, ref, Ref } from 'vue';
+import { defineComponent, watch, ref, computed } from 'vue';
+import type { Ref } from 'vue';
 import { date } from 'quasar';
 
 export default defineComponent({
 	name: 'DateTimeInput',
 	props: {
-		modelValue: Number,
-		rules: Array
+		modelValue: {
+			type: Number,
+			required: true
+		},
+		validation: {
+			type: Array,
+			required: true
+		}
 	},
 	emits: ['update:modelValue'],
 	setup (props, { emit }) {
 		const date_string: Ref<string>
-			= ref(date.formatDate((props.modelValue || Date.now())*1000, 'YYYY-MM-DD HH:mm'));
+			= ref(date.formatDate((props.modelValue*1000 || Date.now()), 'YYYY-MM-DD HH:mm'));
 
 		watch(
 			() => date_string.value,
@@ -50,9 +57,9 @@ export default defineComponent({
 				emit('update:modelValue', d.getTime() / 1000);
 			}
 		);
-
 		return {
-			date_string
+			date_string,
+			rules: computed(() => props.validation as Array<(val: string)=>boolean>)
 		};
 	}
 });

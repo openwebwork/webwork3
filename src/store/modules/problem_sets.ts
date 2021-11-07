@@ -3,20 +3,20 @@ import { Commit } from 'vuex';
 import { StateInterface } from '@/store';
 import { isEqual } from 'lodash-es';
 
-import { parseProblemSet, ProblemSet, ParseableProblemSet, UserSet } from
-	'@/store/models/problem_sets';
+import { parseProblemSet, ProblemSet, ParseableProblemSet, MergedUserSet,
+	ParseableMergedUserSet, UserSet } from '@/store/models/problem_sets';
 import { LibraryProblem, ParseableLibraryProblem } from '@/store/models/library';
 
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;
 	problems: Array<LibraryProblem>;
-	user_sets: Array<UserSet>;
+	merged_user_sets: Array<MergedUserSet>;
 }
 
 const initial_state = {
 	problem_sets: [],
 	problems: [],
-	user_sets: []
+	merged_user_sets: []
 };
 
 export default {
@@ -28,6 +28,9 @@ export default {
 		},
 		problems(state: ProblemSetState): Array<LibraryProblem> {
 			return state.problems;
+		},
+		merged_user_sets(state: ProblemSetState): Array<MergedUserSet> {
+			return state.merged_user_sets;
 		}
 	},
 	actions: {
@@ -70,13 +73,22 @@ export default {
 			// TODO: check for errors
 			commit('UPDATE_SET_PROBLEM', problem);
 		},
-		async fetchUserSets({ commit }: { commit: Commit },
+		async fetchMergedUserSets({ commit }: { commit: Commit },
 			params: {course_id: number, set_id: number }): Promise<void> {
 			const url = `courses/${params.course_id}/sets/${params.set_id}/users`;
 			const response = await api.get(url);
-			const user_sets = response.data as Array<UserSet>;
+			const user_sets = response.data as Array<ParseableMergedUserSet>;
 			// TODO: check for errors
-			commit('SET_USER_SETS', user_sets);
+			commit('SET_MERGED_USER_SETS', user_sets.map(_set => new MergedUserSet(_set)));
+		},
+		async updateUserSet({ commit, rootState }: { commit: Commit; rootState: StateInterface },
+			_set: UserSet) {
+			const course_id = rootState.session.course.course_id;
+			const url =`courses/${course_id}/sets/${_set.set_id ?? 0}/users/${_set.course_user_id ?? 0}`;
+			const response = await api.put(url, _set.toObject());
+			const updated_user_set = response.data as ParseableMergedUserSet;
+			// TODO: check for errors
+			commit('UPDATE_MERGED_USER_SET', new MergedUserSet(updated_user_set));
 		}
 	},
 	mutations: {
@@ -97,8 +109,13 @@ export default {
 			const index = state.problems.findIndex(prob => prob.problem_id === _problem.problem_id);
 			state.problems[index] = _problem;
 		},
-		SET_USER_SETS(state: ProblemSetState, _user_sets: Array<UserSet>): void {
-			state.user_sets = _user_sets;
+		SET_MERGED_USER_SETS(state: ProblemSetState, _merged_user_sets: Array<MergedUserSet>): void {
+			state.merged_user_sets = _merged_user_sets;
+		},
+		UPDATE_MERGED_USER_SET(state: ProblemSetState, _user_set: MergedUserSet) {
+			const index = state.merged_user_sets
+				.findIndex((s: MergedUserSet) => s.course_user_id === _user_set.course_user_id);
+			state.merged_user_sets[index] = _user_set;
 		}
 	}
 };

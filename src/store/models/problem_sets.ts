@@ -290,19 +290,69 @@ export interface ParseableUserSet {
 	set_id?: number | string;
 	course_user_id?: number | string;
 	set_version?: number | string;
+	set_params?: Dictionary<generic>;
+	set_dates?: Dictionary<generic>;
 }
 
 export class UserSet extends Model(
 	[], ['user_set_id', 'set_id', 'course_user_id', 'set_version'], [],
-	['set_dates', 'set_params'],
-	 {
+	['set_dates', 'set_params'], {
 		user_set_id: { field_type: 'non_neg_int' },
 		set_id: { field_type: 'non_neg_int' },
 		course_user_id: { field_type: 'non_neg_int' },
-		set_version: { field_type: 'non_neg_int' },
+		set_version: { field_type: 'non_neg_int' }
 	}) {
+
+	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_dates', 'set_params'];
 
 	constructor(params: ParseableUserSet = {}) {
 		super(params as ParseableModel);
+		this.set_dates = params.set_dates ?? {};
+		this.set_params = params.set_params ?? {};
+
 	}
+
+	isValid() { // check the dates are valid
+		const d = this.set_dates;
+		if (d && d.open && d.reduced_scoring && d.due && d.answer) {
+			return d.open <= d.reduced_scoring && d.reduced_scoring <= d.due && d.due <= d.answer;
+		} else if (d && d.open && d.due && d.answer) {
+			return d.open <= d.due && d.due <= d.answer;
+		} else if (d && d.open && d.closed) {
+			return d.open <= d.closed;
+		}
+		return false;
+	}
+}
+
+export type ParseableMergedUserSet = ParseableProblemSet & ParseableUserSet;
+
+// ['set_visible'], ['set_id', 'course_id'], ['set_type', 'set_name'],
+// ['set_params', 'set_dates']
+
+export class MergedUserSet extends Model(
+	['set_visible'], ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'course_id'],
+	['set_type', 'set_name', 'username'], ['set_dates', 'set_params'],
+	{
+		set_visible: { field_type: 'boolean', default_value: false },
+		user_set_id: { field_type: 'non_neg_int' },
+		set_id: { field_type: 'non_neg_int' },
+		course_user_id: { field_type: 'non_neg_int' },
+		course_id: { field_type: 'non_neg_int' },
+		set_version: { field_type: 'non_neg_int' },
+		set_type: { field_type: 'string' },
+		set_name: { field_type: 'string' },
+		username: { field_type: 'username' }
+	}
+	 ) {
+
+	set_params = {};
+	set_dates = {};
+
+	constructor(params: ParseableMergedUserSet = {}) {
+		super(params as ParseableModel);
+		this.set_dates = params.set_dates ?? {};
+		this.set_params = params.set_params ?? {};
+	}
+
 }

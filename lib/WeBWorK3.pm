@@ -134,6 +134,7 @@ sub problemSetRoutes ($self) {
 	$problem_set_routes->post('/')->to(action => 'addProblemSet');
 	$problem_set_routes->delete('/:set_id')->to(action => 'deleteProblemSet');
 	$problem_set_routes->get('/:set_id/users')->to(action => 'getUserSets');
+	$problem_set_routes->put('/:set_id/users/:course_user_id')->to(action => 'updateUserSet');
 	return;
 }
 
