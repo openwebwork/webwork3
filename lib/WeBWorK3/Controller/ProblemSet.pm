@@ -74,11 +74,14 @@ sub getUserSets ($self) {
 }
 
 sub updateUserSet ($self) {
-	my $updated_user_set = $self->schema->resultset("UserSet")->updateUserSet({
-		course_id      => int($self->param("course_id")),
-		set_id         => int($self->param("set_id")),
-		course_user_id => int($self->param("course_user_id"))
-	}, $self->req->json);
+	my $updated_user_set = $self->schema->resultset("UserSet")->updateUserSet(
+		{
+			course_id      => int($self->param("course_id")),
+			set_id         => int($self->param("set_id")),
+			course_user_id => int($self->param("course_user_id"))
+		},
+		$self->req->json
+	);
 	$self->render(json => $updated_user_set);
 	return;
 }

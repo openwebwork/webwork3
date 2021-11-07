@@ -105,9 +105,9 @@ sub getUserSet {
 
 	my $problem_set = $self->_getProblemSet($user_set_info);
 	my $course_user = $self->_getCourseUser($user_set_info);
-	my $user = $course_user->users;
+	my $user        = $course_user->users;
 
-	print Dumper {$user->get_inflated_columns};
+	print Dumper { $user->get_inflated_columns };
 
 	my $user_set = $self->find(
 		{
@@ -177,7 +177,7 @@ sub updateUserSet {
 
 	my $user_set = $self->getUserSet($user_set_info, 1);
 
-	print Dumper { $user_set->get_inflated_columns};
+	print Dumper { $user_set->get_inflated_columns };
 
 	DB::Exception::UserSetNotInCourse->throw(
 		set_name    => $user_set_info->{set_name},
@@ -193,11 +193,8 @@ sub updateUserSet {
 	# 	) unless scalar(@allowed_fields) == 1;
 	# }
 
-
-
-	my $problem_set = $self->_problem_set_rs->find({set_id => $user_set->set_id});
-	my $user        = $self->_course_user_rs
-		->find({course_user_id => $user_set->course_user_id})->users;
+	my $problem_set = $self->_problem_set_rs->find({ set_id         => $user_set->set_id });
+	my $user        = $self->_course_user_rs->find({ course_user_id => $user_set->course_user_id })->users;
 
 	## make sure the parameters and dates are valid.
 	my $new_user_set = $self->new($user_set_params);
@@ -259,7 +256,6 @@ sub _user_rs {
 sub _course_user_rs {
 	return shift->result_source->schema->resultset("CourseUser");
 }
-
 
 # return the course/set info given the user_set_info is passed in
 
