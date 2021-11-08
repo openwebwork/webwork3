@@ -36,6 +36,7 @@ export interface ParseableProblemSet {
 	course_id?: string | number;
 	set_type?: string;
 	set_visible?: string | number | boolean;
+	set_version?: string | number;
 	set_params?: ProblemSetParams;
 	// set_params?: Dictionary<generic>;
 	set_dates?: ProblemSetDates;
@@ -43,11 +44,12 @@ export interface ParseableProblemSet {
 }
 
 export class ProblemSet extends Model(
-	['set_visible'], ['set_id', 'course_id'], ['set_type', 'set_name'],
+	['set_visible'], ['set_id', 'course_id', 'set_version'], ['set_type', 'set_name'],
 	['set_params', 'set_dates'],
 	{
 		set_type: { field_type: 'string', default_value: 'UNKNOWN' },
 		set_id: { field_type: 'non_neg_int', default_value: 0 },
+		set_version: { field_type: 'non_neg_int', default_value: 1 },
 		set_name: { field_type: 'string' },
 		course_id: { field_type: 'non_neg_int', default_value: 0 },
 		set_visible: { field_type: 'boolean', default_value: false },

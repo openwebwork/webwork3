@@ -3,9 +3,10 @@
 		title="Assign Users and Override Set Parameters"
 		:rows="merged_user_sets"
 		:columns="columns"
-		row-key="user_id"
+		:filter="filter"
+		v-model:selected="to_unassign"
 		selection="multiple"
-		v-model:selected="assigned"
+		row-key="user_id"
 	>
 		<template v-slot:body-cell-edit_dates="props">
 			<q-td :props="props">
@@ -16,7 +17,25 @@
 					/>
 			</q-td>
 		</template>
+
+		<template v-slot:top-right>
+			<span style="padding-right:1em">
+				<q-btn v-if="to_unassign.length>0"
+					size="sm" color="primary" label="Unassign Selected Users"
+					@click="unassignFromSet" />
+				<q-btn v-else
+					size="sm" color="primary" label="Assign to all Users"
+					@click="assignToAllUsers" />
+			</span>
+			<q-input outlined dense debounce="300" v-model="filter" placeholder="Search">
+				<template v-slot:append>
+					<q-icon name="search" />
+				</template>
+			</q-input>
+		</template>
 	</q-table>
+
+	<!-- Dialog that popups for editing dates -->
 	<q-dialog v-model="edit_dialog">
 			<q-card>
 				<q-card-section>
@@ -48,7 +67,6 @@ import { useRoute } from 'vue-router';
 import { assign, clone, pick } from 'lodash-es';
 
 import { logger } from '@/boot/logger';
-import { MergedUser } from '@/store/models/users';
 import { HomeworkSetDates, MergedUserSet, ProblemSet, UserSet } from '@/store/models/problem_sets';
 import { parseNonNegInt, Dictionary } from '@/store/models';
 import { formatDate } from '@/common';
@@ -72,8 +90,9 @@ export default defineComponent({
 		const store = useStore();
 		const route = useRoute();
 
-		const assigned: Ref<Array<MergedUser>> = ref([]);
 		const problem_set: Ref<ProblemSet> = ref(new ProblemSet());
+
+		// This is needed for editing dates of a single user
 		const merged_user_set: Ref<MergedUserSet> = ref(new MergedUserSet());
 		const columns: Array<Column> = [
 			{ name: 'first_name', label: 'First Name', field: 'first_name' },
@@ -82,6 +101,7 @@ export default defineComponent({
 		];
 		const edit_dialog: Ref<boolean> = ref(false);
 		const date_edit: Ref<Dictionary<number>> = ref({});
+		const to_unassign: Ref<Array<MergedUserSet>> = ref([]);
 
 		const updateProblemSet = () => {
 			if (route.params.set_id) {
@@ -115,11 +135,6 @@ export default defineComponent({
 		updateProblemSet();
 		watch([store.state.problem_sets.merged_user_sets], updateProblemSet);
 
-		// fill the assigned array with users that have been assigned to the set
-		assigned.value = store.state.users.merged_users.filter(
-			user => store.state.problem_sets.merged_user_sets
-				.findIndex(_user_set => _user_set.course_user_id === user.course_user_id) > -1
-		);
 		return {
 			columns,
 			users: computed(() => store.state.users.merged_users),
@@ -133,9 +148,10 @@ export default defineComponent({
 						_user.toObject();
 				})
 			),
-			assigned,
 			edit_dialog,
 			date_edit,
+			filter: ref(''),
+			to_unassign,
 			formatDate,
 			saveOverrides: async () => {
 				logger.debug('closing the overrides dialog');
@@ -160,6 +176,53 @@ export default defineComponent({
 				updateMergedUserSet(course_user_id);
 				date_edit.value = clone(merged_user_set.value.set_dates);
 				edit_dialog.value = true;
+			},
+			assignToAllUsers: async () => {
+				// find users not assigned.
+				const users_to_assign = store.state.users.merged_users.filter(_merged_user => {
+					return store.state.problem_sets.merged_user_sets
+						.findIndex(_user_set => _user_set.course_user_id === _merged_user.course_user_id) < 0;
+				});
+				for(const _user of users_to_assign) {
+					const _user_set = new UserSet({
+						set_id: problem_set.value.set_id,
+						course_user_id: _user.course_user_id,
+						set_version: problem_set.value.set_version
+					});
+					try {
+						await store.dispatch('problem_sets/addUserSet', _user_set);
+						$q.notify({
+							message: `The user ${_user.username ?? ''} has been assigned to `
+								+ `${problem_set.value.set_name ?? ''}`,
+							color: 'green'
+						});
+					} catch (err) {
+						const error = err as ResponseError;
+						$q.notify({ message: error.message, color: 'red' });
+					}
+
+				}
+			},
+			unassignFromSet: async () => {
+				const usernames = to_unassign.value.map(_user => _user.username);
+				const conf = confirm(`Do you want to unassign the following users: ${usernames.join(', ')}`
+					+ '? There is no undo for this.');
+				if (conf) {
+					for(const user of to_unassign.value) {
+						try {
+							await store.dispatch('problem_sets/deleteUserSet',
+								new UserSet(pick(user, UserSet.ALL_FIELDS)));
+							$q.notify({
+								message: `The user ${user.username ?? ''} has been unassigned from `
+									+ `${problem_set.value.set_name ?? ''}`,
+								color: 'green'
+							});
+						} catch (err) {
+							const error = err as ResponseError;
+							$q.notify({ message: error.message, color: 'red' });
+						}
+					}
+				}
 			}
 		};
 	},

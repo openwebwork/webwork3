@@ -81,6 +81,15 @@ export default {
 			// TODO: check for errors
 			commit('SET_MERGED_USER_SETS', user_sets.map(_set => new MergedUserSet(_set)));
 		},
+		async addUserSet({ commit, rootState }: { commit: Commit; rootState: StateInterface },
+			_set: UserSet) {
+			const course_id = rootState.session.course.course_id;
+			const url =`courses/${course_id}/sets/${_set.set_id ?? 0}/users`;
+			const response = await api.post(url, _set.toObject());
+			const updated_user_set = response.data as ParseableMergedUserSet;
+			// TODO: check for errors
+			commit('ADD_MERGED_USER_SET', new MergedUserSet(updated_user_set));
+		},
 		async updateUserSet({ commit, rootState }: { commit: Commit; rootState: StateInterface },
 			_set: UserSet) {
 			const course_id = rootState.session.course.course_id;
@@ -89,7 +98,16 @@ export default {
 			const updated_user_set = response.data as ParseableMergedUserSet;
 			// TODO: check for errors
 			commit('UPDATE_MERGED_USER_SET', new MergedUserSet(updated_user_set));
-		}
+		},
+		async deleteUserSet({ commit, rootState }: { commit: Commit; rootState: StateInterface },
+			_set: UserSet) {
+			const course_id = rootState.session.course.course_id;
+			const url =`courses/${course_id}/sets/${_set.set_id ?? 0}/users/${_set.course_user_id ?? 0}`;
+			const response = await api.delete(url, _set.toObject());
+			const updated_user_set = response.data as ParseableMergedUserSet;
+			// TODO: check for errors
+			commit('DELETE_MERGED_USER_SET', new MergedUserSet(updated_user_set));
+		},
 	},
 	mutations: {
 		SET_PROBLEM_SETS(state: ProblemSetState, _problem_sets: Array<ProblemSet>): void {
@@ -112,10 +130,18 @@ export default {
 		SET_MERGED_USER_SETS(state: ProblemSetState, _merged_user_sets: Array<MergedUserSet>): void {
 			state.merged_user_sets = _merged_user_sets;
 		},
+		ADD_MERGED_USER_SET(state: ProblemSetState, _user_set: MergedUserSet) {
+			state.merged_user_sets.push(_user_set);
+		},
 		UPDATE_MERGED_USER_SET(state: ProblemSetState, _user_set: MergedUserSet) {
 			const index = state.merged_user_sets
 				.findIndex((s: MergedUserSet) => s.course_user_id === _user_set.course_user_id);
-			state.merged_user_sets[index] = _user_set;
+			state.merged_user_sets.splice(index, 1, _user_set);
+		},
+		DELETE_MERGED_USER_SET(state: ProblemSetState, _user_set: MergedUserSet) {
+			const index = state.merged_user_sets
+				.findIndex((s: MergedUserSet) => s.course_user_id === _user_set.course_user_id);
+			state.merged_user_sets.splice(index, 1);
 		}
 	}
 };

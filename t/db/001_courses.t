@@ -61,7 +61,6 @@ is_deeply(\@courses_from_db, \@courses, "getCourses: course names");
 
 ## get a single course by name
 
-
 my $course  = $course_rs->getCourse({ course_name => "Calculus" });
 my $calc_id = $course->{course_id};
 delete $course->{course_id};

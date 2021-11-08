@@ -73,8 +73,34 @@ sub getUserSets ($self) {
 	return;
 }
 
+sub addUserSet ($self) {
+	my $new_user_set = $self->schema->resultset("UserSet")->addUserSet(
+		{
+			course_id      => int($self->param("course_id")),
+			set_id         => int($self->param("set_id")),
+			course_user_id => $self->req->json->{course_user_id}
+		},
+		$self->req->json
+	);
+	$self->render(json => $new_user_set);
+	return;
+}
+
 sub updateUserSet ($self) {
 	my $updated_user_set = $self->schema->resultset("UserSet")->updateUserSet(
+		{
+			course_id      => int($self->param("course_id")),
+			set_id         => int($self->param("set_id")),
+			course_user_id => int($self->param("course_user_id"))
+		},
+		$self->req->json
+	);
+	$self->render(json => $updated_user_set);
+	return;
+}
+
+sub deleteUserSet ($self) {
+	my $updated_user_set = $self->schema->resultset("UserSet")->deleteUserSet(
 		{
 			course_id      => int($self->param("course_id")),
 			set_id         => int($self->param("set_id")),

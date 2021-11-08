@@ -129,8 +129,9 @@ sub addUserSet {
 	my ($self, $user_set_info, $user_set_params, $as_result_set) = @_;
 
 	my $problem_set = $self->_getProblemSet($user_set_info);
-	my $user        = $self->_getUser($user_set_info);
 	my $course_user = $self->_getCourseUser($user_set_info);
+
+	my $user = $self->_course_user_rs->find({ course_user_id => $course_user->course_user_id })->users;
 
 	DB::Exception::UserSetExists->throw(
 		username    => $user->username,
@@ -151,7 +152,8 @@ sub addUserSet {
 	my $new_user_set = $self->new($params);
 
 	$new_user_set->validParams($problem_set->type, 'set_params') if $new_user_set->set_params;
-	$new_user_set->validDates($problem_set->type, 'set_dates')   if $new_user_set->set_dates;
+	$new_user_set->validDates($problem_set->type, 'set_dates')
+		if $new_user_set->set_dates && scalar(keys %{ $new_user_set->set_dates }) > 0;
 
 	my $user_set = $problem_set->add_to_user_sets($params);
 
@@ -201,7 +203,7 @@ delete a single UserSet for a given course, user, and ProblemSet
 
 sub deleteUserSet {
 	my ($self, $user_set_info, $user_set_params, $as_result_set) = @_;
-
+	print Dumper $user_set_info;
 	my $user_set = $self->getUserSet($user_set_info, 1);
 
 	DB::Exception::UserSetNotInCourse->throw(
@@ -254,6 +256,9 @@ sub _getProblemSet {
 
 sub _getUser {
 	my ($self, $info) = @_;
+	if ($info->{course_user_id}) {
+		return $self->_course_user_rs->find({ course_user_id => $info->{course_user_id} })->users;
+	}
 	my $user_info = { %{ getCourseInfo($info) }, %{ getUserInfo($info) } };
 	return $self->_user_rs->getUser($user_info, 1);
 }
@@ -274,6 +279,7 @@ sub _getCourseUser {
 		return $self->result_source->schema->resultset("CourseUser")
 			->find({ course_user_id => $info->{course_user_id} });
 	}
+
 	my $course = $self->_getCourse($info);
 	my $user   = $self->_getUser(
 		{

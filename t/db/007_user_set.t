@@ -488,8 +488,7 @@ is_deeply($updated_user_set2, $set3_from_csv, "updateUserSet: update the params"
 
 # try updating an invalid field
 
-
-my $updated_user_set3 =	$user_set_rs->updateUserSet(
+my $updated_user_set3 = $user_set_rs->updateUserSet(
 	{
 		username    => "otto",
 		course_name => "Precalculus",
@@ -501,7 +500,7 @@ my $updated_user_set3 =	$user_set_rs->updateUserSet(
 );
 $set3_from_csv->{set_version} = 2;
 removeIDs($updated_user_set3);
-is_deeply($set3_from_csv,$updated_user_set3, "updateUserSet: update the set version");
+is_deeply($set3_from_csv, $updated_user_set3, "updateUserSet: update the set version");
 
 # try updating an invalid field
 
