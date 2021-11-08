@@ -107,8 +107,6 @@ sub getUserSet {
 	my $course_user = $self->_getCourseUser($user_set_info);
 	my $user        = $course_user->users;
 
-	print Dumper { $user->get_inflated_columns };
-
 	my $user_set = $self->find(
 		{
 			'problem_sets.course_id' => $problem_set->course_id,
@@ -172,26 +170,13 @@ update a single UserSet for a given course, user, and ProblemSet
 
 sub updateUserSet {
 	my ($self, $user_set_info, $user_set_params, $as_result_set) = @_;
-	print Dumper $user_set_info;
-	print Dumper $user_set_params;
-
 	my $user_set = $self->getUserSet($user_set_info, 1);
-
-	print Dumper { $user_set->get_inflated_columns };
 
 	DB::Exception::UserSetNotInCourse->throw(
 		set_name    => $user_set_info->{set_name},
 		course_name => $user_set_info->{course_name},
 		username    => $user_set_info->{username}
 	) unless defined($user_set);
-
-	## only allow params and dates to be updated
-	# for my $field (keys %$user_set_params) {
-	# 	my @allowed_fields = grep { $_ eq $field } qw/set_params set_dates/;
-	# 	DB::Exception::InvalidParameter->throw(
-	# 		message => "The field $field is not allowed"
-	# 	) unless scalar(@allowed_fields) == 1;
-	# }
 
 	my $problem_set = $self->_problem_set_rs->find({ set_id         => $user_set->set_id });
 	my $user        = $self->_course_user_rs->find({ course_user_id => $user_set->course_user_id })->users;
@@ -270,7 +255,6 @@ sub _getProblemSet {
 sub _getUser {
 	my ($self, $info) = @_;
 	my $user_info = { %{ getCourseInfo($info) }, %{ getUserInfo($info) } };
-	print Dumper $user_info;
 	return $self->_user_rs->getUser($user_info, 1);
 }
 
@@ -285,7 +269,6 @@ sub _getCourse {
 
 sub _getCourseUser {
 	my ($self, $info) = @_;
-	print Dumper $info;
 
 	if ($info->{course_user_id}) {
 		return $self->result_source->schema->resultset("CourseUser")
