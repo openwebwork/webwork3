@@ -3,16 +3,25 @@
 		<draggable
 			class="dragArea list-group w-full"
 			handle=".move-handle"
-			v-model="problems"
-			@change="reorderProblems">
-			<problem
-				v-for="(problem,index) in problems"
-				:key="problem.id"
-				:problemPrefix="`QUESTION_${index + 1}_`"
-				class="q-mb-md"
-				problemType="set"
-				:library_problem="problem"
-			/>
+			:list="problems"
+			@change="reorderProblems"
+		>
+			<div v-for="(problem,index) in problems" :key="problem.id">
+				<problem
+					:problemPrefix="`QUESTION_${index + 1}_`"
+					class="q-mb-md"
+					problemType="set"
+					:library_problem="problem"
+					:reordering="reordering"
+				/>
+			</div>
+			<!-- <div v-for="(problem) in problems" :key="problem.problem_id"
+				style="border: 1px solid black">
+				<q-btn size="sm" icon="height" class="move-handle" />
+				<div>Problem #: {{ problem.problem_number}}</div>
+				<div>Problem ID: {{ problem.problem_id}}</div>
+				<div>Reordering: {{ reordering }} </div>
+			</div> -->
 		</draggable>
 	</div>
 	<div class="bg-info" v-else>
@@ -35,7 +44,10 @@ import { sortBy } from 'lodash-es';
 export default defineComponent({
 	name: 'SetDetailProblems',
 	props: {
-		set_id: String
+		set_id: {
+			type: String,
+			default: '0'
+		}
 	},
 	components: {
 		Problem,
@@ -44,9 +56,12 @@ export default defineComponent({
 	setup(props) {
 		const store = useStore();
 		// copy of the set_id prop and ensure it is a number
-		const local_set_id = ref(parseInt(`${props.set_id ?? 0}`));
+		const local_set_id = ref(parseInt(`${props.set_id}`));
 		const problems: Ref<Array<LibraryProblem>> = ref([]);
 		const problem_set: Ref<ProblemSet> = ref(new ProblemSet());
+
+		// helps handling if the problem is being reordered
+		const reordering: Ref<boolean> = ref(false);
 
 		const updateProblemSet = () => {
 			problems.value = sortBy(store.state.problem_sets.problems
@@ -62,6 +77,7 @@ export default defineComponent({
 			problem_set,
 			local_set_id,
 			problems,
+			reordering,
 			reorderProblems: () => {
 				problems.value.forEach((prob, i) => {
 					if (prob.problem_number !== i+1) {

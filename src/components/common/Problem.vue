@@ -9,11 +9,15 @@
 		</q-card-section>
 
 		<q-card-section v-if="problem_type==='set'">
-			<span class="div-h6 number-border">{{problem.problem_number}}</span>
+			<span class="div-h6 number-border">{{problem_number}}</span>
 			<q-btn-group push>
 				<q-btn size="sm" push icon="shuffle" />
 				<q-btn size="sm" icon="height" class="move-handle" />
 			</q-btn-group>
+		</q-card-section>
+
+		<q-card-section>
+			{{ problem.problem_params?.file_path }}
 		</q-card-section>
 
 		<q-card-section v-if="answerTemplate" class="q-pa-sm bg-white">
@@ -22,12 +26,11 @@
 
 		<q-separator v-if="answerTemplate" />
 
-		<q-card-section class="q-pa-sm" v-if="problemText">
-			<div ref="problemTextDiv" v-html="problemText" class="pg-problem-container" />
-		</q-card-section>
-
-		<q-card-section v-else>
+		<q-card-section v-if="problemText===''">
 			<div><q-spinner-ios color="primary" size="2em" /></div>
+		</q-card-section>
+		<q-card-section class="q-pa-sm" v-else>
+			<div ref="problemTextDiv" v-html="problemText" class="pg-problem-container" />
 		</q-card-section>
 
 		<q-separator v-if="submitButtons.length"/>
@@ -43,8 +46,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
-import type { Ref } from 'vue';
+import { defineComponent, ref, watch, onMounted, nextTick, computed } from 'vue';
+import type { Ref, PropType } from 'vue';
 import type { SubmitButton } from '@/typings/renderer';
 import { fetchProblem } from '@/APIRequests/renderer';
 import { RENDER_URL } from '@/constants';
@@ -52,6 +55,7 @@ import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
 import JQuery from 'jquery';
 import { logger } from '@/boot/logger';
+// import { isEqual, reduce, pick } from 'lodash-es';
 
 import typeset from './mathjax-config';
 import { LibraryProblem } from '@/store/models/library';
@@ -84,27 +88,46 @@ export default defineComponent({
 			type: String,
 			default: 'library'
 		},
-		library_problem: Object
+		library_problem: {
+			type: Object as PropType<LibraryProblem>,
+			default: new LibraryProblem()
+		}
 	},
 	emits: ['addProblem'],
 	setup(props) {
 		const problemText = ref('');
 		const answerTemplate = ref('');
-		const file = ref('');
+		// const file = ref('');
 		const problem_type = ref(props.problemType);
 		const problemTextDiv = ref<HTMLElement>();
 		const answerTemplateDiv = ref<HTMLElement>();
 		const submitButtons = ref<Array<SubmitButton>>([]);
 		const submitButton = ref<SubmitButton>();
 		const activePopovers: Array<InstanceType<typeof bootstrap.Popover>> = [];
-		const problem: Ref<LibraryProblem> = ref(props.library_problem as LibraryProblem);
+		const problem: Ref<LibraryProblem> = ref(props.library_problem);
 
-		file.value = problem.value.problem_params.file_path;
+		// if(problem.value){
+		// file.value = problem.value.problem_params.file_path;
+		// }
+		/* eslint-disable */
+		// watch(()=> problem.value, (new_value, old_value) => {
+		// console.log('the problem is updating');
+		// console.log(new_value.toObject());
+		// const params = reduce(new_value, (result: string[], value, key) => {
+		// // console.log(value);
+		// return isEqual(value, (old_value as any)[key]) ? result : result.concat(key);
+		// }, []);
+		// console.log(pick(new_value,params));
+		// console.log(pick(old_value,params));
+		// }, { deep: true });
+		/* eslint-enable */
 
 		watch(() => props.library_problem, () => {
-			logger.debug('problem updated');
-			problem.value = props.library_problem as LibraryProblem;
-			file.value = problem.value.problem_params.file_path;
+			logger.debug(`problem with id '${props.library_problem.problem_id ?? 0}' updated`);
+			logger.debug(`problem number: ${props.library_problem.problem_number ?? 0}`);
+			problem.value = props.library_problem;
+			// file.value = problem.value.problem_params.file_path;
+			// console.log(file.value);
 		}, { deep: true });
 
 		const randomize = () => {
@@ -113,7 +136,7 @@ export default defineComponent({
 			void loadProblem(RENDER_URL, new FormData(), {
 				// We should not be overriding these on the frontend.
 				problemSeed: `${new_seed}`,
-				sourceFilePath: file.value,
+				sourceFilePath: problem.value.problem_params.file_path,
 				outputFormat: 'ww3',
 				showPreviewButton: '1',
 				showCheckAnswersButton: '1',
@@ -273,6 +296,7 @@ export default defineComponent({
 					[submitButton.value.name]: submitButton.value.value,
 					// Again, we should not be overriding these on the frontend
 					problemSeed: '12345',
+					sourceFilePath: problem.value.problem_params.file_path,
 					outputFormat: 'ww3',
 					showPreviewButton: '1',
 					showCheckAnswersButton: '1',
@@ -283,11 +307,12 @@ export default defineComponent({
 		};
 
 		const initialLoad = () => {
-			file.value = problem.value.problem_params.file_path;
+			problemText.value = '';  // reset the problem HTML
+			// file.value = problem.value.problem_params.file_path;
 			void loadProblem(RENDER_URL, new FormData(), {
 				// We should not be overriding these on the frontend.
 				problemSeed: '12345',
-				sourceFilePath: file.value,
+				sourceFilePath: problem.value.problem_params.file_path,
 				outputFormat: 'ww3',
 				showPreviewButton: '1',
 				showCheckAnswersButton: '1',
@@ -296,7 +321,7 @@ export default defineComponent({
 			});
 		};
 
-		watch(() => file.value, initialLoad);
+		watch(() => problem.value.problem_params.file_path, initialLoad);
 
 		onMounted(async () => {
 			await Promise.all([
@@ -327,7 +352,7 @@ export default defineComponent({
 
 			await nextTick();
 
-			if (file.value) initialLoad();
+			if (problem.value.problem_params.file_path) initialLoad();
 		});
 
 		return {
@@ -339,7 +364,8 @@ export default defineComponent({
 			submitButtons,
 			submitButton,
 			problem,
-			randomize
+			randomize,
+			problem_number: computed(() => problem.value.problem_number)
 		};
 	}
 });

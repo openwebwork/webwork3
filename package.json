@@ -23,7 +23,7 @@
 		"mathjax": "^3.2.0",
 		"node-polyfill-webpack-plugin": "^1.1.4",
 		"papaparse": "^5.3.1",
-		"quasar": "^2.3.0",
+		"quasar": "^2.3.1",
 		"setimmediate": "^1.0.5",
 		"vue-draggable-next": "^2.1.1",
 		"vue-i18n": "^9.1.7",
@@ -33,7 +33,7 @@
 	},
 	"devDependencies": {
 		"@babel/eslint-parser": "^7.13.14",
-		"@quasar/app": "^3.1.10",
+		"@quasar/app": "^3.2.1",
 		"@types/jest": "^27.0.2",
 		"@types/lodash-es": "^4.17.4",
 		"@types/node": "^10.17.15",

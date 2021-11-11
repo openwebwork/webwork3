@@ -196,6 +196,8 @@ export default defineComponent({
 								+ `${problem_set.value.set_name ?? ''}`,
 							color: 'green'
 						});
+						logger.debug(`The user ${_user.username ?? ''} has been assigned to `
+								+ `${problem_set.value.set_name ?? ''}`);
 					} catch (err) {
 						const error = err as ResponseError;
 						$q.notify({ message: error.message, color: 'red' });
@@ -217,6 +219,8 @@ export default defineComponent({
 									+ `${problem_set.value.set_name ?? ''}`,
 								color: 'green'
 							});
+							logger.debug(`The user ${user.username ?? ''} has been unassigned from `
+									+ `${problem_set.value.set_name ?? ''}`);
 						} catch (err) {
 							const error = err as ResponseError;
 							$q.notify({ message: error.message, color: 'red' });
