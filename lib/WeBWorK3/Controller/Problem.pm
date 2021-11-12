@@ -27,4 +27,13 @@ sub addProblem ($self) {
 	return;
 }
 
+sub getProblems ($self) {
+	my $course_set_params = {
+		course_id => int($self->param("course_id")),
+		set_id    => int($self->param("set_id"))
+	};
+	my @problems = $self->schema->resultset("Problem")->getSetProblems($course_set_params);
+	$self->render(json => \@problems);
+}
+
 1;
