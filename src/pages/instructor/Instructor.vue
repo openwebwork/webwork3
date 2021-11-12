@@ -25,7 +25,7 @@ export default defineComponent({
 		}
 	},
 	async created() {
-		// fetch most data needed for instrutor views
+		// fetch most data needed for instructor views
 		const store = useStore();
 		const route = useRoute();
 		await store.dispatch('users/fetchMergedUsers', route.params.course_id);
