@@ -9,7 +9,7 @@
 		</q-card-section>
 
 		<q-card-section v-if="problem_type==='set'">
-			<span class="div-h6 number-border">{{problem_number}}</span>
+			<span class="div-h6 number-border">{{problem.problem_number}}</span>
 			<q-btn-group push>
 				<q-btn size="sm" push icon="shuffle" />
 				<q-btn size="sm" icon="height" class="move-handle" />
@@ -46,7 +46,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, onMounted, nextTick, computed } from 'vue';
+import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
 import type { Ref, PropType } from 'vue';
 import type { SubmitButton } from '@/typings/renderer';
 import { fetchProblem } from '@/APIRequests/renderer';
@@ -59,6 +59,8 @@ import { logger } from '@/boot/logger';
 
 import typeset from './mathjax-config';
 import { LibraryProblem } from '@/store/models/library';
+import type { RenderedProblem } from '@/store/models/library';
+import { Dictionary } from '@/store/models';
 
 declare global {
 	interface Window {
@@ -91,13 +93,17 @@ export default defineComponent({
 		library_problem: {
 			type: Object as PropType<LibraryProblem>,
 			default: new LibraryProblem()
+		},
+		// this allows rendered problems to be store.  Helpful for a problem set
+		// and reordering.
+		problem_store: {
+			type: Object as PropType<Array<RenderedProblem>>
 		}
 	},
-	emits: ['addProblem'],
-	setup(props) {
+	emits: ['addProblem', 'storeRenderedProblem'],
+	setup(props, { emit }) {
 		const problemText = ref('');
 		const answerTemplate = ref('');
-		// const file = ref('');
 		const problem_type = ref(props.problemType);
 		const problemTextDiv = ref<HTMLElement>();
 		const answerTemplateDiv = ref<HTMLElement>();
@@ -105,22 +111,6 @@ export default defineComponent({
 		const submitButton = ref<SubmitButton>();
 		const activePopovers: Array<InstanceType<typeof bootstrap.Popover>> = [];
 		const problem: Ref<LibraryProblem> = ref(props.library_problem);
-
-		// if(problem.value){
-		// file.value = problem.value.problem_params.file_path;
-		// }
-		/* eslint-disable */
-		// watch(()=> problem.value, (new_value, old_value) => {
-		// console.log('the problem is updating');
-		// console.log(new_value.toObject());
-		// const params = reduce(new_value, (result: string[], value, key) => {
-		// // console.log(value);
-		// return isEqual(value, (old_value as any)[key]) ? result : result.concat(key);
-		// }, []);
-		// console.log(pick(new_value,params));
-		// console.log(pick(old_value,params));
-		// }, { deep: true });
-		/* eslint-enable */
 
 		watch(() => props.library_problem, () => {
 			logger.debug(`problem with id '${props.library_problem.problem_id ?? 0}' updated`);
@@ -193,6 +183,37 @@ export default defineComponent({
 			submitButtons.value = [];
 		};
 
+		const getRenderedProblem = async (problem_id: number, url: string, formData: FormData,
+			overrides: Dictionary<string>): Promise<RenderedProblem> => {
+
+			// check to see if the problem has already been rendered and pull it from the store
+			if (props.problem_store) {
+				const _rendered_problem = props.problem_store
+					.find(prob => prob.problem_id === problem.value.problem_id);
+				if (_rendered_problem) {
+					return _rendered_problem;
+				}
+			}
+
+			// if not call the renderer
+			const { renderedHTML, js, css, renderError } = await fetchProblem(url, formData, overrides);
+
+			const rendered_problem: RenderedProblem = {
+				css,
+				js,
+				file_path: problem.value.problem_params.file_path,
+				problem_html: renderedHTML.problemText ?? '',
+				answer_html: renderedHTML.answerTemplate ?? '',
+				submit_buttons: renderedHTML.submitButtons ?? [],
+				render_error: renderError,
+				problem_id: problem.value.problem_id ?? 0
+			};
+			if (props.problem_store) {
+				emit('storeRenderedProblem', rendered_problem);
+			}
+			return rendered_problem;
+		};
+
 		const loadProblem = async (url: string, formData: FormData, overrides: { [key: string]: string }) => {
 			// Make sure that any popovers left open from a previous rendering are removed.
 			for (const popover of activePopovers) {
@@ -205,31 +226,27 @@ export default defineComponent({
 				return;
 			}
 
-			const { renderedHTML, js, css, renderError } = await fetchProblem(url, formData, overrides);
+			const rendered_problem = await getRenderedProblem(problem.value.problem_id ?? 0, url, formData, overrides);
 
-			if (!renderedHTML || !renderedHTML.problemText) {
-				clearUI();
-				if (renderError) problemText.value = renderError;
-				return;
-			}
+			if (rendered_problem.render_error) problemText.value = rendered_problem.render_error;
+			if (rendered_problem.problem_html) problemText.value = rendered_problem.problem_html;
 
-			await Promise.all(css.map(
+			await Promise.all((rendered_problem.css).map(
 				async (cssSource) => {
 					await loadResource(cssSource).
 						catch(() => logger.log('error', `Could not load ${cssSource}`));
 				}
 			));
 
-			await Promise.all(js.map(
+			await Promise.all(rendered_problem.js.map(
 				async (jsSource) => {
 					await loadResource(jsSource).
 						catch(() => logger.log('error', `Could not load ${jsSource}`));
 				}
 			));
 
-			problemText.value = renderedHTML.problemText;
-			answerTemplate.value = renderedHTML.answerTemplate ?? '';
-			submitButtons.value = renderedHTML.submitButtons ?? [];
+			answerTemplate.value = rendered_problem.answer_html;
+			submitButtons.value = rendered_problem.submit_buttons;
 
 			await nextTick();
 
@@ -306,10 +323,8 @@ export default defineComponent({
 			});
 		};
 
-		const initialLoad = () => {
-			problemText.value = '';  // reset the problem HTML
-			// file.value = problem.value.problem_params.file_path;
-			void loadProblem(RENDER_URL, new FormData(), {
+		const initialLoad = async () => {
+			await loadProblem(RENDER_URL, new FormData(), {
 				// We should not be overriding these on the frontend.
 				problemSeed: '12345',
 				sourceFilePath: problem.value.problem_params.file_path,
@@ -352,7 +367,7 @@ export default defineComponent({
 
 			await nextTick();
 
-			if (problem.value.problem_params.file_path) initialLoad();
+			if (problem.value.problem_params.file_path) await initialLoad();
 		});
 
 		return {
@@ -364,8 +379,8 @@ export default defineComponent({
 			submitButtons,
 			submitButton,
 			problem,
-			randomize,
-			problem_number: computed(() => problem.value.problem_number)
+			randomize
+			// problem_number: computed(() => problem.value.problem_number)
 		};
 	}
 });

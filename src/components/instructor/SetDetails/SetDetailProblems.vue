@@ -13,15 +13,10 @@
 					problemType="set"
 					:library_problem="problem"
 					:reordering="reordering"
+					:problem_store="problem_store"
+					@store-rendered-problem="storeRenderedProblem"
 				/>
 			</div>
-			<!-- <div v-for="(problem) in problems" :key="problem.problem_id"
-				style="border: 1px solid black">
-				<q-btn size="sm" icon="height" class="move-handle" />
-				<div>Problem #: {{ problem.problem_number}}</div>
-				<div>Problem ID: {{ problem.problem_id}}</div>
-				<div>Reordering: {{ reordering }} </div>
-			</div> -->
 		</draggable>
 	</div>
 	<div class="bg-info" v-else>
@@ -38,6 +33,7 @@ import { useStore } from '@/store';
 import { VueDraggableNext } from 'vue-draggable-next';
 import Problem from '@/components/common/Problem.vue';
 import { LibraryProblem } from '@/store/models/library';
+import type { RenderedProblem } from '@/store/models/library';
 import { ProblemSet } from '@/store/models/problem_sets';
 import { sortBy } from 'lodash-es';
 
@@ -59,6 +55,7 @@ export default defineComponent({
 		const local_set_id = ref(parseInt(`${props.set_id}`));
 		const problems: Ref<Array<LibraryProblem>> = ref([]);
 		const problem_set: Ref<ProblemSet> = ref(new ProblemSet());
+		const problem_store: Ref<Array<RenderedProblem>> = ref([]);
 
 		// helps handling if the problem is being reordered
 		const reordering: Ref<boolean> = ref(false);
@@ -78,14 +75,23 @@ export default defineComponent({
 			local_set_id,
 			problems,
 			reordering,
+			problem_store,
 			reorderProblems: () => {
 				problems.value.forEach((prob, i) => {
 					if (prob.problem_number !== i+1) {
-						void store.dispatch('problem_sets/updateSetProblem',
+				 		void store.dispatch('problem_sets/updateSetProblem',
 							{ prob, props: { problem_number: i+1 } });
 					}
 				});
 				updateProblemSet();
+			},
+			storeRenderedProblem: (problem: RenderedProblem) => {
+				const index = problem_store.value.findIndex(_problem => _problem.problem_id === problem.problem_id);
+				if (index>=0) {
+					problem_store.value.splice(index, 1, problem);
+				} else {
+					problem_store.value.push(problem);
+				}
 			}
 		};
 	}

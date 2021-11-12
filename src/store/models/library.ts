@@ -2,7 +2,7 @@
 
 import { parseNonNegInt } from './index';
 import { Dictionary, generic, Model, ParseableModel } from './index';
-// import { clone } from 'lodash-es';
+import { SubmitButton } from '@/typings/renderer';
 
 export interface Discipline {
 	id: number;
@@ -14,6 +14,17 @@ export interface LibrarySubject {
 	id: number;
 	name: string;
 	official: boolean;
+}
+
+export interface RenderedProblem {
+	problem_id: number;
+	file_path: string;
+	problem_html: string;
+	answer_html: string;
+	render_error: string;
+	submit_buttons: Array<SubmitButton>;
+	js: Array<string>;
+	css: Array<string>;
 }
 
 export type ParseableLibraryParams = Partial<LibraryProblemParams>;
