@@ -13,18 +13,9 @@
 			<td class="header">Visible</td>
 			<td><q-toggle v-model="set.set_visible" /></td>
 		</tr>
-		<tr>
-			<td class="header">Open Date</td>
-			<td><date-time-input v-model="set.set_dates.open" /></td>
-		</tr>
-		<tr>
-			<td class="header">Closed Date</td>
-			<td><date-time-input v-model="set.set_dates.closed" /></td>
-		</tr>
-		<tr>
-			<td class="header">Other</td>
-			<td><q-toggle v-model="set.set_params.allow" /></td>
-		</tr>
+		<review-set-dates v-if="set"
+			:dates="set.set_dates"
+			/>
 	</table>
 </template>
 
@@ -34,28 +25,29 @@ import { defineComponent, ref, watch, toRefs } from 'vue';
 import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
-import DateTimeInput from 'src/components/common/DateTimeInput.vue';
 import { ReviewSet } from 'src/store/models/problem_sets';
 import { useStore } from 'src/store';
+import ReviewSetDates from './ReviewSetDates.vue';
 
 export default defineComponent({
-	components: { DateTimeInput },
 	name: 'ReviewSet',
 	props: {
 		set_id: Number
+	},
+	components: {
+		ReviewSetDates
 	},
 	setup(props) {
 		const store = useStore();
 		const $q = useQuasar();
 
 		const { set_id } = toRefs(props);
-
 		const set: Ref<ReviewSet> = ref(new ReviewSet());
 
 		const updateSet = () => {
 			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id == set_id.value) ||
 				new ReviewSet();
-			set.value = cloneDeep(s);
+			set.value = cloneDeep(s as ReviewSet);
 		};
 
 		watch(()=>set_id.value, updateSet);

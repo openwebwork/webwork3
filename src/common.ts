@@ -1,7 +1,7 @@
 /* This file contains common functions and constants needs for general use */
 
 import { date } from 'quasar';
-import { HomeworkSetDates } from './store/models/problem_sets';
+import type { HomeworkSetDates, ReviewSetDates } from '@/store/models/problem_sets';
 
 export function formatDate(_date_to_format: string | number) {
 	const _date = new Date();
@@ -9,10 +9,13 @@ export function formatDate(_date_to_format: string | number) {
 	return date.formatDate(_date, 'MM-DD-YYYY [at] h:mmA'); // have the format changeable?
 }
 
-export const checkHWDates = (dates: HomeworkSetDates, enable_reduced_scoring?: boolean) =>
+export const checkHWDates = (dates: HomeworkSetDates, enable_reduced_scoring?: boolean): boolean | string =>
 	enable_reduced_scoring && dates.reduced_scoring ?
 		(dates.open <= dates.reduced_scoring && dates.reduced_scoring <= dates.due  && dates.due <= dates.answer) :
 		(dates.open <= dates.due && dates.due <= dates.answer) ||
+		'The dates must be in order';
+
+export const checkReviewSetDates = (dates: ReviewSetDates): boolean | string => dates.open <= dates.closed ||
 		'The dates must be in order';
 
 export interface ViewInfo {

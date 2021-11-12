@@ -266,12 +266,21 @@ export interface ReviewSetDates {
 }
 
 export class ReviewSet extends ProblemSet {
+	set_params: ReviewSetParams;
+	set_dates: ReviewSetDates;
+
 	constructor(params: ParseableProblemSet = {}){
 		params.set_type = 'REVIEW';
 		super(params as ParseableModel);
-		// parse the params
+		this._date_fields = ['open', 'closed'];
 
-		// parse the dates
+		this.set_dates = {
+			open: 0,
+			closed: 0
+		};
+		this.setDates(params.set_dates as Dictionary<generic>);
+		this.set_params = {};
+		this.setParams(params.set_params as Dictionary<generic>);
 	}
 }
 
