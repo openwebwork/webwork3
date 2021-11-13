@@ -122,13 +122,17 @@ export default defineComponent({
 			},
 			addProblem: async (prob: LibraryProblem) => {
 				const set_id = store.state.app_state.library_state.target_set_id;
-				const course_id = store.state.session.course.course_id;
-				if (set_id > 0) {
-					await store.dispatch('problem_sets/addSetProblem', { course_id,
-						problem: prob
-					});
+				if (set_id == 0) {
+					alert('You must select a target problem set');
+				} else {
+					const course_id = store.state.session.course.course_id;
+					if (set_id > 0) {
+						await store.dispatch('problem_sets/addSetProblem', { course_id,
+							problem: prob
+						});
+					}
+					logger.debug(`[LibPanelOPL/addProblem] set_id: ${set_id}; added: ${JSON.stringify(prob)}`);
 				}
-				logger.debug(`[LibPanelOPL/addProblem] set_id: ${set_id}; added: ${JSON.stringify(prob)}`);
 			}
 		};
 	},
