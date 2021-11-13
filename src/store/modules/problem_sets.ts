@@ -5,7 +5,7 @@ import { isEqual } from 'lodash-es';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet, MergedUserSet,
 	ParseableMergedUserSet, UserSet } from '@/store/models/problem_sets';
-import { LibraryProblem, ParseableProblem } from '@/store/models/set_problem';
+import { LibraryProblem, ParseableProblem, parseProblem } from '@/store/models/set_problem';
 import { logger } from '@/boot/logger';
 
 export interface ProblemSetState {
@@ -56,7 +56,7 @@ export default {
 		async fetchSetProblems({ commit }: { commit: Commit }, course_id: number): Promise<void> {
 			const response = await api.get(`courses/${course_id}/problems`);
 			const all_problems = response.data as Array<ParseableProblem>;
-			commit('SET_PROBLEMS', all_problems.map((prob)=> new LibraryProblem(prob)));
+			commit('SET_PROBLEMS', all_problems.map((prob) => parseProblem(prob, 'Set')));
 		},
 		async addSetProblem({ commit }: { commit: Commit },
 			problem_info: { course_id: number, problem: LibraryProblem }): Promise<void> {

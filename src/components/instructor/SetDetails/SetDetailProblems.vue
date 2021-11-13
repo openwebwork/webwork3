@@ -6,13 +6,12 @@
 			:list="problems"
 			@change="reorderProblems"
 		>
-			<div v-for="problem in problems" :key="problem.problem_number">
-				<problem
-					:problem="problem"
-					class="q-mb-md"
-					:reordering="reordering"
-				/>
-			</div>
+			<problem v-for="problem in problems"
+				:key="problem.problem_number"
+				:problem="problem"
+				class="q-mb-md"
+				:reordering="reordering"
+			/>
 		</draggable>
 	</div>
 	<div class="bg-info" v-else>
@@ -32,6 +31,7 @@ import type { RenderedProblem } from '@/store/models/library';
 import { ProblemSet } from '@/store/models/problem_sets';
 import { sortBy } from 'lodash-es';
 import { SetProblem } from '@/store/models/set_problem';
+import { logger } from '@/boot/logger';
 
 export default defineComponent({
 	name: 'SetDetailProblems',
@@ -61,6 +61,7 @@ export default defineComponent({
 				.filter(set => set.set_id === local_set_id.value), (prob: SetProblem) => prob.problem_number);
 			problem_set.value = store.state.problem_sets.problem_sets
 				.find(set => set.set_id === local_set_id.value) || new ProblemSet();
+			logger.debug(`[SetDetailProblems] populating problems... count:${problems.value.length}`);
 		};
 		updateProblemSet();
 

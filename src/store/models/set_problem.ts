@@ -31,7 +31,7 @@ export interface ParseableProblem {
 }
 
 export interface SetProblemParams {
-	problem_path?: string;
+	file_path?: string;
 	library_id?: string | number;
 	weight?: number;
 }
@@ -128,7 +128,7 @@ export class SetProblem extends Problem {
 		this.show_solutions = true;
 		this.show_correct_answers_button = true;
 		this._param_fields = {
-			problem_path: {
+			file_path: {
 				field_type: 'string'
 			},
 			library_id: {
@@ -140,13 +140,14 @@ export class SetProblem extends Problem {
 		};
 		this.problem_params = {} as SetProblemParams;
 		if (params.problem_params) {
+			logger.debug(`[SetProblem/constructor] new problem path: ${params.problem_params.file_path || 'none'}`);
 			this.setParams(params.problem_params as Dictionary<generic>);
 		}
 	}
 
 	isValid() {
 		const params = this.problem_params as SetProblemParams;
-		return (this.problem_id && params.problem_path && this.problem_number) ? true : false;
+		return (this.problem_id && params.file_path && this.problem_number) ? true : false;
 	}
 
 	rerandomize() {
@@ -155,8 +156,8 @@ export class SetProblem extends Problem {
 
 	path() {
 		const params = this.problem_params as SetProblemParams;
-		if (params.problem_path === undefined) throw 'This problem does not have a defined path';
-		return params.problem_path;
+		if (params.file_path === undefined) throw 'This problem does not have a defined path';
+		return params.file_path;
 	}
 }
 
