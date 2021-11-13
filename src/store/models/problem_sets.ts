@@ -83,12 +83,12 @@ export class ProblemSet extends Model(
 				`The dates(s) '${invalid_dates.join(', ')}' are not valid for ${this.constructor.name}.`);
 		}
 
-		/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-member-access,
+		/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call,
 		  @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
 		Object.keys(dates).forEach(key => {
 			(this.set_dates as any)[key] = parseNonNegInt((dates as any)[key]);
 		});
-		// eslint-enable
+		/* eslint-enable */
 	}
 
 	setParams(params: Dictionary<generic> = {}) {

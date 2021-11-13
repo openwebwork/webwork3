@@ -1,40 +1,40 @@
 <template>
-	<div class="row">
-		<div class="col-3 text-h6">Open Problem Library </div>
-		<div class="col-3 offset-6">
-			<q-select :options="disciplines" v-model="discipline" label="Select a Discipline" />
+	<header class="col" style="position: sticky">
+		<div class="row">
+			<div class="col-3 text-h6">Open Problem Library </div>
+			<div v-if="section" class="col-3 vertical-middle">
+				<q-btn @click="loadProblems">Load Problems</q-btn>
+			</div>
 		</div>
-	</div>
-	<div class="row">
-		<div class="col-3" >
-			<q-select v-if="subjects.length > 0"
-				:options="subjects"
-				v-model="subject" label="Select a Subject" />
+		<div class="row">
+			<div class="col-3">
+				<q-select :options="disciplines" v-model="discipline" label="Select a Discipline" />
+			</div>
+			<div class="col-3" >
+				<q-select v-if="subjects.length > 0"
+					:options="subjects"
+					v-model="subject" label="Select a Subject" />
+			</div>
+			<div class="col-3">
+				<q-select
+					v-if="chapters.length > 0"
+					:options="chapters"
+					v-model="chapter" label="Select a Chapter" />
+			</div>
+			<div class="col-3">
+				<q-select
+					v-if="sections.length > 0"
+					:options="sections"
+					v-model="section" label="Select a Section" />
+			</div>
 		</div>
-		<div class="col-3">
-			<q-select
-				 v-if="chapters.length > 0 "
-				 :options="chapters"
-				 v-model="chapter" label="Select a Chapter" />
-		</div>
-		<div class="col-3">
-			<q-select
-				v-if="sections.length > 0 "
-				:options="sections"
-				v-model="section" label="Select a Section" />
-		</div>
-		<div class="col-3 vertical-middle">
-			<q-btn @click="loadProblems">Load Problems</q-btn>
-		</div>
-	</div>
-	<div v-if="problems.length >0" class="scroll" style="height: 500px">
+	</header>
+	<div v-if="problems.length > 0" class="col">
 		<problem
-			v-for="(problem,index) in problems"
-			:library_problem="problem"
-			:key="problem.id"
-			:problemPrefix="`QUESTION_${index + 1}_`"
+			v-for="problem in problems"
+			:key="problem.problem_number"
+			:problem="problem"
 			class="q-mb-md"
-			type="library"
 			@add-problem="addProblem(problem)"
 			/>
 	</div>
@@ -42,14 +42,14 @@
 
 <script lang="ts">
 import axios from 'axios';
+import { api } from 'boot/axios';
 
 import type { Ref } from 'vue';
 import { defineComponent, ref, computed, watch } from 'vue';
 import { useStore } from 'src/store';
-// import { Discipline, LibrarySubject } from 'src/store/models';
 import Problem from 'src/components/common/Problem.vue';
 import { logger } from 'src/boot/logger';
-import { LibraryProblem } from '@/store/models/library';
+import { LibraryProblem } from '@/store/models/set_problem';
 
 interface SelectItem {
 	label?: string;
@@ -69,7 +69,6 @@ export default defineComponent({
 		const subject: Ref<SelectItem|null>        = ref(null);
 		const chapter: Ref<SelectItem|null>        = ref(null);
 		const section: Ref<SelectItem|null>        = ref(null);
-		const problems: Ref<Array<LibraryProblem>> = ref([]);
 
 		watch([discipline], async () => {
 			void store.dispatch('library/resetSections');
@@ -117,21 +116,13 @@ export default defineComponent({
 			chapters: computed(() => store.state.library.chapters.map(getLabelId)),
 			section,
 			sections: computed(() => store.state.library.sections.map(getLabelId)),
-			problems,
+			problems: computed(() => store.state.library.problems),
 			loadProblems: async () => {
 				const sect = section.value;
-				problems.value = [];
-				const response = await axios.get(`/opl/api/problems/sections/${sect?.id || 0}`);
-				const r = response.data as Array<{id: number; file_path: string}>;
-				logger.debug(`Loading problems from section ${sect?.label ?? ''}`);
-				problems.value = r.map(pr => new LibraryProblem({ problem_params: {
-					library_problem_id: pr.id,
-					file_path: pr.file_path,
-					weight: 1,
-				} }));
+				logger.debug('[LibPanelOPL/loadProblems] dispatching request to store');
+				await store.dispatch('library/fetchProblems', { sect_id: sect?.id });
 			},
 			addProblem: async (prob: LibraryProblem) => {
-				console.log(prob);
 				const set_id = store.state.app_state.library_state.target_set_id;
 				const course_id = store.state.session.course.course_id;
 				if (set_id > 0) {
@@ -139,16 +130,18 @@ export default defineComponent({
 						problem: prob
 					});
 				}
-				const problem_info = JSON.stringify(prob.problem_params);
-				logger.debug(`[LibPanelOPL/addProblem] set_id: ${set_id}; adding: ${problem_info}`);
+				logger.debug(`[LibPanelOPL/addProblem] set_id: ${set_id}; added: ${JSON.stringify(prob)}`);
 			}
 		};
 	},
-	async mounted() {
+	async beforeMount() {
 		const store = useStore();
+		logger.debug('resetting OPL dropdowns and fetching Disciplines...');
+
 		void store.dispatch('library/resetSections');
 		void store.dispatch('library/resetChapters');
 		void store.dispatch('library/resetSubjects');
+		void store.dispatch('library/resetProblems');
 
 		await store.dispatch('library/fetchDisciplines');
 	}

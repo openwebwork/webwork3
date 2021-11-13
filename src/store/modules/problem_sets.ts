@@ -5,7 +5,8 @@ import { isEqual } from 'lodash-es';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet, MergedUserSet,
 	ParseableMergedUserSet, UserSet } from '@/store/models/problem_sets';
-import { LibraryProblem, ParseableLibraryProblem } from '@/store/models/library';
+import { LibraryProblem, ParseableProblem } from '@/store/models/set_problem';
+import { logger } from '@/boot/logger';
 
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;
@@ -42,18 +43,19 @@ export default {
 		async updateSet({ commit, rootState }: { commit: Commit; rootState: StateInterface },
 			 _set: ProblemSet): Promise<ProblemSet> {
 			const course_id = rootState.session.course.course_id;
+			// shouldn't we be throwing an error if set_id is null or 0?
 			const response = await api.put(`courses/${course_id}/sets/${_set.set_id ?? 0}`, _set);
 			const set = response.data as ProblemSet;
 			if (isEqual(set, _set)) {
 				commit('UPDATE_PROBLEM_SET', _set);
 			} else {
-				// console.error('The returned set is not the same. ');
+				logger.error(`Problem set #${_set.set_id ?? 0} failed to update properly.`);
 			}
 			return set;
 		},
 		async fetchSetProblems({ commit }: { commit: Commit }, course_id: number): Promise<void> {
 			const response = await api.get(`courses/${course_id}/problems`);
-			const all_problems = response.data as Array<ParseableLibraryProblem>;
+			const all_problems = response.data as Array<ParseableProblem>;
 			commit('SET_PROBLEMS', all_problems.map((prob)=> new LibraryProblem(prob)));
 		},
 		async addSetProblem({ commit }: { commit: Commit },
@@ -65,7 +67,7 @@ export default {
 			commit('ADD_SET_PROBLEM', problem);
 		},
 		async updateSetProblem({ commit, rootState }: { commit: Commit; rootState: StateInterface },
-			params: { prob: LibraryProblem, props: ParseableLibraryProblem}): Promise<void> {
+			params: { prob: LibraryProblem, props: ParseableProblem}): Promise<void> {
 			const course_id = rootState.session.course.course_id;
 			const url = `courses/${course_id}/sets/${params.prob.set_id ?? 0}/problems/${params.prob.problem_id ?? 0}`;
 			const response = await api.put(url, params.props);

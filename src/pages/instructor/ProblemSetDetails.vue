@@ -1,9 +1,9 @@
 <template>
-	<q-card class="q-ma-p-lg">
+	<q-page class="q-ma-p-lg">
 		<homework-set :set_id="set_id" v-if="set_type==='HW'" />
 		<quiz :set_id="set_id" v-else-if="set_type==='QUIZ'" />
 		<review-set :set_id="set_id" v-else-if="set_type==='REVIEW'" />
-	</q-card>
+	</q-page>
 </template>
 
 <script lang="ts">
@@ -12,9 +12,9 @@ import { useRoute } from 'vue-router';
 
 import { useStore } from 'src/store';
 import { ProblemSet } from 'src/store/models/problem_sets';
-import HomeworkSet from './HomeworkSet.vue';
-import Quiz from './Quiz.vue';
-import ReviewSet from './ReviewSet.vue';
+import HomeworkSet from 'src/components/instructor/SetDetails/HomeworkSet.vue';
+import Quiz from 'src/components/instructor/SetDetails/Quiz.vue';
+import ReviewSet from 'src/components/instructor/SetDetails/ReviewSet.vue';
 
 export default defineComponent({
 	name: 'ProblemSetDetails',
