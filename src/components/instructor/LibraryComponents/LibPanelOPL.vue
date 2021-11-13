@@ -41,8 +41,6 @@
 </template>
 
 <script lang="ts">
-import axios from 'axios';
-import { api } from 'boot/axios';
 
 import type { Ref } from 'vue';
 import { defineComponent, ref, computed, watch } from 'vue';

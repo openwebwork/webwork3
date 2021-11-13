@@ -6,15 +6,11 @@
 			:list="problems"
 			@change="reorderProblems"
 		>
-			<div v-for="(problem,index) in problems" :key="problem.id">
+			<div v-for="problem in problems" :key="problem.problem_number">
 				<problem
-					:problemPrefix="`QUESTION_${index + 1}_`"
+					:problem="problem"
 					class="q-mb-md"
-					problemType="set"
-					:library_problem="problem"
 					:reordering="reordering"
-					:problem_store="problem_store"
-					@store-rendered-problem="storeRenderedProblem"
 				/>
 			</div>
 		</draggable>
@@ -32,10 +28,10 @@ import type { Ref } from 'vue';
 import { useStore } from '@/store';
 import { VueDraggableNext } from 'vue-draggable-next';
 import Problem from '@/components/common/Problem.vue';
-import { LibraryProblem } from '@/store/models/library';
 import type { RenderedProblem } from '@/store/models/library';
 import { ProblemSet } from '@/store/models/problem_sets';
 import { sortBy } from 'lodash-es';
+import { SetProblem } from '@/store/models/set_problem';
 
 export default defineComponent({
 	name: 'SetDetailProblems',
@@ -53,7 +49,7 @@ export default defineComponent({
 		const store = useStore();
 		// copy of the set_id prop and ensure it is a number
 		const local_set_id = ref(parseInt(`${props.set_id}`));
-		const problems: Ref<Array<LibraryProblem>> = ref([]);
+		const problems: Ref<Array<SetProblem>> = ref([]);
 		const problem_set: Ref<ProblemSet> = ref(new ProblemSet());
 		const problem_store: Ref<Array<RenderedProblem>> = ref([]);
 
@@ -62,7 +58,7 @@ export default defineComponent({
 
 		const updateProblemSet = () => {
 			problems.value = sortBy(store.state.problem_sets.problems
-				.filter(set => set.set_id === local_set_id.value), (prob: LibraryProblem) => prob.problem_number);
+				.filter(set => set.set_id === local_set_id.value), (prob: SetProblem) => prob.problem_number);
 			problem_set.value = store.state.problem_sets.problem_sets
 				.find(set => set.set_id === local_set_id.value) || new ProblemSet();
 		};
@@ -84,14 +80,6 @@ export default defineComponent({
 					}
 				});
 				updateProblemSet();
-			},
-			storeRenderedProblem: (problem: RenderedProblem) => {
-				const index = problem_store.value.findIndex(_problem => _problem.problem_id === problem.problem_id);
-				if (index>=0) {
-					problem_store.value.splice(index, 1, problem);
-				} else {
-					problem_store.value.push(problem);
-				}
 			}
 		};
 	}

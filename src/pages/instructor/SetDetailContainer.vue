@@ -27,8 +27,8 @@
 <script lang="ts">
 import { defineComponent, ref, Ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import SetDetailProblems from './SetDetailProblems.vue';
-import SetUsers from './SetUsers.vue';
+import SetDetailProblems from '@/components/instructor/SetDetails/SetDetailProblems.vue';
+import SetUsers from '@/components/instructor/SetDetails/SetUsers.vue';
 
 export default defineComponent({
 	name: 'SetDetailContainer',
