@@ -87,6 +87,11 @@ export class Problem extends Model(
 		throw 'This problem may not be re-randomized.';
 	}
 
+	// override this in children
+	clone(): Problem {
+		throw 'You must override the clone method';
+	}
+
 	// facade for library/set/assigned problems
 	path(): string {
 		throw 'Subclass has not defined the source path';
@@ -154,6 +159,10 @@ export class SetProblem extends Problem {
 		this.seed = random(10000, 99999);
 	}
 
+	clone(): SetProblem {
+		return new SetProblem(this.toObject() as ParseableProblem);
+	}
+
 	path() {
 		const params = this.problem_params as SetProblemParams;
 		if (params.file_path === undefined) throw 'This problem does not have a defined path';
@@ -203,6 +212,10 @@ export class LibraryProblem extends Problem {
 		logger.debug(`[LibraryProblem/rerandomize] changing seed (${this.seed || 0}) on problem ${this.path()}`);
 		this.seed = random(10000, 99999);
 		logger.debug(`[LibraryProblem/rerandomize] new seed is ${this.seed}.`);
+	}
+
+	clone(): LibraryProblem {
+		return new LibraryProblem(this.toObject() as ParseableProblem);
 	}
 
 	path() {

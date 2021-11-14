@@ -52,6 +52,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
+import type { PropType, Ref } from 'vue';
 import type { SubmitButton } from '@/typings/renderer';
 import { fetchProblem, RendererRequest } from '@/APIRequests/renderer';
 import { RENDER_URL } from '@/constants';
@@ -61,7 +62,6 @@ import JQuery from 'jquery';
 import { logger } from 'src/boot/logger';
 import typeset from './mathjax-config';
 import { Problem } from '@/store/models/set_problem';
-import { cloneDeep } from 'lodash';
 
 declare global {
 	interface Window {
@@ -80,22 +80,21 @@ export default defineComponent({
 	name: 'Problem',
 	props: {
 		problem: {
-			type: Problem,
-			default: {}
+			type: Object as PropType<Problem>,
+			default: new Problem()
 		},
 	},
 	emits: ['addProblem', 'storeRenderedProblem'],
 	setup(props) {
 		const problemText = ref('');
 		const answerTemplate = ref('');
-		const freeProblem = ref(cloneDeep(props.problem));
+		const freeProblem: Ref<Problem> = ref(props.problem.clone());
 		const problem_type = ref(props.problem.problem_type);
 		const problemTextDiv = ref<HTMLElement>();
 		const answerTemplateDiv = ref<HTMLElement>();
 		const submitButtons = ref<Array<SubmitButton>>([]);
 		const submitButton = ref<SubmitButton>();
 		const activePopovers: Array<InstanceType<typeof bootstrap.Popover>> = [];
-		// const problem: Ref<LibraryProblem> = ref(props.library_problem);
 
 		logger.debug(`[Problem/setup] file: ${freeProblem.value.path()}, type: ${freeProblem.value.problem_type}`);
 		const loadResource = async (src: string, id?: string) => {

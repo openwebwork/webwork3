@@ -5,12 +5,12 @@ import { isEqual } from 'lodash-es';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet, MergedUserSet,
 	ParseableMergedUserSet, UserSet } from '@/store/models/problem_sets';
-import { LibraryProblem, ParseableProblem, parseProblem } from '@/store/models/set_problem';
+import { LibraryProblem, SetProblem, ParseableProblem, parseProblem } from '@/store/models/set_problem';
 import { logger } from '@/boot/logger';
 
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;
-	problems: Array<LibraryProblem>;
+	set_problems: Array<SetProblem>;
 	merged_user_sets: Array<MergedUserSet>;
 }
 
@@ -27,8 +27,8 @@ export default {
 		problem_sets(state: ProblemSetState): Array<ProblemSet> {
 			return state.problem_sets;
 		},
-		problems(state: ProblemSetState): Array<LibraryProblem> {
-			return state.problems;
+		set_problems(state: ProblemSetState): Array<SetProblem> {
+			return state.set_problems;
 		},
 		merged_user_sets(state: ProblemSetState): Array<MergedUserSet> {
 			return state.merged_user_sets;
@@ -71,9 +71,9 @@ export default {
 			const course_id = rootState.session.course.course_id;
 			const url = `courses/${course_id}/sets/${params.prob.set_id ?? 0}/problems/${params.prob.problem_id ?? 0}`;
 			const response = await api.put(url, params.props);
-			const problem = response.data as LibraryProblem;
+			const problem = response.data as ParseableProblem;
 			// TODO: check for errors
-			commit('UPDATE_SET_PROBLEM', problem);
+			commit('UPDATE_SET_PROBLEM', new SetProblem(problem));
 		},
 		async fetchMergedUserSets({ commit }: { commit: Commit },
 			params: {course_id: number, set_id: number }): Promise<void> {
@@ -120,14 +120,14 @@ export default {
 			state.problem_sets[index] = _set;
 		},
 		SET_PROBLEMS(state: ProblemSetState, _set_problems: Array<LibraryProblem>): void {
-			state.problems = _set_problems;
+			state.set_problems = _set_problems;
 		},
 		ADD_SET_PROBLEM(state: ProblemSetState, _problem: LibraryProblem): void {
-			state.problems.push(_problem);
+			state.set_problems.push(_problem);
 		},
 		UPDATE_SET_PROBLEM(state: ProblemSetState, _problem: LibraryProblem): void {
-			const index = state.problems.findIndex(prob => prob.problem_id === _problem.problem_id);
-			state.problems[index] = _problem;
+			const index = state.set_problems.findIndex(prob => prob.problem_id === _problem.problem_id);
+			state.set_problems[index] = _problem;
 		},
 		SET_MERGED_USER_SETS(state: ProblemSetState, _merged_user_sets: Array<MergedUserSet>): void {
 			state.merged_user_sets = _merged_user_sets;

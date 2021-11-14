@@ -6,12 +6,13 @@
 			:list="problems"
 			@change="reorderProblems"
 		>
-			<problem v-for="problem in problems"
-				:key="problem.problem_number"
-				:problem="problem"
-				class="q-mb-md"
-				:reordering="reordering"
-			/>
+			<div v-for="problem in problems" :key="problem.problem_number">
+				<problem
+					:problem="problem"
+					class="q-mb-md"
+					:reordering="reordering"
+				/>
+			</div>
 		</draggable>
 	</div>
 	<div class="bg-info" v-else>
@@ -57,7 +58,7 @@ export default defineComponent({
 		const reordering: Ref<boolean> = ref(false);
 
 		const updateProblemSet = () => {
-			problems.value = sortBy(store.state.problem_sets.problems
+			problems.value = sortBy(store.state.problem_sets.set_problems
 				.filter(set => set.set_id === local_set_id.value), (prob: SetProblem) => prob.problem_number);
 			problem_set.value = store.state.problem_sets.problem_sets
 				.find(set => set.set_id === local_set_id.value) || new ProblemSet();
@@ -76,8 +77,7 @@ export default defineComponent({
 			reorderProblems: () => {
 				problems.value.forEach((prob, i) => {
 					if (prob.problem_number !== i+1) {
-				 		void store.dispatch('problem_sets/updateSetProblem',
-							{ prob, props: { problem_number: i+1 } });
+				 		void store.dispatch('problem_sets/updateSetProblem', { prob, props: { problem_number: i+1 } });
 					}
 				});
 				updateProblemSet();

@@ -25,8 +25,6 @@ export default defineComponent({
 		const file = ref('');
 		const problem: Ref<LibraryProblem> = ref(new LibraryProblem());
 
-		console.log(problem);
-
 		// Test problems:
 		//   # Basic
 		//   Library/UBC/calculusStewart/divergence6.pg
@@ -44,9 +42,7 @@ export default defineComponent({
 			file,
 			problem,
 			loadProblem: () => {
-				console.log(srcFile.value);
-				problem.value.problem_params.file_path = srcFile.value;
-				console.log(problem.value);
+				problem.value.problem_params.file_path = srcFile.value;x
 			}
 		};
 	}
