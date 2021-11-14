@@ -13,6 +13,7 @@
 			<span class="div-h6 number-border">{{problem.problem_number}}</span>
 			<q-btn-group push>
 				<q-btn size="sm" icon="height" class="move-handle" />
+				<q-btn size="sm" push icon="delete" @click="$emit('removeProblem',freeProblem)" />
 				<q-btn size="sm" push icon="edit" />
 				<q-btn size="sm" push icon="description" @click="show_path = !show_path"/>
 				<q-btn size="sm" push icon="shuffle" @click="freeProblem.rerandomize()"/>
@@ -84,7 +85,7 @@ export default defineComponent({
 			default: new Problem()
 		},
 	},
-	emits: ['addProblem', 'storeRenderedProblem'],
+	emits: ['addProblem', 'storeRenderedProblem', 'removeProblem'],
 	setup(props) {
 		const problemText = ref('');
 		const answerTemplate = ref('');

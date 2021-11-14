@@ -10,6 +10,7 @@
 				<problem
 					:problem="problem"
 					class="q-mb-md"
+					@remove-problem="deleteProblem"
 				/>
 			</div>
 		</draggable>
@@ -24,12 +25,14 @@
 <script lang="ts">
 import { defineComponent, ref, watch } from 'vue';
 import type { Ref } from 'vue';
+import { useQuasar } from 'quasar';
 import { useStore } from '@/store';
 import { VueDraggableNext } from 'vue-draggable-next';
 import Problem from '@/components/common/Problem.vue';
 import { ProblemSet } from '@/store/models/problem_sets';
 import { sortBy } from 'lodash-es';
 import { SetProblem } from '@/store/models/set_problem';
+import { ResponseError } from '@/store/models';
 import { logger } from '@/boot/logger';
 
 export default defineComponent({
@@ -45,9 +48,9 @@ export default defineComponent({
 		draggable: VueDraggableNext
 	},
 	setup(props) {
+		const $q = useQuasar();
 		const store = useStore();
 		// copy of the set_id prop and ensure it is a number
-		// const local_set_id = ref(props.set_id);
 		const problems: Ref<Array<SetProblem>> = ref([]);
 		const problem_set: Ref<ProblemSet> = ref(new ProblemSet());
 
@@ -71,7 +74,27 @@ export default defineComponent({
 				 		void store.dispatch('problem_sets/updateSetProblem', { prob, props: { problem_number: i+1 } });
 					}
 				});
+				$q.notify({
+					message: `The problems in set ${problem_set.value.set_name ?? 'UNKNOWN'} have been reordered.`,
+					color: 'green'
+				});
+				logger.debug(`Reordering the set: ${problem_set.value.set_name ?? 'UNKNOWN'}.`);
 				updateProblemSet();
+			},
+			deleteProblem: async (problem: SetProblem) => {
+				logger.debug(`[Problem/deleteProblem]: Remove problem ${problem.path()} `
+					+ `from set : ${problem_set.value.set_name ?? 'UNKNOWN'}.`);
+				try {
+					await store.dispatch('problem_sets/deleteSetProblem', problem);
+					$q.notify({
+						message: `A problem has been removed from set ${problem_set.value.set_name ?? 'UNKNOWN'}`,
+						color: 'green'
+					});
+					updateProblemSet();
+				} catch (err) {
+					const error = err as ResponseError;
+					$q.notify({ message: error.message, color: 'red' });
+				}
 			}
 		};
 	}

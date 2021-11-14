@@ -187,7 +187,7 @@ export class LibraryProblem extends Problem {
 		this.show_correct_answers_button = true;
 
 		this._param_fields = {
-			id: {
+			library_id: {
 				field_type: 'non_neg_int'
 			},
 			file_path: {

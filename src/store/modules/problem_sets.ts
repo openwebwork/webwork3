@@ -76,6 +76,15 @@ export default {
 			// TODO: check for errors
 			commit('UPDATE_SET_PROBLEM', new SetProblem(problem));
 		},
+		async deleteSetProblem({ commit, rootState }: { commit: Commit; rootState: StateInterface },
+			problem: SetProblem): Promise<void> {
+			const course_id = rootState.session.course.course_id;
+			const url = `courses/${course_id}/sets/${problem.set_id ?? 0}/problems/${problem.problem_id ?? 0}`;
+			const response = await api.delete(url);
+			const _problem = response.data as ParseableProblem;
+			// TODO: check for errors
+			commit('DELETE_SET_PROBLEM', new SetProblem(_problem));
+		},
 		async fetchMergedUserSets({ commit }: { commit: Commit },
 			params: {course_id: number, set_id: number }): Promise<void> {
 			const url = `courses/${params.course_id}/sets/${params.set_id}/users`;
@@ -129,6 +138,10 @@ export default {
 		UPDATE_SET_PROBLEM(state: ProblemSetState, _problem: SetProblem): void {
 			const index = state.set_problems.findIndex(prob => prob.problem_id === _problem.problem_id);
 			state.set_problems[index] = _problem;
+		},
+		DELETE_SET_PROBLEM(state: ProblemSetState, _problem: SetProblem): void {
+			const index = state.set_problems.findIndex(prob => prob.problem_id === _problem.problem_id);
+			state.set_problems.splice(index, 1);
 		},
 		SET_MERGED_USER_SETS(state: ProblemSetState, _merged_user_sets: Array<MergedUserSet>): void {
 			state.merged_user_sets = _merged_user_sets;

@@ -39,4 +39,14 @@ sub updateProblem ($self) {
 	return;
 }
 
+sub deleteProblem ($self) {
+	my $course_set_problem_params = {
+		course_id  => int($self->param("course_id")),
+		set_id     => int($self->param("set_id")),
+		problem_id => int($self->param("problem_id"))
+	};
+	my $deleted_problem = $self->schema->resultset("Problem")->deleteSetProblem($course_set_problem_params);
+	$self->render(json => $deleted_problem);
+}
+
 1;
