@@ -43,10 +43,13 @@
 				</q-card-section>
 
 				<q-card-section class="q-pt-none">
-					<homework-dates
+					<homework-dates-view
+						v-if="problem_set.set_type === 'HW'"
 						:dates="date_edit"
-						:reduced_scoring="true"
+						:reduced_scoring="reduced_scoring"
 					/>
+					<quiz-dates-view v-if="problem_set.set_type ==='QUIZ'" :dates="date_edit" />
+					<review-set-dates-view v-if="problem_set.set_type ==='REVIEW'" :dates="date_edit" />
 				</q-card-section>
 
 				<q-card-actions align="right">
@@ -67,10 +70,13 @@ import { useRoute } from 'vue-router';
 import { assign, clone, pick } from 'lodash-es';
 
 import { logger } from '@/boot/logger';
-import { HomeworkSetDates, MergedUserSet, ProblemSet, UserSet } from '@/store/models/problem_sets';
+import { HomeworkSetDates, QuizDates, ReviewSetDates,
+	MergedUserSet, HomeworkSet, ProblemSet, UserSet } from '@/store/models/problem_sets';
 import { parseNonNegInt, Dictionary } from '@/store/models';
 import { formatDate } from '@/common';
-import HomeworkDates from './HomeworkDates.vue';
+import HomeworkDatesView from './HomeworkDates.vue';
+import ReviewSetDatesView from './ReviewSetDates.vue';
+import QuizDatesView from './QuizDates.vue';
 import type { ResponseError } from '@/store/models';
 
 interface Column {
@@ -83,7 +89,9 @@ interface Column {
 export default defineComponent({
 	name: 'SetUsers',
 	components: {
-		HomeworkDates
+		HomeworkDatesView,
+		ReviewSetDatesView,
+		QuizDatesView
 	},
 	setup() {
 		const $q = useQuasar();
@@ -119,8 +127,34 @@ export default defineComponent({
 						{ name: 'answer_date', label: 'Answer Date', format: formatTheDate,
 							field: row => row.set_dates ? (row.set_dates as HomeworkSetDates).answer :  0 }
 					);
-					date_edit.value = clone(problem_set.value.set_dates);
+					if ((problem_set.value as HomeworkSet).set_params.enable_reduced_scoring) {
+						columns.splice(columns.length-1, 0,
+							{
+								name: 'reduced_scoring_date', label: 'Reduced Scoring Date', format: formatTheDate,
+								field: row => row.set_dates ?
+									(row.set_dates as HomeworkSetDates).reduced_scoring ?? 0
+									: 0
+							}
+						);
+					}
+				} else if (problem_set.value.set_type === 'QUIZ') {
+					columns.splice(columns.length, 0,
+						{ name: 'open_date', label: 'Open Date', format: formatTheDate,
+							field: row => row.set_dates ? (row.set_dates as QuizDates).open : 0 },
+						{ name: 'due_date', label: 'Due Date', format: formatTheDate,
+							field: row => row.set_dates ? (row.set_dates as QuizDates).due : 0 },
+						{ name: 'answer_date', label: 'Answer Date', format: formatTheDate,
+							field: row => row.set_dates ? (row.set_dates as QuizDates).answer :  0 }
+					);
+				} else if (problem_set.value.set_type === 'REVIEW') {
+					columns.splice(columns.length, 0,
+						{ name: 'open_date', label: 'Open Date', format: formatTheDate,
+							field: row => row.set_dates ? (row.set_dates as ReviewSetDates).open : 0 },
+						{ name: 'closed_date', label: 'Closed Date', format: formatTheDate,
+							field: row => row.set_dates ? (row.set_dates as ReviewSetDates).closed : 0 },
+					);
 				}
+				date_edit.value = clone(problem_set.value.set_dates);
 			}
 		};
 
@@ -148,6 +182,7 @@ export default defineComponent({
 						_user.toObject();
 				})
 			),
+			problem_set,
 			edit_dialog,
 			date_edit,
 			filter: ref(''),
@@ -227,7 +262,15 @@ export default defineComponent({
 						}
 					}
 				}
-			}
+			},
+			reduced_scoring: computed(() => {
+				if (problem_set.value.set_type === 'HW'){
+					const hw_set = problem_set.value as HomeworkSet;
+					return hw_set.set_params.enable_reduced_scoring;
+				} else {
+					return false;
+				}
+			})
 		};
 	},
 	async created() {
