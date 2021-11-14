@@ -133,7 +133,7 @@ my $new_problem = {
 	problem_number => 4,
 	problem_params => {
 		library_id => 13245,
-		weight             => 1
+		weight     => 1
 	}
 };
 

@@ -62,10 +62,10 @@ Note: a problem should have only one of a library_id, problem_path or problem_po
 
 sub valid_params {
 	return {
-		weight             => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},    # positive integers or decimals
-		library_id => q{\d+},
-		file_path          => q{.*},
-		problem_pool_id    => q{\d+}
+		weight          => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},    # positive integers or decimals
+		library_id      => q{\d+},
+		file_path       => q{.*},
+		problem_pool_id => q{\d+}
 	};
 }
 
