@@ -1,5 +1,5 @@
 <template>
-	<div class="q-pa-md">
+	<q-page class="q-pa-md">
 		<div class="q-gutter-y-md">
 			<q-card>
 				<q-tabs
@@ -27,14 +27,14 @@
 				</q-tab-panels>
 			</q-card>
 		</div>
-	</div>
+	</q-page>
 </template>
 
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue';
 import { useStore } from 'src/store';
 import { CourseSettingInfo, CourseSetting } from 'src/store/models/settings';
-import SingleSetting from './SingleSetting.vue';
+import SingleSetting from 'src/components/instructor/SingleSetting.vue';
 
 export default defineComponent({
 	name: 'Settings',

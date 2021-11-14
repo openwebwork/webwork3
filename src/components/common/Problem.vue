@@ -1,23 +1,24 @@
 <template>
 	<q-card v-if="problemText" class="bg-grey-3">
-		<q-card-section v-if="problem_type=='library'">
+		<q-card-section v-if="problem_type=='LIBRARY'">
 			<q-btn-group push>
 				<q-btn size="sm" push icon="add" @click="$emit('addProblem')" />
 				<q-btn size="sm" push icon="edit" />
-				<q-btn size="sm" push icon="shuffle" @click="randomize"/>
+				<q-btn size="sm" push icon="shuffle" @click="freeProblem.rerandomize()"/>
 			</q-btn-group>
 		</q-card-section>
 
 		<q-card-section v-if="problem_type==='set'">
 			<span class="div-h6 number-border">{{problem.problem_number}}</span>
 			<q-btn-group push>
-				<q-btn size="sm" push icon="shuffle" />
 				<q-btn size="sm" icon="height" class="move-handle" />
+				<q-btn size="sm" push icon="edit" />
+				<q-btn size="sm" push icon="shuffle" @click="freeProblem.rerandomize()"/>
 			</q-btn-group>
 		</q-card-section>
 
 		<q-card-section>
-			{{ problem.problem_params?.file_path }}
+			{{ freeProblem.path() }}
 		</q-card-section>
 
 		<q-card-section v-if="answerTemplate" class="q-pa-sm bg-white">
@@ -36,8 +37,10 @@
 		<q-separator v-if="submitButtons.length"/>
 
 		<q-card-actions class="q-pa-sm bg-white" v-if="submitButtons.length">
-			<q-btn v-for="button in submitButtons" :key="button.name" :name="button.name"
-				:id="`${problemPrefix}${button.name}`" type="submit" :form="`${problemPrefix}problemMainForm`"
+			<q-btn v-for="button in submitButtons"
+				:key="button.name" :name="button.name"
+				:id="`${problem.answer_prefix}${button.name}`"
+				type="submit" :form="`${problem.answer_prefix}problemMainForm`"
 				color="primary" @click="submitButton = button" no-caps>
 				{{ button.value }}
 			</q-btn>
@@ -47,20 +50,16 @@
 
 <script lang="ts">
 import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
-import type { Ref, PropType } from 'vue';
 import type { SubmitButton } from '@/typings/renderer';
-import { fetchProblem } from '@/APIRequests/renderer';
+import { fetchProblem, RendererRequest } from '@/APIRequests/renderer';
 import { RENDER_URL } from '@/constants';
 import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
 import JQuery from 'jquery';
-import { logger } from '@/boot/logger';
-// import { isEqual, reduce, pick } from 'lodash-es';
-
+import { logger } from 'src/boot/logger';
 import typeset from './mathjax-config';
-import { LibraryProblem } from '@/store/models/library';
-import type { RenderedProblem } from '@/store/models/library';
-import { Dictionary } from '@/store/models';
+import { Problem } from '@/store/models/set_problem';
+import { cloneDeep } from 'lodash';
 
 declare global {
 	interface Window {
@@ -78,63 +77,25 @@ window.bootstrap = bootstrap;
 export default defineComponent({
 	name: 'Problem',
 	props: {
-		problemPrefix: {
-			type: String,
-			default: ''
+		problem: {
+			type: Problem,
+			default: {}
 		},
-		raw_source: {
-			type: String,
-			default: ''
-		},
-		problemType: {
-			type: String,
-			default: 'library'
-		},
-		library_problem: {
-			type: Object as PropType<LibraryProblem>,
-			default: new LibraryProblem()
-		},
-		// this allows rendered problems to be store.  Helpful for a problem set
-		// and reordering.
-		problem_store: {
-			type: Object as PropType<Array<RenderedProblem>>
-		}
 	},
 	emits: ['addProblem', 'storeRenderedProblem'],
-	setup(props, { emit }) {
+	setup(props) {
 		const problemText = ref('');
 		const answerTemplate = ref('');
-		const problem_type = ref(props.problemType);
+		const freeProblem = ref(cloneDeep(props.problem));
+		const problem_type = ref(props.problem.problem_type);
 		const problemTextDiv = ref<HTMLElement>();
 		const answerTemplateDiv = ref<HTMLElement>();
 		const submitButtons = ref<Array<SubmitButton>>([]);
 		const submitButton = ref<SubmitButton>();
 		const activePopovers: Array<InstanceType<typeof bootstrap.Popover>> = [];
-		const problem: Ref<LibraryProblem> = ref(props.library_problem);
+		// const problem: Ref<LibraryProblem> = ref(props.library_problem);
 
-		watch(() => props.library_problem, () => {
-			logger.debug(`problem with id '${props.library_problem.problem_id ?? 0}' updated`);
-			logger.debug(`problem number: ${props.library_problem.problem_number ?? 0}`);
-			problem.value = props.library_problem;
-			// file.value = problem.value.problem_params.file_path;
-			// console.log(file.value);
-		}, { deep: true });
-
-		const randomize = () => {
-			const new_seed = Math.round(100000*Math.random());
-			logger.debug(`rerandomizing problem with seed ${new_seed}`);
-			void loadProblem(RENDER_URL, new FormData(), {
-				// We should not be overriding these on the frontend.
-				problemSeed: `${new_seed}`,
-				sourceFilePath: problem.value.problem_params.file_path,
-				outputFormat: 'ww3',
-				showPreviewButton: '1',
-				showCheckAnswersButton: '1',
-				showCorrectAnswersButton: '1',
-				answerPrefix: props.problemPrefix
-			});
-		};
-
+		logger.debug(`[Problem/setup] file: ${freeProblem.value.path()}, type: ${freeProblem.value.problem_type}`);
 		const loadResource = async (src: string, id?: string) => {
 			return new Promise<void>((resolve, reject) => {
 				let shouldAppend = false;
@@ -178,75 +139,49 @@ export default defineComponent({
 		};
 
 		const clearUI = () => {
+			logger.debug('[Problem/clearUI]');
 			problemText.value = '';
 			answerTemplate.value = '';
 			submitButtons.value = [];
 		};
 
-		const getRenderedProblem = async (problem_id: number, url: string, formData: FormData,
-			overrides: Dictionary<string>): Promise<RenderedProblem> => {
-
-			// check to see if the problem has already been rendered and pull it from the store
-			if (props.problem_store) {
-				const _rendered_problem = props.problem_store
-					.find(prob => prob.problem_id === problem.value.problem_id);
-				if (_rendered_problem) {
-					return _rendered_problem;
-				}
-			}
-
-			// if not call the renderer
-			const { renderedHTML, js, css, renderError } = await fetchProblem(url, formData, overrides);
-
-			const rendered_problem: RenderedProblem = {
-				css,
-				js,
-				file_path: problem.value.problem_params.file_path,
-				problem_html: renderedHTML.problemText ?? '',
-				answer_html: renderedHTML.answerTemplate ?? '',
-				submit_buttons: renderedHTML.submitButtons ?? [],
-				render_error: renderError,
-				problem_id: problem.value.problem_id ?? 0
-			};
-			if (props.problem_store) {
-				emit('storeRenderedProblem', rendered_problem);
-			}
-			return rendered_problem;
-		};
-
-		const loadProblem = async (url: string, formData: FormData, overrides: { [key: string]: string }) => {
+		const loadProblem = async (url: string, formData: FormData, overrides: RendererRequest) => {
 			// Make sure that any popovers left open from a previous rendering are removed.
 			for (const popover of activePopovers) {
 				popover.dispose();
 			}
 			activePopovers.length = 0;
 
-			if (!url) {
+			if (!freeProblem.value.path()) {
 				clearUI();
 				return;
 			}
 
-			const rendered_problem = await getRenderedProblem(problem.value.problem_id ?? 0, url, formData, overrides);
+			const { renderedHTML, js, css, renderError } = await fetchProblem(url, formData, overrides);
 
-			if (rendered_problem.render_error) problemText.value = rendered_problem.render_error;
-			if (rendered_problem.problem_html) problemText.value = rendered_problem.problem_html;
+			if (!renderedHTML || !renderedHTML.problemText) {
+				clearUI();
+				if (renderError) problemText.value = renderError;
+				return;
+			}
 
-			await Promise.all((rendered_problem.css).map(
+			await Promise.all((css).map(
 				async (cssSource) => {
 					await loadResource(cssSource).
 						catch(() => logger.log('error', `Could not load ${cssSource}`));
 				}
 			));
 
-			await Promise.all(rendered_problem.js.map(
+			await Promise.all(js.map(
 				async (jsSource) => {
 					await loadResource(jsSource).
 						catch(() => logger.log('error', `Could not load ${jsSource}`));
 				}
 			));
 
-			answerTemplate.value = rendered_problem.answer_html;
-			submitButtons.value = rendered_problem.submit_buttons;
+			problemText.value = renderedHTML.problemText;
+			answerTemplate.value = renderedHTML.answerTemplate ?? '';
+			submitButtons.value = renderedHTML.submitButtons ?? [];
 
 			await nextTick();
 
@@ -280,6 +215,7 @@ export default defineComponent({
 			window.dispatchEvent(new Event('PGContentLoaded'));
 
 			insertNativeListeners();
+			submitButton.value = undefined; // make sure to reset the submit button -- necessary?
 		};
 
 		const problemForm = ref<HTMLFormElement>();
@@ -288,11 +224,11 @@ export default defineComponent({
 		const insertNativeListeners = () => {
 			problemForm.value = problemTextDiv.value?.querySelector('form[name=problemMainForm]') as HTMLFormElement;
 			if (!problemForm.value) {
-				logger.log('error', 'NO PROBLEM FORM FOUND');
+				logger.error('NO PROBLEM FORM FOUND');
 				return;
 			}
 
-			problemForm.value.id = `${props.problemPrefix}problemMainForm`;
+			problemForm.value.id = `${freeProblem.value.answer_prefix || ''}problemMainForm`;
 
 			// Add a click handler to any submit buttons in the problem form.
 			// Some Geogebra problems add one of these for example.
@@ -306,37 +242,20 @@ export default defineComponent({
 			problemForm.value.addEventListener('submit', (e) => {
 				e.preventDefault();
 				if (!submitButton.value) {
-					logger.log('error', 'No button was pressed...');
+					logger.error('No button was pressed...');
 					return;
 				}
 				void loadProblem(problemForm.value?.action ?? RENDER_URL, new FormData(problemForm.value), {
-					[submitButton.value.name]: submitButton.value.value,
-					// Again, we should not be overriding these on the frontend
-					problemSeed: '12345',
-					sourceFilePath: problem.value.problem_params.file_path,
-					outputFormat: 'ww3',
-					showPreviewButton: '1',
-					showCheckAnswersButton: '1',
-					showCorrectAnswersButton: '1',
-					answerPrefix: props.problemPrefix
-				});
+					[submitButton.value.name]: submitButton.value.value, ...freeProblem.value.requestParams() });
 			});
 		};
 
-		const initialLoad = async () => {
-			await loadProblem(RENDER_URL, new FormData(), {
-				// We should not be overriding these on the frontend.
-				problemSeed: '12345',
-				sourceFilePath: problem.value.problem_params.file_path,
-				outputFormat: 'ww3',
-				showPreviewButton: '1',
-				showCheckAnswersButton: '1',
-				showCorrectAnswersButton: '1',
-				answerPrefix: props.problemPrefix
-			});
+		const initialLoad = () => {
+			logger.debug('[Problem/initialLoad] I have been called.');
+			void loadProblem(RENDER_URL, new FormData(), freeProblem.value.requestParams());
 		};
 
-		watch(() => problem.value.problem_params.file_path, initialLoad);
+		watch(freeProblem, initialLoad, { deep: true });
 
 		onMounted(async () => {
 			await Promise.all([
@@ -367,7 +286,11 @@ export default defineComponent({
 
 			await nextTick();
 
-			if (problem.value.problem_params.file_path) await initialLoad();
+			// aren't we already watching for this??
+			if (freeProblem.value.path()) {
+				logger.debug('[Problem/onMounted] calling initialLoad...');
+				initialLoad();
+			};
 		});
 
 		return {
@@ -378,9 +301,7 @@ export default defineComponent({
 			answerTemplateDiv,
 			submitButtons,
 			submitButton,
-			problem,
-			randomize
-			// problem_number: computed(() => problem.value.problem_number)
+			freeProblem,
 		};
 	}
 });

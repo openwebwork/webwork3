@@ -1,5 +1,5 @@
 <template>
-	<div class="q-pa-md">
+	<q-page class="q-pa-md">
 		<div class="row">
 			<div class="col-3">
 				<span style="font-weight: bold; font-size: 140%"> {{ current_month }}</span>
@@ -15,7 +15,7 @@
 		<template v-for="day in calendar_days" :key="day">
 			<calendar-row :first_day_of_week="day" />
 		</template>
-	</div>
+	</q-page>
 </template>
 
 <script lang="ts">
