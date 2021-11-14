@@ -9,7 +9,7 @@ use base qw(DBIx::Class::Core DB::WithParams);
 
 =head1 DESCRIPTION
 
-This is the database schema for a CourseUser.  Note: this table has two purposes 1) a relationship table linking
+This is the database schema for a Problem.  Note: this table has two purposes 1) a relationship table linking
 the course and user tables (many-to-many) and 2) storing information about the user in the given course.
 
 =head2 fields
@@ -63,14 +63,14 @@ Note: a problem should have only one of a library_id, problem_path or problem_po
 sub valid_params {
 	return {
 		weight             => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},    # positive integers or decimals
-		library_problem_id => q{\d+},
+		library_id => q{\d+},
 		file_path          => q{.*},
 		problem_pool_id    => q{\d+}
 	};
 }
 
 sub required_params {
-	return { '_ALL_' => [ 'weight', { '_ONE_OF_' => [ 'library_problem_id', 'file_path', 'problem_pool_id' ] } ] };
+	return { '_ALL_' => [ 'weight', { '_ONE_OF_' => [ 'library_id', 'file_path', 'problem_pool_id' ] } ] };
 }
 
 ### this is the table that stores problems for a given Problem Set

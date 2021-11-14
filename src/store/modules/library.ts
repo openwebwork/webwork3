@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Commit } from 'vuex';
 
 import { Discipline, LibrarySubject } from '@/store/models/library';
-import { LibraryProblem, ParseableProblem, parseProblem } from '../models/set_problem';
+import { LibraryProblem, parseProblem } from '@/store/models/set_problem';
 
 export interface LibraryState {
 	disciplines: Array<Discipline>;
@@ -31,6 +31,11 @@ interface LibraryID {
 export default {
 	namespaced: true,
 	state: initial_state,
+	getters: {
+		problems(state: LibraryState): Array<LibraryProblem> {
+			return state.problems;
+		}
+	},
 	actions: {
 		async fetchDisciplines({ commit }: { commit: Commit }): Promise<void> {
 			const response = await axios.get('/opl/api/taxo/disciplines');
@@ -62,10 +67,12 @@ export default {
 		resetProblems({ commit }: { commit: Commit }): void {
 			commit('SET_PROBLEMS', []);
 		},
-		async fetchProblems({ commit }: { commit: Commit }, lib_id: LibraryID): Promise<void> {
+		async fetchLibraryProblems({ commit }: { commit: Commit }, lib_id: LibraryID): Promise<void> {
 			const response = await axios.get(`/opl/api/problems/sections/${lib_id.sect_id || 0}`);
-			const _problems_to_parse = response.data as Array<ParseableProblem>;
-			commit('SET_PROBLEMS', _problems_to_parse.map((prob) => parseProblem(prob, 'Library')));
+			const _problems_to_parse = response.data as Array<{ id: number; file_path: string }>;
+
+			commit('SET_PROBLEMS', _problems_to_parse.map(p => parseProblem({ problem_params:
+					{ library_id: p.id, file_path: p.file_path } }, 'Library')));
 		}
 	},
 	mutations: {

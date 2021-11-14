@@ -42,7 +42,7 @@ export default defineComponent({
 			file,
 			problem,
 			loadProblem: () => {
-				problem.value.problem_params.file_path = srcFile.value;x
+				problem.value.problem_params.file_path = srcFile.value;
 			}
 		};
 	}

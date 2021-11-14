@@ -30,13 +30,13 @@
 		</div>
 	</header>
 	<div v-if="problems.length > 0" class="col">
-		<problem
-			v-for="problem in problems"
-			:key="problem.problem_number"
-			:problem="problem"
-			class="q-mb-md"
-			@add-problem="addProblem(problem)"
+		<div v-for="problem in problems" :key="problem.problem_number">
+			<problem
+				:problem="problem"
+				class="q-mb-md"
+				@add-problem="addProblem(problem)"
 			/>
+		</div>
 	</div>
 </template>
 
@@ -44,10 +44,13 @@
 
 import type { Ref } from 'vue';
 import { defineComponent, ref, computed, watch } from 'vue';
+import { useQuasar } from 'quasar';
+
 import { useStore } from 'src/store';
 import Problem from 'src/components/common/Problem.vue';
 import { logger } from 'src/boot/logger';
 import { LibraryProblem } from '@/store/models/set_problem';
+import { ResponseError } from '@/store/models';
 
 interface SelectItem {
 	label?: string;
@@ -62,6 +65,7 @@ export default defineComponent({
 		Problem
 	},
 	setup() {
+		const $q = useQuasar();
 		const store = useStore();
 		const discipline: Ref<SelectItem|null>     = ref(null); // start with the select field to be empty.
 		const subject: Ref<SelectItem|null>        = ref(null);
@@ -118,7 +122,7 @@ export default defineComponent({
 			loadProblems: async () => {
 				const sect = section.value;
 				logger.debug('[LibPanelOPL/loadProblems] dispatching request to store');
-				await store.dispatch('library/fetchProblems', { sect_id: sect?.id });
+				await store.dispatch('library/fetchLibraryProblems', { sect_id: sect?.id });
 			},
 			addProblem: async (prob: LibraryProblem) => {
 				const set_id = store.state.app_state.library_state.target_set_id;
@@ -126,12 +130,21 @@ export default defineComponent({
 					alert('You must select a target problem set');
 				} else {
 					const course_id = store.state.session.course.course_id;
-					if (set_id > 0) {
-						await store.dispatch('problem_sets/addSetProblem', { course_id,
+					try {
+						await store.dispatch('problem_sets/addSetProblem', { set_id, course_id,
 							problem: prob
 						});
+						$q.notify({
+							message: 'A problem was added to the target set.',
+							color: 'green'
+						});
+
+					} catch (err) {
+						const error = err as ResponseError;
+						$q.notify({ message: error.message, color: 'red' });
 					}
-					logger.debug(`[LibPanelOPL/addProblem] set_id: ${set_id}; added: ${JSON.stringify(prob)}`);
+					logger.debug(`[LibPanelOPL/addProblem] set_id: ${set_id};` +
+						` added: ${JSON.stringify(prob.toObject())}`);
 				}
 			}
 		};

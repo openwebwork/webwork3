@@ -59,12 +59,13 @@ export default {
 			commit('SET_PROBLEMS', all_problems.map((prob) => parseProblem(prob, 'Set')));
 		},
 		async addSetProblem({ commit }: { commit: Commit },
-			problem_info: { course_id: number, problem: LibraryProblem }): Promise<void> {
-			const url = `/courses/${problem_info.course_id}/sets/${problem_info.problem.set_id ?? 0}/problems`;
-			const response = await api.post(url, problem_info.problem);
+			problem_info: { course_id: number, set_id: number, problem: LibraryProblem }): Promise<void> {
+
+			const url = `/courses/${problem_info.course_id}/sets/${problem_info.set_id}/problems`;
+			const response = await api.post(url, { problem_params: problem_info.problem.problem_params });
 			const problem = response.data as LibraryProblem;
 			// TODO: check for errors
-			commit('ADD_SET_PROBLEM', problem);
+			commit('ADD_SET_PROBLEM', new SetProblem(problem));
 		},
 		async updateSetProblem({ commit, rootState }: { commit: Commit; rootState: StateInterface },
 			params: { prob: LibraryProblem, props: ParseableProblem}): Promise<void> {
@@ -119,13 +120,13 @@ export default {
 			const index = state.problem_sets.findIndex((s: ProblemSet) => s.set_id === _set.set_id);
 			state.problem_sets[index] = _set;
 		},
-		SET_PROBLEMS(state: ProblemSetState, _set_problems: Array<LibraryProblem>): void {
+		SET_PROBLEMS(state: ProblemSetState, _set_problems: Array<SetProblem>): void {
 			state.set_problems = _set_problems;
 		},
-		ADD_SET_PROBLEM(state: ProblemSetState, _problem: LibraryProblem): void {
+		ADD_SET_PROBLEM(state: ProblemSetState, _problem: SetProblem): void {
 			state.set_problems.push(_problem);
 		},
-		UPDATE_SET_PROBLEM(state: ProblemSetState, _problem: LibraryProblem): void {
+		UPDATE_SET_PROBLEM(state: ProblemSetState, _problem: SetProblem): void {
 			const index = state.set_problems.findIndex(prob => prob.problem_id === _problem.problem_id);
 			state.set_problems[index] = _problem;
 		},

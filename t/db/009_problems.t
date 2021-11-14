@@ -132,7 +132,7 @@ is_deeply($expected_problem, $set_problem, "getSetProblem: get a single problem 
 my $new_problem = {
 	problem_number => 4,
 	problem_params => {
-		library_problem_id => 13245,
+		library_id => 13245,
 		weight             => 1
 	}
 };

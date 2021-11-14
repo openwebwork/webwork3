@@ -1,5 +1,5 @@
 <template>
-	<div v-if="selected_set">
+	<div v-if="selected_set_id">
 		<q-tabs
 			v-model="set_details_tab"
 			dense
@@ -15,7 +15,7 @@
 				<router-view />
 			</q-tab-panel>
 			<q-tab-panel name="problems">
-				<set-detail-problems :set_id="set_id"/>
+				<set-detail-problems :set_id="selected_set_id"/>
 			</q-tab-panel>
 			<q-tab-panel name="users">
 				<set-users/>
@@ -42,31 +42,32 @@ export default defineComponent({
 	setup() {
 		const router = useRouter();
 		const route = useRoute();
-		const selected_set: Ref<number> = ref(0);
+		const selected_set_id: Ref<number> = ref(0);
 		const set_details_tab: Ref<string> = ref('details');
 
 		const updateSet = (_set_id: number) => {
-			void router.push({ name: 'ProblemSetDetails', params: { set_id: _set_id } });
+			void router.push({ name: 'ProblemSetDetails', params: { set_id: parseInt(`${_set_id}`) } });
 			set_details_tab.value = 'details'; // reset the tabs to the first one.
 		};
 
 		const updateSetID = () => {
 			const s = route.params.set_id; // a param is either a string or an array of strings
 			const set_id = Array.isArray(s) ? parseInt(s[0]) : parseInt(s);
-			selected_set.value = set_id;
+			selected_set_id.value = set_id;
 		};
 
 		if(route.params.set_id){
 			updateSetID();
 		}
+		updateSetID();
 
 		watch(() => route.fullPath, updateSetID);
 
-		watch(() => selected_set.value, updateSet);
+		watch(() => selected_set_id.value, updateSet);
 
 		return {
 			set_details_tab,
-			selected_set
+			selected_set_id
 		};
 	}
 });

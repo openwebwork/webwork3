@@ -16,8 +16,6 @@ export enum ProblemType {
 
 export const DEFAULT_LIBRARY_SEED = 1234;
 
-type ProblemParams = SetProblemParams;
-
 /* Problem class */
 
 export interface ParseableProblem {
@@ -36,9 +34,9 @@ export interface SetProblemParams {
 	weight?: number;
 }
 
-export interface LibraryParams {
-	id?: number;
-	file_path?: string;
+export interface ProblemParams extends Dictionary<generic> {
+	library_id: number;
+	file_path: string;
 }
 
 export class Problem extends Model(
@@ -67,15 +65,19 @@ export class Problem extends Model(
 	static OPTIONAL_FIELDS = ['problem_id', 'set_id', 'seed', 'id', 'problem_number', 'problem_version'];
 
 	problem_type = '';
-	_param_fields: ModelField = {};
-	problem_params = {};
+	_param_fields: ModelField = {
+		library_id: { field_type: 'non_neg_int' },
+		file_path: { field_type: 'string' }
+	};
+	problem_params: ProblemParams = { library_id: 0, file_path: '' };
 
 	constructor(params: ParseableProblem = {}) {
 		super(params as ParseableModel);
+		this.setParams(params.problem_params);
 	}
 
 	setParams(params: Dictionary<generic> = {}) {
-		this.problem_params = parseParams(params, this._param_fields);
+		this.problem_params = parseParams(params, this._param_fields) as ProblemParams;
 	}
 
 	isValid() {
@@ -107,7 +109,7 @@ export class Problem extends Model(
 			problemSeed: this.seed,
 			outputFormat: this.output_format,
 			sourceFilePath: this.path(), // will this respect inheritance?
-			problemNumber: this.problem_number,
+			problemNumber: this.problem_number || this.problem_params.library_id,
 			answerPrefix: this.answer_prefix,
 			permissionLevel: this.permission_level,
 			language: 'en',
@@ -143,11 +145,11 @@ export class SetProblem extends Problem {
 				field_type: 'non_neg_int'
 			}
 		};
-		this.problem_params = {} as SetProblemParams;
-		if (params.problem_params) {
-			logger.debug(`[SetProblem/constructor] new problem path: ${params.problem_params.file_path || 'none'}`);
-			this.setParams(params.problem_params as Dictionary<generic>);
-		}
+		// this.problem_params = {} as SetProblemParams;
+		// if (params.problem_params) {
+		// logger.debug(`[SetProblem/constructor] new problem path: ${params.problem_params.file_path || 'none'}`);
+		// this.setParams(params.problem_params as Dictionary<generic>);
+		// }
 	}
 
 	isValid() {
@@ -175,7 +177,7 @@ export class LibraryProblem extends Problem {
 	constructor(params: ParseableProblem = {}) {
 		// Library response data doesn't overlap with our db structure
 		// generate blank Problem and fill it in facade-style
-		super({} as ParseableModel);
+		super(params);
 		this.problem_type = 'LIBRARY';
 		// default seed value for viewing library problems
 		this.seed = DEFAULT_LIBRARY_SEED;
@@ -192,20 +194,19 @@ export class LibraryProblem extends Problem {
 				field_type: 'string'
 			}
 		};
-		this.problem_params = {} as LibraryParams;
-		if (params) {
-			this.setParams(params as Dictionary<generic>);
-		}
+		// this.problem_params = {} as LibraryParams;
+		// if (params.problem_params) {
+		// logger.debug(`[SetProblem/constructor] new problem path: ${params.problem_params.file_path || 'none'}`);
+		// this.setParams(params.problem_params as Dictionary<generic>);
+		// }
 		// they haven't been assigned, so no problem_id or problem_number
 		// we still need unique problem prefixes, so use library_id as problem_number
-		this.problem_number = (this.problem_params as LibraryParams).id;
+		// this.problem_number = (this.problem_params as LibraryParams).id;
 		this.answer_prefix = `QUESTION_${this.problem_number || 0}`;
-
 	}
 
 	isValid() {
-		const params = this.problem_params as LibraryParams;
-		return (params.file_path && this.problem_number) ? true : false;
+		return this.problem_params.file_path && this.problem_number;
 	}
 
 	rerandomize() {
@@ -219,9 +220,8 @@ export class LibraryProblem extends Problem {
 	}
 
 	path() {
-		const params = this.problem_params as LibraryParams;
-		if (params.file_path === undefined) throw 'This problem does not have a defined path';
-		return params.file_path;
+		if (this.problem_params.file_path === undefined) throw 'This problem does not have a defined path';
+		return this.problem_params.file_path;
 	}
 }
 

@@ -163,6 +163,11 @@ sub addSetProblem {
 	# set the problem number to one more than the set's largest
 	$new_problem_params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0);
 
+	my $params = $new_problem_params->{problem_params} || {};
+	$params->{weight} = 1 unless defined($params->{weight});
+
+	$new_problem_params->{problem_params} = $params;
+
 	my $problem_to_add = $self->new($new_problem_params);
 	$problem_to_add->validParams(undef, 'problem_params');
 
