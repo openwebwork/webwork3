@@ -147,6 +147,10 @@ export default defineComponent({
 			submitButtons.value = [];
 		};
 
+		watch(()=>props.problem, ()=> {
+			freeProblem.value = props.problem.clone();
+		}, { deep: true });
+
 		const loadProblem = async (url: string, formData: FormData, overrides: RendererRequest) => {
 			// Make sure that any popovers left open from a previous rendering are removed.
 			for (const popover of activePopovers) {

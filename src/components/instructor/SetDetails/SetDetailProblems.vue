@@ -68,12 +68,15 @@ export default defineComponent({
 		return {
 			problem_set,
 			problems,
-			reorderProblems: () => {
-				problems.value.forEach((prob, i) => {
-					if (prob.problem_number !== i+1) {
-				 		void store.dispatch('problem_sets/updateSetProblem', { prob, props: { problem_number: i+1 } });
+			reorderProblems: async () => {
+				let i = 0;
+				// since we have an await insie, we need to use a for loop instead of forEach
+				for(const prob of problems.value) {
+					i++;
+					if (prob.problem_number !== i) {
+				 		await store.dispatch('problem_sets/updateSetProblem', { prob, props: { problem_number: i } });
 					}
-				});
+				}
 				$q.notify({
 					message: `The problems in set ${problem_set.value.set_name ?? 'UNKNOWN'} have been reordered.`,
 					color: 'green'
