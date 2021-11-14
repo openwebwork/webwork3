@@ -8,6 +8,7 @@
 				v-model="target_set"
 				:options="problem_sets"
 				/>
+			<q-btn push label="View Target Set" @click="viewTargetSet" />
 		</q-card-section>
 	</q-card>
 </template>
@@ -15,7 +16,8 @@
 <script lang="ts">
 import type { Ref } from 'vue';
 import { defineComponent, computed, ref, watch } from 'vue';
-import { useStore } from 'src/store';
+import { useStore } from '@/store';
+import { useRouter } from 'vue-router';
 
 interface SelectItem {
 	label: string;
@@ -26,6 +28,7 @@ export default defineComponent({
 	name: 'ProblemSetList',
 	setup() {
 		const store = useStore();
+		const router = useRouter();
 		const target_set: Ref<SelectItem| null> = ref(null);
 
 		watch([target_set], () => {
@@ -36,7 +39,12 @@ export default defineComponent({
 			target_set,
 			users: computed(() => store.state.users.users),
 			problem_sets: computed(() => store.state.problem_sets.problem_sets
-				.map(set => ({ label: set.set_name, value: set.set_id })))
+				.map(set => ({ label: set.set_name, value: set.set_id }))),
+			viewTargetSet: () => {
+				if (target_set.value) {
+					void router.push({ name: 'ProblemSetDetails', params: { set_id: target_set.value.value } });
+				}
+			}
 		};
 	}
 });

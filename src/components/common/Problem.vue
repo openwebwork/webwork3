@@ -4,21 +4,23 @@
 			<q-btn-group push>
 				<q-btn size="sm" push icon="add" @click="$emit('addProblem')" />
 				<q-btn size="sm" push icon="edit" />
+				<q-btn size="sm" push icon="description" @click="show_path = !show_path"/>
 				<q-btn size="sm" push icon="shuffle" @click="freeProblem.rerandomize()"/>
 			</q-btn-group>
 		</q-card-section>
 
-		<q-card-section v-if="problem_type==='set'">
+		<q-card-section v-if="problem_type==='SET'">
 			<span class="div-h6 number-border">{{problem.problem_number}}</span>
 			<q-btn-group push>
 				<q-btn size="sm" icon="height" class="move-handle" />
 				<q-btn size="sm" push icon="edit" />
+				<q-btn size="sm" push icon="description" @click="show_path = !show_path"/>
 				<q-btn size="sm" push icon="shuffle" @click="freeProblem.rerandomize()"/>
 			</q-btn-group>
 		</q-card-section>
 
-		<q-card-section>
-			{{ freeProblem.path() }}
+		<q-card-section v-if="show_path">
+			file path: {{ freeProblem.path() }}
 		</q-card-section>
 
 		<q-card-section v-if="answerTemplate" class="q-pa-sm bg-white">
@@ -302,6 +304,7 @@ export default defineComponent({
 			submitButtons,
 			submitButton,
 			freeProblem,
+			show_path: ref(false)
 		};
 	}
 });
