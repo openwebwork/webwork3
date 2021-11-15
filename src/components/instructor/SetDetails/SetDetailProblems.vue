@@ -69,18 +69,29 @@ export default defineComponent({
 			problem_set,
 			problems,
 			reorderProblems: async () => {
-				let i = 0;
-				// since we have an await insie, we need to use a for loop instead of forEach
-				for(const prob of problems.value) {
-					i++;
-					if (prob.problem_number !== i) {
-				 		await store.dispatch('problem_sets/updateSetProblem', { prob, props: { problem_number: i } });
+				const promises: Array<Promise<void>> = [];
+				problems.value.forEach((prob, i) => {
+					if (prob.problem_number !== i+1) {
+						promises.push(
+							store.dispatch('problem_sets/updateSetProblem',
+								{ prob, props: { problem_number: i+1 } }
+							)
+						);
 					}
-				}
-				$q.notify({
-					message: `The problems in set ${problem_set.value.set_name ?? 'UNKNOWN'} have been reordered.`,
-					color: 'green'
 				});
+				await Promise.all(promises)
+					.then(() => {
+						$q.notify({
+							message: `Reordered problems in set ${problem_set.value.set_name ?? 'UNKNOWN'}.`,
+							color: 'green'
+						});
+					})
+					.catch((reason: Error) => {
+						$q.notify({
+							message: reason.message,
+							color: 'red',
+						});
+					});
 				logger.debug(`Reordering the set: ${problem_set.value.set_name ?? 'UNKNOWN'}.`);
 				updateProblemSet();
 			},
