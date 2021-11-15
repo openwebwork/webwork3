@@ -47,6 +47,7 @@ sub deleteProblem ($self) {
 	};
 	my $deleted_problem = $self->schema->resultset("Problem")->deleteSetProblem($course_set_problem_params);
 	$self->render(json => $deleted_problem);
+	return;
 }
 
 1;
