@@ -1,4 +1,4 @@
-import { Dictionary, Model, generic } from '@/store/models/index';
+import { Dictionary, Model, generic } from 'src/store/models/index';
 
 export interface UserCourse {
 	course_id: number;

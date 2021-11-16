@@ -44,6 +44,7 @@
 		"eslint-config-prettier": "^8.1.0",
 		"eslint-plugin-vue": "^7.0.0",
 		"jest": "^27.2.2",
+		"require-json5": "^1.1.0",
 		"stylelint": "^13.13.1",
 		"stylelint-config-prettier": "^8.0.2",
 		"stylelint-config-recommended-scss": "^4.3.0",

@@ -46,9 +46,9 @@
 
 <script lang="ts">
 import { defineComponent, computed, ref, Ref } from 'vue';
-import { useStore } from '@/store';
-import { ProblemSet, QuizDates } from '@/store/models/problem_sets';
-import { formatDate } from '@/common';
+import { useStore } from 'src/store';
+import { ProblemSet, QuizDates } from 'src/store/models/problem_sets';
+import { formatDate } from 'src/common';
 
 export default defineComponent({
 	name: 'ProblemSetsManager',

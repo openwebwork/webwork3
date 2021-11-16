@@ -1,14 +1,14 @@
-import { api } from '@/boot/axios';
+import { api } from 'boot/axios';
 
 import type { Commit, ActionContext } from 'vuex';
-import type { StateInterface } from '@/store/index';
+import type { StateInterface } from 'src/store/index';
 import { remove, pick, assign } from 'lodash-es';
 
-import { logger } from '@/boot/logger';
+import { logger } from 'boot/logger';
 import { User, MergedUser, CourseUser, ParseableCourseUser, ParseableMergedUser,
-	ParseableUser } from '@/store/models/users';
-import { ResponseError } from '@/store/models';
-import { UserCourse } from '@/store/models/courses';
+	ParseableUser } from 'src/store/models/users';
+import { ResponseError } from 'src/store/models';
+import { UserCourse } from 'src/store/models/courses';
 
 export interface UserState {
 	users: Array<User>;

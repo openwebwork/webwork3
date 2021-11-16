@@ -1,4 +1,4 @@
-import { User } from '@/store/models/users';
+import { User } from 'src/store/models/users';
 
 export interface SessionInfo {
 	user: User;
