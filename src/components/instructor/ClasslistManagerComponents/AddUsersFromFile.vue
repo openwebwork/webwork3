@@ -99,9 +99,9 @@ import { parse } from 'papaparse';
 import { AxiosError } from 'axios';
 import { logger } from 'boot/logger';
 
-import { useStore } from '@/store';
-import type { Dictionary, ResponseError } from '@/store/models';
-import { MergedUser, CourseUser, User, ParseableMergedUser } from '@/store/models/users';
+import { useStore } from 'src/store';
+import type { Dictionary, ResponseError } from 'src/store/models';
+import { MergedUser, CourseUser, User, ParseableMergedUser } from 'src/store/models/users';
 import { pick, fromPairs, values, invert, mapValues, clone, isUndefined,
 	assign, filter } from 'lodash-es';
 

@@ -1,6 +1,6 @@
 import { route } from 'quasar/wrappers';
 import { createMemoryHistory, createRouter, createWebHashHistory, createWebHistory } from 'vue-router';
-import { StateInterface } from '@/store';
+import { StateInterface } from 'src/store';
 import routes from './routes';
 
 /*

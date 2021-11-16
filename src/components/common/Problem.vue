@@ -30,7 +30,7 @@
 import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
 import type { SubmitButton } from 'src/typings/renderer';
 import { fetchProblem } from 'src/APIRequests/renderer';
-import { RENDER_URL } from '@/constants';
+import { RENDER_URL } from 'src/constants';
 import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
 import JQuery from 'jquery';

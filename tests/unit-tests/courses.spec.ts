@@ -1,7 +1,7 @@
 // tests parsing and handling of users
 
-import { Course, ParseableCourse } from '@/store/models/courses';
-import { NonNegIntException, InvalidFieldsException } from '@/store/models';
+import { Course, ParseableCourse } from 'src/store/models/courses';
+import { NonNegIntException, InvalidFieldsException } from 'src/store/models';
 
 test('Create a Valid Course', () => {
 	const course = new Course();

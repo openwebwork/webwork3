@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { Commit } from 'vuex';
 
-import { Discipline, LibrarySubject } from '@/store/models/library';
+import { Discipline, LibrarySubject } from 'src/store/models/library';
 
 export interface LibraryState {
 	disciplines: Array<Discipline>;

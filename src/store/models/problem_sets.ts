@@ -1,7 +1,7 @@
 /* These are Problem Set interfaces */
 
 import { Dictionary, parseNonNegInt, Model, ParseError, generic,
-	InvalidFieldsException, ParseableModel, ModelField, parseParams } from '@/store/models/index';
+	InvalidFieldsException, ParseableModel, ModelField, parseParams } from 'src/store/models/index';
 import { difference } from 'lodash';
 
 // const problem_set_types = [/hw/i, /quiz/i, /review/i];
