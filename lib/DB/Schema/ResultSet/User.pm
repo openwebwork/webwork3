@@ -11,7 +11,6 @@ use strict;
 use warnings;
 use base 'DBIx::Class::ResultSet';
 
-use Data::Dumper;
 use Array::Utils qw/array_minus/;
 use Clone qw/clone/;
 
@@ -367,8 +366,7 @@ The method returns only the information in the course_user table
 
 sub addCourseUser {
 	my ($self, $course_user_params, $as_result_set) = @_;
-	# warn "in addCourseUser";
-	# warn Dumper $course_user_params;
+
 	my $course = $self->result_source->schema->resultset("Course")->getCourse(getCourseInfo($course_user_params), 1);
 	my $user   = $self->getGlobalUser(getUserInfo($course_user_params), 1);
 

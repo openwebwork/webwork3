@@ -15,7 +15,6 @@ BEGIN {
 use lib "$main::lib_dir";
 
 use Text::CSV qw/csv/;
-use Data::Dumper;
 use List::Util qw(uniq);
 use Test::More;
 use Test::Exception;
@@ -80,9 +79,6 @@ sub removeCourseUserIDs {
 	return;
 }
 
-print Dumper $precalc_students[3];
-print Dumper $precalc_students_from_db[3];
-
 is_deeply(\@precalc_students, \@precalc_students_from_db, "getUsers: get users from a course");
 
 ## getUsers: test that an unknown course results in an error
@@ -130,14 +126,13 @@ throws_ok {
 
 my $arithmetic = $course_rs->find({ course_name => "Arithmetic" });
 my $quimby     = $user_rs->find({ username => "quimby" });
-# warn Dumper {$quimby->get_inflated_columns} if $quimby;
+
 if (defined($quimby)) {
 	$quimby->delete;
 	my $cu =
 		$schema->resultset("CourseUser")->find({ user_id => $quimby->user_id, course_id => $arithmetic->course_id });
 	$cu->delete if defined($cu);
 }
-# warn Dumper {$cu->get_inflated_columns} if $cu;
 
 my $user_params = {
 	username   => "quimby",

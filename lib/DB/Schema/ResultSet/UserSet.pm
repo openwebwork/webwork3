@@ -12,7 +12,6 @@ use warnings;
 use base 'DBIx::Class::ResultSet';
 
 use Try::Tiny;
-use Data::Dumper;
 
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 use DB::WithDates;

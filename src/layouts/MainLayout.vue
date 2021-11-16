@@ -38,7 +38,7 @@ import { useRoute } from 'vue-router';
 import ProblemSetList from '@/components/sidebars/ProblemSetList.vue';
 import UserList from '@/components/sidebars/UserList.vue';
 import LibrarySidebar from '@/components/sidebars/LibrarySidebar.vue';
-import { logger } from '@/boot/logger';
+import { logger } from 'boot/logger';
 
 export default defineComponent({
 	components: {

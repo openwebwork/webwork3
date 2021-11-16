@@ -4,7 +4,6 @@ use strict;
 
 use Carp;
 use Array::Utils qw/array_minus intersect/;
-use Data::Dumper;
 
 use DB::Exception;
 

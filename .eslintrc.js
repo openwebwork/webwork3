@@ -47,6 +47,7 @@ module.exports = {
 		process: 'readonly'
 	},
 	rules: baseRules,
+
 	overrides: [{
 		files: ['*.ts', '*.tsx', '*.vue'],
 

@@ -3,9 +3,6 @@ use strict;
 use warnings;
 use base 'DBIx::Class::ResultSet';
 
-use Carp;
-use Data::Dumper;
-use Scalar::Util qw/reftype/;
 use Try::Tiny;
 
 use DB::Utils qw/getCourseInfo getPoolInfo getPoolProblemInfo/;

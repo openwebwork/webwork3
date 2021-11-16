@@ -15,7 +15,6 @@ BEGIN {
 use lib "$main::lib_dir";
 
 use Text::CSV qw/csv/;
-use Data::Dumper;
 use DateTime::Format::Strptime;
 
 use Test::More;

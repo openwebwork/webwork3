@@ -1,4 +1,4 @@
-import { api } from '@/boot/axios';
+import { api } from 'boot/axios';
 import { Commit } from 'vuex';
 import { StateInterface } from '../index';
 import { isEqual } from 'lodash-es';

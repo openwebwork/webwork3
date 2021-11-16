@@ -14,13 +14,10 @@ BEGIN {
 
 use lib "$main::lib_dir";
 
-use Data::Dumper;
 use List::MoreUtils qw(uniq);
 
 use Test::More;
 use Test::Exception;
-use Try::Tiny;
-use YAML::XS qw/LoadFile/;
 
 use DB::WithParams;
 use DB::WithDates;
