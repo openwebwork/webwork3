@@ -49,7 +49,7 @@
 
 import { defineComponent, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
-import { logger } from 'src/boot/logger';
+import { logger } from 'boot/logger';
 
 import { useStore } from 'src/store';
 

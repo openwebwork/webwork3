@@ -46,6 +46,7 @@ module.exports = {
 		__statics: 'readonly',
 		process: 'readonly'
 	},
+
 	rules: baseRules,
 
 	overrides: [{

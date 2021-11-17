@@ -41,14 +41,13 @@
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
 import { defineComponent, ref, computed } from 'vue';
 import { cloneDeep, clone, remove, pick } from 'lodash-es';
 
 import { MergedUser } from 'src/store/models/users';
 import { CourseSetting } from 'src/store/models/settings';
 import { useStore } from 'src/store';
-import { logger } from 'src/boot/logger';
+import { logger } from 'boot/logger';
 import { CourseUser } from 'src/store/models/users';
 
 export default defineComponent({
@@ -57,8 +56,12 @@ export default defineComponent({
 	},
 	emits: ['closeDialog'],
 	setup(props, context) {
-		const merged_users: Ref<Array<MergedUser>> = props.users_to_edit ?
-			ref(cloneDeep(props.users_to_edit) as unknown as Array<MergedUser>) : ref([]);
+		const merged_users =
+			ref<Array<MergedUser>>(
+				props.users_to_edit
+					? cloneDeep(props.users_to_edit) as unknown as Array<MergedUser>
+					: []
+			);
 		const store = useStore();
 
 		const updateUsers = async () => {

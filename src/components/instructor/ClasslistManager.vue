@@ -59,7 +59,7 @@ import { defineComponent, computed, ref } from 'vue';
 
 import { pick } from 'lodash-es';
 import { useStore } from 'src/store';
-import { api } from 'src/boot/axios';
+import { api } from 'boot/axios';
 import { MergedUser, CourseUser } from 'src/store/models/users';
 import { UserCourse } from 'src/store/models/courses';
 import { ResponseError } from 'src/store/models';

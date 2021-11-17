@@ -1,5 +1,9 @@
 /* eslint-env node */
 
+const { pathsToModuleNameMapper } = require('ts-jest/utils');
+const requireJSON5 = require('require-json5');
+const { compilerOptions } = requireJSON5('./node_modules/@quasar/app/tsconfig-preset.json');
+
 module.exports = {
 	preset: 'ts-jest',
 	testEnvironment: 'node',
@@ -9,14 +13,6 @@ module.exports = {
 			'diagnostics': true
 		}
 	},
-	moduleNameMapper: {
-		'^src/(.*)$': '<rootDir>/src/$1',
-		'^app/(.*)$': '<rootDir>/$1',
-		'^components/(.*)$': '<rootDir>/src/components/$1',
-		'^layouts/(.*)$': '<rootDir>/src/layouts/$1',
-		'^pages/(.*)$': '<rootDir>/src/pages/$1',
-		'^assets/(.*)$': '<rootDir>/src/assets/$1',
-		'^boot/(.*)$': '<rootDir>/src/boot/$1'
-	},
+	moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/' }),
 	testRegex: '(/tests/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',
 };
