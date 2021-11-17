@@ -27,7 +27,7 @@ import { defineComponent, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useStore } from 'src/store';
 import { VueDraggableNext } from 'vue-draggable-next';
-import Problem from '@/components/common/Problem.vue';
+import Problem from 'components/common/Problem.vue';
 import { ProblemSet } from 'src/store/models/problem_sets';
 import { sortBy } from 'lodash-es';
 import { SetProblem } from 'src/store/models/set_problem';

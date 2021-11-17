@@ -2,7 +2,7 @@
 
 import { parseNonNegInt } from './index';
 import { Dictionary, generic, Model, ParseableModel } from './index';
-import { SubmitButton } from '@/typings/renderer';
+import { SubmitButton } from 'src/typings/renderer';
 
 export interface Discipline {
 	id: number;

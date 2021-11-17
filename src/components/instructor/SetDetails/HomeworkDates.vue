@@ -40,7 +40,7 @@ import { defineComponent, ref, computed } from 'vue';
 import type { PropType } from 'vue';
 import { checkHWDates } from 'src/common';
 import { HomeworkSetDates } from 'src/store/models/problem_sets';
-import DateTimeInput from '@/components/common/DateTimeInput.vue';
+import DateTimeInput from 'components/common/DateTimeInput.vue';
 
 export default defineComponent({
 	name: 'HomeworkDates',
