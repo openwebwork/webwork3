@@ -37,9 +37,9 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
-import type { Ref, PropType } from 'vue';
-import { checkHWDates } from '@/common';
-import { HomeworkSetDates } from '@/store/models/problem_sets';
+import type { PropType } from 'vue';
+import { checkHWDates } from 'src/common';
+import { HomeworkSetDates } from 'src/store/models/problem_sets';
 import DateTimeInput from '@/components/common/DateTimeInput.vue';
 
 export default defineComponent({
@@ -57,7 +57,7 @@ export default defineComponent({
 		DateTimeInput
 	},
 	setup(props){
-		const hw_dates: Ref<HomeworkSetDates> = ref(props.dates);
+		const hw_dates = ref<HomeworkSetDates>(props.dates);
 		if (!hw_dates.value.reduced_scoring) {
 			hw_dates.value.reduced_scoring = hw_dates.value.due;
 		}

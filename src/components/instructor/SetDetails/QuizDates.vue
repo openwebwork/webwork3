@@ -28,10 +28,10 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import type { Ref, PropType } from 'vue';
-import { checkQuizDates } from '@/common';
-import { QuizDates } from '@/store/models/problem_sets';
-import DateTimeInput from '@/components/common/DateTimeInput.vue';
+import type { PropType } from 'vue';
+import { checkQuizDates } from 'src/common';
+import { QuizDates } from 'src/store/models/problem_sets';
+import DateTimeInput from 'src/components/common/DateTimeInput.vue';
 
 export default defineComponent({
 	name: 'QuizDates',
@@ -45,7 +45,7 @@ export default defineComponent({
 		DateTimeInput
 	},
 	setup(props){
-		const quiz_dates: Ref<QuizDates> = ref(props.dates);
+		const quiz_dates = ref<QuizDates>(props.dates);
 
 		return {
 			quiz_dates,

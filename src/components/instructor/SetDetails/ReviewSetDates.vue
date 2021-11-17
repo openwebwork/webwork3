@@ -22,10 +22,10 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import type { Ref, PropType } from 'vue';
-import { checkReviewSetDates } from '@/common';
-import { ReviewSetDates } from '@/store/models/problem_sets';
-import DateTimeInput from '@/components/common/DateTimeInput.vue';
+import type { PropType } from 'vue';
+import { checkReviewSetDates } from 'src/common';
+import { ReviewSetDates } from 'src/store/models/problem_sets';
+import DateTimeInput from 'components/common/DateTimeInput.vue';
 
 export default defineComponent({
 	name: 'ReviewSetDates',
@@ -39,7 +39,7 @@ export default defineComponent({
 		DateTimeInput
 	},
 	setup(props){
-		const review_set_dates: Ref<ReviewSetDates> = ref(props.dates);
+		const review_set_dates = ref<ReviewSetDates>(props.dates);
 
 		return {
 			review_set_dates,

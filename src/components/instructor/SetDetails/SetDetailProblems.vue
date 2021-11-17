@@ -24,16 +24,15 @@
 
 <script lang="ts">
 import { defineComponent, ref, watch } from 'vue';
-import type { Ref } from 'vue';
 import { useQuasar } from 'quasar';
-import { useStore } from '@/store';
+import { useStore } from 'src/store';
 import { VueDraggableNext } from 'vue-draggable-next';
 import Problem from '@/components/common/Problem.vue';
-import { ProblemSet } from '@/store/models/problem_sets';
+import { ProblemSet } from 'src/store/models/problem_sets';
 import { sortBy } from 'lodash-es';
-import { SetProblem } from '@/store/models/set_problem';
-import { ResponseError } from '@/store/models';
-import { logger } from '@/boot/logger';
+import { SetProblem } from 'src/store/models/set_problem';
+import { ResponseError } from 'src/store/models';
+import { logger } from 'boot/logger';
 
 export default defineComponent({
 	name: 'SetDetailProblems',
@@ -51,8 +50,8 @@ export default defineComponent({
 		const $q = useQuasar();
 		const store = useStore();
 		// copy of the set_id prop and ensure it is a number
-		const problems: Ref<Array<SetProblem>> = ref([]);
-		const problem_set: Ref<ProblemSet> = ref(new ProblemSet());
+		const problems = ref<Array<SetProblem>>([]);
+		const problem_set = ref<ProblemSet>(new ProblemSet());
 
 		const updateProblemSet = () => {
 			problems.value = sortBy(store.state.problem_sets.set_problems
@@ -71,10 +70,10 @@ export default defineComponent({
 			reorderProblems: async () => {
 				const promises: Array<Promise<void>> = [];
 				problems.value.forEach((prob, i) => {
-					if (prob.problem_number !== i+1) {
+					if (prob.problem_number !== i + 1) {
 						promises.push(
 							store.dispatch('problem_sets/updateSetProblem',
-								{ prob, props: { problem_number: i+1 } }
+								{ prob, props: { problem_number: i + 1 } }
 							)
 						);
 					}

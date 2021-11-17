@@ -11,9 +11,8 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import type { Ref } from 'vue';
 import Problem from './Problem.vue';
-import { LibraryProblem } from '@/store/models/library';
+import { LibraryProblem } from 'src/store/models/library';
 
 export default defineComponent({
 	name: 'ProblemViewer',
@@ -23,7 +22,7 @@ export default defineComponent({
 	setup() {
 		const srcFile = ref('');
 		const file = ref('');
-		const problem: Ref<LibraryProblem> = ref(new LibraryProblem());
+		const problem = ref<LibraryProblem>(new LibraryProblem());
 
 		// Test problems:
 		//   # Basic

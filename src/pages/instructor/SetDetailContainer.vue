@@ -36,12 +36,11 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, watch } from 'vue';
-import type { Ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import SetDetailProblems from '@/components/instructor/SetDetails/SetDetailProblems.vue';
-import SetUsers from '@/components/instructor/SetDetails/SetUsers.vue';
+import SetDetailProblems from 'components/instructor/SetDetails/SetDetailProblems.vue';
+import SetUsers from 'components/instructor/SetDetails/SetUsers.vue';
 
-import { useStore } from '@/store';
+import { useStore } from 'src/store';
 
 export default defineComponent({
 	name: 'SetDetailContainer',
@@ -56,8 +55,8 @@ export default defineComponent({
 		const router = useRouter();
 		const route = useRoute();
 		const store = useStore();
-		const selected_set_id: Ref<number> = ref(0);
-		const set_details_tab: Ref<string> = ref('details');
+		const selected_set_id = ref<number>(0);
+		const set_details_tab = ref<string>('details');
 
 		const updateSet = (_set_id: number) => {
 			void router.push({ name: 'ProblemSetDetails', params: { set_id: parseInt(`${_set_id}`) } });

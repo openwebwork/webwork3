@@ -63,21 +63,20 @@
 
 <script lang="ts">
 import { defineComponent, computed, ref, watch } from 'vue';
-import type { Ref } from 'vue';
 import { useQuasar } from 'quasar';
-import { useStore } from '@/store';
+import { useStore } from 'src/store';
 import { useRoute } from 'vue-router';
 import { assign, clone, pick } from 'lodash-es';
 
-import { logger } from '@/boot/logger';
+import { logger } from 'boot/logger';
 import { HomeworkSetDates, QuizDates, ReviewSetDates,
-	MergedUserSet, HomeworkSet, ProblemSet, UserSet } from '@/store/models/problem_sets';
-import { parseNonNegInt, Dictionary } from '@/store/models';
-import { formatDate } from '@/common';
+	MergedUserSet, HomeworkSet, ProblemSet, UserSet } from 'src/store/models/problem_sets';
+import { parseNonNegInt, Dictionary } from 'src/store/models';
+import { formatDate } from 'src/common';
 import HomeworkDatesView from './HomeworkDates.vue';
 import ReviewSetDatesView from './ReviewSetDates.vue';
 import QuizDatesView from './QuizDates.vue';
-import type { ResponseError } from '@/store/models';
+import type { ResponseError } from 'src/store/models';
 
 interface Column {
 	name: string;
@@ -98,18 +97,18 @@ export default defineComponent({
 		const store = useStore();
 		const route = useRoute();
 
-		const problem_set: Ref<ProblemSet> = ref(new ProblemSet());
+		const problem_set = ref<ProblemSet>(new ProblemSet());
 
 		// This is needed for editing dates of a single user
-		const merged_user_set: Ref<MergedUserSet> = ref(new MergedUserSet());
+		const merged_user_set = ref<MergedUserSet>(new MergedUserSet());
 		const columns: Array<Column> = [
 			{ name: 'first_name', label: 'First Name', field: 'first_name' },
 			{ name: 'last_name', label: 'Last Name', field: 'last_name' },
 			{ name: 'edit_dates', label: 'Edit Dates' }
 		];
-		const edit_dialog: Ref<boolean> = ref(false);
-		const date_edit: Ref<Dictionary<number>> = ref({});
-		const to_unassign: Ref<Array<MergedUserSet>> = ref([]);
+		const edit_dialog = ref<boolean>(false);
+		const date_edit = ref<Dictionary<number>>({});
+		const to_unassign = ref<Array<MergedUserSet>>([]);
 
 		const updateProblemSet = () => {
 			if (route.params.set_id) {
@@ -128,7 +127,7 @@ export default defineComponent({
 							field: row => row.set_dates ? (row.set_dates as HomeworkSetDates).answer :  0 }
 					);
 					if ((problem_set.value as HomeworkSet).set_params.enable_reduced_scoring) {
-						columns.splice(columns.length-1, 0,
+						columns.splice(columns.length - 1, 0,
 							{
 								name: 'reduced_scoring_date', label: 'Reduced Scoring Date', format: formatTheDate,
 								field: row => row.set_dates ?
