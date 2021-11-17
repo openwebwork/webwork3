@@ -4,7 +4,6 @@ use strict;
 
 use Carp;
 use Array::Utils qw/array_minus intersect/;
-use Data::Dumper;
 use Scalar::Util qw/reftype/;
 
 # shared across subroutines, so 'our' ensures that these do not go out of scope

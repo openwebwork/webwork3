@@ -202,7 +202,6 @@ delete a single UserSet for a given course, user, and ProblemSet
 
 sub deleteUserSet {
 	my ($self, $user_set_info, $user_set_params, $as_result_set) = @_;
-	print Dumper $user_set_info;
 	my $user_set = $self->getUserSet($user_set_info, 1);
 
 	DB::Exception::UserSetNotInCourse->throw(
