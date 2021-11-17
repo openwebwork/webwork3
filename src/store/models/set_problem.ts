@@ -105,11 +105,12 @@ export class Problem extends Model(
 		if (this.output_format === undefined) {
 			throw 'Cannot generate requestParams for problem because there is no output format';
 		}
+
 		return {
 			problemSeed: this.seed,
 			outputFormat: this.output_format,
 			sourceFilePath: this.path(), // will this respect inheritance?
-			problemNumber: this.problem_number || this.problem_params.library_id,
+			problemNumber: this.problem_number ?? this.problem_params.library_id,
 			answerPrefix: this.answer_prefix,
 			permissionLevel: this.permission_level,
 			language: 'en',
@@ -167,8 +168,7 @@ export class SetProblem extends Problem {
 
 	path() {
 		const params = this.problem_params as SetProblemParams;
-		if (params.file_path === undefined) throw 'This problem does not have a defined path';
-		return params.file_path;
+		return params.file_path ?? '';
 	}
 }
 
@@ -220,8 +220,8 @@ export class LibraryProblem extends Problem {
 	}
 
 	path() {
-		if (this.problem_params.file_path === undefined) throw 'This problem does not have a defined path';
-		return this.problem_params.file_path;
+		const params = this.problem_params as SetProblemParams;
+		return params.file_path ?? '';
 	}
 }
 

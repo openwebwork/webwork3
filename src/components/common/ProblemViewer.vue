@@ -5,14 +5,14 @@
 			<q-input v-model="srcFile" label="Source File" autocomplete />
 			<q-btn type="submit" class="q-my-md">Load Problem</q-btn>
 		</q-form>
-		<problem :library_problem="problem" />
+		<problem :problem="problem" />
 	</div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import Problem from './Problem.vue';
-import { LibraryProblem } from 'src/store/models/library';
+import { LibraryProblem } from 'src/store/models/set_problem';
 
 export default defineComponent({
 	name: 'ProblemViewer',
