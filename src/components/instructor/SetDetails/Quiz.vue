@@ -91,7 +91,7 @@ export default defineComponent({
 			checkDates: [
 				() => {
 					const d = set.value.set_dates;
-					return d.open <= d.due && d.due <=d.answer || 'The dates must be in order';
+					return d.open <= d.due && d.due <= d.answer || 'The dates must be in order';
 				}
 			],
 			quizDuration: [

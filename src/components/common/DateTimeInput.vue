@@ -40,7 +40,7 @@ export default defineComponent({
 	},
 	emits: ['update:modelValue'],
 	setup (props, { emit }) {
-		const date_string = ref(date.formatDate((props.modelValue || Date.now())*1000, 'YYYY-MM-DD HH:mm'));
+		const date_string = ref(date.formatDate((props.modelValue || Date.now()) * 1000, 'YYYY-MM-DD HH:mm'));
 
 		watch(
 			() => date_string.value,

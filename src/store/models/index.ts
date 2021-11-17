@@ -215,7 +215,7 @@ export const Model = <Bool extends string, Num extends string, Str extends strin
 		_dictionary_field_names: Array<Dic> = dictionary_fields;
 		_fields: F = fields;
 
-		constructor(params: Dictionary<generic | Dictionary<generic>>= {}) {
+		constructor(params: Dictionary<generic | Dictionary<generic>> = {}) {
 			// check that required fields are present
 
 			const common_fields = intersection(this.required_fields, Object.keys(params));
