@@ -37,7 +37,6 @@
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
 import { defineComponent, ref, watch, toRefs } from 'vue';
 import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
@@ -58,7 +57,7 @@ export default defineComponent({
 
 		const { set_id } = toRefs(props);
 
-		const set: Ref<Quiz> = ref(new Quiz());
+		const set = ref<Quiz>(new Quiz());
 
 		const updateSet = () => {
 			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id == set_id.value) ||

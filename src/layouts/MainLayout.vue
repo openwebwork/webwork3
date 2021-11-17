@@ -26,9 +26,7 @@
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
 import { defineComponent, ref, watch } from 'vue';
-import { isUndefined } from 'lodash-es';
 
 import MenuSidebar from './MenuSidebar.vue';
 import MenuBar from './MenuBar.vue';
@@ -50,11 +48,11 @@ export default defineComponent({
 	},
 	setup() {
 		const route = useRoute();
-		const left_sidebar_open: Ref<boolean> = ref(true);
-		const right_sidebar_open: Ref<boolean> = ref(false);
-		const sidebars: Ref<Array<string>> = ref([]);
-		// const show_problem_sets: Ref<boolean> = ref(false);
-		// const show_users: Ref<boolean> = ref(false);
+		const left_sidebar_open = ref<boolean>(true);
+		const right_sidebar_open = ref<boolean>(false);
+		const sidebars = ref<Array<string>>([]);
+		// const show_problem_sets = ref<boolean>(false);
+		// const show_users = ref<boolean>(false);
 
 		// is there any state/scope issue with route?
 		// should route: RouteLocationNormalizedLoaded be an argument?
@@ -68,7 +66,7 @@ export default defineComponent({
 
 			if (! current_view) { // it may be a child component
 				current_view = views.find((view: ViewInfo) =>
-				 isUndefined(view.children) ? false : view.children?.indexOf(route.name as string)> -1);
+				 view.children ? view.children?.indexOf(route.name as string)> -1 : false);
 			}
 
 			logger.debug(`[MainLayout/updateViews] name: ${current_view?.name || 'no name!'}`);

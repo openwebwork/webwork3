@@ -45,7 +45,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, ref, Ref } from 'vue';
+import { defineComponent, computed, ref } from 'vue';
 import { useStore } from 'src/store';
 import { ProblemSet, QuizDates } from 'src/store/models/problem_sets';
 import { formatDate } from 'src/common';
@@ -54,8 +54,8 @@ export default defineComponent({
 	name: 'ProblemSetsManager',
 	setup() {
 		const store = useStore();
-		const selected: Ref<Array<ProblemSet>> = ref([]);
-		const filter: Ref<string> = ref('');
+		const selected = ref<Array<ProblemSet>>([]);
+		const filter = ref<string>('');
 		const columns = [
 			{ name: 'set_name', label: 'Set Name', field: 'set_name', sortable: true },
 			{ name: 'set_id', label: 'set_id', field: 'set_id', sortable: true },

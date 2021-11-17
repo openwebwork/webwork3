@@ -55,7 +55,6 @@
 
 <script lang="ts">
 import { useQuasar } from 'quasar';
-import type { Ref } from 'vue';
 import { defineComponent, computed, ref } from 'vue';
 
 import { pick } from 'lodash-es';
@@ -79,11 +78,11 @@ export default defineComponent({
 	setup() {
 		const $q = useQuasar();
 		const store = useStore();
-		const selected: Ref<Array<MergedUser>> = ref([]);
-		const filter: Ref<string> = ref('');
-		const open_users_manually: Ref<boolean> = ref(false);
-		const open_users_from_file: Ref<boolean> = ref(false);
-		const open_edit_dialog: Ref<boolean> = ref(false);
+		const selected = ref<Array<MergedUser>>([]);
+		const filter = ref<string>('');
+		const open_users_manually = ref<boolean>(false);
+		const open_users_from_file = ref<boolean>(false);
+		const open_edit_dialog = ref<boolean>(false);
 
 		const columns = [
 			{

@@ -45,7 +45,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, Ref, ref } from 'vue';
+import { defineComponent, computed, ref } from 'vue';
 import { useStore } from 'src/store';
 
 import { Course } from 'src/store/models/courses';
@@ -97,9 +97,9 @@ export default defineComponent({
 				sortable: true
 			}
 		];
-		const filter: Ref<string> = ref('');
-		const selected: Ref<Array<Course>> = ref([]);
-		const new_course_dialog: Ref<boolean> = ref(false);
+		const filter = ref<string>('');
+		const selected = ref<Array<Course>>([]);
+		const new_course_dialog = ref<boolean>(false);
 
 		return {
 			columns,

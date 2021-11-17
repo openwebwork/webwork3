@@ -46,7 +46,7 @@
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
+
 import { defineComponent, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { logger } from 'src/boot/logger';
@@ -64,8 +64,8 @@ export default defineComponent({
 	emits: ['closeDialog'],
 	setup(props, context) {
 		const $q = useQuasar();
-		const merged_user: Ref<ParseableMergedUser> = ref({ username: '__NEW__' });
-		const user_exists: Ref<boolean> = ref(true);
+		const merged_user = ref<ParseableMergedUser>({ username: '__NEW__' });
+		const user_exists = ref<boolean>(true);
 		const store = useStore();
 
 		return {

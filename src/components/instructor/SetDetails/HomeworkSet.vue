@@ -37,7 +37,6 @@
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
 import { defineComponent, ref, watch, toRefs } from 'vue';
 import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
@@ -57,14 +56,14 @@ export default defineComponent({
 		const $q = useQuasar();
 
 		const { set_id } = toRefs(props);
-		const hw: Ref<HomeworkSet> = ref(new HomeworkSet());
+		const hw = ref<HomeworkSet>(new HomeworkSet());
 
 		const set = ref(hw);
 
 		const updateSet = () => {
 			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id === set_id.value) ||
 				new HomeworkSet();
-			set.value = cloneDeep(s as HomeworkSet);
+			set.value = new HomeworkSet(s.toObject());
 		};
 
 		watch(()=>set_id.value, updateSet);
@@ -74,7 +73,7 @@ export default defineComponent({
 		// for why we need to do a cloneDeep here
 		watch(() => cloneDeep(set.value), (new_set, old_set) => {
 			if (new_set.set_id == old_set.set_id) {
-				void store.dispatch('problem_sets/updateSet', new_set);
+				void store.dispatch('problem_sets/updateSet', hw.value);
 				$q.notify({
 					message: `The problem set '${new_set.set_name ?? ''}' was successfully updated.`,
 					color: 'green'

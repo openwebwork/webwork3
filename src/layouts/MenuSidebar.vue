@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref, computed } from 'vue';
+import { defineComponent, ref, computed } from 'vue';
 import { instructor_views, admin_views, ViewInfo } from 'src/common';
 import { useRouter, useRoute } from 'vue-router';
 
@@ -19,7 +19,7 @@ export default defineComponent({
 	setup() {
 		const route = useRoute();
 		const router = useRouter();
-		const sidebar_open: Ref<boolean> = ref(false);
+		const sidebar_open = ref<boolean>(false);
 		return {
 			sidebar_open,
 			views: computed(() =>

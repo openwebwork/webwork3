@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref, watch } from 'vue';
+import { defineComponent, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 
 export default defineComponent({
@@ -14,7 +14,7 @@ export default defineComponent({
 	setup() {
 		const router = useRouter();
 		const route = useRoute();
-		const selected_set: Ref<number> = ref(0);
+		const selected_set = ref<number>(0);
 
 		const updateSet = (_set_id: number) => {
 			void router.push({ name: 'ProblemSetDetails', params: { set_id: _set_id } });
