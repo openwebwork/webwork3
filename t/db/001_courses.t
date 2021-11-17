@@ -17,6 +17,7 @@ use List::MoreUtils qw(uniq);
 
 use Test::More;
 use Test::Exception;
+use YAML::XS qw/LoadFile/;
 
 use DB::WithParams;
 use DB::WithDates;
