@@ -218,7 +218,7 @@ export default defineComponent({
 						parse_error = {
 							type: 'warn',
 							message: `The user with username '${merged_user.username ?? ''}'`
-								+' is already enrolled in the course.',
+								+ ' is already enrolled in the course.',
 							entire_row: true
 						};
 					} else {
@@ -238,7 +238,7 @@ export default defineComponent({
 					if (err.field === '_all') {
 						assign(parse_error, { entire_row: true });
 					} else if (err.field &&
-						(user_fields.indexOf(err.field)>=0 || course_user_fields.indexOf(err.field)>=0)) {
+						(user_fields.indexOf(err.field) >= 0 || course_user_fields.indexOf(err.field) >= 0)) {
 						assign(parse_error, {
 							col: user_param_map.value[err.field],
 							entire_row: user_param_map.value[err.field] == undefined
@@ -285,7 +285,7 @@ export default defineComponent({
 							};
 							d._row = index;
 							row.forEach((v: string, i: number) => {
-								d[`col${i+1}`] = v;
+								d[`col${i + 1}`] = v;
 							});
 							users.push(d);
 						});

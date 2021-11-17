@@ -41,7 +41,7 @@ import { defineComponent, ref, watch, toRefs } from 'vue';
 import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
-import DateTimeInput from 'src/components/common/DateTimeInput.vue';
+import DateTimeInput from 'components/common/DateTimeInput.vue';
 import { Quiz } from 'src/store/models/problem_sets';
 import { useStore } from 'src/store';
 
@@ -91,7 +91,7 @@ export default defineComponent({
 			checkDates: [
 				() => {
 					const d = set.value.set_dates;
-					return d.open <= d.due && d.due <=d.answer || 'The dates must be in order';
+					return d.open <= d.due && d.due <= d.answer || 'The dates must be in order';
 				}
 			],
 			quizDuration: [

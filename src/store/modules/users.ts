@@ -189,12 +189,12 @@ export default {
 			state. merged_users.push(_merged_user);
 		},
 		UPDATE_MERGED_USER(state: UserState, _merged_user: MergedUser): void {
-			const index = state. merged_users.findIndex((u) => u.course_user_id ===_merged_user.course_user_id);
+			const index = state. merged_users.findIndex((u) => u.course_user_id === _merged_user.course_user_id);
 			// splice is used so vue3 reacts to changes.
 			state. merged_users.splice(index, 1, _merged_user);
 		},
 		DELETE_COURSE_USER(state: UserState, _course_user: CourseUser): void {
-			remove(state.course_users, (u) => u.course_user_id ===_course_user.course_user_id);
+			remove(state.course_users, (u) => u.course_user_id === _course_user.course_user_id);
 		},
 		DELETE_MERGED_USER(state: UserState, _merged_user: MergedUser): void {
 			remove(state. merged_users, (u) => u.course_user_id === _merged_user.course_user_id);

@@ -34,7 +34,7 @@ import { RENDER_URL } from 'src/constants';
 import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
 import JQuery from 'jquery';
-import { logger } from 'src/boot/logger';
+import { logger } from 'boot/logger';
 
 import typeset from './mathjax-config';
 

@@ -49,7 +49,7 @@
 
 import { defineComponent, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
-import { logger } from 'src/boot/logger';
+import { logger } from 'boot/logger';
 
 import { useStore } from 'src/store';
 
@@ -96,7 +96,7 @@ export default defineComponent({
 					(_setting: CourseSetting) => _setting.var === 'roles'
 				);
 				const r = clone(all_roles?.value as Array<string>);
-				remove(r, (v)=> v==='admin'); // don't allow to set admin level here.
+				remove(r, (v)=> v === 'admin'); // don't allow to set admin level here.
 				return r;
 			}),
 			addUser: async (close: boolean) => {

@@ -66,13 +66,13 @@ export default defineComponent({
 
 			if (! current_view) { // it may be a child component
 				current_view = views.find((view: ViewInfo) =>
-				 view.children ? view.children?.indexOf(route.name as string)> -1 : false);
+				 view.children ? view.children?.indexOf(route.name as string) > -1 : false);
 			}
 
 			logger.debug(`[MainLayout/updateViews] name: ${current_view?.name || 'no name!'}`);
 			if (current_view) {
 				sidebars.value = current_view.sidebars;
-				if (current_view.sidebars.length>0) {
+				if (current_view.sidebars.length > 0) {
 					logger.debug(`[MainLayout/updateViews] sidebar: ${current_view.sidebars.join(', ')}`);
 					right_sidebar_open.value = true;
 				} else {
