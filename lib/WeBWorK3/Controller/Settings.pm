@@ -11,7 +11,6 @@ These are the methods that call the database for course settings
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 use Mojo::File qw/path/;
 
-use Data::Dumper;
 use YAML::XS qw/LoadFile/;
 
 # this reads the default settings from a file

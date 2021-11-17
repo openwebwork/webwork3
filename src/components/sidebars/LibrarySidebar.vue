@@ -13,7 +13,6 @@
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
 import { defineComponent, computed, ref, watch } from 'vue';
 import { useStore } from 'src/store';
 
@@ -26,7 +25,7 @@ export default defineComponent({
 	name: 'ProblemSetList',
 	setup() {
 		const store = useStore();
-		const target_set: Ref<SelectItem| null> = ref(null);
+		const target_set = ref<SelectItem| null>(null);
 
 		watch([target_set], () => {
 			void store.dispatch('app_state/setTargetSetID', target_set.value?.value ?? 0);

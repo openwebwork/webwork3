@@ -14,8 +14,6 @@ BEGIN {
 
 use lib "$main::lib_dir";
 
-# use Text::CSV qw/csv/;
-use Data::Dump qw/dd/;
 use Test::More;
 use Test::Exception;
 use Try::Tiny;
@@ -153,7 +151,7 @@ throws_ok {
 	$problem_pool_rs->updateProblemPool({ course_name => "Arithmetic", pool_name => "non_existent_pool" },
 		$updated_pool);
 }
-"DB::Exception::PoolNotInCourse", "updateProblemPool: get a problem pool from a non-existent course";
+"DB::Exception::PoolNotInCourse", "updateProblemPool: update a problem pool from a non-existent course";
 
 ## get a PoolProblem (a problem within a ProblemPool)
 
@@ -169,8 +167,6 @@ my $random_prob = $problem_pool_rs->getPoolProblem({
 	course_name => $prob2->{course_name},
 	pool_name   => $prob2->{pool_name}
 });
-
-# dd $random_prob;
 
 my @probs3 = grep { $_->{course_name} eq $prob2->{course_name} and $_->{pool_name} eq $prob2->{pool_name} }
 	@pool_problems_from_file;

@@ -24,18 +24,17 @@ field starting with PARAM: and DATE: respectively.
 
 sub buildHash {
 	my $input  = shift;
-	my $output = { params => {}, dates => {} };
+	my $output = {};
 	for my $key (keys %{$input}) {
-		if ($key =~ /^PARAM:(.*)/x) {
-			$output->{params}->{$1} = $input->{$key} if defined($input->{$key});
-		} elsif ($key =~ /^DATE:(.*)/x) {
-			$output->{dates}->{$1} = $input->{$key} if defined($input->{$key});
+		if ($key =~ /^([A-Z_]+):(.*)/x) {
+			$output->{ lc($1) } = {} unless defined($output->{ lc($1) });
+			$output->{ lc($1) }->{$2} = $input->{$key} if defined($input->{$key});
 		} else {
 			$output->{$key} = $input->{$key};
 		}
 	}
-	my @date_fields = keys %{ $output->{dates} };
-	delete $output->{dates} if (scalar(@date_fields) == 0);
+	my @date_fields = keys %{ $output->{set_dates} };
+	delete $output->{set_dates} if (scalar(@date_fields) == 0);
 	return $output;
 }
 

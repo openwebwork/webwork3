@@ -76,7 +76,7 @@ export default defineComponent({
 		const subject: Ref<SelectItem|null>        = ref(null);
 		const chapter: Ref<SelectItem|null>        = ref(null);
 		const section: Ref<SelectItem|null>        = ref(null);
-		const problems: Ref<Array<LibraryProblem>> = ref([]);
+		const problems = ref<Array<LibraryProblem>>([]);
 
 		watch([discipline], async () => {
 			void store.dispatch('library/resetSections');

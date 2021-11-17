@@ -62,7 +62,7 @@ import { computed, defineComponent, ref } from 'vue';
 import { useStore } from 'src/store';
 import { useRouter } from 'vue-router';
 import { useRoute } from 'vue-router';
-import { UserCourse } from 'src/store/models';
+import { UserCourse } from 'src/store/models/courses';
 import { endSession } from 'src/store/api';
 
 export default defineComponent({
@@ -80,7 +80,8 @@ export default defineComponent({
 			logged_in: computed(() => store.state.session.logged_in),
 			user: computed(() => store.state.session.user),
 			current_course_name,
-			full_name: computed(() => `${store.state.session.user.first_name} ${store.state.session.user.last_name}`),
+			full_name: computed(() =>
+				`${store.state.session.user.first_name || ''} ${store.state.session.user.last_name || ''}`),
 			user_courses: computed(() => {
 				return store.state.users.user_courses.filter(
 					(course: UserCourse) => course.course_name !== current_course_name.value

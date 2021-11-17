@@ -11,8 +11,7 @@ import { defineComponent, computed } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { useStore } from 'src/store';
-import { ProblemSet } from 'src/store/models';
-import { newProblemSet } from 'src/store/utils/problem_sets';
+import { ProblemSet } from 'src/store/models/problem_sets';
 import HomeworkSet from './HomeworkSet.vue';
 import Quiz from './Quiz.vue';
 import ReviewSet from './ReviewSet.vue';
@@ -38,7 +37,7 @@ export default defineComponent({
 			set_type: computed(() => {
 				const _set_id = parseSetId();
 				const s = store.state.problem_sets.problem_sets.find((_set: ProblemSet) => _set.set_id == _set_id) ||
-					newProblemSet();
+					new ProblemSet();
 				return s.set_type;
 			})
 		};

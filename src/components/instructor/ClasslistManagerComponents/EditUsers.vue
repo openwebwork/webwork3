@@ -45,10 +45,11 @@ import type { Ref } from 'vue';
 import { defineComponent, ref, computed } from 'vue';
 import { cloneDeep, clone, remove, pick } from 'lodash-es';
 
-import { MergedUser, CourseSetting } from 'src/store/models';
+import { MergedUser } from 'src/store/models/users';
+import { CourseSetting } from 'src/store/models/settings';
 import { useStore } from 'src/store';
-import { logger } from 'boot/logger';
-import { newCourseUser } from 'src/store/utils/users';
+import { logger } from 'src/boot/logger';
+import { CourseUser } from 'src/store/models/users';
 
 export default defineComponent({
 	props: {
@@ -63,7 +64,7 @@ export default defineComponent({
 		const updateUsers = async () => {
 			logger.info('in updateUsers');
 			for await (const _user of merged_users.value) {
-				const u = pick(_user, Object.keys(newCourseUser()));
+				const u = pick(_user, CourseUser.ALL_FIELDS);
 				await store.dispatch('users/updateCourseUser', u);
 				void store.dispatch('users/updateMergedUser', _user);
 			}

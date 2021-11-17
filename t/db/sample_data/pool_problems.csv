@@ -1,4 +1,4 @@
-course_name,pool_name,PARAM:library_id
+course_name,pool_name,PARAMS:library_id
 Precalculus,"factoring problems",123
 Precalculus,"factoring problems",223
 Precalculus,"factoring problems",133

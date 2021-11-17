@@ -92,7 +92,6 @@
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
 import { defineComponent, ref, computed, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { parse } from 'papaparse';
@@ -100,9 +99,9 @@ import { AxiosError } from 'axios';
 import { logger } from 'boot/logger';
 
 import { useStore } from 'src/store';
-import type { Dictionary, MergedUser, User, ResponseError } from 'src/store/models';
-import { newUser, parseMergedUser, newCourseUser, newMergedUser } from 'src/store/utils/users';
-import { pick, fromPairs, values, invert, mapValues, clone, isUndefined, assign, filter } from 'lodash-es';
+import type { Dictionary, ResponseError } from 'src/store/models';
+import { MergedUser, CourseUser, User, ParseableMergedUser } from 'src/store/models/users';
+import { pick, fromPairs, values, invert, mapValues, clone, assign, filter } from 'lodash-es';
 
 interface ParseError {
 	type: string;
@@ -115,9 +114,7 @@ interface ParseError {
 type UserFromFile = {
 	_row?: number;
 	_error?: ParseError
-} & {
-	[prop: string]: string
-};
+} & Dictionary<string>;
 
 export default defineComponent({
 	name: 'AddUsersFromFile',
@@ -125,21 +122,21 @@ export default defineComponent({
 	setup(props, context) {
 		const store = useStore();
 		const $q = useQuasar();
-		const file: Ref<File> = ref(new File([], ''));
+		const file = ref<File>(new File([], ''));
 		// stores all users from the file as well as parsing errors
-		const merged_users: Ref<Array<UserFromFile>> = ref([]);
-		const selected: Ref<Array<UserFromFile>> = ref([]); // stores the selected users
-		const column_headers: Ref<Dictionary<string>> = ref({});
-		const user_param_map: Ref<Dictionary<string>> = ref({}); // provides a map from column number to field name
-		const use_single_role: Ref<boolean> = ref(false);
-		const common_role: Ref<string|null> = ref(null);
-		const loading: Ref<boolean> = ref(false); // used to indicate parsing is occurring
+		const merged_users = ref<Array<UserFromFile>>([]);
+		const selected = ref<Array<UserFromFile>>([]); // stores the selected users
+		const column_headers = ref<Dictionary<string>>({});
+		const user_param_map = ref<Dictionary<string>>({}); // provides a map from column number to field name
+		const use_single_role = ref<boolean>(false);
+		const common_role = ref<string|null>(null);
+		const loading = ref<boolean>(false); // used to indicate parsing is occurring
 
-		const first_row_header: Ref<boolean> = ref(false);
-		const header_row: Ref<UserFromFile> = ref({});
-		const merged_users_to_add: Ref<Array<MergedUser>> = ref([]);
-		const selected_user_error: Ref<boolean> = ref(false);
-		const users_already_in_course: Ref<boolean> = ref(false);
+		const first_row_header = ref<boolean>(false);
+		const header_row = ref<UserFromFile>({});
+		const merged_users_to_add = ref<Array<MergedUser>>([]);
+		const selected_user_error = ref<boolean>(false);
+		const users_already_in_course = ref<boolean>(false);
 
 		const user_fields = [
 			{ label: 'Username', field: 'username', regexp: /(user)|(login)/i },
@@ -156,7 +153,7 @@ export default defineComponent({
 		// field names.
 		const fillHeaders = () => {
 			Object.keys(header_row.value).forEach((key) => {
-				user_fields.forEach((field) => {
+				user_fields.forEach((field: { regexp: RegExp; label: string}) => {
 					if (field.regexp.test(`${header_row.value[key]}`)) {
 						column_headers.value[key] = field.label;
 					}
@@ -209,7 +206,7 @@ export default defineComponent({
 
 				try {
 					const merged_user = pick(mapValues(user_param_map.value, (obj) => params[obj]),
-						Object.keys(newMergedUser()));
+						MergedUser.ALL_FIELDS) as unknown as ParseableMergedUser;
 					if(use_single_role.value && common_role.value) {
 						merged_user.role = common_role.value;
 					}
@@ -220,18 +217,18 @@ export default defineComponent({
 						users_already_in_course.value = true;
 						parse_error = {
 							type: 'warn',
-							message: `The user with username '${merged_user.username}'`
+							message: `The user with username '${merged_user.username ?? ''}'`
 								+' is already enrolled in the course.',
 							entire_row: true
 						};
 					} else {
-						merged_users_to_add.value.push(parseMergedUser(merged_user));
+						merged_users_to_add.value.push(new MergedUser(merged_user));
 					}
 				} catch (error) {
 					const err = error as ParseError;
 					selected_user_error.value = true;
-					const user_fields = Object.keys(newUser());
-					const course_user_fields = Object.keys(newCourseUser());
+					const user_fields = Object.keys(new User());
+					const course_user_fields = Object.keys(new CourseUser());
 
 					parse_error = {
 						type: 'error',
@@ -244,9 +241,9 @@ export default defineComponent({
 						(user_fields.indexOf(err.field)>=0 || course_user_fields.indexOf(err.field)>=0)) {
 						assign(parse_error, {
 							col: user_param_map.value[err.field],
-							entire_row: isUndefined(user_param_map.value[err.field])
+							entire_row: user_param_map.value[err.field] == undefined
 						});
-					} else if (isUndefined(err.field)) { // missing field
+					} else if (err.field != undefined) { // missing field
 						assign(parse_error, { entire_row: true });
 					}
 				}
@@ -315,9 +312,9 @@ export default defineComponent({
 				}
 				try {
 					const merged_user = await store.dispatch('users/addMergedUser', _user) as MergedUser;
+					const full_name = `${merged_user.first_name as string} ${merged_user.last_name as string}`;
 					$q.notify({
-						message: `The user ${merged_user.first_name} ${merged_user.last_name}` +
-							' was successfully added to the course.',
+						message: `The user ${full_name} was successfully added to the course.`,
 						color: 'green'
 					});
 					context.emit('closeDialog');

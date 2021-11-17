@@ -3,9 +3,6 @@ use strict;
 use warnings;
 use base 'DBIx::Class::ResultSet';
 
-use Carp;
-use Data::Dump qw/dd dump/;
-
 # use List::Util qw/first/;
 
 use DB::Utils qw/getCourseInfo getSetInfo getProblemInfo/;
@@ -160,8 +157,11 @@ sub addSetProblem {
 	# set the problem number to one more than the set's largest
 	$new_problem_params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0);
 
-	$self->new($new_problem_params)->validParams();
+	my $problem_to_add = $self->new($new_problem_params);
+	$problem_to_add->validParams(undef, 'params');
+
 	my $added_problem = $problem_set->add_to_problems($new_problem_params);
+	return $as_result_set ? $added_problem : { $added_problem->get_inflated_columns };
 
 	return $as_result_set ? $added_problem : { $added_problem->get_inflated_columns };
 }
@@ -196,10 +196,6 @@ sub deleteSetProblem {
 	return { $deleted_problem->get_inflated_columns };
 
 }
-
-# sub addPoolProblem {
-# 	my ( $self, $course_set_info, $new_set_params, $as_result_set ) = @_;
-# }
 
 =head2 deleteSetProblem
 
