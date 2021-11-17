@@ -1,6 +1,6 @@
 // import { BooleanParseException, EmailParseException, NonNegIntException, UsernameParseException,
 // RequiredFieldsException } from '@/store/models';
-import { LibraryProblem } from '@/store/models/library';
+import { LibraryProblem } from 'src/store/models/library';
 
 test('Create a Valid LibraryProblem', () => {
 	const problem1 = new LibraryProblem();
