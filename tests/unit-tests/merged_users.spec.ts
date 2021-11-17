@@ -1,8 +1,8 @@
 // tests parsing and handling of users
 
-import { MergedUser  } from '@/store/models/users';
+import { MergedUser  } from 'src/store/models/users';
 import { NonNegIntException, EmailParseException, UsernameParseException,
-	RequiredFieldsException, ParseError } from '@/store/models';
+	RequiredFieldsException, ParseError } from 'src/store/models';
 
 test('Create a Valid MergedUser', () => {
 	const merged_user1 = new MergedUser({ username: 'test' });

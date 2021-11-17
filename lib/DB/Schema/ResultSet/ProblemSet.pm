@@ -5,7 +5,6 @@ use base 'DBIx::Class::ResultSet';
 
 use Carp;
 use Clone qw/clone/;
-use Data::Dumper;
 
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 

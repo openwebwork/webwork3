@@ -4,7 +4,6 @@ use strict;
 
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
-use Data::Dumper;
 use Try::Tiny;
 use Mojo::JSON qw/true false/;
 

@@ -1,7 +1,7 @@
 // tests parsing and handling of users
 
-import { CourseUser } from '@/store/models/users';
-import { NonNegIntException, ParseError } from '@/store/models';
+import { CourseUser } from 'src/store/models/users';
+import { NonNegIntException, ParseError } from 'src/store/models';
 
 test('Create a Valid CourseUser', () => {
 	const course_user = new CourseUser();

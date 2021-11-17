@@ -56,10 +56,6 @@ jobs:
       # Run Linter against code base #
       ################################
       - name: Super-Linter
-        # Note that this actually uses super-linter version 4.6.0 which is the desired version.
-        # See https://github.com/github/super-linter/issues/1839.
-        # It seems that version 4.6.1 has a bug with perlcritic, so we actually want 4.6.0.
-        # updated to 4.8.1  If this works, I'll edit the above lines.
         uses: github/super-linter@v4.8.1
 
         env:

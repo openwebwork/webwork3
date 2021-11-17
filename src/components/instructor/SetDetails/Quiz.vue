@@ -28,14 +28,13 @@
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
 import { defineComponent, ref, watch, toRefs } from 'vue';
 import { useQuasar } from 'quasar';
 import { cloneDeep, pick } from 'lodash-es';
 
 import QuizDates from './QuizDates.vue';
-import { Quiz } from '@/store/models/problem_sets';
-import { useStore } from '@/store';
+import { Quiz } from 'src/store/models/problem_sets';
+import { useStore } from 'src/store';
 
 export default defineComponent({
 	components: { QuizDates },
@@ -49,7 +48,7 @@ export default defineComponent({
 
 		const { set_id } = toRefs(props);
 
-		const set: Ref<Quiz> = ref(new Quiz());
+		const set = ref<Quiz>(new Quiz());
 
 		const updateSet = () => {
 			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id == set_id.value) ||
@@ -81,6 +80,12 @@ export default defineComponent({
 				{ value: 'REVIEW', label: 'Review set' },
 				{ value: 'QUIZ', label: 'Quiz' },
 				{ value: 'HW', label: 'Homework set' }
+			],
+			checkDates: [
+				() => {
+					const d = set.value.set_dates;
+					return d.open <= d.due && d.due <= d.answer || 'The dates must be in order';
+				}
 			],
 			quizDuration: [
 				(val: string) => /^\d+\s(secs?|mins?)$/.test(val) || // add this RegExp elsewhere

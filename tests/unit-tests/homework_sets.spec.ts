@@ -1,8 +1,8 @@
 //FizzBuzz.test.ts
 /// <reference types="jest" />
 
-import { HomeworkSet, ProblemSet } from '@/store/models/problem_sets';
-import { BooleanParseException, NonNegIntException } from '@/store/models';
+import { HomeworkSet, ProblemSet } from 'src/store/models/problem_sets';
+import { BooleanParseException, NonNegIntException } from 'src/store/models';
 
 test('Build a HomeworkSet', () => {
 	const set = new HomeworkSet();

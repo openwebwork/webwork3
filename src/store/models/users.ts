@@ -1,6 +1,6 @@
 // This is utility functions for users
 
-import { Model, ParseableModel } from '@/store/models/index';
+import { Model, ParseableModel } from 'src/store/models/index';
 
 export interface ParseableUser {
 	user_id?: number | string;

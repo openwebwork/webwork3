@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, ref, Ref } from 'vue';
+import { defineComponent, PropType, ref } from 'vue';
 import { CourseSettingInfo, OptionType } from 'src/store/models/settings';
 
 export default defineComponent({
@@ -23,8 +23,8 @@ export default defineComponent({
 	},
 	setup(props) {
 		const val = ref(props.value);
-		const option: Ref<OptionType> = ref({ value: '', label: '' });
-		const options: Ref<Array<OptionType>> = ref([]);
+		const option = ref<OptionType>({ value: '', label: '' });
+		const options = ref<Array<OptionType>>([]);
 
 		if (props.setting?.options) {
 			options.value = props.setting.options.map((opt: string | OptionType) =>

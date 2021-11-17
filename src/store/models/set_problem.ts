@@ -1,9 +1,9 @@
 
 /* These are Problem interfaces */
 
-import { RendererRequest } from '@/APIRequests/renderer';
-import { logger } from '@/boot/logger';
-import { Dictionary, Model, generic, ParseableModel, ModelField, parseParams } from '@/store/models/index';
+import { RendererRequest } from 'src/APIRequests/renderer';
+import { logger } from 'boot/logger';
+import { Dictionary, Model, generic, ParseableModel, ModelField, parseParams } from 'src/store/models/index';
 import { random } from 'lodash';
 
 export enum ProblemType {

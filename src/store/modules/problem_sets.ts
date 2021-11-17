@@ -1,12 +1,12 @@
-import { api } from '@/boot/axios';
+import { api } from 'boot/axios';
 import { Commit } from 'vuex';
-import { StateInterface } from '@/store';
+import { StateInterface } from 'src/store';
 import { isEqual } from 'lodash-es';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet, MergedUserSet,
-	ParseableMergedUserSet, UserSet } from '@/store/models/problem_sets';
-import { LibraryProblem, SetProblem, ParseableProblem, parseProblem } from '@/store/models/set_problem';
-import { logger } from '@/boot/logger';
+	ParseableMergedUserSet, UserSet } from 'src/store/models/problem_sets';
+import { LibraryProblem, SetProblem, ParseableProblem, parseProblem } from 'src/store/models/set_problem';
+import { logger } from 'boot/logger';
 
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;

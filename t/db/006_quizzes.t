@@ -14,7 +14,6 @@ BEGIN {
 use lib "$main::ww3_dir/lib";
 
 use Text::CSV qw/csv/;
-use Data::Dumper;
 use Test::More;
 use Test::Exception;
 use YAML::XS qw/LoadFile/;

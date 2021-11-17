@@ -20,11 +20,9 @@
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
 import { defineComponent, ref, watch, toRefs } from 'vue';
 import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
-
 import { ReviewSet } from 'src/store/models/problem_sets';
 import { useStore } from 'src/store';
 import ReviewSetDates from './ReviewSetDates.vue';
@@ -42,12 +40,13 @@ export default defineComponent({
 		const $q = useQuasar();
 
 		const { set_id } = toRefs(props);
-		const set: Ref<ReviewSet> = ref(new ReviewSet());
+
+		const set = ref<ReviewSet>(new ReviewSet());
 
 		const updateSet = () => {
 			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id == set_id.value) ||
 				new ReviewSet();
-			set.value = cloneDeep(s as ReviewSet);
+			set.value = new ReviewSet(s.toObject());
 		};
 
 		watch(()=>set_id.value, updateSet);

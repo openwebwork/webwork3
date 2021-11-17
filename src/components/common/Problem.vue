@@ -10,7 +10,7 @@
 		</q-card-section>
 
 		<q-card-section v-if="problem_type==='SET'">
-			<span class="div-h6 number-border">{{problem.problem_number}}</span>
+			<span class="div-h6 number-border">{{freeProblem.problem_number}}</span>
 			<q-btn-group push>
 				<q-btn size="sm" icon="height" class="move-handle" />
 				<q-btn size="sm" push icon="delete" @click="$emit('removeProblem',freeProblem)" />
@@ -42,8 +42,8 @@
 		<q-card-actions class="q-pa-sm bg-white" v-if="submitButtons.length">
 			<q-btn v-for="button in submitButtons"
 				:key="button.name" :name="button.name"
-				:id="`${problem.answer_prefix}${button.name}`"
-				type="submit" :form="`${problem.answer_prefix}problemMainForm`"
+				:id="`${freeProblem.answer_prefix}${button.name}`"
+				type="submit" :form="`${freeProblem.answer_prefix}problemMainForm`"
 				color="primary" @click="submitButton = button" no-caps>
 				{{ button.value }}
 			</q-btn>
@@ -52,17 +52,17 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
-import type { PropType, Ref } from 'vue';
-import type { SubmitButton } from '@/typings/renderer';
-import { fetchProblem, RendererRequest } from '@/APIRequests/renderer';
-import { RENDER_URL } from '@/constants';
+import { defineComponent, ref, watch, onMounted, nextTick, PropType } from 'vue';
+import type { SubmitButton } from 'src/typings/renderer';
+import { fetchProblem, RendererRequest } from 'src/APIRequests/renderer';
+import { RENDER_URL } from 'src/constants';
 import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
 import JQuery from 'jquery';
-import { logger } from 'src/boot/logger';
+import { logger } from 'boot/logger';
+
 import typeset from './mathjax-config';
-import { Problem } from '@/store/models/set_problem';
+import { Problem } from 'src/store/models/set_problem';
 
 declare global {
 	interface Window {
@@ -89,7 +89,7 @@ export default defineComponent({
 	setup(props) {
 		const problemText = ref('');
 		const answerTemplate = ref('');
-		const freeProblem: Ref<Problem> = ref(props.problem.clone());
+		const freeProblem = ref<Problem>(props.problem.clone());
 		const problem_type = ref(props.problem.problem_type);
 		const problemTextDiv = ref<HTMLElement>();
 		const answerTemplateDiv = ref<HTMLElement>();

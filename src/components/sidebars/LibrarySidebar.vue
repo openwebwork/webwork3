@@ -14,9 +14,8 @@
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
 import { defineComponent, computed, ref, watch } from 'vue';
-import { useStore } from '@/store';
+import { useStore } from 'src/store';
 import { useRouter } from 'vue-router';
 
 interface SelectItem {
@@ -29,7 +28,7 @@ export default defineComponent({
 	setup() {
 		const store = useStore();
 		const router = useRouter();
-		const target_set: Ref<SelectItem| null> = ref(null);
+		const target_set = ref<SelectItem| null>(null);
 
 		watch([target_set], () => {
 			void store.dispatch('app_state/setTargetSetID', target_set.value?.value ?? 0);

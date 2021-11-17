@@ -1,8 +1,8 @@
 // This should more than likely be redirected at the backend rather
 // than the renderer, unless we're going to go with the JWE route.
 import axios from 'axios';
-import type { HTML, RendererResponse } from '@/typings/renderer';
-import { logger } from '@/boot/logger';
+import { logger } from 'boot/logger';
+import type { HTML, RendererResponse } from 'src/typings/renderer';
 
 export interface RendererRequest {
 	problemSeed?: number;

@@ -29,14 +29,13 @@
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
 import { defineComponent, ref, watch, toRefs } from 'vue';
 import { useQuasar } from 'quasar';
-import { cloneDeep, pick } from 'lodash-es';
+import { cloneDeep } from 'lodash-es';
 
-import { HomeworkSet } from '@/store/models/problem_sets';
-import { useStore } from '@/store';
 import HomeworkDates from './HomeworkDates.vue';
+import { HomeworkSet } from 'src/store/models/problem_sets';
+import { useStore } from 'src/store';
 
 export default defineComponent({
 	components: {
@@ -51,13 +50,14 @@ export default defineComponent({
 		const $q = useQuasar();
 
 		const { set_id } = toRefs(props);
-		const set: Ref<HomeworkSet> = ref(new HomeworkSet());
+		const hw = ref<HomeworkSet>(new HomeworkSet());
+
+		const set = ref(hw);
 
 		const updateSet = () => {
 			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id === set_id.value) ??
 				new HomeworkSet();
-			// need a copy since we can't modify the one in the store
-			set.value = cloneDeep(s as HomeworkSet);
+			set.value = new HomeworkSet(s.toObject());
 		};
 
 		watch(()=>set_id.value, updateSet);
@@ -68,15 +68,12 @@ export default defineComponent({
 		watch(() => cloneDeep(set.value), (new_set, old_set) => {
 			// don't update if the homework set changes.
 			if (new_set.set_id == old_set.set_id) {
-				// cloning above in the watch statement changes that it is a HomeworkSet
-				const _set = new HomeworkSet(pick(new_set, HomeworkSet.ALL_FIELDS));
-				if (_set.isValid()) { // check that the dates are valid
-					void store.dispatch('problem_sets/updateSet', _set.toObject());
-					$q.notify({
-						message: `The problem set '${new_set.set_name ?? ''}' was successfully updated.`,
-						color: 'green'
-					});
-				}
+				void store.dispatch('problem_sets/updateSet', hw.value);
+				$q.notify({
+					message: `The problem set '${new_set.set_name ?? ''}' was successfully updated.`,
+					color: 'green'
+				});
+
 			}
 		},
 		{ deep: true });

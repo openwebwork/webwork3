@@ -1,11 +1,8 @@
-/* eslint-disable no-undef */
+/* eslint-env node */
 
-/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
 const { pathsToModuleNameMapper } = require('ts-jest/utils');
-// In the following statement, replace `./tsconfig` with the path to your `tsconfig` file
-// which contains the path mapping (ie the `compilerOptions.paths` option):
-
-const { compilerOptions } = require('./tsconfig');
+const requireJSON5 = require('require-json5');
+const { compilerOptions } = requireJSON5('./node_modules/@quasar/app/tsconfig-preset.json');
 
 module.exports = {
 	preset: 'ts-jest',
@@ -16,10 +13,6 @@ module.exports = {
 			'diagnostics': true
 		}
 	},
-	// A map from regular expressions to module names that allow to stub out resources with a single module
-	// moduleNameMapper: {
-	//   '^@/(.*)$': '<rootDir>/src/$1',
-	// },
 	moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/' }),
 	testRegex: '(/tests/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',
 };

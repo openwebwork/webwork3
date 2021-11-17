@@ -3,9 +3,6 @@ use strict;
 use warnings;
 use base 'DBIx::Class::ResultSet';
 
-use Carp;
-use Data::Dumper;
-
 # use List::Util qw/first/;
 
 use DB::Utils qw/getCourseInfo getSetInfo getProblemInfo updateAllFields/;

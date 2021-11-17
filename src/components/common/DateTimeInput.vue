@@ -30,7 +30,6 @@
 
 <script lang="ts">
 import { defineComponent, watch, ref, computed } from 'vue';
-import type { Ref } from 'vue';
 import { date } from 'quasar';
 
 export default defineComponent({
@@ -47,8 +46,7 @@ export default defineComponent({
 	},
 	emits: ['update:modelValue'],
 	setup (props, { emit }) {
-		const date_string: Ref<string>
-			= ref(date.formatDate((props.modelValue*1000 || Date.now()), 'YYYY-MM-DD HH:mm'));
+		const date_string = ref(date.formatDate((props.modelValue || Date.now()) * 1000, 'YYYY-MM-DD HH:mm'));
 
 		watch(
 			() => date_string.value,

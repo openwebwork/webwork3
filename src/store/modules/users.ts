@@ -1,14 +1,14 @@
-import { api } from '@/boot/axios';
+import { api } from 'boot/axios';
 
 import type { Commit, ActionContext } from 'vuex';
-import type { StateInterface } from '@/store/index';
+import type { StateInterface } from 'src/store/index';
 import { remove, pick, assign } from 'lodash-es';
 
-import { logger } from '@/boot/logger';
+import { logger } from 'boot/logger';
 import { User, MergedUser, CourseUser, ParseableCourseUser, ParseableMergedUser,
-	ParseableUser } from '@/store/models/users';
-import { ResponseError } from '@/store/models';
-import { UserCourse } from '@/store/models/courses';
+	ParseableUser } from 'src/store/models/users';
+import { ResponseError } from 'src/store/models';
+import { UserCourse } from 'src/store/models/courses';
 
 export interface UserState {
 	users: Array<User>;
@@ -190,12 +190,12 @@ export default {
 			state. merged_users.push(_merged_user);
 		},
 		UPDATE_MERGED_USER(state: UserState, _merged_user: MergedUser): void {
-			const index = state. merged_users.findIndex((u) => u.course_user_id ===_merged_user.course_user_id);
+			const index = state. merged_users.findIndex((u) => u.course_user_id === _merged_user.course_user_id);
 			// splice is used so vue3 reacts to changes.
 			state. merged_users.splice(index, 1, _merged_user);
 		},
 		DELETE_COURSE_USER(state: UserState, _course_user: CourseUser): void {
-			remove(state.course_users, (u) => u.course_user_id ===_course_user.course_user_id);
+			remove(state.course_users, (u) => u.course_user_id === _course_user.course_user_id);
 		},
 		DELETE_MERGED_USER(state: UserState, _merged_user: MergedUser): void {
 			remove(state. merged_users, (u) => u.course_user_id === _merged_user.course_user_id);

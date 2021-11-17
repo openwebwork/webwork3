@@ -56,7 +56,6 @@
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
 import { defineComponent, ref } from 'vue';
 import { useQuasar } from 'quasar';
 
@@ -80,11 +79,11 @@ export default defineComponent({
 		const $q = useQuasar();
 		const store = useStore();
 
-		const course: Ref<Course> = ref(new Course({}));
-		const user: Ref<User> = ref(new User());
-		const username: Ref<string> = ref('');
+		const course = ref<Course>(new Course());
+		const user = ref<User>(new User());
+		const username = ref<string>('');
 		const instructor_exists = ref(false);
-		const course_dates: Ref<DateRange> = ref({ to: '', from: '' });
+		const course_dates = ref<DateRange>({ to: '', from: '' });
 
 		return {
 			course,

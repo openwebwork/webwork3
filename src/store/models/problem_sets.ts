@@ -1,9 +1,9 @@
 /* These are Problem Set interfaces */
 
 import { Dictionary, parseNonNegInt, Model, ParseError, generic,
-	InvalidFieldsException, ParseableModel, ModelField, parseParams } from '@/store/models/index';
-import { ParseableLibraryProblem } from './library';
+	InvalidFieldsException, ParseableModel, ModelField, parseParams } from 'src/store/models/index';
 import { difference } from 'lodash';
+import { Problem } from './set_problem';
 
 // const problem_set_types = [/hw/i, /quiz/i, /review/i];
 
@@ -40,7 +40,7 @@ export interface ParseableProblemSet {
 	set_params?: ProblemSetParams;
 	// set_params?: Dictionary<generic>;
 	set_dates?: ProblemSetDates;
-	problems?: Array<ParseableLibraryProblem>;
+	problems?: Array<Problem>;
 }
 
 export class ProblemSet extends Model(

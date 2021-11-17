@@ -92,18 +92,16 @@
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
 import { defineComponent, ref, computed, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { parse } from 'papaparse';
 import { AxiosError } from 'axios';
 import { logger } from 'boot/logger';
 
-import { useStore } from '@/store';
-import type { Dictionary, ResponseError } from '@/store/models';
-import { MergedUser, CourseUser, User, ParseableMergedUser } from '@/store/models/users';
-import { pick, fromPairs, values, invert, mapValues, clone, isUndefined,
-	assign, filter } from 'lodash-es';
+import { useStore } from 'src/store';
+import type { Dictionary, ResponseError } from 'src/store/models';
+import { MergedUser, CourseUser, User, ParseableMergedUser } from 'src/store/models/users';
+import { pick, fromPairs, values, invert, mapValues, clone, assign, filter } from 'lodash-es';
 
 interface ParseError {
 	type: string;
@@ -124,21 +122,21 @@ export default defineComponent({
 	setup(props, context) {
 		const store = useStore();
 		const $q = useQuasar();
-		const file: Ref<File> = ref(new File([], ''));
+		const file = ref<File>(new File([], ''));
 		// stores all users from the file as well as parsing errors
-		const merged_users: Ref<Array<UserFromFile>> = ref([]);
-		const selected: Ref<Array<UserFromFile>> = ref([]); // stores the selected users
-		const column_headers: Ref<Dictionary<string>> = ref({});
-		const user_param_map: Ref<Dictionary<string>> = ref({}); // provides a map from column number to field name
-		const use_single_role: Ref<boolean> = ref(false);
-		const common_role: Ref<string|null> = ref(null);
-		const loading: Ref<boolean> = ref(false); // used to indicate parsing is occurring
+		const merged_users = ref<Array<UserFromFile>>([]);
+		const selected = ref<Array<UserFromFile>>([]); // stores the selected users
+		const column_headers = ref<Dictionary<string>>({});
+		const user_param_map = ref<Dictionary<string>>({}); // provides a map from column number to field name
+		const use_single_role = ref<boolean>(false);
+		const common_role = ref<string|null>(null);
+		const loading = ref<boolean>(false); // used to indicate parsing is occurring
 
-		const first_row_header: Ref<boolean> = ref(false);
-		const header_row: Ref<UserFromFile> = ref({});
-		const merged_users_to_add: Ref<Array<MergedUser>> = ref([]);
-		const selected_user_error: Ref<boolean> = ref(false);
-		const users_already_in_course: Ref<boolean> = ref(false);
+		const first_row_header = ref<boolean>(false);
+		const header_row = ref<UserFromFile>({});
+		const merged_users_to_add = ref<Array<MergedUser>>([]);
+		const selected_user_error = ref<boolean>(false);
+		const users_already_in_course = ref<boolean>(false);
 
 		const user_fields = [
 			{ label: 'Username', field: 'username', regexp: /(user)|(login)/i },
@@ -220,7 +218,7 @@ export default defineComponent({
 						parse_error = {
 							type: 'warn',
 							message: `The user with username '${merged_user.username ?? ''}'`
-								+' is already enrolled in the course.',
+								+ ' is already enrolled in the course.',
 							entire_row: true
 						};
 					} else {
@@ -240,12 +238,12 @@ export default defineComponent({
 					if (err.field === '_all') {
 						assign(parse_error, { entire_row: true });
 					} else if (err.field &&
-						(user_fields.indexOf(err.field)>=0 || course_user_fields.indexOf(err.field)>=0)) {
+						(user_fields.indexOf(err.field) >= 0 || course_user_fields.indexOf(err.field) >= 0)) {
 						assign(parse_error, {
 							col: user_param_map.value[err.field],
-							entire_row: isUndefined(user_param_map.value[err.field])
+							entire_row: user_param_map.value[err.field] == undefined
 						});
-					} else if (isUndefined(err.field)) { // missing field
+					} else if (err.field != undefined) { // missing field
 						assign(parse_error, { entire_row: true });
 					}
 				}
@@ -287,7 +285,7 @@ export default defineComponent({
 							};
 							d._row = index;
 							row.forEach((v: string, i: number) => {
-								d[`col${i+1}`] = v;
+								d[`col${i + 1}`] = v;
 							});
 							users.push(d);
 						});

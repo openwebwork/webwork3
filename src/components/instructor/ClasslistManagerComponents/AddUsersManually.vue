@@ -46,10 +46,10 @@
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
+
 import { defineComponent, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
-import { logger } from 'src/boot/logger';
+import { logger } from 'boot/logger';
 
 import { useStore } from 'src/store';
 
@@ -64,8 +64,8 @@ export default defineComponent({
 	emits: ['closeDialog'],
 	setup(props, context) {
 		const $q = useQuasar();
-		const merged_user: Ref<ParseableMergedUser> = ref({ username: '__NEW__' });
-		const user_exists: Ref<boolean> = ref(true);
+		const merged_user = ref<ParseableMergedUser>({ username: '__NEW__' });
+		const user_exists = ref<boolean>(true);
 		const store = useStore();
 
 		return {
@@ -96,7 +96,7 @@ export default defineComponent({
 					(_setting: CourseSetting) => _setting.var === 'roles'
 				);
 				const r = clone(all_roles?.value as Array<string>);
-				remove(r, (v)=> v==='admin'); // don't allow to set admin level here.
+				remove(r, (v)=> v === 'admin'); // don't allow to set admin level here.
 				return r;
 			}),
 			addUser: async (close: boolean) => {

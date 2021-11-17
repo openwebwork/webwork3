@@ -13,7 +13,6 @@ BEGIN {
 
 use lib "$main::ww3_dir/lib";
 
-use Data::Dumper;
 use Test::More;
 use Test::Exception;
 use Try::Tiny;
@@ -177,8 +176,6 @@ my $random_prob = $problem_pool_rs->getPoolProblem({
 	course_name => $prob2->{course_name},
 	pool_name   => $prob2->{pool_name}
 });
-
-# print Dumper $random_prob;
 
 my @probs3 = grep { $_->{course_name} eq $prob2->{course_name} and $_->{pool_name} eq $prob2->{pool_name} }
 	@pool_problems_from_file;

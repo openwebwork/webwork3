@@ -33,7 +33,8 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: cover -report codecov
-              # Install node (for npm) and use it to install eslint and stylelint dependencies.
+
+      # Install node (for npm) and use it to install eslint and stylelint dependencies.
       - name: Use Node.js
         uses: actions/setup-node@v2
         with:

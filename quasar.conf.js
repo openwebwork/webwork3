@@ -53,8 +53,6 @@ module.exports = configure(function (ctx) {
 				}));
 
 				chain.plugin('nodePolyfills').use(NodePolyfillPlugin);
-				/* allow paths to start with @/ */
-				chain.resolve.alias.set('@', path.resolve(__dirname, './src'));
 
 				if (ctx.prod) {
 					chain.plugin('copy-webpack')
