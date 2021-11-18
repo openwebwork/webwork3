@@ -33,7 +33,7 @@ die "The file $config_file does not exist.  Did you make a copy of it from ww3-d
 my $config = LoadFile($config_file);
 
 my $schema =
-	DB::Schema->connect($config->{test_database_dsn}, $config->{database_user}, $config->{database_password});
+	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 

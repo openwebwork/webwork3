@@ -29,23 +29,22 @@ use DB::Schema;
 use DB;
 use DB::TestUtils qw/loadCSV/;
 
-# load some configuration for the database:
 my $verbose = 1;
-my $config;
+
+# load some configuration for the database:
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-if (-e $config_file) {
-	$config = LoadFile($config_file);
-} else {
-	die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?";
-}
+die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
+	unless (-e $config_file);
+
+my $config = LoadFile($config_file);
 
 # load the database
 my $schema =
-	DB::Schema->connect($config->{test_database_dsn}, $config->{database_user}, $config->{test_database_password});
+	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 
-say "restoring the database with dbi: $config->{test_database_dsn}" if $verbose;
+say "restoring the database with dbi: $config->{database_dsn}" if $verbose;
 
 $schema->deploy({ add_drop_table => 1 });    ## create the database based on the schema
 
