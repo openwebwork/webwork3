@@ -17,6 +17,7 @@ use List::MoreUtils qw(uniq);
 
 use Test::More;
 use Test::Exception;
+use YAML::XS qw/LoadFile/;
 
 use DB::WithParams;
 use DB::WithDates;
@@ -43,10 +44,7 @@ my $course_rs = $schema->resultset("Course");
 
 my @courses = loadCSV("$main::ww3_dir/t/db/sample_data/courses.csv");
 for my $course (@courses) {
-
-	delete $course->{params};
-	$course->{course_dates} = $course->{dates};
-	delete $course->{dates};
+	delete $course->{course_params};
 }
 @courses = sortByCourseName(\@courses);
 
