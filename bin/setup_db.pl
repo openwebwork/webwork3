@@ -94,10 +94,49 @@ if ($database_type eq 'mysql') {
 		say "ERROR: There was an error communicating with mysql.";
 		exit 1;
 	}
+} elsif ($database_type eq 'Pg') {
+	pod2usage({
+		-message  => 'You must be signed in as the postgres user to create a postgres user.',
+		-verbose  => 99,
+		-sections => 'SYNOPSIS|DESCRIPTION',
+		-exitval  => 1
+	})
+		if (getpwuid($<) ne 'postgres');
+
+	my $database_name = $database_attr =~ s/dbname=//gr;
+
+	try {
+		my $dbh = DBI->connect("DBI:Pg:dbname=postgres", 'postgres', '', { PrintError => 0, RaiseError => 1 });
+
+		# List all databases, and if the database does not already exist, then create it.
+		if (!grep { $_->[0] eq $database_name } @{ $dbh->selectall_arrayref('SELECT datname FROM pg_database') }) {
+			say "Creating database '$database_name'.";
+			$dbh->do(qq{CREATE DATABASE "$database_name"});
+		} else {
+			say "Not Creating database '$database_name'.  Database already exists.";
+		}
+
+		# List all users, and if the user does not already exist, then create it.
+		if (!grep { $_->[0] eq $config->{database_user} } @{ $dbh->selectall_arrayref('SELECT usename FROM pg_user') })
+		{
+			say "Creating user '$config->{database_user}'.";
+			$dbh->do(qq{CREATE USER "$config->{database_user}" WITH PASSWORD '$config->{database_password}'});
+		} else {
+			say "Not creating user '$config->{database_user}'.  User already exists.";
+		}
+	} catch {
+		say "ERROR: There was an error communicating with postgres.";
+		exit 1;
+	}
 }
 
 # Connect to the database.
-my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
 
 # Deploy the database as specified by the webwork3 schema.
 say "Setting up the database with dsn '$config->{database_dsn}'";
