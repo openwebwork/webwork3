@@ -29,7 +29,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, watch, ref, Ref } from 'vue';
+import { defineComponent, watch, ref } from 'vue';
 import { date } from 'quasar';
 
 export default defineComponent({
@@ -40,8 +40,7 @@ export default defineComponent({
 	},
 	emits: ['update:modelValue'],
 	setup (props, { emit }) {
-		const date_string: Ref<string>
-			= ref(date.formatDate((props.modelValue || Date.now())*1000, 'YYYY-MM-DD HH:mm'));
+		const date_string = ref(date.formatDate((props.modelValue || Date.now()) * 1000, 'YYYY-MM-DD HH:mm'));
 
 		watch(
 			() => date_string.value,

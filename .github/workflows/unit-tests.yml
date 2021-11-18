@@ -13,7 +13,7 @@ jobs:
     container: drgrice1/webwork3
     steps:
       - uses: actions/checkout@v2
-      - name: Run unit tests
+      - name: Run perl unit tests
         env:
           HARNESS_PERL_SWITCHES: -MDevel::Cover
         run: |
@@ -33,3 +33,13 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: cover -report codecov
+
+      # Install node (for npm) and use it to install eslint and stylelint dependencies.
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - name: Install Dependencies
+        run: npm ci
+      - name: Run typescript (client-side) tests
+        run: npm run test

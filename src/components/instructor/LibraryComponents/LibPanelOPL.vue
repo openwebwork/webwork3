@@ -44,12 +44,11 @@
 import axios from 'axios';
 import { api } from 'boot/axios';
 
-import type { Ref } from 'vue';
 import { defineComponent, ref, computed, watch } from 'vue';
 import { useStore } from 'src/store';
 // import { Discipline, LibrarySubject } from 'src/store/models';
-import Problem from 'src/components/common/Problem.vue';
-import { logger } from 'src/boot/logger';
+import Problem from 'components/common/Problem.vue';
+import { logger } from 'boot/logger';
 
 interface SelectItem {
 	label?: string;
@@ -72,11 +71,11 @@ export default defineComponent({
 	},
 	setup() {
 		const store = useStore();
-		const discipline: Ref<SelectItem|null>     = ref(null); // start with the select field to be empty.
-		const subject: Ref<SelectItem|null>        = ref(null);
-		const chapter: Ref<SelectItem|null>        = ref(null);
-		const section: Ref<SelectItem|null>        = ref(null);
-		const problems: Ref<Array<LibraryProblem>> = ref([]);
+		const discipline = ref<SelectItem | null>(null); // start with the select field to be empty.
+		const subject = ref<SelectItem | null>(null);
+		const chapter = ref<SelectItem | null>(null);
+		const section = ref<SelectItem | null>(null);
+		const problems = ref<Array<LibraryProblem>>([]);
 
 		watch([discipline], async () => {
 			void store.dispatch('library/resetSections');

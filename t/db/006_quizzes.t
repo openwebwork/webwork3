@@ -14,7 +14,6 @@ BEGIN {
 use lib "$main::ww3_dir/lib";
 
 use Text::CSV qw/csv/;
-use Data::Dump qw/dd/;
 use Test::More;
 use Test::Exception;
 use YAML::XS qw/LoadFile/;
@@ -57,9 +56,9 @@ my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
 	$quiz->{type}     = 2;
 	$quiz->{set_type} = "QUIZ";
-	for my $date (keys %{ $quiz->{dates} }) {
-		my $dt = $strp->parse_datetime($quiz->{dates}->{$date});
-		$quiz->{dates}->{$date} = $dt->epoch;
+	for my $date (keys %{ $quiz->{set_dates} }) {
+		my $dt = $strp->parse_datetime($quiz->{set_dates}->{$date});
+		$quiz->{set_dates}->{$date} = $dt->epoch;
 	}
 }
 
@@ -116,9 +115,9 @@ throws_ok {
 ## add a new quiz
 
 my $new_quiz_params = {
-	set_name => "Quiz #9",
-	dates    => { open => 100, due => 140, answer => 200 },
-	set_type => "QUIZ"
+	set_name  => "Quiz #9",
+	set_dates => { open => 100, due => 140, answer => 200 },
+	set_type  => "QUIZ"
 };
 
 my $new_quiz = $problem_set_rs->addProblemSet({ course_name => "Precalculus" }, $new_quiz_params);
@@ -176,10 +175,10 @@ throws_ok {
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
-			params      => {
+			set_params  => {
 				param1 => 0
 			},
-			dates => {
+			set_dates => {
 				open   => 10,
 				due    => 100,
 				answer => 200,
@@ -200,10 +199,10 @@ throws_ok {
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
-			params      => {
+			set_params  => {
 				timed => 'yes'
 			},
-			dates => {
+			set_dates => {
 				open   => 10,
 				due    => 100,
 				answer => 200,
@@ -221,9 +220,9 @@ throws_ok {
 			course_name => "Precalculus"
 		},
 		{
-			set_type => 'QUIZ',
-			set_name => "Quiz #99",
-			dates    => {
+			set_type  => 'QUIZ',
+			set_name  => "Quiz #99",
+			set_dates => {
 				open => 10,
 				due  => 100
 			}
@@ -243,7 +242,7 @@ throws_ok {
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
-			dates       => {
+			set_dates   => {
 				open            => 10,
 				due             => 100,
 				answer          => 200,
@@ -265,7 +264,7 @@ throws_ok {
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
-			dates       => {
+			set_dates   => {
 				open   => 10,
 				due    => 300,
 				answer => 200,
@@ -288,7 +287,7 @@ my $updated_quiz = $problem_set_rs->updateProblemSet(
 );
 
 $new_quiz->{set_visible} = 0;
-$new_quiz->{params}      = {};
+$new_quiz->{set_params}  = {};
 
 removeIDs($updated_quiz);
 
@@ -297,7 +296,7 @@ is_deeply($new_quiz, $updated_quiz, "updateQuiz: successfully update the quiz");
 # update the params of the quiz
 
 $updated_params = {
-	params => {
+	set_params => {
 		timed => 1
 	}
 };
@@ -311,14 +310,14 @@ $updated_quiz = $problem_set_rs->updateProblemSet(
 );
 removeIDs($updated_quiz);
 
-$new_quiz->{params} = { timed => 1 };
+$new_quiz->{set_params} = { timed => 1 };
 
 is_deeply($new_quiz, $updated_quiz, "updateQuiz: successfully update the params of the quiz");
 
 # update the dates of the quiz
 
 $updated_params = {
-	dates => {
+	set_dates => {
 		open   => 400,
 		due    => 500,
 		answer => 600
@@ -334,7 +333,7 @@ $updated_quiz = $problem_set_rs->updateProblemSet(
 );
 removeIDs($updated_quiz);
 
-$new_quiz->{dates} = clone($updated_params->{dates});
+$new_quiz->{set_dates} = clone($updated_params->{set_dates});
 
 is_deeply($new_quiz, $updated_quiz, "updateQuiz: successfully update the dates of the quiz");
 
@@ -362,7 +361,7 @@ throws_ok {
 			set_name    => "Quiz #9"
 		},
 		{
-			params => {
+			set_params => {
 				show_hint => 1
 			}
 		}
@@ -379,7 +378,7 @@ throws_ok {
 			set_name    => "Quiz #9"
 		},
 		{
-			params => {
+			set_params => {
 				timed => 'yes'
 			}
 		}
@@ -396,7 +395,7 @@ throws_ok {
 			set_name    => "Quiz #9"
 		},
 		{
-			dates => {
+			set_dates => {
 				reduced_scoring => 1000
 			}
 		}
@@ -413,7 +412,7 @@ throws_ok {
 			set_name    => "Quiz #9"
 		},
 		{
-			dates => {
+			set_dates => {
 				open => 50,
 				due  => 40
 			}

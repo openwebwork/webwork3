@@ -5,8 +5,6 @@ use Mojo::Base -strict;
 use Test::More;
 use Test::Mojo;
 
-use Data::Dumper;
-
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
@@ -93,8 +91,6 @@ $t->get_ok("/webwork3/api/courses/99999")->status_is(250, 'error status')
 $t->put_ok("/webwork3/api/courses/999999" => json => { course_name => 'new course name' })
 	->status_is(250, 'error status')->content_type_is('application/json;charset=UTF-8')
 	->json_is('/exception' => 'DB::Exception::CourseNotFound');
-
-# print Dumper($t->tx->res);
 
 # try to add a course without a course_name
 

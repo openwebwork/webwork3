@@ -41,14 +41,14 @@
 </template>
 
 <script lang="ts">
-import type { Ref } from 'vue';
 import { defineComponent, ref, computed } from 'vue';
 import { cloneDeep, clone, remove, pick } from 'lodash-es';
 
-import { MergedUser, CourseSetting } from 'src/store/models';
+import { MergedUser } from 'src/store/models/users';
+import { CourseSetting } from 'src/store/models/settings';
 import { useStore } from 'src/store';
 import { logger } from 'boot/logger';
-import { newCourseUser } from 'src/store/utils/users';
+import { CourseUser } from 'src/store/models/users';
 
 export default defineComponent({
 	props: {
@@ -56,14 +56,18 @@ export default defineComponent({
 	},
 	emits: ['closeDialog'],
 	setup(props, context) {
-		const merged_users: Ref<Array<MergedUser>> = props.users_to_edit ?
-			ref(cloneDeep(props.users_to_edit) as unknown as Array<MergedUser>) : ref([]);
+		const merged_users =
+			ref<Array<MergedUser>>(
+				props.users_to_edit
+					? cloneDeep(props.users_to_edit) as unknown as Array<MergedUser>
+					: []
+			);
 		const store = useStore();
 
 		const updateUsers = async () => {
 			logger.info('in updateUsers');
 			for await (const _user of merged_users.value) {
-				const u = pick(_user, Object.keys(newCourseUser()));
+				const u = pick(_user, CourseUser.ALL_FIELDS);
 				await store.dispatch('users/updateCourseUser', u);
 				void store.dispatch('users/updateMergedUser', _user);
 			}
@@ -79,7 +83,7 @@ export default defineComponent({
 					(_setting: CourseSetting) => _setting.var === 'roles'
 				);
 				const r = clone(all_roles?.value as Array<string>);
-				remove(r, v => v==='admin'); // don't allow to set admin level here.
+				remove(r, v => v === 'admin'); // don't allow to set admin level here.
 				return r;
 			}),
 		};

@@ -97,10 +97,6 @@ my $added_user_to_course = {
 
 $t->post_ok("/webwork3/api/courses/4/users" => json => $added_user_to_course)->status_is(200)
 	->content_type_is('application/json;charset=UTF-8');
-# ->json_is( '/username' => 'maggie')
-# ->json_is( '/role' => 'student');
-
-# warn Dumper $t->tx->res->json;
 
 ## test for exceptions
 

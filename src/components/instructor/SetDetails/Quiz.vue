@@ -15,35 +15,34 @@
 		</tr>
 		<tr>
 			<td class="header">Open Date</td>
-			<td><date-time-input v-model="set.dates.open" /></td>
+			<td><date-time-input v-model="set.set_dates.open" /></td>
 		</tr>
 		<tr>
 			<td class="header">Due Date</td>
-			<td><date-time-input v-model="set.dates.due" /></td>
+			<td><date-time-input v-model="set.set_dates.due" /></td>
 		</tr>
 		<tr>
 			<td class="header">Answer Date</td>
-			<td><date-time-input v-model="set.dates.answer" /></td>
+			<td><date-time-input v-model="set.set_dates.answer" /></td>
 		</tr>
 		<tr>
 			<td class="header">Timed</td>
-			<td><q-toggle v-model="set.params.timed" /></td>
+			<td><q-toggle v-model="set.set_params.timed" /></td>
 		</tr>
-		<tr v-if="set.params.timed">
+		<tr v-if="set.set_params.timed">
 			<td class="header">Duration of Quiz</td>
-			<td><q-input v-model="set.params.quiz_duration" :rules="quizDuration" debounce="500"/> </td>
+			<td><q-input v-model="set.set_params.quiz_duration" :rules="quizDuration" debounce="500"/> </td>
 		</tr>
 	</table>
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, watch, toRefs } from 'vue';
+import { defineComponent, ref, watch, toRefs } from 'vue';
 import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
-import DateTimeInput from 'src/components/common/DateTimeInput.vue';
-import { Quiz } from 'src/store/models';
-import { newQuiz, copyProblemSet } from 'src/store/utils/problem_sets';
+import DateTimeInput from 'components/common/DateTimeInput.vue';
+import { Quiz } from 'src/store/models/problem_sets';
 import { useStore } from 'src/store';
 
 export default defineComponent({
@@ -58,12 +57,12 @@ export default defineComponent({
 
 		const { set_id } = toRefs(props);
 
-		const set: Quiz = reactive(newQuiz());
+		const set = ref<Quiz>(new Quiz());
 
 		const updateSet = () => {
 			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id == set_id.value) ||
-				newQuiz();
-			copyProblemSet(set, s);
+				new Quiz();
+			set.value = cloneDeep(s as Quiz);
 		};
 
 		watch(()=>set_id.value, updateSet);
@@ -71,11 +70,11 @@ export default defineComponent({
 
 		// see the docs at https://v3.vuejs.org/guide/reactivity-computed-watchers.html#watching-reactive-objects
 		// for why we need to do a cloneDeep here
-		watch(() => cloneDeep(set), (new_set, old_set) => {
+		watch(() => cloneDeep(set.value), (new_set, old_set) => {
 			if (new_set.set_id == old_set.set_id) {
 				void store.dispatch('problem_sets/updateSet', new_set);
 				$q.notify({
-					message: `The problem set ${new_set.set_name} was successfully updated.`,
+					message: `The problem set '${new_set.set_name ?? ''}' was successfully updated.`,
 					color: 'green'
 				});
 			}
@@ -90,8 +89,10 @@ export default defineComponent({
 				{ value: 'HW', label: 'Homework set' }
 			],
 			checkDates: [
-				() => set.dates.open <= set.dates.due && set.dates.due <=set.dates.answer
-					|| 'The dates must be in order'
+				() => {
+					const d = set.value.set_dates;
+					return d.open <= d.due && d.due <= d.answer || 'The dates must be in order';
+				}
 			],
 			quizDuration: [
 				(val: string) => /^\d+\s(secs?|mins?)$/.test(val) || // add this RegExp elsewhere
