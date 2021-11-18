@@ -31,13 +31,11 @@ use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings getDefaultCourseValues
 
 use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
 
-my $config;
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-if (-e $config_file) {
-	$config = LoadFile($config_file);
-} else {
-	die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?";
-}
+die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
+	unless (-e $config_file);
+
+my $config = LoadFile($config_file);
 
 my $schema =
 	DB::Schema->connect($config->{test_database_dsn}, $config->{database_user}, $config->{database_password});
