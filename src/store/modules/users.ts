@@ -2,11 +2,10 @@ import { api } from 'boot/axios';
 
 import type { Commit, ActionContext } from 'vuex';
 import type { StateInterface } from 'src/store/index';
-import { remove, pick, assign } from 'lodash-es';
 
 import { logger } from 'boot/logger';
-import { User, MergedUser, CourseUser, ParseableCourseUser, ParseableMergedUser,
-	ParseableUser } from 'src/store/models/users';
+import type { ParseableCourseUser, ParseableMergedUser, ParseableUser } from 'src/store/models/users';
+import { User, MergedUser, CourseUser } from 'src/store/models/users';
 import { ResponseError } from 'src/store/models';
 import { UserCourse } from 'src/store/models/courses';
 
@@ -110,15 +109,14 @@ export default {
 		},
 		async addMergedUser({ commit }: { commit: Commit }, _merged_user: MergedUser): Promise<MergedUser> {
 			if (_merged_user.user_id === 0) { // this is a new user
-				const u = pick(_merged_user, User.ALL_FIELDS) as User;
-				const _user = await addUser(u) as User;
+				const _user = await addUser(_merged_user as User) as User;
 				_merged_user.user_id = _user.user_id;
 				_merged_user.username = _user.username;
 			}
 			const f = CourseUser.ALL_FIELDS;
 			const _course_user = _merged_user.toObject(f) as unknown as CourseUser;
 			const cu = await addCourseUser(_course_user);
-			const merged_user = assign(_merged_user, cu, _course_user) as MergedUser;
+			const merged_user = Object.assign(_merged_user, cu, _course_user) as MergedUser;
 			commit('ADD_MERGED_USER', merged_user);
 			return merged_user;
 		},
@@ -195,10 +193,10 @@ export default {
 			state. merged_users.splice(index, 1, _merged_user);
 		},
 		DELETE_COURSE_USER(state: UserState, _course_user: CourseUser): void {
-			remove(state.course_users, (u) => u.course_user_id === _course_user.course_user_id);
+			state.course_users.filter((u) => u.course_user_id !== _course_user.course_user_id);
 		},
 		DELETE_MERGED_USER(state: UserState, _merged_user: MergedUser): void {
-			remove(state. merged_users, (u) => u.course_user_id === _merged_user.course_user_id);
+			state.merged_users.filter((u) => u.course_user_id !== _merged_user.course_user_id);
 		}
 	}
 };

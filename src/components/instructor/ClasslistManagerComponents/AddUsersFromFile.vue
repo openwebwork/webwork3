@@ -54,7 +54,7 @@
 
 							<template v-slot:header-cell="props">
 								<q-th :props="props">
-									<q-select :options="user_fields.map( (f) => f.label)"
+									<q-select :options="user_fields.map((f) => f.label)"
 										v-model="column_headers[props.col.name]"/>
 								</q-th>
 							</template>
@@ -101,7 +101,7 @@ import { logger } from 'boot/logger';
 import { useStore } from 'src/store';
 import type { Dictionary, ResponseError } from 'src/store/models';
 import { MergedUser, CourseUser, User, ParseableMergedUser } from 'src/store/models/users';
-import { pick, fromPairs, values, invert, mapValues, clone, assign, filter } from 'lodash-es';
+import { pick, mapValues, invert } from 'src/utils';
 
 interface ParseError {
 	type: string;
@@ -162,13 +162,11 @@ export default defineComponent({
 		};
 
 		watch([column_headers], () => {
-			// these are the defined columns in the table
-			const def_cols = pick(column_headers.value, Object.keys(column_headers.value));
-
 			// this is an object of the fields selected from the table
-			const fields = pick(fromPairs(user_fields.map((obj) => [obj.label, obj.field])), values(def_cols));
+			const fields = Object.fromEntries(user_fields.map((obj) => [obj.label, obj.field]));
+
 			// mapping of column number to user field
-			user_param_map.value =  invert(mapValues(def_cols, (obj) => fields[obj]));
+			user_param_map.value = invert(mapValues(column_headers.value, (obj) => fields[obj]));
 		},
 		{ deep: true });
 
@@ -192,7 +190,7 @@ export default defineComponent({
 			users_already_in_course.value = false;
 
 			// reset all of the errors
-			filter(merged_users.value, ((u: UserFromFile) => u._error?.type !== 'none'))
+			merged_users.value.filter((u: UserFromFile) => u._error?.type !== 'none')
 				.forEach(u => {
 					u._error = { // reset the error for each selected row
 						type: 'none',
@@ -236,22 +234,22 @@ export default defineComponent({
 					};
 
 					if (err.field === '_all') {
-						assign(parse_error, { entire_row: true });
+						Object.assign(parse_error, { entire_row: true });
 					} else if (err.field &&
 						(user_fields.indexOf(err.field) >= 0 || course_user_fields.indexOf(err.field) >= 0)) {
-						assign(parse_error, {
+						Object.assign(parse_error, {
 							col: user_param_map.value[err.field],
 							entire_row: user_param_map.value[err.field] == undefined
 						});
 					} else if (err.field != undefined) { // missing field
-						assign(parse_error, { entire_row: true });
+						Object.assign(parse_error, { entire_row: true });
 					}
 				}
 
 				if (parse_error) {
 					const row_index = merged_users.value.findIndex((u: UserFromFile) => u._row === row);
 					if (row_index >= 0) {
-						const user = clone(merged_users.value[row_index]);
+						const user = { ...merged_users.value[row_index] };
 						user._error = parse_error;
 						merged_users.value.splice(row_index, 1, user);
 					}

@@ -75,6 +75,17 @@ module.exports = configure(function (ctx) {
 					});
 				}
 
+				if (cfg.optimization && cfg.optimization.splitChunks) {
+					cfg.optimization.splitChunks.cacheGroups.defaultVendors = {
+						test: /[\\/]node_modules[\\/]/,
+						name(module, chunks, cacheGroupKey) {
+							return module.identifier().split('/').reduceRight((item) => item);
+						},
+						chunks: 'all',
+						reuseExistingChunk: true
+					};
+				}
+
 				cfg.module.rules.push ({
 					test: /\.m?js/,
 					resolve: {

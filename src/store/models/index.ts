@@ -5,7 +5,7 @@
 
 */
 
-import { intersection, isEqual, difference, pickBy, pick } from 'lodash';
+import { pick, pickBy } from 'src/utils';
 
 export interface Dictionary<T> {
 	[key: string]: T;
@@ -223,20 +223,20 @@ export const Model = <
 		_fields: F = fields;
 
 		constructor(params: Dictionary<generic | Dictionary<generic>> = {}) {
-			// check that required fields are present
-
-			const common_fields = intersection(this.required_fields, Object.keys(params));
-
-			if (!isEqual(common_fields, this.required_fields)) {
-				const diff = difference(this.required_fields, common_fields);
+			// Check that required fields are present.
+			const missing_fields = this.required_fields.filter(field => !Object.keys(params).includes(field));
+			if (missing_fields.length) {
 				throw new RequiredFieldsException(
 					'_all',
-					`The field(s) '${diff.join(', ')}' must be present in ${this.constructor.name}`
+					`The field(s) '${missing_fields.join(', ')}' must be present in ${this.constructor.name}`
 				);
 			}
-			// check that no invalid params are set
-			const invalid_fields = difference(Object.keys(params ?? {}), this.all_fields);
-			if (invalid_fields.length !== 0) {
+
+			// Check that no invalid params are set.
+			const invalid_fields = Object.keys(params).filter(
+				param => !this.all_fields.includes(param as Bool | Num | Str | Dic)
+			);
+			if (invalid_fields.length) {
 				throw new InvalidFieldsException(
 					'_all',
 					`The field(s) '${invalid_fields.join(', ')}' is(are) not valid for ${this.constructor.name}.`
@@ -281,6 +281,8 @@ export const Model = <
 			});
 			return obj;
 		}
+
+		/* eslint-enable */
 	}
 
 	return _Model as unknown as new (

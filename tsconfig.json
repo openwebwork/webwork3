@@ -1,7 +1,9 @@
 {
 	"extends": "@quasar/app/tsconfig-preset.json",
 	"compilerOptions": {
-		"baseUrl": "."
+		"baseUrl": ".",
+		"target": "es2020",
+		"lib": ["esnext", "dom", "dom.iterable"]
 	},
 	"exclude": ["dist", ".quasar", "node_modules"]
 }
