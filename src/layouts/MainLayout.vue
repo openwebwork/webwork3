@@ -31,7 +31,7 @@ import { defineComponent, ref, watch } from 'vue';
 import MenuSidebar from './MenuSidebar.vue';
 import MenuBar from './MenuBar.vue';
 
-import { instructor_views, admin_views, ViewInfo } from 'src/common';
+import { instructor_views, admin_views, ViewInfo } from 'src/common/views';
 import { useRoute } from 'vue-router';
 import ProblemSetList from 'components/sidebars/ProblemSetList.vue';
 import UserList from 'components/sidebars/UserList.vue';

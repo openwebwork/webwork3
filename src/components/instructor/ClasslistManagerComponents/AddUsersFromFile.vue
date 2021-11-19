@@ -101,7 +101,7 @@ import { logger } from 'boot/logger';
 import { useStore } from 'src/store';
 import type { Dictionary, ResponseError } from 'src/store/models';
 import { MergedUser, CourseUser, User, ParseableMergedUser } from 'src/store/models/users';
-import { pick, mapValues, invert } from 'src/utils';
+import { pick, mapValues, invert } from 'src/common/utils';
 
 interface ParseError {
 	type: string;

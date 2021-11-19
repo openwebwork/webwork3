@@ -5,7 +5,7 @@
 
 */
 
-import { pick, pickBy } from 'src/utils';
+import { pick, pickBy } from 'src/common/utils';
 
 export interface Dictionary<T> {
 	[key: string]: T;
