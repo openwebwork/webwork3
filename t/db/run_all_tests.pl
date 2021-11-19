@@ -3,7 +3,7 @@
 use warnings;
 use strict;
 
-# run all tests in this directory
+# Run all tests in this directory.
 
 use TAP::Harness;
 use Data::Dump qw/dd/;

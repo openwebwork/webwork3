@@ -1,8 +1,6 @@
 #!/usr/bin/env perl
 
-#
-# this file fills a database with sample data for testing.
-#
+# This file fills a database with sample data for testing.
 
 use warnings;
 use strict;
@@ -15,7 +13,6 @@ BEGIN {
 
 use lib "$main::ww3_dir/lib";
 
-use Text::CSV qw/csv/;
 use Carp;
 use feature "say";
 
@@ -23,31 +20,23 @@ use Clone qw/clone/;
 use DateTime::Format::Strptime;
 use YAML::XS qw/LoadFile/;
 
-use DB::WithParams;
-use DB::WithDates;
-
 use DB::Schema;
-use DB;
 use DB::TestUtils qw/loadCSV/;
 
 my $verbose = 1;
 
-# load some configuration for the database:
+# Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
-	unless (-e $config_file);
-
+$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
+my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-# load the database
-my $schema =
-	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
-
-# $schema->storage->debug(1);  # print out the SQL commands.
+#$schema->storage->debug(1);  # Print out the SQL commands.
 
 say "restoring the database with dbi: $config->{database_dsn}" if $verbose;
 
-$schema->deploy({ add_drop_table => 1 });    ## create the database based on the schema
+# Create the database based on the schema.
+$schema->deploy({ add_drop_table => 1 });
 
 my $course_rs       = $schema->resultset('Course');
 my $user_rs         = $schema->resultset('User');
@@ -71,12 +60,12 @@ sub addCourses {
 }
 
 sub addUsers {
-	# add some users
+	# Add some users
 	say "adding users" if $verbose;
 
 	my @all_students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
 
-	# add an admin user
+	# Add an admin user
 	my $admin = {
 		username     => "admin",
 		email        => 'admin@google.com',
@@ -121,7 +110,7 @@ my @quiz_params = @DB::Schema::Result::ProblemSet::HWSet::VALID_PARAMS;
 my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 
 sub addSets {
-	## add some problem sets
+	# Add some problem sets
 	say "adding problem sets" if $verbose;
 
 	my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
@@ -139,7 +128,7 @@ sub addSets {
 		$course->add_to_problem_sets($set);
 	}
 
-	## add quizzes
+	# Add quizzes
 	say "adding quizzes" if $verbose;
 
 	my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
@@ -178,11 +167,11 @@ sub addSets {
 }
 
 sub addProblems {
-	## add some problems
+	# Add some problems
 	say "adding problems" if $verbose;
 	my @problems = loadCSV("$main::ww3_dir/t/db/sample_data/problems.csv");
 	for my $prob (@problems) {
-		# check if the course_name/set_name exists
+		# Check if the course_name/set_name exists
 		my $set = $problem_set_rs->search(
 			{
 				'me.set_name'         => $prob->{set_name},
@@ -200,22 +189,19 @@ sub addProblems {
 
 		$prob->{problem_number} = int($prob->{problem_number});
 
-		## the following isn't working.   Perhaps because it is the result of a join
-		# $sets[0]->add_to_problems->($prob);
 		my $problem_set = $problem_set_rs->search({ set_id => $set->set_id })->single;
 
 		$problem_set->add_to_problems($prob);
-
 	}
 	return;
 }
 
 sub addUserSets {
-	## add some users to problem sets
+	# Add some users to problem sets
 	say "adding user sets" if $verbose;
 	my @user_sets = loadCSV("$main::ww3_dir/t/db/sample_data/user_sets.csv");
 	for my $user_set (@user_sets) {
-		# check if the course_name/set_name/user_name exists
+		# Check if the course_name/set_name/user_name exists
 		my $course         = $course_rs->find({ course_name => $user_set->{course_name} });
 		my $user_in_course = $course->users->find({ username => $user_set->{username} });
 		my $course_user    = $course_user_rs->find({

@@ -15,25 +15,23 @@ use lib "$main::ww3_dir/lib";
 
 use Getopt::Long;
 my $TEST_PERMISSIONS;
-GetOptions("perm" => \$TEST_PERMISSIONS);    # check for the flag --perm when running this.
+GetOptions("perm" => \$TEST_PERMISSIONS);
 
 use DB::Schema;
 use Clone qw/clone/;
-use YAML qw/LoadFile/;
+use YAML::XS qw/LoadFile/;
 
-# Test the api with common "users" routes
+# Test the api with common "users" routes.
 
+# Load the config file.
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
-	unless (-e $config_file);
-
+$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = clone(LoadFile($config_file));
 
-# set up the database:
-my $schema =
-	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
+# Connect to the database.
+my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-# remove the maggie user if exists in the database
+# Remove the user "maggie" if it exists in the database.
 my $maggie = $schema->resultset("User")->find({ username => "maggie" });
 $maggie->delete if defined($maggie);
 
@@ -43,7 +41,6 @@ if ($TEST_PERMISSIONS) {
 	$config->{ignore_permissions} = 0;
 	$t = Test::Mojo->new(WeBWorK3 => $config);
 
-	# and username
 	$t->post_ok('/webwork3/api/username' => json => { email => 'admin@google.com', password => 'admin' })
 		->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/user_id' => 1)
 		->json_is('/user/is_admin' => 1);
@@ -60,8 +57,7 @@ $t->get_ok('/webwork3/api/users')->status_is(200)->content_type_is('application/
 $t->get_ok('/webwork3/api/users/3')->status_is(200)->content_type_is('application/json;charset=UTF-8')
 	->json_is('/username' => "lisa")->json_is('/email' => 'lisa@google.com');
 
-## add a new user
-
+# Add a new user.
 my $new_user = {
 	email      => 'maggie@abc.com',
 	first_name => "Maggie",
@@ -74,50 +70,44 @@ my $new_user = {
 $t->post_ok('/webwork3/api/users' => json => $new_user)->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/username' => $new_user->{username});
 
-# Pull out the id from the response
+# Extract the id from the response.
 $new_user->{user_id} = $t->tx->res->json('/user_id');
 is_deeply($new_user, $t->tx->res->json, "addUser: global user added.");
 
-## update the user
-
+# Update the user.
 $new_user->{email} = 'maggie@juno.com';
 $t->put_ok("/webwork3/api/users/" . $new_user->{user_id} => json => $new_user)->status_is(200);
 is_deeply($new_user, $t->tx->res->json, "updateUser: global user updated");
 
-## add the user to the course
+# Add the user to the course.
 my $added_user_to_course = {
 	user_id => $new_user->{user_id},
 	role    => "student"
 };
-
 $t->post_ok("/webwork3/api/courses/4/users" => json => $added_user_to_course)->status_is(200)
 	->content_type_is('application/json;charset=UTF-8');
 
-## test for exceptions
+# Test for exceptions
 
-# try to get a non-existent user
+# Try to get a non-existent user.
 $t->get_ok("/webwork3/api/users/99999")->content_type_is('application/json;charset=UTF-8')
 	->status_is(250, "exception status")->status_is(250, 'internal exception')
 	->json_is('/exception' => 'DB::Exception::UserNotFound');
 
-# try to update a user not in a course
-
+# Try to update a user not in a course.
 $t->put_ok("/webwork3/api/users/99999" => json => { email => 'fred@happy.com' })->status_is(250, "exception status")
 	->content_type_is('application/json;charset=UTF-8')->json_is('/exception' => 'DB::Exception::UserNotFound');
 
-# try to add a user without a username
-
+# Try to add a user without a username.
 my $another_new_user = { username_name => "this is the wrong field" };
-
 $t->post_ok("/webwork3/api/users" => json => $another_new_user)->content_type_is('application/json;charset=UTF-8')
 	->status_is(250, "exception status")->json_is('/exception' => 'DB::Exception::ParametersNeeded');
 
-# try to delete a user not in a course
+# Try to delete a user not in a course.
 $t->delete_ok("/webwork3/api/users/99999")->content_type_is('application/json;charset=UTF-8')
 	->status_is(250, "exception status")->json_is('/exception' => 'DB::Exception::UserNotFound');
 
-# add another user to a course that is not a global user
-
+# Add another user to a course that is not a global user.
 my $another_user = {
 	username   => "bob",
 	first_name => "Sideshow",
@@ -140,17 +130,16 @@ $t->post_ok(
 
 my $another_new_user_id = $t->tx->res->json('/user_id');
 
-# delete the added users
-
+# Delete the added users.
 $t->delete_ok("/webwork3/api/users/$new_user->{user_id}")->status_is(200)
 	->json_is('/username' => $new_user->{username});
 
 $t->delete_ok("/webwork3/api/users/$another_new_user_id")->status_is(200)
 	->json_is('/username' => $another_user->{username});
 
-## test that a non-admin user cannot access all of the routes
-
 if ($TEST_PERMISSIONS) {
+	# Test that a non-admin user cannot access all of the routes
+
 	$t->post_ok('/webwork3/api/username' => json => { email => 'lisa@google.com', password => 'lisa' })->status_is(200)
 		->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
 		->json_is('/user/username' => "lisa")->json_is('/user/is_admin' => 0);
@@ -169,7 +158,6 @@ if ($TEST_PERMISSIONS) {
 
 	$t->delete_ok('/webwork3/api/users/1')->content_type_is('application/json;charset=UTF-8')->status_is(200)
 		->json_is('/has_permission' => 0);
-
 }
 
 done_testing;
