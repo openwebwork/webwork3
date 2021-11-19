@@ -11,8 +11,6 @@ use strict;
 use warnings;
 use base 'DBIx::Class::ResultSet';
 
-use Try::Tiny;
-
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 use DB::WithDates;
 use DB::WithParams;

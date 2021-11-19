@@ -4,9 +4,6 @@ use strict;
 
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
-use Try::Tiny;
-use Mojo::JSON qw/true false/;
-
 sub addProblem ($self) {
 	my $course_set_params = {
 		course_id => int($self->param("course_id")),
