@@ -79,13 +79,4 @@ sub filterBySetType {
 	return @filtered_sets;
 }
 
-sub loadSchema {
-	# load some configuration for the database:
-
-	my $config = LoadFile("$main::lib_dir/../conf/webwork3.yml");
-
-	# Load the database
-	return DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
-}
-
 1;

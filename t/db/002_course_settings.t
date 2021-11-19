@@ -8,14 +8,12 @@ use strict;
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir     = abs_path(dirname(__FILE__));
-	$main::webwork_home = dirname(dirname($main::test_dir));
-	$main::lib_dir      = "$main::webwork_home/lib";
+	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
-use lib "$main::lib_dir";
+use lib "$main::ww3_dir/lib";
 
-use Data::Dump qw/dd/;
+use Data::Dumper;
 use List::MoreUtils qw(uniq);
 
 use Test::More;
@@ -27,14 +25,20 @@ use DB::WithParams;
 use DB::WithDates;
 use DB::Schema;
 
-# use WeBWorK3::Utils::Settings qw/checkSettings/;
 use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings getDefaultCourseValues
 	validateSettingsConfFile validateSingleCourseSetting validateSettingConfig
 	isInteger isTimeString isTimeDuration isDecimal mergeCourseSettings/;
 
 use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
 
-my $schema = loadSchema();
+my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
+die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
+	unless (-e $config_file);
+
+my $config = LoadFile($config_file);
+
+my $schema =
+	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 

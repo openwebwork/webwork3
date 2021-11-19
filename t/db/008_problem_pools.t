@@ -8,11 +8,10 @@ use strict;
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir = abs_path(dirname(__FILE__));
-	$main::lib_dir  = dirname(dirname($main::test_dir)) . '/lib';
+	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
-use lib "$main::lib_dir";
+use lib "$main::ww3_dir/lib";
 
 use Test::More;
 use Test::Exception;
@@ -27,13 +26,21 @@ use DB::WithDates;
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
 
-my $schema = loadSchema();
+# Set up the database
+my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
+die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
+	unless (-e $config_file);
+
+my $config = LoadFile($config_file);
+
+my $schema =
+	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 
 ## load problem pools from the csv files:
 
-my @pool_problems_from_file = loadCSV("$main::test_dir/sample_data/pool_problems.csv");
+my @pool_problems_from_file = loadCSV("$main::ww3_dir/t/db/sample_data/pool_problems.csv");
 
 my @problem_pools_from_file = map {
 	{%$_};

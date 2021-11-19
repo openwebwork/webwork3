@@ -8,26 +8,27 @@ use Test::Mojo;
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir = abs_path(dirname(__FILE__));
-	$main::lib_dir  = dirname(dirname($main::test_dir)) . '/lib';
+	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
+
+use lib "$main::ww3_dir/lib";
 
 use Getopt::Long;
 my $TEST_PERMISSIONS;
 GetOptions("perm" => \$TEST_PERMISSIONS);    # check for the flag --perm when running this.
 
-use lib "$main::lib_dir";
-
 use DB::Schema;
-use DB::TestUtils qw/loadSchema/;
 use Clone qw/clone/;
 
 # this tests the api with common courses routes
 
-my $schema = loadSchema();
-
 use YAML::XS qw/LoadFile/;
-my $config = clone(LoadFile("$main::lib_dir/../conf/webwork3.yml"));
+
+my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
+die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
+	unless (-e $config_file);
+
+my $config = clone(LoadFile($config_file));
 
 my $t;
 

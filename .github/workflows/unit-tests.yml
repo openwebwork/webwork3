@@ -17,7 +17,8 @@ jobs:
         env:
           HARNESS_PERL_SWITCHES: -MDevel::Cover
         run: |
-          sed 's/\/opt\/webwork\//\/__w\/webwork3\//g' conf/webwork3.dist.yml > conf/webwork3.yml
+          cp conf/webwork3.dist.yml conf/webwork3.yml
+          cp conf/ww3-dev.dist.yml conf/ww3-dev.yml
           perl t/db/build_db.pl
           prove -r t
 

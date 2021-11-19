@@ -8,11 +8,10 @@ use strict;
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir = abs_path(dirname(__FILE__));
-	$main::lib_dir  = dirname(dirname($main::test_dir)) . '/lib';
+	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
-use lib "$main::lib_dir";
+use lib "$main::ww3_dir/lib";
 
 use Text::CSV qw/csv/;
 use List::MoreUtils qw(uniq);
@@ -30,7 +29,14 @@ use DB::WithDates;
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs filterBySetType loadSchema/;
 
-my $schema = loadSchema();
+my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
+die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
+	unless (-e $config_file);
+
+my $config = LoadFile($config_file);
+
+my $schema =
+	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
 my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 
@@ -44,7 +50,7 @@ my $course_rs      = $schema->resultset("Course");
 my $user_rs        = $schema->resultset("User");
 
 # load HW sets from CSV file
-my @hw_sets = loadCSV("$main::test_dir/sample_data/hw_sets.csv");
+my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
 for my $set (@hw_sets) {
 	$set->{set_type} = "HW";
 	for my $date (keys %{ $set->{set_dates} }) {
@@ -53,7 +59,7 @@ for my $set (@hw_sets) {
 	}
 	$set->{set_params} = {} unless defined $set->{set_params};
 }
-my @quizzes = loadCSV("$main::test_dir/sample_data/quizzes.csv");
+my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
 	$quiz->{set_type} = "QUIZ";
 	for my $date (keys %{ $quiz->{set_dates} }) {
@@ -63,7 +69,7 @@ for my $quiz (@quizzes) {
 	$quiz->{set_params} = {} unless defined $quiz->{set_params};
 }
 
-my @review_sets = loadCSV("$main::test_dir/sample_data/review_sets.csv");
+my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv");
 for my $set (@review_sets) {
 	$set->{set_type} = "REVIEW";
 	for my $date (keys %{ $set->{set_dates} }) {

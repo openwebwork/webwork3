@@ -8,16 +8,16 @@ use strict;
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir = abs_path(dirname(__FILE__));
-	$main::lib_dir  = dirname(dirname($main::test_dir)) . '/lib';
+	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
-use lib "$main::lib_dir";
+use lib "$main::ww3_dir/lib";
 
 use List::MoreUtils qw(uniq);
 
 use Test::More;
 use Test::Exception;
+use YAML::XS qw/LoadFile/;
 
 use DB::WithParams;
 use DB::WithDates;
@@ -27,7 +27,14 @@ use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
 
 # load some configuration for the database:
 
-my $schema = loadSchema();
+my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
+die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
+	unless (-e $config_file);
+
+my $config = LoadFile($config_file);
+
+my $schema =
+	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 
@@ -35,8 +42,7 @@ my $course_rs = $schema->resultset("Course");
 
 ## get a list of courses from the CSV file
 
-my @courses = loadCSV("$main::test_dir/sample_data/courses.csv");
-
+my @courses = loadCSV("$main::ww3_dir/t/db/sample_data/courses.csv");
 for my $course (@courses) {
 	delete $course->{course_params};
 }
@@ -147,7 +153,7 @@ for my $user_course (@user_courses) {
 	removeIDs($user_course);
 }
 
-my @students = loadCSV("$main::test_dir/sample_data/students.csv");
+my @students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
 
 my @user_courses_from_csv = grep { $_->{username} eq "lisa" } @students;
 

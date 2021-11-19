@@ -27,6 +27,7 @@ pnpm-debug.log*
 # Project files
 sample_db.sqlite
 conf/webwork3.yml
+conf/ww3-dev.yml
 conf/apache2/webwork3-apache2.conf
 conf/apache2/webwork3.service
 conf/apache2/renderer.service
