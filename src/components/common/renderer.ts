@@ -3,8 +3,9 @@
 import axios from 'axios';
 import { logger } from 'boot/logger';
 import type { HTML, RendererResponse } from 'src/typings/renderer';
+import type { Dictionary, generic } from 'src/store/models';
 
-export interface RendererRequest {
+export interface RendererParams {
 	problemSeed?: number;
 	outputFormat?: string;
 	sourceFilePath?: string;
@@ -23,10 +24,10 @@ export interface RendererRequest {
 	showCheckAnswersButton?: boolean;
 	showCorrectAnswersButton?: boolean;
 	// renderer requests may have lots of other properties with unknown keys
-	[key: string]: string | number| boolean | undefined;
+	[key: string]: generic | undefined;
 }
 
-export async function fetchProblem(url: string, formData: FormData, overrides: RendererRequest) {
+export async function fetchProblem(url: string, formData: FormData, overrides: RendererParams) {
 	let key: keyof typeof overrides;
 	for (key in overrides) {
 		if (overrides[key] !== undefined) {

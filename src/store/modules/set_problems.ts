@@ -4,7 +4,7 @@ import { Commit } from 'vuex';
 // import { StateInterface } from '../index';
 // import { isEqual } from 'lodash-es';
 
-import { Problem, ParseableProblem, parseProblem } from 'src/store/models/set_problem';
+import { Problem, ParseableProblem, parseProblem } from 'src/store/models/problems';
 
 export interface SetProblemsState {
 	problems: Array<Problem>;

@@ -54,7 +54,7 @@
 <script lang="ts">
 import { defineComponent, ref, watch, onMounted, nextTick, PropType } from 'vue';
 import type { SubmitButton } from 'src/typings/renderer';
-import { fetchProblem, RendererRequest } from 'src/APIRequests/renderer';
+import { fetchProblem, RendererParams } from './renderer';
 import { RENDER_URL } from 'src/constants';
 import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
@@ -62,7 +62,7 @@ import JQuery from 'jquery';
 import { logger } from 'boot/logger';
 
 import typeset from './mathjax-config';
-import { Problem } from 'src/store/models/set_problem';
+import { Problem } from 'src/store/models/problems';
 
 declare global {
 	interface Window {
@@ -151,7 +151,7 @@ export default defineComponent({
 			freeProblem.value = props.problem.clone();
 		}, { deep: true });
 
-		const loadProblem = async (url: string, formData: FormData, overrides: RendererRequest) => {
+		const loadProblem = async (url: string, formData: FormData, overrides: RendererParams) => {
 			// Make sure that any popovers left open from a previous rendering are removed.
 			for (const popover of activePopovers) {
 				popover.dispose();
@@ -234,7 +234,7 @@ export default defineComponent({
 				return;
 			}
 
-			problemForm.value.id = `${freeProblem.value.answer_prefix || ''}problemMainForm`;
+			problemForm.value.id = `${freeProblem.value.request_params.answerPrefix || ''}problemMainForm`;
 
 			// Add a click handler to any submit buttons in the problem form.
 			// Some Geogebra problems add one of these for example.

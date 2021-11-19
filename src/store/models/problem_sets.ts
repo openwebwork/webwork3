@@ -3,7 +3,7 @@
 import { Dictionary, parseNonNegInt, Model, ParseError, generic,
 	InvalidFieldsException, ParseableModel, ModelField, parseParams } from 'src/store/models/index';
 import { difference } from 'lodash';
-import { Problem } from './set_problem';
+import { Problem } from './problems';
 
 // const problem_set_types = [/hw/i, /quiz/i, /review/i];
 

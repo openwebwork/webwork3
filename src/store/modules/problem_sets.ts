@@ -5,7 +5,7 @@ import { isEqual } from 'lodash-es';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet, MergedUserSet,
 	ParseableMergedUserSet, UserSet } from 'src/store/models/problem_sets';
-import { LibraryProblem, SetProblem, ParseableProblem, parseProblem } from 'src/store/models/set_problem';
+import { LibraryProblem, SetProblem, ParseableProblem, parseProblem } from 'src/store/models/problems';
 import { logger } from 'boot/logger';
 
 export interface ProblemSetState {

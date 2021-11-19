@@ -12,7 +12,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import Problem from './Problem.vue';
-import { LibraryProblem } from 'src/store/models/set_problem';
+import { LibraryProblem } from 'src/store/models/problems';
 
 export default defineComponent({
 	name: 'ProblemViewer',

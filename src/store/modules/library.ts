@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { Commit } from 'vuex';
 
-import { LibraryProblem, parseProblem } from 'src/store/models/set_problem';
+import { LibraryProblem, parseProblem } from 'src/store/models/problems';
 import { Discipline, LibrarySubject } from 'src/store/models/library';
 
 export interface LibraryState {

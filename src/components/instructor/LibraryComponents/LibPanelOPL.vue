@@ -46,7 +46,7 @@ import { defineComponent, ref, computed, watch } from 'vue';
 import { useQuasar } from 'quasar';
 
 import { useStore } from 'src/store';
-import { LibraryProblem } from 'src/store/models/set_problem';
+import { LibraryProblem } from 'src/store/models/problems';
 import { ResponseError } from 'src/store/models';
 import Problem from 'components/common/Problem.vue';
 import { logger } from 'boot/logger';

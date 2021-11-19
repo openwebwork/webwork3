@@ -1,8 +1,8 @@
 
 /* These are Problem interfaces */
 
-import { RendererRequest } from 'src/APIRequests/renderer';
-import { logger } from 'boot/logger';
+import { RendererParams } from 'src/components/common/renderer';
+// import { logger } from 'boot/logger';
 import { Dictionary, Model, generic, ParseableModel, ModelField, parseParams } from 'src/store/models/index';
 import { random } from 'lodash';
 
@@ -40,17 +40,25 @@ export interface ProblemParams extends Dictionary<generic> {
 }
 
 export class Problem extends Model(
-	['show_hints', 'show_solutions', 'show_preview_button', 'show_check_answers_button', 'show_correct_answers_button'],
-	['problem_id', 'set_id', 'seed', 'id', 'problem_number', 'problem_version', 'permission_level'],
-	['output_format', 'answer_prefix'],
-	['problem_params'],
+	[], ['problem_id', 'set_id', 'id', 'problem_number', 'problem_version'],
+	[], ['problem_params', 'request_params'],
 	{
 		problem_id: { field_type: 'non_neg_int', default_value: 0 },
 		set_id: { field_type: 'non_neg_int', default_value: 0 },
-		seed: { field_type: 'non_neg_int', default_value: 0 },
 		id: { field_type: 'non_neg_int', default_value: 0 },
 		problem_number: { field_type: 'non_neg_int', default_value: 0 },
 		problem_version: { field_type: 'non_neg_int', default_value: 0 },
+	}) {
+	static REQUIRED_FIELDS = [];
+	static OPTIONAL_FIELDS = ['problem_id', 'set_id', 'id'];
+
+	problem_type = '';
+	_param_fields: ModelField = {
+		library_id: { field_type: 'non_neg_int' },
+		file_path: { field_type: 'string' }
+	};
+	_request_fields: ModelField = {
+		seed: { field_type: 'non_neg_int', default_value: 0 },
 		permission_level: { field_type: 'non_neg_int', default_value: 0 },
 		output_format: { field_type: 'string', default_value: 'ww3' },
 		answer_prefix: { field_type: 'string', default_value: '' },
@@ -60,16 +68,19 @@ export class Problem extends Model(
 		show_preview_button: { field_type: 'boolean', default_value: false },
 		show_check_answers_button: { field_type: 'boolean', default_value: false },
 		show_correct_answers_button: { field_type: 'boolean', default_value: false }
-	}) {
-	static REQUIRED_FIELDS = ['seed', 'output_format'];
-	static OPTIONAL_FIELDS = ['problem_id', 'set_id', 'seed', 'id', 'problem_number', 'problem_version'];
-
-	problem_type = '';
-	_param_fields: ModelField = {
-		library_id: { field_type: 'non_neg_int' },
-		file_path: { field_type: 'string' }
-	};
+	}
 	problem_params: ProblemParams = { library_id: 0, file_path: '' };
+	request_params = {
+		problemSeed: DEFAULT_LIBRARY_SEED,
+		permission_level: 0,
+		outputFormat: 'ww3',
+		answerPrefix: '',
+		showHints: false,
+		showSolutions: false,
+		showPreviewButton: false,
+		showCheckAnswersButton: false,
+		showCorrectAnswersButton: false
+	}
 
 	constructor(params: ParseableProblem = {}) {
 		super(params as ParseableModel);
@@ -100,25 +111,27 @@ export class Problem extends Model(
 	}
 
 	// return the RendererRequest params for this Problem
-	requestParams(): RendererRequest {
-		if (this.seed === undefined) throw 'Cannot generate requestParams for problem because there is no seed value.';
-		if (this.output_format === undefined) {
+	requestParams(): RendererParams {
+		if (this.request_params.problemSeed === undefined) {
+			throw 'Cannot generate requestParams for problem because there is no seed value.';
+		}
+		if (this.request_params.outputFormat === undefined) {
 			throw 'Cannot generate requestParams for problem because there is no output format';
 		}
 
 		return {
-			problemSeed: this.seed,
-			outputFormat: this.output_format,
+			problemSeed: this.request_params.problemSeed,
+			outputFormat: this.request_params.outputFormat,
 			sourceFilePath: this.path(), // will this respect inheritance?
 			problemNumber: this.problem_number ?? this.problem_params.library_id,
-			answerPrefix: this.answer_prefix,
-			permissionLevel: this.permission_level,
+			answerPrefix: this.request_params.answerPrefix,
+			permissionLevel: this.request_params.permission_level,
 			language: 'en',
-			showHints: this.show_hints,
-			showSolutions: this.show_solutions,
-			showPreviewButton: this.show_preview_button,
-			showCheckAnswersButton: this.show_check_answers_button,
-			showCorrectAnswersButton: this.show_correct_answers_button,
+			showHints: this.request_params.showHints,
+			showSolutions: this.request_params.showSolutions,
+			showPreviewButton: this.request_params.showPreviewButton,
+			showCheckAnswersButton: this.request_params.showCheckAnswersButton,
+			showCorrectAnswersButton: this.request_params.showCorrectAnswersButton,
 		};
 	}
 }
@@ -129,12 +142,7 @@ export class SetProblem extends Problem {
 		params.seed = params.seed ?? 1234;
 		super(params as ParseableModel);
 		this.problem_type = 'SET';
-		this.seed = DEFAULT_LIBRARY_SEED;
-		this.answer_prefix = `QUESTION_${this.problem_id || 0}`;
-		this.permission_level = 10;
-		this.show_hints = true;
-		this.show_solutions = true;
-		this.show_correct_answers_button = true;
+		this.request_params.answerPrefix = `QUESTION_${this.problem_id || 0}`;
 		this._param_fields = {
 			file_path: {
 				field_type: 'string'
@@ -146,20 +154,15 @@ export class SetProblem extends Problem {
 				field_type: 'non_neg_int'
 			}
 		};
-		// this.problem_params = {} as SetProblemParams;
-		// if (params.problem_params) {
-		// logger.debug(`[SetProblem/constructor] new problem path: ${params.problem_params.file_path || 'none'}`);
-		// this.setParams(params.problem_params as Dictionary<generic>);
-		// }
 	}
 
 	isValid() {
 		const params = this.problem_params as SetProblemParams;
-		return (this.problem_id && params.file_path && this.problem_number) ? true : false;
+		return this.problem_id && params.file_path && this.problem_number;
 	}
 
 	rerandomize() {
-		this.seed = random(10000, 99999);
+		this.request_params.problemSeed = random(10000, 99999);
 	}
 
 	clone(): SetProblem {
@@ -180,11 +183,8 @@ export class LibraryProblem extends Problem {
 		super(params);
 		this.problem_type = 'LIBRARY';
 		// default seed value for viewing library problems
-		this.seed = DEFAULT_LIBRARY_SEED;
-		this.permission_level = 10;
-		this.show_hints = true;
-		this.show_solutions = true;
-		this.show_correct_answers_button = true;
+		this.request_params.problemSeed = DEFAULT_LIBRARY_SEED;
+		this.request_params.permission_level = 10;
 
 		this._param_fields = {
 			library_id: {
@@ -194,15 +194,10 @@ export class LibraryProblem extends Problem {
 				field_type: 'string'
 			}
 		};
-		// this.problem_params = {} as LibraryParams;
-		// if (params.problem_params) {
-		// logger.debug(`[SetProblem/constructor] new problem path: ${params.problem_params.file_path || 'none'}`);
-		// this.setParams(params.problem_params as Dictionary<generic>);
-		// }
 		// they haven't been assigned, so no problem_id or problem_number
 		// we still need unique problem prefixes, so use library_id as problem_number
 		// this.problem_number = (this.problem_params as LibraryParams).id;
-		this.answer_prefix = `QUESTION_${this.problem_number || 0}`;
+		this.request_params.answerPrefix = `QUESTION_${this.problem_number || 0}`;
 	}
 
 	isValid() {
@@ -210,9 +205,10 @@ export class LibraryProblem extends Problem {
 	}
 
 	rerandomize() {
-		logger.debug(`[LibraryProblem/rerandomize] changing seed (${this.seed || 0}) on problem ${this.path()}`);
-		this.seed = random(10000, 99999);
-		logger.debug(`[LibraryProblem/rerandomize] new seed is ${this.seed}.`);
+		// logger.debug('[LibraryProblem/rerandomize] changing seed ' +
+		// `(${this.request_params.problemSeed || 0}) on problem ${this.path()}`);
+		this.request_params.problemSeed = random(10000, 99999);
+		// logger.debug(`[LibraryProblem/rerandomize] new seed is ${this.request_params.problemSeed}.`);
 	}
 
 	clone(): LibraryProblem {

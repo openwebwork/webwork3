@@ -30,7 +30,7 @@ import { VueDraggableNext } from 'vue-draggable-next';
 import Problem from 'components/common/Problem.vue';
 import { ProblemSet } from 'src/store/models/problem_sets';
 import { sortBy } from 'lodash-es';
-import { SetProblem } from 'src/store/models/set_problem';
+import { SetProblem } from 'src/store/models/problems';
 import { ResponseError } from 'src/store/models';
 import { logger } from 'boot/logger';
 
