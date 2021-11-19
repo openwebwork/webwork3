@@ -35,7 +35,7 @@ if (-e $config_file) {
 }
 
 my $schema =
-	DB::Schema->connect($config->{test_database_dsn}, $config->{test_database_user}, $config->{test_database_password});
+	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 

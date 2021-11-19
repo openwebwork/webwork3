@@ -1,7 +1,7 @@
 ---
 secrets:
   - 3cdf63327fcf77deaed1d200df4b9fee66af2326
-webwork3_home: /opt/webwork/webwork3
+webwork3_home: .
 
 # Database settings
 
@@ -11,18 +11,12 @@ webwork3_home: /opt/webwork/webwork3
 # database that is different than others.
 
 # For the sqlite database
-test_database_dsn: dbi:SQLite:/opt/webwork/webwork3/t/db/sample_db.sqlite
+database_dsn: dbi:SQLite:./t/db/sample_db.sqlite
 # For mysql or mariadb
 # note: choose a database
-#test_database_dsn: dbi:mysql:dbname=webwork3_test
+#database_dsn: dbi:mysql:dbname=webwork3_test
 
 # Database credentials for mysql or mariadb.
 # These are ignored if the 'sqlite' database is used.
-test_database_user: webworkWrite
-test_database_password: password
-
-# If ignore_permissions is set to true, all routes can be executed.
-# This should only be used in development.
-ignore_permissions: true
-
-
+database_user: webworkWrite
+database_password: password

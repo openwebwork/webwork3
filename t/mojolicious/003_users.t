@@ -23,20 +23,15 @@ use YAML qw/LoadFile/;
 
 # Test the api with common "users" routes
 
-my $config;
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-if (-e $config_file) {
-	$config                      = clone(LoadFile($config_file));
-	$config->{database_dsn}      = $config->{test_database_dsn};
-	$config->{database_user}     = $config->{test_database_user};
-	$config->{database_password} = $config->{test_database_password};
-} else {
-	die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?";
-}
+die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
+	unless (-e $config_file);
+
+my $config = clone(LoadFile($config_file));
 
 # set up the database:
 my $schema =
-	DB::Schema->connect($config->{test_database_dsn}, $config->{test_database_user}, $config->{test_database_password});
+	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
 # remove the maggie user if exists in the database
 my $maggie = $schema->resultset("User")->find({ username => "maggie" });

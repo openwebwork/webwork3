@@ -24,16 +24,11 @@ use DB::TestUtils qw/loadSchema loadCSV/;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
 
-my $config;
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-if (-e $config_file) {
-	$config                      = clone(LoadFile($config_file));
-	$config->{database_dsn}      = $config->{test_database_dsn};
-	$config->{database_user}     = $config->{test_database_user};
-	$config->{database_password} = $config->{test_database_password};
-} else {
-	die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?";
-}
+die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
+	unless (-e $config_file);
+
+my $config = clone(LoadFile($config_file));
 
 my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 
@@ -41,7 +36,7 @@ my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croa
 
 # set up the database:
 my $schema =
-	DB::Schema->connect($config->{test_database_dsn}, $config->{test_database_user}, $config->{test_database_password});
+	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
 my $t;
 
