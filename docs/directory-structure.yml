@@ -1,0 +1,62 @@
+---
+src:
+  assets:
+    # Application wide images and other such non src type files.  Generally any binary files needed application
+    # wide.
+  boot:
+    # Quasar boot files
+  common:
+    # This directory should contain typescript files that are needed in many places.  This will probably be sort of the
+    # app wide "lib" location (and perhaps should be called that instead -- the name is up for debate).  For now this
+    # will contain all of the files that are now directly in src except App.ts and index.template.html.  Note that what
+    # is now src/common.ts will be renamed src/common/views.ts (to more accurately reflect its contents and not have
+    # src/common/common).  I have a branch that does this already.
+    # This is probably were what is currently in APIRequests should go also (I think it should be called
+    # renderer-requests.ts though to not confuse it with ww3 api requests).
+  components:
+    # Vue components that are used on many pages.
+    # There will certainly NOT be a common directory in here.  It is all common.  However, there may be subdirectories
+    # for complicated common components.  Simple components that only have one vue file should not be in a subdirectory,
+    # unless there are a class of related components that should be grouped together.  A complicated enough component
+    # could also have the directory structure described below for a page.
+  css:
+    # Application wide css.
+  layouts:
+    # App layouts
+  locales:
+    # Currently i18n.  The only things that will be here are the translation yml files (no ts or vue).  This is set up
+    # in another branch that I have.
+  pages:
+    # The first level of subdirectories here should correspond to actual pages in the ui.  Not split by who has
+    # permissions to view them (like instructor, student, etc).  Inside of each of these at the first level should be
+    # the main component(s) for that page.  Then there will possibly be a "components" directory in that for components
+    # only used on that page, a common (or lib) directory for typescript files only used by that page, and possibly even
+    # assets and css subdirectories.  Basically the structure inside a directory here is an iteration of the main level
+    # structure (without boot, locales, router, store, and typings -- well, maybe store for a local store instance?).
+    # Note that it doesn't really make sense to sort things by roles because roles don't divide pages in a good way.
+    # Pages can possibly be used by multiple roles.  So no "instructor" or "student" or "admin" directories.  Use logic
+    # to determine who has access to what, not directories.
+    # General Idea:
+    LibraryBrowser:
+      - LibraryBrowser.vue
+      - components:
+        - LibPanelDir.vue
+        - LibPanelLocal.vue
+        - LibPanelOPL.vue
+        - LibPanelSearch.vue
+      - common:
+    ProblemEditor:
+      - ProblemEditor.vue
+    HomeworkSets:
+    HomeworkSetsEditor:
+
+    # etc.
+
+  router:
+    # router stuff!
+  store:
+    # The stores current structure is good
+    models:
+    modules:
+  typings:
+    # Typescript type files.  This should contain "all" .d.ts files (store-flag.d.ts should be moved here).
