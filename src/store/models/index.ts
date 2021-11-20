@@ -91,7 +91,7 @@ export function parseUsername(val: string | undefined) {
 	}
 }
 
-export function parseEmail(val: string|undefined): string|undefined {
+export function parseEmail(val: string | undefined) {
 	if (typeof val === 'string' && mailRE.test(`${val}`)) {
 		return val;
 	} else {
@@ -139,33 +139,29 @@ export interface ModelField  {
 	}
 }
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access,
-			@typescript-eslint/no-explicit-any */
-
-export function parseParams(_params: Dictionary<generic | Dictionary<generic>>,  _fields: ModelField){
+export const parseParams = (_params: Dictionary<generic | Dictionary<generic>>,  _fields: ModelField) => {
 	const output_params: Dictionary<generic> = {};
 	Object.keys(_fields).forEach((key: string) => {
-		if ((_params as any)[key] == null && _fields[key].default_value !== undefined) {
-			(_params as any)[key] = _fields[key].default_value;
+		if (key in _params && _params[key] == null && _fields[key].default_value !== undefined) {
+			_params[key] = _fields[key].default_value as generic | Dictionary<generic>;
 		}
 		// parse each field
-		if ((_params as any)[key] != null && _fields[key].field_type === 'boolean') {
-			(output_params as any)[key] = parseBoolean((_params as any)[key]);
-		} else if ((_params as any)[key] != null && _fields[key].field_type === 'string') {
-			(output_params as any)[key] = `${(_params as any)[key] as string}`;
-		} else if ((_params as any)[key] != null && _fields[key].field_type === 'non_neg_int') {
-			(output_params as any)[key] = parseNonNegInt((_params as any)[key]);
-		} else if ((_params as any)[key] != null && _fields[key].field_type === 'username') {
-			(output_params as any)[key] = parseUsername((_params as any)[key]);
-		} else if ((_params as any)[key] != null && _fields[key].field_type === 'email') {
-			(output_params as any)[key] = parseEmail((_params as any)[key]);
-		} else if ((_params as any)[key] != null && _fields[key].field_type === 'role') {
-			(output_params as any)[key] = parseUserRole((_params as any)[key]);
+		if (key in _params && _params[key] != null && _fields[key].field_type === 'boolean') {
+			output_params[key as keyof Dictionary<generic>] = parseBoolean(_params[key] as string | number | boolean);
+		} else if (key in _params && _params[key] != null && _fields[key].field_type === 'string') {
+			output_params[key as keyof Dictionary<generic>] = `${_params[key] as string}`;
+		} else if (key in _params && _params[key] != null && _fields[key].field_type === 'non_neg_int') {
+			output_params[key as keyof Dictionary<generic>] = parseNonNegInt(_params[key] as string | number);
+		} else if (key in _params && _params[key] != null && _fields[key].field_type === 'username') {
+			output_params[key as keyof Dictionary<generic>] = parseUsername(_params[key] as string);
+		} else if (key in _params && _params[key] != null && _fields[key].field_type === 'email') {
+			output_params[key as keyof Dictionary<generic>] = parseEmail(_params[key] as string);
+		} else if (key in _params && _params[key] != null && _fields[key].field_type === 'role') {
+			output_params[key as keyof Dictionary<generic>] = parseUserRole(_params[key] as string);
 		}
 	});
 	return output_params;
-}
-/* eslint-enable */
+};
 
 /* This creates a general Model to be used for all others (Course, User, etc.)
 
@@ -229,13 +225,10 @@ export const Model = <Bool extends string, Num extends string, Str extends strin
 			const invalid_fields = difference(Object.keys(params ?? {}), this.all_fields);
 			if (invalid_fields.length !== 0) {
 				throw new InvalidFieldsException('_all',
-					`The field(s) '${invalid_fields.join(', ')}' are not valid for ${this.constructor.name}.`);
+					`The field(s) '${invalid_fields.join(', ')}' is(are) not valid for ${this.constructor.name}.`);
 			}
 			this.set(params);
 		}
-
-		/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access,
-			@typescript-eslint/no-explicit-any */
 
 		set(params: Dictionary<generic | Dictionary<generic> | Array<Dictionary<generic>>>) {
 			// parse the non-object fields;
@@ -243,12 +236,11 @@ export const Model = <Bool extends string, Num extends string, Str extends strin
 			const parsed_params = parseParams(pick(params, fields) as Dictionary<generic>, this._fields);
 
 			fields.forEach(key => {
-				if ((parsed_params as any)[key] != null) {
-					(this as any)[key] = (parsed_params as any)[key];
+				if (key in parsed_params && parsed_params[key] != null) {
+					(this as unknown as Dictionary<generic>)[key] = parsed_params[key];
 				}
 			});
 		}
-		/* eslint-enable */
 
 		get all_fields(): Array<Bool | Num | Str | Dic> {
 			return [...this._boolean_field_names, ...this._number_field_names,
@@ -259,24 +251,20 @@ export const Model = <Bool extends string, Num extends string, Str extends strin
 			return Object.keys(pickBy(this._fields, (val: { required?: boolean}) => val.required || false));
 		}
 
-		/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access,
-			@typescript-eslint/no-explicit-any */
-
 		// converts the instance of the class to an regular object.
 		toObject(_fields?: Array<string>) {
 			const obj: Dictionary<generic> = {};
 			const fields = _fields ?? this.all_fields;
 			fields.forEach(key => {
-				if((this as any)[key] !== undefined){
-					obj[key] = (this as any)[key];
+				if ((this as unknown as Dictionary<generic>)[key] !== undefined) {
+					obj[key] = (this as unknown as Dictionary<generic>)[key];
 				}
 			});
 			return obj;
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return _Model as any as
+	return _Model as unknown as
 		new (params?: Dictionary<generic | Dictionary<generic> | Array<Dictionary<generic>>>) =>
 	ModelObject<Bool, Num, Str, Dic> & {
 		set(params: Dictionary<generic | Dictionary<generic> >): void,

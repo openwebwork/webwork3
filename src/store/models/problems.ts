@@ -40,7 +40,7 @@ export interface ProblemParams extends Dictionary<generic> {
 }
 
 export class Problem extends Model(
-	[], ['problem_id', 'set_id', 'id', 'problem_number', 'problem_version'],
+	[], ['problem_id', 'set_id', 'seed', 'id', 'problem_number', 'problem_version'],
 	[], ['problem_params', 'renderer_params'],
 	{
 		problem_id: { field_type: 'non_neg_int', default_value: 0 },
@@ -123,7 +123,7 @@ export class Problem extends Model(
 			problemSeed: this.renderer_params.problemSeed,
 			outputFormat: this.renderer_params.outputFormat,
 			sourceFilePath: this.path(), // will this respect inheritance?
-			problemNumber: this.problem_number ?? this.problem_params.library_id,
+			problemNumber: this.problem_number ?? this.problem_params.library_id ?? 0,
 			answerPrefix: this.renderer_params.answerPrefix,
 			permissionLevel: this.renderer_params.permission_level,
 			language: 'en',

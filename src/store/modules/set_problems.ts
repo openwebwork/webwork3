@@ -1,4 +1,3 @@
-/* eslint-disable no-tabs */
 import { api } from 'boot/axios';
 import { Commit } from 'vuex';
 // import { StateInterface } from '../index';
@@ -28,6 +27,7 @@ export default {
 			const _sets_to_parse = response.data as Array<ParseableProblem>;
 			commit('SET_SET_PROBLEMS)', _sets_to_parse.map((problem)=> parseProblem(problem, 'Set')));
 		},
+		/* eslint-disable no-tabs */
 		// async updateSet(
 		// 	{ commit, rootState }: { commit: Commit; rootState: StateInterface },
 		// 	 _set: SetProblem): Promise<SetProblem> {
@@ -42,14 +42,17 @@ export default {
 		// 	}
 		// 	return set;
 		// }
+		/* eslint-enable */
 	},
 	mutations: {
 		SET_SET_PROBLEMS(state: SetProblemsState, _set_problems: Array<Problem>): void {
 			state.problems = _set_problems;
 		},
+		/* eslint-disable no-tabs */
 		// UPDATE_PROBLEM_SET(state: SetProblemsState, _set: SetProblem): void {
 		// 	const index = state.problem_sets.findIndex((s: SetProblem) => s.set_id === _set.set_id);
 		// 	state.problem_sets[index] = _set;
 		// }
+		/* eslint-enable */
 	}
 };
