@@ -54,7 +54,7 @@
 <script lang="ts">
 import { defineComponent, ref, watch, onMounted, nextTick, PropType } from 'vue';
 import type { SubmitButton } from 'src/typings/renderer';
-import { fetchProblem, RendererParams } from './renderer';
+import { fetchProblem, RendererParams } from 'src/api-requests/renderer';
 import { RENDER_URL } from 'src/constants';
 import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
@@ -234,7 +234,7 @@ export default defineComponent({
 				return;
 			}
 
-			problemForm.value.id = `${freeProblem.value.request_params.answerPrefix || ''}problemMainForm`;
+			problemForm.value.id = `${freeProblem.value.renderer_params.answerPrefix || ''}problemMainForm`;
 
 			// Add a click handler to any submit buttons in the problem form.
 			// Some Geogebra problems add one of these for example.

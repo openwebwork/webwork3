@@ -8,23 +8,31 @@
 		</div>
 		<div class="row">
 			<div class="col-3">
-				<q-select :options="disciplines" v-model="discipline" label="Select a Discipline" />
+				<q-select
+					:options="disciplines"
+					v-model="discipline"
+					option-label="name"
+					label="Select a Discipline" />
 			</div>
 			<div class="col-3" >
 				<q-select v-if="subjects.length > 0"
 					:options="subjects"
-					v-model="subject" label="Select a Subject" />
+					v-model="subject"
+					option-label="name"
+					label="Select a Subject" />
 			</div>
 			<div class="col-3">
 				<q-select
 					v-if="chapters.length > 0"
 					:options="chapters"
+					option-label="name"
 					v-model="chapter" label="Select a Chapter" />
 			</div>
 			<div class="col-3">
 				<q-select
 					v-if="sections.length > 0"
 					:options="sections"
+					option-label="name"
 					v-model="section" label="Select a Section" />
 			</div>
 		</div>
@@ -42,21 +50,16 @@
 
 <script lang="ts">
 
-import { defineComponent, ref, computed, watch } from 'vue';
+import { defineComponent, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 
 import { useStore } from 'src/store';
 import { LibraryProblem } from 'src/store/models/problems';
 import { ResponseError } from 'src/store/models';
 import Problem from 'components/common/Problem.vue';
+import { fetchDisciplines, fetchChapters, fetchSubjects, fetchSections, fetchLibraryProblems, LibraryCategory }
+	from 'src/api-requests/library';
 import { logger } from 'boot/logger';
-
-interface SelectItem {
-	label?: string;
-	name?: string;
-	crossref?: number;
-	id: number;
-}
 
 export default defineComponent({
 	name: 'LibPanelOpl',
@@ -64,64 +67,85 @@ export default defineComponent({
 		Problem
 	},
 	setup() {
+		logger.debug('in setup()');
 		const $q = useQuasar();
 		const store = useStore();
-		const discipline = ref<SelectItem | null>(null); // start with the select field to be empty.
-		const subject = ref<SelectItem | null>(null);
-		const chapter = ref<SelectItem | null>(null);
-		const section = ref<SelectItem | null>(null);
+		const discipline = ref<LibraryCategory | null>(null); // start with the select field to be empty.
+		const disciplines = ref<Array<LibraryCategory>>([]);
+		const subject = ref<LibraryCategory | null>(null);
+		const subjects = ref<Array<LibraryCategory>>([]);
+		const chapter = ref<LibraryCategory | null>(null);
+		const chapters = ref<Array<LibraryCategory>>([]);
+		const section = ref<LibraryCategory | null>(null);
+		const sections = ref<Array<LibraryCategory>>([]);
+		const problems = ref<Array<LibraryProblem>>([]);
+
+		void fetchDisciplines().then(val => {
+			disciplines.value = val;
+		});
 
 		watch([discipline], async () => {
-			void store.dispatch('library/resetSections');
-			void store.dispatch('library/resetChapters');
-			void store.dispatch('library/resetSubjects');
-			const d = discipline.value;
+			subjects.value = [];
+			chapters.value = [];
+			sections.value = [];
 			subject.value = chapter.value = section.value = null;
-			await store.dispatch('library/fetchSubjects', { disc_id: d?.id });
+
+			if (discipline.value) {
+				await fetchSubjects({ disc_id: discipline.value.id }).then(val => {
+					subjects.value = val;
+				});
+			}
 		});
 
 		watch([subject], async () => {
-			void store.dispatch('library/resetSections');
-			void store.dispatch('library/resetChapters');
-			const subj = subject.value;
-			const d = discipline.value;
-			chapter.value = section.value = null;
-			await store.dispatch('library/fetchChapters', { disc_id: d?.id, subj_id: subj?.id });
+			chapters.value = [];
+			sections.value = [];
+
+			if (discipline.value && subject.value) {
+				await fetchChapters({
+					disc_id: discipline.value.id,
+					subj_id: subject.value.id
+				}).then(val => {
+					chapters.value = val;
+					section.value = null;
+				});
+			}
 		});
 
 		watch([chapter], async () => {
-			void store.dispatch('library/resetSections');
-			const ch = chapter.value;
-			const subj = subject.value;
-			const d = discipline.value;
-			section.value = null;
-			await store.dispatch('library/fetchSections',
-				{
-					disc_id: d?.id, subj_id: subj?.id, chap_id: ch?.id
-				}
-			);
-		});
+			sections.value = [];
 
-		watch(() => store.state.app_state.library_state.target_set_id, () => {
-			logger.debug(`[LibPanelOPL] update target set: ${store.state.app_state.library_state.target_set_id}`);
+			if (discipline.value && subject.value && chapter.value) {
+				await fetchSections({
+					disc_id: discipline.value.id,
+					subj_id: subject.value.id,
+					chap_id: chapter.value.id
+				}).then(val => {
+					sections.value = val;
+				});
+			}
 		});
-
-		const getLabelId = (item: SelectItem): SelectItem =>  ({ label: item.name, id: item.crossref ?? item.id });
 
 		return {
 			discipline,
-			disciplines: computed(() => store.state.library.disciplines.map(getLabelId)),
+			disciplines,
 			subject,
-			subjects: computed(() => store.state.library.subjects.map(getLabelId)),
+			subjects,
 			chapter,
-			chapters: computed(() => store.state.library.chapters.map(getLabelId)),
+			chapters,
 			section,
-			sections: computed(() => store.state.library.sections.map(getLabelId)),
-			problems: computed(() => store.state.library.problems),
+			sections,
+			problems,
 			loadProblems: async () => {
-				const sect = section.value;
 				logger.debug('[LibPanelOPL/loadProblems] dispatching request to store');
-				await store.dispatch('library/fetchLibraryProblems', { sect_id: sect?.id });
+				if (discipline.value && subject.value && chapter.value && section.value) {
+					await fetchLibraryProblems({
+						disc_id: discipline.value.id,
+						subj_id: subject.value.id,
+						chap_id: chapter.value.id,
+						sect_id: section.value.id
+					}).then(val => {problems.value = val;});
+				}
 			},
 			addProblem: async (prob: LibraryProblem) => {
 				const set_id = store.state.app_state.library_state.target_set_id;
@@ -147,17 +171,6 @@ export default defineComponent({
 				}
 			}
 		};
-	},
-	async beforeMount() {
-		const store = useStore();
-		logger.debug('resetting OPL dropdowns and fetching Disciplines...');
-
-		void store.dispatch('library/resetSections');
-		void store.dispatch('library/resetChapters');
-		void store.dispatch('library/resetSubjects');
-		void store.dispatch('library/resetProblems');
-
-		await store.dispatch('library/fetchDisciplines');
 	}
 });
 </script>

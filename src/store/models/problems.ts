@@ -1,8 +1,7 @@
 
 /* These are Problem interfaces */
 
-import { RendererParams } from 'src/components/common/renderer';
-// import { logger } from 'boot/logger';
+import { RendererParams } from 'src/api-requests/renderer';
 import { Dictionary, Model, generic, ParseableModel, ModelField, parseParams } from 'src/store/models/index';
 import { random } from 'lodash';
 
@@ -26,6 +25,7 @@ export interface ParseableProblem {
 	problem_number?: string | number;
 	problem_version?: string | number;
 	problem_params?: ProblemParams;
+	renderer_params?: RendererParams;
 }
 
 export interface SetProblemParams {
@@ -41,7 +41,7 @@ export interface ProblemParams extends Dictionary<generic> {
 
 export class Problem extends Model(
 	[], ['problem_id', 'set_id', 'id', 'problem_number', 'problem_version'],
-	[], ['problem_params', 'request_params'],
+	[], ['problem_params', 'renderer_params'],
 	{
 		problem_id: { field_type: 'non_neg_int', default_value: 0 },
 		set_id: { field_type: 'non_neg_int', default_value: 0 },
@@ -70,7 +70,7 @@ export class Problem extends Model(
 		show_correct_answers_button: { field_type: 'boolean', default_value: false }
 	}
 	problem_params: ProblemParams = { library_id: 0, file_path: '' };
-	request_params = {
+	renderer_params = {
 		problemSeed: DEFAULT_LIBRARY_SEED,
 		permission_level: 0,
 		outputFormat: 'ww3',
@@ -112,26 +112,26 @@ export class Problem extends Model(
 
 	// return the RendererRequest params for this Problem
 	requestParams(): RendererParams {
-		if (this.request_params.problemSeed === undefined) {
+		if (this.renderer_params.problemSeed === undefined) {
 			throw 'Cannot generate requestParams for problem because there is no seed value.';
 		}
-		if (this.request_params.outputFormat === undefined) {
+		if (this.renderer_params.outputFormat === undefined) {
 			throw 'Cannot generate requestParams for problem because there is no output format';
 		}
 
 		return {
-			problemSeed: this.request_params.problemSeed,
-			outputFormat: this.request_params.outputFormat,
+			problemSeed: this.renderer_params.problemSeed,
+			outputFormat: this.renderer_params.outputFormat,
 			sourceFilePath: this.path(), // will this respect inheritance?
 			problemNumber: this.problem_number ?? this.problem_params.library_id,
-			answerPrefix: this.request_params.answerPrefix,
-			permissionLevel: this.request_params.permission_level,
+			answerPrefix: this.renderer_params.answerPrefix,
+			permissionLevel: this.renderer_params.permission_level,
 			language: 'en',
-			showHints: this.request_params.showHints,
-			showSolutions: this.request_params.showSolutions,
-			showPreviewButton: this.request_params.showPreviewButton,
-			showCheckAnswersButton: this.request_params.showCheckAnswersButton,
-			showCorrectAnswersButton: this.request_params.showCorrectAnswersButton,
+			showHints: this.renderer_params.showHints,
+			showSolutions: this.renderer_params.showSolutions,
+			showPreviewButton: this.renderer_params.showPreviewButton,
+			showCheckAnswersButton: this.renderer_params.showCheckAnswersButton,
+			showCorrectAnswersButton: this.renderer_params.showCorrectAnswersButton,
 		};
 	}
 }
@@ -139,10 +139,10 @@ export class Problem extends Model(
 // problems to be rendered for sets editor
 export class SetProblem extends Problem {
 	constructor(params: ParseableProblem = {}) {
-		params.seed = params.seed ?? 1234;
 		super(params as ParseableModel);
 		this.problem_type = 'SET';
-		this.request_params.answerPrefix = `QUESTION_${this.problem_id || 0}`;
+		this.renderer_params.answerPrefix = `QUESTION_${this.problem_id || 0}`;
+		this.renderer_params.problemSeed = params.renderer_params?.problemSeed ?? 1234;
 		this._param_fields = {
 			file_path: {
 				field_type: 'string'
@@ -162,7 +162,7 @@ export class SetProblem extends Problem {
 	}
 
 	rerandomize() {
-		this.request_params.problemSeed = random(10000, 99999);
+		this.renderer_params.problemSeed = random(10000, 99999);
 	}
 
 	clone(): SetProblem {
@@ -183,8 +183,8 @@ export class LibraryProblem extends Problem {
 		super(params);
 		this.problem_type = 'LIBRARY';
 		// default seed value for viewing library problems
-		this.request_params.problemSeed = DEFAULT_LIBRARY_SEED;
-		this.request_params.permission_level = 10;
+		this.renderer_params.problemSeed = DEFAULT_LIBRARY_SEED;
+		this.renderer_params.permission_level = 10;
 
 		this._param_fields = {
 			library_id: {
@@ -197,7 +197,7 @@ export class LibraryProblem extends Problem {
 		// they haven't been assigned, so no problem_id or problem_number
 		// we still need unique problem prefixes, so use library_id as problem_number
 		// this.problem_number = (this.problem_params as LibraryParams).id;
-		this.request_params.answerPrefix = `QUESTION_${this.problem_number || 0}`;
+		this.renderer_params.answerPrefix = `QUESTION_${this.problem_number || 0}`;
 	}
 
 	isValid() {
@@ -205,10 +205,7 @@ export class LibraryProblem extends Problem {
 	}
 
 	rerandomize() {
-		// logger.debug('[LibraryProblem/rerandomize] changing seed ' +
-		// `(${this.request_params.problemSeed || 0}) on problem ${this.path()}`);
-		this.request_params.problemSeed = random(10000, 99999);
-		// logger.debug(`[LibraryProblem/rerandomize] new seed is ${this.request_params.problemSeed}.`);
+		this.renderer_params.problemSeed = random(10000, 99999);
 	}
 
 	clone(): LibraryProblem {

@@ -24,7 +24,7 @@
 import { useRouter } from 'vue-router';
 import { defineComponent, ref } from 'vue';
 import { useStore } from 'src/store';
-import { checkPassword } from 'src/store/api';
+import { checkPassword } from 'src/api-requests/session';
 
 export default defineComponent({
 	name: 'username',

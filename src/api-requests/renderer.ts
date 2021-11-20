@@ -3,7 +3,7 @@
 import axios from 'axios';
 import { logger } from 'boot/logger';
 import type { HTML, RendererResponse } from 'src/typings/renderer';
-import type { Dictionary, generic } from 'src/store/models';
+import type { generic } from 'src/store/models';
 
 export interface RendererParams {
 	problemSeed?: number;
