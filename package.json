@@ -34,7 +34,9 @@
 	"devDependencies": {
 		"@babel/eslint-parser": "^7.13.14",
 		"@quasar/app": "^3.2.1",
+		"@types/bootstrap": "^5.1.6",
 		"@types/jest": "^27.0.2",
+		"@types/jquery": "^3.5.8",
 		"@types/lodash-es": "^4.17.4",
 		"@types/node": "^10.17.15",
 		"@types/papaparse": "^5.2.6",
