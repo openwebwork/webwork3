@@ -142,21 +142,21 @@ export interface ModelField  {
 export const parseParams = (_params: Dictionary<generic | Dictionary<generic>>,  _fields: ModelField) => {
 	const output_params: Dictionary<generic> = {};
 	Object.keys(_fields).forEach((key: string) => {
-		if (key in _params && _params[key] == null && _fields[key].default_value !== undefined) {
+		if ((!(key in _params) || _params[key] == undefined) && _fields[key].default_value !== undefined) {
 			_params[key] = _fields[key].default_value as generic | Dictionary<generic>;
 		}
 		// parse each field
-		if (key in _params && _params[key] != null && _fields[key].field_type === 'boolean') {
+		if (key in _params && _params[key] != undefined && _fields[key].field_type === 'boolean') {
 			output_params[key as keyof Dictionary<generic>] = parseBoolean(_params[key] as string | number | boolean);
-		} else if (key in _params && _params[key] != null && _fields[key].field_type === 'string') {
+		} else if (key in _params && _params[key] != undefined && _fields[key].field_type === 'string') {
 			output_params[key as keyof Dictionary<generic>] = `${_params[key] as string}`;
-		} else if (key in _params && _params[key] != null && _fields[key].field_type === 'non_neg_int') {
+		} else if (key in _params && _params[key] != undefined && _fields[key].field_type === 'non_neg_int') {
 			output_params[key as keyof Dictionary<generic>] = parseNonNegInt(_params[key] as string | number);
-		} else if (key in _params && _params[key] != null && _fields[key].field_type === 'username') {
+		} else if (key in _params && _params[key] != undefined && _fields[key].field_type === 'username') {
 			output_params[key as keyof Dictionary<generic>] = parseUsername(_params[key] as string);
-		} else if (key in _params && _params[key] != null && _fields[key].field_type === 'email') {
+		} else if (key in _params && _params[key] != undefined && _fields[key].field_type === 'email') {
 			output_params[key as keyof Dictionary<generic>] = parseEmail(_params[key] as string);
-		} else if (key in _params && _params[key] != null && _fields[key].field_type === 'role') {
+		} else if (key in _params && _params[key] != undefined && _fields[key].field_type === 'role') {
 			output_params[key as keyof Dictionary<generic>] = parseUserRole(_params[key] as string);
 		}
 	});
