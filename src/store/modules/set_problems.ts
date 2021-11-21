@@ -1,7 +1,6 @@
 import { api } from 'boot/axios';
 import { Commit } from 'vuex';
 // import { StateInterface } from '../index';
-// import { isEqual } from 'lodash-es';
 
 import { Problem, ParseableProblem, parseProblem } from 'src/store/models/problems';
 
@@ -35,7 +34,7 @@ export default {
 		// 	// shouldn't we be throwing an error if set_id is null or 0?
 		// 	const response = await api.put(`courses/${course_id}/sets/${_set.set_id ?? 0}`, _set);
 		// 	const set = response.data as SetProblem;
-		// 	if (isEqual(set, _set)) {
+		// 	if (JSON.stringify(set) === JSON.stringify(_set))) {
 		// 		commit('UPDATE_PROBLEM_SET', _set);
 		// 	} else {
 		// 		logger.error(`Problem set #${_set.set_id ?? 0} failed to update properly.`);

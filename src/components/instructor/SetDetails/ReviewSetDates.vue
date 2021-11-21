@@ -23,7 +23,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import type { PropType } from 'vue';
-import { checkReviewSetDates } from 'src/common';
+import { checkReviewSetDates } from 'src/common/views';
 import { ReviewSetDates } from 'src/store/models/problem_sets';
 import DateTimeInput from 'components/common/DateTimeInput.vue';
 

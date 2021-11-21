@@ -66,13 +66,13 @@ import { defineComponent, computed, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useStore } from 'src/store';
 import { useRoute } from 'vue-router';
-import { assign, clone, pick } from 'lodash-es';
+import { pick } from 'src/common/utils';
 
 import { logger } from 'boot/logger';
 import { HomeworkSetDates, QuizDates, ReviewSetDates,
 	MergedUserSet, HomeworkSet, ProblemSet, UserSet } from 'src/store/models/problem_sets';
 import { parseNonNegInt, Dictionary } from 'src/store/models';
-import { formatDate } from 'src/common';
+import { formatDate } from 'src/common/views';
 import HomeworkDatesView from './HomeworkDates.vue';
 import ReviewSetDatesView from './ReviewSetDates.vue';
 import QuizDatesView from './QuizDates.vue';
@@ -153,7 +153,7 @@ export default defineComponent({
 							field: row => row.set_dates ? (row.set_dates as ReviewSetDates).closed : 0 },
 					);
 				}
-				date_edit.value = clone(problem_set.value.set_dates);
+				date_edit.value = { ...problem_set.value.set_dates };
 			}
 		};
 
@@ -177,7 +177,7 @@ export default defineComponent({
 					const user_set = store.state.problem_sets.merged_user_sets
 						.find(_user_set => _user_set.course_user_id === _user.course_user_id);
 					return user_set && user_set.toObject ?
-						assign({}, _user.toObject(), user_set?.toObject()) :
+						Object.assign({}, _user.toObject(), user_set?.toObject()) :
 						_user.toObject();
 				})
 			),
@@ -208,7 +208,7 @@ export default defineComponent({
 			},
 			openOverrides: (course_user_id: number) => {
 				updateMergedUserSet(course_user_id);
-				date_edit.value = clone(merged_user_set.value.set_dates);
+				date_edit.value = { ...merged_user_set.value.set_dates };
 				edit_dialog.value = true;
 			},
 			assignToAllUsers: async () => {

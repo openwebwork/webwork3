@@ -3,7 +3,7 @@
 
 import { RendererParams } from 'src/api-requests/renderer';
 import { Dictionary, Model, generic, ParseableModel, ModelField, parseParams } from 'src/store/models/index';
-import { random } from 'lodash';
+import { random } from 'src/common/utils';
 
 export enum ProblemType {
 	SET = 'SET',

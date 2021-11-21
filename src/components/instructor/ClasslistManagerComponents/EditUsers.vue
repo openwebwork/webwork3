@@ -67,8 +67,7 @@ export default defineComponent({
 		const updateUsers = async () => {
 			const promises: Array<Promise<void>> = [];
 			merged_users.value.forEach(_user => {
-				const u = pick(_user, CourseUser.ALL_FIELDS);
-				promises.push(store.dispatch('users/updateCourseUser', u));
+				promises.push(store.dispatch('users/updateCourseUser', _user));
 				logger.info(`[EditUsers/updateUsers]: user ${_user.username ?? ''} updated.`);
 				void store.dispatch('users/updateMergedUser', _user);
 			});

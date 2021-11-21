@@ -27,3 +27,9 @@ export const pickBy = <T>(object: { [key: string]: T }, check: (value: T) => boo
 	}
 	return obj;
 };
+
+export const random = (max: number, min: number) => {
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min) + min);
+};

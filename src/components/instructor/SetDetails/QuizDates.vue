@@ -29,7 +29,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import type { PropType } from 'vue';
-import { checkQuizDates } from 'src/common';
+import { checkQuizDates } from 'src/common/views';
 import { QuizDates } from 'src/store/models/problem_sets';
 import DateTimeInput from 'src/components/common/DateTimeInput.vue';
 
