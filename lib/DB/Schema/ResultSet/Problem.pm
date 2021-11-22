@@ -1,9 +1,11 @@
 package DB::Schema::ResultSet::Problem;
+
 use strict;
 use warnings;
-use base 'DBIx::Class::ResultSet';
+use feature 'signatures';
+no warnings qw(experimental::signatures);
 
-# use List::Util qw/first/;
+use base 'DBIx::Class::ResultSet';
 
 use DB::Utils qw/getCourseInfo getSetInfo getProblemInfo updateAllFields/;
 
@@ -28,8 +30,7 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 
 =cut
 
-sub getGlobalProblems {
-	my ($self, $as_result_set) = @_;
+sub getGlobalProblems ($self, $as_result_set = 0) {
 	my @problems = $self->search(
 		{},
 		{
@@ -43,11 +44,7 @@ sub getGlobalProblems {
 	} @problems;
 }
 
-###
-#
 # CRUD for problems in a course
-#
-###
 
 =head1 getProblems
 
@@ -76,8 +73,7 @@ An arrayref of the problems.
 
 =cut
 
-sub getProblems {
-	my ($self, $course_info, $as_result_set) = @_;
+sub getProblems ($self, $course_info, $as_result_set = 0) {
 	my $course_rs = $self->result_source->schema->resultset("Course");
 	my $course    = $course_rs->getCourse($course_info, 1);
 
@@ -90,9 +86,7 @@ sub getProblems {
 	} @problems;
 }
 
-sub getSetProblems {
-	my ($self, $course_set_info, $as_result_set) = @_;
-
+sub getSetProblems ($self, $course_set_info, $as_result_set = 0) {
 	my $course_rs      = $self->result_source->schema->resultset("Course");
 	my $problem_set_rs = $self->result_source->schema->resultset("ProblemSet");
 
@@ -125,8 +119,7 @@ A hashref containing
 
 =cut
 
-sub getSetProblem {
-	my ($self, $course_set_problem_info, $as_result_set) = @_;
+sub getSetProblem ($self, $course_set_problem_info, $as_result_set = 0) {
 	my $course_set_info = { %{ getCourseInfo($course_set_problem_info) }, %{ getSetInfo($course_set_problem_info) } };
 	my $problem_set_rs  = $self->result_source->schema->resultset("ProblemSet");
 	my $problem_set     = $problem_set_rs->getProblemSet($course_set_info, 1);
@@ -154,16 +147,12 @@ Add a single problem to an existing problem set within a course
 
 =cut
 
-sub addSetProblem {
-	my ($self, $course_set_info, $new_problem_params, $as_result_set) = @_;
+sub addSetProblem ($self, $course_set_info, $new_problem_params = {}, $as_result_set = 0) {
 	my $problem_set = $self->result_source->schema->resultset("ProblemSet")->getProblemSet($course_set_info, 1);
-	# set the problem number to one more than the set's largest
+	# Set the problem number to one more than the set's largest.
 	$new_problem_params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0);
 
-	my $params = $new_problem_params->{problem_params} || {};
-	$params->{weight} = 1 unless defined($params->{weight});
-
-	$new_problem_params->{problem_params} = $params;
+	$new_problem_params->{problem_params}{weight} = 1 unless defined($new_problem_params->{problem_params}{weight});
 
 	my $problem_to_add = $self->new($new_problem_params);
 	$problem_to_add->validParams(undef, 'problem_params');
@@ -188,12 +177,11 @@ update a single problem in a problem set within a course
 
 =cut
 
-sub updateSetProblem {
-	my ($self, $course_set_problem_info, $new_problem_params, $as_result_set) = @_;
+sub updateSetProblem ($self, $course_set_problem_info, $new_problem_params = {}, $as_result_set = 0) {
 	my $problem = $self->getSetProblem($course_set_problem_info, 1);
 	my $params  = updateAllFields({ $problem->get_inflated_columns }, $new_problem_params);
 
-	## check that the new params are valid:
+	# Check that the new params are valid.
 	my $updated_problem = $self->new($params);
 	$updated_problem->validParams(undef, 'problem_params');
 
@@ -217,8 +205,7 @@ delete a single problem to an existing problem set within a course
 
 =cut
 
-sub deleteSetProblem {
-	my ($self, $course_set_problem_info, $problem_params, $as_result_set) = @_;
+sub deleteSetProblem ($self, $course_set_problem_info, $problem_parms = {}, $as_result_set = 0) {
 	my $set_problem = $self->getSetProblem($course_set_problem_info, 1);
 	my $problem_set = $self->result_source->schema->resultset("ProblemSet")
 		->getProblemSet({ course_id => $set_problem->problem_set->course_id, set_id => $set_problem->set_id }, 1);
@@ -229,7 +216,6 @@ sub deleteSetProblem {
 
 	return $deleted_problem if $as_result_set;
 	return { $deleted_problem->get_inflated_columns };
-
 }
 
 =head2 deleteSetProblem

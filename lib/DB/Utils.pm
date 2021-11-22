@@ -1,6 +1,9 @@
 package DB::Utils;
+
 use warnings;
 use strict;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
 
 require Exporter;
 use base qw(Exporter);
@@ -14,37 +17,36 @@ use Scalar::Util qw/reftype/;
 
 use Exception::Class ('DB::Exception::ParametersNeeded');
 
-sub getCourseInfo {
-	return _get_info(shift, qw/course_id course_name/);
+sub getCourseInfo ($in) {
+	return _get_info($in, qw/course_id course_name/);
 }
 
-sub getUserInfo {
-	return _get_info(shift, qw/user_id username email/);
+sub getUserInfo ($in) {
+	return _get_info($in, qw/user_id username email/);
 }
 
-sub getSetInfo {
-	return _get_info(shift, qw/set_id set_name/);
+sub getSetInfo ($in) {
+	return _get_info($in, qw/set_id set_name/);
 }
 
-sub getPoolInfo {
-	return _get_info(shift, qw/problem_pool_id pool_name/);
+sub getPoolInfo ($in) {
+	return _get_info($in, qw/problem_pool_id pool_name/);
 }
 
-sub getProblemInfo {
-	return _get_info(shift, qw/problem_number problem_id/);
+sub getProblemInfo ($in) {
+	return _get_info($in, qw/problem_number problem_id/);
 }
 
-sub getPoolProblemInfo {
-	return _get_info(shift, qw/library_id pool_problem_id/);
+sub getPoolProblemInfo ($in) {
+	return _get_info($in, qw/library_id pool_problem_id/);
 }
 
-# This is a generic internal subroutine to check that the info passed in contains certain fields
+# This is a generic internal subroutine to check that the info passed in contains certain fields.
 
 # $input_info is a hashref containing various search information.
 # @fields is an array of the valid fields to be parsed.
 
-sub _get_info {
-	my ($input_info, @fields) = @_;
+sub _get_info ($input_info, @fields) {
 	my $output_info = {};
 	for my $key (@fields) {
 		$output_info->{$key} = $input_info->{$key} if defined($input_info->{$key});
@@ -65,8 +67,7 @@ This returns the hashref with both the original and any replacements.
 
 =cut
 
-sub updateAllFields {
-	my ($current_fields, $updated_fields) = @_;
+sub updateAllFields ($current_fields, $updated_fields) {
 	my $fields_to_return = clone($current_fields);
 	for my $key (keys %$updated_fields) {
 		if (defined(reftype($updated_fields->{$key})) && reftype($updated_fields->{$key}) eq "HASH") {
@@ -86,8 +87,7 @@ off the server.
 
 =cut
 
-sub removeLoginParams {
-	my $params = shift;
+sub removeLoginParams ($params) {
 	delete $params->{login_params};
 	return $params;
 }

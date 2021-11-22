@@ -1,6 +1,6 @@
 package DB::Schema;
 
-## This is the base package for the Schema for the WeBWorK.
+# This is the base package for the Schema for the WeBWorK.
 
 use warnings;
 use strict;

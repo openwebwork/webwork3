@@ -15,9 +15,7 @@ use WeBWorK3::Hooks;
 my $perm_table;
 
 # This method will run once at server start
-sub startup {
-	my $self = shift;
-
+sub startup ($self) {
 	# log to file if we're in production mode
 	if ($ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'production') {
 		my $path = path("$ENV{WW3_ROOT}/logs")->make_path->child('webwork3.log');

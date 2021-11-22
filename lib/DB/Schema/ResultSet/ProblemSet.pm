@@ -1,6 +1,10 @@
 package DB::Schema::ResultSet::ProblemSet;
+
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
+
 use base 'DBIx::Class::ResultSet';
 
 use Carp;
@@ -36,8 +40,7 @@ An array of courses as a C<DBIx::Class::ResultSet::ProblemSet> object.
 
 =cut
 
-sub getAllProblemSets {
-	my $self           = shift;
+sub getAllProblemSets ($self) {
 	my $problem_set_rs = $self->search(undef, { prefetch => 'courses' });
 
 	my @all_sets = ();
@@ -51,11 +54,7 @@ sub getAllProblemSets {
 	return @all_sets;
 }
 
-####
-#
-#  The following is CRUD for problem sets in a given course
-#
-####
+# The following is CRUD for problem sets in a given course
 
 =head2 getProblemSets
 
@@ -63,9 +62,8 @@ Get all problem sets for a given course
 
 =cut
 
-sub getProblemSets {
-	my ($self, $course_info, $set_params, $as_result_set) = @_;
-	# my $search_params = $self->getCourseInfo($course_info);    ## return a hash of course info
+sub getProblemSets ($self, $course_info, $set_params = {}, $as_result_set = 0) {
+	#my $search_params = $self->getCourseInfo($course_info);    # return a hash of course info
 	my $course_rs = $self->result_source->schema->resultset("Course");
 	my $course    = $course_rs->getCourse($course_info, 1);
 
@@ -74,8 +72,7 @@ sub getProblemSets {
 	return $as_result_set ? $problem_sets : @$sets;
 }
 
-sub getHWSets {
-	my ($self, $course_info, $as_result_set) = @_;
+sub getHWSets ($self, $course_info, $as_result_set = 0) {
 	my $search_params = getCourseInfo($course_info);    # pull out the course_info that is passed
 	$search_params->{'me.type'} = 1;                    # set the type to search for.
 
@@ -90,8 +87,7 @@ Get all quizzes for a given course
 
 =cut
 
-sub getQuizzes {
-	my ($self, $course_info, $as_result_set) = @_;
+sub getQuizzes ($self, $course_info, $as_result_set = 0) {
 	my $search_params = getCourseInfo($course_info);    # pull out the course_info that is passed
 	$search_params->{'me.type'} = 2;                    # set the type to search for.
 
@@ -106,8 +102,7 @@ Get all review sets for a given course
 
 =cut
 
-sub getReviewSets {
-	my ($self, $course_info, $as_result_set) = @_;
+sub getReviewSets ($self, $course_info, $as_result_set = 0) {
 	my $search_params = getCourseInfo($course_info);    # pull out the course_info that is passed
 	$search_params->{'me.type'} = 3;                    # set the type to search for.
 
@@ -122,8 +117,7 @@ Get one HW set for a given course
 
 =cut
 
-sub getProblemSet {
-	my ($self, $course_set_info, $as_result_set) = @_;
+sub getProblemSet ($self, $course_set_info, $as_result_set = 0) {
 	my $course_info = getCourseInfo($course_set_info);
 	my $course_rs   = $self->result_source->schema->resultset("Course");
 	my $course      = $course_rs->getCourse($course_info, 1);
@@ -138,7 +132,6 @@ sub getProblemSet {
 	my $set = { $problem_set->get_inflated_columns, set_type => $problem_set->set_type };
 	delete $set->{type};
 	return $set;
-
 }
 
 =head2 addProblemSet
@@ -147,8 +140,7 @@ Get one HW set for a given course
 
 =cut
 
-sub addProblemSet {
-	my ($self, $course_info, $params, $as_result_set) = @_;
+sub addProblemSet ($self, $course_info, $params = {}, $as_result_set = 0) {
 	my $course = $self->result_source->schema->resultset("Course")->getCourse(getCourseInfo($course_info), 1);
 
 	my $set_params = clone($params);
@@ -158,7 +150,7 @@ sub addProblemSet {
 	DB::Exception::ParametersNeeded->throw(message => "You must defined the field set_name in the 2nd argument")
 		unless defined($set_params->{set_name});
 
-	## check if the set exists.
+	# Check if the set exists.
 	my $search_params = { course_id => $course->course_id, set_name => $set_params->{set_name} };
 
 	my $problem_set = $self->find($search_params, prefetch => 'courses');
@@ -183,9 +175,7 @@ Update a problem set (HW, Quiz, etc.) for a given course
 
 =cut
 
-sub updateProblemSet {
-	my ($self, $course_set_info, $updated_params, $as_result_set) = @_;
-
+sub updateProblemSet ($self, $course_set_info, $updated_params = {}, $as_result_set = 0) {
 	my $problem_set = $self->getProblemSet($course_set_info, 1);
 	my $set_params  = { $problem_set->get_inflated_columns };
 
@@ -198,7 +188,7 @@ sub updateProblemSet {
 	my $params2 = updateAllFields($set_params, $params);
 	my $set_obj = $self->new($params2);
 
-	## check the parameters are valid.
+	# Check the parameters are valid.
 	$set_obj->validDates(undef, 'set_dates');
 	$set_obj->validParams(undef, 'set_params');
 	my $updated_set = $problem_set->update({ $set_obj->get_inflated_columns });
@@ -214,9 +204,7 @@ Delete a problem set (HW, Quiz, etc.) for a given course
 
 =cut
 
-sub deleteProblemSet {
-	my ($self, $course_set_info, $as_result_set) = @_;
-
+sub deleteProblemSet ($self, $course_set_info, $as_result_set = 0) {
 	my $set_to_delete = $self->getProblemSet($course_set_info, 1);
 	$set_to_delete->delete;
 
@@ -226,11 +214,7 @@ sub deleteProblemSet {
 	return $set;
 }
 
-###
-#
 # Versions of problem sets
-#
-##
 
 =head2 newSetVersion
 
@@ -258,16 +242,14 @@ Creates a new version of a problem set for a given course for either any entire 
 
 =cut
 
-sub newSetVersion {
-	my ($self, $info) = @_;
+sub newSetVersion ($self, $info) {
 	my $course_set_info = { %{ getCourseInfo($info) }, %{ getSetInfo($info) } };
 	my $problem_set     = $self->getProblemSet($course_set_info);
 
-	# if $info also contains user info
+	# If $info also contains user info
 	my @fields = keys %$info;
 	if (scalar(@fields) == 3) {
 		my $user_info = getUserInfo($info);
-
 	} else {
 		my $user_set_rs = $self->result_source->schema->resultset("UserSet");
 
@@ -276,23 +258,22 @@ sub newSetVersion {
 	return $problem_set;
 }
 
-## the following are private methods used in this module
+# The following are private methods used in this module.
 
-# return the Course resultset
+# Return the Course resultset
 
-sub _course_rs {
-	return shift->result_source->schema->resultset("Course");
+sub _course_rs ($self) {
+	return $self->result_source->schema->resultset("Course");
 }
 
-# return the Problem resultset
+# Return the Problem resultset
 
-sub _problem_rs {
-	return shift->result_source->schema->resultset("Problem");
+sub _problem_rs ($self) {
+	return $self->result_source->schema->resultset("Problem");
 }
 
-sub _formatSets {
-	my $problem_sets = shift;
-	my @sets         = ();
+sub _formatSets ($problem_sets) {
+	my @sets = ();
 	while (my $set = $problem_sets->next) {
 		my $expanded_set = { $set->get_inflated_columns, set_type => $set->set_type };
 		delete $expanded_set->{type};
