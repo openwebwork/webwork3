@@ -217,7 +217,7 @@ export default defineComponent({
 					return store.state.problem_sets.merged_user_sets
 						.findIndex(_user_set => _user_set.course_user_id === _merged_user.course_user_id) < 0;
 				});
-				for(const _user of users_to_assign) {
+				for (const _user of users_to_assign) {
 					const _user_set = new UserSet({
 						set_id: problem_set.value.set_id,
 						course_user_id: _user.course_user_id,
@@ -244,7 +244,7 @@ export default defineComponent({
 				const conf = confirm(`Do you want to unassign the following users: ${usernames.join(', ')}`
 					+ '? There is no undo for this.');
 				if (conf) {
-					for(const user of to_unassign.value) {
+					for (const user of to_unassign.value) {
 						try {
 							await store.dispatch('problem_sets/deleteUserSet',
 								new UserSet(pick(user, UserSet.ALL_FIELDS)));
@@ -263,7 +263,7 @@ export default defineComponent({
 				}
 			},
 			reduced_scoring: computed(() => {
-				if (problem_set.value.set_type === 'HW'){
+				if (problem_set.value.set_type === 'HW') {
 					const hw_set = problem_set.value as HomeworkSet;
 					return hw_set.set_params.enable_reduced_scoring;
 				} else {
@@ -276,7 +276,7 @@ export default defineComponent({
 		// fetch the user sets for this set
 		const store = useStore();
 		const route = useRoute();
-		if(route.params.set_id) {
+		if (route.params.set_id) {
 			logger.debug('Loading UserSets');
 			await store.dispatch('problem_sets/fetchMergedUserSets', {
 				course_id: route.params.course_id,

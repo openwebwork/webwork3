@@ -56,7 +56,7 @@ export default defineComponent({
 	components: {
 		DateTimeInput
 	},
-	setup(props){
+	setup(props) {
 		const hw_dates = ref<HomeworkSetDates>(props.dates);
 		if (!hw_dates.value.reduced_scoring) {
 			hw_dates.value.reduced_scoring = hw_dates.value.due;

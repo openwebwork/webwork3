@@ -1,3 +1,5 @@
+/* eslint-env node */
+
 const { resolve } = require('path');
 
 const baseRules = {
@@ -20,6 +22,9 @@ const baseRules = {
 	'no-void': 'off',
 	'multiline-ternary': 'off',
 	'space-infix-ops': ['error'],
+	'keyword-spacing': ['error'],
+	'space-before-blocks': ['error', 'always'],
+	'arrow-spacing': ['error'],
 
 	// allow console and debugger during development only
 	'no-console': process.env.NODE_ENV === 'development' ? 'off' : 'error',
@@ -83,8 +88,7 @@ module.exports = {
 			// TypeScript
 			'@typescript-eslint/explicit-function-return-type': 'off',
 			'@typescript-eslint/explicit-module-boundary-types': 'off',
+			'@typescript-eslint/space-infix-ops': ['error'],
 		}
-
 	}],
-
-}
+};

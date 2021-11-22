@@ -41,10 +41,10 @@ export class Course extends Model(['visible'], ['course_id'], ['course_name', 'v
 	}
 
 	setDates(dates: Partial<CourseDates>) {
-		if (dates.start != null){
+		if (dates.start != null) {
 			this.course_dates.start = dates.start;
 		}
-		if (dates.end != null){
+		if (dates.end != null) {
 			this.course_dates.end = dates.end;
 		}
 	}

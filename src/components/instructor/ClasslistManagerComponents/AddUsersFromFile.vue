@@ -129,7 +129,7 @@ export default defineComponent({
 		const column_headers = ref<Dictionary<string>>({});
 		const user_param_map = ref<Dictionary<string>>({}); // provides a map from column number to field name
 		const use_single_role = ref<boolean>(false);
-		const common_role = ref<string|null>(null);
+		const common_role = ref<string | null>(null);
 		const loading = ref<boolean>(false); // used to indicate parsing is occurring
 
 		const first_row_header = ref<boolean>(false);
@@ -168,13 +168,13 @@ export default defineComponent({
 			// this is an object of the fields selected from the table
 			const fields = pick(fromPairs(user_fields.map((obj) => [obj.label, obj.field])), values(def_cols));
 			// mapping of column number to user field
-			user_param_map.value =  invert(mapValues(def_cols, (obj)=>fields[obj]));
+			user_param_map.value =  invert(mapValues(def_cols, (obj) => fields[obj]));
 		},
 		{ deep: true });
 
 		watch([first_row_header], () => {
 			selected.value = [];
-			if(first_row_header.value) {
+			if (first_row_header.value) {
 				const first_row = merged_users.value.shift();
 				if (first_row) {
 					header_row.value = first_row;
@@ -201,13 +201,13 @@ export default defineComponent({
 				});
 
 			selected.value.forEach((params: UserFromFile) => {
-				let parse_error: ParseError|null = null;
+				let parse_error: ParseError | null = null;
 				const row = parseInt(`${params?._row || -1}`);
 
 				try {
 					const merged_user = pick(mapValues(user_param_map.value, (obj) => params[obj]),
 						MergedUser.ALL_FIELDS) as unknown as ParseableMergedUser;
-					if(use_single_role.value && common_role.value) {
+					if (use_single_role.value && common_role.value) {
 						merged_user.role = common_role.value;
 					}
 
@@ -248,7 +248,7 @@ export default defineComponent({
 					}
 				}
 
-				if(parse_error) {
+				if (parse_error) {
 					const row_index = merged_users.value.findIndex((u: UserFromFile) => u._row === row);
 					if (row_index >= 0) {
 						const user = clone(merged_users.value[row_index]);

@@ -13,7 +13,7 @@ export enum CourseSettingOption {
 export class CourseSetting {
 	var: string;
 	value: string | number | boolean | Array<string>;
-	constructor(params: { var?: string; value?: string|number|boolean|Array<string>}){
+	constructor(params: { var?: string; value?: string | number | boolean | Array<string>}) {
 		this.var = params.var ?? '';
 		this.value = params.value ?? '';
 	}
