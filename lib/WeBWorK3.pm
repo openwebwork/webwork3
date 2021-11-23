@@ -5,8 +5,8 @@ use Mojo::File qw(curfile path);
 use YAML::XS qw/LoadFile/;
 
 BEGIN {
-	## no critic (RequireLocalizedPunctuationVars)
-	$ENV{WW3_ROOT} = curfile->dirname->dirname->to_string;
+	use Env qw(WW3_ROOT);
+	$WW3_ROOT = curfile->dirname->dirname->to_string;
 }
 
 use DB::Schema;

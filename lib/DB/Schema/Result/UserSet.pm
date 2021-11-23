@@ -149,32 +149,20 @@ my $set_type = {
 	4 => 'DB::Schema::Result::ProblemSet::ReviewSet'
 };
 
-sub valid_params ($type) {
-	## no critic
-	my $params = eval $set_type->{$type} . '::valid_params';
-	## use critic
-	return $params;
+sub valid_params ($, $type) {
+	return $set_type->{$type}->valid_params;
 }
 
-sub required_params ($type) {
-	## no critic
-	my $params = eval $set_type->{$type} . '::required_params';
-	## use critic
-	return $params;
+sub required_params ($, $type) {
+	return $set_type->{$type}->required_params;
 }
 
-sub valid_dates ($type) {
-	## no critic
-	my $params = eval $set_type->{$type} . '::valid_dates';
-	## use critic
-	return $params;
+sub valid_dates ($, $type) {
+	return $set_type->{$type}->valid_dates;
 }
 
-sub required_dates ($type) {
-	## no critic
-	my $params = eval $set_type->{$type} . '::required_dates';
-	## use critic
-	return $params;
+sub required_dates ($, $type) {
+	return $set_type->{$type}->required_dates;
 }
 
 1;

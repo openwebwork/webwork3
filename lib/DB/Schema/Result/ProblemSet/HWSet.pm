@@ -23,7 +23,7 @@ subroutine that returns the array for the valid dates: C<['open', 'reduced_scori
 
 =cut
 
-sub valid_dates () {
+sub valid_dates ($=) {
 	return [ 'open', 'reduced_scoring', 'due', 'answer' ];
 }
 
@@ -33,7 +33,7 @@ subroutine that returns the array for the required dates: C<['open', 'due' ,'ans
 
 =cut
 
-sub required_dates () {
+sub required_dates ($=) {
 	return [ 'open', 'due', 'answer' ];
 }
 
@@ -77,7 +77,7 @@ This is a description of the homework set.
 
 =cut
 
-sub valid_params () {
+sub valid_params ($=) {
 	return {
 		enable_reduced_scoring => q{[01]},
 		hide_hint              => q{[01]},
@@ -93,7 +93,7 @@ No parameters are required for the homework set.
 
 =cut
 
-sub required_params () {
+sub required_params ($=) {
 	return {};
 }
 

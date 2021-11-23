@@ -3,19 +3,17 @@
 use strict;
 use warnings;
 
-use Data::Dump qw/dd/;
-
 use Mojo::File qw(curfile);
 
 use lib curfile->dirname->sibling('lib')->to_string;
 use Mojolicious::Commands;
 
-# check if the config file has been created
+# Check if the config file has been created.
 my $webwork_dir = curfile->dirname->dirname("..");
 
 warn qq!The file $webwork_dir/conf/webwork3.yml does not exist.
 	Perhaps you haven't copied webwork3.yml.dist to this file.!
 	unless -e "$webwork_dir/conf/webwork3.yml";
 
-# Start command line interface for application
+# Start command line interface for application.
 Mojolicious::Commands->start_app('WeBWorK3');

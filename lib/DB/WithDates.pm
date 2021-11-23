@@ -15,14 +15,12 @@ our $valid_dates;       # Array of allowed/valid dates
 our $required_dates;    # Array of required dates
 
 sub validDates ($self, $type, $field_name) {
-	## no critic 'ProhibitStringyEval'
-	## no critic 'RequireCheckingReturnValueOfEval'
 	if (defined($type)) {
-		eval '$valid_dates = ' . ref($self) . "::valid_dates($type)";
-		eval '$required_dates = ' . ref($self) . "::required_dates($type)";
+		$valid_dates    = ref($self)->valid_dates($type);
+		$required_dates = ref($self)->required_dates($type);
 	} else {
-		eval '$valid_dates = ' . ref($self) . '::valid_dates';
-		eval '$required_dates = ' . ref($self) . '::required_dates';
+		$valid_dates    = ref($self)->valid_dates;
+		$required_dates = ref($self)->required_dates;
 	}
 
 	$self->validDateFields($field_name);

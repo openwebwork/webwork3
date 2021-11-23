@@ -16,14 +16,12 @@ use DB::Exception;
 use Exception::Class ('DB::Exception::UndefinedParameter', 'DB::Exception::InvalidParameter',);
 
 sub validParams ($self, $type, $field_name) {
-	## no critic 'ProhibitStringyEval'
-	## no critic 'RequireCheckingReturnValueOfEval'
 	if (defined($type)) {
-		eval '$valid_params = ' . ref($self) . "::valid_params($type)";
-		eval '$required_params = ' . ref($self) . "::required_params($type)";
+		$valid_params    = ref($self)->valid_params($type);
+		$required_params = ref($self)->required_params($type);
 	} else {
-		eval '$valid_params = ' . ref($self) . '::valid_params';
-		eval '$required_params = ' . ref($self) . '::required_params';
+		$valid_params    = ref($self)->valid_params;
+		$required_params = ref($self)->required_params;
 	}
 
 	$self->validParamFields($field_name);

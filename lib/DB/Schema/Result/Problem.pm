@@ -62,7 +62,7 @@ Note: a problem should have only one of a library_id, problem_path or problem_po
 
 =cut
 
-sub valid_params () {
+sub valid_params ($=) {
 	return {
 		weight          => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},    # positive integers or decimals
 		library_id      => q{\d+},
@@ -71,7 +71,7 @@ sub valid_params () {
 	};
 }
 
-sub required_params () {
+sub required_params ($=) {
 	return { '_ALL_' => [ 'weight', { '_ONE_OF_' => [ 'library_id', 'file_path', 'problem_pool_id' ] } ] };
 }
 
