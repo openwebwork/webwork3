@@ -80,6 +80,13 @@ for my $set (@review_sets) {
 }
 my @all_problem_sets = (@hw_sets, @quizzes, @review_sets);
 
+for my $set (@all_problem_sets) {
+	for my $prob (@{ $set->{problems} }) {
+		delete $prob->{set_name};
+		delete $prob->{course_name};
+	}
+}
+
 ## Test getting all problem sets
 
 my @problem_sets_from_db = $problem_set_rs->getAllProblemSets;
@@ -92,11 +99,12 @@ for my $set (@problem_sets_from_db) {
 	removeIDs($set);
 	delete $set->{visible};    # remove information about the course
 	delete $set->{course_dates};
+	for my $prob (@{ $set->{problems} }) {
+		removeIDs($prob);
+	}
 }
 
 is_deeply(\@all_problem_sets, \@problem_sets_from_db, "getProblemSets: get all sets");
-
-## test for all sets in one course
 
 # filter the precalculus sets:
 my @precalc_sets = filterBySetType(\@all_problem_sets, undef, "Precalculus");
@@ -108,6 +116,8 @@ for my $set (@$all_precalc_sets) {
 	delete $set->{course_name};
 }
 
+## test for all sets in one course
+
 my @all_precalc_sets = sort { $a->{set_name} cmp $b->{set_name} } @$all_precalc_sets;
 
 my @precalc_sets_from_db = $problem_set_rs->getProblemSets({ course_name => "Precalculus" });
@@ -115,6 +125,9 @@ my @precalc_sets_from_db = $problem_set_rs->getProblemSets({ course_name => "Pre
 # remove id tags:
 for my $set (@precalc_sets_from_db) {
 	removeIDs($set);
+	for my $prob (@{ $set->{problems} }) {
+		removeIDs($prob);
+	}
 }
 
 is_deeply(\@all_precalc_sets, \@precalc_sets_from_db, "getProblemSets: get sets for one course");
@@ -135,6 +148,9 @@ my @precalc_hw_from_db = $problem_set_rs->getHWSets({ course_name => "Precalculu
 # remove id tags:
 for my $set (@precalc_hw_from_db) {
 	removeIDs($set);
+	for my $prob (@{ $set->{problems} }) {
+		removeIDs($prob);
+	}
 }
 
 is_deeply(\@precalc_hw, \@precalc_hw_from_db, "getHWSets: get all homework for one course");
@@ -144,6 +160,9 @@ is_deeply(\@precalc_hw, \@precalc_hw_from_db, "getHWSets: get all homework for o
 my $set_one     = $precalc_hw[0];
 my $set_from_db = $problem_set_rs->getProblemSet({ course_name => "Precalculus", set_name => $set_one->{set_name} });
 removeIDs($set_from_db);
+for my $prob (@{ $set_from_db->{problems} }) {
+	removeIDs($prob);
+}
 is_deeply($set_one, $set_from_db, "getProblemSet: get one homework");
 
 ## get a problem set that doesn't exist.

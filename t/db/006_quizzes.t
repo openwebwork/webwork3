@@ -52,7 +52,6 @@ my @all_problem_sets;    # stores all problem_sets
 
 my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
-	$quiz->{type}     = 2;
 	$quiz->{set_type} = "QUIZ";
 	for my $date (keys %{ $quiz->{set_dates} }) {
 		my $dt = $strp->parse_datetime($quiz->{set_dates}->{$date});

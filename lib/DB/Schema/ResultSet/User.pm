@@ -524,6 +524,8 @@ An hashref of the added user.
 # 	return removeLoginParams( { $new_user->get_inflated_columns, %{$updated_user} } );
 # }
 
+## It doesn't look like this is used.
+
 sub _checkCourseUser {
 	my ($self, $params) = @_;
 	my @fields         = keys %$params;

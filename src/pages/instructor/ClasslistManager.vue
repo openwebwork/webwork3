@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<q-page>
 		<div class="q-pa-lg">
 			<q-table
 				:columns="columns"
@@ -50,7 +50,7 @@
 		<q-dialog full-width v-model="open_edit_dialog">
 			<edit-users :users_to_edit="selected" @close-dialog="open_edit_dialog = false"/>
 		</q-dialog>
-	</div>
+	</q-page>
 </template>
 
 <script lang="ts">
@@ -63,9 +63,9 @@ import { api } from 'boot/axios';
 import { MergedUser, CourseUser } from 'src/store/models/users';
 import { UserCourse } from 'src/store/models/courses';
 import { ResponseError } from 'src/store/models';
-import AddUsersManually from './ClasslistManagerComponents/AddUsersManually.vue';
-import AddUsersFromFile from './ClasslistManagerComponents/AddUsersFromFile.vue';
-import EditUsers from './ClasslistManagerComponents/EditUsers.vue';
+import AddUsersManually from 'src/components/instructor/ClasslistManagerComponents/AddUsersManually.vue';
+import AddUsersFromFile from 'src/components/instructor/ClasslistManagerComponents/AddUsersFromFile.vue';
+import EditUsers from 'src/components/instructor/ClasslistManagerComponents/EditUsers.vue';
 
 export default defineComponent({
 	name: 'ClasslistManager',

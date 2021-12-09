@@ -9,7 +9,6 @@ our @EXPORT_OK = qw/getCourseInfo getUserInfo getSetInfo updateAllFields
 
 use Carp;
 use Clone qw/clone/;
-use Data::Dump qw/dd/;
 use List::Util qw/first/;
 use Scalar::Util qw/reftype/;
 

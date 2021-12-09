@@ -13,18 +13,9 @@
 			<td class="header">Visible</td>
 			<td><q-toggle v-model="set.set_visible" /></td>
 		</tr>
-		<tr>
-			<td class="header">Open Date</td>
-			<td><date-time-input v-model="set.set_dates.open" /></td>
-		</tr>
-		<tr>
-			<td class="header">Due Date</td>
-			<td><date-time-input v-model="set.set_dates.due" /></td>
-		</tr>
-		<tr>
-			<td class="header">Answer Date</td>
-			<td><date-time-input v-model="set.set_dates.answer" /></td>
-		</tr>
+		<quiz-dates v-if="set"
+			:dates="set.set_dates"
+			/>
 		<tr>
 			<td class="header">Timed</td>
 			<td><q-toggle v-model="set.set_params.timed" /></td>
@@ -39,14 +30,14 @@
 <script lang="ts">
 import { defineComponent, ref, watch, toRefs } from 'vue';
 import { useQuasar } from 'quasar';
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, pick } from 'lodash-es';
 
-import DateTimeInput from 'components/common/DateTimeInput.vue';
+import QuizDates from './QuizDates.vue';
 import { Quiz } from 'src/store/models/problem_sets';
 import { useStore } from 'src/store';
 
 export default defineComponent({
-	components: { DateTimeInput },
+	components: { QuizDates },
 	name: 'Quiz',
 	props: {
 		set_id: Number
@@ -71,8 +62,10 @@ export default defineComponent({
 		// see the docs at https://v3.vuejs.org/guide/reactivity-computed-watchers.html#watching-reactive-objects
 		// for why we need to do a cloneDeep here
 		watch(() => cloneDeep(set.value), (new_set, old_set) => {
-			if (new_set.set_id == old_set.set_id) {
-				void store.dispatch('problem_sets/updateSet', new_set);
+			if (new_set.set_id === old_set.set_id) {
+				// cloning above in the watch statement changes that it is a Quiz
+				const _set = new Quiz(pick(new_set, Quiz.ALL_FIELDS));
+				void store.dispatch('problem_sets/updateSet', _set);
 				$q.notify({
 					message: `The problem set '${new_set.set_name ?? ''}' was successfully updated.`,
 					color: 'green'

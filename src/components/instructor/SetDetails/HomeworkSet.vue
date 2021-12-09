@@ -13,25 +13,17 @@
 			<td class="header">Visible</td>
 			<td><q-toggle v-model="set.set_visible" /></td>
 		</tr>
-			<tr>
+		<tr>
 			<td class="header">Enable Reduced Scoring</td>
 			<td><q-toggle v-model="set.set_params.enable_reduced_scoring" /></td>
 		</tr>
+		<homework-dates v-if="set"
+			:dates="set.set_dates"
+			:reduced_scoring="set.set_params.enable_reduced_scoring"
+			/>
 		<tr>
-			<td class="header">Open Date</td>
-			<td><date-time-input v-model="set.set_dates.open" :rules="checkDates"/></td>
-		</tr>
-		<tr v-if="set.set_params.enable_reduced_scoring">
-			<td class="header">Reduced Scoring Date</td>
-			<td><date-time-input v-model="set.set_dates.reduced_scoring" :rules="checkDates"/></td>
-		</tr>
-		<tr>
-			<td class="header">Due Date</td>
-			<td><date-time-input v-model="set.set_dates.due" :rules="checkDates"/></td>
-		</tr>
-		<tr>
-			<td class="header">Answer Date</td>
-			<td><date-time-input v-model="set.set_dates.answer" :rules="checkDates"/></td>
+			<td class="header">Other</td>
+			<td><q-toggle v-model="set.set_params.allow" /></td>
 		</tr>
 	</table>
 </template>
@@ -41,12 +33,14 @@ import { defineComponent, ref, watch, toRefs } from 'vue';
 import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
-import DateTimeInput from 'components/common/DateTimeInput.vue';
+import HomeworkDates from './HomeworkDates.vue';
 import { HomeworkSet } from 'src/store/models/problem_sets';
 import { useStore } from 'src/store';
 
 export default defineComponent({
-	components: { DateTimeInput },
+	components: {
+		HomeworkDates
+	},
 	name: 'HomeworkSet',
 	props: {
 		set_id: Number
@@ -61,7 +55,7 @@ export default defineComponent({
 		const set = ref(hw);
 
 		const updateSet = () => {
-			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id === set_id.value) ||
+			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id === set_id.value) ??
 				new HomeworkSet();
 			set.value = new HomeworkSet(s.toObject());
 		};
@@ -72,6 +66,7 @@ export default defineComponent({
 		// see the docs at https://v3.vuejs.org/guide/reactivity-computed-watchers.html#watching-reactive-objects
 		// for why we need to do a cloneDeep here
 		watch(() => cloneDeep(set.value), (new_set, old_set) => {
+			// don't update if the homework set changes.
 			if (new_set.set_id == old_set.set_id) {
 				void store.dispatch('problem_sets/updateSet', hw.value);
 				$q.notify({
@@ -90,16 +85,6 @@ export default defineComponent({
 				{ value: 'QUIZ', label: 'Quiz' },
 				{ value: 'HW', label: 'Homework set' }
 			],
-			checkDates: [
-				() => {
-					const d = set.value.set_dates;
-					const p = set.value.set_params;
-					return p.enable_reduced_scoring && d.reduced_scoring ?
-						(d.open <= d.reduced_scoring && d.reduced_scoring <= d.due  && d.due <= d.answer) :
-						(d.open <= d.due && d.due <= d.answer)
-						|| 'The dates must be in order';
-				}
-			]
 		};
 	}
 });

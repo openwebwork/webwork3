@@ -16,9 +16,10 @@ BEGIN {
 use lib "$main::ww3_dir/lib";
 
 use Text::CSV qw/csv/;
-use Data::Dumper;
 use Carp;
 use feature "say";
+
+use Clone qw/clone/;
 use DateTime::Format::Strptime;
 use YAML::XS qw/LoadFile/;
 
@@ -192,8 +193,10 @@ sub addProblems {
 			}
 		)->single;
 		croak "The course |$set->{course_name}| with set name |$set->{name}| is not defined" unless defined($set);
+		$prob->{problem_params} = clone($prob->{params});
 		delete $prob->{course_name};
 		delete $prob->{set_name};
+		delete $prob->{params};
 
 		$prob->{problem_number} = int($prob->{problem_number});
 

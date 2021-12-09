@@ -479,26 +479,25 @@ my $updated_user_set2 = $user_set_rs->updateUserSet(
 );
 
 removeIDs($updated_user_set2);
-
 $set3_from_csv->{set_params}->{hide_hint} = 1;
 
 is_deeply($updated_user_set2, $set3_from_csv, "updateUserSet: update the params");
 
 # try updating an invalid field
 
-throws_ok {
-	$user_set_rs->updateUserSet(
-		{
-			username    => "otto",
-			course_name => "Precalculus",
-			set_name    => "HW #2"
-		},
-		{
-			set_version => 2
-		}
-	);
-}
-"DB::Exception::InvalidParameter", "updateUserSet: try setting a parameter that is not allowed to be updated";
+my $updated_user_set3 = $user_set_rs->updateUserSet(
+	{
+		username    => "otto",
+		course_name => "Precalculus",
+		set_name    => "HW #2"
+	},
+	{
+		set_version => 2
+	}
+);
+$set3_from_csv->{set_version} = 2;
+removeIDs($updated_user_set3);
+is_deeply($set3_from_csv, $updated_user_set3, "updateUserSet: update the set version");
 
 # try updating an invalid field
 

@@ -37,6 +37,7 @@ test('Build a HomeworkSet', () => {
 			reduced_scoring: 1610323140
 		},
 		set_id:7,
+		set_version: 1,
 		set_name: 'HW #1',
 		set_params: {
 			enable_reduced_scoring: true

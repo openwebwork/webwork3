@@ -1,5 +1,5 @@
 <template>
-	<div class="q-pa-lg">
+	<q-page class="q-pa-lg">
 		<q-table
 			:columns="columns"
 			:rows="problem_sets"
@@ -41,7 +41,7 @@
 				</q-td>
 			</template>
 		</q-table>
-	</div>
+	</q-page>
 </template>
 
 <script lang="ts">

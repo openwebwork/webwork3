@@ -3,6 +3,7 @@
 import { Dictionary, parseNonNegInt, Model, ParseError, generic,
 	InvalidFieldsException, ParseableModel, ModelField, parseParams } from 'src/store/models/index';
 import { difference } from 'lodash';
+import { Problem } from './problems';
 
 // const problem_set_types = [/hw/i, /quiz/i, /review/i];
 
@@ -35,23 +36,31 @@ export interface ParseableProblemSet {
 	course_id?: string | number;
 	set_type?: string;
 	set_visible?: string | number | boolean;
+	set_version?: string | number;
 	set_params?: ProblemSetParams;
 	// set_params?: Dictionary<generic>;
 	set_dates?: ProblemSetDates;
+	problems?: Array<Problem>;
 }
 
 export class ProblemSet extends Model(
-	['set_visible'], ['set_id', 'course_id'], ['set_type', 'set_name'],
+	['set_visible'], ['set_id', 'course_id', 'set_version'], ['set_type', 'set_name'],
 	['set_params', 'set_dates'],
 	{
 		set_type: { field_type: 'string', default_value: 'UNKNOWN' },
 		set_id: { field_type: 'non_neg_int', default_value: 0 },
+		set_version: { field_type: 'non_neg_int', default_value: 1 },
 		set_name: { field_type: 'string' },
 		course_id: { field_type: 'non_neg_int', default_value: 0 },
 		set_visible: { field_type: 'boolean', default_value: false },
+		problems: { field_type: 'array', default_value: [] }
 	}) {
+
 	static REQUIRED_FIELDS = ['set_type'];
-	static OPTIONAL_FIELDS = ['set_id', 'set_name', 'course_id', 'set_visible'];
+	static OPTIONAL_FIELDS = ['set_id', 'set_name', 'course_id', 'set_visible', 'problems'];
+
+	static ALL_FIELDS = [...ProblemSet.REQUIRED_FIELDS, ...ProblemSet.OPTIONAL_FIELDS,
+		...['set_params', 'set_dates', 'problems']];
 
 	_date_fields: Array<string> = [];
 	_param_fields: ModelField = {};
@@ -74,12 +83,9 @@ export class ProblemSet extends Model(
 				`The dates(s) '${invalid_dates.join(', ')}' are not valid for ${this.constructor.name}.`);
 		}
 
-		/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-member-access,
-		  @typescript-eslint/no-explicit-any */
 		Object.keys(dates).forEach(key => {
-			(this.set_dates as any)[key] = parseNonNegInt((dates as any)[key]);
+			(this.set_dates as Dictionary<generic>)[key] = parseNonNegInt(dates[key] as string | number);
 		});
-		// eslint-enable
 	}
 
 	setParams(params: Dictionary<generic> = {}) {
@@ -257,12 +263,21 @@ export interface ReviewSetDates {
 }
 
 export class ReviewSet extends ProblemSet {
+	set_params: ReviewSetParams;
+	set_dates: ReviewSetDates;
+
 	constructor(params: ParseableProblemSet = {}){
 		params.set_type = 'REVIEW';
 		super(params as ParseableModel);
-		// parse the params
+		this._date_fields = ['open', 'closed'];
 
-		// parse the dates
+		this.set_dates = {
+			open: 0,
+			closed: 0
+		};
+		this.setDates(params.set_dates as Dictionary<generic>);
+		this.set_params = {};
+		this.setParams(params.set_params as Dictionary<generic>);
 	}
 }
 
@@ -276,4 +291,76 @@ export function parseProblemSet(set: ParseableProblemSet) {
 	} else {
 		throw `The problem set type '${set?.set_type || ''}' is not valid.'`;
 	}
+}
+
+export interface ParseableUserSet {
+	user_set_id?: number | string;
+	set_id?: number | string;
+	course_user_id?: number | string;
+	set_version?: number | string;
+	set_params?: Dictionary<generic>;
+	set_dates?: Dictionary<generic>;
+}
+
+export class UserSet extends Model(
+	[], ['user_set_id', 'set_id', 'course_user_id', 'set_version'], [],
+	['set_dates', 'set_params'], {
+		user_set_id: { field_type: 'non_neg_int' },
+		set_id: { field_type: 'non_neg_int' },
+		course_user_id: { field_type: 'non_neg_int' },
+		set_version: { field_type: 'non_neg_int' }
+	}) {
+
+	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_dates', 'set_params'];
+
+	constructor(params: ParseableUserSet = {}) {
+		super(params as ParseableModel);
+		this.set_dates = params.set_dates ?? {};
+		this.set_params = params.set_params ?? {};
+
+	}
+
+	isValid() { // check the dates are valid
+		const d = this.set_dates;
+		if (d && d.open && d.reduced_scoring && d.due && d.answer) {
+			return d.open <= d.reduced_scoring && d.reduced_scoring <= d.due && d.due <= d.answer;
+		} else if (d && d.open && d.due && d.answer) {
+			return d.open <= d.due && d.due <= d.answer;
+		} else if (d && d.open && d.closed) {
+			return d.open <= d.closed;
+		}
+		return false;
+	}
+}
+
+export type ParseableMergedUserSet = ParseableProblemSet & ParseableUserSet;
+
+// ['set_visible'], ['set_id', 'course_id'], ['set_type', 'set_name'],
+// ['set_params', 'set_dates']
+
+export class MergedUserSet extends Model(
+	['set_visible'], ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'course_id'],
+	['set_type', 'set_name', 'username'], ['set_dates', 'set_params'],
+	{
+		set_visible: { field_type: 'boolean', default_value: false },
+		user_set_id: { field_type: 'non_neg_int' },
+		set_id: { field_type: 'non_neg_int' },
+		course_user_id: { field_type: 'non_neg_int' },
+		course_id: { field_type: 'non_neg_int' },
+		set_version: { field_type: 'non_neg_int' },
+		set_type: { field_type: 'string' },
+		set_name: { field_type: 'string' },
+		username: { field_type: 'username' }
+	}
+	 ) {
+
+	set_params = {};
+	set_dates = {};
+
+	constructor(params: ParseableMergedUserSet = {}) {
+		super(params as ParseableModel);
+		this.set_dates = params.set_dates ?? {};
+		this.set_params = params.set_params ?? {};
+	}
+
 }

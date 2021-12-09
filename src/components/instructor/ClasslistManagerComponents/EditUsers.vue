@@ -42,6 +42,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
+import { useQuasar } from 'quasar';
 import { cloneDeep, clone, remove, pick } from 'lodash-es';
 
 import { MergedUser } from 'src/store/models/users';
@@ -56,6 +57,8 @@ export default defineComponent({
 	},
 	emits: ['closeDialog'],
 	setup(props, context) {
+		const $q = useQuasar();
+
 		const merged_users =
 			ref<Array<MergedUser>>(
 				props.users_to_edit
@@ -65,12 +68,28 @@ export default defineComponent({
 		const store = useStore();
 
 		const updateUsers = async () => {
-			logger.info('in updateUsers');
-			for await (const _user of merged_users.value) {
+
+			const promises: Array<Promise<void>> = [];
+			merged_users.value.forEach(_user => {
 				const u = pick(_user, CourseUser.ALL_FIELDS);
-				await store.dispatch('users/updateCourseUser', u);
+				promises.push(store.dispatch('users/updateCourseUser', u));
+				logger.info(`[EditUsers/updateUsers]: user ${_user.username ?? ''} updated.`);
 				void store.dispatch('users/updateMergedUser', _user);
-			}
+			});
+			await Promise.all(promises)
+				.then(() => {
+					const usernames = merged_users.value.map(_merged_user => _merged_user.username);
+					$q.notify({
+						message: `The users ${usernames.join(', ')} were updated`,
+						color: 'green'
+					});
+				})
+				.catch((reason: Error) => {
+					$q.notify({
+						message: reason.message,
+						color: 'red',
+					});
+				});
 			context.emit('closeDialog');
 		};
 

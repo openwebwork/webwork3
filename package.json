@@ -12,7 +12,7 @@
 		"build": "quasar build"
 	},
 	"dependencies": {
-		"@quasar/extras": "^1.11.2",
+		"@quasar/extras": "^1.11.5",
 		"axios": "^0.21.1",
 		"bootstrap": "^5.1.1",
 		"core-js": "^3.6.5",
@@ -21,17 +21,17 @@
 		"mathjax": "^3.2.0",
 		"node-polyfill-webpack-plugin": "^1.1.4",
 		"papaparse": "^5.3.1",
-		"quasar": "^2.1.2",
+		"quasar": "^2.3.1",
 		"setimmediate": "^1.0.5",
+		"vue-draggable-next": "^2.1.1",
 		"vue-i18n": "^9.1.7",
-		"vue-router": "4.0.11",
 		"vuex": "^4.0.1",
 		"vuex-persistedstate": "^4.0.0",
 		"winston": "^3.3.3"
 	},
 	"devDependencies": {
 		"@babel/eslint-parser": "^7.13.14",
-		"@quasar/app": "^3.1.0",
+		"@quasar/app": "^3.2.1",
 		"@types/bootstrap": "^5.1.6",
 		"@types/jest": "^27.0.2",
 		"@types/jquery": "^3.5.8",

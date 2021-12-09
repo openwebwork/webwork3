@@ -1,24 +1,49 @@
 <template>
 	<q-card v-if="problemText" class="bg-grey-3">
-		<q-card-section v-if="problem_type=='library'">
+		<q-card-section v-if="problem_type=='LIBRARY'">
 			<q-btn-group push>
 				<q-btn size="sm" push icon="add" @click="$emit('addProblem')" />
 				<q-btn size="sm" push icon="edit" />
-				<q-btn size="sm" push icon="shuffle" />
+				<q-btn size="sm" push icon="description" @click="show_path = !show_path"/>
+				<q-btn size="sm" push icon="shuffle" @click="freeProblem.rerandomize()"/>
 			</q-btn-group>
+		</q-card-section>
+
+		<q-card-section v-if="problem_type==='SET'">
+			<span class="div-h6 number-border">{{freeProblem.problem_number}}</span>
+			<q-btn-group push>
+				<q-btn size="sm" icon="height" class="move-handle" />
+				<q-btn size="sm" push icon="delete" @click="$emit('removeProblem',freeProblem)" />
+				<q-btn size="sm" push icon="edit" />
+				<q-btn size="sm" push icon="description" @click="show_path = !show_path"/>
+				<q-btn size="sm" push icon="shuffle" @click="freeProblem.rerandomize()"/>
+			</q-btn-group>
+		</q-card-section>
+
+		<q-card-section v-if="show_path">
+			file path: {{ freeProblem.path() }}
 		</q-card-section>
 
 		<q-card-section v-if="answerTemplate" class="q-pa-sm bg-white">
 			<div ref="answerTemplateDiv" v-html="answerTemplate" class="pg-answer-template-container" />
 		</q-card-section>
+
 		<q-separator v-if="answerTemplate" />
-		<q-card-section class="q-pa-sm">
+
+		<q-card-section v-if="problemText===''">
+			<div><q-spinner-ios color="primary" size="2em" /></div>
+		</q-card-section>
+		<q-card-section class="q-pa-sm" v-else>
 			<div ref="problemTextDiv" v-html="problemText" class="pg-problem-container" />
 		</q-card-section>
+
 		<q-separator v-if="submitButtons.length"/>
+
 		<q-card-actions class="q-pa-sm bg-white" v-if="submitButtons.length">
-			<q-btn v-for="button in submitButtons" :key="button.name" :name="button.name"
-				:id="`${problemPrefix}${button.name}`" type="submit" :form="`${problemPrefix}problemMainForm`"
+			<q-btn v-for="button in submitButtons"
+				:key="button.name" :name="button.name"
+				:id="`${freeProblem.answer_prefix}${button.name}`"
+				type="submit" :form="`${freeProblem.answer_prefix}problemMainForm`"
 				color="primary" @click="submitButton = button" no-caps>
 				{{ button.value }}
 			</q-btn>
@@ -27,9 +52,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
+import { defineComponent, ref, watch, onMounted, nextTick, PropType } from 'vue';
 import type { SubmitButton } from 'src/typings/renderer';
-import { fetchProblem } from 'src/APIRequests/renderer';
+import { fetchProblem, RendererParams } from 'src/api-requests/renderer';
 import { RENDER_URL } from 'src/constants';
 import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
@@ -37,6 +62,7 @@ import JQuery from 'jquery';
 import { logger } from 'boot/logger';
 
 import typeset from './mathjax-config';
+import { Problem } from 'src/store/models/problems';
 
 declare global {
 	interface Window {
@@ -54,39 +80,24 @@ window.bootstrap = bootstrap;
 export default defineComponent({
 	name: 'Problem',
 	props: {
-		sourceFilePath: {
-			type: String,
-			default: ''
+		problem: {
+			type: Object as PropType<Problem>,
+			default: new Problem()
 		},
-		problemPrefix: {
-			type: String,
-			default: ''
-		},
-		raw_source: {
-			type: String,
-			default: ''
-		},
-		type: {
-			type: String,
-			default: ''
-		},
-		problemType: {
-			type: String,
-			default: 'library'
-		}
 	},
-	emits: ['addProblem'],
+	emits: ['addProblem', 'storeRenderedProblem', 'removeProblem'],
 	setup(props) {
 		const problemText = ref('');
 		const answerTemplate = ref('');
-		const file = ref(props.sourceFilePath);
-		const problem_type = ref(props.problemType);
+		const freeProblem = ref<Problem>(props.problem.clone());
+		const problem_type = ref(props.problem.problem_type);
 		const problemTextDiv = ref<HTMLElement>();
 		const answerTemplateDiv = ref<HTMLElement>();
 		const submitButtons = ref<Array<SubmitButton>>([]);
 		const submitButton = ref<SubmitButton>();
 		const activePopovers: Array<InstanceType<typeof bootstrap.Popover>> = [];
 
+		logger.debug(`[Problem/setup] file: ${freeProblem.value.path()}, type: ${freeProblem.value.problem_type}`);
 		const loadResource = async (src: string, id?: string) => {
 			return new Promise<void>((resolve, reject) => {
 				let shouldAppend = false;
@@ -130,19 +141,24 @@ export default defineComponent({
 		};
 
 		const clearUI = () => {
+			logger.debug('[Problem/clearUI]');
 			problemText.value = '';
 			answerTemplate.value = '';
 			submitButtons.value = [];
 		};
 
-		const loadProblem = async (url: string, formData: FormData, overrides: { [key: string]: string }) => {
+		watch(()=>props.problem, ()=> {
+			freeProblem.value = props.problem.clone();
+		}, { deep: true });
+
+		const loadProblem = async (url: string, formData: FormData, overrides: RendererParams) => {
 			// Make sure that any popovers left open from a previous rendering are removed.
 			for (const popover of activePopovers) {
 				popover.dispose();
 			}
 			activePopovers.length = 0;
 
-			if (!file.value) {
+			if (!freeProblem.value.path()) {
 				clearUI();
 				return;
 			}
@@ -155,7 +171,7 @@ export default defineComponent({
 				return;
 			}
 
-			await Promise.all(css.map(
+			await Promise.all((css).map(
 				async (cssSource) => {
 					await loadResource(cssSource).
 						catch(() => logger.log('error', `Could not load ${cssSource}`));
@@ -189,6 +205,7 @@ export default defineComponent({
 					Array.from(origScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
 					newScript.appendChild(document.createTextNode(origScript.innerHTML));
 					origScript.parentNode?.replaceChild(newScript, origScript);
+
 				});
 			}
 
@@ -204,6 +221,7 @@ export default defineComponent({
 			window.dispatchEvent(new Event('PGContentLoaded'));
 
 			insertNativeListeners();
+			submitButton.value = undefined; // make sure to reset the submit button -- necessary?
 		};
 
 		const problemForm = ref<HTMLFormElement>();
@@ -212,11 +230,11 @@ export default defineComponent({
 		const insertNativeListeners = () => {
 			problemForm.value = problemTextDiv.value?.querySelector('form[name=problemMainForm]') as HTMLFormElement;
 			if (!problemForm.value) {
-				logger.log('error', 'NO PROBLEM FORM FOUND');
+				logger.error('NO PROBLEM FORM FOUND');
 				return;
 			}
 
-			problemForm.value.id = `${props.problemPrefix}problemMainForm`;
+			problemForm.value.id = `${freeProblem.value.renderer_params.answerPrefix || ''}problemMainForm`;
 
 			// Add a click handler to any submit buttons in the problem form.
 			// Some Geogebra problems add one of these for example.
@@ -230,37 +248,20 @@ export default defineComponent({
 			problemForm.value.addEventListener('submit', (e) => {
 				e.preventDefault();
 				if (!submitButton.value) {
-					logger.log('error', 'No button was pressed...');
+					logger.error('No button was pressed...');
 					return;
 				}
 				void loadProblem(problemForm.value?.action ?? RENDER_URL, new FormData(problemForm.value), {
-					[submitButton.value.name]: submitButton.value.value,
-					// Again, we should not be overriding these on the frontend
-					problemSeed: '12345',
-					outputFormat: 'ww3',
-					showPreviewButton: '1',
-					showCheckAnswersButton: '1',
-					showCorrectAnswersButton: '1',
-					answerPrefix: props.problemPrefix
-				});
+					[submitButton.value.name]: submitButton.value.value, ...freeProblem.value.requestParams() });
 			});
 		};
 
 		const initialLoad = () => {
-			file.value = props.sourceFilePath;
-			void loadProblem(RENDER_URL, new FormData(), {
-				// We should not be overriding these on the frontend.
-				problemSeed: '12345',
-				sourceFilePath: file.value,
-				outputFormat: 'ww3',
-				showPreviewButton: '1',
-				showCheckAnswersButton: '1',
-				showCorrectAnswersButton: '1',
-				answerPrefix: props.problemPrefix
-			});
+			logger.debug('[Problem/initialLoad] I have been called.');
+			void loadProblem(RENDER_URL, new FormData(), freeProblem.value.requestParams());
 		};
 
-		watch(() => props.sourceFilePath, initialLoad);
+		watch(freeProblem, initialLoad, { deep: true });
 
 		onMounted(async () => {
 			await Promise.all([
@@ -291,7 +292,11 @@ export default defineComponent({
 
 			await nextTick();
 
-			if (props.sourceFilePath) initialLoad();
+			// aren't we already watching for this??
+			if (freeProblem.value.path()) {
+				logger.debug('[Problem/onMounted] calling initialLoad...');
+				initialLoad();
+			};
 		});
 
 		return {
@@ -301,7 +306,9 @@ export default defineComponent({
 			answerTemplate,
 			answerTemplateDiv,
 			submitButtons,
-			submitButton
+			submitButton,
+			freeProblem,
+			show_path: ref(false)
 		};
 	}
 });
@@ -313,4 +320,9 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @use "src/css/pg.scss";
+
+.number-border {
+	border: 1px black solid;
+	padding: 3px;
+}
 </style>

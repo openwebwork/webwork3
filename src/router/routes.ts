@@ -50,7 +50,7 @@ const routes: RouteRecordRaw[] = [
 				component: () =>
 					import(
 						/* webpackChunkName: "Instructor" */
-						'components/instructor/Instructor.vue'
+						'pages/instructor/Instructor.vue'
 					),
 				name: 'instructor',
 				props: true,
@@ -62,7 +62,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "Settings" */
-								'components/instructor/Settings.vue'
+								'pages/instructor/Settings.vue'
 							)
 					},
 					{
@@ -71,7 +71,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "Calendar" */
-								'components/instructor/Calendar.vue'
+								'pages/instructor/Calendar.vue'
 							)
 					},
 					{
@@ -89,7 +89,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "ClasslistManager" */
-								'components/instructor/ClasslistManager.vue'
+								'pages/instructor/ClasslistManager.vue'
 							)
 					},
 					{
@@ -98,7 +98,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "SetDetailContainer" */
-								'components/instructor/SetDetails/SetDetailContainer.vue'
+								'pages/instructor/SetDetailContainer.vue'
 							),
 						children: [
 							{
@@ -107,7 +107,7 @@ const routes: RouteRecordRaw[] = [
 								component: () =>
 									import(
 										/* webpackChunkName: "ProblemSetDetails" */
-										'components/instructor/SetDetails/ProblemSetDetails.vue'
+										'pages/instructor/ProblemSetDetails.vue'
 									)
 							}
 						]
@@ -119,7 +119,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "LibraryBrowser" */
-								'components/instructor/LibraryBrowser.vue'
+								'pages/instructor/LibraryBrowser.vue'
 							)
 					},
 
@@ -129,7 +129,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "ProblemSetsManager" */
-								'components/instructor/ProblemSetsManager.vue'
+								'pages/instructor/ProblemSetsManager.vue'
 							)
 					},
 
@@ -139,7 +139,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "ProblemEditor" */
-								'components/instructor/ProblemEditor.vue'
+								'pages/instructor/ProblemEditor.vue'
 							)
 					},
 
@@ -149,7 +149,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "Statistics" */
-								'components/instructor/Statistics.vue'
+								'pages/instructor/Statistics.vue'
 							)
 					}
 				]

@@ -1,5 +1,5 @@
 <template>
-	<div class="q-pa-md" style="max-width: 300px">
+	<div style="max-width: 300px">
 		<q-input filled v-model="date_string" :rules="rules">
 			<template v-slot:prepend>
 				<q-icon name="event" class="cursor-pointer">
@@ -29,14 +29,20 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, watch, ref } from 'vue';
+import { defineComponent, watch, ref, computed } from 'vue';
 import { date } from 'quasar';
 
 export default defineComponent({
 	name: 'DateTimeInput',
 	props: {
-		modelValue: Number,
-		rules: Array
+		modelValue: {
+			type: Number,
+			required: true
+		},
+		validation: {
+			type: Array,
+			required: true
+		}
 	},
 	emits: ['update:modelValue'],
 	setup (props, { emit }) {
@@ -49,9 +55,9 @@ export default defineComponent({
 				emit('update:modelValue', d.getTime() / 1000);
 			}
 		);
-
 		return {
-			date_string
+			date_string,
+			rules: computed(() => props.validation as Array<(val: string)=>boolean>)
 		};
 	}
 });

@@ -81,7 +81,7 @@ export interface ParseableMergedUser {
 
 export class MergedUser extends Model(
 	['is_admin'], ['user_id', 'course_id', 'course_user_id'],
-	['username', 'email', 'first_name', 'last_name', 'student_id', 'course_user_id', 'role', 'section', 'recitation'],
+	['username', 'email', 'first_name', 'last_name', 'student_id', 'role', 'section', 'recitation'],
 	['params'],
 	{
 		username: { field_type: 'username', required: true },

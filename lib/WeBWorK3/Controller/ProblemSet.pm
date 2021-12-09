@@ -7,15 +7,13 @@ use Mojo::Base 'Mojolicious::Controller', -signatures;
 use Try::Tiny;
 use Mojo::JSON qw/true false/;
 
-sub getAllProblemSets {
-	my $self             = shift;
+sub getAllProblemSets ($self) {
 	my @all_problem_sets = $self->schema->resultset("ProblemSet")->getAllProblemSets;
 	$self->render(json => \@all_problem_sets);
 	return;
 }
 
-sub getProblemSets {
-	my $self = shift;
+sub getProblemSets ($self) {
 	my @problem_sets =
 		$self->schema->resultset("ProblemSet")->getProblemSets({ course_id => int($self->param("course_id")) });
 	# convert booleans
@@ -26,8 +24,7 @@ sub getProblemSets {
 	return;
 }
 
-sub getProblemSet {
-	my $self        = shift;
+sub getProblemSet ($self) {
 	my $problem_set = $self->schema->resultset("ProblemSet")->getProblemSet({
 		course_id => int($self->param("course_id")),
 		set_id    => int($self->param("set_id"))
@@ -38,8 +35,7 @@ sub getProblemSet {
 
 ## update the course given by course_id with given params
 
-sub updateProblemSet {
-	my $self        = shift;
+sub updateProblemSet ($self) {
 	my $problem_set = $self->schema->resultset("ProblemSet")->updateProblemSet(
 		{
 			course_id => int($self->param("course_id")),
@@ -51,21 +47,67 @@ sub updateProblemSet {
 	return;
 }
 
-sub addProblemSet {
-	my $self        = shift;
+sub addProblemSet ($self) {
 	my $problem_set = $self->schema->resultset("ProblemSet")
 		->addProblemSet({ course_id => int($self->param("course_id")) }, $self->req->json);
 	$self->render(json => $problem_set);
 	return;
 }
 
-sub deleteProblemSet {
-	my $self        = shift;
+sub deleteProblemSet ($self) {
 	my $problem_set = $self->schema->resultset("ProblemSet")->deleteProblemSet({
 		course_id => int($self->param("course_id")),
 		set_id    => int($self->param("set_id"))
 	});
 	$self->render(json => $problem_set);
+	return;
+}
+
+sub getUserSets ($self) {
+	my @user_sets = $self->schema->resultset("UserSet")->getUserSetsForSet({
+		course_id => int($self->param("course_id")),
+		set_id    => int($self->param("set_id"))
+	});
+	$self->render(json => \@user_sets);
+	return;
+}
+
+sub addUserSet ($self) {
+	my $new_user_set = $self->schema->resultset("UserSet")->addUserSet(
+		{
+			course_id      => int($self->param("course_id")),
+			set_id         => int($self->param("set_id")),
+			course_user_id => $self->req->json->{course_user_id}
+		},
+		$self->req->json
+	);
+	$self->render(json => $new_user_set);
+	return;
+}
+
+sub updateUserSet ($self) {
+	my $updated_user_set = $self->schema->resultset("UserSet")->updateUserSet(
+		{
+			course_id      => int($self->param("course_id")),
+			set_id         => int($self->param("set_id")),
+			course_user_id => int($self->param("course_user_id"))
+		},
+		$self->req->json
+	);
+	$self->render(json => $updated_user_set);
+	return;
+}
+
+sub deleteUserSet ($self) {
+	my $updated_user_set = $self->schema->resultset("UserSet")->deleteUserSet(
+		{
+			course_id      => int($self->param("course_id")),
+			set_id         => int($self->param("set_id")),
+			course_user_id => int($self->param("course_user_id"))
+		},
+		$self->req->json
+	);
+	$self->render(json => $updated_user_set);
 	return;
 }
 

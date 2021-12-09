@@ -5,13 +5,14 @@
 			<q-input v-model="srcFile" label="Source File" autocomplete />
 			<q-btn type="submit" class="q-my-md">Load Problem</q-btn>
 		</q-form>
-		<problem :sourceFilePath="file" />
+		<problem :problem="problem" />
 	</div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import Problem from './Problem.vue';
+import { LibraryProblem } from 'src/store/models/problems';
 
 export default defineComponent({
 	name: 'ProblemViewer',
@@ -21,6 +22,7 @@ export default defineComponent({
 	setup() {
 		const srcFile = ref('');
 		const file = ref('');
+		const problem = ref<LibraryProblem>(new LibraryProblem());
 
 		// Test problems:
 		//   # Basic
@@ -37,7 +39,10 @@ export default defineComponent({
 		return {
 			srcFile,
 			file,
-			loadProblem: () => file.value = srcFile.value
+			problem,
+			loadProblem: () => {
+				problem.value.problem_params.file_path = srcFile.value;
+			}
 		};
 	}
 });

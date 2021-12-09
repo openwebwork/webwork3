@@ -5,7 +5,7 @@ use base 'DBIx::Class::ResultSet';
 
 # use List::Util qw/first/;
 
-use DB::Utils qw/getCourseInfo getSetInfo getProblemInfo/;
+use DB::Utils qw/getCourseInfo getSetInfo getProblemInfo updateAllFields/;
 
 =head1 DESCRIPTION
 
@@ -30,10 +30,16 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 
 sub getGlobalProblems {
 	my ($self, $as_result_set) = @_;
-	my @problems = $self->search();
+	my @problems = $self->search(
+		{},
+		{
+			join      => 'problem_set',
+			'+select' => ['problem_set.set_name'],
+		}
+	);
 	return @problems if $as_result_set;
 	return map {
-		{ $_->get_inflated_columns };
+		{ $_->get_inflated_columns, $_->problem_set->get_inflated_columns };
 	} @problems;
 }
 
@@ -62,7 +68,7 @@ This gets all problems in a given course.
 =back
 
 =head3 notes:
-if either the course or username doesn't exist, an error will be thrown.
+if either the course or course_id doesn't exist, an error will be thrown.
 
 =head3 output
 
@@ -80,11 +86,8 @@ sub getProblems {
 
 	return \@problems if $as_result_set;
 	return map {
-		{
-			$_->get_inflated_columns, set_name => $_->problem_set->set_name
-		};
+		{ $_->get_inflated_columns };
 	} @problems;
-
 }
 
 sub getSetProblems {
@@ -157,13 +160,45 @@ sub addSetProblem {
 	# set the problem number to one more than the set's largest
 	$new_problem_params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0);
 
+	my $params = $new_problem_params->{problem_params} || {};
+	$params->{weight} = 1 unless defined($params->{weight});
+
+	$new_problem_params->{problem_params} = $params;
+
 	my $problem_to_add = $self->new($new_problem_params);
-	$problem_to_add->validParams(undef, 'params');
+	$problem_to_add->validParams(undef, 'problem_params');
 
 	my $added_problem = $problem_set->add_to_problems($new_problem_params);
 	return $as_result_set ? $added_problem : { $added_problem->get_inflated_columns };
+}
 
-	return $as_result_set ? $added_problem : { $added_problem->get_inflated_columns };
+=head2 updateSetProblem
+
+update a single problem in a problem set within a course
+
+=head3 Note
+
+=over
+
+=item * If either the problem set or course does not exist an error will be thrown
+
+=item * If the problem parameters are not valid, an error will be thrown.
+
+=back
+
+=cut
+
+sub updateSetProblem {
+	my ($self, $course_set_problem_info, $new_problem_params, $as_result_set) = @_;
+	my $problem = $self->getSetProblem($course_set_problem_info, 1);
+	my $params  = updateAllFields({ $problem->get_inflated_columns }, $new_problem_params);
+
+	## check that the new params are valid:
+	my $updated_problem = $self->new($params);
+	$updated_problem->validParams(undef, 'problem_params');
+
+	my $up_problem = $problem->update($params);
+	return $as_result_set ? $up_problem : { $up_problem->get_inflated_columns };
 }
 
 =head2 deleteSetProblem

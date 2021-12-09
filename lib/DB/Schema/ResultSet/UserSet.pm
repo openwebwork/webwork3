@@ -11,8 +11,6 @@ use strict;
 use warnings;
 use base 'DBIx::Class::ResultSet';
 
-use Try::Tiny;
-
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 use DB::WithDates;
 use DB::WithParams;
@@ -103,8 +101,8 @@ sub getUserSet {
 	my ($self, $user_set_info, $as_result_set) = @_;
 
 	my $problem_set = $self->_getProblemSet($user_set_info);
-	my $user        = $self->_getUser($user_set_info);
 	my $course_user = $self->_getCourseUser($user_set_info);
+	my $user        = $course_user->users;
 
 	my $user_set = $self->find(
 		{
@@ -128,8 +126,9 @@ sub addUserSet {
 	my ($self, $user_set_info, $user_set_params, $as_result_set) = @_;
 
 	my $problem_set = $self->_getProblemSet($user_set_info);
-	my $user        = $self->_getUser($user_set_info);
 	my $course_user = $self->_getCourseUser($user_set_info);
+
+	my $user = $self->_course_user_rs->find({ course_user_id => $course_user->course_user_id })->users;
 
 	DB::Exception::UserSetExists->throw(
 		username    => $user->username,
@@ -150,7 +149,8 @@ sub addUserSet {
 	my $new_user_set = $self->new($params);
 
 	$new_user_set->validParams($problem_set->type, 'set_params') if $new_user_set->set_params;
-	$new_user_set->validDates($problem_set->type, 'set_dates')   if $new_user_set->set_dates;
+	$new_user_set->validDates($problem_set->type, 'set_dates')
+		if $new_user_set->set_dates && scalar(keys %{ $new_user_set->set_dates }) > 0;
 
 	my $user_set = $problem_set->add_to_user_sets($params);
 
@@ -169,7 +169,6 @@ update a single UserSet for a given course, user, and ProblemSet
 
 sub updateUserSet {
 	my ($self, $user_set_info, $user_set_params, $as_result_set) = @_;
-
 	my $user_set = $self->getUserSet($user_set_info, 1);
 
 	DB::Exception::UserSetNotInCourse->throw(
@@ -178,15 +177,8 @@ sub updateUserSet {
 		username    => $user_set_info->{username}
 	) unless defined($user_set);
 
-	## only allow params and dates to be updated
-	for my $field (keys %$user_set_params) {
-		my @allowed_fields = grep { $_ eq $field } qw/set_params set_dates/;
-		DB::Exception::InvalidParameter->throw(field_names => $field)
-			unless scalar(@allowed_fields) == 1;
-	}
-
-	my $problem_set = $self->_getProblemSet($user_set_info);
-	my $user        = $self->_getUser($user_set_info);
+	my $problem_set = $self->_problem_set_rs->find({ set_id         => $user_set->set_id });
+	my $user        = $self->_course_user_rs->find({ course_user_id => $user_set->course_user_id })->users;
 
 	## make sure the parameters and dates are valid.
 	my $new_user_set = $self->new($user_set_params);
@@ -196,11 +188,8 @@ sub updateUserSet {
 
 	my $updated_user_set = $user_set->update($user_set_params);
 
-	## update not getting all values, so get the user_set
-	my $s = $self->find({ user_set_id => $user_set->user_set_id });
-
 	return $updated_user_set if $as_result_set;
-	return _mergeUserSet($problem_set, $s, $user);
+	return _mergeUserSet($problem_set, $updated_user_set, $user);
 }
 
 =head2 deleteUserSet
@@ -211,7 +200,6 @@ delete a single UserSet for a given course, user, and ProblemSet
 
 sub deleteUserSet {
 	my ($self, $user_set_info, $user_set_params, $as_result_set) = @_;
-
 	my $user_set = $self->getUserSet($user_set_info, 1);
 
 	DB::Exception::UserSetNotInCourse->throw(
@@ -247,6 +235,11 @@ sub _user_rs {
 	return shift->result_source->schema->resultset("User");
 }
 
+# return the User resultset
+sub _course_user_rs {
+	return shift->result_source->schema->resultset("CourseUser");
+}
+
 # return the course/set info given the user_set_info is passed in
 
 sub _getProblemSet {
@@ -259,6 +252,9 @@ sub _getProblemSet {
 
 sub _getUser {
 	my ($self, $info) = @_;
+	if ($info->{course_user_id}) {
+		return $self->_course_user_rs->find({ course_user_id => $info->{course_user_id} })->users;
+	}
 	my $user_info = { %{ getCourseInfo($info) }, %{ getUserInfo($info) } };
 	return $self->_user_rs->getUser($user_info, 1);
 }
@@ -274,6 +270,12 @@ sub _getCourse {
 
 sub _getCourseUser {
 	my ($self, $info) = @_;
+
+	if ($info->{course_user_id}) {
+		return $self->result_source->schema->resultset("CourseUser")
+			->find({ course_user_id => $info->{course_user_id} });
+	}
+
 	my $course = $self->_getCourse($info);
 	my $user   = $self->_getUser(
 		{
