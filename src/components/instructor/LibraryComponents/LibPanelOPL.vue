@@ -144,7 +144,15 @@ export default defineComponent({
 						subj_id: subject.value.id,
 						chap_id: chapter.value.id,
 						sect_id: section.value.id
-					}).then(val => {problems.value = val;});
+					}).then(val => {
+						problems.value = val;
+						for (const [index, problem] of problems.value.entries()) {
+							// Problems in the library do not have a problem number, so assign one now.  These only
+							// need to be distinct for each problem to prevent id clashes, and have no other meaning, so
+							// just use the order of display.
+							problem.problem_number = index;
+						}
+					});
 				}
 			},
 			addProblem: async (prob: LibraryProblem) => {
