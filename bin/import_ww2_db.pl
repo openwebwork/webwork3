@@ -23,16 +23,13 @@ import_ww2_db.pl - Import a course from webwork2 database to webwork3 format.
 import_ww2_db.pl [options]
 
  Options:
-   -w|--webwork-root     Directory containing a git clone of webwork2.
-                         If this option is not set, then the environment
-                         variable $WEBWORK_ROOT will be used if it is set.
-   -p|--pg-root          Directory containing  a git clone of pg.
-                         If this option is not set, then the environment
-                         variable $PG_ROOT will be used if it is set.
-   -r|--rebuild_db       Rebuild the database for the given course. This will
-	                       drop all rows in all columns associated with the given
-												 course.
-   -c|--course           Name of the course to import
+   -r|--rebuild_db         Rebuild the database for the given course. This will
+                           drop all rows in all columns associated with the given
+                           course.
+   -c|--course             Name of the course to import
+   -d|--database-dsn       The database-dsn string for webwork2.
+   -u|--database-user      The database user for webwork2
+   -p|--database-password  The password for the user on webwork2
 
 Note that at least one of the options --webwork-root or --pg-root must be provided
 (or there is nothing to do!).
@@ -48,41 +45,66 @@ use warnings;
 use feature 'say';
 use Getopt::Long qw(:config bundling);
 use Pod::Usage;
-use Data::Dump qw/dd/;
 use Try::Tiny;
 use DBI;
+use YAML::XS qw/LoadFile/;
+use Data::Dumper;
 
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::bin_dir = abs_path(dirname(__FILE__));
-	$main::lib_dir = dirname($main::bin_dir) . '/lib';
+	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/..';
 }
 
-use lib "$main::lib_dir";
+use lib "$main::ww3_dir/lib";
 
 use DB::Schema;
 use DB::Schema::Result::CourseUser;
 
 my $verbose    = 0;
 my $rebuild_db = 0;
+my $course_name = '';
+my $db_dsn = '';
+my $db_user = '';
+my $db_pass = '';
 GetOptions(
-	'r|rebuild+' => \$rebuild_db,
-	'c|course=s' => \$course_name,
-	'v|verbose+' => \$verbose
+	'r|rebuild_db+'         => \$rebuild_db,
+	'c|course=s'            => \$course_name,
+	'v|verbose+'            => \$verbose,
+	'd|database-dsn=s'      => \$db_dsn,
+	'u|database-user=s'     => \$db_user,
+	'p|database-password=s' => \$db_pass
 ) || pod2usage();
 
-my $ww2_dsn = "DBI:mysql:database=webwork;host=localhost;port=3306";
-my $dbh     = DBI->connect($ww2_dsn, "webworkWrite", "password", { RaiseError => 1, AutoCommit => 0 });
 
-my $ww3_dsn = "DBI:mysql:database=webwork3;host=localhost;port=3306";
-my $schema  = DB::Schema->connect($ww3_dsn, "webworkWrite", "password");
+# Load the webwork3 configuration file:
+
+my $config_file = "$main::ww3_dir/conf/webwork3.yml";
+die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
+	unless (-e $config_file);
+
+my $config = LoadFile($config_file);
+
+use Data::Dumper;
+
+if ($verbose) {
+	say "Rebuilding the database for course $course_name";
+	say "Using the webwork2 database: $db_dsn";
+	say "with user $db_user";
+	say "The webwork3 database: " . $config->{database_dsn};
+	say "with user " . $config->{database_user};
+}
+
+my $dbh     = DBI->connect($db_dsn, $db_user, $db_pass, { RaiseError => 1, AutoCommit => 0 });
+
+my $schema  = DB::Schema->connect($config->{database_dsn},
+	$config->{database_user}, $config->{database_password});
 
 my $course_rs      = $schema->resultset('Course');
 my $user_rs        = $schema->resultset('User');
 my $problem_set_rs = $schema->resultset('ProblemSet');
 
-# test if the database tables are created.
+# test if the database tables are created.  If not have DBIx::Class create them.
 try {
 	$course_rs->getCourses();
 } catch {
@@ -96,6 +118,7 @@ my %PERMISSIONS = (
 );
 
 rebuild() if $rebuild_db;
+
 addCourse();
 addUsers();
 addProblemSets();
@@ -103,8 +126,17 @@ addProblemSets();
 my $db_tables = {};
 
 sub rebuild {
+
+	# check if the course exists in the database;
+	my $course;
+	try {
+		$course = $course_rs->getCourse({ course_name => $course_name });
+	} catch { };
+
+	return unless $course;
+
 	# find the course users
-	my @course_users = $user_rs->getUsers({ course_name => $course_name });
+	my @course_users = $user_rs->getCourseUsers({ course_name => $course_name });
 
 	## delete the users
 
@@ -112,8 +144,9 @@ sub rebuild {
 		my @user_courses = $course_rs->getUserCourses({ user_id => $course_user->{user_id} });
 		# if each user is only in one course, delete the global user
 		if (scalar(@user_courses) == 1) {
-			$user_rs->deleteGlobalUser({ user_id => $course_user->{user_id} });
-			say "deleting the global user with username: $course_user->{username}" if $verbose;
+			my $global_user = $user_rs->deleteGlobalUser({ user_id => $course_user->{user_id} });
+
+			say "deleting the global user with username: $global_user->{username}" if $verbose;
 		} else {
 			$user_rs->deleteUser({ course_name => $course_name, user_id => $course_user->{user_id} });
 			say "From course $course_name, deleting user $course_user->{username}" if $verbose;
@@ -165,6 +198,9 @@ sub addUsers {
 		grep { $_ !~ /\_id$/x && $_ ne "params" } $schema->resultset("CourseUser")->result_source->columns;
 
 	for my $r (@$ref) {
+		# skip admin users to the course
+		next if $r->{user_id} eq 'admin';
+
 		my $user_params = {
 			username => $r->{user_id},
 			email    => $r->{email_address}
@@ -172,7 +208,8 @@ sub addUsers {
 		foreach my $key (@user_fields) {
 			$user_params->{$key} = $r->{$key} if defined($r->{$key});
 		}
-		# dd $user_params;
+
+
 		my $user = $user_rs->find({ username => $user_params->{username} });
 		$user_rs->addGlobalUser($user_params) unless $user;
 		say "Adding user with username $r->{user_id}" if $verbose && !defined($user);
@@ -191,13 +228,15 @@ sub addUsers {
 		$sth2->execute();
 		my $perm = $sth2->fetchrow_hashref();
 		$course_user->{role} = $PERMISSIONS{ $perm->{permission} };
-		$user_rs->addUser({ course_name => $course_name }, $course_user);
+
+		$user_rs->addCourseUser({ course_name => $course_name, username => $course_user->{username} },
+			$course_user);
 	}
 	return;
 }
 
 sub addProblemSets {
-	my @hw_param_keys = keys %$DB::Schema::Result::ProblemSet::HWSet::VALID_PARAMS;
+
 	my $set_table     = $course_name . "_set";
 	my $sth           = $dbh->prepare("SELECT * FROM `$set_table`");
 	$sth->execute();
@@ -207,17 +246,37 @@ sub addProblemSets {
 	for my $r (@$ref) {
 		my $set_params = {
 			set_name => $r->{set_id},
-			dates    => {},
-			params   => {},
+			set_dates    => {},
+			set_params   => {},
+			set_visible  => $r->{visible} // 0
 		};
+
 		if ($r->{assignment_type} eq 'default') {    # it's a homework set
-			for my $key (@hw_param_keys) {
-				$set_params->{params}->{$key} = $r->{$key} if defined($r->{$key});
+		  $set_params->{set_type} = 'HW';
+			for my $key (qw/set_header hardcopy_header hide_hint enable_reduced_scoring/) {
+				$set_params->{set_params}->{$key} = $r->{$key} if defined($r->{$key});
 			}
-			for my $key (@DB::Schema::Result::ProblemSet::HWSet::VALID_DATES) {
-				$set_params->{dates}->{$key} = $r->{ $key . '_date' } if defined($r->{ $key . '_date' });
+			for my $key (qw/open due answer/) {
+				$set_params->{set_dates}->{$key} = $r->{ $key . '_date' } // 0;
 			}
+			$set_params->{set_dates}->{reduced_scoring} = $r->{reduced_scoring_date} // $r->{due_date};
+
+		} elsif ($r->{assignment_type} eq 'gateway') {
+			$set_params->{set_type} = 'QUIZ';
+			for my $key (qw/set_header hardcopy_header problem_randorder problems_per_page
+				hide_score hide_score_by_problem hide_work time_limit_cap restrict_ip relax_restrict_ip/) {
+				$set_params->{set_params}->{$key} = $r->{$key} if defined($r->{$key});
+			}
+			$set_params->{set_params}->{quiz_duration} = $r->{time_interval} // 0;
+			for my $key (qw/open due answer/) {
+				$set_params->{set_dates}->{$key} = $r->{ $key . '_date' } // 0;
+			}
+		} elsif ($r->{assignment_type} eq 'jitar') {
+			## need to determine how to handle these problems.
+			next;
 		}
+
+		print Dumper $set_params;
 
 		$problem_set_rs->addProblemSet({ course_name => $course_name }, $set_params);
 		say "Adding set with name: $set_params->{set_name}" if $verbose;
