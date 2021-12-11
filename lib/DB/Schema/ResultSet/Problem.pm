@@ -84,7 +84,7 @@ sub getProblems {
 	my @problems =
 		$self->search({ 'problem_set.course_id' => $course->course_id }, { prefetch => [qw/problem_set/] });
 
-	return \@problems if $as_result_set;
+	return @problems if $as_result_set;
 	return map {
 		{ $_->get_inflated_columns };
 	} @problems;

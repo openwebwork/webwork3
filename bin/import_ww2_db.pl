@@ -103,6 +103,7 @@ my $schema  = DB::Schema->connect($config->{database_dsn},
 my $course_rs      = $schema->resultset('Course');
 my $user_rs        = $schema->resultset('User');
 my $problem_set_rs = $schema->resultset('ProblemSet');
+my $problem_rs     = $schema->resultset('Problem');
 
 # test if the database tables are created.  If not have DBIx::Class create them.
 try {
@@ -122,6 +123,8 @@ rebuild() if $rebuild_db;
 addCourse();
 addUsers();
 addProblemSets();
+addProblems();
+#removeProblems();
 
 my $db_tables = {};
 
@@ -135,36 +138,11 @@ sub rebuild {
 
 	return unless $course;
 
-	# find the course users
-	my @course_users = $user_rs->getCourseUsers({ course_name => $course_name });
+	removeUsers();
+	removeProblems();
+	removeProblemSets();
+	removeCourse();
 
-	## delete the users
-
-	for my $course_user (@course_users) {
-		my @user_courses = $course_rs->getUserCourses({ user_id => $course_user->{user_id} });
-		# if each user is only in one course, delete the global user
-		if (scalar(@user_courses) == 1) {
-			my $global_user = $user_rs->deleteGlobalUser({ user_id => $course_user->{user_id} });
-
-			say "deleting the global user with username: $global_user->{username}" if $verbose;
-		} else {
-			$user_rs->deleteUser({ course_name => $course_name, user_id => $course_user->{user_id} });
-			say "From course $course_name, deleting user $course_user->{username}" if $verbose;
-		}
-	}
-
-	## delete the problem sets
-
-	my @problem_sets = $problem_set_rs->getProblemSets({ course_name => $course_name });
-	for my $problem_set (@problem_sets) {
-		$problem_set_rs->deleteProblemSet({ course_name => $course_name, set_id => $problem_set->{set_id} });
-		say "deleting problem set: $problem_set->{set_name}" if $verbose;
-	}
-
-	# delete the course
-	my $course = $course_rs->find({ course_name => $course_name });
-	$course->delete                        if $course;
-	say "deleting the course $course_name" if $verbose;
 	return;
 }
 
@@ -180,6 +158,12 @@ sub addCourse {
 	say "adding course: $course_name" if $verbose;
 	$course_rs->addCourse({ course_name => $course_name });
 	return;
+}
+
+sub removeCourse {
+	my $course = $course_rs->find({ course_name => $course_name });
+	$course->delete                        if $course;
+	say "deleting the course $course_name" if $verbose;
 }
 
 sub addUsers {
@@ -235,6 +219,24 @@ sub addUsers {
 	return;
 }
 
+sub removeUsers {
+	my @course_users = $user_rs->getCourseUsers({ course_name => $course_name });
+	for my $course_user (@course_users) {
+		my @user_courses = $course_rs->getUserCourses({ user_id => $course_user->{user_id} });
+		# if each user is only in one course, delete the global user
+		if (scalar(@user_courses) == 1) {
+			my $global_user = $user_rs->deleteGlobalUser({ user_id => $course_user->{user_id} });
+
+			say "deleting the global user with username: $global_user->{username}" if $verbose;
+		} else {
+			$user_rs->deleteUser({ course_name => $course_name, user_id => $course_user->{user_id} });
+			say "From course $course_name, deleting user $course_user->{username}" if $verbose;
+		}
+	}
+}
+
+# Add/Remove Problem Sets
+
 sub addProblemSets {
 
 	my $set_table     = $course_name . "_set";
@@ -276,12 +278,49 @@ sub addProblemSets {
 			next;
 		}
 
-		print Dumper $set_params;
-
 		$problem_set_rs->addProblemSet({ course_name => $course_name }, $set_params);
 		say "Adding set with name: $set_params->{set_name}" if $verbose;
 	}
 	return;
+}
+
+sub removeProblemSets {
+	my @problem_sets = $problem_set_rs->getProblemSets({ course_name => $course_name });
+	for my $problem_set (@problem_sets) {
+		$problem_set_rs->deleteProblemSet({ course_name => $course_name, set_id => $problem_set->{set_id} });
+		say "deleting problem set: $problem_set->{set_name}" if $verbose;
+	}
+}
+
+## Add/Remove Problems
+
+sub removeProblems {
+	my @problems = $problem_rs->getProblems({course_name => $course_name},1);
+	for my $problem (@problems) {
+		say "Removing problem " . $problem->problem_number . " from " . $problem->problem_set->set_name if $verbose;
+		$problem->delete;
+	}
+}
+
+sub addProblems {
+	my $problem_table = $course_name . "_problem";
+	my $sth           = $dbh->prepare("SELECT * FROM `$problem_table`");
+	$sth->execute();
+	my $ref  = $sth->fetchall_arrayref({});
+	for my $r (@$ref) {
+		my $problem_params = {
+			file_path => $r->{source_file}
+		};
+		for my $key (qw/value max_attempts/) {
+			$problem_params->{$key} = $r->{$key} if $r->{$key};
+		}
+
+		my $problem_set = $problem_set_rs->getProblemSet({course_name => $course_name, set_name => $r->{set_id}},1);
+		$problem_set->add_to_problems({
+			problem_number => $r->{problem_id},
+			problem_params => $problem_params
+		});
+	}
 }
 
 1;
