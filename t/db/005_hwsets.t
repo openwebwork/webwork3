@@ -13,6 +13,7 @@ BEGIN {
 
 use lib "$main::ww3_dir/lib";
 
+use feature "say";
 use Text::CSV qw/csv/;
 use List::MoreUtils qw(uniq);
 use Test::More;
@@ -193,6 +194,8 @@ my $new_set_params = {
 };
 
 my $new_set    = $problem_set_rs->addProblemSet({ course_name => "Precalculus" }, $new_set_params);
+
+say ref $new_set;
 my $new_set_id = $new_set->{set_id};
 removeIDs($new_set);
 delete $new_set->{type};

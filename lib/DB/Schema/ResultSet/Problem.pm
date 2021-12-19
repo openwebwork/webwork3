@@ -166,7 +166,7 @@ sub addSetProblem {
 	$new_problem_params->{problem_params} = $params;
 
 	my $problem_to_add = $self->new($new_problem_params);
-	$problem_to_add->validParams(undef, 'problem_params');
+	$problem_to_add->validParams('problem_params');
 
 	my $added_problem = $problem_set->add_to_problems($new_problem_params);
 	return $as_result_set ? $added_problem : { $added_problem->get_inflated_columns };
@@ -195,7 +195,7 @@ sub updateSetProblem {
 
 	## check that the new params are valid:
 	my $updated_problem = $self->new($params);
-	$updated_problem->validParams(undef, 'problem_params');
+	$updated_problem->validParams('problem_params');
 
 	my $up_problem = $problem->update($params);
 	return $as_result_set ? $up_problem : { $up_problem->get_inflated_columns };

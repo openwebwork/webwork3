@@ -166,8 +166,8 @@ sub addProblemSet {
 		if defined($problem_set);
 	my $set_obj = $self->new($set_params);
 
-	$set_obj->validDates(undef, 'set_dates');
-	$set_obj->validParams(undef, 'set_params');
+	$set_obj->validDates('set_dates');
+	$set_obj->validParams('set_params');
 
 	my $new_set = $course->add_to_problem_sets($set_params, 1);
 
@@ -199,8 +199,8 @@ sub updateProblemSet {
 	my $set_obj = $self->new($params2);
 
 	## check the parameters are valid.
-	$set_obj->validDates(undef, 'set_dates');
-	$set_obj->validParams(undef, 'set_params');
+	$set_obj->validDates('set_dates');
+	$set_obj->validParams('set_params');
 	my $updated_set = $problem_set->update({ $set_obj->get_inflated_columns });
 	return $updated_set if $as_result_set;
 	my $set = { $updated_set->get_inflated_columns, set_type => $updated_set->set_type };

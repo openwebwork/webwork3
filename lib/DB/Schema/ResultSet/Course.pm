@@ -4,7 +4,6 @@ use warnings;
 use base 'DBIx::Class::ResultSet';
 
 use Carp;
-use Data::Dump qw/dd dump/;
 use List::Util qw/first/;
 
 use Clone qw/clone/;
@@ -201,24 +200,6 @@ sub updateCourse {
 	my $course = $self->getCourse(getCourseInfo($course_info), 1);
 	## TODO: check the validity of the params
 	my $course_to_return = $course->update($course_params);
-
-	# dd $params;
-	# ## need to update params, not blow others away.
-
-	# $course->update($params) unless  scalar(keys %$params) == 0;
-
-	# # my $settings = $course->course_setting->update($course_params->{course_settings});
-
-	# # dd {$settings->get_inflated_columns};
-	# dd $course_params->{course_settings};
-
-	# # update the course_settings
-	# my $course_settings_from_db = {
-	# 	$course->course_settings->update($course_params->{course_settings})
-	# 	->get_inflated_columns
-	# };
-	# # dd $course_settings_from_db;
-	# removeIDs($course_settings_from_db);
 
 	return $course_to_return if $as_result_set;
 	return { $course_to_return->get_inflated_columns };

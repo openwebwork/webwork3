@@ -24,7 +24,6 @@ the other classes in the schema resultsets include
 =cut
 
 use Carp;
-use Data::Dump qw/dd dump/;
 use List::Util qw/first/;
 
 use Clone qw/clone/;

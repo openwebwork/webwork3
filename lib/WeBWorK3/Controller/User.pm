@@ -1,8 +1,6 @@
 package WeBWorK3::Controller::User;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
-use Data::Dump qw/dd/;
-
 sub getGlobalUsers {
 	my $self         = shift;
 	my @global_users = $self->schema->resultset("User")->getAllGlobalUsers;

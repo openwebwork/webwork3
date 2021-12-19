@@ -7,21 +7,16 @@ use Array::Utils qw/array_minus intersect/;
 
 use DB::Exception;
 
-our $valid_dates;       # array of allowed/valid dates
-our $required_dates;    # array of required dates
+our $valid_dates;       # arrayref of allowed/valid dates
+our $required_dates;    # arrayref of required dates
 
 sub validDates {
-	my ($self, $type, $field_name) = @_;
+	my ($self, $field_name) = @_;
 	# the following stops the carping of perlcritic
 	## no critic 'ProhibitStringyEval'
 	## no critic 'RequireCheckingReturnValueOfEval'
-	if (defined($type)) {
-		eval '$valid_dates = &' . ref($self) . "::valid_dates($type)";
-		eval '$required_dates = &' . ref($self) . "::required_dates($type)";
-	} else {
-		eval '$valid_dates = &' . ref($self) . "::valid_dates";
-		eval '$required_dates = &' . ref($self) . "::required_dates";
-	}
+	eval '$valid_dates = &' . ref($self) . "::valid_dates";
+	eval '$required_dates = &' . ref($self) . "::required_dates";
 
 	$self->validDateFields($field_name);
 	$self->hasRequiredDateFields($field_name);

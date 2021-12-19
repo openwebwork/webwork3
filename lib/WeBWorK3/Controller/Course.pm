@@ -4,8 +4,6 @@ use strict;
 
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
-use Data::Dump qw/dd/;
-
 sub getCourses {
 	my $self        = shift;
 	my @all_courses = $self->schema->resultset("Course")->getCourses;

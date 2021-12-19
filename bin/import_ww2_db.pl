@@ -104,6 +104,7 @@ my $course_rs      = $schema->resultset('Course');
 my $user_rs        = $schema->resultset('User');
 my $problem_set_rs = $schema->resultset('ProblemSet');
 my $problem_rs     = $schema->resultset('Problem');
+my $user_set_rs    = $schema->resultset('UserSet');
 
 # test if the database tables are created.  If not have DBIx::Class create them.
 try {
@@ -111,6 +112,8 @@ try {
 } catch {
 	$schema->deploy;
 };
+
+# $schema->deploy({ add_drop_table => 1 });    ## create the database based on the schema
 
 my %PERMISSIONS = (
 	0  => "student",
@@ -124,12 +127,13 @@ addCourse();
 addUsers();
 addProblemSets();
 addProblems();
-#removeProblems();
+addUserSets();
+
 
 my $db_tables = {};
 
 sub rebuild {
-
+	say "rebuilding the database for course $course_name";
 	# check if the course exists in the database;
 	my $course;
 	try {
@@ -138,10 +142,13 @@ sub rebuild {
 
 	return unless $course;
 
+	removeUserSets();
 	removeUsers();
 	removeProblems();
 	removeProblemSets();
 	removeCourse();
+
+
 
 	return;
 }
@@ -165,6 +172,8 @@ sub removeCourse {
 	$course->delete                        if $course;
 	say "deleting the course $course_name" if $verbose;
 }
+
+# Add/Remove Users
 
 sub addUsers {
 	my $user_table = $course_name . "_user";
@@ -243,8 +252,7 @@ sub addProblemSets {
 	my $sth           = $dbh->prepare("SELECT * FROM `$set_table`");
 	$sth->execute();
 	my $ref  = $sth->fetchall_arrayref({});
-	my @keys = keys %{ $ref->[0] };
-	# dd @keys;
+
 	for my $r (@$ref) {
 		my $set_params = {
 			set_name => $r->{set_id},
@@ -289,6 +297,56 @@ sub removeProblemSets {
 	for my $problem_set (@problem_sets) {
 		$problem_set_rs->deleteProblemSet({ course_name => $course_name, set_id => $problem_set->{set_id} });
 		say "deleting problem set: $problem_set->{set_name}" if $verbose;
+	}
+}
+
+## Add/Remove UserSets
+
+sub addUserSets {
+	my $user_set_table     = $course_name . "_set_user";
+	my @problem_sets = $problem_set_rs->getProblemSets({ course_name => $course_name });
+	for my $set (@problem_sets) {
+		my $sth = $dbh->prepare("SELECT * FROM `$user_set_table` WHERE set_id = '$set->{set_name}'");
+		$sth->execute();
+		my $ref  = $sth->fetchall_arrayref({});
+
+		for my $r (@$ref) {
+			next if $r->{user_id} eq 'admin';
+			say "Adding user set for set $set->{set_name} and user $r->{user_id}";
+			my $set_params = {
+				set_dates    => {},
+				set_params   => {},
+				set_visible  => $r->{visible},
+			};
+
+			if ($set->{set_type} eq 'HW') {
+				for my $key (qw/set_header hardcopy_header hide_hint enable_reduced_scoring/) {
+					$set_params->{set_params}->{$key} = $r->{$key} if defined($r->{$key});
+				}
+				for my $key (qw/open due answer reduced_scoring/) {
+					$set_params->{set_dates}->{$key} = $r->{ $key . '_date' } if defined $r->{$key . '_date'};
+				}
+			}
+			$user_set_rs->addUserSet({
+				course_name => $course_name,
+				set_id => $set->{set_id},
+				username => $r->{user_id}
+			}, $set_params);
+		}
+	}
+}
+
+sub removeUserSets {
+	my @problem_sets = $problem_set_rs->getProblemSets({ course_name => $course_name });
+	for my $set (@problem_sets) {
+		my @user_sets = $user_set_rs->getUserSetsForSet({
+			course_name => $course_name,
+			set_id => $set->{set_id}
+		},1);
+		for my $user_set (@user_sets) {
+			say "Removing set " . $set->{set_name} . " for user " . $user_set->course_users->users->username if $verbose;
+			$user_set->delete;
+		}
 	}
 }
 

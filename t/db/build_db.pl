@@ -130,10 +130,6 @@ sub addSets {
 		if (!defined($course)) {
 			croak "The course " . $set->{course_name} . " does not exist";
 		}
-		for my $date (keys %{ $set->{set_dates} }) {
-			my $dt = $strp->parse_datetime($set->{set_dates}->{$date});
-			$set->{set_dates}->{$date} = $dt->epoch;
-		}
 
 		delete $set->{course_name};
 		$course->add_to_problem_sets($set);
@@ -148,10 +144,6 @@ sub addSets {
 		if (!defined($course)) {
 			croak "The course " . $quiz->{course_name} . " does not exist";
 		}
-		for my $date (keys %{ $quiz->{set_dates} }) {
-			my $dt = $strp->parse_datetime($quiz->{set_dates}->{$date});
-			$quiz->{set_dates}->{$date} = $dt->epoch;
-		}
 
 		$quiz->{type} = 2;
 		delete $quiz->{course_name};
@@ -164,10 +156,6 @@ sub addSets {
 	for my $set (@review_sets) {
 		my $course = $course_rs->find({ course_name => $set->{course_name} });
 		croak "The course |$set->{course_name}| does not exist" unless defined($course);
-		for my $date (keys %{ $set->{set_dates} }) {
-			my $dt = $strp->parse_datetime($set->{set_dates}->{$date});
-			$set->{set_dates}->{$date} = $dt->epoch;
-		}
 
 		$set->{type} = 4;
 		delete $set->{course_name};
@@ -222,6 +210,7 @@ sub addUserSets {
 			user_id   => $user_in_course->user_id,
 			course_id => $course->course_id
 		});
+		say "adding the user set for " . $user_set->{username} . " in " . $user_set->{course_name};
 		if (defined $course_user) {
 			my $problem_set = $schema->resultset('ProblemSet')->find({
 				course_id => $course->course_id,

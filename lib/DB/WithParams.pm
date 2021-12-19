@@ -14,17 +14,12 @@ use DB::Exception;
 use Exception::Class ('DB::Exception::UndefinedParameter', 'DB::Exception::InvalidParameter',);
 
 sub validParams {
-	my ($self, $type, $field_name) = @_;
+	my ($self, $field_name) = @_;
 	# the following stops the carping of perlcritic
 	## no critic 'ProhibitStringyEval'
 	## no critic 'RequireCheckingReturnValueOfEval'
-	if (defined($type)) {
-		eval '$valid_params = &' . ref($self) . "::valid_params($type)";
-		eval '$required_params = &' . ref($self) . "::required_params($type)";
-	} else {
-		eval '$valid_params = &' . ref($self) . '::valid_params';
-		eval '$required_params = &' . ref($self) . "::required_params";
-	}
+	eval '$valid_params = &' . ref($self) . '::valid_params';
+	eval '$required_params = &' . ref($self) . "::required_params";
 
 	$self->validParamFields($field_name);
 	$self->validateParams($field_name);

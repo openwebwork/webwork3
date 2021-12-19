@@ -1,5 +1,5 @@
 package DB::Schema::Result::UserSet;
-use base qw(DBIx::Class::Core DB::WithParams DB::WithDates);
+use base qw(DBIx::Class::Core);
 use strict;
 use warnings;
 
@@ -77,7 +77,7 @@ L<DB::Schema::Result::ProblemSet::ReviewSet> which gives properties common to re
 
 __PACKAGE__->table('user_set');
 
-__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
+__PACKAGE__->load_components(qw/DynamicSubclass Core/, qw/InflateColumn::Serializer Core/);
 
 __PACKAGE__->add_columns(
 	user_set_id => {
@@ -101,6 +101,15 @@ __PACKAGE__->add_columns(
 		size          => 16,
 		is_nullable   => 0,
 		default_value => 1,
+	},
+	type => {
+		data_type     => "int",
+		default_value => 1,
+		size          => 8
+	},
+	set_visible => {
+		data_type     => "boolean",
+		is_nullable   => 1
 	},
 	set_dates => {    # store dates as a JSON object
 		data_type          => 'text',
@@ -132,54 +141,25 @@ __PACKAGE__->belongs_to(problem_sets => 'DB::Schema::Result::ProblemSet', 'set_i
 # This defines the non-abstract classes of ProblemSets.
 #
 
-# __PACKAGE__->typecast_map(
-# 	type => {
-# 		1 => 'DB::Schema::Result::UserSet::HWSet',
-# 		2 => 'DB::Schema::Result::UserSet::Quiz',
-# 		3 => 'DB::Schema::Result::UserSet::JITAR',
-# 		4 => 'DB::Schema::Result::UserSet::ReviewSet',
-# 	}
-# );
-
-use Data::Dump qw/dd/;
+__PACKAGE__->typecast_map(
+	type => {
+		1 => 'DB::Schema::Result::UserSet::HWSet',
+		2 => 'DB::Schema::Result::UserSet::Quiz',
+		3 => 'DB::Schema::Result::UserSet::JITAR',
+		4 => 'DB::Schema::Result::UserSet::ReviewSet',
+	}
+);
 
 my $set_type = {
-	1 => 'DB::Schema::Result::ProblemSet::HWSet',
-	2 => 'DB::Schema::Result::ProblemSet::Quiz',
-	3 => 'DB::Schema::Result::ProblemSet::JITAR',
-	4 => 'DB::Schema::Result::ProblemSet::ReviewSet'
+	1 => 'DB::Schema::Result::UserSet::HWSet',
+	2 => 'DB::Schema::Result::UserSet::Quiz',
+	3 => 'DB::Schema::Result::UserSet::JITAR',
+	4 => 'DB::Schema::Result::UserSet::ReviewSet'
 };
 
-sub valid_params {
-	my $type = shift;
-	## no critic
-	my $params = eval '&' . $set_type->{$type} . '::valid_params';
-	## use critic
-	return $params;
-}
-
-sub required_params {
-	my $type = shift;
-	## no critic
-	my $params = eval '&' . $set_type->{$type} . '::required_params';
-	## use critic
-	return $params;
-}
-
-sub valid_dates {
-	my $type = shift;
-	## no critic
-	my $params = eval '&' . $set_type->{$type} . '::valid_dates';
-	## use critic
-	return $params;
-}
-
-sub required_dates {
-	my $type = shift;
-	## no critic
-	my $params = eval '&' . $set_type->{$type} . '::required_dates';
-	## use critic
-	return $params;
+sub set_type {
+	my %set_type_rev = reverse %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES};
+	return $set_type_rev{ shift->type };
 }
 
 1;

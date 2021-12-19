@@ -3,7 +3,6 @@ use strict;
 use warnings;
 
 use YAML::XS qw/LoadFile/;
-use Data::Dump qw/dd/;
 use Carp;
 
 require Exporter;
