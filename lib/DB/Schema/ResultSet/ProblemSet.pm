@@ -38,12 +38,15 @@ An array of courses as a C<DBIx::Class::ResultSet::ProblemSet> object.
 
 sub getAllProblemSets {
 	my $self           = shift;
-	my $problem_set_rs = $self->search(undef, { prefetch => 'courses' });
+	my $problem_set_rs = $self->search(undef, { join => 'courses' });
 
 	my @all_sets = ();
 	while (my $set = $problem_set_rs->next) {
-		my $expanded_set =
-			{ $set->get_inflated_columns, $set->courses->get_inflated_columns, set_type => $set->set_type };
+		my $expanded_set = {
+			$set->get_inflated_columns,
+			$set->courses->get_inflated_columns,
+			set_type => $set->set_type
+		};
 		delete $expanded_set->{type};
 		push(@all_sets, $expanded_set);
 	}
