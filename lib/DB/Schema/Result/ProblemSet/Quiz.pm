@@ -121,18 +121,18 @@ C<relax_restrict_ip>: string
 
 sub valid_params {
 	return {
-		timed                  => q{^[01]$},
-		quiz_duration          => q{\d+},
-		set_header             => q{\w+},
-		hardcopy_header        => q{\w+},
-		problem_randorder      => q{^[01]$},
-		problems_per_page      => q{\d+},
-		hide_score             => q{\w+},
-		hide_score_by_problem  => q{\w+},
-		hide_work              => q{\w+},
-		time_limit_cap         => q{\d+},
-		restrict_ip            => q{\w+},
-		relax_restrict_ip      => q{\w+}
+		timed                 => q{^[01]$},
+		quiz_duration         => q{\d+},
+		set_header            => q{\w+},
+		hardcopy_header       => q{\w+},
+		problem_randorder     => q{^[01]$},
+		problems_per_page     => q{\d+},
+		hide_score            => q{\w+},
+		hide_score_by_problem => q{\w+},
+		hide_work             => q{\w+},
+		time_limit_cap        => q{\d+},
+		restrict_ip           => q{\w+},
+		relax_restrict_ip     => q{\w+}
 	};
 }
 

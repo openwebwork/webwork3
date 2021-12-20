@@ -61,12 +61,12 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 
 sub getAllUserSets {
 	my ($self, %args) = @_;
-	my @user_sets = $self->search({}, {
-		join => [
-			{'problem_sets' => 'courses' },
-			{'course_users' => 'users' }
-		]
-	});
+	my @user_sets = $self->search(
+		{},
+		{
+			join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
+		}
+	);
 
 	return @user_sets if $args{as_result_set};
 
@@ -120,31 +120,29 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 
 sub getUserSets {
 	my ($self, %args) = @_;
-	my $course      = $self->_getCourse($args{user_set_info});
+	my $course = $self->_getCourse($args{user_set_info});
 
 	my @user_sets;
 
 	if ($args{user_set_info}->{set_id} || $args{user_set_info}->{set_name}) {
 		my $problem_set = $self->_getProblemSet($args{user_set_info});
-		@user_sets = $self->search({'problem_sets.set_id' => $problem_set->set_id },
+		@user_sets = $self->search(
+			{ 'problem_sets.set_id' => $problem_set->set_id },
 			{
-				join => [
-					{ 'problem_sets' => 'courses' },
-					{ 'course_users' => 'users' }
-				]
-			});
+				join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
+			}
+		);
 
 	} elsif ($args{user_set_info}->{user_id} || $args{user_set_info}->{username}) {
 		my $user        = $self->_getUser($args{user_set_info});
 		my $course_user = $self->_getCourseUser($args{user_set_info});
 
-		@user_sets = $self->search({'course_users.user_id' => $user->user_id },
+		@user_sets = $self->search(
+			{ 'course_users.user_id' => $user->user_id },
 			{
-				join => [
-					{ 'problem_sets' => 'courses' },
-					{ 'course_users' => 'users' }
-				]
-			});
+				join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
+			}
+		);
 
 	} else {
 		# throw an error.
@@ -161,7 +159,6 @@ sub getUserSets {
 
 	return @sets;
 }
-
 
 =head2 getUserSet
 
@@ -218,11 +215,12 @@ sub getUserSet {
 		{ join => [qw/problem_sets/] }
 	);
 
-
-	DB::Exception::UserSetNotInCourse->throw(
-		message => "The set " . $problem_set->set_name . " is not assigned to " .
-		$course_user->users->username . " in the course."
-	) unless defined $user_set;
+	DB::Exception::UserSetNotInCourse->throw(message => "The set "
+			. $problem_set->set_name
+			. " is not assigned to "
+			. $course_user->users->username
+			. " in the course.")
+		unless defined $user_set;
 
 	return $user_set if $args{as_result_set};
 
@@ -285,24 +283,25 @@ sub addUserSet {
 		{ join => [qw/problem_sets/] }
 	);
 
-	DB::Exception::UserSetExists->throw(
-		message => "The user " . $course_user->users->username .
-			" is already assigned to the set " . $problem_set->set_name
-	) if $user_set;
+	DB::Exception::UserSetExists->throw(message => "The user "
+			. $course_user->users->username
+			. " is already assigned to the set "
+			. $problem_set->set_name)
+		if $user_set;
 
-  # the hashref of parameters is a mixture of passed in parameters and defaults
+	# the hashref of parameters is a mixture of passed in parameters and defaults
 
 	my $params = $args{user_set_params} ? clone($args{user_set_params}) : {};
 	$params->{course_user_id} = $course_user->course_user_id;
 	$params->{set_id}         = $problem_set->set_id;
 	$params->{type}           = $problem_set->type;
 	$params->{set_params}     = {} unless defined($params->{set_params});
-	$params->{set_version}    = 1 unless defined($params->{set_version});
+	$params->{set_version}    = 1  unless defined($params->{set_version});
 	my $original_dates = $params->{set_dates} // {};
 
 	# make sure the parameters and dates are valid.
 	# to make sure the dates are valid, make a merged date hash to check
-	$params->{set_dates} = updateAllFields($problem_set->set_dates,$params->{set_dates} // {});
+	$params->{set_dates} = updateAllFields($problem_set->set_dates, $params->{set_dates} // {});
 
 	my $new_user_set = $self->new($params);
 	$new_user_set->validParams('set_params') if $new_user_set->set_params;
@@ -329,8 +328,7 @@ update a single UserSet for a given course, user, and ProblemSet
 
 sub updateUserSet {
 	my ($self, %args) = @_;
-	my $user_set = $self->getUserSet(user_set_info=>$args{user_set_info},as_result_set=>1);
-
+	my $user_set = $self->getUserSet(user_set_info => $args{user_set_info}, as_result_set => 1);
 
 	DB::Exception::UserSetNotInCourse->throw(
 		set_name    => $args{user_set_info}->{set_name},
@@ -346,16 +344,13 @@ sub updateUserSet {
 	$params->{set_version}    = 1 unless defined($params->{set_version});
 
 	# create a hash of the dates from the database overriden with any passed in.
-	my $dates = updateAllFields($user_set->set_dates,$params->{set_dates});
+	my $dates = updateAllFields($user_set->set_dates, $params->{set_dates});
 
 	# then make sure the dates are valid by making a merged date hash to check
-	$params->{set_dates} = updateAllFields(
-		$user_set->problem_sets->set_dates,
-		$params->{set_dates} // {}
-	);
+	$params->{set_dates} = updateAllFields($user_set->problem_sets->set_dates, $params->{set_dates} // {});
 
 	# create a hash of the set_params from the database overriden with any passed in
-	$params->{set_params} = updateAllFields($user_set->set_params,$params->{set_params});
+	$params->{set_params} = updateAllFields($user_set->set_params, $params->{set_params});
 
 	# validate all fields
 	my $new_user_set = $self->new($params);
@@ -365,7 +360,6 @@ sub updateUserSet {
 
 	# if the dates are valid reset the set_dates to not include those from the problem set
 	$params->{set_dates} = $dates;
-
 
 	my $updated_user_set = $user_set->update($params);
 
@@ -477,9 +471,9 @@ sub _getUserSet {
 	return {
 		$user_set->get_inflated_columns,
 		course_name => $user_set->problem_sets->courses->course_name,
-		set_name => $user_set->problem_sets->set_name,
-		username => $user_set->course_users->users->username,
-		set_type => $user_set->set_type
+		set_name    => $user_set->problem_sets->set_name,
+		username    => $user_set->course_users->users->username,
+		set_type    => $user_set->set_type
 	};
 }
 
@@ -490,7 +484,7 @@ sub _mergeUserSet {
 
 	# override the user set params and dates
 	my $params = updateAllFields($user_set->problem_sets->set_params, $user_set->set_params);
-	my $dates = updateAllFields($user_set->problem_sets->set_dates, $user_set->set_dates);
+	my $dates  = updateAllFields($user_set->problem_sets->set_dates,  $user_set->set_dates);
 
 	return {
 		$user_set->get_columns,

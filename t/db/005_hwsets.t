@@ -51,28 +51,28 @@ my $user_rs        = $schema->resultset("User");
 my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
 for my $hw_set (@hw_sets) {
 	$hw_set->{set_type}    = "HW";
-	$hw_set->{set_version} = 1 unless defined($hw_set->{set_version});
-	$hw_set->{set_params} = {} unless defined $hw_set->{set_params};
+	$hw_set->{set_version} = 1  unless defined($hw_set->{set_version});
+	$hw_set->{set_params}  = {} unless defined $hw_set->{set_params};
 
 }
 
 my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
 for my $set (@quizzes) {
 	$set->{set_type}    = "QUIZ";
-	$set->{set_version} = 1 unless defined($set->{set_version});
-	$set->{set_params} = {} unless defined $set->{set_params};
+	$set->{set_version} = 1  unless defined($set->{set_version});
+	$set->{set_params}  = {} unless defined $set->{set_params};
 
 }
 
 my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv");
 for my $set (@review_sets) {
 	$set->{set_type}    = "REVIEW";
-	$set->{set_version} = 1 unless defined($set->{set_version});
-	$set->{set_params} = {} unless defined $set->{set_params};
+	$set->{set_version} = 1  unless defined($set->{set_version});
+	$set->{set_params}  = {} unless defined $set->{set_params};
 
 }
 
-my @all_problem_sets = (@hw_sets,@quizzes,@review_sets);
+my @all_problem_sets = (@hw_sets, @quizzes, @review_sets);
 
 ## Test getting all problem sets
 
@@ -167,7 +167,7 @@ my $new_set_params = {
 	set_type  => "HW"
 };
 
-my $new_set    = $problem_set_rs->addProblemSet({ course_name => "Precalculus" }, $new_set_params);
+my $new_set = $problem_set_rs->addProblemSet({ course_name => "Precalculus" }, $new_set_params);
 
 my $new_set_id = $new_set->{set_id};
 removeIDs($new_set);

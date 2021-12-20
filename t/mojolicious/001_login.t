@@ -51,7 +51,6 @@ $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => '
 	'valid credentials'
 	);
 
-
 # Test logout
 $t->post_ok('/webwork3/api/logout')->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is(
 	'' => {

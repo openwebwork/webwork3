@@ -49,7 +49,7 @@ my @all_problem_sets;    # stores all problem_sets
 
 my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
-	$quiz->{set_type} = "QUIZ";
+	$quiz->{set_type}    = "QUIZ";
 	$quiz->{set_version} = 1 unless defined($quiz->{set_version});
 }
 

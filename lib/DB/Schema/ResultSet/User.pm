@@ -64,10 +64,11 @@ C<result_set> determine which is returned.
 sub getGlobalUser {
 	my ($self, $user_info, $as_result_set) = @_;
 	my $user = $self->find(getUserInfo($user_info));
-	DB::Exception::UserNotFound->throw(
-		message => "The user with " . ($user_info->{username} ? "username '" : "user_id '") .
-		 ( $user_info->{username} ? $user_info->{username} : $user_info->{user_id} )  . "' does not exist "
-	) unless defined($user);
+	DB::Exception::UserNotFound->throw(message => "The user with "
+			. ($user_info->{username} ? "username '"           : "user_id '")
+			. ($user_info->{username} ? $user_info->{username} : $user_info->{user_id})
+			. "' does not exist ")
+		unless defined($user);
 	return $user if $as_result_set;
 	my $params = { $user->get_inflated_columns };
 	$params->{role} = "admin" if $user->is_admin;

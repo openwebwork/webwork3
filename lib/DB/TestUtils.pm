@@ -7,13 +7,11 @@ use Text::CSV qw/csv/;
 use YAML::XS qw/LoadFile/;
 use DateTime::Format::Strptime;
 
-
 require Exporter;
 use base qw(Exporter);
 our @EXPORT_OK = qw/buildHash loadCSV removeIDs filterBySetType loadSchema/;
 
 my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
-
 
 =head1 DESCRIPTION
 
