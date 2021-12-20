@@ -61,12 +61,12 @@ use lib "$main::ww3_dir/lib";
 use DB::Schema;
 use DB::Schema::Result::CourseUser;
 
-my $verbose    = 0;
-my $rebuild_db = 0;
+my $verbose     = 0;
+my $rebuild_db  = 0;
 my $course_name = '';
-my $db_dsn = '';
-my $db_user = '';
-my $db_pass = '';
+my $db_dsn      = '';
+my $db_user     = '';
+my $db_pass     = '';
 GetOptions(
 	'r|rebuild_db+'         => \$rebuild_db,
 	'c|course=s'            => \$course_name,
@@ -75,7 +75,6 @@ GetOptions(
 	'u|database-user=s'     => \$db_user,
 	'p|database-password=s' => \$db_pass
 ) || pod2usage();
-
 
 # Load the webwork3 configuration file:
 
@@ -95,10 +94,9 @@ if ($verbose) {
 	say "with user " . $config->{database_user};
 }
 
-my $dbh     = DBI->connect($db_dsn, $db_user, $db_pass, { RaiseError => 1, AutoCommit => 0 });
+my $dbh = DBI->connect($db_dsn, $db_user, $db_pass, { RaiseError => 1, AutoCommit => 0 });
 
-my $schema  = DB::Schema->connect($config->{database_dsn},
-	$config->{database_user}, $config->{database_password});
+my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
 my $course_rs      = $schema->resultset('Course');
 my $user_rs        = $schema->resultset('User');
@@ -129,7 +127,6 @@ addProblemSets();
 addProblems();
 addUserSets();
 
-
 my $db_tables = {};
 
 sub rebuild {
@@ -138,7 +135,8 @@ sub rebuild {
 	my $course;
 	try {
 		$course = $course_rs->getCourse({ course_name => $course_name });
-	} catch { };
+	} catch {
+	};
 
 	return unless $course;
 
@@ -147,8 +145,6 @@ sub rebuild {
 	removeProblems();
 	removeProblemSets();
 	removeCourse();
-
-
 
 	return;
 }
@@ -202,7 +198,6 @@ sub addUsers {
 			$user_params->{$key} = $r->{$key} if defined($r->{$key});
 		}
 
-
 		my $user = $user_rs->find({ username => $user_params->{username} });
 		$user_rs->addGlobalUser($user_params) unless $user;
 		say "Adding user with username $r->{user_id}" if $verbose && !defined($user);
@@ -222,8 +217,7 @@ sub addUsers {
 		my $perm = $sth2->fetchrow_hashref();
 		$course_user->{role} = $PERMISSIONS{ $perm->{permission} };
 
-		$user_rs->addCourseUser({ course_name => $course_name, username => $course_user->{username} },
-			$course_user);
+		$user_rs->addCourseUser({ course_name => $course_name, username => $course_user->{username} }, $course_user);
 	}
 	return;
 }
@@ -248,21 +242,21 @@ sub removeUsers {
 
 sub addProblemSets {
 
-	my $set_table     = $course_name . "_set";
-	my $sth           = $dbh->prepare("SELECT * FROM `$set_table`");
+	my $set_table = $course_name . "_set";
+	my $sth       = $dbh->prepare("SELECT * FROM `$set_table`");
 	$sth->execute();
-	my $ref  = $sth->fetchall_arrayref({});
+	my $ref = $sth->fetchall_arrayref({});
 
 	for my $r (@$ref) {
 		my $set_params = {
-			set_name => $r->{set_id},
-			set_dates    => {},
-			set_params   => {},
-			set_visible  => $r->{visible} // 0
+			set_name    => $r->{set_id},
+			set_dates   => {},
+			set_params  => {},
+			set_visible => $r->{visible} // 0
 		};
 
 		if ($r->{assignment_type} eq 'default') {    # it's a homework set
-		  $set_params->{set_type} = 'HW';
+			$set_params->{set_type} = 'HW';
 			for my $key (qw/set_header hardcopy_header hide_hint enable_reduced_scoring/) {
 				$set_params->{set_params}->{$key} = $r->{$key} if defined($r->{$key});
 			}
@@ -273,8 +267,11 @@ sub addProblemSets {
 
 		} elsif ($r->{assignment_type} eq 'gateway') {
 			$set_params->{set_type} = 'QUIZ';
-			for my $key (qw/set_header hardcopy_header problem_randorder problems_per_page
-				hide_score hide_score_by_problem hide_work time_limit_cap restrict_ip relax_restrict_ip/) {
+			for my $key (
+				qw/set_header hardcopy_header problem_randorder problems_per_page
+				hide_score hide_score_by_problem hide_work time_limit_cap restrict_ip relax_restrict_ip/
+				)
+			{
 				$set_params->{set_params}->{$key} = $r->{$key} if defined($r->{$key});
 			}
 			$set_params->{set_params}->{quiz_duration} = $r->{time_interval} // 0;
@@ -303,20 +300,20 @@ sub removeProblemSets {
 ## Add/Remove UserSets
 
 sub addUserSets {
-	my $user_set_table     = $course_name . "_set_user";
-	my @problem_sets = $problem_set_rs->getProblemSets({ course_name => $course_name });
+	my $user_set_table = $course_name . "_set_user";
+	my @problem_sets   = $problem_set_rs->getProblemSets({ course_name => $course_name });
 	for my $set (@problem_sets) {
 		my $sth = $dbh->prepare("SELECT * FROM `$user_set_table` WHERE set_id = '$set->{set_name}'");
 		$sth->execute();
-		my $ref  = $sth->fetchall_arrayref({});
+		my $ref = $sth->fetchall_arrayref({});
 
 		for my $r (@$ref) {
 			next if $r->{user_id} eq 'admin';
 			say "Adding user set for set $set->{set_name} and user $r->{user_id}";
 			my $set_params = {
-				set_dates    => {},
-				set_params   => {},
-				set_visible  => $r->{visible},
+				set_dates   => {},
+				set_params  => {},
+				set_visible => $r->{visible},
 			};
 
 			if ($set->{set_type} eq 'HW') {
@@ -324,14 +321,17 @@ sub addUserSets {
 					$set_params->{set_params}->{$key} = $r->{$key} if defined($r->{$key});
 				}
 				for my $key (qw/open due answer reduced_scoring/) {
-					$set_params->{set_dates}->{$key} = $r->{ $key . '_date' } if defined $r->{$key . '_date'};
+					$set_params->{set_dates}->{$key} = $r->{ $key . '_date' } if defined $r->{ $key . '_date' };
 				}
 			}
-			$user_set_rs->addUserSet({
-				course_name => $course_name,
-				set_id => $set->{set_id},
-				username => $r->{user_id}
-			}, $set_params);
+			$user_set_rs->addUserSet(
+				{
+					course_name => $course_name,
+					set_id      => $set->{set_id},
+					username    => $r->{user_id}
+				},
+				$set_params
+			);
 		}
 	}
 }
@@ -339,12 +339,16 @@ sub addUserSets {
 sub removeUserSets {
 	my @problem_sets = $problem_set_rs->getProblemSets({ course_name => $course_name });
 	for my $set (@problem_sets) {
-		my @user_sets = $user_set_rs->getUserSetsForSet({
-			course_name => $course_name,
-			set_id => $set->{set_id}
-		},1);
+		my @user_sets = $user_set_rs->getUserSetsForSet(
+			{
+				course_name => $course_name,
+				set_id      => $set->{set_id}
+			},
+			1
+		);
 		for my $user_set (@user_sets) {
-			say "Removing set " . $set->{set_name} . " for user " . $user_set->course_users->users->username if $verbose;
+			say "Removing set " . $set->{set_name} . " for user " . $user_set->course_users->users->username
+				if $verbose;
 			$user_set->delete;
 		}
 	}
@@ -353,7 +357,7 @@ sub removeUserSets {
 ## Add/Remove Problems
 
 sub removeProblems {
-	my @problems = $problem_rs->getProblems({course_name => $course_name},1);
+	my @problems = $problem_rs->getProblems({ course_name => $course_name }, 1);
 	for my $problem (@problems) {
 		say "Removing problem " . $problem->problem_number . " from " . $problem->problem_set->set_name if $verbose;
 		$problem->delete;
@@ -364,16 +368,14 @@ sub addProblems {
 	my $problem_table = $course_name . "_problem";
 	my $sth           = $dbh->prepare("SELECT * FROM `$problem_table`");
 	$sth->execute();
-	my $ref  = $sth->fetchall_arrayref({});
+	my $ref = $sth->fetchall_arrayref({});
 	for my $r (@$ref) {
-		my $problem_params = {
-			file_path => $r->{source_file}
-		};
+		my $problem_params = { file_path => $r->{source_file} };
 		for my $key (qw/value max_attempts/) {
 			$problem_params->{$key} = $r->{$key} if $r->{$key};
 		}
 
-		my $problem_set = $problem_set_rs->getProblemSet({course_name => $course_name, set_name => $r->{set_id}},1);
+		my $problem_set = $problem_set_rs->getProblemSet({ course_name => $course_name, set_name => $r->{set_id} }, 1);
 		$problem_set->add_to_problems({
 			problem_number => $r->{problem_id},
 			problem_params => $problem_params
