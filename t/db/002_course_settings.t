@@ -13,7 +13,6 @@ BEGIN {
 
 use lib "$main::ww3_dir/lib";
 
-use Data::Dumper;
 use List::MoreUtils qw(uniq);
 
 use Test::More;

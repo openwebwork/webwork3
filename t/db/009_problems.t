@@ -13,7 +13,6 @@ BEGIN {
 
 use lib "$main::ww3_dir/lib";
 
-use Data::Dumper;
 use Test::More;
 use Test::Exception;
 use Try::Tiny;

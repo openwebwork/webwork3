@@ -17,7 +17,6 @@ use Getopt::Long;
 my $TEST_PERMISSIONS;
 GetOptions("perm" => \$TEST_PERMISSIONS);    # check for the flag --perm when running this.
 
-use Data::Dumper;
 use DB::Schema;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;

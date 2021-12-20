@@ -14,7 +14,6 @@ BEGIN {
 use lib "$main::ww3_dir/lib";
 
 use Text::CSV qw/csv/;
-use Data::Dumper;
 use Test::More;
 use Test::Exception;
 use Try::Tiny;
@@ -84,9 +83,6 @@ for my $user (@users_from_db) {
 @users_from_db = sort { $a->{username} cmp $b->{username} } @users_from_db;
 
 is_deeply(\@all_students, \@users_from_db, "getUsers: all users");
-
-# dd \@all_students;
-# dd \@users_from_db;
 
 ## get one user that exists
 

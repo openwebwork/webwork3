@@ -13,7 +13,6 @@ BEGIN {
 
 use lib "$main::ww3_dir/lib";
 
-use Data::Dumper;
 use List::MoreUtils qw(uniq);
 use Test::More;
 use Test::Exception;
@@ -38,9 +37,6 @@ my $schema =
 	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
 # $schema->storage->debug(1);  # print out the SQL commands.
-
-my @hw_dates  = @DB::Schema::Result::ProblemSet::HWSet::VALID_DATES;
-my @hw_params = @DB::Schema::Result::ProblemSet::HWSet::VALID_PARAMS;
 
 my $problem_set_rs = $schema->resultset("ProblemSet");
 my $course_rs      = $schema->resultset("Course");

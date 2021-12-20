@@ -57,10 +57,6 @@ if ($TEST_PERMISSIONS) {
 my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
 for my $set (@hw_sets) {
 	$set->{set_type} = "HW";
-	for my $date (keys %{ $set->{set_dates} }) {
-		my $dt = $strp->parse_datetime($set->{set_dates}->{$date});
-		$set->{set_dates}->{$date} = $dt->epoch;
-	}
 }
 
 $t->get_ok('/webwork3/api/courses/2/sets')->status_is(200)->content_type_is('application/json;charset=UTF-8')

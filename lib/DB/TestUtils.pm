@@ -45,7 +45,6 @@ sub buildHash {
 			$output->{set_dates}->{$date} = $dt->epoch;
 		}
 	}
-	$output->{set_params} = {} unless defined $output->{set_params};
 
 	return $output;
 }

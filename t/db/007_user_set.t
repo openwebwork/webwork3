@@ -26,8 +26,6 @@ use YAML::XS qw/LoadFile/;
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
 
-use Data::Dumper;
-
 ## load the configuration files and then the database
 
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
@@ -75,7 +73,6 @@ my @usersets_that_may_exist = $user_set_rs->search(
 
 for my $u (@usersets_that_may_exist) {
 	$u->delete;
-	# print Dumper {$u->get_inflated_columns};
 }
 
 # load info from CSV files

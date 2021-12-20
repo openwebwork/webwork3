@@ -41,9 +41,6 @@ my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croa
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 
-my @hw_dates  = @DB::Schema::Result::ProblemSet::HWSet::VALID_DATES;
-my @hw_params = @DB::Schema::Result::ProblemSet::HWSet::VALID_PARAMS;
-
 my $problem_set_rs = $schema->resultset("ProblemSet");
 my $course_rs      = $schema->resultset("Course");
 my $user_rs        = $schema->resultset("User");
@@ -53,10 +50,7 @@ my @all_problem_sets;    # stores all problem_sets
 my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
 	$quiz->{set_type} = "QUIZ";
-	for my $date (keys %{ $quiz->{set_dates} }) {
-		my $dt = $strp->parse_datetime($quiz->{set_dates}->{$date});
-		$quiz->{set_dates}->{$date} = $dt->epoch;
-	}
+	$quiz->{set_version} = 1 unless defined($quiz->{set_version});
 }
 
 ## remove the quiz: Quiz #9 if it exists:
@@ -283,6 +277,7 @@ my $updated_quiz = $problem_set_rs->updateProblemSet(
 	$updated_params
 );
 
+$new_quiz->{set_version} = 1;
 $new_quiz->{set_visible} = 0;
 $new_quiz->{set_params}  = {};
 

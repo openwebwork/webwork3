@@ -5,16 +5,23 @@ use Mojo::Base -strict;
 use Test::More;
 use Test::Mojo;
 
+use YAML::XS qw/LoadFile/;
+
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir = abs_path(dirname(__FILE__));
-	$main::lib_dir  = dirname(dirname($main::test_dir)) . '/lib';
+	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
-use lib "$main::lib_dir";
+use lib "$main::ww3_dir/lib";
 
-my $t = Test::Mojo->new('WeBWorK3');
+my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
+die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
+	unless (-e $config_file);
+
+my $config = LoadFile($config_file);
+
+my $t = Test::Mojo->new(WeBWorK3 => $config);
 
 # Test missing credentials
 $t->post_ok('/webwork3/api/login')->status_is(250, 'error status')->content_type_is('application/json;charset=UTF-8')
@@ -43,6 +50,7 @@ $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => '
 	},
 	'valid credentials'
 	);
+
 
 # Test logout
 $t->post_ok('/webwork3/api/logout')->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is(
