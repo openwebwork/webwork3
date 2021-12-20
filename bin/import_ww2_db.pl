@@ -167,6 +167,7 @@ sub removeCourse {
 	my $course = $course_rs->find({ course_name => $course_name });
 	$course->delete                        if $course;
 	say "deleting the course $course_name" if $verbose;
+	return;
 }
 
 # Add/Remove Users
@@ -236,6 +237,7 @@ sub removeUsers {
 			say "From course $course_name, deleting user $course_user->{username}" if $verbose;
 		}
 	}
+	return;
 }
 
 # Add/Remove Problem Sets
@@ -334,6 +336,7 @@ sub addUserSets {
 			);
 		}
 	}
+	return;
 }
 
 sub removeUserSets {
@@ -352,6 +355,7 @@ sub removeUserSets {
 			$user_set->delete;
 		}
 	}
+	return;
 }
 
 ## Add/Remove Problems
@@ -362,6 +366,7 @@ sub removeProblems {
 		say "Removing problem " . $problem->problem_number . " from " . $problem->problem_set->set_name if $verbose;
 		$problem->delete;
 	}
+	return;
 }
 
 sub addProblems {
@@ -381,6 +386,7 @@ sub addProblems {
 			problem_params => $problem_params
 		});
 	}
+	return;
 }
 
 1;
