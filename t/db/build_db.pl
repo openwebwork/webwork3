@@ -243,28 +243,31 @@ sub addUserProblems {
 	my @user_problems = loadCSV("$main::ww3_dir/t/db/sample_data/user_problems.csv");
 	for my $user_problem (@user_problems) {
 		# print Dumper $user_problem;
-		my $user_set = $user_set_rs->find({
-			'users.username' => $user_problem->{username},
-			'courses.course_name' => $user_problem->{course_name},
-			'problem_sets.set_name' => $user_problem->{set_name}
-		},{
-			join => [
-				{ problem_sets => 'courses' },
-				{ course_users => 'users' }
-			]
-		});
-		my $problem = $problem_rs->find({
-			'courses.course_name' => $user_problem->{course_name},
-			'problem_set.set_name' => $user_problem->{set_name},
-			'problem_number' => $user_problem->{problem_number}
-		},{
-			join => { 'problem_set' => 'courses'}
-		});
+		my $user_set = $user_set_rs->find(
+			{
+				'users.username'        => $user_problem->{username},
+				'courses.course_name'   => $user_problem->{course_name},
+				'problem_sets.set_name' => $user_problem->{set_name}
+			},
+			{
+				join => [ { problem_sets => 'courses' }, { course_users => 'users' } ]
+			}
+		);
+		my $problem = $problem_rs->find(
+			{
+				'courses.course_name'  => $user_problem->{course_name},
+				'problem_set.set_name' => $user_problem->{set_name},
+				'problem_number'       => $user_problem->{problem_number}
+			},
+			{
+				join => { 'problem_set' => 'courses' }
+			}
+		);
 
 		$user_set->add_to_user_problems({
 			problem_id => $problem->problem_id,
-			seed => $user_problem->{seed},
-			status => 1
+			seed       => $user_problem->{seed},
+			status     => 1
 		});
 	}
 }
