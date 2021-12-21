@@ -119,13 +119,14 @@ my %PERMISSIONS = (
 	20 => "admin"
 );
 
-rebuild() if $rebuild_db;
+# rebuild() if $rebuild_db;
 
-addCourse();
-addUsers();
-addProblemSets();
-addProblems();
-addUserSets();
+# addCourse();
+# addUsers();
+# addProblemSets();
+# addProblems();
+# addUserSets();
+addUserProblems();
 
 my $db_tables = {};
 
@@ -140,6 +141,7 @@ sub rebuild {
 
 	return unless $course;
 
+	removeUserProblems();
 	removeUserSets();
 	removeUsers();
 	removeProblems();
@@ -297,6 +299,7 @@ sub removeProblemSets {
 		$problem_set_rs->deleteProblemSet({ course_name => $course_name, set_id => $problem_set->{set_id} });
 		say "deleting problem set: $problem_set->{set_name}" if $verbose;
 	}
+	return;
 }
 
 ## Add/Remove UserSets
@@ -305,13 +308,13 @@ sub addUserSets {
 	my $user_set_table = $course_name . "_set_user";
 	my @problem_sets   = $problem_set_rs->getProblemSets({ course_name => $course_name });
 	for my $set (@problem_sets) {
+		say "Adding user sets for set $set->{set_name}" if $verbose;
 		my $sth = $dbh->prepare("SELECT * FROM `$user_set_table` WHERE set_id = '$set->{set_name}'");
 		$sth->execute();
 		my $ref = $sth->fetchall_arrayref({});
 
 		for my $r (@$ref) {
 			next if $r->{user_id} eq 'admin';
-			say "Adding user set for set $set->{set_name} and user $r->{user_id}";
 			my $set_params = {
 				set_dates   => {},
 				set_params  => {},
@@ -327,12 +330,12 @@ sub addUserSets {
 				}
 			}
 			$user_set_rs->addUserSet(
-				{
+				user_set_info => {
 					course_name => $course_name,
 					set_id      => $set->{set_id},
 					username    => $r->{user_id}
 				},
-				$set_params
+				user_set_params => $set_params
 			);
 		}
 	}
@@ -342,12 +345,12 @@ sub addUserSets {
 sub removeUserSets {
 	my @problem_sets = $problem_set_rs->getProblemSets({ course_name => $course_name });
 	for my $set (@problem_sets) {
-		my @user_sets = $user_set_rs->getUserSetsForSet(
-			{
+		my @user_sets = $user_set_rs->getUserSets(
+			user_set_info => {
 				course_name => $course_name,
 				set_id      => $set->{set_id}
 			},
-			1
+			as_result_set => 1
 		);
 		for my $user_set (@user_sets) {
 			say "Removing set " . $set->{set_name} . " for user " . $user_set->course_users->users->username
@@ -385,6 +388,36 @@ sub addProblems {
 			problem_number => $r->{problem_id},
 			problem_params => $problem_params
 		});
+	}
+	return;
+}
+
+# Add/Remove user problems
+
+sub removeUserProblems {
+	my @user_problems = $problem_rs->getUserProblems({ course_name => $course_name }, 1);
+	for my $problem (@user_problems) {
+		say "Removing problem " . $problem->problem_number . " from " . $problem->problem_set->set_name if $verbose;
+		# $problem->delete;
+	}
+
+	return;
+}
+
+sub addUserProblems {
+	my $problem_user_table = $course_name . "_problem_user";
+	my $sth                = $dbh->prepare("SELECT * FROM `$problem_user_table`");
+	$sth->execute();
+	my $ref = $sth->fetchall_arrayref({});
+
+	say "adding User Problems";
+	for my $r (@$ref) {
+		#print Dumper $r;
+		next if $r->{user_id} eq 'admin';
+		my $problem_set = $problem_set_rs->getProblemSet({ course_name => $course_name, set_name => $r->{set_id} }, 1);
+		my $course_user = $user_rs->getCourseUser({ course_name => $course_name, username => $r->{user_id} });
+		#print Dumper $course_user;
+
 	}
 	return;
 }
