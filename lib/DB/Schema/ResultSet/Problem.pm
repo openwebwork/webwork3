@@ -3,13 +3,11 @@ use strict;
 use warnings;
 use base 'DBIx::Class::ResultSet';
 
-# use List::Util qw/first/;
-
 use DB::Utils qw/getCourseInfo getSetInfo getProblemInfo updateAllFields/;
 
 =head1 DESCRIPTION
 
-This is the functionality of a Course in WeBWorK.  This package is based on
+This is the functionality of a Problem in WeBWorK.  This package is based on
 C<DBIx::Class::ResultSet>.  The basics are a CRUD for anything on the
 global courses.
 

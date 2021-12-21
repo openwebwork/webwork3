@@ -57,10 +57,7 @@ my @precalc_problems1 = grep { $_->{set_name} eq "HW #1" } @precalc_problems;
 
 for my $problem (@problems_from_csv) {
 	$problem->{problem_version} = 1 unless defined($problem->{problem_version});
-	$problem->{problem_params}  = clone($problem->{params});
-	for my $key (qw/course_name params/) {
-		delete $problem->{$key};
-	}
+	delete $problem->{course_name};
 }
 
 my @all_problems = map { clone($_) } @problems_from_csv;

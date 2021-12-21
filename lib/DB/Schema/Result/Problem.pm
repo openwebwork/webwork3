@@ -119,7 +119,6 @@ __PACKAGE__->set_primary_key('problem_id');
 __PACKAGE__->add_unique_constraint([qw/problem_id set_id problem_version problem_number/]);
 
 __PACKAGE__->belongs_to(problem_set => 'DB::Schema::Result::ProblemSet', 'set_id');
-
-__PACKAGE__->has_many(user_problem => 'DB::Schema::Result::UserProblem', 'problem_id');
+__PACKAGE__->has_many(user_problems => 'DB::Schema::Result::UserProblem', 'problem_id');
 
 1;

@@ -420,6 +420,7 @@ sub _course_user_rs {
 
 sub _getProblemSet {
 	my ($self, $info) = @_;
+
 	my $set_info = { %{ getCourseInfo($info) }, %{ getSetInfo($info) } };
 	return $self->_problem_set_rs->getProblemSet($set_info, 1);
 }
@@ -443,6 +444,10 @@ sub _getCourse {
 }
 
 # return the course user with the given data
+#
+# $info is a hashref with
+# * course_user_id or
+# * course_id or course_name AND user_id or username
 
 sub _getCourseUser {
 	my ($self, $info) = @_;

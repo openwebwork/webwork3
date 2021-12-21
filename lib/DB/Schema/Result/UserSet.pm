@@ -136,7 +136,7 @@ __PACKAGE__->belongs_to(
 	{ 'foreign.course_user_id' => 'self.course_user_id' }
 );
 __PACKAGE__->belongs_to(problem_sets => 'DB::Schema::Result::ProblemSet', 'set_id');
-
+__PACKAGE__->has_many(user_problems => 'DB::Schema::Result::UserProblem', 'user_set_id');
 #
 # This defines the non-abstract classes of ProblemSets.
 #
