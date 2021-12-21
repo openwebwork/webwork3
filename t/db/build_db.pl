@@ -270,6 +270,7 @@ sub addUserProblems {
 			status     => 1
 		});
 	}
+	return;
 }
 
 addCourses;

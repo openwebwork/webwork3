@@ -163,6 +163,7 @@ sub _getProblem {
 			. " for problem "
 			. dump(getProblemInfo($info)))
 		unless $problem;
+	return $problem;
 }
 
 sub _getUserSet {
