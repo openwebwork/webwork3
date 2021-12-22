@@ -152,32 +152,6 @@ throws_ok {
 }
 "DB::Exception::CourseNotFound", "deleteCourse: delete a non-existent course_id";
 
-## get a list of courses for a user
-
-my @user_courses = $course_rs->getUserCourses(info => { username => "lisa" });
-for my $user_course (@user_courses) {
-	removeIDs($user_course);
-}
-
-my @students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
-
-my @user_courses_from_csv = grep { $_->{username} eq "lisa" } @students;
-
-for my $user_course (@user_courses_from_csv) {
-	for my $key (qw/email first_name last_name username student_id/) {
-		delete $user_course->{$key};
-	}
-}
-
-is_deeply(\@user_courses, \@user_courses_from_csv, "getUserCourses: get all courses for a given user");
-
-## try to get a list of course from a non-existent user
-
-throws_ok {
-	$course_rs->getUserCourses(info => { username => "non_existent_user" });
-}
-"DB::Exception::UserNotFound", "getUserCourse: try to get a list of courses for a non-existent user";
-
 sub sortByCourseName {
 	my $course_rs = shift;
 	my @new_array = sort { $a->{course_name} cmp $b->{course_name} } @$course_rs;

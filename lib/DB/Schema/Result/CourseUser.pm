@@ -3,6 +3,8 @@ use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
 
+use base qw(DBIx::Class::Core DB::WithParams);
+
 =head1 DESCRIPTION
 
 This is the database schema for a CourseUser.  Note: this table has two purposes 1) a relationship table linking
@@ -131,7 +133,7 @@ __PACKAGE__->add_columns(
 		size        => 16,
 		is_nullable => 1,
 	},
-	params => {    # store params as a JSON object
+	course_user_params => {    # store params as a JSON object
 		data_type          => 'text',
 		size               => 256,
 		is_nullable        => 0,
@@ -140,6 +142,24 @@ __PACKAGE__->add_columns(
 		serializer_options => { utf8 => 1 }
 	}
 );
+
+sub valid_params {
+	return {
+		comment => q{.*},
+		useMathQuill => q{[01]},
+		useMathView => q{[01]},
+		displayMode => q{.*},
+		status => q{[a-z]},
+		lis_source_did => q{.*},
+		useWirisEditor => q{[01]},
+		showOldAnswers => q{[01]}
+	};
+}
+
+sub required_params {
+	return {};
+}
+
 
 __PACKAGE__->set_primary_key('course_user_id');
 __PACKAGE__->add_unique_constraint([qw/course_id user_id/]);

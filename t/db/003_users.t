@@ -39,6 +39,7 @@ my $schema =
 # $schema->storage->debug(1);  # print out the SQL commands.
 
 my $users_rs = $schema->resultset("User");
+my $course_rs = $schema->resultset("Course");
 
 # remove the maggie user if exists in the database
 my $maggie = $users_rs->find({ username => "maggie" });
@@ -86,12 +87,12 @@ is_deeply(\@all_students, \@users_from_db, "getUsers: all users");
 
 ## get one user that exists
 
-my $user = $users_rs->getGlobalUser({ username => $all_students[0]->{username} });
+my $user = $users_rs->getGlobalUser(info => { username => $all_students[0]->{username} });
 removeIDs($user);
 delete $user->{role};
 is_deeply($all_students[0], $user, "getUser: by username");
 
-$user = $users_rs->getGlobalUser({ user_id => 2 });
+$user = $users_rs->getGlobalUser(info => { user_id => 2 });
 removeIDs($user);
 my @stud2 = grep { $_->{username} eq $user->{username} } @all_students;
 is_deeply($stud2[0], $user, "getUser: by user_id");
@@ -99,12 +100,12 @@ is_deeply($stud2[0], $user, "getUser: by user_id");
 ## get one user that does not exist
 
 throws_ok {
-	$user = $users_rs->getGlobalUser({ user_id => -9 });
+	$user = $users_rs->getGlobalUser(info => { user_id => -9 });
 }
 "DB::Exception::UserNotFound", "getUser: undefined user_id";
 
 throws_ok {
-	$user = $users_rs->getGlobalUser({ username => "non_existent_user" });
+	$user = $users_rs->getGlobalUser(info => { username => "non_existent_user" });
 }
 "DB::Exception::UserNotFound", "getUser: undefined username";
 
@@ -119,7 +120,7 @@ $user = {
 	is_admin   => 0,
 };
 
-my $new_user = $users_rs->addGlobalUser($user);
+my $new_user = $users_rs->addGlobalUser(params => $user);
 removeIDs($new_user);
 is_deeply($user, $new_user, "addUser: adding a user");
 
@@ -127,32 +128,35 @@ is_deeply($user, $new_user, "addUser: adding a user");
 
 my $updated_user = {%$user};    # make a copy of $user;
 $updated_user->{email} = 'spring.cop@gmail.com';
-my $up_user_from_db = $users_rs->updateGlobalUser({ username => $updated_user->{username} }, $updated_user);
+my $up_user_from_db = $users_rs->updateGlobalUser(
+	info => { username => $updated_user->{username} },
+	params => $updated_user
+);
 removeIDs($up_user_from_db);
 is_deeply($updated_user, $up_user_from_db, "updateUser: updating a user");
 
 ## try to update a user without passing username info:
 
 throws_ok {
-	$users_rs->updateGlobalUser({ username_name => "wiggam" }, $updated_user);
+	$users_rs->updateGlobalUser(info => { username_name => "wiggam" }, params => $updated_user);
 }
 "DB::Exception::ParametersNeeded", "updateUser: wrong user_info sent";
 
 ## try to update a user that doesn't exist:
 
 throws_ok {
-	$users_rs->updateGlobalUser({ username => "non_existent_user" }, $updated_user);
+	$users_rs->updateGlobalUser(info => { username => "non_existent_user" }, params => $updated_user);
 }
 "DB::Exception::UserNotFound", "updateUser: update user for a non-existing username";
 
 throws_ok {
-	$users_rs->updateGlobalUser({ user_id => -5 }, $updated_user);
+	$users_rs->updateGlobalUser(info => { user_id => -5 }, params => $updated_user);
 }
 "DB::Exception::UserNotFound", "updateUser: update user for a non-existing user_id";
 
 ## delete a user
 
-my $user_to_delete = $users_rs->deleteGlobalUser({ username => $user->{username} });
+my $user_to_delete = $users_rs->deleteGlobalUser(info => { username => $user->{username} });
 
 delete $user_to_delete->{user_id};
 is_deeply($updated_user, $user_to_delete, "deleteUser: delete a user");
@@ -160,14 +164,44 @@ is_deeply($updated_user, $user_to_delete, "deleteUser: delete a user");
 ## delete a user that doesn't exist.
 
 throws_ok {
-	$user = $users_rs->deleteGlobalUser({ username => "undefined_username" });
+	$user = $users_rs->deleteGlobalUser(info => { username => "undefined_username" });
 }
 "DB::Exception::UserNotFound", "deleteUser: trying to delete with undefined username";
 
 throws_ok {
-	$user = $users_rs->deleteGlobalUser({ user_id => -3 });
+	$user = $users_rs->deleteGlobalUser(info => { user_id => -3 });
 }
 "DB::Exception::UserNotFound", "deleteUser: trying to delete with undefined user_id";
+
+## get a list of courses for a user
+
+my @user_courses = $course_rs->getUserCourses(info => { username => "lisa" });
+for my $user_course (@user_courses) {
+	removeIDs($user_course);
+}
+
+@students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
+
+
+my @user_courses_from_csv = grep { $_->{username} eq "lisa" } @students;
+
+for my $user_course (@user_courses_from_csv) {
+	for my $key (qw/email first_name last_name username student_id/) {
+		delete $user_course->{$key};
+	}
+	$user_course->{course_user_params} = $user_course->{params};
+	delete $user_course->{params};
+}
+
+is_deeply(\@user_courses, \@user_courses_from_csv, "getUserCourses: get all courses for a given user");
+
+## try to get a list of course from a non-existent user
+
+throws_ok {
+	$course_rs->getUserCourses(info => { username => "non_existent_user" });
+}
+"DB::Exception::UserNotFound", "getUserCourses: try to get a list of courses for a non-existent user";
+
 
 done_testing;
 

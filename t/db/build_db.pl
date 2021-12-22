@@ -108,7 +108,8 @@ sub addUsers {
 		for my $key (qw/section recitation params role/) {
 			$params->{$key} = $student->{$key};
 		}
-		$params->{params} = {} unless defined $params->{params};
+		$params->{course_user_params} = $params->{params} // {};
+		delete $params->{params};
 		my $u = $course_user->update($params);
 	}
 	return;

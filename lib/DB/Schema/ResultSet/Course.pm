@@ -231,7 +231,7 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 sub getUserCourses {
 	my ($self, %args) = @_;
 	my $user = $self->result_source->schema->resultset("User")
-		->getGlobalUser(getUserInfo($args{info}), 1);
+		->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
 
 	my @user_courses = $self->search({
 			'course_users.user_id' => $user->user_id
