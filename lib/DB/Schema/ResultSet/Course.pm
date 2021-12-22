@@ -3,13 +3,12 @@ use strict;
 use warnings;
 use base 'DBIx::Class::ResultSet';
 
-use Carp;
-use List::Util qw/first/;
-
 use Clone qw/clone/;
 use DB::Utils qw/getCourseInfo getUserInfo/;
 use DB::Exception;
 use Exception::Class ('DB::Exception::CourseNotFound', 'DB::Exception::CourseExists');
+use Data::Dump qw/dump/;
+
 
 use DB::TestUtils qw/removeIDs/;
 use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings mergeCourseSettings
@@ -53,9 +52,9 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 =cut
 
 sub getCourses {
-	my ($self, $as_result_set) = @_;
+	my ($self, %args) = @_;
 	my @courses = $self->search();
-	return @courses if $as_result_set;
+	return @courses if $args{as_result_set};
 	return map {
 		{ $_->get_inflated_columns };
 	} @courses;
@@ -87,10 +86,12 @@ of the fields. See above.
 =cut
 
 sub getCourse {
-	my ($self, $course_info, $as_result_set) = @_;
-	my $course = $self->find(getCourseInfo($course_info));
-	DB::Exception::CourseNotFound->throw(course_name => $course_info) unless defined($course);
-	return $course if $as_result_set;
+	my ($self, %args) = @_;
+	my $course = $self->find(getCourseInfo($args{info}));
+	DB::Exception::CourseNotFound->throw(
+		message => "The course: " . dump(getCourseInfo($args{info})) . " does not exist."
+	) unless defined($course);
+	return $course if $args{as_result_set};
 
 	return { $course->get_inflated_columns };
 }
@@ -119,7 +120,8 @@ of the fields. See above.
 =cut
 
 sub addCourse {
-	my ($self, $course_params, $as_result_set) = @_;
+	my ($self, %args) = @_;
+	my $course_params = $args{info};
 	DB::Exception::ParametersNeeded->throw(message => "The parameters must include course_name")
 		unless defined($course_params->{course_name});
 
@@ -136,7 +138,7 @@ sub addCourse {
 	# check the parameters
 	my $new_course = $self->create($params);
 
-	return $new_course if $as_result_set;
+	return $new_course if $args{as_result_set};
 	return { $new_course->get_inflated_columns };
 }
 
@@ -166,11 +168,11 @@ of the fields. See above.
 =cut
 
 sub deleteCourse {
-	my ($self, $course_info, $as_result_set) = @_;
-	my $course_to_delete = $self->getCourse(getCourseInfo($course_info), 1);
+	my ($self, %args) = @_;
+	my $course_to_delete = $self->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 
 	my $deleted_course = $course_to_delete->delete;
-	return $deleted_course if $as_result_set;
+	return $deleted_course if $args{as_result_set};
 
 	return { $course_to_delete->get_inflated_columns };
 }
@@ -196,12 +198,12 @@ The updated course as a C<DBIx::Class::ResultSet::Course> object.
 =cut
 
 sub updateCourse {
-	my ($self, $course_info, $course_params, $as_result_set) = @_;
-	my $course = $self->getCourse(getCourseInfo($course_info), 1);
+	my ($self, %args) = @_;
+	my $course = $self->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 	## TODO: check the validity of the params
-	my $course_to_return = $course->update($course_params);
+	my $course_to_return = $course->update($args{params});
 
-	return $course_to_return if $as_result_set;
+	return $course_to_return if $args{as_result_set};
 	return { $course_to_return->get_inflated_columns };
 }
 
@@ -227,16 +229,26 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 =cut
 
 sub getUserCourses {
-	my ($self, $user_info, $as_result_set) = @_;
-	my $user = $self->result_source->schema->resultset("User")->getGlobalUser(getUserInfo($user_info), 1);
+	my ($self, %args) = @_;
+	my $user = $self->result_source->schema->resultset("User")
+		->getGlobalUser(getUserInfo($args{info}), 1);
 
-	my @user_courses = $self->search({ 'course_users.user_id' => $user->user_id }, { prefetch => ['course_users'] });
+	my @user_courses = $self->search({
+			'course_users.user_id' => $user->user_id
+		}, {
+			join => ['course_users']
+		});
 
-	# my @user_courses = $course_user->courses();
-	return @user_courses if $as_result_set;
-	return
-		map { { course_name => $_->get_column("course_name"), $_->course_users->first->get_inflated_columns }; }
-		@user_courses;
+	return @user_courses if $args{as_result_set};
+	my @user_courses_hashref = ();
+	for my $user_course (@user_courses) {
+		my $params = {
+			course_name => $user_course->get_column("course_name"),
+			$user_course->course_users->first->get_inflated_columns
+		};
+		push(@user_courses_hashref,$params);
+	}
+	return @user_courses_hashref;
 }
 
 =head2 getCourseSettings
@@ -261,8 +273,8 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 =cut
 
 sub getCourseSettings {
-	my ($self, $course_info, $as_result_set) = @_;
-	my $course = $self->getCourse($course_info, 1);
+	my ($self, %args) = @_;
+	my $course = $self->getCourse(info => $args{info}, as_result_set => 1);
 
 	my $course_settings  = getDefaultCourseValues(getDefaultCourseSettings());
 	my $settings_from_db = { $course->course_settings->get_inflated_columns };
@@ -270,12 +282,12 @@ sub getCourseSettings {
 }
 
 sub updateCourseSettings {
-	my ($self, $course_info, $course_settings, $as_result_set) = @_;
-	my $course = $self->getCourse($course_info, 1);
-	validateCourseSettings($course_settings);
+	my ($self, %args) = @_;
+	my $course = $self->getCourse(info => $args{info}, as_result_set => 1);
+	validateCourseSettings($args{settings});
 
 	my $current_settings = { $course->course_settings->get_inflated_columns };
-	my $updated_settings = mergeCourseSettings($current_settings, $course_settings);
+	my $updated_settings = mergeCourseSettings($current_settings, $args{settings});
 
 	my $cs = $course->course_settings->update($updated_settings);
 	return mergeCourseSettings(getDefaultCourseValues(getDefaultCourseSettings()), { $cs->get_inflated_columns });

@@ -9,7 +9,8 @@
 		"lint": "eslint --ext .js,.ts,.vue ./src --fix && stylelint \"./src/**/*.vue\" \"./src/**/*.scss\" --fix",
 		"test": "jest",
 		"serve": "morbo bin/webwork3 & quasar dev",
-		"build": "quasar build"
+		"build": "quasar build",
+		"perltidy": "perltidy --pro=./.perltidyrc -b -bext='/' ./**/*.{t,pl,pm}"
 	},
 	"dependencies": {
 		"@quasar/extras": "^1.11.5",

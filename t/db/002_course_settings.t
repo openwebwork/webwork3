@@ -198,11 +198,11 @@ my $course_rs = $schema->resultset("Course");
 
 #make a new course with no settings and compare to the default settings
 
-my $new_course = $course_rs->addCourse({ course_name => "New Course" });
+my $new_course = $course_rs->addCourse(info => { course_name => "New Course" });
 
 my $default_course_values = getDefaultCourseValues();
 my $new_course_info       = { course_id => $new_course->{course_id} };
-my $course_settings       = $course_rs->getCourseSettings($new_course_info);
+my $course_settings       = $course_rs->getCourseSettings(info => $new_course_info);
 
 is_deeply($course_settings, $default_course_values, "course settings: default course_settings");
 
@@ -210,7 +210,7 @@ is_deeply($course_settings, $default_course_values, "course settings: default co
 
 my $updated_general_setting = { general => { course_description => "This is my new course description" } };
 
-my $updated_course_settings = $course_rs->updateCourseSettings($new_course_info, $updated_general_setting);
+my $updated_course_settings = $course_rs->updateCourseSettings(info => $new_course_info, settings => $updated_general_setting);
 
 my $current_course_values = mergeCourseSettings($default_course_values, $updated_general_setting);
 
@@ -220,7 +220,7 @@ is_deeply($current_course_values, $updated_course_settings, "course_settings: up
 
 $updated_general_setting = { general => { hardcopy_theme => "One Column" } };
 
-$updated_course_settings = $course_rs->updateCourseSettings($new_course_info, $updated_general_setting);
+$updated_course_settings = $course_rs->updateCourseSettings(info => $new_course_info, settings => $updated_general_setting);
 
 $current_course_values = mergeCourseSettings($current_course_values, $updated_general_setting);
 
@@ -229,7 +229,7 @@ is_deeply($current_course_values, $updated_course_settings, "course_settings: up
 # set a single course setting in Optional Modules
 
 my $updated_optional_setting = { optional => { enable_show_me_another => 1 } };
-$updated_course_settings = $course_rs->updateCourseSettings($new_course_info, $updated_optional_setting);
+$updated_course_settings = $course_rs->updateCourseSettings(info => $new_course_info, settings => $updated_optional_setting);
 $current_course_values   = mergeCourseSettings($current_course_values, $updated_optional_setting);
 
 is_deeply($current_course_values, $updated_course_settings, "course_settings: updated optional setting");
@@ -237,7 +237,7 @@ is_deeply($current_course_values, $updated_course_settings, "course_settings: up
 # set a single course setting in problem_set
 
 my $updated_problem_set_setting = { problem_set => { time_assign_due => "11:52" } };
-$updated_course_settings = $course_rs->updateCourseSettings($new_course_info, $updated_problem_set_setting);
+$updated_course_settings = $course_rs->updateCourseSettings(info => $new_course_info, settings => $updated_problem_set_setting);
 $current_course_values   = mergeCourseSettings($current_course_values, $updated_problem_set_setting);
 
 is_deeply($current_course_values, $updated_course_settings, "course_settings: updated problem set setting");
@@ -245,7 +245,7 @@ is_deeply($current_course_values, $updated_course_settings, "course_settings: up
 # set a single course setting in problem
 
 my $updated_problem_setting = { problem => { display_mode => "images" } };
-$updated_course_settings = $course_rs->updateCourseSettings($new_course_info, $updated_problem_setting);
+$updated_course_settings = $course_rs->updateCourseSettings(info => $new_course_info, settings => $updated_problem_setting);
 $current_course_values   = mergeCourseSettings($current_course_values, $updated_problem_setting);
 
 is_deeply($current_course_values, $updated_course_settings, "course_settings: updated problem setting");
@@ -255,7 +255,7 @@ is_deeply($current_course_values, $updated_course_settings, "course_settings: up
 my $undefined_problem_setting = { general => { non_existent_setting => 1 } };
 
 throws_ok {
-	$course_rs->updateCourseSettings($new_course_info, $undefined_problem_setting);
+	$course_rs->updateCourseSettings(info => $new_course_info, settings => $undefined_problem_setting);
 }
 "DB::Exception::UndefinedCourseField", "course settings: undefined course_setting field";
 
@@ -263,7 +263,7 @@ throws_ok {
 
 my $invalid_list_option = { general => { hardcopy_theme => 'default' } };
 
-$course_rs->updateCourseSettings($new_course_info, $invalid_list_option);
+$course_rs->updateCourseSettings(info => $new_course_info, settings => $invalid_list_option);
 
 # make sure that an invalid integer setting throws an exception
 
@@ -275,6 +275,6 @@ $course_rs->updateCourseSettings($new_course_info, $invalid_list_option);
 
 ## finally delete the new course that was made;
 
-$course_rs->deleteCourse({ course_id => $new_course->{course_id} });
+$course_rs->deleteCourse(info => { course_id => $new_course->{course_id} });
 
 done_testing();
