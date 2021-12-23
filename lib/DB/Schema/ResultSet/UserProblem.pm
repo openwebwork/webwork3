@@ -58,7 +58,7 @@ Get all user problems (or merged user problems) for one course
 
 sub getUserProblems {
 	my ($self, %args) = @_;
-	my $course        = $self->rs("Course")->getCourse($args{user_problem_info}, 1);
+	my $course        = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
 	my @user_problems = $self->search(
 		{
 			'courses.course_id' => $course->course_id
@@ -80,8 +80,8 @@ sub getUserProblems {
 
 sub getUserProblem {
 	my ($self, %args) = @_;
-	my $problem  = $self->_getProblem($args{user_problem_info});
-	my $user_set = $self->_getUserSet($args{user_problem_info});
+	my $problem = $self->rs("Problem")->getSetProblem(info => $args{info}, as_result_set => 1);
+	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{info}, as_result_set => 1);
 
 	my $user_problem = $self->find({
 		problem_id  => $problem->problem_id,
@@ -111,7 +111,7 @@ sub addUserProblem {
 	my ($self, %args) = @_;
 
 	my $user_problem = $self->getUserProblem(
-		user_problem_info => $args{user_problem_info},
+		info => $args{info},
 		skip_throw        => 1,
 		as_result_set     => 1
 	);
@@ -124,8 +124,8 @@ sub addUserProblem {
 			. $user_problem->user_sets->problem_sets->set_name)
 		if $user_problem;
 
-	my $problem  = $self->_getProblem($args{user_problem_info});
-	my $user_set = $self->_getUserSet($args{user_problem_info});
+	my $problem = $self->rs("Problem")->getSetProblem(info => $args{info}, as_result_set => 1);
+	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{info}, as_result_set => 1);
 
 	my $params = clone($args{user_problem_params} // {});
 	$params->{seed}   = int(10000 * rand()) unless defined $params->{seed};
@@ -148,28 +148,6 @@ sub addUserProblem {
 sub rs {
 	my ($self, $table) = @_;
 	return $self->result_source->schema->resultset($table);
-}
-
-use Data::Dump qw/dump/;
-
-sub _getProblem {
-	my ($self, $info) = @_;
-	my $problem_info = { %{ getProblemInfo($info) }, %{ getSetInfo($info) }, %{ getCourseInfo($info) } };
-	my $problem      = $self->rs("Problem")->getSetProblem($problem_info, 1);
-	DB::Exception::ProblemNotFound->throw(message => "The problem in course "
-			. dump(getCourseInfo($info))
-			. " and problem set "
-			. dump(getSetInfo($info))
-			. " for problem "
-			. dump(getProblemInfo($info)))
-		unless $problem;
-	return $problem;
-}
-
-sub _getUserSet {
-	my ($self, $info) = @_;
-	my $user_set_info = { %{ getUserInfo($info) }, %{ getSetInfo($info) }, %{ getCourseInfo($info) } };
-	return $self->rs("UserSet")->getUserSet(user_set_info => $user_set_info, as_result_set => 1);
 }
 
 sub _mergeUserProblem {

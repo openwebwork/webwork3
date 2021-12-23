@@ -61,9 +61,19 @@ __PACKAGE__->add_columns(
 	}
 );
 
+sub valid_params {
+	return {};
+}
+
+sub required_params {
+	return {};
+}
+
 __PACKAGE__->set_primary_key('user_problem_id');
 
 __PACKAGE__->belongs_to(problems  => 'DB::Schema::Result::Problem', 'problem_id');
 __PACKAGE__->belongs_to(user_sets => 'DB::Schema::Result::UserSet', 'user_set_id');
+
+__PACKAGE__->has_many(attempts => 'DB::Schema::Result::Attempt', 'user_problem_id');
 
 1;

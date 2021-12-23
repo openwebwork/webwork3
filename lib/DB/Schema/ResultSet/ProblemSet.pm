@@ -522,17 +522,16 @@ Creates a new version of a problem set for a given course for either any entire 
 =cut
 
 sub newSetVersion {
-	my ($self, $info) = @_;
-	my $course_set_info = { %{ getCourseInfo($info) }, %{ getSetInfo($info) } };
-	my $problem_set     = $self->getProblemSet($course_set_info);
+	my ($self, %args) = @_;
+	my $problem_set     = $self->getProblemSet(info => $args{info});
 
 	# if $info also contains user info
-	my @fields = keys %$info;
+	my @fields = keys %{$args{info}};
 	if (scalar(@fields) == 3) {
-		my $user_info = getUserInfo($info);
+		my $user_info = getUserInfo($args{info});
 
 	} else {
-		my $user_set_rs = $self->result_source->schema->resultset("UserSet");
+		my $user_set_rs = $self->rs("UserSet");
 
 		# @user_sets = $user_set_rs->get
 	}

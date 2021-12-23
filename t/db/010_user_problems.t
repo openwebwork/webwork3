@@ -121,7 +121,7 @@ is_deeply(\@merged_problems_from_csv, \@merged_problems_from_db, "getAllUserProb
 my @precalc_user_problems = grep { $_->{course_name} eq "Precalculus" } @user_problems_from_csv;
 
 my @precalc_user_problems_from_db =
-	$user_problem_rs->getUserProblems(user_problem_info => { course_name => "Precalculus" });
+	$user_problem_rs->getUserProblems(info => { course_name => "Precalculus" });
 for my $user_problem (@precalc_user_problems_from_db) {
 	removeIDs($user_problem);
 	delete $user_problem->{problem_version} unless defined $user_problem->{problem_version};
@@ -138,7 +138,7 @@ is_deeply(
 my @precalc_merged_problems = grep { $_->{course_name} eq "Precalculus" } @merged_problems_from_csv;
 
 my @precalc_merged_problems_from_db = $user_problem_rs->getUserProblems(
-	user_problem_info => { course_name => "Precalculus" },
+	info => { course_name => "Precalculus" },
 	merged            => 1
 );
 for my $merged_problem (@precalc_merged_problems_from_db) {
@@ -154,7 +154,7 @@ is_deeply(
 # get a single user problem
 
 my $user_problem = $user_problem_rs->getUserProblem(
-	user_problem_info => {
+	info => {
 		course_name    => "Precalculus",
 		username       => "homer",
 		set_name       => "HW #2",
@@ -178,7 +178,7 @@ is_deeply($user_problem_from_csv, $user_problem, "getUserProblem: get a single u
 
 throws_ok {
 	$user_problem_rs->getUserProblem(
-		user_problem_info => {
+		info => {
 			course_name    => 'course doesn\'t exist',
 			username       => 'homer',
 			set_name       => 'HW #1',
@@ -192,7 +192,7 @@ throws_ok {
 
 throws_ok {
 	$user_problem_rs->getUserProblem(
-		user_problem_info => {
+		info => {
 			course_name    => 'Precalculus',
 			username       => 'non_existent_user',
 			set_name       => 'HW #1',
@@ -200,13 +200,13 @@ throws_ok {
 		}
 	);
 }
-"DB::Exception::UserNotInCourse", "getUserProblem: attempt to get a user problem from a nonexistent user";
+"DB::Exception::UserNotFound", "getUserProblem: attempt to get a user problem from a nonexistent user";
 
 # get a user problem from a set that doesn't exist
 
 throws_ok {
 	$user_problem_rs->getUserProblem(
-		user_problem_info => {
+		info => {
 			course_name    => 'Precalculus',
 			username       => 'homer',
 			set_name       => 'HW #99',
@@ -216,11 +216,11 @@ throws_ok {
 }
 "DB::Exception::SetNotInCourse", "getUserProblem: attempt to get a user problem from a nonexistent set";
 
-# get a user problem from a problems that doesn't exist
+# get a user problem from a problem that doesn't exist
 
 throws_ok {
 	$user_problem_rs->getUserProblem(
-		user_problem_info => {
+		info => {
 			course_name    => 'Precalculus',
 			username       => 'homer',
 			set_name       => 'HW #1',
@@ -240,7 +240,7 @@ my $problem_info1 = {
 };
 
 my $user_problem1 = $user_problem_rs->addUserProblem(
-	user_problem_info   => $problem_info1,
+	info   => $problem_info1,
 	user_problem_params => { seed => 7329 }
 );
 removeIDs($user_problem1);
@@ -259,7 +259,7 @@ my $problem_info2 = {
 };
 
 my $user_problem2 = $user_problem_rs->addUserProblem(
-	user_problem_info   => $problem_info2,
+	info   => $problem_info2,
 	user_problem_params => { seed => 7329 },
 	merged              => 1
 );

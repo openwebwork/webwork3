@@ -173,6 +173,15 @@ sub getSetProblem {
 
 	my $problem      = $problem_set->problems->find(getProblemInfo($args{info}));
 
+	DB::Exception::ProblemNotFound->throw(
+		message => "the problem with "
+			. ( $args{info}->{problem_number} ?
+				"problem number " . $args{info}->{problem_number} :
+				"problem id: ". $args{info}->{problem_id})
+			. " is not found for set: " . $problem_set->set_name
+			. " is the course: " . $problem_set->courses->course_name
+	) unless $problem;
+
 	return $problem if $args{as_result_set};
 	return { $problem->get_inflated_columns };
 }
