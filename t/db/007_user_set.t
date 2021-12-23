@@ -161,7 +161,7 @@ is_deeply(\@merged_sets_from_db, \@merged_user_sets, "getAllUserSets: get all me
 my @user_sets_for_one_user = grep { $_->{course_name} eq 'Precalculus' && $_->{username} eq 'homer' } @all_user_sets;
 
 my @user_sets_from_db = $user_set_rs->getUserSets(
-	user_set_info => {
+	info => {
 		course_name => $course->course_name,
 		username    => "homer"
 	}
@@ -180,7 +180,7 @@ my @merged_sets_for_one_user =
 	grep { $_->{course_name} eq 'Precalculus' && $_->{username} eq 'homer' } @merged_user_sets;
 
 @merged_sets_from_db = $user_set_rs->getUserSets(
-	user_set_info => {
+	info => {
 		course_name => $course->course_name,
 		username    => "homer"
 	},
@@ -197,7 +197,7 @@ is_deeply(\@merged_sets_from_db, \@merged_sets_for_one_user, 'getUserSets: get a
 
 my @user_sets_for_one_set = grep { $_->{course_name} eq 'Precalculus' && $_->{set_name} eq 'HW #1' } @all_user_sets;
 
-@user_sets_from_db = $user_set_rs->getUserSets(user_set_info => { course_name => "Precalculus", set_name => "HW #1" });
+@user_sets_from_db = $user_set_rs->getUserSets(info => { course_name => "Precalculus", set_name => "HW #1" });
 
 for my $user_set (@user_sets_from_db) {
 	removeIDs($user_set);
@@ -212,7 +212,7 @@ my @merged_sets_for_one_set =
 	grep { $_->{course_name} eq 'Precalculus' && $_->{set_name} eq 'HW #1' } @merged_user_sets;
 
 @merged_sets_from_db = $user_set_rs->getUserSets(
-	user_set_info => { course_name => "Precalculus", set_name => "HW #1" },
+	info => { course_name => "Precalculus", set_name => "HW #1" },
 	merged        => 1
 );
 
@@ -225,21 +225,21 @@ is_deeply(\@merged_sets_from_db, \@merged_sets_for_one_set, "getUserSets: get al
 ## try to get a user set from a non-existing course
 
 throws_ok {
-	$user_set_rs->getUserSets(user_set_info => { course_name => "non_existent_course", username => "homer" });
+	$user_set_rs->getUserSets(info => { course_name => "non_existent_course", username => "homer" });
 }
 "DB::Exception::CourseNotFound", "getUserSets: attempt to get user sets from a nonexistent course";
 
 ## try to get a user set from a non-existing course
 
 throws_ok {
-	$user_set_rs->getUserSets(user_set_info => { course_name => "Precalculus", username => "non_existent_user" });
+	$user_set_rs->getUserSets(info => { course_name => "Precalculus", username => "non_existent_user" });
 }
-"DB::Exception::UserNotInCourse", "getUserSets: attempt to get user sets from a nonexistent user";
+"DB::Exception::UserNotFound", "getUserSets: attempt to get user sets from a nonexistent user";
 
 ## try to get a user set from a user not in the course
 
 throws_ok {
-	$user_set_rs->getUserSets(user_set_info => { course_name => "non_existent_course", username => "bart" });
+	$user_set_rs->getUserSets(info => { course_name => "non_existent_course", username => "bart" });
 }
 "DB::Exception::CourseNotFound", "getUserSets: attempt to get user sets from user not in the course";
 
@@ -250,7 +250,7 @@ my $info = {
 	course_name => "Precalculus",
 	set_name    => "HW #1"
 };
-my $user_set = $user_set_rs->getUserSet(user_set_info => $info);
+my $user_set = $user_set_rs->getUserSet(info => $info);
 
 my $user_set_from_csv = clone firstval {
 	$_->{course_name} eq "Precalculus"
@@ -273,7 +273,7 @@ my $merged_set_from_csv = clone firstval {
 }
 @merged_user_sets;
 
-my $merged_set = $user_set_rs->getUserSet(user_set_info => $info, merged => 1);
+my $merged_set = $user_set_rs->getUserSet(info => $info, merged => 1);
 removeIDs($merged_set);
 
 is_deeply($merged_set_from_csv, $merged_set, "getUserSet: get a merged set from a course");
@@ -282,7 +282,7 @@ is_deeply($merged_set_from_csv, $merged_set, "getUserSet: get a merged set from 
 
 throws_ok {
 	$user_set_rs->getUserSet(
-		user_set_info => {
+		info => {
 			course_name => "non_existent_course",
 			username    => "homer",
 			set_name    => "HW #1"
@@ -295,20 +295,20 @@ throws_ok {
 
 throws_ok {
 	$user_set_rs->getUserSet(
-		user_set_info => {
+		info => {
 			course_name => "Precalculus",
 			username    => "non_existent_user",
 			set_name    => "HW #1"
 		}
 	);
 }
-"DB::Exception::UserNotInCourse", "getUserSet: try to get a user set from a non-existent user";
+"DB::Exception::UserNotFound", "getUserSet: try to get a user set from a non-existent user";
 
 ## try to get a user set from a user not in the course
 
 throws_ok {
 	$user_set_rs->getUserSet(
-		user_set_info => {
+		info => {
 			course_name => "Precalculus",
 			username    => "marge",
 			set_name    => "HW #1"
@@ -321,7 +321,7 @@ throws_ok {
 
 throws_ok {
 	$user_set_rs->getUserSet(
-		user_set_info => {
+		info => {
 			course_name => "Precalculus",
 			username    => "homer",
 			set_name    => "HW #999"
@@ -332,22 +332,22 @@ throws_ok {
 
 # add a user set
 
-my $new_user_set_info = {
+my $new_info = {
 	username    => "otto",
 	course_name => "Precalculus",
 	set_name    => "HW #1"
 };
 
-my $new_user_set = $user_set_rs->addUserSet(user_set_info => $new_user_set_info);
+my $new_user_set = $user_set_rs->addUserSet(info => $new_info);
 removeIDs($new_user_set);
 
 # set the other default parameters:
-$new_user_set_info->{set_dates}   = {};
-$new_user_set_info->{set_params}  = {};
-$new_user_set_info->{set_version} = 1;
-$new_user_set_info->{set_type}    = 'HW';
+$new_info->{set_dates}   = {};
+$new_info->{set_params}  = {};
+$new_info->{set_version} = 1;
+$new_info->{set_type}    = 'HW';
 
-is_deeply($new_user_set, $new_user_set_info, "addUserSet: add a new user set");
+is_deeply($new_user_set, $new_info, "addUserSet: add a new user set");
 
 my $hw_set1 = clone firstval {
 	$_->{course_name} eq "Precalculus"
@@ -358,7 +358,7 @@ my $hw_set1 = clone firstval {
 $hw_set1->{username} = "frink";
 
 my $new_merged_set = $user_set_rs->addUserSet(
-	user_set_info => {
+	info => {
 		course_name => "Precalculus",
 		set_name    => "HW #1",
 		username    => "frink"
@@ -378,7 +378,7 @@ my $new_user_params2 = {
 };
 
 my $new_user_set2 = $user_set_rs->addUserSet(
-	user_set_info   => $new_user_params2,
+	info   => $new_user_params2,
 	user_set_params => { set_dates => {} }
 );
 
@@ -386,7 +386,7 @@ my $new_user_set2 = $user_set_rs->addUserSet(
 
 throws_ok {
 	$user_set_rs->addUserSet(
-		user_set_info => {
+		info => {
 			username    => "otto",
 			course_name => "non existent course",
 			set_name    => "HW #1"
@@ -399,7 +399,7 @@ throws_ok {
 
 throws_ok {
 	$user_set_rs->addUserSet(
-		user_set_info => {
+		info => {
 			username    => "otto",
 			course_name => "Precalculus",
 			set_name    => "HW #99"
@@ -412,7 +412,7 @@ throws_ok {
 
 throws_ok {
 	$user_set_rs->addUserSet(
-		user_set_info => {
+		info => {
 			username    => "ralph",
 			course_name => "Precalculus",
 			set_name    => "HW #1"
@@ -425,7 +425,7 @@ throws_ok {
 
 throws_ok {
 	$user_set_rs->addUserSet(
-		user_set_info => {
+		info => {
 			username    => "otto",
 			course_name => "Precalculus",
 			set_name    => "HW #2"
@@ -441,7 +441,7 @@ throws_ok {
 
 throws_ok {
 	$user_set_rs->addUserSet(
-		user_set_info => {
+		info => {
 			username    => "otto",
 			course_name => "Precalculus",
 			set_name    => "HW #1"
@@ -471,7 +471,7 @@ my $otto_set_info4 = {
 };
 
 my $user_set2 = $user_set_rs->addUserSet(
-	user_set_info   => $otto_set_info2,
+	info   => $otto_set_info2,
 	user_set_params => {
 		set_params => {
 			description => "This is the description for HW #2"
@@ -493,7 +493,7 @@ is_deeply($user_set2, $set_params2, "addUserSet: add a new user set with params"
 
 throws_ok {
 	$user_set_rs->addUserSet(
-		user_set_info   => $otto_set_info3,
+		info   => $otto_set_info3,
 		user_set_params => {
 			set_params => {
 				bad_field => 12
@@ -513,7 +513,7 @@ my $set_dates3 = {
 };
 
 my $user_set3 = $user_set_rs->addUserSet(
-	user_set_info   => $otto_set_info3,
+	info   => $otto_set_info3,
 	user_set_params => { set_dates => $set_dates3 }
 );
 removeIDs($user_set3);
@@ -530,7 +530,7 @@ is_deeply($user_set3, $set_params3, "addUserSet: add a new user set with dates")
 
 throws_ok {
 	$user_set_rs->addUserSet(
-		user_set_info   => $otto_set_info4,
+		info   => $otto_set_info4,
 		user_set_params => {
 			set_dates => {
 				open   => 100,
@@ -544,7 +544,7 @@ throws_ok {
 
 throws_ok {
 	$user_set_rs->addUserSet(
-		user_set_info   => $otto_set_info4,
+		info   => $otto_set_info4,
 		user_set_params => {
 			set_dates => {
 				open   => 100,
@@ -593,7 +593,7 @@ $merged_set1->{set_dates}->{due}    = $new_dates->{due};
 $merged_set1->{set_dates}->{answer} = $new_dates->{answer};
 
 my $user_set_to_merge = $user_set_rs->addUserSet(
-	user_set_info   => $otto_set_info2,
+	info   => $otto_set_info2,
 	user_set_params => {
 		set_dates => $new_dates
 	},
@@ -607,7 +607,7 @@ is_deeply($merged_set1, $user_set_to_merge, 'addUserSet: adding a user set with 
 
 throws_ok {
 	$user_set_rs->addUserSet(
-		user_set_info   => $otto_set_info3,
+		info   => $otto_set_info3,
 		user_set_params => {
 			set_dates => {
 				due => 1609595640,    # this is after the problem set answer date.
@@ -622,7 +622,7 @@ throws_ok {
 
 # get the user set for $otto_set_info2;
 
-my $otto_set2 = $user_set_rs->getUserSet(user_set_info => $otto_set_info2);
+my $otto_set2 = $user_set_rs->getUserSet(info => $otto_set_info2);
 removeIDs($otto_set2);
 
 # update the dates
@@ -636,7 +636,7 @@ $otto_set2->{set_dates}->{due}    = $updated_dates->{due};
 $otto_set2->{set_dates}->{answer} = $updated_dates->{answer};
 
 my $updated_user_set = $user_set_rs->updateUserSet(
-	user_set_info   => $otto_set_info2,
+	info   => $otto_set_info2,
 	user_set_params => {
 		set_dates => $updated_dates
 	}
@@ -648,7 +648,7 @@ is_deeply($updated_user_set, $otto_set2, "updateUserSet: update the dates");
 # update the params
 
 my $updated_user_set2 = $user_set_rs->updateUserSet(
-	user_set_info   => $otto_set_info2,
+	info   => $otto_set_info2,
 	user_set_params => {
 		set_params => {
 			hide_hint => 1,
@@ -664,7 +664,7 @@ is_deeply($updated_user_set2, $otto_set2, "updateUserSet: update the params");
 # try updating an invalid field
 
 my $updated_user_set3 = $user_set_rs->updateUserSet(
-	user_set_info   => $otto_set_info2,
+	info   => $otto_set_info2,
 	user_set_params => {
 		set_version => 2
 	}
@@ -677,7 +677,7 @@ is_deeply($otto_set2, $updated_user_set3, "updateUserSet: update the set version
 
 throws_ok {
 	$user_set_rs->updateUserSet(
-		user_set_info   => $otto_set_info2,
+		info   => $otto_set_info2,
 		user_set_params => {
 			set_params => {
 				not_a_valid_param => "bad"
@@ -691,7 +691,7 @@ throws_ok {
 
 throws_ok {
 	$user_set_rs->updateUserSet(
-		user_set_info   => $otto_set_info2,
+		info   => $otto_set_info2,
 		user_set_params => {
 			set_dates => { open => 1, closed => 2 }
 		}
@@ -703,7 +703,7 @@ throws_ok {
 
 throws_ok {
 	$user_set_rs->updateUserSet(
-		user_set_info   => $otto_set_info2,
+		info   => $otto_set_info2,
 		user_set_params => {
 			set_dates => { open => 100, due => 2, answer => 200 }
 		}
@@ -715,7 +715,7 @@ throws_ok {
 
 throws_ok {
 	$user_set_rs->updateUserSet(
-		user_set_info   => $otto_set_info3,
+		info   => $otto_set_info3,
 		user_set_params => {
 			set_params => {
 				hide_hint => 1
@@ -727,7 +727,7 @@ throws_ok {
 
 # delete a user set
 
-my $deleted_user_set = $user_set_rs->deleteUserSet(user_set_info => $otto_set_info2);
+my $deleted_user_set = $user_set_rs->deleteUserSet(info => $otto_set_info2);
 removeIDs($deleted_user_set);
 
 is_deeply($deleted_user_set, $otto_set2, "deleteUserSet: successfully delete a user set");
@@ -735,7 +735,7 @@ is_deeply($deleted_user_set, $otto_set2, "deleteUserSet: successfully delete a u
 # delete a user_set that doesn't exist;
 
 throws_ok {
-	$user_set_rs->deleteUserSet(user_set_info => $otto_set_info3);
+	$user_set_rs->deleteUserSet(info => $otto_set_info3);
 }
 "DB::Exception::UserSetNotInCourse", "deleteUserSet: try to delete a user set not the in the course";
 

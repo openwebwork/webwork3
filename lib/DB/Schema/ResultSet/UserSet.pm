@@ -94,7 +94,7 @@ see below on how to specify with arguments.
 
 =over
 
-=item * C<user_set_info> a hashref specifying information on what type of UserSets
+=item * C<info> a hashref specifying information on what type of UserSets
 are to be returns.  One must include either the course_id or course_name and if the
 collection is related to a ProblemSet, the specify either C<set_id> or C<set_name>
 otherwise if it is a collection related to a given user then specifiy either
@@ -120,12 +120,12 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 
 sub getUserSets {
 	my ($self, %args) = @_;
-	my $course = $self->_getCourse($args{user_set_info});
+	my $course = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
 
 	my @user_sets;
 
-	if ($args{user_set_info}->{set_id} || $args{user_set_info}->{set_name}) {
-		my $problem_set = $self->_getProblemSet($args{user_set_info});
+	if ($args{info}->{set_id} || $args{info}->{set_name}) {
+		my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
 		@user_sets = $self->search(
 			{ 'problem_sets.set_id' => $problem_set->set_id },
 			{
@@ -133,12 +133,11 @@ sub getUserSets {
 			}
 		);
 
-	} elsif ($args{user_set_info}->{user_id} || $args{user_set_info}->{username}) {
-		my $user        = $self->_getUser($args{user_set_info});
-		my $course_user = $self->_getCourseUser($args{user_set_info});
+	} elsif ($args{info}->{user_id} || $args{info}->{username}) {
+		my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
 
 		@user_sets = $self->search(
-			{ 'course_users.user_id' => $user->user_id },
+			{ 'course_users.user_id' => $course_user->user_id },
 			{
 				join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
 			}
@@ -172,7 +171,7 @@ specify with arguments.
 
 =over
 
-=item * C<user_set_info>
+=item * C<info>
 a hashref specifying information to fetch the given UserSet.  This hashref must
 include:
 
@@ -203,8 +202,8 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 sub getUserSet {
 	my ($self, %args) = @_;
 
-	my $problem_set = $self->_getProblemSet($args{user_set_info});
-	my $course_user = $self->_getCourseUser($args{user_set_info});
+	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
+	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
 
 	my $user_set = $self->find(
 		{
@@ -241,7 +240,7 @@ see below on how to specify with arguments.
 
 =over
 
-=item * C<user_set_info> a hashref specifying information on what type of UserSets
+=item * C<info> a hashref specifying information on what type of UserSets
 are to be returns.  One must include either the course_id or course_name and if the
 collection is related to a ProblemSet, the specify either C<set_id> or C<set_name>
 otherwise if it is a collection related to a given user then specifiy either
@@ -271,8 +270,8 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 
 sub addUserSet {
 	my ($self, %args) = @_;
-	my $problem_set = $self->_getProblemSet($args{user_set_info});
-	my $course_user = $self->_getCourseUser($args{user_set_info});
+	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
+	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
 
 	my $user_set = $self->find(
 		{
@@ -328,12 +327,12 @@ update a single UserSet for a given course, user, and ProblemSet
 
 sub updateUserSet {
 	my ($self, %args) = @_;
-	my $user_set = $self->getUserSet(user_set_info => $args{user_set_info}, as_result_set => 1);
+	my $user_set = $self->getUserSet(info => $args{info}, as_result_set => 1);
 
 	DB::Exception::UserSetNotInCourse->throw(
-		set_name    => $args{user_set_info}->{set_name},
-		course_name => $args{user_set_info}->{course_name},
-		username    => $args{user_set_info}->{username}
+		set_name    => $args{info}->{set_name},
+		course_name => $args{info}->{course_name},
+		username    => $args{info}->{username}
 	) unless defined($user_set);
 
 	my $params = clone $args{user_set_params};
@@ -378,12 +377,12 @@ delete a single UserSet for a given course, user, and ProblemSet
 
 sub deleteUserSet {
 	my ($self, %args) = @_;
-	my $user_set = $self->getUserSet(user_set_info => $args{user_set_info}, as_result_set => 1);
+	my $user_set = $self->getUserSet(info => $args{info}, as_result_set => 1);
 
 	DB::Exception::UserSetNotInCourse->throw(
-		set_name    => $args{user_set_info}->{set_name},
-		course_name => $args{user_set_info}->{course_name},
-		username    => $args{user_set_info}->{username}
+		set_name    => $args{info}->{set_name},
+		course_name => $args{info}->{course_name},
+		username    => $args{info}->{username}
 	) unless defined($user_set);
 
 	$user_set->delete;
@@ -395,78 +394,11 @@ sub deleteUserSet {
 
 ## the following are private methods used in this module
 
-# return the Course resultset
+# just a small subroutine to shorten access to the db.
 
-sub _course_rs {
-	return shift->result_source->schema->resultset("Course");
-}
-
-# return the ProblemSet resultset
-sub _problem_set_rs {
-	return shift->result_source->schema->resultset("ProblemSet");
-}
-
-# return the User resultset
-sub _user_rs {
-	return shift->result_source->schema->resultset("User");
-}
-
-# return the User resultset
-sub _course_user_rs {
-	return shift->result_source->schema->resultset("CourseUser");
-}
-
-# return the course/set info given the user_set_info is passed in
-
-sub _getProblemSet {
-	my ($self, $info) = @_;
-
-	my $set_info = { %{ getCourseInfo($info) }, %{ getSetInfo($info) } };
-	return $self->_problem_set_rs->getProblemSet($set_info, 1);
-}
-
-# return the course/set info given the user_set_info is passed in
-
-sub _getUser {
-	my ($self, $info) = @_;
-	if ($info->{course_user_id}) {
-		return $self->_course_user_rs->find({ course_user_id => $info->{course_user_id} })->users;
-	}
-	my $user_info = { %{ getCourseInfo($info) }, %{ getUserInfo($info) } };
-	return $self->_user_rs->getUser($user_info, 1);
-}
-
-# return the course/set info given the user_set_info is passed in
-
-sub _getCourse {
-	my ($self, $info) = @_;
-	return $self->_course_rs->getCourse(getCourseInfo($info), 1);
-}
-
-# return the course user with the given data
-#
-# $info is a hashref with
-# * course_user_id or
-# * course_id or course_name AND user_id or username
-
-sub _getCourseUser {
-	my ($self, $info) = @_;
-
-	if ($info->{course_user_id}) {
-		return $self->result_source->schema->resultset("CourseUser")
-			->find({ course_user_id => $info->{course_user_id} });
-	}
-
-	my $course = $self->_getCourse($info);
-	my $user   = $self->_getUser(
-		{
-			course_id => $course->course_id,
-			%{ getUserInfo($info) }
-		},
-		1
-	);
-	return $self->result_source->schema->resultset("CourseUser")
-		->find({ course_id => $course->course_id, user_id => $user->user_id });
+sub rs {
+	my ($self, $table) = @_;
+	return $self->result_source->schema->resultset($table);
 }
 
 # get the user set data with some additional fields
