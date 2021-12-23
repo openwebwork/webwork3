@@ -4,17 +4,21 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
+use YAML::XS qw/LoadFile/;
 
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;
-	$main::test_dir = abs_path(dirname(__FILE__));
-	$main::lib_dir  = dirname(dirname($main::test_dir)) . '/lib';
+	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
-use lib "$main::lib_dir";
+use lib "$main::ww3_dir/lib";
 
-my $t = Test::Mojo->new('WeBWorK3');
+# Load the config file.
+my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
+$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
+
+my $t = Test::Mojo->new('WeBWorK3' => LoadFile($config_file));
 
 # Test missing credentials
 $t->post_ok('/webwork3/api/login')->status_is(250, 'error status')->content_type_is('application/json;charset=UTF-8')
