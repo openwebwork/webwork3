@@ -49,6 +49,8 @@ for my $problem (@problems_from_csv) {
 	$problem->{problem_version} = 1 unless defined($problem->{problem_version});
 }
 
+use Data::Dumper;
+
 # filter out precalc problems
 my @precalc_problems = grep { $_->{course_name} eq "Precalculus" } @problems_from_csv;
 
@@ -71,7 +73,7 @@ is_deeply(\@all_problems, \@problems_from_db, "getGlobalProblems: get all proble
 
 ## get all problems from one course
 
-my @precalc_problems_from_db = $problem_rs->getProblems({ course_name => "Precalculus" });
+my @precalc_problems_from_db = $problem_rs->getProblems(info => { course_name => "Precalculus" });
 for my $problem (@precalc_problems_from_db) {
 	removeIDs($problem);
 }
@@ -84,7 +86,7 @@ is_deeply(\@precalc_problems, \@precalc_problems_from_db, "getProblems: get all 
 
 ## get all problems in one course from one set.
 
-my @set_problems1 = $problem_rs->getSetProblems({ course_name => "Precalculus", set_name => "HW #1" });
+my @set_problems1 = $problem_rs->getSetProblems(info => { course_name => "Precalculus", set_name => "HW #1" });
 
 for my $problem (@set_problems1) {
 	removeIDs($problem);
@@ -95,20 +97,20 @@ is_deeply(\@precalc_problems1, \@set_problems1, "getSetProblems: get all problem
 ## try to get problems from a non-existing course
 
 throws_ok {
-	$problem_rs->getSetProblems({ course_name => "non_existing_course", set_name => "HW #1" });
+	$problem_rs->getSetProblems(info => { course_name => "non_existing_course", set_name => "HW #1" });
 }
 "DB::Exception::CourseNotFound", "getSetProblem: get problems from non-existing course";
 
 ## try to get problems from a non-existing set
 
 throws_ok {
-	$problem_rs->getSetProblems({ course_name => "Precalculus", set_name => "HW #999" });
+	$problem_rs->getSetProblems(info => { course_name => "Precalculus", set_name => "HW #999" });
 }
 "DB::Exception::SetNotInCourse", "getSetProblems: get problems from non-existing set";
 
 ## get a single problem from a course:
 
-my $set_problem = $problem_rs->getSetProblem({
+my $set_problem = $problem_rs->getSetProblem(info => {
 	course_name    => "Precalculus",
 	set_name       => "HW #1",
 	problem_number => $problems_from_csv[0]->{problem_number}
@@ -132,11 +134,11 @@ my $new_problem = {
 };
 
 my $prob1 = $problem_rs->addSetProblem(
-	{
+	info => {
 		course_name => "Precalculus",
 		set_name    => "HW #1"
 	},
-	$new_problem
+	params => $new_problem
 );
 my $prob_id = $prob1->{problem_id};
 removeIDs($prob1);
@@ -154,12 +156,12 @@ my $updated_params = {
 
 my $all_params      = updateAllFields($new_problem, $updated_params);
 my $updated_problem = $problem_rs->updateSetProblem(
-	{
+	info => {
 		course_name => "Precalculus",
 		set_name    => "HW #1",
 		problem_id  => $prob_id
 	},
-	$updated_params
+	params => $updated_params
 );
 removeIDs($updated_problem);
 
@@ -169,7 +171,7 @@ is_deeply($all_params, $updated_problem, "updateProblem: update a problem");
 
 ## delete a problem from a set
 
-my $deleted_problem = $problem_rs->deleteSetProblem({
+my $deleted_problem = $problem_rs->deleteSetProblem(info => {
 	course_name    => "Precalculus",
 	set_name       => "HW #1",
 	problem_number => 99,

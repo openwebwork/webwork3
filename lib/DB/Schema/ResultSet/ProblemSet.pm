@@ -33,7 +33,7 @@ in the C<problem_set> table.
 =head3 input
 
 =over
-=item * C<as_result_set>, a boolean.  If true this result an array of C<DBIx::Class::ResultSet::ProblemSet>
+=item - C<as_result_set>, a boolean.  If true this result an array of C<DBIx::Class::ResultSet::ProblemSet>
 if false, an array of hashrefs of ProblemSet.
 
 =back
@@ -93,7 +93,7 @@ if false, an array of hashrefs of ProblemSet.
 
 =head3 output
 
-An array of Users (as hashrefs) or an arrayref of C<DBIx::Class::ResultSet::ProblemSet>
+An array of Users (as hashrefs) or an array of C<DBIx::Class::ResultSet::ProblemSet>
 
 =cut
 
