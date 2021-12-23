@@ -215,7 +215,7 @@ sub authenticate {
 #
 ####
 
-=head1 getUsers
+=head1 getCourseUsers
 
 This gets all users in a given course.
 
@@ -231,11 +231,16 @@ For example, C<{ course_name => 'Precalculus'}> or C<{course_id => 3}>
 
 =item * C<merged>, a boolean on whether to return a merged user or course user
 
+=item * C<as_result_set>, a boolean.  If true this an object of type
+C<DBIx::Class::ResultSet::User>
+if false, a hashrefs of a course user.
+
 =back
 
 =head3 output
 
-An array of Users (as hashrefs) or an arrayref of C<DBIx::Class::ResultSet::User>
+An array of a hashref of a course user or merged course user
+or an arrayref of C<DBIx::Class::ResultSet::User>
 
 =cut
 
@@ -266,43 +271,6 @@ sub getCourseUsers {
 	return @users_to_return;
 }
 
-=head1 getMergedUsers
-
-This returns all users in a given course as a merge between global users
-and course users.
-
-=head3 input
-
-=over
-
-=item * C<course_name>, a string OR
-=item * C<course_id>, a key
-
-=back
-
-=head3 output
-
-An array of MergedCourseUsers (as hashrefs)
-
-=cut
-
-sub getMergedCourseUsers {
-	my ($self, $course_info) = @_;
-	my $course_rs = $self->result_source->schema->resultset("Course");
-	my $course    = $course_rs->getCourse(getCourseInfo($course_info), 1);
-	my @users     = $self->search({
-		'course_users.course_id' => $course->course_id
-	}, {
-		join => qw/course_users/
-	});
-
-	return map {
-		removeLoginParams({
-			$_->get_columns, $_->course_users->first->get_columns,
-			params => $_->course_users->first->get_inflated_column("params")
-		});
-	} @users;
-}
 
 ###
 #
@@ -390,7 +358,7 @@ for details.
 =item * C<merged>, a boolean whether or not to return a merged user (include information
 from the global user table)
 
-=item * C<as_result_set>, a boolean if true returns as a C<DBIx::Class::ResultSet>
+=item * C<as_result_set>, a boolean if true returns as a C<DB::Schema::ResultSet::CourseUser>
 
 =back
 
@@ -403,7 +371,7 @@ from the global user table)
 
 =head3 output
 
-An hashref of the user or merged user or a C<DBIx::Class::ResultSet>
+An hashref of the user or merged user or a C<DB::Schema::ResultSet::CourseUser>
 
 =cut
 
@@ -450,6 +418,41 @@ sub addCourseUser {
 
 This method updates the course user table
 
+=head3 input
+
+=over
+
+=item * C<info>, a hashref containing:
+
+=over
+
+=item - C<course_name>, the name of an existing course or C<course_id> the id of the course
+
+=item - C<username>, the username of an existing user or C<user_id>, the id of the user
+
+=back
+
+=item * C<params>, a hashref of all valid CourseUser parameters.  See C<DB::Schema::Result::CourseUser>
+for details.
+
+=item * C<merged>, a boolean whether or not to return a merged user (include information
+from the global user table)
+
+=item * C<as_result_set>, a boolean if true returns as a C<DB::Schema::ResultSet::CourseUser>
+
+=back
+
+=head3 notes:
+
+=over
+=item - If either information about the user or the course is missing, an exception will be thrown
+=item - If the user is already in the course, an exception will be thrown.
+=back
+
+=head3 output
+
+An hashref of the updated course user or merged user or a C<DB::Schema::ResultSet::CourseUser>
+
 =cut
 
 sub updateCourseUser {
@@ -469,7 +472,39 @@ sub updateCourseUser {
 
 =head2 deleteCourseUser
 
-This method updates the course user table
+This delete a single user from the course_user table.
+
+=head3 input
+
+=over
+
+=item * C<info>, a hashref containing:
+
+=over
+
+=item - C<course_name>, the name of an existing course or C<course_id> the id of the course
+
+=item - C<username>, the username of an existing user or C<user_id>, the id of the user
+
+=back
+
+=item * C<merged>, a boolean whether or not to return a merged user (include information
+from the global user table)
+
+=item * C<as_result_set>, a boolean if true returns as a C<DB::Schema::ResultSet::CourseUser>
+
+=back
+
+=head3 notes:
+
+=over
+=item - If either information about the user or the course is missing, an exception will be thrown
+=item - If the user is already in the course, an exception will be thrown.
+=back
+
+=head3 output
+
+An hashref of the deleted user or merged user or a C<DB::Schema::ResultSet::CourseUser>
 
 =cut
 

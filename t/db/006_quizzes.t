@@ -69,7 +69,7 @@ for my $quiz (@precalc_quizzes) {
 	# delete $quiz->{type};
 }
 @precalc_quizzes = sort { $a->{set_name} cmp $b->{set_name} } @precalc_quizzes;
-my @precalc_quizzes_from_db = $problem_set_rs->getQuizzes({ course_name => "Precalculus" });
+my @precalc_quizzes_from_db = $problem_set_rs->getQuizzes(info => { course_name => "Precalculus" });
 
 # remove id tags:
 for my $quiz (@precalc_quizzes_from_db) {
@@ -80,7 +80,7 @@ is_deeply(\@precalc_quizzes, \@precalc_quizzes_from_db, "getQuizzes: get all qui
 
 # get a single quiz
 
-my $quiz_from_db = $problem_set_rs->getProblemSet({ course_name => "Precalculus", set_name => "Quiz #1" });
+my $quiz_from_db = $problem_set_rs->getProblemSet(info => { course_name => "Precalculus", set_name => "Quiz #1" });
 removeIDs($quiz_from_db);
 
 my @quiz_from_csv = grep { $_->{set_name} eq "Quiz #1" } @precalc_quizzes;
@@ -92,14 +92,14 @@ is_deeply($quiz_from_csv[0], $quiz_from_db, "getQuiz: get one quiz from a single
 # try to get a quiz that doesn't exist in a course that does:
 
 throws_ok {
-	$problem_set_rs->getProblemSet({ course_name => "Precalculus", set_name => "nonexisent quiz" });
+	$problem_set_rs->getProblemSet(info => { course_name => "Precalculus", set_name => "nonexisent quiz" });
 }
 "DB::Exception::SetNotInCourse", "getQuiz: non-existent set name";
 
 # try to get a quiz from a course that doesn't exist
 
 throws_ok {
-	$problem_set_rs->getProblemSet({ course_name => "nonexistent course", set_name => "Quiz #1" });
+	$problem_set_rs->getProblemSet(info => { course_name => "nonexistent course", set_name => "Quiz #1" });
 }
 "DB::Exception::CourseNotFound", "getQuiz: try to get a quiz from a non-existent course";
 
@@ -111,7 +111,10 @@ my $new_quiz_params = {
 	set_type  => "QUIZ"
 };
 
-my $new_quiz = $problem_set_rs->addProblemSet({ course_name => "Precalculus" }, $new_quiz_params);
+my $new_quiz = $problem_set_rs->addProblemSet(
+	info => { course_name => "Precalculus" },
+	params => $new_quiz_params
+);
 
 removeIDs($new_quiz);
 
@@ -120,7 +123,7 @@ is_deeply($new_quiz, $new_quiz_params, "addQuiz: add a new quiz");
 ## try to add a quiz to a non existent course
 
 throws_ok {
-	$problem_set_rs->addProblemSet({ course_name => "nonexistent course", set_name => "Quiz #1" });
+	$problem_set_rs->addProblemSet(info => { course_name => "nonexistent course", set_name => "Quiz #1" });
 }
 "DB::Exception::CourseNotFound", "addQuiz: try to add a quiz from a non-existent course";
 
@@ -128,10 +131,10 @@ throws_ok {
 
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		{
+		info => {
 			course_name => "Precalculus"
 		},
-		{
+		params => {
 			set_type          => 'QUIZ',
 			set_name          => "Quiz #99",
 			nonexistent_field => 1,
@@ -144,10 +147,10 @@ throws_ok {
 
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		{
+		info => {
 			course_name => "Precalculus"
 		},
-		{
+		params => {
 			set_type    => 'QUIZ',
 			set_visible => 1,
 		}
@@ -159,10 +162,10 @@ throws_ok {
 
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		{
+		info => {
 			course_name => "Precalculus"
 		},
-		{
+		params => {
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
@@ -183,10 +186,10 @@ throws_ok {
 
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		{
+		info => {
 			course_name => "Precalculus"
 		},
-		{
+		params => {
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
@@ -207,10 +210,10 @@ throws_ok {
 
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		{
+		info => {
 			course_name => "Precalculus"
 		},
-		{
+		params => {
 			set_type  => 'QUIZ',
 			set_name  => "Quiz #99",
 			set_dates => {
@@ -226,10 +229,10 @@ throws_ok {
 
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		{
+		info => {
 			course_name => "Precalculus"
 		},
-		{
+		params => {
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
@@ -248,10 +251,10 @@ throws_ok {
 
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		{
+		info => {
 			course_name => "Precalculus"
 		},
-		{
+		params => {
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
@@ -270,11 +273,11 @@ throws_ok {
 my $updated_params = { set_visible => 0 };
 
 my $updated_quiz = $problem_set_rs->updateProblemSet(
-	{
+	info => {
 		course_name => "Precalculus",
 		set_name    => "Quiz #9"
 	},
-	$updated_params
+	params => $updated_params
 );
 
 $new_quiz->{set_version} = 1;
@@ -294,11 +297,11 @@ $updated_params = {
 };
 
 $updated_quiz = $problem_set_rs->updateProblemSet(
-	{
+	info => {
 		course_name => "Precalculus",
 		set_name    => "Quiz #9"
 	},
-	$updated_params
+	params => $updated_params
 );
 removeIDs($updated_quiz);
 
@@ -317,11 +320,11 @@ $updated_params = {
 };
 
 $updated_quiz = $problem_set_rs->updateProblemSet(
-	{
+	info => {
 		course_name => "Precalculus",
 		set_name    => "Quiz #9"
 	},
-	$updated_params
+	params => $updated_params
 );
 removeIDs($updated_quiz);
 
@@ -333,11 +336,11 @@ is_deeply($new_quiz, $updated_quiz, "updateQuiz: successfully update the dates o
 
 throws_ok {
 	$problem_set_rs->updateProblemSet(
-		{
+		info => {
 			course_name => "Precalculus",
 			set_name    => "Quiz #9"
 		},
-		{
+		params => {
 			nonexistent_field => 1
 		}
 	);
@@ -348,11 +351,11 @@ throws_ok {
 
 throws_ok {
 	$problem_set_rs->updateProblemSet(
-		{
+		info => {
 			course_name => "Precalculus",
 			set_name    => "Quiz #9"
 		},
-		{
+		params => {
 			set_params => {
 				show_hint => 1
 			}
@@ -365,11 +368,11 @@ throws_ok {
 
 throws_ok {
 	$problem_set_rs->updateProblemSet(
-		{
+		info => {
 			course_name => "Precalculus",
 			set_name    => "Quiz #9"
 		},
-		{
+		params => {
 			set_params => {
 				timed => 'yes'
 			}
@@ -382,11 +385,11 @@ throws_ok {
 
 throws_ok {
 	$problem_set_rs->updateProblemSet(
-		{
+		info => {
 			course_name => "Precalculus",
 			set_name    => "Quiz #9"
 		},
-		{
+		params => {
 			set_dates => {
 				reduced_scoring => 1000
 			}
@@ -399,11 +402,11 @@ throws_ok {
 
 throws_ok {
 	$problem_set_rs->updateProblemSet(
-		{
+		info => {
 			course_name => "Precalculus",
 			set_name    => "Quiz #9"
 		},
-		{
+		params => {
 			set_dates => {
 				open => 50,
 				due  => 40
@@ -416,7 +419,7 @@ throws_ok {
 # try to delete from a non-existent course:
 
 throws_ok {
-	$problem_set_rs->deleteProblemSet({
+	$problem_set_rs->deleteProblemSet(info => {
 		course_name => "Course does not exist",
 		set_name    => "Quiz #9"
 	});
@@ -426,7 +429,7 @@ throws_ok {
 # try to delete from a non-existent course:
 
 throws_ok {
-	$problem_set_rs->deleteProblemSet({
+	$problem_set_rs->deleteProblemSet(info => {
 		course_id => 9999,
 		set_name  => "Quiz #9"
 	});
@@ -436,7 +439,7 @@ throws_ok {
 # try to delete from a non-existent set in a  course:
 
 throws_ok {
-	$problem_set_rs->deleteProblemSet({
+	$problem_set_rs->deleteProblemSet(info => {
 		course_name => "Precalculus",
 		set_name    => "Quiz #999"
 	});
@@ -446,7 +449,7 @@ throws_ok {
 # try to delete from a non-existent set in a  course:
 
 throws_ok {
-	$problem_set_rs->deleteProblemSet({
+	$problem_set_rs->deleteProblemSet(info => {
 		course_name => "Precalculus",
 		set_id      => 99999
 	});
@@ -455,7 +458,7 @@ throws_ok {
 
 # try to delete from a non-existent set in a  course:
 
-my $deleted_quiz = $problem_set_rs->deleteProblemSet({
+my $deleted_quiz = $problem_set_rs->deleteProblemSet(info => {
 	course_name => "Precalculus",
 	set_name    => "Quiz #9"
 });
