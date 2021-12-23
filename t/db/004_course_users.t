@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
-#
+
 # This tests the basic database CRUD functions of course users.
-#
+
 use warnings;
 use strict;
 
@@ -13,30 +13,20 @@ BEGIN {
 
 use lib "$main::ww3_dir/lib";
 
-use Text::CSV qw/csv/;
-use List::Util qw(uniq);
 use Test::More;
 use Test::Exception;
-use Try::Tiny;
 use YAML::XS qw/LoadFile/;
 use Clone qw/clone/;
 
-use DB::WithParams;
-use DB::WithDates;
 use DB::Schema;
-use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
+use DB::TestUtils qw/loadCSV removeIDs/;
 use DB::Utils qw/removeLoginParams/;
 
+# Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
-	unless (-e $config_file);
-
+$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
-
-my $schema =
-	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
-
-# $schema->storage->debug(1);  # print out the SQL commands.
+my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
 my $course_rs      = $schema->resultset("Course");
 my $user_rs        = $schema->resultset("User");
@@ -44,7 +34,7 @@ my $course_user_rs = $schema->resultset("CourseUser");
 
 use Data::Dumper;
 
-## get a list of users from the CSV file
+# Get a list of users from the CSV file
 my @students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
 for my $student (@students) {
 	$student->{is_admin} = 0;
@@ -52,19 +42,17 @@ for my $student (@students) {
 	delete $student->{params};
 }
 
-## filter only precalc students
+# Filter only precalc students
 my @precalc_students = grep { $_->{course_name} eq "Precalculus" } @students;
 for my $student (@precalc_students) {
 	delete $student->{course_name};
 }
 @precalc_students = sort { $a->{username} cmp $b->{username} } @precalc_students;
 
-## get the course_id for Precalc
-
+# Get the course_id for Precalc
 my $precalc = $course_rs->getCourse(info => { course_name => "Precalculus" });
 
-## test getUsers
-
+# Test getUsers
 my @results = $user_rs->search(
 	{
 		'course_users.course_id' => $precalc->{course_id}
@@ -88,8 +76,7 @@ for my $u (@precalc_students_from_db) {
 
 is_deeply(\@precalc_students, \@precalc_students_from_db, "getUsers: get users from a course");
 
-## getUsers: test that an unknown course results in an error
-
+# getUsers: Test that an unknown course results in an error
 throws_ok {
 	$user_rs->getCourseUsers(info => { course_name => "unknown_course" });
 }
@@ -100,7 +87,7 @@ throws_ok {
 }
 'DB::Exception::CourseNotFound', "getUsers: undefined course_id";
 
-## test getCourseUser: merged user
+# Test getUser
 
 my $user = $user_rs->getCourseUser(info => {
 	course_name => "Precalculus",
@@ -110,30 +97,26 @@ removeIDs($user);
 
 is_deeply($precalc_students[0], $user, "getCourseUser: get one merged user");
 
-## getUser: test that an unknown course results in an error
-
+# getUser: Test that an unknown course results in an error
 throws_ok {
 	$user_rs->getCourseUser(info => { course_name => "unknown_course", username => "barney" });
 }
 'DB::Exception::CourseNotFound', "getCourseUser: undefined course";
 
-## getUser: test that an unknown user results in an error
-
+# getUser: Test that an unknown user results in an error
 throws_ok {
 	$user_rs->getCourseUser(info => { course_name => "Precalculus", username => "unknown_user" });
 }
 'DB::Exception::UserNotFound', "getCourseUser: undefined user";
 
-## getUser: test that an existing user who is not in the course returns an error.
-
+# getUser: Test that an existing user who is not in the course returns an error.
 throws_ok {
 	$user_rs->getCourseUser(info => { course_name => "Arithmetic", username => "marge" });
 }
 'DB::Exception::UserNotInCourse', "getCourseUser: get a user that is not in the course";
 
-## addUser:  add a user to a course
-
-# remove the following user if already defined
+# addUser: Add a user to a course
+# Remove the following user if already defined in the course
 my $quimby = $user_rs->find({
 		'username' => 'quimby',
 	});
@@ -168,8 +151,7 @@ delete $user_params->{course_name};
 
 is_deeply($course_user_params, $user, "addCourseUser: add a user to a course");
 
-# add a user and check the return is a merged user
-
+# addUser: Check that if the course doesn't exist, an error is thrown.
 my $quimby_db  = $user_rs->addCourseUser(
 	info => { course_name => 'Precalculus', username => 'quimby'},
 	params => $course_user_params,
@@ -181,17 +163,16 @@ my $quimby_params = clone($course_user_params);
 for my $key (keys %$user_params) {
 	$quimby_params->{$key} = $user_params->{$key};
 }
-
 is_deeply($quimby_params,$quimby_db, "addCourseUser: check that an added user is returned merged");
 
-## addCourseUser: check that if the course doesn't exist, an error is thrown:
-
+# addUser: The course exists, but the user is already a member.
 throws_ok {
 	$user_rs->addCourseUser(info => { course_name => "unknown_course", username => "barney" }, params => {});
 }
 "DB::Exception::CourseNotFound", "addCourseUser: the course doesn't exist";
 
-## addCourseUser: the course exists, but the user is already a member.
+# updateUser: Check that the user updates.
+my $updated_user = { params => { comment => 'Mayor Joe is the best!!' }, recitation => "2" };
 
 throws_ok {
 	$user_rs->addCourseUser(info => { course_name => "Arithmetic", username => "moe" });
@@ -200,13 +181,13 @@ throws_ok {
 
 # try to add a non-existent user from a course:
 
+# updateUser: Check that if the course doesn't exist, an error is thrown:
 throws_ok {
 	$user_rs->addCourseUser(info => { course_name => "Arithmetic", username => "non_existent_user" })
 }
 "DB::Exception::UserNotFound", "addCourseUser: try to add a non-existent user to a course";
 
-## addCourseUser: add a user with undefined parameters
-
+# addCourseUser: add a user with undefined parameters
 throws_ok {
 	$user_rs->addCourseUser(
 		info => { course_name => "Topology", username => "quimby" },
@@ -217,9 +198,7 @@ throws_ok {
 }
 "DBIx::Class::Exception", "addCourseUser: an undefined field is passed in";
 
-
-## addCourseUser: add a user with undefined parameters
-
+# updateUser: Send in wrong information
 throws_ok {
 	$user_rs->addCourseUser(
 		info => { course_name => "Topology", username => "quimby" },
@@ -232,8 +211,7 @@ throws_ok {
 }
 "DB::Exception::UndefinedParameter", "addCourseUser: an undefined parameter is set";
 
-## addCourseUser: update a user with nonvalid fields
-
+# updateUser: Update a user with nonvalid fields
 throws_ok {
 	$user_rs->addCourseUser(
 		info => { course_name => "Topology", username => "quimby" },
@@ -247,8 +225,7 @@ throws_ok {
 "DB::Exception::InvalidParameter", "addCourseUser: an parameter with invalid value";
 
 
-## updateCourseUser: check that the user updates.
-
+# updateCourseUser: check that the user updates.
 my $updated_user = {
 	course_user_params => {
 		comment => 'Mayor Joe is the best!!'
@@ -268,7 +245,7 @@ my $user_from_db = $user_rs->updateCourseUser(
 removeIDs($user_from_db);
 is_deeply($course_user_params, $user_from_db, "updateCourseUser: update a single user in an existing course.");
 
-## updateCourseUser: check that if the course doesn't exist, an error is thrown:
+# updateCourseUser: check that if the course doesn't exist, an error is thrown:
 throws_ok {
 	$user_rs->updateCourseUser(
 		info => { course_name => "unknown_course", username => "barney" },
@@ -277,7 +254,7 @@ throws_ok {
 }
 "DB::Exception::CourseNotFound", "updateCourseUser: the course doesn't exist";
 
-## updateCourseUser: check that if the course exists, but the user not a member.
+# updateCourseUser: check that if the course exists, but the user not a member.
 throws_ok {
 	$user_rs->updateCourseUser(
 		info => { course_name => "Arithmetic", username => "marge" },
@@ -286,8 +263,7 @@ throws_ok {
 }
 "DB::Exception::UserNotInCourse", "updateCourseUser: the user is not a member of the course";
 
-## updateCourseUser: send in wrong information
-
+# Try to add a non-existent user from a course.
 throws_ok {
 	$user_rs->updateCourseUser(
 		info => { course_name => "Arithmetic", user_name => "bart" },
@@ -296,8 +272,7 @@ throws_ok {
 }
 "DB::Exception::ParametersNeeded", "updateCourseUser: the incorrect information is passed in.";
 
-## updateCourseUser: update a user with nonvalid fields
-
+# Check that a non-existent course throws an error.
 throws_ok {
 	$user_rs->updateCourseUser(
 		info => { course_name => "Arithmetic", username => "quimby" },
@@ -307,8 +282,7 @@ throws_ok {
 "DBIx::Class::Exception", "updateCourseUser: an invalid field is set";
 
 
-## updateCourseUser: update a user with undefined parameters
-
+# updateCourseUser: update a user with undefined parameters
 throws_ok {
 	$user_rs->updateCourseUser(
 		info => { course_name => "Arithmetic", username => "quimby" },
@@ -321,8 +295,7 @@ throws_ok {
 }
 "DB::Exception::UndefinedParameter", "updateCourseUser: an undefined parameter is set";
 
-## updateCourseUser: update a user with nonvalid fields
-
+# Check that updating a user with nonvalid fields throws an error.
 throws_ok {
 	$user_rs->updateCourseUser(
 		info => { course_name => "Arithmetic", username => "quimby" },
@@ -335,14 +308,11 @@ throws_ok {
 }
 "DB::Exception::InvalidParameter", "updateCourseUser: an parameter with invalid value";
 
-## deleteUser: delete a single user from a course
-
+# Delete a single user from a course.
 my $deleted_user;
-
-my $dont_delete_users;    # switch to not delete added users.
+my $dont_delete_users;    # Switch to not delete added users.
 
 SKIP: {
-
 	skip "delete added users", 5 if $dont_delete_users;
 
 	my $deleted_course_user = $user_rs->deleteCourseUser(info => { course_name => "Arithmetic", username => "quimby" });
@@ -355,27 +325,23 @@ SKIP: {
 
 	is_deeply($user_params, $deleted_user, "deleteGlobalUser: delete a user");
 
-## deleteUser: check that if the course doesn't exist, an error is thrown:
-
+	# deleteUser: Check that if the course doesn't exist, an error is thrown:
 	throws_ok {
 		$user_rs->deleteCourseUser(info => { course_name => "unknown_course", username => "barney" });
 	}
 	"DB::Exception::CourseNotFound", "deleteUser: the course doesn't exist";
 
-## deleteUser: check that if the course exists, but the user not a member.
-
+	# deleteUser: Check that if the course exists, but the user not a member.
 	throws_ok {
 		$user_rs->deleteCourseUser(info => { course_name => "Arithmetic", username => "marge" });
 	}
 	"DB::Exception::UserNotInCourse", "deleteUser: the user is not a member of the course";
 
-## deleteUser: send in username_name instead of username
-
+	# deleteUser: Send in username_name instead of username
 	throws_ok {
 		$user_rs->deleteCourseUser(info => { course_name => "Arithmetic", username_name => "bart" });
 	}
 	"DB::Exception::ParametersNeeded", "deleteUser: the incorrect information is passed in.";
-
 }
 
 done_testing;

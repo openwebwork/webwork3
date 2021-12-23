@@ -2,7 +2,7 @@
 /// <reference types="jest" />
 
 import { Quiz, ProblemSet } from 'src/store/models/problem_sets';
-import { BooleanParseException, InvalidFieldsException, NonNegIntException } from 'src/store/models';
+import { BooleanParseException, NonNegIntException } from 'src/store/models';
 
 test('Build a Quiz', () => {
 	const quiz = new Quiz();

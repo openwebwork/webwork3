@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
-#
+
 # This tests the basic database CRUD functions of problems.
-#
+
 use warnings;
 use strict;
 
@@ -15,46 +15,32 @@ use lib "$main::ww3_dir/lib";
 
 use Test::More;
 use Test::Exception;
-use Try::Tiny;
-use Carp;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
 
-use Array::Utils qw/array_minus intersect/;
-
-use DB::WithParams;
-use DB::WithDates;
 use DB::Schema;
-use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
+use DB::TestUtils qw/loadCSV removeIDs/;
 use DB::Utils qw/updateAllFields/;
 
-# set up the database
+# Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
-	unless (-e $config_file);
-
+$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
-
-my $schema =
-	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
-
-# $schema->storage->debug(1);  # print out the SQL commands.
+my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
 my $problem_rs     = $schema->resultset("Problem");
 my $problem_set_rs = $schema->resultset("ProblemSet");
 
-# load all problems from the CVS files
+# Load all problems from the CVS files.
 my @problems_from_csv = loadCSV("$main::ww3_dir/t/db/sample_data/problems.csv");
 for my $problem (@problems_from_csv) {
 	$problem->{problem_version} = 1 unless defined($problem->{problem_version});
 }
 
-use Data::Dumper;
-
-# filter out precalc problems
+# Filter out precalc problems
 my @precalc_problems = grep { $_->{course_name} eq "Precalculus" } @problems_from_csv;
 
-# filter out "HW #1"
+# Filter out "HW #1"
 my @precalc_problems1 = grep { $_->{set_name} eq "HW #1" } @precalc_problems;
 
 for my $problem (@problems_from_csv) {
@@ -71,8 +57,7 @@ for my $problem (@problems_from_db) {
 
 is_deeply(\@all_problems, \@problems_from_db, "getGlobalProblems: get all problems");
 
-## get all problems from one course
-
+# Get all problems from one course.
 my @precalc_problems_from_db = $problem_rs->getProblems(info => { course_name => "Precalculus" });
 for my $problem (@precalc_problems_from_db) {
 	removeIDs($problem);
@@ -84,8 +69,7 @@ for my $problem (@precalc_problems) {
 
 is_deeply(\@precalc_problems, \@precalc_problems_from_db, "getProblems: get all problems from one course");
 
-## get all problems in one course from one set.
-
+# Get all problems in one course from one set.
 my @set_problems1 = $problem_rs->getSetProblems(info => { course_name => "Precalculus", set_name => "HW #1" });
 
 for my $problem (@set_problems1) {
@@ -94,22 +78,19 @@ for my $problem (@set_problems1) {
 
 is_deeply(\@precalc_problems1, \@set_problems1, "getSetProblems: get all problems from one set");
 
-## try to get problems from a non-existing course
-
+# Try to get problems from a non-existing course.
 throws_ok {
 	$problem_rs->getSetProblems(info => { course_name => "non_existing_course", set_name => "HW #1" });
 }
 "DB::Exception::CourseNotFound", "getSetProblem: get problems from non-existing course";
 
-## try to get problems from a non-existing set
-
+# Try to get problems from a non-existing set.
 throws_ok {
 	$problem_rs->getSetProblems(info => { course_name => "Precalculus", set_name => "HW #999" });
 }
 "DB::Exception::SetNotInCourse", "getSetProblems: get problems from non-existing set";
 
-## get a single problem from a course:
-
+# Get a single problem from a course.
 my $set_problem = $problem_rs->getSetProblem(info => {
 	course_name    => "Precalculus",
 	set_name       => "HW #1",
@@ -117,14 +98,13 @@ my $set_problem = $problem_rs->getSetProblem(info => {
 });
 removeIDs($set_problem);
 
-my $expected_problem = { %{ $problems_from_csv[0] } };    # copy the first problem
+my $expected_problem = { %{ $problems_from_csv[0] } };    # Copy the first problem
 delete $expected_problem->{set_name};
 delete $expected_problem->{course_name};
 
 is_deeply($expected_problem, $set_problem, "getSetProblem: get a single problem from a set in a given course");
 
-## add a problem to an existing set
-
+# Add a problem to an existing set.
 my $new_problem = {
 	problem_number => 4,
 	problem_params => {
@@ -145,8 +125,7 @@ removeIDs($prob1);
 
 is_deeply($new_problem, $prob1, "addProblem: add a valid problem to a set");
 
-## update a problem
-
+# Update a problem
 my $updated_params = {
 	problem_number => 99,
 	problem_params => {
@@ -169,8 +148,7 @@ $all_params->{problem_version} = 1 unless defined $all_params->{problem_version}
 
 is_deeply($all_params, $updated_problem, "updateProblem: update a problem");
 
-## delete a problem from a set
-
+# Delete a problem from a set
 my $deleted_problem = $problem_rs->deleteSetProblem(info => {
 	course_name    => "Precalculus",
 	set_name       => "HW #1",

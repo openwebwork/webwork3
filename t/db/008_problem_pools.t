@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
-#
+
 # This tests the basic database CRUD functions of Pool Problems.
-#
+
 use warnings;
 use strict;
 
@@ -15,42 +15,29 @@ use lib "$main::ww3_dir/lib";
 
 use Test::More;
 use Test::Exception;
-use Try::Tiny;
-use Carp;
 use YAML::XS qw/LoadFile/;
 
-use List::MoreUtils qw/uniq/;
-
-use DB::WithParams;
-use DB::WithDates;
 use DB::Schema;
-use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
+use DB::TestUtils qw/loadCSV removeIDs/;
 
-# Set up the database
+# Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
-	unless (-e $config_file);
-
+$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
+my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-my $schema =
-	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
-
-# $schema->storage->debug(1);  # print out the SQL commands.
-
-## load problem pools from the csv files:
-
+# Load problem pools from the csv files.
 my @pool_problems_from_file = loadCSV("$main::ww3_dir/t/db/sample_data/pool_problems.csv");
 
 my @problem_pools_from_file = map {
-	{%$_};
-} @pool_problems_from_file;    # copy the array
+	{%$_}
+} @pool_problems_from_file;
 for my $pool (@problem_pools_from_file) {
 	delete $pool->{library_id};
 	delete $pool->{params};
 }
 
-## get an array of unique problem pools by pool_name
+# Get an array of unique problem pools by pool_name.
 my %seen;
 @problem_pools_from_file = grep { !$seen{ $_->{pool_name} }++ } @problem_pools_from_file;
 
@@ -73,8 +60,7 @@ for my $pool (@precalc_pools) {
 
 is_deeply(\@precalc_pools_from_file, \@precalc_pools, "getProblemPools: get all problem pools from a single course");
 
-## get a problem pool
-
+# Get a problem pool
 my $pool_to_fetch = $problem_pools_from_file[0];
 
 my $fetched_pool = $problem_pool_rs->getProblemPool(info => $pool_to_fetch);
@@ -83,22 +69,19 @@ $fetched_pool->{course_name} = $problem_pools_from_file[0]->{course_name};
 
 is_deeply($pool_to_fetch, $fetched_pool, "getProblemPool: get a single pool from a course");
 
-## throws_ok to get a problem pool from a course that doesn't exist.
-
+# Try to get a problem pool from a course that doesn't exist.
 throws_ok {
 	$problem_pool_rs->getProblemPool(info => { course_name => "not existent course", pool_name => "adding fractions" });
 }
 "DB::Exception::CourseNotFound", "getProblemPool: get a problem pool from a non-existent course";
 
-## throws_ok to get a problem pool from a course, but the pool doesn't exist.
-
+# Try to get a problem pool from a course, but the pool doesn't exist.
 throws_ok {
 	$problem_pool_rs->getProblemPool(info => { course_name => "Arithmetic", pool_name => "non_existent_pool" });
 }
 "DB::Exception::PoolNotInCourse", "getProblemPool: get a problem pool from a non-existent course";
 
-## add a problem pool
-
+# Add a problem pool
 my $course_name = 'Arithmetic';
 my $pool_name   = 'subtracting fractions';
 
@@ -110,15 +93,13 @@ removeIDs($pool2);
 
 is_deeply(
 	{
-		# course_name => $course_name,
 		pool_name => $pool_name
 	},
 	$pool2,
 	"addProblemPool: add a new problem pool to a course"
 );
 
-## addProblemPool to a pool that already exists
-
+# Try to add a pool that already exists.
 throws_ok {
 	$problem_pool_rs->addProblemPool(
 		info => { course_name => 'Arithmetic' },
@@ -127,16 +108,14 @@ throws_ok {
 }
 "DB::Exception::PoolAlreadyInCourse", "addProblemPool: pool already exists";
 
-## addProblemPool with a pool with non-valid field
-
+# Try to add a pool with an invalid field.
 throws_ok {
 	$problem_pool_rs->addProblemPool(info => { course_name => 'Arithmetic' },
 		params => { pool_name => "multiplying fractions", other_field => "XXX" });
 }
 "DBIx::Class::Exception", "addProblemPool: add a pool with non-valid field";
 
-## update an existing problem pool
-
+# Update an existing problem pool.
 my $updated_pool = { pool_name => "subtracting fractions with like denominators", };
 
 my $updated_pool_from_db = $problem_pool_rs->updateProblemPool(
@@ -150,10 +129,9 @@ $updated_pool->{course_name} = 'Arithmetic';
 
 is_deeply($updated_pool, $updated_pool_from_db, "updateProblemPool: update the name of a problem pool");
 
-## throws_ok to update a pool that doesn't exist
+# TODO: Try to update a pool that doesn't exist.
 
-## throws_ok to get a problem pool from a course that doesn't exist.
-
+# Try to get a problem pool from a course that doesn't exist.
 throws_ok {
 	$problem_pool_rs->updateProblemPool(
 		info => { course_name => 'non_existent_course', pool_name => 'XXXX' },
@@ -162,8 +140,7 @@ throws_ok {
 }
 "DB::Exception::CourseNotFound", "udpateProblemPool: update a problem pool from a non-existent course";
 
-## throws_ok to get a problem pool from a course, but the pool doesn't exist.
-
+# Try to get a non-existent problem pool from a course.
 throws_ok {
 	$problem_pool_rs->updateProblemPool(
 		info => { course_name => "Arithmetic", pool_name => "non_existent_pool" },
@@ -172,16 +149,14 @@ throws_ok {
 }
 "DB::Exception::PoolNotInCourse", "updateProblemPool: update a problem pool from a non-existent course";
 
-## get a PoolProblem (a problem within a ProblemPool)
-
+# Get a PoolProblem (a problem within a ProblemPool).
 my $prob2 = $pool_problems_from_file[0];
 
 my $pool_problem2 = $problem_pool_rs->getPoolProblem(info => $prob2);
 
 is($prob2->{library_id}, $pool_problem2->{library_id}, "getPoolProblem: get a single problem from a problem pool");
 
-## get a random PoolProblem
-
+# Get a random PoolProblem.
 my $random_prob = $problem_pool_rs->getPoolProblem(info => {
 	course_name => $prob2->{course_name},
 	pool_name   => $prob2->{pool_name}
@@ -194,10 +169,8 @@ my @arr     = grep { $_ == $random_prob->{params}->{library_id} } @lib_ids;
 
 ok(scalar(@arr) == 1, "getPoolProblem: get a random problem from a problem pool");
 
-## add a Problem to a pool
-
+# Add a Problem to a pool.
 my $prob_to_add->{params} = { library_id => 8332 };
-
 my $added_problem = $problem_pool_rs->addProblemToPool(info => $updated_pool, params => $prob_to_add);
 
 is(
@@ -206,8 +179,7 @@ is(
 	"addProblemToPool: adding a problem to an existing pool."
 );
 
-### check that adding a problem to a non-existence course fails
-
+# Check that adding a problem to a non-existence course fails.
 throws_ok {
 	$problem_pool_rs->addProblemToPool(
 		info => {
@@ -219,8 +191,7 @@ throws_ok {
 }
 "DB::Exception::CourseNotFound", "addProblemToPool: try to add to a nonexisting course";
 
-### check that adding a problem to a non-existence pool fails
-
+# Check that adding a problem to a non-existence pool fails.
 throws_ok {
 	$problem_pool_rs->addProblemToPool(
 		info => {
@@ -232,8 +203,7 @@ throws_ok {
 }
 "DB::Exception::PoolNotInCourse", "addProblemToPool: try to add to a nonexisting pool";
 
-## update a pool problem
-
+# Update a pool problem.
 my $course_pool_problem_info = {%$updated_pool_from_db};
 $course_pool_problem_info->{pool_problem_id} = $added_problem->{pool_problem_id};
 
@@ -250,8 +220,7 @@ is(
 	"updatePoolProblem: update an existing problem in an existing pool."
 );
 
-### check that updating a problem to a non-existence course fails
-
+# Check that updating a problem to a non-existence course fails.
 throws_ok {
 	$problem_pool_rs->updatePoolProblem(
 		info => {
@@ -268,8 +237,7 @@ throws_ok {
 }
 "DB::Exception::CourseNotFound", "updatePoolProblem: try to update a nonexisting course";
 
-### check that updating a problem to a non-existence course fails
-
+# Check that updating a problem to a non-existence course fails.
 throws_ok {
 	$problem_pool_rs->updatePoolProblem(
 		info => {
@@ -282,8 +250,7 @@ throws_ok {
 }
 "DB::Exception::PoolNotInCourse", "updatePoolProblem: try to update  a nonexisting pool";
 
-### check that updating a problem to a non-existing problem fails.
-
+# Check that updating a problem to a non-existing problem fails.
 throws_ok {
 	$problem_pool_rs->updatePoolProblem(
 		info => {
@@ -296,11 +263,10 @@ throws_ok {
 }
 "DB::Exception::PoolProblemNotInPool", "updatePoolProblem: try to update a nonexisting problem";
 
-## delete a problem pool
+# Delete a problem pool
 my $pool_to_delete = $problem_pool_rs->deleteProblemPool(info => $updated_pool);
 removeIDs($pool_to_delete);
 $pool_to_delete->{course_name} = 'Arithmetic';
-
 is_deeply($updated_pool, $pool_to_delete, "deleteProblemPool: delete an existing problem pool");
 
 done_testing;
