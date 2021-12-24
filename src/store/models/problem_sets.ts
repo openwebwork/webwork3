@@ -75,7 +75,7 @@ export class ProblemSet extends Model(
 		throw 'You must override the isValid() method';
 	}
 
-	setDates(dates: Dictionary<generic> = {}){
+	setDates(dates: Dictionary<generic> = {}) {
 		// check that only valid dates are present
 		const invalid_dates = difference(Object.keys(dates), this._date_fields);
 		if (invalid_dates.length !== 0) {
@@ -96,9 +96,9 @@ export class ProblemSet extends Model(
 // Quiz interfaces
 
 export interface ParseableQuizDates {
-	open?: number|string;
-	due?: number|string;
-	answer?: number|string;
+	open?: number | string;
+	due?: number | string;
+	answer?: number | string;
 }
 
 export interface QuizDates {
@@ -108,8 +108,8 @@ export interface QuizDates {
 }
 
 export interface ParseableQuizParams {
-	timed?: boolean|string|number;
-	quiz_duration?: number|string;
+	timed?: boolean | string | number;
+	quiz_duration?: number | string;
 }
 
 export interface QuizParams {
@@ -161,8 +161,8 @@ export interface ParseableHWDates {
 }
 
 export interface ParseableHWParams {
-	enable_reduced_scoring?: boolean|string|number;
-	hide_hint?: boolean|string|number;
+	enable_reduced_scoring?: boolean | string | number;
+	hide_hint?: boolean | string | number;
 	hardcopy_header?: string;
 	set_header?: string;
 	description?: string;
@@ -244,8 +244,8 @@ export class HomeworkSet extends ProblemSet {
 
 // ReviewSet interfaces
 
-export interface ParseableReviewParams extends Dictionary<generic|undefined> {
-	allow?: boolean|string|number;
+export interface ParseableReviewParams extends Dictionary<generic | undefined> {
+	allow?: boolean | string | number;
 }
 
 export interface ReviewSetParams {
@@ -253,8 +253,8 @@ export interface ReviewSetParams {
 }
 
 export interface ParseableReviewDates {
-	open?: number|string;
-	closed?: number|string;
+	open?: number | string;
+	closed?: number | string;
 }
 
 export interface ReviewSetDates {
@@ -266,7 +266,7 @@ export class ReviewSet extends ProblemSet {
 	set_params: ReviewSetParams;
 	set_dates: ReviewSetDates;
 
-	constructor(params: ParseableProblemSet = {}){
+	constructor(params: ParseableProblemSet = {}) {
 		params.set_type = 'REVIEW';
 		super(params as ParseableModel);
 		this._date_fields = ['open', 'closed'];
@@ -352,8 +352,7 @@ export class MergedUserSet extends Model(
 		set_name: { field_type: 'string' },
 		username: { field_type: 'username' }
 	}
-	 ) {
-
+) {
 	set_params = {};
 	set_dates = {};
 

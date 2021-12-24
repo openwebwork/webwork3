@@ -1,8 +1,5 @@
 /dist
 /.quasar
 /node_modules
-.eslintrc.js
-babel.config.js
 package.json
 package-lock.json
-tsconfig.json

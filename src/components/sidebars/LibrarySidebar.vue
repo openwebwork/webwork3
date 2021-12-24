@@ -28,7 +28,7 @@ export default defineComponent({
 	setup() {
 		const store = useStore();
 		const router = useRouter();
-		const target_set = ref<SelectItem| null>(null);
+		const target_set = ref<SelectItem | null>(null);
 
 		watch([target_set], () => {
 			void store.dispatch('app_state/setTargetSetID', target_set.value?.value ?? 0);

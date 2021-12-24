@@ -38,7 +38,7 @@ export default defineComponent({
 	components: {
 		DateTimeInput
 	},
-	setup(props){
+	setup(props) {
 		const review_set_dates = ref<ReviewSetDates>(props.dates);
 
 		return {

@@ -30,7 +30,6 @@ export class User extends Model(
 	constructor(params: ParseableUser = {}) {
 		super(params as ParseableModel);
 	}
-
 }
 
 export interface ParseableCourseUser {

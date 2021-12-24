@@ -52,14 +52,14 @@ export async function fetchProblem(url: string, formData: FormData, overrides: R
 		renderedHTML = data.renderedHTML ?? {};
 		js = data.resources.js ?? [];
 		css = data.resources.css ?? [];
-	} catch(e) {
+	} catch (e) {
 		renderError = (e as Error).message;
 	}
 
 	return { renderedHTML, js, css, renderError };
 }
 
-function requestString(value: number|string|boolean|undefined): string {
+function requestString(value: number | string | boolean | undefined): string {
 	switch (typeof value) {
 	case 'string': return value;
 	case 'number': return `${value}`;

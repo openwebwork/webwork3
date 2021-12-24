@@ -24,7 +24,7 @@ export class ParseError {
 	type: string;
 	message: string;
 	field?: string;
-	constructor(type: string, message: string){
+	constructor(type: string, message: string) {
 		this.type = type;
 		this.message = message;
 	}
@@ -33,31 +33,31 @@ export class ParseError {
 // Some specific parsing errors/exceptions
 
 export class NonNegIntException extends ParseError {
-	constructor(message: string){
+	constructor(message: string) {
 		super('NonNegIntException', message);
 	}
 }
 
 export class UsernameParseException extends ParseError {
-	constructor(message: string){
+	constructor(message: string) {
 		super('UsernameParseExcpeption', message);
 	}
 }
 
 export class EmailParseException extends ParseError {
-	constructor(message: string){
+	constructor(message: string) {
 		super('EmailParseException', message);
 	}
 }
 
 export class BooleanParseException extends ParseError {
-	constructor(message: string){
+	constructor(message: string) {
 		super('BooleanParseException', message);
 	}
 }
 
 export class RequiredFieldsException extends ParseError {
-	constructor(_field: string, message: string){
+	constructor(_field: string, message: string) {
 		super('RequiredFieldsException', message);
 		this.field = _field;
 	}
@@ -107,11 +107,10 @@ export function parseBoolean(_value: boolean | string | number) {
 	if (typeof _value === 'number' && (_value === 1 || _value === 0)) {
 		return _value === 1;
 	}
-	if (typeof _value === 'string' && booleanRE.test(_value)){
+	if (typeof _value === 'string' && booleanRE.test(_value)) {
 		return booleanTrue.test(_value);
 	}
 	throw new BooleanParseException(`The value '${_value}' is not a boolean`);
-
 }
 
 export const user_roles = ['admin', 'instructor', 'TA', 'student'];
@@ -125,21 +124,21 @@ export function parseUserRole(role: string) {
 	return role;
 }
 
-export type generic = string|number|boolean;
+export type generic = string | number | boolean;
 
-export type ParseableModel = Dictionary<generic|Dictionary<generic>>;
+export type ParseableModel = Dictionary<generic | Dictionary<generic>>;
 
 // This interface is a general field for a model.
 
-export interface ModelField  {
+export interface ModelField {
 	[k: string]: {
-		field_type: 'string'|'boolean'|'number'|'non_neg_int'|'username'|'email'|'role'|'array';
-		default_value?: generic|Dictionary<generic>|Array<Dictionary<generic>>;
+		field_type: 'string' | 'boolean' | 'number' | 'non_neg_int' | 'username' | 'email' | 'role' | 'array';
+		default_value?: generic | Dictionary<generic> | Array<Dictionary<generic>>;
 		required?: boolean;
-	}
+	};
 }
 
-export const parseParams = (_params: Dictionary<generic | Dictionary<generic>>,  _fields: ModelField) => {
+export const parseParams = (_params: Dictionary<generic | Dictionary<generic>>, _fields: ModelField) => {
 	const output_params: Dictionary<generic> = {};
 	Object.keys(_fields).forEach((key: string) => {
 		if ((!(key in _params) || _params[key] == undefined) && _fields[key].default_value !== undefined) {
@@ -194,15 +193,27 @@ export class User extends Model(
 
 */
 
-export const Model = <Bool extends string, Num extends string, Str extends string, Dic extends string,
-	F extends ModelField>
-	(boolean_fields: Bool[], Num_neg_int_fields: Num[], string_fields: Str[], dictionary_fields: Dic[],
-		fields: F) => {
-
-	type ModelObject<Bool extends string, Num extends string, Str extends string, Dic extends string> =
-			Partial<Record<Bool, boolean>> & Partial<Record<Num, number>> &
-			Partial<Record<Str, string>> & Partial<Record<Dic, Dictionary<generic>>> extends
-				 infer T ? { [K in keyof T]: T[K] } : never;
+export const Model = <
+	Bool extends string,
+	Num extends string,
+	Str extends string,
+	Dic extends string,
+	F extends ModelField
+>(
+		boolean_fields: Bool[],
+		Num_neg_int_fields: Num[],
+		string_fields: Str[],
+		dictionary_fields: Dic[],
+		fields: F
+	) => {
+	type ModelObject<Bool extends string, Num extends string, Str extends string, Dic extends string> = Partial<
+		Record<Bool, boolean>
+	> &
+		Partial<Record<Num, number>> &
+		Partial<Record<Str, string>> &
+		Partial<Record<Dic, Dictionary<generic>>> extends infer T
+		? { [K in keyof T]: T[K] }
+		: never;
 
 	class _Model {
 		_boolean_field_names: Array<Bool> = boolean_fields;
@@ -218,14 +229,18 @@ export const Model = <Bool extends string, Num extends string, Str extends strin
 
 			if (!isEqual(common_fields, this.required_fields)) {
 				const diff = difference(this.required_fields, common_fields);
-				throw new RequiredFieldsException('_all',
-					`The field(s) '${diff.join(', ')}' must be present in ${this.constructor.name}`);
+				throw new RequiredFieldsException(
+					'_all',
+					`The field(s) '${diff.join(', ')}' must be present in ${this.constructor.name}`
+				);
 			}
 			// check that no invalid params are set
 			const invalid_fields = difference(Object.keys(params ?? {}), this.all_fields);
 			if (invalid_fields.length !== 0) {
-				throw new InvalidFieldsException('_all',
-					`The field(s) '${invalid_fields.join(', ')}' is(are) not valid for ${this.constructor.name}.`);
+				throw new InvalidFieldsException(
+					'_all',
+					`The field(s) '${invalid_fields.join(', ')}' is(are) not valid for ${this.constructor.name}.`
+				);
 			}
 			this.set(params);
 		}
@@ -235,7 +250,7 @@ export const Model = <Bool extends string, Num extends string, Str extends strin
 			const fields = [...this._boolean_field_names, ...this._number_field_names, ...this._string_field_names];
 			const parsed_params = parseParams(pick(params, fields) as Dictionary<generic>, this._fields);
 
-			fields.forEach(key => {
+			fields.forEach((key) => {
 				if (key in parsed_params && parsed_params[key] != null) {
 					(this as unknown as Dictionary<generic>)[key] = parsed_params[key];
 				}
@@ -243,19 +258,23 @@ export const Model = <Bool extends string, Num extends string, Str extends strin
 		}
 
 		get all_fields(): Array<Bool | Num | Str | Dic> {
-			return [...this._boolean_field_names, ...this._number_field_names,
-				...this._string_field_names, ...this._dictionary_field_names];
+			return [
+				...this._boolean_field_names,
+				...this._number_field_names,
+				...this._string_field_names,
+				...this._dictionary_field_names,
+			];
 		}
 
 		get required_fields() {
-			return Object.keys(pickBy(this._fields, (val: { required?: boolean}) => val.required || false));
+			return Object.keys(pickBy(this._fields, (val: { required?: boolean }) => val.required || false));
 		}
 
 		// converts the instance of the class to an regular object.
 		toObject(_fields?: Array<string>) {
 			const obj: Dictionary<generic> = {};
 			const fields = _fields ?? this.all_fields;
-			fields.forEach(key => {
+			fields.forEach((key) => {
 				if ((this as unknown as Dictionary<generic>)[key] !== undefined) {
 					obj[key] = (this as unknown as Dictionary<generic>)[key];
 				}
@@ -264,14 +283,16 @@ export const Model = <Bool extends string, Num extends string, Str extends strin
 		}
 	}
 
-	return _Model as unknown as
-		new (params?: Dictionary<generic | Dictionary<generic> | Array<Dictionary<generic>>>) =>
-	ModelObject<Bool, Num, Str, Dic> & {
-		set(params: Dictionary<generic | Dictionary<generic> >): void,
-		toObject(_fields?: Array<string>): Dictionary<generic>,
+	return _Model as unknown as new (
+		params?: Dictionary<generic | Dictionary<generic> | Array<Dictionary<generic>>>
+	) => ModelObject<Bool, Num, Str, Dic> & {
+		set(params: Dictionary<generic | Dictionary<generic>>): void;
+		toObject(_fields?: Array<string>): Dictionary<generic>;
 		all_fields: Array<Bool | Num | Str | Dic>;
 		required_fields: Array<Bool | Num | Str | Dic>[];
-	} extends infer T ? { [K in keyof T]: T[K] } : never;
+	} extends infer T
+		? { [K in keyof T]: T[K] }
+		: never;
 };
 
 export class Collection {

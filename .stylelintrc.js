@@ -1,3 +1,5 @@
+/* eslint-env node */
+
 module.exports = {
 	extends: ['stylelint-config-standard', 'stylelint-config-prettier', 'stylelint-config-recommended-scss'],
 	plugins: ['stylelint-scss'],
@@ -16,4 +18,4 @@ module.exports = {
 			ignorePseudoClasses: ['deep', 'v-deep']
 		}]
 	}
-}
+};
