@@ -29,8 +29,7 @@ use DB::Utils qw/updateAllFields/;
 
 # set up the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
-	unless (-e $config_file);
+$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 
 my $config = LoadFile($config_file);
 
@@ -41,7 +40,7 @@ my $schema =
 
 my $user_problem_rs = $schema->resultset("UserProblem");
 
-# remove some user problems added via this test
+# Remove some user problems added via this test.
 
 my @user_problems_to_delete = $user_problem_rs->search(
 	{
@@ -69,8 +68,6 @@ for my $problem (@problems_from_csv) {
 	$problem->{status}          = 1 unless defined($problem->{status});
 	$problem->{problem_version} = 1 unless defined($problem->{problem_version});
 }
-
-use Data::Dumper;
 
 my @merged_problems_from_csv = ();
 for my $user_problem (@user_problems_from_csv) {
@@ -120,8 +117,7 @@ is_deeply(\@merged_problems_from_csv, \@merged_problems_from_db, "getAllUserProb
 
 my @precalc_user_problems = grep { $_->{course_name} eq "Precalculus" } @user_problems_from_csv;
 
-my @precalc_user_problems_from_db =
-	$user_problem_rs->getUserProblems(info => { course_name => "Precalculus" });
+my @precalc_user_problems_from_db = $user_problem_rs->getUserProblems(info => { course_name => "Precalculus" });
 for my $user_problem (@precalc_user_problems_from_db) {
 	removeIDs($user_problem);
 	delete $user_problem->{problem_version} unless defined $user_problem->{problem_version};
@@ -138,8 +134,8 @@ is_deeply(
 my @precalc_merged_problems = grep { $_->{course_name} eq "Precalculus" } @merged_problems_from_csv;
 
 my @precalc_merged_problems_from_db = $user_problem_rs->getUserProblems(
-	info => { course_name => "Precalculus" },
-	merged            => 1
+	info   => { course_name => "Precalculus" },
+	merged => 1
 );
 for my $merged_problem (@precalc_merged_problems_from_db) {
 	removeIDs($merged_problem);
@@ -240,7 +236,7 @@ my $problem_info1 = {
 };
 
 my $user_problem1 = $user_problem_rs->addUserProblem(
-	info   => $problem_info1,
+	info                => $problem_info1,
 	user_problem_params => { seed => 7329 }
 );
 removeIDs($user_problem1);
@@ -259,7 +255,7 @@ my $problem_info2 = {
 };
 
 my $user_problem2 = $user_problem_rs->addUserProblem(
-	info   => $problem_info2,
+	info                => $problem_info2,
 	user_problem_params => { seed => 7329 },
 	merged              => 1
 );

@@ -203,8 +203,8 @@ my @merged_sets_for_one_set =
 	grep { $_->{course_name} eq 'Precalculus' && $_->{set_name} eq 'HW #1' } @merged_user_sets;
 
 @merged_sets_from_db = $user_set_rs->getUserSets(
-	info => { course_name => "Precalculus", set_name => "HW #1" },
-	merged        => 1
+	info   => { course_name => "Precalculus", set_name => "HW #1" },
+	merged => 1
 );
 
 for my $user_set (@merged_sets_from_db) {
@@ -360,7 +360,7 @@ my $new_user_params2 = {
 };
 
 my $new_user_set2 = $user_set_rs->addUserSet(
-	info   => $new_user_params2,
+	info            => $new_user_params2,
 	user_set_params => { set_dates => {} }
 );
 
@@ -427,8 +427,6 @@ throws_ok {
 }
 "DB::Exception::UserSetExists", "addUserSet: try to add a user set that already exists";
 
-
-
 my $otto_set_info2 = {
 	username    => "otto",
 	course_name => "Precalculus",
@@ -449,7 +447,7 @@ my $otto_set_info4 = {
 
 # Add a user set with valid params.
 my $user_set2 = $user_set_rs->addUserSet(
-	info   => $otto_set_info2,
+	info            => $otto_set_info2,
 	user_set_params => {
 		set_params => {
 			description => "This is the description for HW #2"
@@ -470,7 +468,7 @@ is_deeply($user_set2, $set_params2, "addUserSet: add a new user set with params"
 # Try to add a user set with a bad field.
 throws_ok {
 	$user_set_rs->addUserSet(
-		info   => $otto_set_info3,
+		info            => $otto_set_info3,
 		user_set_params => {
 			set_params => {
 				bad_field => 12
@@ -490,7 +488,7 @@ my $set_dates3 = {
 };
 
 my $user_set3 = $user_set_rs->addUserSet(
-	info   => $otto_set_info3,
+	info            => $otto_set_info3,
 	user_set_params => { set_dates => $set_dates3 }
 );
 removeIDs($user_set3);
@@ -506,7 +504,7 @@ is_deeply($user_set3, $set_params3, "addUserSet: add a new user set with dates")
 # Try to add a bad date.
 throws_ok {
 	$user_set_rs->addUserSet(
-		info   => $otto_set_info4,
+		info            => $otto_set_info4,
 		user_set_params => {
 			set_dates => {
 				open   => 100,
@@ -520,7 +518,7 @@ throws_ok {
 
 throws_ok {
 	$user_set_rs->addUserSet(
-		info   => $otto_set_info4,
+		info            => $otto_set_info4,
 		user_set_params => {
 			set_dates => {
 				open   => 100,
@@ -568,7 +566,7 @@ $merged_set1->{set_dates}->{due}    = $new_dates->{due};
 $merged_set1->{set_dates}->{answer} = $new_dates->{answer};
 
 my $user_set_to_merge = $user_set_rs->addUserSet(
-	info   => $otto_set_info2,
+	info            => $otto_set_info2,
 	user_set_params => {
 		set_dates => $new_dates
 	},
@@ -582,7 +580,7 @@ is_deeply($merged_set1, $user_set_to_merge, 'addUserSet: adding a user set with 
 
 throws_ok {
 	$user_set_rs->addUserSet(
-		info   => $otto_set_info3,
+		info            => $otto_set_info3,
 		user_set_params => {
 			set_dates => {
 				due => 1609595640,    # this is after the problem set answer date.
@@ -609,7 +607,7 @@ $otto_set2->{set_dates}->{due}    = $updated_dates->{due};
 $otto_set2->{set_dates}->{answer} = $updated_dates->{answer};
 
 my $updated_user_set = $user_set_rs->updateUserSet(
-	info   => $otto_set_info2,
+	info            => $otto_set_info2,
 	user_set_params => {
 		set_dates => $updated_dates
 	}
@@ -620,7 +618,7 @@ is_deeply($updated_user_set, $otto_set2, "updateUserSet: update the dates");
 
 # Update the params
 my $updated_user_set2 = $user_set_rs->updateUserSet(
-	info   => $otto_set_info2,
+	info            => $otto_set_info2,
 	user_set_params => {
 		set_params => {
 			hide_hint => 1,
@@ -633,7 +631,7 @@ is_deeply($updated_user_set2, $otto_set2, "updateUserSet: update the params");
 
 # Try updating an invalid field.
 my $updated_user_set3 = $user_set_rs->updateUserSet(
-	info   => $otto_set_info2,
+	info            => $otto_set_info2,
 	user_set_params => {
 		set_version => 2
 	}
@@ -645,7 +643,7 @@ is_deeply($otto_set2, $updated_user_set3, "updateUserSet: update the set version
 # Try updating an invalid field.
 throws_ok {
 	$user_set_rs->updateUserSet(
-		info   => $otto_set_info2,
+		info            => $otto_set_info2,
 		user_set_params => {
 			set_params => {
 				not_a_valid_param => "bad"
@@ -658,7 +656,7 @@ throws_ok {
 # Try updating an invalid date.
 throws_ok {
 	$user_set_rs->updateUserSet(
-		info   => $otto_set_info2,
+		info            => $otto_set_info2,
 		user_set_params => {
 			set_dates => { open => 1, closed => 2 }
 		}
@@ -669,7 +667,7 @@ throws_ok {
 # Test with out of order dates.
 throws_ok {
 	$user_set_rs->updateUserSet(
-		info   => $otto_set_info2,
+		info            => $otto_set_info2,
 		user_set_params => {
 			set_dates => { open => 100, due => 2, answer => 200 }
 		}
@@ -680,7 +678,7 @@ throws_ok {
 # Try to update a user_set that doesn't exist.
 throws_ok {
 	$user_set_rs->updateUserSet(
-		info   => $otto_set_info3,
+		info            => $otto_set_info3,
 		user_set_params => {
 			set_params => {
 				hide_hint => 1

@@ -113,16 +113,17 @@ $t->delete_ok("/webwork3/api/courses/1/sets/6")->content_type_is('application/js
 
 if ($TEST_PERMISSIONS) {
 	$t->post_ok("/webwork3/api/logout")->status_is(200)->json_is('/logged_in' => 0);
-}
 
-# Check that a non-admin user has proper access.
-my @all_users   = $schema->resultset("User")->getCourseUsers({ course_id => 1 });
-my @instructors = grep { $_->{role} eq 'instructor' } @all_users;
+	# Check that a non-admin user has proper access.
+	my @all_users   = $schema->resultset("User")->getCourseUsers(info => { course_id => 1 });
+	my @instructors = grep { $_->{role} eq 'instructor' } @all_users;
 
-if ($TEST_PERMISSIONS) {
-	$t->post_ok("/webwork3/api/username" => json =>
-			{ email => $instructors[0]->{email}, password => $instructors[0]->{username} })->status_is(200)
-		->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1);
+	$t->post_ok(
+		"/webwork3/api/username" => json => {
+			email    => $instructors[0]->{email},
+			password => $instructors[0]->{username}
+		}
+	)->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1);
 
 	$t->get_ok('/webwork3/api/courses/1/sets')->status_is(200)->content_type_is('application/json;charset=UTF-8');
 }

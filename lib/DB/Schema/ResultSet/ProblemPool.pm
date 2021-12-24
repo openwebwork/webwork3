@@ -51,15 +51,16 @@ Get all problem pools for a given course
 
 sub getProblemPools {
 	my ($self, %args) = @_;
-	my $course    = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+	my $course = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
 
 	my @pools = $self->search(
 		{
 			'courses.course_id' => $course->course_id
 		},
 		{
-			 join => [qw/courses/]
-		});
+			join => [qw/courses/]
+		}
+	);
 
 	return @pools if $args{as_result_set};
 	return map {
@@ -106,15 +107,11 @@ Add a problem pool for a given course
 
 =cut
 
-use Data::Dumper;
-
 sub addProblemPool {
 	my ($self, %args) = @_;
-	my $course   = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 
-	DB::Exception::ParametersNeeded->throw(
-		message => "The pool_name is missing from the parameters"
-	)
+	DB::Exception::ParametersNeeded->throw(message => "The pool_name is missing from the parameters")
 		unless defined($args{params}->{pool_name});
 
 	my $existing_pool = $self->find(
@@ -125,16 +122,15 @@ sub addProblemPool {
 		{ prefetch => [qw/courses/] }
 	);
 
-	# print Dumper \%args;
-	# print Dumper $args{info}->{pool_name} || $args{params}->{pool_name};
-
 	DB::Exception::PoolAlreadyInCourse->throw(
 		message => "The problem pool "
-		. ( $args{info}->{pool_name} || $args{params}->{pool_name}?
-			" with name " . ($args{info}->{pool_name} // $args{params}->{pool_name}) :
-			" with id " . $args{info}->{problem_pool_id} )
-		. " is already defined in the course "
-		. $course->course_name
+			. (
+			$args{info}->{pool_name} || $args{params}->{pool_name}
+			? " with name " . ($args{info}->{pool_name} // $args{params}->{pool_name})
+			: " with id " . $args{info}->{problem_pool_id}
+			)
+			. " is already defined in the course "
+			. $course->course_name
 	) if defined($existing_pool);
 
 	# need to check for valid parameters.
@@ -161,13 +157,15 @@ sub updateProblemPool {
 
 	DB::Excpetion::PoolNotInCourse->throw(
 		message => "The problem pool "
-		. ( $args{info}->{pool_name} ?
-			" named " . $args{info}->{pool_name} :
-			" with id " . $args{info}->{problem_pool_id} )
-		. " is not in the course "
-		. ( $args{info}->{course_name} ?
-			" named " . $args{info}->{course_name} :
-			" with id " . $args{info}->{course_id} )
+			. (
+			$args{info}->{pool_name}
+			? " named " . $args{info}->{pool_name}
+			: " with id " . $args{info}->{problem_pool_id}
+			)
+			. " is not in the course "
+			. (
+			$args{info}->{course_name} ? " named " . $args{info}->{course_name} : " with id " . $args{info}->{course_id}
+			)
 	) unless defined($pool);
 
 	# create a new problem pool to check for valid fields
@@ -264,13 +262,15 @@ sub addProblemToPool {
 
 	DB::Excpetion::PoolNotInCourse->throw(
 		message => "The problem pool "
-		. ( $args{info}->{pool_name} ?
-			" named " . $args{info}->{pool_name} :
-			" with id " . $args{info}->{problem_pool_id} )
-		. " is not in the course "
-		. ( $args{info}->{course_name} ?
-			" named " . $args{info}->{course_name} :
-			" with id " . $args{info}->{course_id} )
+			. (
+			$args{info}->{pool_name}
+			? " named " . $args{info}->{pool_name}
+			: " with id " . $args{info}->{problem_pool_id}
+			)
+			. " is not in the course "
+			. (
+			$args{info}->{course_name} ? " named " . $args{info}->{course_name} : " with id " . $args{info}->{course_id}
+			)
 	) unless defined($pool);
 
 	my $course = $self->rs("Course")->find({ course_id => $pool->course_id });

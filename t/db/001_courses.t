@@ -39,9 +39,6 @@ my @courses = loadCSV("$main::ww3_dir/t/db/sample_data/courses.csv");
 for my $course (@courses) {
 	delete $course->{course_params};
 }
-use Data::Dumper;
-
-
 
 # Check the list of all courses
 my @courses_from_db = $course_rs->getCourses;
@@ -51,7 +48,7 @@ for my $course (@courses_from_db) { removeIDs($course); }
 is_deeply(\@courses_from_db, \@courses, "getCourses: course names");
 
 ## Get a single course by name
-my $course  = $course_rs->getCourse(info => { course_name => "Calculus" });
+my $course = $course_rs->getCourse(info => { course_name => "Calculus" });
 
 my $calc_id = $course->{course_id};
 delete $course->{course_id};
@@ -87,7 +84,7 @@ my $new_course_params = {
 	course_dates => {}
 };
 
-my $new_course      = $course_rs->addCourse(info => $new_course_params);
+my $new_course      = $course_rs->addCourse(params => $new_course_params);
 my $added_course_id = $new_course->{course_id};
 removeIDs($new_course);
 
@@ -95,13 +92,13 @@ is_deeply($new_course_params, $new_course, "addCourse: add a new course");
 
 # Add a course that already exists
 throws_ok {
-	$course_rs->addCourse(info => { course_name => "Geometry", visible => 1 });
+	$course_rs->addCourse(params => { course_name => "Geometry", visible => 1 });
 }
 "DB::Exception::CourseExists", "addCourse: course already exists";
 
 # Update the course name
 my $updated_course = $course_rs->updateCourse(
-	info => { course_id => $added_course_id },
+	info   => { course_id   => $added_course_id },
 	params => { course_name => "Geometry II" }
 );
 

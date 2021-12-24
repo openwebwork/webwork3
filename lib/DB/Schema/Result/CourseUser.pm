@@ -145,11 +145,11 @@ __PACKAGE__->add_columns(
 
 sub valid_params {
 	return {
-		comment => q{.*},
-		useMathQuill => q{[01]},
-		useMathView => q{[01]},
-		displayMode => q{.*},
-		status => q{[a-z]},
+		comment        => q{.*},
+		useMathQuill   => q{[01]},
+		useMathView    => q{[01]},
+		displayMode    => q{.*},
+		status         => q{[a-z]},
 		lis_source_did => q{.*},
 		useWirisEditor => q{[01]},
 		showOldAnswers => q{[01]}
@@ -159,7 +159,6 @@ sub valid_params {
 sub required_params {
 	return {};
 }
-
 
 __PACKAGE__->set_primary_key('course_user_id');
 __PACKAGE__->add_unique_constraint([qw/course_id user_id/]);

@@ -26,7 +26,7 @@ $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-my $users_rs = $schema->resultset("User");
+my $users_rs  = $schema->resultset("User");
 my $course_rs = $schema->resultset("Course");
 
 # Remove the user "maggie" if it exists in the database
@@ -68,7 +68,6 @@ for my $user (@users_from_db) {
 @users_from_db = sort { $a->{username} cmp $b->{username} } @users_from_db;
 is_deeply(\@all_students, \@users_from_db, "getUsers: all users");
 
-
 # Get one user that exists
 my $user = $users_rs->getGlobalUser(info => { username => $all_students[0]->{username} });
 removeIDs($user);
@@ -109,7 +108,7 @@ is_deeply($user, $new_user, "addUser: adding a user");
 my $updated_user = {%$user};    # Make a copy of $user
 $updated_user->{email} = 'spring.cop@gmail.com';
 my $up_user_from_db = $users_rs->updateGlobalUser(
-	info => { username => $updated_user->{username} },
+	info   => { username => $updated_user->{username} },
 	params => $updated_user
 );
 removeIDs($up_user_from_db);
@@ -158,7 +157,6 @@ for my $user_course (@user_courses) {
 
 @students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
 
-
 my @user_courses_from_csv = grep { $_->{username} eq "lisa" } @students;
 
 for my $user_course (@user_courses_from_csv) {
@@ -177,7 +175,6 @@ throws_ok {
 	$course_rs->getUserCourses(info => { username => "non_existent_user" });
 }
 "DB::Exception::UserNotFound", "getUserCourses: try to get a list of courses for a non-existent user";
-
 
 done_testing;
 

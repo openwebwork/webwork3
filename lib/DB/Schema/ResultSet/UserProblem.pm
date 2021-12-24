@@ -6,7 +6,6 @@ use base 'DBIx::Class::ResultSet';
 use DB::Utils qw/getCourseInfo getSetInfo getProblemInfo getUserInfo updateAllFields/;
 
 use Clone qw/clone/;
-use Data::Dumper;
 
 use Exception::Class (
 	'DB::Exception::UserProblemExists',
@@ -80,7 +79,7 @@ sub getUserProblems {
 
 sub getUserProblem {
 	my ($self, %args) = @_;
-	my $problem = $self->rs("Problem")->getSetProblem(info => $args{info}, as_result_set => 1);
+	my $problem  = $self->rs("Problem")->getSetProblem(info => $args{info}, as_result_set => 1);
 	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{info}, as_result_set => 1);
 
 	my $user_problem = $self->find({
@@ -111,9 +110,9 @@ sub addUserProblem {
 	my ($self, %args) = @_;
 
 	my $user_problem = $self->getUserProblem(
-		info => $args{info},
-		skip_throw        => 1,
-		as_result_set     => 1
+		info          => $args{info},
+		skip_throw    => 1,
+		as_result_set => 1
 	);
 
 	DB::Exception::UserProblemExists->throw(message => "The user "
@@ -124,7 +123,7 @@ sub addUserProblem {
 			. $user_problem->user_sets->problem_sets->set_name)
 		if $user_problem;
 
-	my $problem = $self->rs("Problem")->getSetProblem(info => $args{info}, as_result_set => 1);
+	my $problem  = $self->rs("Problem")->getSetProblem(info => $args{info}, as_result_set => 1);
 	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{info}, as_result_set => 1);
 
 	my $params = clone($args{user_problem_params} // {});

@@ -59,9 +59,9 @@ Note: a problem should have only one of a library_id, problem_path or problem_po
 sub valid_params {
 	return {
 		timestamp => q{[1-9]d+},
-		scores => q{.*},
-		answer => q{.*},
-		comment => q{.*}
+		scores    => q{.*},
+		answer    => q{.*},
+		comment   => q{.*}
 	};
 }
 
@@ -97,7 +97,7 @@ __PACKAGE__->add_columns(
 		serializer_options => { utf8 => 1 }
 	},
 	# store answers as a JSON object
-	answers =>  {
+	answers => {
 		data_type          => 'text',
 		size               => 256,
 		is_nullable        => 0,

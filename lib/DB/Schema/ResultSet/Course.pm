@@ -9,7 +9,6 @@ use DB::Exception;
 use Exception::Class ('DB::Exception::CourseNotFound', 'DB::Exception::CourseExists');
 use Data::Dump qw/dump/;
 
-
 use DB::TestUtils qw/removeIDs/;
 use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings mergeCourseSettings
 	getDefaultCourseValues validateCourseSettings/;
@@ -85,12 +84,14 @@ of the fields. See above.
 
 =cut
 
+use Data::Dumper;
+
 sub getCourse {
 	my ($self, %args) = @_;
 	my $course = $self->find(getCourseInfo($args{info}));
 	DB::Exception::CourseNotFound->throw(
-		message => "The course: " . dump(getCourseInfo($args{info})) . " does not exist."
-	) unless defined($course);
+		message => "The course: " . dump(getCourseInfo($args{info})) . " does not exist.")
+		unless defined($course);
 	return $course if $args{as_result_set};
 
 	return { $course->get_inflated_columns };
@@ -121,7 +122,7 @@ of the fields. See above.
 
 sub addCourse {
 	my ($self, %args) = @_;
-	my $course_params = $args{info};
+	my $course_params = $args{params};
 	DB::Exception::ParametersNeeded->throw(message => "The parameters must include course_name")
 		unless defined($course_params->{course_name});
 
@@ -233,11 +234,14 @@ sub getUserCourses {
 	my $user = $self->result_source->schema->resultset("User")
 		->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
 
-	my @user_courses = $self->search({
+	my @user_courses = $self->search(
+		{
 			'course_users.user_id' => $user->user_id
-		}, {
+		},
+		{
 			join => ['course_users']
-		});
+		}
+	);
 
 	return @user_courses if $args{as_result_set};
 	my @user_courses_hashref = ();
@@ -246,7 +250,7 @@ sub getUserCourses {
 			course_name => $user_course->get_column("course_name"),
 			$user_course->course_users->first->get_inflated_columns
 		};
-		push(@user_courses_hashref,$params);
+		push(@user_courses_hashref, $params);
 	}
 	return @user_courses_hashref;
 }

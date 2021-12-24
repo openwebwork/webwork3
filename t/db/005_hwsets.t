@@ -62,7 +62,7 @@ for my $set (@review_sets) {
 }
 
 # Test getting all problem sets
-my @all_problem_sets = (@hw_sets, @quizzes, @review_sets);
+my @all_problem_sets     = (@hw_sets, @quizzes, @review_sets);
 my @problem_sets_from_db = $problem_set_rs->getAllProblemSets;
 
 @problem_sets_from_db = sort { $a->{set_name} cmp $b->{set_name} } @problem_sets_from_db;
@@ -116,10 +116,9 @@ for my $set (@precalc_hw_from_db) {
 is_deeply(\@precalc_hw, \@precalc_hw_from_db, "getHWSets: get all homework for one course");
 
 # Get one Problem set
-my $set_one     = $precalc_hw[0];
-my $set_from_db = $problem_set_rs->getProblemSet(
-	info => { course_name => "Precalculus", set_name => $set_one->{set_name} }
-);
+my $set_one = $precalc_hw[0];
+my $set_from_db =
+	$problem_set_rs->getProblemSet(info => { course_name => "Precalculus", set_name => $set_one->{set_name} });
 removeIDs($set_from_db);
 is_deeply($set_one, $set_from_db, "getProblemSet: get one homework");
 
@@ -147,7 +146,7 @@ my $new_set_params = {
 	set_type  => "HW"
 };
 
-my $new_set = $problem_set_rs->addProblemSet(info => { course_name => "Precalculus" }, params => $new_set_params);
+my $new_set    = $problem_set_rs->addProblemSet(info => { course_name => "Precalculus" }, params => $new_set_params);
 my $new_set_id = $new_set->{set_id};
 removeIDs($new_set);
 delete $new_set->{type};
@@ -240,8 +239,8 @@ $new_set_params->{type}        = 1;
 $new_set_params->{set_version} = 1;
 
 my $updated_set = $problem_set_rs->updateProblemSet(
-	info => { course_name => "Precalculus", set_id => $new_set_id },
-	params => { set_name => $new_set_params->{set_name}, set_params => { enable_reduced_scoring => 1 } }
+	info   => { course_name => "Precalculus",               set_id     => $new_set_id },
+	params => { set_name    => $new_set_params->{set_name}, set_params => { enable_reduced_scoring => 1 } }
 );
 removeIDs($updated_set);
 delete $updated_set->{set_visible};
@@ -253,9 +252,9 @@ $new_set_params->{set_name} = "HW #88";
 $new_set_params->{set_type} = "HW";
 delete $new_set_params->{type};
 $updated_set = $problem_set_rs->updateProblemSet(
-		info => { course_name => "Precalculus", set_id => $new_set_id },
-		params => $new_set_params
-	);
+	info   => { course_name => "Precalculus", set_id => $new_set_id },
+	params => $new_set_params
+);
 
 removeIDs($updated_set);
 delete $updated_set->{set_visible};
@@ -264,8 +263,8 @@ is_deeply($new_set_params, $updated_set, "updateSet: update a set with set_type 
 # Try to update a set with an illegal field
 throws_ok {
 	$problem_set_rs->updateProblemSet(
-		info => { course_name => "Precalculus", set_id => $new_set_id },
-		params => { bad_field => 0 }
+		info   => { course_name => "Precalculus", set_id => $new_set_id },
+		params => { bad_field   => 0 }
 	);
 }
 "DBIx::Class::Exception", "updateProblemSet: use a non-existing field";
@@ -273,18 +272,19 @@ throws_ok {
 # Try to update a set with an illegal date field
 throws_ok {
 	$problem_set_rs->updateProblemSet(
-		info => { course_name => "Precalculus", set_id => $new_set_id },
-		params => { set_dates => { bad_date => 99 } });
+		info   => { course_name => "Precalculus", set_id => $new_set_id },
+		params => { set_dates   => { bad_date => 99 } }
+	);
 }
 "DB::Exception::InvalidDateField", "updateSet: invalid date field passed in.";
 
 # Try to update a set with an dates in a bad order
 throws_ok {
 	$problem_set_rs->updateProblemSet(
-		info => { course_name => "Precalculus", set_id => $new_set_id },
+		info   => { course_name => "Precalculus", set_id => $new_set_id },
 		params => {
 			set_dates => {
-				open => 999,
+				open   => 999,
 				answer => 100
 			}
 		}
@@ -293,9 +293,7 @@ throws_ok {
 "DB::Exception::ImproperDateOrder", "updateSet: adding an illegal date order.";
 
 # Delete a set
-my $deleted_set = $problem_set_rs->deleteProblemSet(
-	info => { course_name => "Precalculus", set_name => "HW #88" }
-);
+my $deleted_set = $problem_set_rs->deleteProblemSet(info => { course_name => "Precalculus", set_name => "HW #88" });
 removeIDs($deleted_set);
 delete $deleted_set->{set_visible};
 is_deeply($new_set_params, $deleted_set, "deleteProblemSet: delete a set");

@@ -46,17 +46,14 @@ An array of courses as a C<DBIx::Class::ResultSet::ProblemSet> object.
 
 sub getAllProblemSets {
 	my ($self, %args) = @_;
-	my @problem_sets  = $self->search();
+	my @problem_sets = $self->search();
 
 	return @problem_sets if $args{as_result_set};
 
 	my @all_sets = ();
 	for my $set (@problem_sets) {
-		my $expanded_set = {
-			$set->get_inflated_columns,
-			$set->courses->get_inflated_columns,
-			set_type => $set->set_type
-		};
+		my $expanded_set =
+			{ $set->get_inflated_columns, $set->courses->get_inflated_columns, set_type => $set->set_type };
 		delete $expanded_set->{type};
 		push(@all_sets, $expanded_set);
 	}
@@ -101,7 +98,7 @@ sub getProblemSets {
 	my ($self, %args) = @_;
 	my $course = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
 
-	my @problem_sets = $self->search({'course_id' => $course->course_id});
+	my @problem_sets = $self->search({ 'course_id' => $course->course_id });
 
 	return @problem_sets if $args{as_result_set};
 
@@ -138,14 +135,14 @@ An array of homework sets (as hashrefs) or an arrayref of C<DBIx::Class::ResultS
 
 sub getHWSets {
 	my ($self, %args) = @_;
-	my $p = getCourseInfo($args{info});  # pull out the course_info that is passed
+	my $p             = getCourseInfo($args{info});    # pull out the course_info that is passed
 	my $search_params = {};
-	for my $key (keys %$p){
-		$search_params->{"courses.$key"} = $p->{$key}
+	for my $key (keys %$p) {
+		$search_params->{"courses.$key"} = $p->{$key};
 	}
 	$search_params->{'type'} = 1;
 
-	my @problem_sets = $self->search($search_params, {join => 'courses'});
+	my @problem_sets = $self->search($search_params, { join => 'courses' });
 	my $sets         = _formatSets(\@problem_sets);
 	return $args{as_result_set} ? @problem_sets : @$sets;
 }
@@ -177,17 +174,16 @@ An array of quizzes (as hashrefs) or an arrayref of C<DBIx::Class::ResultSet::Qu
 
 =cut
 
-
 sub getQuizzes {
 	my ($self, %args) = @_;
-	my $p = getCourseInfo($args{info});  # pull out the course_info that is passed
+	my $p             = getCourseInfo($args{info});    # pull out the course_info that is passed
 	my $search_params = {};
-	for my $key (keys %$p){
-		$search_params->{"courses.$key"} = $p->{$key}
+	for my $key (keys %$p) {
+		$search_params->{"courses.$key"} = $p->{$key};
 	}
 	$search_params->{'type'} = 2;
 
-	my @problem_sets = $self->search($search_params, {join => 'courses'});
+	my @problem_sets = $self->search($search_params, { join => 'courses' });
 	my $sets         = _formatSets(\@problem_sets);
 	return $args{as_result_set} ? @problem_sets : @$sets;
 }
@@ -221,14 +217,14 @@ An array of review sets (as hashrefs) or an arrayref of C<DBIx::Class::ResultSet
 
 sub getReviewSets {
 	my ($self, %args) = @_;
-	my $p = getCourseInfo($args{info});  # pull out the course_info that is passed
+	my $p             = getCourseInfo($args{info});    # pull out the course_info that is passed
 	my $search_params = {};
-	for my $key (keys %$p){
-		$search_params->{"courses.$key"} = $p->{$key}
+	for my $key (keys %$p) {
+		$search_params->{"courses.$key"} = $p->{$key};
 	}
 	$search_params->{'type'} = 3;
 
-	my @problem_sets = $self->search($search_params, {join => 'courses'});
+	my @problem_sets = $self->search($search_params, { join => 'courses' });
 	my $sets         = _formatSets(\@problem_sets);
 	return $args{as_result_set} ? @problem_sets : @$sets;
 }
@@ -481,10 +477,7 @@ sub deleteProblemSet {
 	$set_to_delete->delete;
 
 	return $set_to_delete if $args{as_result_set};
-	my $set = {
-		$set_to_delete->get_inflated_columns,
-		set_type => $set_to_delete->set_type
-	};
+	my $set = { $set_to_delete->get_inflated_columns, set_type => $set_to_delete->set_type };
 	delete $set->{type};
 	return $set;
 }
@@ -523,10 +516,10 @@ Creates a new version of a problem set for a given course for either any entire 
 
 sub newSetVersion {
 	my ($self, %args) = @_;
-	my $problem_set     = $self->getProblemSet(info => $args{info});
+	my $problem_set = $self->getProblemSet(info => $args{info});
 
 	# if $info also contains user info
-	my @fields = keys %{$args{info}};
+	my @fields = keys %{ $args{info} };
 	if (scalar(@fields) == 3) {
 		my $user_info = getUserInfo($args{info});
 
@@ -550,10 +543,7 @@ sub _formatSets {
 	my $problem_sets = shift;
 	my @sets         = ();
 	for my $set (@$problem_sets) {
-		my $expanded_set = {
-			$set->get_inflated_columns,
-			set_type => $set->set_type
-		};
+		my $expanded_set = { $set->get_inflated_columns, set_type => $set->set_type };
 		delete $expanded_set->{type};
 		push(@sets, $expanded_set);
 	}
@@ -566,6 +556,5 @@ sub rs {
 	my ($self, $table) = @_;
 	return $self->result_source->schema->resultset($table);
 }
-
 
 1;

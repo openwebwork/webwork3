@@ -13,7 +13,7 @@ sub getCourses {
 
 sub getCourse {
 	my $self   = shift;
-	my $course = $self->schema->resultset("Course")->getCourse({ course_id => int($self->param("course_id")) });
+	my $course = $self->schema->resultset("Course")->getCourse(info => { course_id => int($self->param("course_id")) });
 	$self->render(json => $course);
 	return;
 }
@@ -23,21 +23,24 @@ sub getCourse {
 sub updateCourse {
 	my $self   = shift;
 	my $course = $self->schema->resultset("Course")
-		->updateCourse({ course_id => int($self->param("course_id")) }, $self->req->json);
+		->updateCourse(info => { course_id => int($self->param("course_id")) }, params => $self->req->json);
 	$self->render(json => $course);
 	return;
 }
 
+use Data::Dumper;
+
 sub addCourse {
 	my $self   = shift;
-	my $course = $self->schema->resultset("Course")->addCourse($self->req->json);
+	my $course = $self->schema->resultset("Course")->addCourse(params => $self->req->json);
 	$self->render(json => $course);
 	return;
 }
 
 sub deleteCourse {
-	my $self   = shift;
-	my $course = $self->schema->resultset("Course")->deleteCourse({ course_id => int($self->param("course_id")) });
+	my $self = shift;
+	my $course =
+		$self->schema->resultset("Course")->deleteCourse(info => { course_id => int($self->param("course_id")) });
 	$self->render(json => $course);
 	return;
 }

@@ -36,8 +36,7 @@ sub getGlobalProblems {
 	return @problems if $args{as_result_set};
 	return map {
 		{
-			$_->get_inflated_columns,
-			set_name => $_->problem_set->set_name
+			$_->get_inflated_columns, set_name => $_->problem_set->set_name
 		};
 	} @problems;
 }
@@ -171,15 +170,19 @@ sub getSetProblem {
 
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
 
-	my $problem      = $problem_set->problems->find(getProblemInfo($args{info}));
+	my $problem = $problem_set->problems->find(getProblemInfo($args{info}));
 
 	DB::Exception::ProblemNotFound->throw(
 		message => "the problem with "
-			. ( $args{info}->{problem_number} ?
-				"problem number " . $args{info}->{problem_number} :
-				"problem id: ". $args{info}->{problem_id})
-			. " is not found for set: " . $problem_set->set_name
-			. " is the course: " . $problem_set->courses->course_name
+			. (
+			$args{info}->{problem_number}
+			? "problem number " . $args{info}->{problem_number}
+			: "problem id: " . $args{info}->{problem_id}
+			)
+			. " is not found for set: "
+			. $problem_set->set_name
+			. " is the course: "
+			. $problem_set->courses->course_name
 	) unless $problem;
 
 	return $problem if $args{as_result_set};
@@ -233,7 +236,7 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 
 sub addSetProblem {
 	my ($self, %args) = @_;
-	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info=>$args{info}, as_result_set => 1);
+	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
 	# set the problem number to one more than the set's largest
 	my $new_problem_params = clone($args{params});
 	$new_problem_params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0);
@@ -301,7 +304,7 @@ A single Problem (as hashrefs) or an object of class C<DBIx::Class::ResultSet::P
 
 sub updateSetProblem {
 	my ($self, %args) = @_;
-	my $problem = $self->getSetProblem(info=>$args{info}, as_result_set => 1);
+	my $problem = $self->getSetProblem(info => $args{info}, as_result_set => 1);
 	my $params  = updateAllFields({ $problem->get_inflated_columns }, $args{params});
 
 	## check that the new params are valid:
@@ -352,8 +355,10 @@ sub deleteSetProblem {
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(
 		info => {
 			course_id => $set_problem->problem_set->course_id,
-			set_id => $set_problem->set_id
-		}, as_result_set => 1);
+			set_id    => $set_problem->set_id
+		},
+		as_result_set => 1
+	);
 
 	my $problem = $problem_set->search_related("problems", getProblemInfo($args{info}))->single;
 

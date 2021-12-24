@@ -91,11 +91,13 @@ throws_ok {
 "DB::Exception::SetNotInCourse", "getSetProblems: get problems from non-existing set";
 
 # Get a single problem from a course.
-my $set_problem = $problem_rs->getSetProblem(info => {
-	course_name    => "Precalculus",
-	set_name       => "HW #1",
-	problem_number => $problems_from_csv[0]->{problem_number}
-});
+my $set_problem = $problem_rs->getSetProblem(
+	info => {
+		course_name    => "Precalculus",
+		set_name       => "HW #1",
+		problem_number => $problems_from_csv[0]->{problem_number}
+	}
+);
 removeIDs($set_problem);
 
 my $expected_problem = { %{ $problems_from_csv[0] } };    # Copy the first problem
@@ -149,11 +151,13 @@ $all_params->{problem_version} = 1 unless defined $all_params->{problem_version}
 is_deeply($all_params, $updated_problem, "updateProblem: update a problem");
 
 # Delete a problem from a set
-my $deleted_problem = $problem_rs->deleteSetProblem(info => {
-	course_name    => "Precalculus",
-	set_name       => "HW #1",
-	problem_number => 99,
-});
+my $deleted_problem = $problem_rs->deleteSetProblem(
+	info => {
+		course_name    => "Precalculus",
+		set_name       => "HW #1",
+		problem_number => 99,
+	}
+);
 removeIDs($deleted_problem);
 $new_problem->{problem_version} = 1 unless defined($new_problem->{problem_version});
 

@@ -89,7 +89,7 @@ my $new_quiz_params = {
 };
 
 my $new_quiz = $problem_set_rs->addProblemSet(
-	info => { course_name => "Precalculus" },
+	info   => { course_name => "Precalculus" },
 	params => $new_quiz_params
 );
 
@@ -238,7 +238,7 @@ throws_ok {
 
 # Update the visibility of the quiz
 my $updated_params = { set_visible => 0 };
-my $updated_quiz = $problem_set_rs->updateProblemSet(
+my $updated_quiz   = $problem_set_rs->updateProblemSet(
 	info => {
 		course_name => "Precalculus",
 		set_name    => "Quiz #9"
@@ -369,45 +369,55 @@ throws_ok {
 
 # Try to delete from a non-existent course.
 throws_ok {
-	$problem_set_rs->deleteProblemSet(info => {
-		course_name => "Course does not exist",
-		set_name    => "Quiz #9"
-	});
+	$problem_set_rs->deleteProblemSet(
+		info => {
+			course_name => "Course does not exist",
+			set_name    => "Quiz #9"
+		}
+	);
 }
 "DB::Exception::CourseNotFound", 'deleteQuiz: try to delete a quiz from a non-existent course';
 
 # Try to delete from a non-existent course.
 throws_ok {
-	$problem_set_rs->deleteProblemSet(info => {
-		course_id => 9999,
-		set_name  => "Quiz #9"
-	});
+	$problem_set_rs->deleteProblemSet(
+		info => {
+			course_id => 9999,
+			set_name  => "Quiz #9"
+		}
+	);
 }
 "DB::Exception::CourseNotFound", 'deleteQuiz: try to delete a quiz from a non-existent course_id';
 
 # Try to delete from a non-existent set in a course.
 throws_ok {
-	$problem_set_rs->deleteProblemSet(info => {
-		course_name => "Precalculus",
-		set_name    => "Quiz #999"
-	});
+	$problem_set_rs->deleteProblemSet(
+		info => {
+			course_name => "Precalculus",
+			set_name    => "Quiz #999"
+		}
+	);
 }
 "DB::Exception::SetNotInCourse", 'deleteQuiz: try to delete a non-existent quiz';
 
 # Try to delete from a non-existent set in a course.
 throws_ok {
-	$problem_set_rs->deleteProblemSet(info => {
-		course_name => "Precalculus",
-		set_id      => 99999
-	});
+	$problem_set_rs->deleteProblemSet(
+		info => {
+			course_name => "Precalculus",
+			set_id      => 99999
+		}
+	);
 }
 "DB::Exception::SetNotInCourse", 'deleteQuiz: try to delete a non-existent quiz as set_id';
 
 # Try to delete from a non-existent set in a  course:
-my $deleted_quiz = $problem_set_rs->deleteProblemSet(info => {
-	course_name => "Precalculus",
-	set_name    => "Quiz #9"
-});
+my $deleted_quiz = $problem_set_rs->deleteProblemSet(
+	info => {
+		course_name => "Precalculus",
+		set_name    => "Quiz #9"
+	}
+);
 removeIDs($deleted_quiz);
 is_deeply($deleted_quiz, $new_quiz, "delete Quiz: successfully delete a quiz");
 
