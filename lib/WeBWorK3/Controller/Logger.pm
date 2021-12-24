@@ -15,13 +15,13 @@ sub clientLog ($c) {
 	my $logEntry = decode_json($rawJSON);
 	my $level    = ($logEntry->{level} =~ /(debug|info|warn|error)/) ? $1 : 'fatal';
 
-	# optionally log information from user cookie...
+	# Optionally log information from user cookie...
 	for my $cookie (@{ $c->req->cookies }) {
 		$c->log->info($cookie->to_string);
 	}
 
-	# write entire json to file in production mode
-	$clientLogFile->$level($rawJSON);    # if ( $ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'production' );
+	# Write entire json to file in production mode
+	$clientLogFile->$level($rawJSON);    # if ($ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'production');
 
 	$c->log->$level($logEntry->{message});
 	$c->rendered(200);

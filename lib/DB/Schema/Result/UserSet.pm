@@ -1,7 +1,10 @@
 package DB::Schema::Result::UserSet;
-use base qw(DBIx::Class::Core);
+use base qw(DBIx::Class::Core DB::WithParams DB::WithDates);
+
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
 
 =head1 DESCRIPTION
 
@@ -71,8 +74,6 @@ L<DB::Schema::Result::ProblemSet::ReviewSet> which gives properties common to re
 
 =back
 
-
-
 =cut
 
 __PACKAGE__->table('user_set');
@@ -111,7 +112,8 @@ __PACKAGE__->add_columns(
 		data_type   => "boolean",
 		is_nullable => 1
 	},
-	set_dates => {    # store dates as a JSON object
+	# Store dates as a JSON object.
+	set_dates => {
 		data_type          => 'text',
 		size               => 256,
 		is_nullable        => 0,
@@ -119,7 +121,8 @@ __PACKAGE__->add_columns(
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
-	set_params => {    # store params as a JSON object
+	# Store params as a JSON object.
+	set_params => {
 		data_type          => 'text',
 		size               => 256,
 		is_nullable        => 0,
@@ -137,10 +140,8 @@ __PACKAGE__->belongs_to(
 );
 __PACKAGE__->belongs_to(problem_sets => 'DB::Schema::Result::ProblemSet', 'set_id');
 __PACKAGE__->has_many(user_problems => 'DB::Schema::Result::UserProblem', 'user_set_id');
-#
-# This defines the non-abstract classes of ProblemSets.
-#
 
+# This defines the non-abstract classes of ProblemSets.
 __PACKAGE__->typecast_map(
 	type => {
 		1 => 'DB::Schema::Result::UserSet::HWSet',
@@ -157,7 +158,7 @@ my $set_type = {
 	4 => 'DB::Schema::Result::UserSet::ReviewSet'
 };
 
-sub set_type {
+sub set_type ($) {
 	my %set_type_rev = reverse %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES};
 	return $set_type_rev{ shift->type };
 }

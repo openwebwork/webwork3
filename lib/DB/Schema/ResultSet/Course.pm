@@ -1,6 +1,10 @@
 package DB::Schema::ResultSet::Course;
+
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
+
 use base 'DBIx::Class::ResultSet';
 
 use Clone qw/clone/;
@@ -9,7 +13,7 @@ use DB::Exception;
 use Exception::Class ('DB::Exception::CourseNotFound', 'DB::Exception::CourseExists');
 use Data::Dump qw/dump/;
 
-use DB::TestUtils qw/removeIDs/;
+#use DB::TestUtils qw/removeIDs/;
 use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings mergeCourseSettings
 	getDefaultCourseValues validateCourseSettings/;
 
@@ -50,8 +54,7 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 
 =cut
 
-sub getCourses {
-	my ($self, %args) = @_;
+sub getCourses ($self, %args) {
 	my @courses = $self->search();
 	return @courses if $args{as_result_set};
 	return map {
@@ -86,8 +89,7 @@ of the fields. See above.
 
 use Data::Dumper;
 
-sub getCourse {
-	my ($self, %args) = @_;
+sub getCourse ($self, %args) {
 	my $course = $self->find(getCourseInfo($args{info}));
 	DB::Exception::CourseNotFound->throw(
 		message => "The course: " . dump(getCourseInfo($args{info})) . " does not exist.")
@@ -120,23 +122,23 @@ of the fields. See above.
 
 =cut
 
-sub addCourse {
-	my ($self, %args) = @_;
+sub addCourse ($self, %args) {
 	my $course_params = $args{params};
 	DB::Exception::ParametersNeeded->throw(message => "The parameters must include course_name")
 		unless defined($course_params->{course_name});
 
-	## check if the course exists.  If so throw an error.
+	# Check if the course exists.  If so throw an error.
 	my $course = $self->find({ course_name => $course_params->{course_name} });
 	DB::Exception::CourseExists->throw(course_name => $course_params->{course_name}) if defined($course);
 
 	my $params = {};
-	for my $field (qw/course_name visible course_dates/) {    # this should be looked up
+	for my $field (qw/course_name visible course_dates/) {
+		# This should be looked up.
 		$params->{$field} = $course_params->{$field} if defined($course_params->{$field});
 	}
 	$params->{course_settings} = {};
 
-	# check the parameters
+	# Check the parameters.
 	my $new_course = $self->create($params);
 
 	return $new_course if $args{as_result_set};
@@ -168,8 +170,7 @@ of the fields. See above.
 
 =cut
 
-sub deleteCourse {
-	my ($self, %args) = @_;
+sub deleteCourse ($self, %args) {
 	my $course_to_delete = $self->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 
 	my $deleted_course = $course_to_delete->delete;
@@ -198,8 +199,7 @@ The updated course as a C<DBIx::Class::ResultSet::Course> object.
 
 =cut
 
-sub updateCourse {
-	my ($self, %args) = @_;
+sub updateCourse ($self, %args) {
 	my $course = $self->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 	## TODO: check the validity of the params
 	my $course_to_return = $course->update($args{params});
@@ -229,8 +229,7 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 
 =cut
 
-sub getUserCourses {
-	my ($self, %args) = @_;
+sub getUserCourses  ($self, %args) {
 	my $user = $self->result_source->schema->resultset("User")
 		->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
 
@@ -276,17 +275,15 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 
 =cut
 
-sub getCourseSettings {
-	my ($self, %args) = @_;
+sub getCourseSettings  ($self, %args) {
 	my $course = $self->getCourse(info => $args{info}, as_result_set => 1);
 
-	my $course_settings  = getDefaultCourseValues(getDefaultCourseSettings());
+	my $course_settings  = getDefaultCourseValues();
 	my $settings_from_db = { $course->course_settings->get_inflated_columns };
 	return mergeCourseSettings($course_settings, $settings_from_db);
 }
 
-sub updateCourseSettings {
-	my ($self, %args) = @_;
+sub updateCourseSettings  ($self, %args) {
 	my $course = $self->getCourse(info => $args{info}, as_result_set => 1);
 	validateCourseSettings($args{settings});
 
@@ -294,7 +291,7 @@ sub updateCourseSettings {
 	my $updated_settings = mergeCourseSettings($current_settings, $args{settings});
 
 	my $cs = $course->course_settings->update($updated_settings);
-	return mergeCourseSettings(getDefaultCourseValues(getDefaultCourseSettings()), { $cs->get_inflated_columns });
+	return mergeCourseSettings(getDefaultCourseValues(), { $cs->get_inflated_columns });
 }
 
 1;

@@ -22,8 +22,12 @@ with the overriding data in a user set.
 =cut
 
 package DB::Schema::ResultSet::UserSet;
+
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
+
 use base 'DBIx::Class::ResultSet';
 
 use Clone qw/clone/;
@@ -59,8 +63,7 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 
 =cut
 
-sub getAllUserSets {
-	my ($self, %args) = @_;
+sub getAllUserSets ($self, %args) {
 	my @user_sets = $self->search(
 		{},
 		{
@@ -118,8 +121,7 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 
 =cut
 
-sub getUserSets {
-	my ($self, %args) = @_;
+sub getUserSets ($self, %args) {
 	my $course = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
 
 	my @user_sets;
@@ -199,8 +201,7 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 
 =cut
 
-sub getUserSet {
-	my ($self, %args) = @_;
+sub getUserSet ($self, %args) {
 
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
 	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
@@ -268,8 +269,7 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 
 =cut
 
-sub addUserSet {
-	my ($self, %args) = @_;
+sub addUserSet ($self, %args) {
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
 	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
 
@@ -302,6 +302,7 @@ sub addUserSet {
 	# to make sure the dates are valid, make a merged date hash to check
 	$params->{set_dates} = updateAllFields($problem_set->set_dates, $params->{set_dates} // {});
 
+	# Make sure the parameters and dates are valid.
 	my $new_user_set = $self->new($params);
 	$new_user_set->validParams('set_params') if $new_user_set->set_params;
 	$new_user_set->validDates('set_dates')
@@ -310,6 +311,7 @@ sub addUserSet {
 	# if the dates and params are valid reset the set_dates to only those passed in:
 	$params->{set_dates} = $original_dates;
 
+# Add_to_user_set not getting default values, so get the just added user_set.
 	$new_user_set = $problem_set->add_to_user_sets($params);
 
 	return $new_user_set if $args{as_result_set};
@@ -325,8 +327,7 @@ update a single UserSet for a given course, user, and ProblemSet
 
 =cut
 
-sub updateUserSet {
-	my ($self, %args) = @_;
+sub updateUserSet ($self, %args) {
 	my $user_set = $self->getUserSet(info => $args{info}, as_result_set => 1);
 
 	DB::Exception::UserSetNotInCourse->throw(
@@ -375,8 +376,7 @@ delete a single UserSet for a given course, user, and ProblemSet
 
 =cut
 
-sub deleteUserSet {
-	my ($self, %args) = @_;
+sub deleteUserSet ($self, %args) {
 	my $user_set = $self->getUserSet(info => $args{info}, as_result_set => 1);
 
 	DB::Exception::UserSetNotInCourse->throw(
@@ -392,19 +392,17 @@ sub deleteUserSet {
 	return $new_params;
 }
 
-## the following are private methods used in this module
-
-# just a small subroutine to shorten access to the db.
+# The following are private methods used in this module
+# This is a small subroutine to shorten access to the db.
 
 sub rs {
 	my ($self, $table) = @_;
 	return $self->result_source->schema->resultset($table);
 }
 
-# get the user set data with some additional fields
+# This is the UserSet data with some other relevant fields
 
-sub _getUserSet {
-	my $user_set = shift;
+sub _getUserSet ($user_set) {
 	return {
 		$user_set->get_inflated_columns,
 		course_name => $user_set->problem_sets->courses->course_name,
@@ -414,11 +412,9 @@ sub _getUserSet {
 	};
 }
 
-# merge the user set data with the problem set information
+# This merges the user set data with the problem set information
 
-sub _mergeUserSet {
-	my $user_set = shift;
-
+sub _mergeUserSet ($user_set) {
 	# override the user set params and dates
 	my $params = updateAllFields($user_set->problem_sets->set_params, $user_set->set_params);
 	my $dates  = updateAllFields($user_set->problem_sets->set_dates,  $user_set->set_dates);

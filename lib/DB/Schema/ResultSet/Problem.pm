@@ -1,9 +1,13 @@
 package DB::Schema::ResultSet::Problem;
+
 use strict;
 use warnings;
-use base 'DBIx::Class::ResultSet';
+use feature 'signatures';
+no warnings qw(experimental::signatures);
 
 use Clone qw/clone/;
+use base 'DBIx::Class::ResultSet';
+
 use DB::Utils qw/getCourseInfo getSetInfo getProblemInfo updateAllFields/;
 
 =head1 DESCRIPTION
@@ -29,8 +33,7 @@ An array of problems as either a hashref or a  C<DBIx::Class::ResultSet::Problem
 
 =cut
 
-sub getGlobalProblems {
-	my ($self, %args) = @_;
+sub getGlobalProblems  ($self, %args) {
 	my @problems = $self->search({});
 
 	return @problems if $args{as_result_set};
@@ -41,11 +44,7 @@ sub getGlobalProblems {
 	} @problems;
 }
 
-###
-#
 # CRUD for problems in a course
-#
-###
 
 =head1 getProblems
 
@@ -73,8 +72,7 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 
 =cut
 
-sub getProblems {
-	my ($self, %args) = @_;
+sub getProblems  ($self, %args) {
 	my $course = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
 
 	my @problems =
@@ -119,9 +117,7 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 
 =cut
 
-sub getSetProblems {
-	my ($self, %args) = @_;
-
+sub getSetProblems  ($self, %args) {
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
 	my @problems    = $self->search({ 'set_id' => $problem_set->set_id });
 
@@ -165,9 +161,7 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 
 =cut
 
-sub getSetProblem {
-	my ($self, %args) = @_;
-
+sub getSetProblem  ($self, %args) {
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
 
 	my $problem = $problem_set->problems->find(getProblemInfo($args{info}));
@@ -234,17 +228,13 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 
 =cut
 
-sub addSetProblem {
-	my ($self, %args) = @_;
+sub addSetProblem  ($self, %args) {
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
 	# set the problem number to one more than the set's largest
 	my $new_problem_params = clone($args{params});
 	$new_problem_params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0);
 
-	my $params = $new_problem_params->{problem_params} || {};
-	$params->{weight} = 1 unless defined($params->{weight});
-
-	$new_problem_params->{problem_params} = $params;
+	$new_problem_params->{problem_params}{weight} = 1 unless defined($new_problem_params->{problem_params}{weight});
 
 	my $problem_to_add = $self->new($new_problem_params);
 	$problem_to_add->validParams('problem_params');
@@ -302,12 +292,11 @@ A single Problem (as hashrefs) or an object of class C<DBIx::Class::ResultSet::P
 
 =cut
 
-sub updateSetProblem {
-	my ($self, %args) = @_;
+sub updateSetProblem  ($self, %args) {
 	my $problem = $self->getSetProblem(info => $args{info}, as_result_set => 1);
 	my $params  = updateAllFields({ $problem->get_inflated_columns }, $args{params});
 
-	## check that the new params are valid:
+	# Check that the new params are valid.
 	my $updated_problem = $self->new($params);
 	$updated_problem->validParams('problem_params');
 
@@ -349,8 +338,7 @@ A problem (as hashrefs) or an object of class C<DBIx::Class::ResultSet::Problem>
 
 =cut
 
-sub deleteSetProblem {
-	my ($self, %args) = @_;
+sub deleteSetProblem ($self, %args) {
 	my $set_problem = $self->getSetProblem(info => $args{info}, as_result_set => 1);
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(
 		info => {
@@ -366,13 +354,11 @@ sub deleteSetProblem {
 
 	return $deleted_problem if $args{as_result_set};
 	return { $deleted_problem->get_inflated_columns };
-
 }
 
 # just a small subroutine to shorten access to the db.
 
-sub rs {
-	my ($self, $table) = @_;
+sub rs ($self, $table) {
 	return $self->result_source->schema->resultset($table);
 }
 

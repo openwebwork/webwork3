@@ -3,6 +3,8 @@ use base qw/DBIx::Class::Core/;
 
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
 
 =head1 DESCRIPTION
 
@@ -105,7 +107,7 @@ __PACKAGE__->add_columns(
 		default_value => 1,
 		is_nullable   => 0
 	},
-	# store dates as a JSON object
+	# Store dates as a JSON object.
 	set_dates => {
 		data_type          => 'text',
 		size               => 256,
@@ -114,7 +116,7 @@ __PACKAGE__->add_columns(
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
-	# store params as a JSON object
+	# Store params as a JSON object.
 	set_params => {
 		data_type          => 'text',
 		size               => 256,
@@ -125,9 +127,7 @@ __PACKAGE__->add_columns(
 	}
 );
 
-#
 # This defines the non-abstract classes of ProblemSets.
-#
 
 __PACKAGE__->typecast_map(
 	type => {
@@ -151,8 +151,8 @@ returns the type (HW, Quiz, JITAR, REVIEW) of the problem set
 
 =cut
 
-sub set_type {
+sub set_type ($set) {
 	my %set_type_rev = reverse %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES};
-	return $set_type_rev{ shift->type };
+	return $set_type_rev{ $set->type };
 }
 1;

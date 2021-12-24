@@ -1,6 +1,10 @@
 package DB::Schema::ResultSet::ProblemPool;
+
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
+
 use base 'DBIx::Class::ResultSet';
 
 use Try::Tiny;
@@ -34,8 +38,7 @@ if C<$args{as_result_set}> is true.  Otherwise an array of hash_ref.
 
 =cut
 
-sub getAllProblemPools {
-	my ($self, %args) = @_;
+sub getAllProblemPools ($self, %args) {
 	my @problem_pools = $self->search({});
 	return @problem_pools if $args{as_result_set};
 	return map {
@@ -49,8 +52,7 @@ Get all problem pools for a given course
 
 =cut
 
-sub getProblemPools {
-	my ($self, %args) = @_;
+sub getProblemPools ($self, %args) {
 	my $course = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
 
 	my @pools = $self->search(
@@ -66,14 +68,9 @@ sub getProblemPools {
 	return map {
 		{ $_->get_inflated_columns };
 	} @pools;
-
 }
 
-####
-#
 # CRUD for a single ProblemPool
-#
-####
 
 =head2 getProblemPool
 
@@ -81,8 +78,7 @@ Get a single problem pool for a given course
 
 =cut
 
-sub getProblemPool {
-	my ($self, %args) = @_;
+sub getProblemPool ($self, %args) {
 	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 
 	my $search_info = getPoolInfo($args{info});
@@ -98,7 +94,6 @@ sub getProblemPool {
 	}
 	return $pool if $args{as_result_set};
 	return { $pool->get_columns };
-
 }
 
 =head2 addProblemPool
@@ -107,8 +102,7 @@ Add a problem pool for a given course
 
 =cut
 
-sub addProblemPool {
-	my ($self, %args) = @_;
+sub addProblemPool ($self, %args) {
 	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 
 	DB::Exception::ParametersNeeded->throw(message => "The pool_name is missing from the parameters")
@@ -141,7 +135,6 @@ sub addProblemPool {
 
 	return $problem_pool if $args{as_result_set};
 	return { $problem_pool->get_columns };
-
 }
 
 =head2 updateProblemPool
@@ -150,8 +143,7 @@ updates the parameters of an existing problem pool
 
 =cut
 
-sub updateProblemPool {
-	my ($self, %args) = @_;
+sub updateProblemPool ($self, %args) {
 
 	my $pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
 
@@ -183,9 +175,7 @@ updates the parameters of an existing problem pool
 
 =cut
 
-sub deleteProblemPool {
-	my ($self, %args) = @_;
-
+sub deleteProblemPool ($self, %args) {
 	my $pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
 
 	DB::Exception::PoolNotInCourse->throws(error => "The problem pool does not exist")
@@ -226,8 +216,7 @@ This gets a single problem out of a ProblemPool.
 
 =cut
 
-sub getPoolProblem {
-	my ($self, %args) = @_;
+sub getPoolProblem ($self, %args) {
 
 	my $problem_pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
 
@@ -255,8 +244,7 @@ This adds a problem as a hashref to an existing problem pool.
 
 =cut
 
-sub addProblemToPool {
-	my ($self, %args) = @_;
+sub addProblemToPool ($self, %args) {
 
 	my $pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
 
@@ -283,7 +271,6 @@ sub addProblemToPool {
 
 	return $added_problem if $args{as_result_set};
 	return { $added_problem->get_inflated_columns };
-
 }
 
 =head2 updatePoolProblem
@@ -312,8 +299,7 @@ updated an existing problem to an existing ProblemPool in a course
 
 =cut
 
-sub updatePoolProblem {
-	my ($self, %args) = @_;
+sub updatePoolProblem ($self, %args) {
 	my $prob = $self->getPoolProblem(info => $args{info}, as_result_set => 1);
 	DB::Exception::PoolProblemNotInPool->throw(info => $args{info}) unless defined($prob);
 
@@ -326,8 +312,7 @@ sub updatePoolProblem {
 
 # just a small subroutine to shorten access to the db.
 
-sub rs {
-	my ($self, $table) = @_;
+sub rs ($self, $table) {
 	return $self->result_source->schema->resultset($table);
 }
 

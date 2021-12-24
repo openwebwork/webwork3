@@ -4,6 +4,8 @@ use DB::WithParams;
 
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
 
 use base qw(DBIx::Class::Core DB::WithParams);
 
@@ -60,7 +62,7 @@ Note: a problem should have only one of a library_id, problem_path or problem_po
 
 =cut
 
-sub valid_params {
+sub valid_params ($=) {
 	return {
 		weight          => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},    # positive integers or decimals
 		library_id      => q{\d+},
@@ -70,11 +72,11 @@ sub valid_params {
 	};
 }
 
-sub required_params {
+sub required_params ($=) {
 	return { '_ALL_' => [ 'weight', { '_ONE_OF_' => [ 'library_id', 'file_path', 'problem_pool_id' ] } ] };
 }
 
-### this is the table that stores problems for a given Problem Set
+# This is the table that stores problems for a given Problem Set.
 
 __PACKAGE__->table('problem');
 
@@ -103,7 +105,8 @@ __PACKAGE__->add_columns(
 		is_nullable   => 0,
 		default_value => 1
 	},
-	problem_params => {    # store params as a JSON object
+	# Store params as a JSON object.
+	problem_params => {
 		data_type          => 'text',
 		size               => 256,
 		is_nullable        => 0,
@@ -115,7 +118,7 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key('problem_id');
 
-# maybe we don't need this.
+# Maybe we don't need this.
 __PACKAGE__->add_unique_constraint([qw/problem_id set_id problem_version problem_number/]);
 
 __PACKAGE__->belongs_to(problem_set => 'DB::Schema::Result::ProblemSet', 'set_id');

@@ -7,8 +7,12 @@ C<DBIx::Class::ResultSet>.  The basics are a CRUD for users.
 =cut
 
 package DB::Schema::ResultSet::User;
+
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
+
 use base 'DBIx::Class::ResultSet';
 
 use Array::Utils qw/array_minus/;
@@ -33,8 +37,7 @@ An array of courses as a C<DBIx::Class::ResultSet::Course> object.
 
 =cut
 
-sub getAllGlobalUsers {
-	my ($self, %args) = @_;
+sub getAllGlobalUsers ($self, %args) {
 	my @users = $self->search({});
 	return \@users if $args{as_result_set};
 	return map { removeLoginParams({ $_->get_inflated_columns }); } @users;
@@ -61,8 +64,7 @@ C<result_set> determine which is returned.
 
 =cut
 
-sub getGlobalUser {
-	my ($self, %args) = @_;
+sub getGlobalUser ($self, %args) {
 	my $user = $self->find(getUserInfo($args{info}));
 	DB::Exception::UserNotFound->throw(message => "The user with "
 			. ($args{info}->{username} ? "username '"            : "user_id '")
@@ -103,10 +105,9 @@ The user as  C<DBIx::Class::ResultSet::User> object or C<undef> if no user exist
 
 =cut
 
-### TODO: check that other params are legal
+# TODO: Check that other params are legal.
 
-sub addGlobalUser {
-	my ($self, %args) = @_;
+sub addGlobalUser ($self, %args) {
 
 	DB::Exception::ParametersNeeded->throw(message => "The parameters must include username")
 		unless defined($args{params}->{username});
@@ -139,10 +140,9 @@ The deleted user as a C<DBIx::Class::ResultSet::User> object.
 
 =cut
 
-## TODO: delete everything related to the user from all tables.
+# TODO: Delete everything related to the user from all tables.
 
-sub deleteGlobalUser {
-	my ($self, %args) = @_;
+sub deleteGlobalUser ($self, %args) {
 	my $user_to_delete = $self->getGlobalUser(info => $args{info}, as_result_set => 1);
 
 	my $deleted_user = $user_to_delete->delete;
@@ -184,10 +184,9 @@ The updated course as a C<DBIx::Class::ResultSet::Course> or a hashref.
 
 =cut
 
-## TODO: check that the user_params are valid.
+# TODO: Check that the user_params are valid.
 
-sub updateGlobalUser {
-	my ($self, %args) = @_;
+sub updateGlobalUser ($self, %args) {
 	my $user     = $self->getGlobalUser(info => $args{info}, as_result_set => 1);
 	my $user_obj = $self->new($args{params});
 
@@ -199,19 +198,12 @@ sub updateGlobalUser {
 # This clearly needs to be fixed to include encryption of the password.
 # We need to decide on what encryption algorithm.
 
-sub authenticate {
-	my ($self, $username, $password) = @_;
-
-	my @users = $self->getAllGlobalUsers;
+sub authenticate ($self, $username, $password) {
 	my $user  = $self->getGlobalUser(info => { username => $username }, as_result_set => 1);
 	return $user->login_params->{password} eq $password;
 }
 
-####
-#
 #  The following is CRUD for users in a given course
-#
-####
 
 =head1 getCourseUsers
 
@@ -242,9 +234,7 @@ or an arrayref of C<DBIx::Class::ResultSet::User>
 
 =cut
 
-sub getCourseUsers {
-	my ($self, %args) = @_;
-
+sub getCourseUsers ($self, %args) {
 	my $course       = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 	my @course_users = $self->rs("CourseUser")->search({
 		'course_id' => $course->course_id
@@ -261,11 +251,7 @@ sub getCourseUsers {
 	return @users_to_return;
 }
 
-###
-#
 # CRUD for users in a course
-#
-###
 
 =head1 getCourseUser
 
@@ -305,8 +291,7 @@ An hashref of the user or merged user or a C<DBIx::Class::ResultSet>
 
 =cut
 
-sub getCourseUser {
-	my ($self, %args) = @_;
+sub getCourseUser ($self, %args) {
 
 	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 	my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
@@ -315,7 +300,8 @@ sub getCourseUser {
 	my $course_user = $self->rs("CourseUser")->find({ course_id => $course->course_id, user_id => $user->user_id });
 
 	DB::Exception::UserNotInCourse->throw(
-		message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}")
+		message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}"
+	)
 		unless defined $course_user || $args{skip_throw};
 
 	return $course_user if $args{as_result_set};
@@ -364,8 +350,7 @@ An hashref of the user or merged user or a C<DB::Schema::ResultSet::CourseUser>
 
 =cut
 
-sub addCourseUser {
-	my ($self, %args) = @_;
+sub addCourseUser ($self, %args) {
 
 	my $course_user = $self->getCourseUser(info => $args{info}, as_result_set => 1, skip_throw => 1);
 	DB::Exception::UserAlreadyInCourse->throw(
@@ -444,8 +429,7 @@ An hashref of the updated course user or merged user or a C<DB::Schema::ResultSe
 
 use Data::Dumper;
 
-sub updateCourseUser {
-	my ($self, %args) = @_;
+sub updateCourseUser ($self, %args) {
 	my $course_user = $self->getCourseUser(info => $args{info}, as_result_set => 1);
 
 	my $params_to_check = $self->rs("CourseUser")->new($args{params});
@@ -495,8 +479,7 @@ An hashref of the deleted user or merged user or a C<DB::Schema::ResultSet::Cour
 
 =cut
 
-sub deleteCourseUser {
-	my ($self, %args) = @_;
+sub deleteCourseUser ($self, %args) {
 	my $course_user_to_delete = $self->getCourseUser(info => $args{info}, as_result_set => 1)->delete;
 
 	return $course_user_to_delete if $args{as_result_set};
@@ -504,20 +487,20 @@ sub deleteCourseUser {
 
 }
 
-# just a small subroutine to shorten access to the db.
+# This is a small subroutine to shorten access to the db.
 
 sub rs {
 	my ($self, $table) = @_;
 	return $self->result_source->schema->resultset($table);
 }
 
-# private subroutine that returns the course user fields
+# This returns the course user fields
 
 sub _getCourseUser {
 	return { shift->get_inflated_columns };
 }
 
-# private subroutine that returns the merged user fields (course user and global user)
+# This returns the merged user fields (course user and global user)
 
 sub _getMergedUser {
 	my $course_user = shift;

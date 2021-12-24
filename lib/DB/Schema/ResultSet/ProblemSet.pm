@@ -1,6 +1,10 @@
 package DB::Schema::ResultSet::ProblemSet;
+
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
+
 use base 'DBIx::Class::ResultSet';
 
 use Carp;
@@ -44,8 +48,7 @@ An array of courses as a C<DBIx::Class::ResultSet::ProblemSet> object.
 
 =cut
 
-sub getAllProblemSets {
-	my ($self, %args) = @_;
+sub getAllProblemSets ($self, %args) {
 	my @problem_sets = $self->search();
 
 	return @problem_sets if $args{as_result_set};
@@ -61,11 +64,7 @@ sub getAllProblemSets {
 	return @all_sets;
 }
 
-####
-#
-#  The following is CRUD for problem sets in a given course
-#
-####
+# The following is CRUD for problem sets in a given course
 
 =head2 getProblemSets
 
@@ -94,8 +93,7 @@ An array of Users (as hashrefs) or an array of C<DBIx::Class::ResultSet::Problem
 
 =cut
 
-sub getProblemSets {
-	my ($self, %args) = @_;
+sub getProblemSets ($self, %args) {
 	my $course = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
 
 	my @problem_sets = $self->search({ 'course_id' => $course->course_id });
@@ -133,8 +131,7 @@ An array of homework sets (as hashrefs) or an arrayref of C<DBIx::Class::ResultS
 
 =cut
 
-sub getHWSets {
-	my ($self, %args) = @_;
+sub getHWSets ($self, %args) {
 	my $p             = getCourseInfo($args{info});    # pull out the course_info that is passed
 	my $search_params = {};
 	for my $key (keys %$p) {
@@ -174,8 +171,7 @@ An array of quizzes (as hashrefs) or an arrayref of C<DBIx::Class::ResultSet::Qu
 
 =cut
 
-sub getQuizzes {
-	my ($self, %args) = @_;
+sub getQuizzes ($self, %args) {
 	my $p             = getCourseInfo($args{info});    # pull out the course_info that is passed
 	my $search_params = {};
 	for my $key (keys %$p) {
@@ -215,8 +211,7 @@ An array of review sets (as hashrefs) or an arrayref of C<DBIx::Class::ResultSet
 
 =cut
 
-sub getReviewSets {
-	my ($self, %args) = @_;
+sub getReviewSets ($self, %args) {
 	my $p             = getCourseInfo($args{info});    # pull out the course_info that is passed
 	my $search_params = {};
 	for my $key (keys %$p) {
@@ -263,8 +258,7 @@ An hashref of a problem set or an object of type C<DBIx::Class::ResultSet::Probl
 
 =cut
 
-sub getProblemSet {
-	my ($self, %args) = @_;
+sub getProblemSet ($self, %args) {
 	my $course_info = getCourseInfo($args{info});
 	my $course      = $self->rs("Course")->getCourse(info => $course_info, as_result_set => 1);
 
@@ -278,7 +272,6 @@ sub getProblemSet {
 	my $set = { $problem_set->get_inflated_columns, set_type => $problem_set->set_type };
 	delete $set->{type};
 	return $set;
-
 }
 
 =head2 addProblemSet
@@ -342,7 +335,7 @@ sub addProblemSet {
 	DB::Exception::ParametersNeeded->throw(message => "You must defined the field set_name in the 2nd argument")
 		unless defined($set_params->{set_name});
 
-	## check if the set exists.
+	# Check if the set exists.
 	my $search_params = { course_id => $course->course_id, set_name => $set_params->{set_name} };
 
 	my $problem_set = $self->find($search_params, prefetch => 'courses');
@@ -411,9 +404,7 @@ An hashref of a problem set or an object of type C<DBIx::Class::ResultSet::Probl
 
 =cut
 
-sub updateProblemSet {
-	my ($self, %args) = @_;
-
+sub updateProblemSet ($self, %args) {
 	my $problem_set = $self->getProblemSet(info => $args{info}, as_result_set => 1);
 	my $set_params  = { $problem_set->get_inflated_columns };
 
@@ -470,8 +461,7 @@ An hashref of the deleted problem set or an object of type C<DBIx::Class::Result
 
 =cut
 
-sub deleteProblemSet {
-	my ($self, %args) = @_;
+sub deleteProblemSet ($self, %args) {
 
 	my $set_to_delete = $self->getProblemSet(info => $args{info}, as_result_set => 1);
 	$set_to_delete->delete;
@@ -482,11 +472,7 @@ sub deleteProblemSet {
 	return $set;
 }
 
-###
-#
 # Versions of problem sets
-#
-##
 
 =head2 newSetVersion
 
@@ -514,8 +500,7 @@ Creates a new version of a problem set for a given course for either any entire 
 
 =cut
 
-sub newSetVersion {
-	my ($self, %args) = @_;
+sub newSetVersion ($self, %args) {
 	my $problem_set = $self->getProblemSet(info => $args{info});
 
 	# if $info also contains user info
@@ -531,16 +516,9 @@ sub newSetVersion {
 	return $problem_set;
 }
 
-## the following are private methods used in this module
+# The following are private methods used in this module.
 
-# return the Problem resultset
-
-sub _problem_rs {
-	return shift->result_source->schema->resultset("Problem");
-}
-
-sub _formatSets {
-	my $problem_sets = shift;
+sub _formatSets ($problem_sets) {
 	my @sets         = ();
 	for my $set (@$problem_sets) {
 		my $expanded_set = { $set->get_inflated_columns, set_type => $set->set_type };
@@ -552,8 +530,7 @@ sub _formatSets {
 
 # just a small subroutine to shorten access to the db.
 
-sub rs {
-	my ($self, $table) = @_;
+sub rs ($self, $table) {
 	return $self->result_source->schema->resultset($table);
 }
 

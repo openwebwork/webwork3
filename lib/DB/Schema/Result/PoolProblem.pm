@@ -1,7 +1,10 @@
 package DB::Schema::Result::PoolProblem;
 use base qw/DBIx::Class::Core/;
+
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings 'experimental::signatures';
 
 =head1 DESCRIPTION
 
@@ -69,14 +72,14 @@ __PACKAGE__->add_columns(
 	}
 );
 
-sub valid_params {
+sub valid_params ($=) {
 	return {
 		library_id   => q{\d+},
 		problem_path => q{((\w)+\/?)+}
 	};
 }
 
-sub required_params {
+sub required_params ($=) {
 	return { '_ONE_OF_' => [ 'library_id', 'problem_path' ] };
 }
 

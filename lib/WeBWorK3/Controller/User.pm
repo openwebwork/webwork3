@@ -1,15 +1,13 @@
 package WeBWorK3::Controller::User;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
-sub getGlobalUsers {
-	my $self         = shift;
+sub getGlobalUsers ($self) {
 	my @global_users = $self->schema->resultset("User")->getAllGlobalUsers;
 	$self->render(json => \@global_users);
 	return;
 }
 
-sub getGlobalUser {
-	my $self = shift;
+sub getGlobalUser ($self) {
 	my $user =
 		$self->param("user") =~ /^\d+$/
 		? $self->schema->resultset("User")->getGlobalUser(info => { user_id  => int($self->param("user")) })
@@ -18,60 +16,51 @@ sub getGlobalUser {
 	return;
 }
 
-sub updateGlobalUser {
-	my $self = shift;
+sub updateGlobalUser ($self) {
 	my $user = $self->schema->resultset("User")
 		->updateGlobalUser(info => { user_id => int($self->param("user_id")) }, params => $self->req->json);
 	$self->render(json => $user);
 	return;
 }
 
-sub addGlobalUser {
-	my $self = shift;
+sub addGlobalUser ($self) {
 	my $user = $self->schema->resultset("User")->addGlobalUser(params => $self->req->json);
 	$self->render(json => $user);
 	return;
 }
 
-sub deleteGlobalUser {
-	my $self = shift;
+sub deleteGlobalUser ($self) {
 	my $user = $self->schema->resultset("User")->deleteGlobalUser(info => { user_id => int($self->param("user_id")) });
 	$self->render(json => $user);
 	return;
 }
 
-## the following subs are related to users within a given course.
+# The following subs are related to users within a given course.
 
-sub getMergedCourseUsers ($c) {
-	my @course_users = $c->schema->resultset("User")
-		->getCourseUsers(info => { course_id => int($c->param("course_id")) }, merged => 1);
-	$c->render(json => \@course_users);
+sub getMergedCourseUsers ($self) {
+	my @course_users =
+		$self->schema->resultset("User")->getMergedCourseUsers(info => { course_id => int($self->param("course_id")) });
+	$self->render(json => \@course_users);
 	return;
 }
 
-sub getCourseUsers {
-	my $self = shift;
-
+sub getCourseUsers ($self) {
 	my @course_users =
 		$self->schema->resultset("User")->getCourseUsers(info => { course_id => int($self->param("course_id")) });
 	$self->render(json => \@course_users);
 	return;
 }
 
-sub getCourseUser {
-	my $self        = shift;
-	my $course_user = $self->schema->resultset("User")->getCourseUser(
-		info => {
-			course_id => int($self->param("course_id")),
-			user_id   => int($self->param("user_id"))
-		}
-	);
+sub getCourseUser ($self) {
+	my $course_user = $self->schema->resultset("User")->getCourseUser(info => {
+		course_id => int($self->param("course_id")),
+		user_id   => int($self->param("user_id"))
+	});
 	$self->render(json => $course_user);
 	return;
 }
 
-sub addCourseUser {
-	my $self = shift;
+sub addCourseUser ($self) {
 
 	my $info = { course_id => int($self->param("course_id")) };
 	$info->{username} = $self->req->json->{username}     if $self->req->json->{username};
@@ -85,8 +74,7 @@ sub addCourseUser {
 	return;
 }
 
-sub updateCourseUser {
-	my $self        = shift;
+sub updateCourseUser ($self) {
 	my $course_user = $self->schema->resultset("User")->updateCourseUser(
 		info => {
 			course_id => int($self->param("course_id")),
@@ -98,22 +86,18 @@ sub updateCourseUser {
 	return;
 }
 
-sub deleteCourseUser {
-	my $self        = shift;
-	my $course_user = $self->schema->resultset("User")->deleteCourseUser(
-		info => {
-			course_id => int($self->param("course_id")),
-			user_id   => int($self->param("user_id"))
-		}
-	);
+sub deleteCourseUser ($self) {
+	my $course_user = $self->schema->resultset("User")->deleteCourseUser(info => {
+		course_id => int($self->param("course_id")),
+		user_id   => int($self->param("user_id"))
+	});
 	$self->render(json => $course_user);
 	return;
 }
 
-sub getUserCourses {
-	my $self = shift;
-	my @user_courses =
-		$self->schema->resultset("Course")->getUserCourses(info => { user_id => $self->param('user_id') });
+sub getUserCourses ($self) {
+	my @user_courses = $self->schema->resultset("Course")
+		->getUserCourses(info => { user_id => $self->param('user_id') });
 	$self->render(json => \@user_courses);
 	return;
 }

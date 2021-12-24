@@ -133,7 +133,8 @@ __PACKAGE__->add_columns(
 		size        => 16,
 		is_nullable => 1,
 	},
-	course_user_params => {    # store params as a JSON object
+	# Store params as a JSON object.
+	course_user_params => {
 		data_type          => 'text',
 		size               => 256,
 		is_nullable        => 0,
