@@ -10,7 +10,7 @@
 		"test": "jest",
 		"serve": "morbo bin/webwork3 & quasar dev",
 		"build": "quasar build",
-		"perltidy": "perltidy --pro=./.perltidyrc -b -bext='/' ./**/*.{t,pl,pm}"
+		"perltidy": "bash perltidy --pro=./.perltidyrc -b -bext='/' ./**/*.{t,pl,pm}"
 	},
 	"dependencies": {
 		"@quasar/extras": "^1.11.5",
