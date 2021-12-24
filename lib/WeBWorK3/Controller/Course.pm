@@ -11,7 +11,8 @@ sub getCourses ($self) {
 }
 
 sub getCourse ($self) {
-	my $course = $self->schema->resultset("Course")->getCourse({ course_id => int($self->param("course_id")) });
+	my $course = $self->schema->resultset("Course")
+		->getCourse(info => { course_id => int($self->param("course_id")) });
 	$self->render(json => $course);
 	return;
 }

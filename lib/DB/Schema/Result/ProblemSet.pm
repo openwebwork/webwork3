@@ -1,10 +1,10 @@
 package DB::Schema::Result::ProblemSet;
-use base qw/DBIx::Class::Core/;
-
 use strict;
 use warnings;
 use feature 'signatures';
 no warnings qw(experimental::signatures);
+
+use base qw(DBIx::Class::Core);
 
 =head1 DESCRIPTION
 

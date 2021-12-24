@@ -11,18 +11,18 @@ fills the database with data from the `t/db/sample_data` directory.
 
 3. `prove -r t` which runs all tests in the `t` directory.
 
-### Alternative
+## Alternative
 
 You can also run an individual test script such as `prove -v t/db/003_users.t`.
 This produces a verbose (`-v`) version of the tests and lists the output of
 each test.
 
-### Note
+## Note
 
 If you get an error, try rerunning steps 2 and 3 above.  This rebuids the database
 and reruns all of the tests.
 
-### To do
+## To do
 
 1. Adding new tests to individual files to ensure coverage.
 2. Add new test files for new database functionality.

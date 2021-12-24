@@ -16,8 +16,8 @@ use DB::Exception;
 use Exception::Class ('DB::Exception::UndefinedParameter', 'DB::Exception::InvalidParameter',);
 
 sub validParams ($self, $field_name) {
-	eval '$valid_params = &' . ref($self) . '::valid_params';
-	eval '$required_params = &' . ref($self) . "::required_params";
+	$valid_params    = ref($self)->valid_params;
+	$required_params = ref($self)->required_params;
 
 	$self->validParamFields($field_name);
 	$self->validateParams($field_name);

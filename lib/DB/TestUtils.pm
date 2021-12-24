@@ -6,6 +6,7 @@ use feature 'signatures';
 no warnings qw(experimental::signatures);
 
 use Text::CSV qw/csv/;
+use DateTime::Format::Strptime;
 
 require Exporter;
 use base qw(Exporter);

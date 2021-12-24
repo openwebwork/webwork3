@@ -7,16 +7,16 @@ no warnings qw(experimental::signatures);
 use Carp;
 use Array::Utils qw/array_minus intersect/;
 use DB::Schema::Result::ProblemSet::HWSet;
-use Data::Dumper;
 
 use DB::Exception;
 
-our $valid_dates;       # Array of allowed/valid dates
-our $required_dates;    # Array of required dates
+our $valid_dates;       # Arrayref of allowed/valid dates
+our $required_dates;    # Arrayref of required dates
 
 sub validDates ($self, $field_name) {
-	eval '$valid_dates = &' . ref($self) . "::valid_dates";
-	eval '$required_dates = &' . ref($self) . "::required_dates";
+	$valid_dates    = ref($self)->valid_dates;
+	$required_dates = ref($self)->required_dates;
+
 	$self->validDateFields($field_name);
 	$self->hasRequiredDateFields($field_name);
 	$self->validDateFormat($field_name);
