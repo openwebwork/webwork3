@@ -147,7 +147,7 @@ export default defineComponent({
 			submitButtons.value = [];
 		};
 
-		watch(()=>props.problem, ()=> {
+		watch(() => props.problem, () => {
 			freeProblem.value = props.problem.clone();
 		}, { deep: true });
 

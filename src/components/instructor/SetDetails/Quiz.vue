@@ -56,7 +56,7 @@ export default defineComponent({
 			set.value = cloneDeep(s as Quiz);
 		};
 
-		watch(()=>set_id.value, updateSet);
+		watch(() => set_id.value, updateSet);
 		updateSet();
 
 		// see the docs at https://v3.vuejs.org/guide/reactivity-computed-watchers.html#watching-reactive-objects

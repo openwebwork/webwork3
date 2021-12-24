@@ -33,12 +33,12 @@ export default {
 		users(state: UserState): Array<User> {
 			return state.users;
 		},
-		 merged_users(state: UserState): Array<MergedUser> {
+		merged_users(state: UserState): Array<MergedUser> {
 			return state. merged_users;
 		}
 	},
 	actions: {
-		async fetchUsers({ commit }: {commit: Commit }): Promise<Array<User>|ResponseError> {
+		async fetchUsers({ commit }: {commit: Commit }): Promise<Array<User> | ResponseError> {
 			const response = await api.get('users');
 			if (response.status === 200) {
 				const users = response.data as Array<User>;
@@ -50,7 +50,7 @@ export default {
 			}
 		},
 		async fetchUserCourses({ commit }: { commit: Commit }, user_id: number):
-			Promise<Array<UserCourse>|ResponseError|undefined> {
+			Promise<Array<UserCourse> | ResponseError | undefined> {
 			const response = await api.get(`users/${user_id}/courses`);
 			if (response.status === 200) {
 				const user_courses = response.data as Array<UserCourse>;
@@ -61,7 +61,7 @@ export default {
 			}
 		},
 		async fetchCourseUsers({ commit }: { commit: Commit }, course_id: number):
-		Promise<Array<CourseUser>|ResponseError|undefined> {
+		Promise<Array<CourseUser> | ResponseError | undefined> {
 			const response = await api.get(`courses/${course_id}/users`);
 			if (response.status === 200) {
 				const _course_users = response.data as Array<ParseableCourseUser>;
@@ -75,7 +75,7 @@ export default {
 			}
 		},
 		async fetchMergedUsers({ commit }: { commit: Commit }, course_id: number):
-		Promise<Array<MergedUser>|ResponseError|undefined> {
+		Promise<Array<MergedUser> | ResponseError | undefined> {
 			const response = await api.get(`courses/${course_id}/courseusers`);
 			if (response.status === 200) {
 				const _merged_users = response.data as Array<ParseableMergedUser>;
@@ -97,7 +97,7 @@ export default {
 				throw response.data as ResponseError;
 			}
 		},
-		async addUser({ commit }: { commit: Commit }, _user: User): Promise<User |undefined> {
+		async addUser({ commit }: { commit: Commit }, _user: User): Promise<User | undefined> {
 			const u = await addUser(_user) as User;
 			if (u) {
 				commit('ADD_USER', u);
@@ -123,12 +123,12 @@ export default {
 			return merged_user;
 		},
 		async updateCourseUser(_context: ActionContext<UserState, StateInterface>, _course_user: CourseUser)
-			: Promise<CourseUser|undefined> {
+			: Promise<CourseUser | undefined> {
 			const url = `courses/${_course_user.course_id || 0}/users/${_course_user.user_id ?? 0}`;
 			const response = await api.put(url, _course_user);
 			if (response.status === 200) {
 				return response.data as CourseUser;
-			} else if(response.status === 250) {
+			} else if (response.status === 250) {
 				logger.error(response.data);
 				throw response.data as ResponseError;
 			}

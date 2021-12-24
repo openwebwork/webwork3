@@ -69,7 +69,7 @@ export default defineComponent({
 			selected_set_id.value = set_id;
 		};
 
-		if(route.params.set_id){
+		if (route.params.set_id) {
 			updateSetID();
 		}
 		updateSetID();

@@ -44,7 +44,7 @@ export default defineComponent({
 	components: {
 		DateTimeInput
 	},
-	setup(props){
+	setup(props) {
 		const quiz_dates = ref<QuizDates>(props.dates);
 
 		return {

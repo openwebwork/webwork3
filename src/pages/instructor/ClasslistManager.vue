@@ -171,7 +171,7 @@ export default defineComponent({
 						const response = await api.get(`users/${user_id}/courses`);
 						const user_courses = response.data as  Array<UserCourse>;
 
-						if (user_courses.length === 0){
+						if (user_courses.length === 0) {
 							try {
 								await store.dispatch('users/deleteUser', _user_to_delete);
 								$q.notify({

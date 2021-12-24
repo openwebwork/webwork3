@@ -6,7 +6,7 @@
 	"author": "info@openwebwork.org",
 	"private": true,
 	"scripts": {
-		"lint": "eslint --ext .js,.ts,.vue ./src --fix && stylelint \"./src/**/*.vue\" \"./src/**/*.scss\" --fix",
+		"lint": "eslint --ext .js,.ts,.vue . --fix && stylelint \"./src/**/*.vue\" \"./src/**/*.scss\" --fix",
 		"test": "jest",
 		"serve": "morbo bin/webwork3 & quasar dev",
 		"build": "quasar build"
