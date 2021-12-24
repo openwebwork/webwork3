@@ -131,7 +131,8 @@ __PACKAGE__->add_columns(
 		size        => 16,
 		is_nullable => 1,
 	},
-	params => {    # store params as a JSON object
+	# Store params as a JSON object.
+	params => {
 		data_type          => 'text',
 		size               => 256,
 		is_nullable        => 0,

@@ -7,8 +7,12 @@ C<DBIx::Class::ResultSet>.  The basics are a CRUD for user sets.
 =cut
 
 package DB::Schema::ResultSet::UserSet;
+
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
+
 use base 'DBIx::Class::ResultSet';
 
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
@@ -39,8 +43,7 @@ get all UserSet for a given course and either a given user or given set
 
 =cut
 
-sub getUserSetsForUser {
-	my ($self, $info, $as_result_set) = @_;
+sub getUserSetsForUser ($self, $info, $as_result_set = 0) {
 	my $course      = $self->_getCourse($info);
 	my $user        = $self->_getUser($info);
 	my $course_user = $self->_getCourseUser($info);
@@ -56,7 +59,6 @@ sub getUserSetsForUser {
 		push(@user_sets_to_return, $params);
 	}
 	return @user_sets_to_return;
-
 }
 
 =head2 getUserSetsForSet
@@ -65,8 +67,7 @@ get an array of all user sets for a given problem set (HW, quiz, etc.)
 
 =cut
 
-sub getUserSetsForSet {
-	my ($self, $set_info, $as_result_set) = @_;
+sub getUserSetsForSet ($self, $set_info, $as_result_set = 0) {
 	my $course = $self->_getCourse($set_info);
 
 	my $problem_set = $self->_getProblemSet({
@@ -97,9 +98,7 @@ get a single UserSet for a given course, user, and ProblemSet
 
 =cut
 
-sub getUserSet {
-	my ($self, $user_set_info, $as_result_set) = @_;
-
+sub getUserSet ($self, $user_set_info, $as_result_set = 0) {
 	my $problem_set = $self->_getProblemSet($user_set_info);
 	my $course_user = $self->_getCourseUser($user_set_info);
 	my $user        = $course_user->users;
@@ -122,9 +121,7 @@ add a single UserSet for a given course, user, and ProblemSet
 
 =cut
 
-sub addUserSet {
-	my ($self, $user_set_info, $user_set_params, $as_result_set) = @_;
-
+sub addUserSet ($self, $user_set_info, $user_set_params = {}, $as_result_set = 0) {
 	my $problem_set = $self->_getProblemSet($user_set_info);
 	my $course_user = $self->_getCourseUser($user_set_info);
 
@@ -145,7 +142,7 @@ sub addUserSet {
 		$params->{$key} = $user_set_params->{$key};
 	}
 
-	## make sure the parameters and dates are valid.
+	# Make sure the parameters and dates are valid.
 	my $new_user_set = $self->new($params);
 
 	$new_user_set->validParams($problem_set->type, 'set_params') if $new_user_set->set_params;
@@ -154,7 +151,7 @@ sub addUserSet {
 
 	my $user_set = $problem_set->add_to_user_sets($params);
 
-	## add_to_user_set not getting default values, so get the just added user_set
+	# Add_to_user_set not getting default values, so get the just added user_set.
 	my $s = $self->find({ user_set_id => $user_set->user_set_id });
 
 	return $user_set if $as_result_set;
@@ -167,8 +164,7 @@ update a single UserSet for a given course, user, and ProblemSet
 
 =cut
 
-sub updateUserSet {
-	my ($self, $user_set_info, $user_set_params, $as_result_set) = @_;
+sub updateUserSet ($self, $user_set_info, $user_set_params = {}, $as_result_set = 0) {
 	my $user_set = $self->getUserSet($user_set_info, 1);
 
 	DB::Exception::UserSetNotInCourse->throw(
@@ -180,7 +176,7 @@ sub updateUserSet {
 	my $problem_set = $self->_problem_set_rs->find({ set_id         => $user_set->set_id });
 	my $user        = $self->_course_user_rs->find({ course_user_id => $user_set->course_user_id })->users;
 
-	## make sure the parameters and dates are valid.
+	# Make sure the parameters and dates are valid.
 	my $new_user_set = $self->new($user_set_params);
 
 	$new_user_set->validParams($problem_set->type, 'set_params') if $new_user_set->set_params;
@@ -198,8 +194,7 @@ delete a single UserSet for a given course, user, and ProblemSet
 
 =cut
 
-sub deleteUserSet {
-	my ($self, $user_set_info, $user_set_params, $as_result_set) = @_;
+sub deleteUserSet ($self, $user_set_info, $user_set_params = {}, $as_result_set = 0) {
 	my $user_set = $self->getUserSet($user_set_info, 1);
 
 	DB::Exception::UserSetNotInCourse->throw(
@@ -214,44 +209,40 @@ sub deleteUserSet {
 	$user_set->delete;
 	return $user_set if $as_result_set;
 	return _mergeUserSet($problem_set, $user_set, $user);
-
 }
 
-## the following are private methods used in this module
+# The following are private methods used in this module.
 
-# return the Course resultset
-
-sub _course_rs {
-	return shift->result_source->schema->resultset("Course");
+# Return the Course resultset.
+sub _course_rs ($self) {
+	return $self->result_source->schema->resultset("Course");
 }
 
-# return the ProblemSet resultset
-sub _problem_set_rs {
-	return shift->result_source->schema->resultset("ProblemSet");
+# Return the ProblemSet resultset.
+sub _problem_set_rs ($self) {
+	return $self->result_source->schema->resultset("ProblemSet");
 }
 
-# return the User resultset
-sub _user_rs {
-	return shift->result_source->schema->resultset("User");
+# Return the User resultset.
+sub _user_rs ($self) {
+	return $self->result_source->schema->resultset("User");
 }
 
-# return the User resultset
-sub _course_user_rs {
-	return shift->result_source->schema->resultset("CourseUser");
+# Return the User resultset.
+sub _course_user_rs ($self) {
+	return $self->result_source->schema->resultset("CourseUser");
 }
 
-# return the course/set info given the user_set_info is passed in
+# Return the course/set info given the user_set_info is passed in.
 
-sub _getProblemSet {
-	my ($self, $info) = @_;
+sub _getProblemSet ($self, $info) {
 	my $set_info = { %{ getCourseInfo($info) }, %{ getSetInfo($info) } };
 	return $self->_problem_set_rs->getProblemSet($set_info, 1);
 }
 
-# return the course/set info given the user_set_info is passed in
+# Return the course/set info given the user_set_info is passed in.
 
-sub _getUser {
-	my ($self, $info) = @_;
+sub _getUser ($self, $info) {
 	if ($info->{course_user_id}) {
 		return $self->_course_user_rs->find({ course_user_id => $info->{course_user_id} })->users;
 	}
@@ -259,48 +250,39 @@ sub _getUser {
 	return $self->_user_rs->getUser($user_info, 1);
 }
 
-# return the course/set info given the user_set_info is passed in
+# Return the course/set info given the user_set_info is passed in.
 
-sub _getCourse {
-	my ($self, $info) = @_;
+sub _getCourse ($self, $info) {
 	return $self->_course_rs->getCourse(getCourseInfo($info), 1);
 }
 
-# return the course user with the given data
+# Return the course user with the given data.
 
-sub _getCourseUser {
-	my ($self, $info) = @_;
-
+sub _getCourseUser ($self, $info) {
 	if ($info->{course_user_id}) {
 		return $self->result_source->schema->resultset("CourseUser")
 			->find({ course_user_id => $info->{course_user_id} });
 	}
 
 	my $course = $self->_getCourse($info);
-	my $user   = $self->_getUser(
-		{
-			course_id => $course->course_id,
-			%{ getUserInfo($info) }
-		},
-		1
-	);
+	my $user   = $self->_getUser({
+		course_id => $course->course_id,
+		%{ getUserInfo($info) }
+	});
 	return $self->result_source->schema->resultset("CourseUser")
 		->find({ course_id => $course->course_id, user_id => $user->user_id });
 }
 
-# merge the user set data with the problem set information
+# Merge the user set data with the problem set information.
 
-sub _mergeUserSet {
-	my ($problem_set, $user_set, $user) = @_;
-
-	# override the user set params
+sub _mergeUserSet ($problem_set, $user_set, $user) {
+	# Override the user set params
 	my $params = updateAllFields($problem_set->set_params, $user_set->set_params);
-	# my $dates  = updateAllFields( $problem_set->dates,  $user_set->dates );
+	#my $dates  = updateAllFields( $problem_set->dates,  $user_set->dates );
 
 	my $user_set_dates = $user_set->set_dates || {};
 
-	# check if there are dates in the user_set
-	# and use the user_set dates otherwise use the problem_set ones.
+	# Check if there are dates in the user_set.  If so, use the user_set dates.  Otherwise use the problem_set dates.
 	my @date_fields = keys %$user_set_dates;
 	my $dates       = (scalar(@date_fields) > 0) ? $user_set_dates : $problem_set->set_dates;
 

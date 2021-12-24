@@ -1,14 +1,16 @@
 package WeBWorK3::Hooks;
+
 use warnings;
 use strict;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
 
 use Try::Tiny;
 
 our $VERSION = '2.99';
 
-our $exception_handler = sub {
-	my ($next, $c) = @_;
-	## only test requests that start with "/api"
+our $exception_handler = sub ($next, $c) {
+	# Only test requests that start with "/api".
 	if ($c->req->url->to_string =~ /\/api/x) {
 		try {
 			$next->();
@@ -27,8 +29,7 @@ our $exception_handler = sub {
 
 my $ignore_permissions = 1;
 
-sub has_permission {
-	my ($user, $perm) = @_;
+sub has_permission ($user, $perm) {
 	if ($perm->{allowed_users}) {
 		return "" unless $user->{role};
 		return grep { $_ eq $user->{role} } @{ $perm->{allowed_users} };
@@ -39,10 +40,8 @@ sub has_permission {
 	return 1;
 }
 
-## check permission for /api routes
-
-our $check_permission = sub {
-	my ($next, $c, $action) = @_;
+# Check permission for /api routes
+our $check_permission = sub ($next, $c, $action, $) {
 	return $next->() if ($c->ignore_permissions || $c->req->url->to_string =~ /\/api\/login/x);
 	my $controller_name = $c->{stash}->{controller};
 	my $action_name     = $c->{stash}->{action};

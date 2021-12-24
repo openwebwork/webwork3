@@ -1,26 +1,26 @@
 package DB::WithDates;
 use warnings;
 use strict;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
 
 use Carp;
 use Array::Utils qw/array_minus intersect/;
+use DB::Schema::Result::ProblemSet::HWSet;
+use Data::Dumper;
 
 use DB::Exception;
 
-our $valid_dates;       # array of allowed/valid dates
-our $required_dates;    # array of required dates
+our $valid_dates;       # Array of allowed/valid dates
+our $required_dates;    # Array of required dates
 
-sub validDates {
-	my ($self, $type, $field_name) = @_;
-	# the following stops the carping of perlcritic
-	## no critic 'ProhibitStringyEval'
-	## no critic 'RequireCheckingReturnValueOfEval'
+sub validDates ($self, $type, $field_name) {
 	if (defined($type)) {
-		eval '$valid_dates = &' . ref($self) . "::valid_dates($type)";
-		eval '$required_dates = &' . ref($self) . "::required_dates($type)";
+		$valid_dates    = ref($self)->valid_dates($type);
+		$required_dates = ref($self)->required_dates($type);
 	} else {
-		eval '$valid_dates = &' . ref($self) . "::valid_dates";
-		eval '$required_dates = &' . ref($self) . "::required_dates";
+		$valid_dates    = ref($self)->valid_dates;
+		$required_dates = ref($self)->required_dates;
 	}
 
 	$self->validDateFields($field_name);
@@ -30,20 +30,19 @@ sub validDates {
 	return 1;
 }
 
-sub validDateFields {
-	my ($self, $field_name) = @_;
-	my @fields     = keys %{ $self->get_inflated_column($field_name) };
-	my @bad_fields = array_minus(@fields, @$valid_dates);               # if this is not empty, there are illegal fields
+sub validDateFields ($self, $field_name) {
+	my @fields = keys %{ $self->get_inflated_column($field_name) };
+	# If this is not empty, there are illegal fields.
+	my @bad_fields = array_minus(@fields, @$valid_dates);
 	DB::Exception::InvalidDateField->throw(field_names => join(", ", @bad_fields))
 		if (scalar(@bad_fields) != 0);
 
 	return 1;
 }
 
-# check that the value of each date field is valid.
+# Check that the value of each date field is valid.
 
-sub validDateFormat {
-	my ($self, $field_name) = @_;
+sub validDateFormat ($self, $field_name) {
 	for my $key (@$valid_dates) {
 		next unless defined($self->get_inflated_column($field_name)->{$key});
 		my $invalid_date = {};
@@ -54,8 +53,7 @@ sub validDateFormat {
 	return 1;
 }
 
-sub hasRequiredDateFields {
-	my ($self, $field_name) = @_;
+sub hasRequiredDateFields ($self, $field_name) {
 	my @fields     = keys %{ $self->get_inflated_column($field_name) };
 	my @bad_fields = array_minus(@$required_dates, @fields);
 	DB::Exception::RequiredDateFields->throw(message => "The field(s) " . join(", ", @bad_fields) . " must be present")
@@ -63,8 +61,7 @@ sub hasRequiredDateFields {
 	return 1;
 }
 
-sub checkDates {
-	my ($self, $field_name) = @_;
+sub checkDates ($self, $field_name) {
 	my $dates = $self->get_inflated_column($field_name);
 
 	my @fields      = keys %{$dates};

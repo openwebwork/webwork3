@@ -1,3 +1,7 @@
 severity = 4
 
 [-Subroutines::ProhibitSubroutinePrototypes]
+
+# Allow no warnings usage with a category restriction (for signatures)
+[TestingAndDebugging::ProhibitNoWarnings]
+allow_with_category_restriction = 1
