@@ -229,7 +229,7 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 
 =cut
 
-sub getUserCourses  ($self, %args) {
+sub getUserCourses ($self, %args) {
 	my $user = $self->result_source->schema->resultset("User")
 		->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
 
@@ -275,7 +275,7 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 
 =cut
 
-sub getCourseSettings  ($self, %args) {
+sub getCourseSettings ($self, %args) {
 	my $course = $self->getCourse(info => $args{info}, as_result_set => 1);
 
 	my $course_settings  = getDefaultCourseValues();
@@ -283,7 +283,7 @@ sub getCourseSettings  ($self, %args) {
 	return mergeCourseSettings($course_settings, $settings_from_db);
 }
 
-sub updateCourseSettings  ($self, %args) {
+sub updateCourseSettings ($self, %args) {
 	my $course = $self->getCourse(info => $args{info}, as_result_set => 1);
 	validateCourseSettings($args{settings});
 

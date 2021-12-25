@@ -519,7 +519,7 @@ sub newSetVersion ($self, %args) {
 # The following are private methods used in this module.
 
 sub _formatSets ($problem_sets) {
-	my @sets         = ();
+	my @sets = ();
 	for my $set (@$problem_sets) {
 		my $expanded_set = { $set->get_inflated_columns, set_type => $set->set_type };
 		delete $expanded_set->{type};

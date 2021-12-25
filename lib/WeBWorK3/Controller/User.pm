@@ -52,10 +52,12 @@ sub getCourseUsers ($self) {
 }
 
 sub getCourseUser ($self) {
-	my $course_user = $self->schema->resultset("User")->getCourseUser(info => {
-		course_id => int($self->param("course_id")),
-		user_id   => int($self->param("user_id"))
-	});
+	my $course_user = $self->schema->resultset("User")->getCourseUser(
+		info => {
+			course_id => int($self->param("course_id")),
+			user_id   => int($self->param("user_id"))
+		}
+	);
 	$self->render(json => $course_user);
 	return;
 }
@@ -87,17 +89,19 @@ sub updateCourseUser ($self) {
 }
 
 sub deleteCourseUser ($self) {
-	my $course_user = $self->schema->resultset("User")->deleteCourseUser(info => {
-		course_id => int($self->param("course_id")),
-		user_id   => int($self->param("user_id"))
-	});
+	my $course_user = $self->schema->resultset("User")->deleteCourseUser(
+		info => {
+			course_id => int($self->param("course_id")),
+			user_id   => int($self->param("user_id"))
+		}
+	);
 	$self->render(json => $course_user);
 	return;
 }
 
 sub getUserCourses ($self) {
-	my @user_courses = $self->schema->resultset("Course")
-		->getUserCourses(info => { user_id => $self->param('user_id') });
+	my @user_courses =
+		$self->schema->resultset("Course")->getUserCourses(info => { user_id => $self->param('user_id') });
 	$self->render(json => \@user_courses);
 	return;
 }

@@ -199,7 +199,7 @@ sub updateGlobalUser ($self, %args) {
 # We need to decide on what encryption algorithm.
 
 sub authenticate ($self, $username, $password) {
-	my $user  = $self->getGlobalUser(info => { username => $username }, as_result_set => 1);
+	my $user = $self->getGlobalUser(info => { username => $username }, as_result_set => 1);
 	return $user->login_params->{password} eq $password;
 }
 
@@ -300,8 +300,7 @@ sub getCourseUser ($self, %args) {
 	my $course_user = $self->rs("CourseUser")->find({ course_id => $course->course_id, user_id => $user->user_id });
 
 	DB::Exception::UserNotInCourse->throw(
-		message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}"
-	)
+		message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}")
 		unless defined $course_user || $args{skip_throw};
 
 	return $course_user if $args{as_result_set};

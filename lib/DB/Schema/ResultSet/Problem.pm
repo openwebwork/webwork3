@@ -33,7 +33,7 @@ An array of problems as either a hashref or a  C<DBIx::Class::ResultSet::Problem
 
 =cut
 
-sub getGlobalProblems  ($self, %args) {
+sub getGlobalProblems ($self, %args) {
 	my @problems = $self->search({});
 
 	return @problems if $args{as_result_set};
@@ -72,7 +72,7 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 
 =cut
 
-sub getProblems  ($self, %args) {
+sub getProblems ($self, %args) {
 	my $course = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
 
 	my @problems =
@@ -117,7 +117,7 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 
 =cut
 
-sub getSetProblems  ($self, %args) {
+sub getSetProblems ($self, %args) {
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
 	my @problems    = $self->search({ 'set_id' => $problem_set->set_id });
 
@@ -161,7 +161,7 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 
 =cut
 
-sub getSetProblem  ($self, %args) {
+sub getSetProblem ($self, %args) {
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
 
 	my $problem = $problem_set->problems->find(getProblemInfo($args{info}));
@@ -228,7 +228,7 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 
 =cut
 
-sub addSetProblem  ($self, %args) {
+sub addSetProblem ($self, %args) {
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
 	# set the problem number to one more than the set's largest
 	my $new_problem_params = clone($args{params});
@@ -292,7 +292,7 @@ A single Problem (as hashrefs) or an object of class C<DBIx::Class::ResultSet::P
 
 =cut
 
-sub updateSetProblem  ($self, %args) {
+sub updateSetProblem ($self, %args) {
 	my $problem = $self->getSetProblem(info => $args{info}, as_result_set => 1);
 	my $params  = updateAllFields({ $problem->get_inflated_columns }, $args{params});
 

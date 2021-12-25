@@ -311,7 +311,7 @@ sub addUserSet ($self, %args) {
 	# if the dates and params are valid reset the set_dates to only those passed in:
 	$params->{set_dates} = $original_dates;
 
-# Add_to_user_set not getting default values, so get the just added user_set.
+	# Add_to_user_set not getting default values, so get the just added user_set.
 	$new_user_set = $problem_set->add_to_user_sets($params);
 
 	return $new_user_set if $args{as_result_set};

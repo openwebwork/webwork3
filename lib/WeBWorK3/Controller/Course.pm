@@ -11,8 +11,7 @@ sub getCourses ($self) {
 }
 
 sub getCourse ($self) {
-	my $course = $self->schema->resultset("Course")
-		->getCourse(info => { course_id => int($self->param("course_id")) });
+	my $course = $self->schema->resultset("Course")->getCourse(info => { course_id => int($self->param("course_id")) });
 	$self->render(json => $course);
 	return;
 }
@@ -33,8 +32,8 @@ sub addCourse ($self) {
 }
 
 sub deleteCourse ($self) {
-	my $course = $self->schema->resultset("Course")
-		->deleteCourse(info => { course_id => int($self->param("course_id")) });
+	my $course =
+		$self->schema->resultset("Course")->deleteCourse(info => { course_id => int($self->param("course_id")) });
 	$self->render(json => $course);
 	return;
 }
