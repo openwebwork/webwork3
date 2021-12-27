@@ -1,6 +1,10 @@
 package DB::Schema::ResultSet::UserProblem;
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
+
+use Clone qw/clone/;
 use base 'DBIx::Class::ResultSet';
 
 use DB::Utils qw/getCourseInfo getSetInfo getProblemInfo getUserInfo updateAllFields/;
@@ -34,8 +38,7 @@ See <DB::Schema::Result::User::Problem> for information on the fields.
 
 =cut
 
-sub getAllUserProblems {
-	my ($self, %args) = @_;
+sub getAllUserProblems ($self, %args) {
 	my @user_problems = $self->search({});
 
 	return @user_problems if $args{as_result_set};
@@ -55,8 +58,7 @@ Get all user problems (or merged user problems) for one course
 
 =cut
 
-sub getUserProblems {
-	my ($self, %args) = @_;
+sub getUserProblems ($self, %args) {
 	my $course        = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
 	my @user_problems = $self->search(
 		{
@@ -77,8 +79,7 @@ sub getUserProblems {
 	return @user_problems_to_return;
 }
 
-sub getUserProblem {
-	my ($self, %args) = @_;
+sub getUserProblem ($self, %args) {
 	my $problem  = $self->rs("Problem")->getSetProblem(info => $args{info}, as_result_set => 1);
 	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{info}, as_result_set => 1);
 
@@ -106,9 +107,9 @@ sub getUserProblem {
 	return $args{merged} ? _mergeUserProblem($user_problem) : _getUserProblem($user_problem);
 }
 
-sub addUserProblem {
-	my ($self, %args) = @_;
+use Data::Dumper;
 
+sub addUserProblem ($self, %args) {
 	my $user_problem = $self->getUserProblem(
 		info          => $args{info},
 		skip_throw    => 1,
@@ -126,9 +127,12 @@ sub addUserProblem {
 	my $problem  = $self->rs("Problem")->getSetProblem(info => $args{info}, as_result_set => 1);
 	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{info}, as_result_set => 1);
 
-	my $params = clone($args{user_problem_params} // {});
+	my $params = clone($args{params} // {});
+	$params->{user_problem_params} = {} unless defined $params->{user_problem_params};
+	$self->checkParams($params) if defined($args{params});
+
 	$params->{seed}   = int(10000 * rand()) unless defined $params->{seed};
-	$params->{status} = 0;
+	$params->{status} = 0                   unless defined $params->{status};
 
 	my $problem_to_return = $problem->add_to_user_problems({
 		problem_id  => $problem->problem_id,
@@ -136,21 +140,84 @@ sub addUserProblem {
 		%$params
 	});
 
-	return $problem if $args{as_result_set};
+	# print "in addUserProblem\n";
+	# print Dumper _getUserProblem($problem_to_return);
 
+	return $problem_to_return if $args{as_result_set};
 	return $args{merged} ? _mergeUserProblem($problem_to_return) : _getUserProblem($problem_to_return);
+}
 
+sub checkParams ($self, $params) {
+
+	# Check that the seed is valid (non-negative integer)
+	if (defined $params->{seed}) {
+		DB::Exception::InvalidParameter->throw(message => "The problem seed must be a non-negative integer.")
+			unless $params->{seed} =~ /^\d+$/;
+	}
+
+	# check that other fields/params are correct
+	my $prob_to_check = $self->new($params);
+	return $prob_to_check->validParams("user_problem_params");
+}
+
+sub updateUserProblem ($self, %args) {
+	my $user_problem = $self->getUserProblem(
+		info          => $args{info},
+		skip_throw    => 1,
+		as_result_set => 1
+	);
+
+	DB::Exception::UserProblemNotFound->throw(message => "The user "
+			. getUserInfo($args{info})->{username} // getUserInfo($args{info})->{user_id}
+			. " already has problem number "
+			. getProblemInfo($args{info})->{problem_number}
+			// ("(problem_id): " . getProblemInfo($args{info})->{problem_id})
+			. " in set with name"
+			. getSetInfo($args{info})->{set_name} // ("(set_id): " . getSetInfo($args{info})->{set_id}))
+		unless $user_problem;
+
+	my $params = clone($args{params} // {});
+	$self->checkParams($params) if defined($args{params});
+
+	my $problem_to_return = $user_problem->update($params);
+
+	return $problem_to_return if $args{as_result_set};
+	return $args{merged} ? _mergeUserProblem($problem_to_return) : _getUserProblem($problem_to_return);
+}
+
+=head2 deleteUserProblem
+
+
+=cut
+
+sub deleteUserProblem ($self, %args) {
+	my $user_problem = $self->getUserProblem(
+		info          => $args{info},
+		skip_throw    => 1,
+		as_result_set => 1
+	);
+
+	DB::Exception::UserProblemNotFound->throw(message => "The user "
+			. getUserInfo($args{info})->{username} // getUserInfo($args{info})->{user_id}
+			. " already has problem number "
+			. getProblemInfo($args{info})->{problem_number}
+			// ("(problem_id): " . getProblemInfo($args{info})->{problem_id})
+			. " in set with name"
+			. getSetInfo($args{info})->{set_name} // ("(set_id): " . getSetInfo($args{info})->{set_id}))
+		unless $user_problem;
+
+	my $user_problem_to_delete = $user_problem->delete;
+	return $user_problem_to_delete if $args{as_result_set};
+	return $args{merged} ? _mergeUserProblem($user_problem_to_delete) : _getUserProblem($user_problem_to_delete);
 }
 
 # just a small subroutine to shorten access to the db.
 
-sub rs {
-	my ($self, $table) = @_;
+sub rs ($self, $table) {
 	return $self->result_source->schema->resultset($table);
 }
 
-sub _mergeUserProblem {
-	my $user_problem        = shift;
+sub _mergeUserProblem ($user_problem) {
 	my $user_problem_fields = _getUserProblem($user_problem);
 	delete $user_problem_fields->{user_problem_params};
 	my $problem_fields = { $user_problem->problems->get_inflated_columns };
@@ -166,8 +233,7 @@ sub _mergeUserProblem {
 	return $merged_params;
 }
 
-sub _getUserProblem {
-	my $user_problem = shift;
+sub _getUserProblem ($user_problem) {
 	return {
 		$user_problem->get_inflated_columns,
 		problem_number => $user_problem->problems->problem_number,

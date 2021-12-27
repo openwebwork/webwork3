@@ -4,6 +4,8 @@ use DB::WithParams;
 
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
 
 use base qw(DBIx::Class::Core DB::WithParams);
 
@@ -58,11 +60,18 @@ __PACKAGE__->add_columns(
 	}
 );
 
-sub valid_params {
-	return {};
+sub valid_params ($=) {
+	return {
+		# positive integers or decimals
+		weight          => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},
+		library_id      => q{\d+},
+		file_path       => q{.*},
+		problem_pool_id => q{\d+},
+		max_attempts    => q{^-?\d+$}
+	};
 }
 
-sub required_params {
+sub required_params ($=) {
 	return {};
 }
 
