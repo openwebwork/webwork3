@@ -28,13 +28,23 @@ This gets an array of all UserProblems stored in the database in the C<user_prob
 
 =head3 input
 
-C<$as_result_set>, a boolean if the return is to be a result_set
+A hash with the following fields:
+
+=over
+
+=item - C<as_result_set>, a boolean if the return is to be a result_set
+
+=item - C<merged>, a boolean if the return is a merged set (UserProblem with Problem)
+or just a UserProblem
+
+=back
 
 =head3 output
 
 An array of user problems as a C<DBIx::Class::ResultSet::UserProblem> object
-if C<$as_result_set> is true.  Otherwise an array of hash_ref of the fields.
-See <DB::Schema::Result::User::Problem> for information on the fields.
+if C<as_result_set> is true.  Otherwise an array of hash_ref of the fields.
+See <DB::Schema::Result::User::Problem> for information on the fields.  If C<merged>
+is true, the return is a merged hashref.
 
 =cut
 
@@ -55,6 +65,29 @@ sub getAllUserProblems ($self, %args) {
 =head1 getUserProblems
 
 Get all user problems (or merged user problems) for one course
+
+=head3 input
+
+A hash of input values.
+
+=over
+
+=item * C<info>, either a course name or course_id.
+
+For example, C<{ course_name => 'Precalculus'}> or C<{course_id => 3}>
+
+=item * C<merged>, a boolean on whether to return a merged user or course user
+
+=item * C<as_result_set>, a boolean.  If true this an object of type
+C<DBIx::Class::ResultSet::UserProblem>
+if false, a hashrefs of a User Problem or merged User Problem with a Problem.
+
+=back
+
+=head3 output
+
+An array of a hashref of a user problem or merged user problem
+or an arrayref of C<DBIx::Class::ResultSet::UserProblem>
 
 =cut
 
@@ -78,6 +111,42 @@ sub getUserProblems ($self, %args) {
 	}
 	return @user_problems_to_return;
 }
+
+=head1 getUserProblem
+
+Get a single user problems (or merged user problems).
+
+=head3 input
+
+A hash of input values.
+
+=over
+
+=item * C<info>, a hashref containing:
+
+=over
+
+=item - either a C<course name> or C<course_id>.
+=item - either a C<username> or C<user_id>
+=item - either a C<set_nam> or C<set_id>
+=item - either a C<problem_number> or C<problem_id>
+
+For example, C<{ course_name => 'Precalculus', username=> 'homer', set_id => 3, problem_number => 1}>
+
+=item * C<merged>, a boolean on whether to return a merged user or course user
+
+=item * C<as_result_set>, a boolean.  If true this an object of type
+C<DBIx::Class::ResultSet::UserProblem>
+if false, a hashrefs of a User Problem or merged User Problem with a Problem.
+
+=back
+
+=head3 output
+
+A hashref of a user problem or merged user problem
+or a C<DBIx::Class::ResultSet::UserProblem>
+
+=cut
 
 sub getUserProblem ($self, %args) {
 	my $problem  = $self->rs("Problem")->getSetProblem(info => $args{info}, as_result_set => 1);
@@ -107,7 +176,44 @@ sub getUserProblem ($self, %args) {
 	return $args{merged} ? _mergeUserProblem($user_problem) : _getUserProblem($user_problem);
 }
 
-use Data::Dumper;
+=head1 addUserProblem
+
+Add a user problem.
+
+=head3 input
+
+A hash of input values.
+
+=over
+
+=item * C<info>, a hashref containing:
+
+=over
+
+=item - either a C<course name> or C<course_id>.
+=item - either a C<username> or C<user_id>
+=item - either a C<set_nam> or C<set_id>
+=item - either a C<problem_number> or C<problem_id>
+
+For example, C<{ course_name => 'Precalculus', username=> 'homer', set_id => 3, problem_number => 1}>
+
+=item *C<params>, a hashref of the valid parameters.  See C<DB::Schema::Result::UserProblem>
+for details.
+
+=item * C<merged>, a boolean on whether to return a merged user or course user
+
+=item * C<as_result_set>, a boolean.  If true this an object of type
+C<DB::Schema::ResultSet::UserProblem>
+if false, a hashrefs of a User Problem or merged User Problem with a Problem.
+
+=back
+
+=head3 output
+
+A hashref of a user problem or merged user problem
+or a C<DBIx::Class::ResultSet::UserProblem>
+
+=cut
 
 sub addUserProblem ($self, %args) {
 	my $user_problem = $self->getUserProblem(
@@ -140,25 +246,48 @@ sub addUserProblem ($self, %args) {
 		%$params
 	});
 
-	# print "in addUserProblem\n";
-	# print Dumper _getUserProblem($problem_to_return);
-
 	return $problem_to_return if $args{as_result_set};
 	return $args{merged} ? _mergeUserProblem($problem_to_return) : _getUserProblem($problem_to_return);
 }
 
-sub checkParams ($self, $params) {
+=head1 updateUserProblem
 
-	# Check that the seed is valid (non-negative integer)
-	if (defined $params->{seed}) {
-		DB::Exception::InvalidParameter->throw(message => "The problem seed must be a non-negative integer.")
-			unless $params->{seed} =~ /^\d+$/;
-	}
+update a user problem.
 
-	# check that other fields/params are correct
-	my $prob_to_check = $self->new($params);
-	return $prob_to_check->validParams("user_problem_params");
-}
+=head3 input
+
+A hash of input values.
+
+=over
+
+=item * C<info>, a hashref containing:
+
+=over
+
+=item - either a C<course name> or C<course_id>.
+=item - either a C<username> or C<user_id>
+=item - either a C<set_nam> or C<set_id>
+=item - either a C<problem_number> or C<problem_id>
+
+For example, C<{ course_name => 'Precalculus', username=> 'homer', set_id => 3, problem_number => 1}>
+
+=item *C<params>, a hashref of the valid parameters to be updated.  See C<DB::Schema::Result::UserProblem>
+for details.
+
+=item * C<merged>, a boolean on whether to return a merged user or course user
+
+=item * C<as_result_set>, a boolean.  If true this an object of type
+C<DB::Schema::ResultSet::UserProblem>
+if false, a hashrefs of a User Problem or merged User Problem with a Problem.
+
+=back
+
+=head3 output
+
+A hashref of a user problem or merged user problem
+or a C<DBIx::Class::ResultSet::UserProblem>
+
+=cut
 
 sub updateUserProblem ($self, %args) {
 	my $user_problem = $self->getUserProblem(
@@ -185,8 +314,39 @@ sub updateUserProblem ($self, %args) {
 	return $args{merged} ? _mergeUserProblem($problem_to_return) : _getUserProblem($problem_to_return);
 }
 
-=head2 deleteUserProblem
+=head1 deleteUserProblem
 
+Delete a user problem.
+
+=head3 input
+
+A hash of input values.
+
+=over
+
+=item * C<info>, a hashref containing:
+
+=over
+
+=item - either a C<course name> or C<course_id>.
+=item - either a C<username> or C<user_id>
+=item - either a C<set_nam> or C<set_id>
+=item - either a C<problem_number> or C<problem_id>
+
+For example, C<{ course_name => 'Precalculus', username=> 'homer', set_id => 3, problem_number => 1}>
+
+=item * C<merged>, a boolean on whether to return a merged user or course user
+
+=item * C<as_result_set>, a boolean.  If true this an object of type
+C<DB::Schema::ResultSet::UserProblem>
+if false, a hashrefs of a User Problem or merged User Problem with a Problem.
+
+=back
+
+=head3 output
+
+A hashref of a user problem or merged user problem
+or a C<DBIx::Class::ResultSet::UserProblem>
 
 =cut
 
@@ -211,10 +371,25 @@ sub deleteUserProblem ($self, %args) {
 	return $args{merged} ? _mergeUserProblem($user_problem_to_delete) : _getUserProblem($user_problem_to_delete);
 }
 
-# just a small subroutine to shorten access to the db.
+# The remaining subroutines are private to simpify the above code.
+
+# This is a small subroutine to shorten access to the db.
 
 sub rs ($self, $table) {
 	return $self->result_source->schema->resultset($table);
+}
+
+sub checkParams ($self, $params) {
+
+	# Check that the seed is valid (non-negative integer).
+	if (defined $params->{seed}) {
+		DB::Exception::InvalidParameter->throw(message => "The problem seed must be a non-negative integer.")
+			unless $params->{seed} =~ /^\d+$/;
+	}
+
+	# Check that other fields/params are correct.
+	my $prob_to_check = $self->new($params);
+	return $prob_to_check->validParams("user_problem_params");
 }
 
 sub _mergeUserProblem ($user_problem) {
@@ -223,10 +398,10 @@ sub _mergeUserProblem ($user_problem) {
 	my $problem_fields = { $user_problem->problems->get_inflated_columns };
 	delete $problem_fields->{problem_params};
 
-	# merge the params (problem_params and user_problem_params)
+	# Merge the params (problem_params and user_problem_params).
 	my $params = updateAllFields($user_problem->problems->problem_params, $user_problem->user_problem_params);
 
-	# merge the main fields
+	# Merge the main fields.
 	my $merged_params = updateAllFields($problem_fields, $user_problem_fields);
 	$merged_params->{problem_params} = $params;
 
