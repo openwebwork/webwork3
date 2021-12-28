@@ -23,9 +23,10 @@ import_ww2_db.pl - Import a course from webwork2 database to webwork3 format.
 import_ww2_db.pl [options]
 
  Options:
-   -r|--rebuild_db         Rebuild the database for the given course. This will
+   -x|--course_rebuild      Rebuild the database for the given course. This will
                            drop all rows in all columns associated with the given
                            course.
+   -r|-rebuild_db          Completely rebuild the database.  This removes all courses.
    -c|--course             Name of the course to import
    -d|--database-dsn       The database-dsn string for webwork2.
    -u|--database-user      The database user for webwork2
@@ -61,14 +62,16 @@ use lib "$main::ww3_dir/lib";
 use DB::Schema;
 use DB::Schema::Result::CourseUser;
 
-my $verbose     = 0;
-my $rebuild_db  = 0;
-my $course_name = '';
-my $db_dsn      = '';
-my $db_user     = '';
-my $db_pass     = '';
+my $verbose         = 0;
+my $rebuild_db      = 0;
+my $rebuild_course  = 0;
+my $course_name     = '';
+my $db_dsn          = '';
+my $db_user         = '';
+my $db_pass         = '';
 GetOptions(
 	'r|rebuild_db+'         => \$rebuild_db,
+	'x|course_rebuild+'     => \$rebuild_course,
 	'c|course=s'            => \$course_name,
 	'v|verbose+'            => \$verbose,
 	'd|database-dsn=s'      => \$db_dsn,
@@ -76,7 +79,7 @@ GetOptions(
 	'p|database-password=s' => \$db_pass
 ) || pod2usage();
 
-# Load the webwork3 configuration file:
+# Load the webwork3 configuration file.
 
 my $config_file = "$main::ww3_dir/conf/webwork3.yml";
 die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
@@ -98,20 +101,22 @@ my $dbh = DBI->connect($db_dsn, $db_user, $db_pass, { RaiseError => 1, AutoCommi
 
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-my $course_rs      = $schema->resultset('Course');
-my $user_rs        = $schema->resultset('User');
-my $problem_set_rs = $schema->resultset('ProblemSet');
-my $problem_rs     = $schema->resultset('Problem');
-my $user_set_rs    = $schema->resultset('UserSet');
+my $course_rs       = $schema->resultset('Course');
+my $user_rs         = $schema->resultset('User');
+my $problem_set_rs  = $schema->resultset('ProblemSet');
+my $problem_rs      = $schema->resultset('Problem');
+my $user_set_rs     = $schema->resultset('UserSet');
+my $user_problem_rs = $schema->resultset('UserProblem');
 
-# test if the database tables are created.  If not have DBIx::Class create them.
+# Test if the database tables are created.  If not have DBIx::Class create them.
 try {
 	$course_rs->getCourses();
 } catch {
 	$schema->deploy;
 };
 
-# $schema->deploy({ add_drop_table => 1 });    ## create the database based on the schema
+# Create the database based on the schema
+$schema->deploy({ add_drop_table => 1 }) if $rebuild_db;
 
 my %PERMISSIONS = (
 	0  => "student",
@@ -119,18 +124,19 @@ my %PERMISSIONS = (
 	20 => "admin"
 );
 
-# rebuild() if $rebuild_db;
+rebuildCourse() if $rebuild_course;
 
-# addCourse();
-# addUsers();
-# addProblemSets();
-# addProblems();
-# addUserSets();
+addCourse();
+addUsers();
+addProblemSets();
+addProblems();
+addUserSets();
+removeUserProblems();
 addUserProblems();
 
 my $db_tables = {};
 
-sub rebuild {
+sub rebuildCourse {
 	say "rebuilding the database for course $course_name";
 	# check if the course exists in the database;
 	my $course;
@@ -161,7 +167,7 @@ sub buildTables {
 
 sub addCourse {
 	say "adding course: $course_name" if $verbose;
-	$course_rs->addCourse({ course_name => $course_name });
+	$course_rs->addCourse(params => { course_name => $course_name });
 	return;
 }
 
@@ -187,7 +193,7 @@ sub addUsers {
 		grep { $_ ne "login_params" && $_ ne "user_id" && $_ ne "email" } $user_rs->result_source->columns;
 	my @course_user_param_fields = keys %$DB::Schema::Result::CourseUser::VALID_PARAMS;
 	my @course_user_fields =
-		grep { $_ !~ /\_id$/x && $_ ne "params" } $schema->resultset("CourseUser")->result_source->columns;
+		grep { $_ !~ /\_id$/x && $_ ne "course_user_params" } $schema->resultset("CourseUser")->result_source->columns;
 
 	for my $r (@$ref) {
 		# skip admin users to the course
@@ -202,17 +208,17 @@ sub addUsers {
 		}
 
 		my $user = $user_rs->find({ username => $user_params->{username} });
-		$user_rs->addGlobalUser($user_params) unless $user;
+		$user_rs->addGlobalUser(params => $user_params) unless $user;
 		say "Adding user with username $r->{user_id}" if $verbose && !defined($user);
 		my $course_user = {
 			username => $r->{user_id},
-			params   => {}
+			course_user_params   => {}
 		};
 		for my $key (@course_user_fields) {
 			$course_user->{$key} = $r->{$key} if defined($r->{$key});
 		}
 		foreach my $key (@course_user_param_fields) {
-			$course_user->{params}->{$key} = $r->{$key} if defined($r->{$key});
+			$course_user->{course_user_params}->{$key} = $r->{$key} if defined($r->{$key});
 		}
 		my $user_id = $r->{user_id};
 		my $sth2    = $dbh->prepare("SELECT * FROM `$perm_table` WHERE user_id = '$user_id';");
@@ -220,7 +226,10 @@ sub addUsers {
 		my $perm = $sth2->fetchrow_hashref();
 		$course_user->{role} = $PERMISSIONS{ $perm->{permission} };
 
-		$user_rs->addCourseUser({ course_name => $course_name, username => $course_user->{username} }, $course_user);
+		$user_rs->addCourseUser(
+			info => { course_name => $course_name, username => $course_user->{username} },
+			params => $course_user
+		);
 	}
 	return;
 }
@@ -228,14 +237,14 @@ sub addUsers {
 sub removeUsers {
 	my @course_users = $user_rs->getCourseUsers({ course_name => $course_name });
 	for my $course_user (@course_users) {
-		my @user_courses = $course_rs->getUserCourses({ user_id => $course_user->{user_id} });
+		my @user_courses = $course_rs->getUserCourses(info => { user_id => $course_user->{user_id} });
 		# if each user is only in one course, delete the global user
 		if (scalar(@user_courses) == 1) {
-			my $global_user = $user_rs->deleteGlobalUser({ user_id => $course_user->{user_id} });
+			my $global_user = $user_rs->deleteGlobalUser(info => { user_id => $course_user->{user_id} });
 
 			say "deleting the global user with username: $global_user->{username}" if $verbose;
 		} else {
-			$user_rs->deleteUser({ course_name => $course_name, user_id => $course_user->{user_id} });
+			$user_rs->deleteUser(info => { course_name => $course_name, user_id => $course_user->{user_id} });
 			say "From course $course_name, deleting user $course_user->{username}" if $verbose;
 		}
 	}
@@ -287,16 +296,16 @@ sub addProblemSets {
 			next;
 		}
 
-		$problem_set_rs->addProblemSet({ course_name => $course_name }, $set_params);
+		$problem_set_rs->addProblemSet(info => { course_name => $course_name }, params => $set_params);
 		say "Adding set with name: $set_params->{set_name}" if $verbose;
 	}
 	return;
 }
 
 sub removeProblemSets {
-	my @problem_sets = $problem_set_rs->getProblemSets({ course_name => $course_name });
+	my @problem_sets = $problem_set_rs->getProblemSets(info => { course_name => $course_name });
 	for my $problem_set (@problem_sets) {
-		$problem_set_rs->deleteProblemSet({ course_name => $course_name, set_id => $problem_set->{set_id} });
+		$problem_set_rs->deleteProblemSet(info => { course_name => $course_name, set_id => $problem_set->{set_id} });
 		say "deleting problem set: $problem_set->{set_name}" if $verbose;
 	}
 	return;
@@ -306,7 +315,7 @@ sub removeProblemSets {
 
 sub addUserSets {
 	my $user_set_table = $course_name . "_set_user";
-	my @problem_sets   = $problem_set_rs->getProblemSets({ course_name => $course_name });
+	my @problem_sets   = $problem_set_rs->getProblemSets(info => { course_name => $course_name });
 	for my $set (@problem_sets) {
 		say "Adding user sets for set $set->{set_name}" if $verbose;
 		my $sth = $dbh->prepare("SELECT * FROM `$user_set_table` WHERE set_id = '$set->{set_name}'");
@@ -330,12 +339,12 @@ sub addUserSets {
 				}
 			}
 			$user_set_rs->addUserSet(
-				user_set_info => {
+				info => {
 					course_name => $course_name,
 					set_id      => $set->{set_id},
 					username    => $r->{user_id}
 				},
-				user_set_params => $set_params
+				params => $set_params
 			);
 		}
 	}
@@ -343,10 +352,10 @@ sub addUserSets {
 }
 
 sub removeUserSets {
-	my @problem_sets = $problem_set_rs->getProblemSets({ course_name => $course_name });
+	my @problem_sets = $problem_set_rs->getProblemSets(info => { course_name => $course_name });
 	for my $set (@problem_sets) {
 		my @user_sets = $user_set_rs->getUserSets(
-			user_set_info => {
+			info => {
 				course_name => $course_name,
 				set_id      => $set->{set_id}
 			},
@@ -364,7 +373,7 @@ sub removeUserSets {
 ## Add/Remove Problems
 
 sub removeProblems {
-	my @problems = $problem_rs->getProblems({ course_name => $course_name }, 1);
+	my @problems = $problem_rs->getProblems(info => { course_name => $course_name }, 1);
 	for my $problem (@problems) {
 		say "Removing problem " . $problem->problem_number . " from " . $problem->problem_set->set_name if $verbose;
 		$problem->delete;
@@ -383,7 +392,11 @@ sub addProblems {
 			$problem_params->{$key} = $r->{$key} if $r->{$key};
 		}
 
-		my $problem_set = $problem_set_rs->getProblemSet({ course_name => $course_name, set_name => $r->{set_id} }, 1);
+		my $problem_set = $problem_set_rs->getProblemSet(
+			info => { course_name => $course_name, set_name => $r->{set_id} },
+			as_result_set => 1
+		);
+
 		$problem_set->add_to_problems({
 			problem_number => $r->{problem_id},
 			problem_params => $problem_params
@@ -395,10 +408,14 @@ sub addProblems {
 # Add/Remove user problems
 
 sub removeUserProblems {
-	my @user_problems = $problem_rs->getUserProblems({ course_name => $course_name }, 1);
+	my @user_problems = $user_problem_rs->getUserProblems(
+		info => { course_name => $course_name },
+		as_result_set => 1
+	);
 	for my $problem (@user_problems) {
-		say "Removing problem " . $problem->problem_number . " from " . $problem->problem_set->set_name if $verbose;
-		# $problem->delete;
+		say "Removing problem " . $problem->problems->problem_number . " from "
+			. $problem->user_sets->problem_sets->set_name if $verbose;
+		$problem->delete;
 	}
 
 	return;
@@ -411,13 +428,44 @@ sub addUserProblems {
 	my $ref = $sth->fetchall_arrayref({});
 
 	say "adding User Problems";
-	for my $r (@$ref) {
-		#print Dumper $r;
-		next if $r->{user_id} eq 'admin';
-		my $problem_set = $problem_set_rs->getProblemSet({ course_name => $course_name, set_name => $r->{set_id} }, 1);
-		my $course_user = $user_rs->getCourseUser({ course_name => $course_name, username => $r->{user_id} });
-		#print Dumper $course_user;
+	my @user_problem_param_fields = keys %{DB::Schema::Result::UserProblem::valid_params()};
 
+	for my $r (@$ref) {
+		next if $r->{user_id} eq 'admin';
+		my $course_user = $user_rs->getCourseUser(
+			info => { course_name => $course_name, username => $r->{user_id} },
+			as_result_set => 1
+		);
+		my $problem = $problem_rs->getSetProblem(
+			info => {
+				course_name => $course_name,
+				set_name => $r->{set_id},
+				problem_number => $r->{problem_id}
+			}
+		);
+
+		my $params = {};
+		for my $key (@user_problem_param_fields) {
+			$params->{$key} = $r->{$key} if defined $r->{$key}
+		}
+
+		if ($params->{last_answer}) {
+			$params->{last_answer} = join(';',split(/\s+/,$params->{last_answer}));
+		}
+
+		$user_problem_rs->addUserProblem(
+			info => {
+				course_name => $course_name,
+				set_name => $r->{set_id},
+				problem_number => $r->{problem_id},
+				username => $r->{user_id}
+			},
+			params => {
+					seed => $r->{problemSeed},
+					status => $r->{status},
+					user_problem_params => $params
+			}
+		);
 	}
 	return;
 }

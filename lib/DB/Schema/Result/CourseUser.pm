@@ -150,7 +150,7 @@ sub valid_params {
 		useMathQuill   => q{[01]},
 		useMathView    => q{[01]},
 		displayMode    => q{.*},
-		status         => q{[a-z]},
+		status         => q{[A-Z]},
 		lis_source_did => q{.*},
 		useWirisEditor => q{[01]},
 		showOldAnswers => q{[01]}

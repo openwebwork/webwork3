@@ -41,7 +41,7 @@ __PACKAGE__->add_columns(
 		is_nullable => 0,
 	},
 	status => {
-		data_type   => 'integer',
+		data_type   => 'real',
 		size        => 16,
 		is_nullable => 0,
 	},
@@ -52,7 +52,7 @@ __PACKAGE__->add_columns(
 	},
 	user_problem_params => {
 		data_type          => 'text',
-		size               => 256,
+		size               => 512,
 		is_nullable        => 0,
 		default_value      => '{}',
 		serializer_class   => 'JSON',
@@ -63,11 +63,20 @@ __PACKAGE__->add_columns(
 sub valid_params ($=) {
 	return {
 		# positive integers or decimals
-		weight          => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},
-		library_id      => q{\d+},
-		file_path       => q{.*},
-		problem_pool_id => q{\d+},
-		max_attempts    => q{^-?\d+$}
+		weight               => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},
+		library_id           => q{\d+},
+		file_path            => q{.*},
+		problem_pool_id      => q{\d+},
+		max_attempts         => q{^-?\d+$},
+		att_to_open_children => q{\d+},
+		last_answer          => q{^.*$},
+		prPeriod             => q{\d+},
+		prCount              => q{\d+},
+		counts_parent_grade  => q{[01]},
+		attempted            => q{\d+},
+		num_correct          => q{\d+},
+		num_incorrect        => q{\d+},
+		showMeAnotherCount   => q{\d+}
 	};
 }
 
