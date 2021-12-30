@@ -19,7 +19,7 @@ use Exception::Class (
 
 =head1 DESCRIPTION
 
-This is the functionality of a Problem in WeBWorK.  This package is based on
+This is the functionality of a UserProblem in WeBWorK.  This package is based on
 C<DBIx::Class::ResultSet>.  The basics are a CRUD for a UserProblem.
 
 =head2 getAllUserProblems
@@ -374,7 +374,6 @@ sub deleteUserProblem ($self, %args) {
 # The remaining subroutines are private to simpify the above code.
 
 # This is a small subroutine to shorten access to the db.
-
 sub rs ($self, $table) {
 	return $self->result_source->schema->resultset($table);
 }

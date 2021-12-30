@@ -43,6 +43,9 @@ Import a course from webwork2 database to webwork3 format.
 
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
+
 use feature 'say';
 use Getopt::Long qw(:config bundling);
 use Pod::Usage;
@@ -62,13 +65,13 @@ use lib "$main::ww3_dir/lib";
 use DB::Schema;
 use DB::Schema::Result::CourseUser;
 
-my $verbose         = 0;
-my $rebuild_db      = 0;
-my $rebuild_course  = 0;
-my $course_name     = '';
-my $db_dsn          = '';
-my $db_user         = '';
-my $db_pass         = '';
+my $verbose        = 0;
+my $rebuild_db     = 0;
+my $rebuild_course = 0;
+my $course_name    = '';
+my $db_dsn         = '';
+my $db_user        = '';
+my $db_pass        = '';
 GetOptions(
 	'r|rebuild_db+'         => \$rebuild_db,
 	'x|course_rebuild+'     => \$rebuild_course,
@@ -124,19 +127,19 @@ my %PERMISSIONS = (
 	20 => "admin"
 );
 
-rebuildCourse() if $rebuild_course;
+# rebuildCourse() if $rebuild_course;
 
-addCourse();
-addUsers();
-addProblemSets();
-addProblems();
-addUserSets();
-removeUserProblems();
-addUserProblems();
+# addCourse();
+# addUsers();
+# addProblemSets();
+# addProblems();
+# addUserSets();
+# addUserProblems();
+addPastAnswers();
 
 my $db_tables = {};
 
-sub rebuildCourse {
+sub rebuildCourse ($=) {
 	say "rebuilding the database for course $course_name";
 	# check if the course exists in the database;
 	my $course;
@@ -157,7 +160,7 @@ sub rebuildCourse {
 	return;
 }
 
-sub buildTables {
+sub buildTables ($=) {
 	$db_tables = {};
 	for my $name (qw/user key password past_answer/) {
 		$db_tables->{$name} = $course_name . "_" . $name;
@@ -165,13 +168,13 @@ sub buildTables {
 	return;
 }
 
-sub addCourse {
+sub addCourse ($=) {
 	say "adding course: $course_name" if $verbose;
 	$course_rs->addCourse(params => { course_name => $course_name });
 	return;
 }
 
-sub removeCourse {
+sub removeCourse ($=) {
 	my $course = $course_rs->find({ course_name => $course_name });
 	$course->delete                        if $course;
 	say "deleting the course $course_name" if $verbose;
@@ -180,7 +183,7 @@ sub removeCourse {
 
 # Add/Remove Users
 
-sub addUsers {
+sub addUsers ($=) {
 	my $user_table = $course_name . "_user";
 	my $perm_table = $course_name . "_permission";
 
@@ -211,8 +214,8 @@ sub addUsers {
 		$user_rs->addGlobalUser(params => $user_params) unless $user;
 		say "Adding user with username $r->{user_id}" if $verbose && !defined($user);
 		my $course_user = {
-			username => $r->{user_id},
-			course_user_params   => {}
+			username           => $r->{user_id},
+			course_user_params => {}
 		};
 		for my $key (@course_user_fields) {
 			$course_user->{$key} = $r->{$key} if defined($r->{$key});
@@ -227,14 +230,14 @@ sub addUsers {
 		$course_user->{role} = $PERMISSIONS{ $perm->{permission} };
 
 		$user_rs->addCourseUser(
-			info => { course_name => $course_name, username => $course_user->{username} },
+			info   => { course_name => $course_name, username => $course_user->{username} },
 			params => $course_user
 		);
 	}
 	return;
 }
 
-sub removeUsers {
+sub removeUsers ($=) {
 	my @course_users = $user_rs->getCourseUsers({ course_name => $course_name });
 	for my $course_user (@course_users) {
 		my @user_courses = $course_rs->getUserCourses(info => { user_id => $course_user->{user_id} });
@@ -253,7 +256,7 @@ sub removeUsers {
 
 # Add/Remove Problem Sets
 
-sub addProblemSets {
+sub addProblemSets ($=) {
 
 	my $set_table = $course_name . "_set";
 	my $sth       = $dbh->prepare("SELECT * FROM `$set_table`");
@@ -302,7 +305,7 @@ sub addProblemSets {
 	return;
 }
 
-sub removeProblemSets {
+sub removeProblemSets ($=) {
 	my @problem_sets = $problem_set_rs->getProblemSets(info => { course_name => $course_name });
 	for my $problem_set (@problem_sets) {
 		$problem_set_rs->deleteProblemSet(info => { course_name => $course_name, set_id => $problem_set->{set_id} });
@@ -313,7 +316,7 @@ sub removeProblemSets {
 
 ## Add/Remove UserSets
 
-sub addUserSets {
+sub addUserSets ($=) {
 	my $user_set_table = $course_name . "_set_user";
 	my @problem_sets   = $problem_set_rs->getProblemSets(info => { course_name => $course_name });
 	for my $set (@problem_sets) {
@@ -351,7 +354,7 @@ sub addUserSets {
 	return;
 }
 
-sub removeUserSets {
+sub removeUserSets ($=) {
 	my @problem_sets = $problem_set_rs->getProblemSets(info => { course_name => $course_name });
 	for my $set (@problem_sets) {
 		my @user_sets = $user_set_rs->getUserSets(
@@ -372,7 +375,7 @@ sub removeUserSets {
 
 ## Add/Remove Problems
 
-sub removeProblems {
+sub removeProblems ($=) {
 	my @problems = $problem_rs->getProblems(info => { course_name => $course_name }, 1);
 	for my $problem (@problems) {
 		say "Removing problem " . $problem->problem_number . " from " . $problem->problem_set->set_name if $verbose;
@@ -381,7 +384,7 @@ sub removeProblems {
 	return;
 }
 
-sub addProblems {
+sub addProblems ($=) {
 	my $problem_table = $course_name . "_problem";
 	my $sth           = $dbh->prepare("SELECT * FROM `$problem_table`");
 	$sth->execute();
@@ -393,7 +396,7 @@ sub addProblems {
 		}
 
 		my $problem_set = $problem_set_rs->getProblemSet(
-			info => { course_name => $course_name, set_name => $r->{set_id} },
+			info          => { course_name => $course_name, set_name => $r->{set_id} },
 			as_result_set => 1
 		);
 
@@ -407,67 +410,87 @@ sub addProblems {
 
 # Add/Remove user problems
 
-sub removeUserProblems {
+sub removeUserProblems ($=) {
 	my @user_problems = $user_problem_rs->getUserProblems(
-		info => { course_name => $course_name },
+		info          => { course_name => $course_name },
 		as_result_set => 1
 	);
 	for my $problem (@user_problems) {
-		say "Removing problem " . $problem->problems->problem_number . " from "
-			. $problem->user_sets->problem_sets->set_name if $verbose;
+		say "Removing problem "
+			. $problem->problems->problem_number
+			. " from "
+			. $problem->user_sets->problem_sets->set_name
+			if $verbose;
 		$problem->delete;
 	}
 
 	return;
 }
 
-sub addUserProblems {
+sub addUserProblems ($=) {
 	my $problem_user_table = $course_name . "_problem_user";
 	my $sth                = $dbh->prepare("SELECT * FROM `$problem_user_table`");
 	$sth->execute();
 	my $ref = $sth->fetchall_arrayref({});
 
 	say "adding User Problems";
-	my @user_problem_param_fields = keys %{DB::Schema::Result::UserProblem::valid_params()};
+	my @user_problem_param_fields = keys %{ DB::Schema::Result::UserProblem::valid_params() };
 
 	for my $r (@$ref) {
 		next if $r->{user_id} eq 'admin';
 		my $course_user = $user_rs->getCourseUser(
-			info => { course_name => $course_name, username => $r->{user_id} },
+			info          => { course_name => $course_name, username => $r->{user_id} },
 			as_result_set => 1
 		);
 		my $problem = $problem_rs->getSetProblem(
 			info => {
-				course_name => $course_name,
-				set_name => $r->{set_id},
+				course_name    => $course_name,
+				set_name       => $r->{set_id},
 				problem_number => $r->{problem_id}
 			}
 		);
 
 		my $params = {};
 		for my $key (@user_problem_param_fields) {
-			$params->{$key} = $r->{$key} if defined $r->{$key}
+			$params->{$key} = $r->{$key} if defined $r->{$key};
 		}
 
 		if ($params->{last_answer}) {
-			$params->{last_answer} = join(';',split(/\s+/,$params->{last_answer}));
+			$params->{last_answer} = join(';', split(/\s+/, $params->{last_answer}));
 		}
 
 		$user_problem_rs->addUserProblem(
 			info => {
-				course_name => $course_name,
-				set_name => $r->{set_id},
+				course_name    => $course_name,
+				set_name       => $r->{set_id},
 				problem_number => $r->{problem_id},
-				username => $r->{user_id}
+				username       => $r->{user_id}
 			},
 			params => {
-					seed => $r->{problemSeed},
-					status => $r->{status},
-					user_problem_params => $params
+				seed                => $r->{problemSeed},
+				status              => $r->{status},
+				user_problem_params => $params
 			}
 		);
 	}
 	return;
+}
+
+# Add and remove past_answer/attempts data
+
+sub addPastAnswers ($=) {
+	my $past_answer_table = $course_name . "_past_answer";
+	my $sth               = $dbh->prepare("SELECT * FROM `$past_answer_table`");
+	$sth->execute();
+	my $ref = $sth->fetchall_arrayref({});
+
+	for my $r (@$ref) {
+		my @answers = split(/\t/, $r->{answer_string});
+		print Dumper $r->{set_id};
+		print Dumper $r->{problem_id};
+		print Dumper \@answers;
+		print Dumper $r->{scores};
+	}
 }
 
 1;
