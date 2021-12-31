@@ -110,6 +110,7 @@ my $problem_set_rs  = $schema->resultset('ProblemSet');
 my $problem_rs      = $schema->resultset('Problem');
 my $user_set_rs     = $schema->resultset('UserSet');
 my $user_problem_rs = $schema->resultset('UserProblem');
+my $attempts_rs     = $schema->resultset('Attempt');
 
 # Test if the database tables are created.  If not have DBIx::Class create them.
 try {
@@ -135,6 +136,7 @@ my %PERMISSIONS = (
 # addProblems();
 # addUserSets();
 # addUserProblems();
+removeAttempts();
 addPastAnswers();
 
 my $db_tables = {};
@@ -478,19 +480,40 @@ sub addUserProblems ($=) {
 
 # Add and remove past_answer/attempts data
 
+sub removeAttempts ($=) {
+	my $all_attempts = $attempts_rs->search();
+	$all_attempts->delete_all;
+	return;
+}
+
 sub addPastAnswers ($=) {
 	my $past_answer_table = $course_name . "_past_answer";
 	my $sth               = $dbh->prepare("SELECT * FROM `$past_answer_table`");
 	$sth->execute();
 	my $ref = $sth->fetchall_arrayref({});
 
+	my $n = 0;
+
 	for my $r (@$ref) {
-		my @answers = split(/\t/, $r->{answer_string});
-		print Dumper $r->{set_id};
-		print Dumper $r->{problem_id};
-		print Dumper \@answers;
-		print Dumper $r->{scores};
+		my @answers  = $r->{answer_string} ? split(/\t/, $r->{answer_string}) : ();
+		my @scores   = $r->{scores}        ? split(//,   $r->{scores})        : ();
+		my @comments = $r->{comments}      ? split(/\t/, $r->{comments})      : ();
+
+		my $att = $attempts_rs->addAttempt(
+			info => {
+				course_name    => $course_name,
+				set_name       => $r->{set_id},
+				problem_number => $r->{problem_id},
+				username       => $r->{user_id}
+			},
+			params => {
+				comments => \@comments,
+				scores   => \@scores,
+				answers  => \@answers
+			}
+		);
 	}
+	return;
 }
 
 1;
