@@ -430,8 +430,6 @@ An hashref of the updated course user or merged user or a C<DB::Schema::ResultSe
 
 =cut
 
-use Data::Dumper;
-
 sub updateCourseUser ($self, %args) {
 	my $course_user = $self->getCourseUser(info => $args{info}, as_result_set => 1);
 

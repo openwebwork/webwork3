@@ -116,7 +116,7 @@ sub addAttempt ($self, %args) {
 	my $params = clone $args{params};
 
 	# Remove some parameters that are not in the UserSet database, but may be passed in.
-	for my $key (qw/username user_id course_name set_name set_id problem_id problem_number/) {
+	for my $key (qw/username user_id course_name set_name set_id problem_id problem_number problem_version/) {
 		delete $params->{$key} if defined $params->{$key};
 	}
 

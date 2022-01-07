@@ -148,8 +148,6 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 
 =cut
 
-use Data::Dumper;
-
 sub getUserProblem ($self, %args) {
 	my $problem  = $self->rs("Problem")->getSetProblem(info => $args{info}, as_result_set => 1);
 	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{info}, as_result_set => 1);
@@ -217,9 +215,8 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 
 =cut
 
-use Data::Dumper;
-
 sub addUserProblem ($self, %args) {
+
 	my $user_problem = $self->getUserProblem(
 		info          => $args{params},
 		skip_throw    => 1,

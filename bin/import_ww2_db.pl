@@ -291,7 +291,10 @@ sub addProblemSets ($=) {
 			$set_params->{set_dates}->{reduced_scoring} = $r->{reduced_scoring_date} // $r->{due_date};
 		}
 
-		$problem_set_rs->addProblemSet(info => { course_name => $course_name }, params => $set_params);
+		$problem_set_rs->addProblemSet(params => {
+			course_name => $course_name,
+			%$set_params
+		});
 		say "Adding set with name: $set_params->{set_name}" if $verbose;
 	}
 	return;
@@ -326,7 +329,7 @@ sub addUserSets ($=) {
 			};
 
 			if ($set->{set_type} eq 'HW') {
-				$set_params->{set_name}    = $r->{set_id};
+				# $set_params->{set_name}    = $r->{set_id};
 				$set_params->{set_version} = 1;
 				for my $key (qw/set_header hardcopy_header hide_hint enable_reduced_scoring/) {
 					$set_params->{set_params}->{$key} = $r->{$key} if defined($r->{$key});
@@ -358,12 +361,12 @@ sub addUserSets ($=) {
 			}
 
 			$user_set_rs->addUserSet(
-				info => {
+				params => {
 					course_name => $course_name,
-					set_id      => $set->{set_id},
-					username    => $r->{user_id}
-				},
-				params => $set_params
+					set_id => $set->{set_id},
+					username    => $r->{user_id},
+					%$set_params
+				}
 			);
 		}
 	}
@@ -464,10 +467,6 @@ sub addUserProblems ($=) {
 		my $params = {};
 		my ($set_name, $problem_version);
 
-		if ($r->{user_id} eq 'peter' && $r->{set_id} =~ /^quiz1/) {
-			print Dumper $r;
-		}
-
 		# If there is a quiz, need to parse the set_id differently
 		if ($r->{set_id} =~ /^([\w\d]*),v(\d)$/) {
 			$set_name        = $1;
@@ -486,12 +485,6 @@ sub addUserProblems ($=) {
 			# Skip a quiz that doesn't have a version number.
 			next if $problem_set->set_type eq 'QUIZ';
 		}
-		if ($r->{user_id} eq 'peter') {
-			say $r->{set_id};
-			say "username: " . $r->{user_id};
-			say "set_name: $set_name";
-			say "problem_version: $problem_version";
-		}
 
 		# print Dumper $problem;
 
@@ -503,19 +496,19 @@ sub addUserProblems ($=) {
 			$params->{last_answer} = join(';', split(/\s+/, $params->{last_answer}));
 		}
 
+
+
 		$user_problem_rs->addUserProblem(
-			info => {
+			params => {
 				course_name     => $course_name,
 				set_name        => $set_name,
 				problem_number  => $r->{problem_id},
 				username        => $r->{user_id},
-				problem_version => $problem_version // 1
-			},
-			params => {
+				problem_version => $problem_version // 1,
 				seed                => $r->{problemSeed},
 				status              => $r->{status},
 				problem_version     => $problem_version,
-				user_problem_params => $params
+				problem_params => $params
 			}
 		);
 	}
@@ -531,26 +524,32 @@ sub removeAttempts ($=) {
 }
 
 sub addPastAnswers ($=) {
+	say "adding Past Answers" if $verbose;
 	my $past_answer_table = $course_name . "_past_answer";
 	my $sth               = $dbh->prepare("SELECT * FROM `$past_answer_table`");
 	$sth->execute();
 	my $ref = $sth->fetchall_arrayref({});
 
 	my $n = 0;
+	my ($set_name,$problem_version);
 
 	for my $r (@$ref) {
 		my @answers  = $r->{answer_string} ? split(/\t/, $r->{answer_string}) : ();
 		my @scores   = $r->{scores}        ? split(//,   $r->{scores})        : ();
 		my @comments = $r->{comments}      ? split(/\t/, $r->{comments})      : ();
+		if ($r->{set_id} =~ /^([\w\d]*),v(\d)$/) {
+			$set_name        = $1;
+			$problem_version = $2;
+
+		}
 
 		my $att = $attempts_rs->addAttempt(
-			info => {
-				course_name    => $course_name,
-				set_name       => $r->{set_id},
-				problem_number => $r->{problem_id},
-				username       => $r->{user_id}
-			},
 			params => {
+				course_name    => $course_name,
+				set_name       => $set_name,
+				problem_number => $r->{problem_id},
+				problem_version => $problem_version,
+				username       => $r->{user_id},
 				comments => \@comments,
 				scores   => \@scores,
 				answers  => \@answers

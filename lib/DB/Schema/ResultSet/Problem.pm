@@ -228,8 +228,6 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 
 =cut
 
-use Data::Dumper;
-
 sub addSetProblem ($self, %args) {
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{params}, as_result_set => 1);
 	my $params      = clone $args{params};

@@ -201,8 +201,6 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 
 =cut
 
-use Data::Dumper;
-
 sub getUserSet ($self, %args) {
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
 	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
@@ -265,8 +263,6 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 =back
 
 =cut
-
-use Data::Dumper;
 
 sub addUserSet ($self, %args) {
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{params}, as_result_set => 1);

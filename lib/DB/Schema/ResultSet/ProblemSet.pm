@@ -258,8 +258,6 @@ An hashref of a problem set or an object of type C<DBIx::Class::ResultSet::Probl
 
 =cut
 
-use Data::Dumper;
-
 sub getProblemSet ($self, %args) {
 	my $course_info = getCourseInfo($args{info});
 	my $set_info    = getSetInfo($args{info});
