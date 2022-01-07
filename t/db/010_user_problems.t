@@ -57,8 +57,9 @@ for my $up (@user_problems_to_delete) {
 # Load problems and user problems from the CSV files.
 my @user_problems_from_csv = loadCSV("$main::ww3_dir/t/db/sample_data/user_problems.csv");
 for my $user_problem (@user_problems_from_csv) {
-	$user_problem->{status}              = 1  unless defined($user_problem->{status});
-	$user_problem->{user_problem_params} = {} unless defined($user_problem->{user_problem_params});
+	$user_problem->{status}          = 1  unless defined($user_problem->{status});
+	$user_problem->{problem_params}  = {} unless defined($user_problem->{problem_params});
+	$user_problem->{problem_version} = 1  unless defined($user_problem->{problem_version});
 }
 
 my @problems_from_csv = loadCSV("$main::ww3_dir/t/db/sample_data/problems.csv");
@@ -80,13 +81,11 @@ for my $user_problem (@user_problems_from_csv) {
 	for my $key (qw/seed status problem_version username/) {
 		$problem->{$key} = $user_problem->{$key} if defined($user_problem->{$key});
 	}
-	# Override any parameters.
-	for my $key (keys %{ $problem->{user_problem_params} }) {
-		$problem->{problem_params}->{key} = $problem->{user_problem_params}->{$key}
-			if defined $problem->{user_problem_params}->{$key};
+	# Override any parameters from user problems.
+	for my $key (keys %{ $user_problem->{problem_params} }) {
+		$problem->{problem_params}->{$key} = $user_problem->{problem_params}->{$key}
+			if defined $problem->{problem_params}->{$key};
 	}
-	delete $problem->{user_problem_params};
-
 	push(@merged_problems_from_csv, $problem);
 }
 
@@ -106,7 +105,6 @@ is_deeply(\@user_problems_from_csv, \@all_user_problems_from_db,
 my @merged_problems_from_db = $user_problem_rs->getAllUserProblems(merged => 1);
 for my $merged_problem (@merged_problems_from_db) {
 	removeIDs($merged_problem);
-
 }
 
 is_deeply(\@merged_problems_from_csv, \@merged_problems_from_db, "getAllUserProblems: fetch all merged problems");
@@ -234,18 +232,15 @@ my $problem_info1 = {
 };
 
 my $user_problem1 = $user_problem_rs->addUserProblem(
-	info   => $problem_info1,
 	params => {
-		seed => 7329,
-		# user_problem_params => {
-		# 	# library_id => 34
-		# }
+		%$problem_info1, seed => 7329
 	}
 );
 removeIDs($user_problem1);
-$problem_info1->{seed}                = 7329;
-$problem_info1->{status}              = 0;
-$problem_info1->{user_problem_params} = {};
+$problem_info1->{seed}            = 7329;
+$problem_info1->{status}          = 0;
+$problem_info1->{problem_params}  = {};
+$problem_info1->{problem_version} = 1;
 
 is_deeply($problem_info1, $user_problem1, "addUserProblem: add a single user problem");
 
@@ -259,10 +254,10 @@ my $problem_info2 = {
 };
 
 my $user_problem2 = $user_problem_rs->addUserProblem(
-	info   => $problem_info2,
 	params => {
-		seed                => 7329,
-		user_problem_params => {
+		%$problem_info2,
+		seed           => 7329,
+		problem_params => {
 			weight => 2
 		}
 	},
@@ -289,13 +284,12 @@ is_deeply($problem2, $user_problem2, "addUserProblem: add a user problem and ret
 
 throws_ok {
 	$user_problem_rs->addUserProblem(
-		info => {
+		params => {
 			course_name    => 'course doesn\'t exist',
 			username       => 'homer',
 			set_name       => 'HW #1',
 			problem_number => 1
-		},
-		params => {}
+		}
 	);
 }
 "DB::Exception::CourseNotFound", "addUserProblem: attempt to add a user problem to a nonexistent course";
@@ -304,13 +298,12 @@ throws_ok {
 
 throws_ok {
 	$user_problem_rs->addUserProblem(
-		info => {
+		params => {
 			course_name    => 'Precalculus',
 			username       => 'homer',
 			set_name       => 'HW #999',
 			problem_number => 1
-		},
-		params => {}
+		}
 	);
 }
 "DB::Exception::SetNotInCourse", "addUserProblem: attempt to add a user problem for a non-existent problem set";
@@ -319,13 +312,12 @@ throws_ok {
 
 throws_ok {
 	$user_problem_rs->addUserProblem(
-		info => {
+		params => {
 			course_name    => 'Precalculus',
 			username       => 'non_existent_user',
 			set_name       => 'HW #1',
 			problem_number => 1
-		},
-		params => {}
+		}
 	);
 }
 "DB::Exception::UserNotFound", "addUserProblem: attempt to add a user problem for a non-existent user";
@@ -334,13 +326,12 @@ throws_ok {
 
 throws_ok {
 	$user_problem_rs->addUserProblem(
-		info => {
+		params => {
 			course_name    => 'Precalculus',
 			username       => 'homer',
 			set_name       => 'HW #1',
 			problem_number => 999
-		},
-		params => {}
+		}
 	);
 }
 "DB::Exception::ProblemNotFound", "addUserProblem: attempt to add a user problem for a non-existent problem";
@@ -349,13 +340,12 @@ throws_ok {
 
 throws_ok {
 	$user_problem_rs->addUserProblem(
-		info => {
+		params => {
 			course_name    => 'Precalculus',
 			username       => 'homer',
 			set_name       => 'HW #1',
 			problem_number => 1
-		},
-		params => {}
+		}
 	);
 }
 "DB::Exception::UserProblemExists", "addUserProblem: attempt to add a user problem that already exists";
@@ -364,14 +354,12 @@ throws_ok {
 
 throws_ok {
 	$user_problem_rs->addUserProblem(
-		info => {
+		params => {
 			course_name    => "Precalculus",
 			set_name       => "HW #4",
 			username       => "ned",
-			problem_number => 3
-		},
-		params => {
-			seed => -1234
+			problem_number => 3,
+			seed           => -1234
 		}
 	);
 }
@@ -381,13 +369,11 @@ throws_ok {
 
 throws_ok {
 	$user_problem_rs->addUserProblem(
-		info => {
-			course_name    => "Precalculus",
-			set_name       => "HW #4",
-			username       => "ned",
-			problem_number => 3
-		},
 		params => {
+			course_name        => "Precalculus",
+			set_name           => "HW #4",
+			username           => "ned",
+			problem_number     => 3,
 			non_existent_field => 1
 		}
 	);
@@ -398,13 +384,11 @@ throws_ok {
 
 throws_ok {
 	$user_problem_rs->addUserProblem(
-		info => {
-			course_name    => "Precalculus",
-			set_name       => "HW #4",
-			username       => "ned",
-			problem_number => 3
-		},
 		params => {
+			course_name        => "Precalculus",
+			set_name           => "HW #4",
+			username           => "ned",
+			problem_number     => 3,
 			non_existent_field => 1
 		}
 	);
@@ -415,14 +399,12 @@ qr/No such column 'non_existent_field'/, "addUserProblem: attempt to add a user 
 
 throws_ok {
 	$user_problem_rs->addUserProblem(
-		info => {
+		params => {
 			course_name    => "Precalculus",
 			set_name       => "HW #4",
 			username       => "ned",
-			problem_number => 3
-		},
-		params => {
-			user_problem_params => {
+			problem_number => 3,
+			problem_params => {
 				library_id => -1234
 			}
 		}
@@ -434,14 +416,12 @@ qr/library_id is not valid/, "addUserProblem: attempt to add a user problem with
 
 throws_ok {
 	$user_problem_rs->addUserProblem(
-		info => {
+		params => {
 			course_name    => "Precalculus",
 			set_name       => "HW #4",
 			username       => "ned",
-			problem_number => 3
-		},
-		params => {
-			user_problem_params => {
+			problem_number => 3,
+			problem_params => {
 				weight => -1
 			}
 		}
@@ -453,14 +433,12 @@ qr/weight is not valid/, "addUserProblem: attempt to add a user problem with a b
 
 throws_ok {
 	$user_problem_rs->addUserProblem(
-		info => {
+		params => {
 			course_name    => "Precalculus",
 			set_name       => "HW #4",
 			username       => "ned",
-			problem_number => 3
-		},
-		params => {
-			user_problem_params => {
+			problem_number => 3,
+			problem_params => {
 				problem_pool_id => 'fred'
 			}
 		}
@@ -491,25 +469,24 @@ my $updated_problem2 = $user_problem_rs->updateUserProblem(
 	merged => 1
 );
 removeIDs($updated_problem2);
-use Data::Dumper;
 $problem2->{seed} = 4567;
 
 is_deeply($problem2, $updated_problem2, "updateUserProblem: sucessfully update a field and return as a merged problem");
 
-# Update a user problem in the user_problem_params
+# Update a user problem in the problem_params
 
 my $updated_problem1a = $user_problem_rs->updateUserProblem(
 	info   => $problem_info1,
 	params => {
-		user_problem_params => {
+		problem_params => {
 			library_id => 1234
 		}
 	}
 );
 removeIDs($updated_problem1a);
 delete $updated_problem1a->{problem_version} unless defined $updated_problem1a->{problem_version};
-$user_problem1->{user_problem_params}->{library_id} = 1234;
-is_deeply($user_problem1, $updated_problem1a, "updateUserProblem: sucessfully update the user_problem_params");
+$user_problem1->{problem_params}->{library_id} = 1234;
+is_deeply($user_problem1, $updated_problem1a, "updateUserProblem: sucessfully update the problem_params");
 
 # Attempt to update a UserProblem to a non-existent course.
 
@@ -634,7 +611,7 @@ throws_ok {
 			problem_number => 2
 		},
 		params => {
-			user_problem_params => {
+			problem_params => {
 				library_id => -1234
 			}
 		}
@@ -653,7 +630,7 @@ throws_ok {
 			problem_number => 2
 		},
 		params => {
-			user_problem_params => {
+			problem_params => {
 				weight => -1
 			}
 		}
@@ -672,7 +649,7 @@ throws_ok {
 			problem_number => 2
 		},
 		params => {
-			user_problem_params => {
+			problem_params => {
 				problem_pool_id => 'fred'
 			}
 		}

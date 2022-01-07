@@ -25,8 +25,6 @@ use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
 use DB::Utils qw/updateAllFields/;
 
-use Data::Dumper;
-
 # Set up the database.
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
 $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
@@ -81,10 +79,7 @@ my $attempt_params1 = {
 	answers => [ 'x', 'x^2', 'x^3' ]
 };
 
-my $attempt1 = $attempt_rs->addAttempt(
-	info   => $user_problem_info,
-	params => $attempt_params1
-);
+my $attempt1 = $attempt_rs->addAttempt(params => { %$user_problem_info, %$attempt_params1 });
 removeIDs($attempt1);
 
 is_deeply($attempt_params1, $attempt1, "addAttempt: add an attempt");
@@ -94,10 +89,7 @@ my $attempt_params2 = {
 	answers => [ '2x', '3x^2', '4x^3' ]
 };
 
-my $attempt2 = $attempt_rs->addAttempt(
-	info   => $user_problem_info,
-	params => $attempt_params2
-);
+my $attempt2 = $attempt_rs->addAttempt(params => { %$user_problem_info, %$attempt_params2 });
 removeIDs($attempt2);
 is_deeply($attempt_params2, $attempt2, "addAttempt: add another attempt");
 
@@ -106,10 +98,7 @@ my $attempt_params3 = {
 	answers => [ '-2x', '2x^2', '4x^3' ]
 };
 
-my $attempt3 = $attempt_rs->addAttempt(
-	info   => $user_problem_info,
-	params => $attempt_params3
-);
+my $attempt3 = $attempt_rs->addAttempt(params => { %$user_problem_info, %$attempt_params3 });
 removeIDs($attempt3);
 is_deeply($attempt_params3, $attempt3, "addAttempt: add yet another attempt");
 

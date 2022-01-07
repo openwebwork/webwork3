@@ -201,26 +201,23 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 
 =cut
 
-sub getUserSet ($self, %args) {
+use Data::Dumper;
 
+sub getUserSet ($self, %args) {
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
 	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
 
-	my $user_set = $self->find(
-		{
-			'problem_sets.course_id' => $problem_set->course_id,
-			'problem_sets.set_id'    => $problem_set->set_id,
-			course_user_id           => $course_user->course_user_id,
-		},
-		{ join => [qw/problem_sets/] }
-	);
+	my $user_set = $problem_set->user_sets->find({
+		course_user_id => $course_user->course_user_id,
+		set_version    => $args{info}->{set_version} // 1
+	});
 
 	DB::Exception::UserSetNotInCourse->throw(message => "The set "
 			. $problem_set->set_name
 			. " is not assigned to "
 			. $course_user->users->username
 			. " in the course.")
-		unless defined $user_set;
+		unless defined($user_set) || $args{skip_throw};
 
 	return $user_set if $args{as_result_set};
 
@@ -269,18 +266,13 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 
 =cut
 
-sub addUserSet ($self, %args) {
-	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
-	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
+use Data::Dumper;
 
-	my $user_set = $self->find(
-		{
-			'problem_sets.course_id' => $problem_set->course_id,
-			'problem_sets.set_id'    => $problem_set->set_id,
-			course_user_id           => $course_user->course_user_id,
-		},
-		{ join => [qw/problem_sets/] }
-	);
+sub addUserSet ($self, %args) {
+	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{params}, as_result_set => 1);
+	my $course_user = $self->rs("User")->getCourseUser(info => $args{params}, as_result_set => 1);
+
+	my $user_set = $self->getUserSet(info => $args{params}, skip_throw => 1, as_result_set => 1);
 
 	DB::Exception::UserSetExists->throw(message => "The user "
 			. $course_user->users->username
@@ -288,9 +280,12 @@ sub addUserSet ($self, %args) {
 			. $problem_set->set_name)
 		if $user_set;
 
-	# the hashref of parameters is a mixture of passed in parameters and defaults
+	# The hashref of parameters is a mixture of passed in parameters and defaults.
 
-	my $params = $args{user_set_params} ? clone($args{user_set_params}) : {};
+	my $params = $args{params} ? clone($args{params}) : {};
+	for my $key (qw/course_name course_id username user_id set_name set_id set_type/) {
+		delete $params->{$key} if defined $params->{$key};
+	}
 	$params->{course_user_id} = $course_user->course_user_id;
 	$params->{set_id}         = $problem_set->set_id;
 	$params->{type}           = $problem_set->type;
@@ -298,17 +293,17 @@ sub addUserSet ($self, %args) {
 	$params->{set_version}    = 1  unless defined($params->{set_version});
 	my $original_dates = $params->{set_dates} // {};
 
-	# make sure the parameters and dates are valid.
-	# to make sure the dates are valid, make a merged date hash to check
+	# Make sure the parameters and dates are valid.
+	# To ensure the dates are valid, make a merged date hash to check.
+
 	$params->{set_dates} = updateAllFields($problem_set->set_dates, $params->{set_dates} // {});
 
 	# Make sure the parameters and dates are valid.
 	my $new_user_set = $self->new($params);
-	$new_user_set->validParams('set_params') if $new_user_set->set_params;
-	$new_user_set->validDates('set_dates')
-		if $new_user_set->set_dates && scalar(keys %{ $new_user_set->set_dates }) > 0;
+	$new_user_set->validParams('set_params');
+	$new_user_set->validDates('set_dates');
 
-	# if the dates and params are valid reset the set_dates to only those passed in:
+	# If the dates and params are valid reset the set_dates to only those passed in.
 	$params->{set_dates} = $original_dates;
 
 	# Add_to_user_set not getting default values, so get the just added user_set.
@@ -336,7 +331,14 @@ sub updateUserSet ($self, %args) {
 		username    => $args{info}->{username}
 	) unless defined($user_set);
 
-	my $params = clone $args{user_set_params};
+	my $params = clone $args{params};
+	# Remove some parameters that are not in the UserSet database, but may
+	# be passed in.
+	for my $key (qw/username course_name set_name set_type/) {
+		delete $params->{$key} if defined $params->{$key};
+	}
+
+	delete $params->{set_type} if defined $params->{set_type};
 
 	$params->{course_user_id} = $user_set->course_users->course_user_id;
 	$params->{set_id}         = $user_set->problem_sets->set_id;
@@ -390,6 +392,31 @@ sub deleteUserSet ($self, %args) {
 	my $new_params = $args{merged} ? _mergeUserSet($user_set) : _getUserSet($user_set);
 	delete $new_params->{type};
 	return $new_params;
+}
+
+=head2 getUserSetVersions
+
+This method returns all versions of user set for a given user for a set in a course.
+
+=cut
+
+sub getUserSetVersions ($self, %args) {
+	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
+	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
+
+	my @user_sets = $self->search({
+		set_id         => $problem_set->set_id,
+		course_user_id => $course_user->course_user_id,
+	});
+
+	return @user_sets if $args{as_result_set};
+	my @user_sets_to_return = ();
+	for my $user_set (@user_sets) {
+		my $user_set_to_return = $args{merged} ? _mergeUserSet($user_set) : _getUserSet($user_set);
+		push(@user_sets_to_return, $user_set_to_return);
+		delete $user_set_to_return->{type};
+	}
+	return @user_sets_to_return;
 }
 
 # The following are private methods used in this module

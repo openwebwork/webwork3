@@ -39,25 +39,22 @@ my $user_rs        = $schema->resultset("User");
 # Load HW sets from CSV file
 my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
 for my $hw_set (@hw_sets) {
-	$hw_set->{set_type}    = "HW";
-	$hw_set->{set_version} = 1  unless defined($hw_set->{set_version});
-	$hw_set->{set_params}  = {} unless defined $hw_set->{set_params};
+	$hw_set->{set_type}   = "HW";
+	$hw_set->{set_params} = {} unless defined $hw_set->{set_params};
 
 }
 
 my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
 for my $set (@quizzes) {
-	$set->{set_type}    = "QUIZ";
-	$set->{set_version} = 1  unless defined($set->{set_version});
-	$set->{set_params}  = {} unless defined $set->{set_params};
+	$set->{set_type}   = "QUIZ";
+	$set->{set_params} = {} unless defined $set->{set_params};
 
 }
 
 my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv");
 for my $set (@review_sets) {
-	$set->{set_type}    = "REVIEW";
-	$set->{set_version} = 1  unless defined($set->{set_version});
-	$set->{set_params}  = {} unless defined $set->{set_params};
+	$set->{set_type}   = "REVIEW";
+	$set->{set_params} = {} unless defined $set->{set_params};
 
 }
 
@@ -146,7 +143,12 @@ my $new_set_params = {
 	set_type  => "HW"
 };
 
-my $new_set    = $problem_set_rs->addProblemSet(info => { course_name => "Precalculus" }, params => $new_set_params);
+my $new_set = $problem_set_rs->addProblemSet(
+	params => {
+		course_name => "Precalculus",
+		%$new_set_params
+	}
+);
 my $new_set_id = $new_set->{set_id};
 removeIDs($new_set);
 delete $new_set->{type};
@@ -159,7 +161,12 @@ my $new_set2 = {
 	set_type  => "HW"
 };
 throws_ok {
-	$problem_set_rs->addProblemSet(info => { course_name => "Precalculus" }, params => $new_set2);
+	$problem_set_rs->addProblemSet(
+		params => {
+			course_name => "Precalculus",
+			%$new_set2
+		}
+	);
 }
 "DB::Exception::ParametersNeeded", "addProblemSet: set_name not passed in.";
 
@@ -170,7 +177,12 @@ my $new_set3 = {
 	set_type  => "HW"
 };
 throws_ok {
-	$problem_set_rs->addProblemSet(info => { course_name => "Precalculus" }, params => $new_set3);
+	$problem_set_rs->addProblemSet(
+		params => {
+			course_name => "Precalculus",
+			%$new_set3
+		}
+	);
 }
 "DB::Exception::InvalidDateField", "addProblemSet: invalid date field passed in.";
 
@@ -181,7 +193,12 @@ my $new_set4 = {
 	set_type  => "HW"
 };
 throws_ok {
-	$problem_set_rs->addProblemSet(info => { course_name => "Precalculus" }, params => $new_set4);
+	$problem_set_rs->addProblemSet(
+		params => {
+			course_name => "Precalculus",
+			%$new_set4
+		}
+	);
 }
 "DB::Exception::RequiredDateFields", "addProblemSet: missing required date fields";
 
@@ -192,7 +209,12 @@ my $new_set5 = {
 	set_type  => "HW"
 };
 throws_ok {
-	$problem_set_rs->addProblemSet(info => { course_name => "Precalculus" }, params => $new_set5);
+	$problem_set_rs->addProblemSet(
+		params => {
+			course_name => "Precalculus",
+			%$new_set5
+		}
+	);
 }
 "DB::Exception::InvalidDateFormat", "addProblemSet: adding a non-numeric date";
 
@@ -204,7 +226,12 @@ my $new_set6 = {
 	set_params => {}
 };
 throws_ok {
-	$problem_set_rs->addProblemSet(info => { course_name => "Precalculus" }, params => $new_set6);
+	$problem_set_rs->addProblemSet(
+		params => {
+			course_name => "Precalculus",
+			%$new_set6
+		}
+	);
 }
 "DB::Exception::ImproperDateOrder", "addProblemSet: adding an illegal date order.";
 
@@ -216,7 +243,12 @@ my $new_set7 = {
 	set_params => { enable_reduced_scoring => 0, not_a_valid_field => 5 }
 };
 throws_ok {
-	$problem_set_rs->addProblemSet(info => { course_name => "Precalculus" }, params => $new_set7);
+	$problem_set_rs->addProblemSet(
+		params => {
+			course_name => "Precalculus",
+			%$new_set7
+		}
+	);
 }
 "DB::Exception::UndefinedParameter", "addProblemSet: adding an undefined parameter field";
 
@@ -228,19 +260,31 @@ my $new_set8 = {
 	set_params => { enable_reduced_scoring => 0, hide_hint => "yes" }
 };
 throws_ok {
-	$problem_set_rs->addProblemSet(info => { course_name => "Precalculus" }, params => $new_set8);
+	$problem_set_rs->addProblemSet(
+		params => {
+			course_name => "Precalculus",
+			%$new_set8
+		}
+	);
 }
 "DB::Exception::InvalidParameter", "addProblemSet: adding an non-valid parameter";
 
 # Update a set
-$new_set_params->{set_name}    = "HW #8";
-$new_set_params->{set_params}  = { enable_reduced_scoring => 1 };
-$new_set_params->{type}        = 1;
-$new_set_params->{set_version} = 1;
+$new_set_params->{set_name}   = "HW #8";
+$new_set_params->{set_params} = { enable_reduced_scoring => 1 };
+$new_set_params->{type}       = 1;
 
 my $updated_set = $problem_set_rs->updateProblemSet(
-	info   => { course_name => "Precalculus",               set_id     => $new_set_id },
-	params => { set_name    => $new_set_params->{set_name}, set_params => { enable_reduced_scoring => 1 } }
+	info => {
+		course_name => "Precalculus",
+		set_id      => $new_set_id
+	},
+	params => {
+		set_name   => $new_set_params->{set_name},
+		set_params => {
+			enable_reduced_scoring => 1
+		}
+	}
 );
 removeIDs($updated_set);
 delete $updated_set->{set_visible};
@@ -297,6 +341,28 @@ my $deleted_set = $problem_set_rs->deleteProblemSet(info => { course_name => "Pr
 removeIDs($deleted_set);
 delete $deleted_set->{set_visible};
 is_deeply($new_set_params, $deleted_set, "deleteProblemSet: delete a set");
+
+# Try deleting a set with invalid course_name
+throws_ok {
+	$problem_set_rs->deleteProblemSet(
+		info => {
+			course_name => "Not a course",
+			set_name    => "HW #1"
+		}
+	);
+}
+"DB::Exception::CourseNotFound", "deleteCourse: try to delete a set from a not existent course.";
+
+# Try deleting a set that does not exist
+throws_ok {
+	$problem_set_rs->deleteProblemSet(
+		info => {
+			course_name => "Precalculus",
+			set_name    => "HW #99"
+		}
+	);
+}
+"DB::Exception::SetNotInCourse", "deleteCourse: try to delete a set that not exist.";
 
 done_testing;
 

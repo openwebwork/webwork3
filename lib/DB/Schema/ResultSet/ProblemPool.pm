@@ -103,7 +103,7 @@ Add a problem pool for a given course
 =cut
 
 sub addProblemPool ($self, %args) {
-	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{params}), as_result_set => 1);
 
 	DB::Exception::ParametersNeeded->throw(message => "The pool_name is missing from the parameters")
 		unless defined($args{params}->{pool_name});
@@ -127,11 +127,16 @@ sub addProblemPool ($self, %args) {
 			. $course->course_name
 	) if defined($existing_pool);
 
+	my $params = clone $args{params};
+	# Delete some fields that may be passed in but are not in the database
+	for my $key (qw/course_name course_id/) {
+		delete $params->{$key} if defined $params->{$key};
+	}
+
 	# need to check for valid parameters.
+	my $pool_to_add = $self->new($params);
 
-	my $pool_to_add = $self->new($args{params});
-
-	my $problem_pool = $course->add_to_problem_pools({ $pool_to_add->get_columns });
+	my $problem_pool = $course->add_to_problem_pools($params);
 
 	return $problem_pool if $args{as_result_set};
 	return { $problem_pool->get_columns };
@@ -246,28 +251,25 @@ This adds a problem as a hashref to an existing problem pool.
 
 sub addProblemToPool ($self, %args) {
 
-	my $pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
-
-	DB::Excpetion::PoolNotInCourse->throw(
-		message => "The problem pool "
-			. (
-			$args{info}->{pool_name}
-			? " named " . $args{info}->{pool_name}
-			: " with id " . $args{info}->{problem_pool_id}
-			)
+	my $pool   = $self->getProblemPool(info => $args{params}, as_result_set => 1);
+	my $params = clone $args{params};
+	DB::Excpetion::PoolNotInCourse->throw(message => "The problem pool "
+			. ($params->{pool_name} ? " named " . $params->{pool_name} : " with id " . $params->{problem_pool_id})
 			. " is not in the course "
-			. (
-			$args{info}->{course_name} ? " named " . $args{info}->{course_name} : " with id " . $args{info}->{course_id}
-			)
-	) unless defined($pool);
+			. ($params->{course_name} ? " named " . $params->{course_name} : " with id " . $params->{course_id}))
+		unless defined($pool);
+
+	# Remove some parameters that are not in the UserSet database, but may be passed in.
+	for my $key (qw/pool_name problem_pool_id course_name course_id/) {
+		delete $params->{$key} if defined $params->{$key};
+	}
 
 	my $course = $self->rs("Course")->find({ course_id => $pool->course_id });
 
-	my $problem_params = clone($args{params});
-	$problem_params->{problem_pool_id} = $pool->problem_pool_id;
-	my $pool_problem = $self->rs("PoolProblem")->new($problem_params);
+	$params->{problem_pool_id} = $pool->problem_pool_id;
+	my $pool_problem = $self->rs("PoolProblem")->new($params);
 
-	my $added_problem = $pool->add_to_pool_problems({ $pool_problem->get_columns });
+	my $added_problem = $pool->add_to_pool_problems($params);
 
 	return $added_problem if $args{as_result_set};
 	return { $added_problem->get_inflated_columns };

@@ -252,9 +252,10 @@ sub addUserProblems {
 		);
 
 		$user_set->add_to_user_problems({
-			problem_id => $problem->problem_id,
-			seed       => $user_problem->{seed},
-			status     => 1
+			problem_id      => $problem->problem_id,
+			seed            => $user_problem->{seed},
+			problem_version => 1,
+			status          => 1
 		});
 	}
 	return;

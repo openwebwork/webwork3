@@ -86,8 +86,10 @@ my $course_name = 'Arithmetic';
 my $pool_name   = 'subtracting fractions';
 
 my $pool2 = $problem_pool_rs->addProblemPool(
-	info   => { course_name => $course_name },
-	params => { pool_name   => $pool_name }
+	params => {
+		course_name => $course_name,
+		pool_name   => $pool_name
+	}
 );
 removeIDs($pool2);
 
@@ -102,8 +104,10 @@ is_deeply(
 # Try to add a pool that already exists.
 throws_ok {
 	$problem_pool_rs->addProblemPool(
-		info   => { course_name => 'Arithmetic' },
-		params => { pool_name   => "adding fractions" }
+		params => {
+			course_name => 'Arithmetic',
+			pool_name   => "adding fractions"
+		}
 	);
 }
 "DB::Exception::PoolAlreadyInCourse", "addProblemPool: pool already exists";
@@ -111,8 +115,11 @@ throws_ok {
 # Try to add a pool with an invalid field.
 throws_ok {
 	$problem_pool_rs->addProblemPool(
-		info   => { course_name => 'Arithmetic' },
-		params => { pool_name   => "multiplying fractions", other_field => "XXX" }
+		params => {
+			course_name => 'Arithmetic',
+			pool_name   => "multiplying fractions",
+			other_field => "XXX"
+		}
 	);
 }
 "DBIx::Class::Exception", "addProblemPool: add a pool with non-valid field";
@@ -175,7 +182,7 @@ ok(scalar(@arr) == 1, "getPoolProblem: get a random problem from a problem pool"
 
 # Add a Problem to a pool.
 my $prob_to_add->{params} = { library_id => 8332 };
-my $added_problem = $problem_pool_rs->addProblemToPool(info => $updated_pool, params => $prob_to_add);
+my $added_problem = $problem_pool_rs->addProblemToPool(params => { %$updated_pool, %$prob_to_add });
 
 is(
 	$prob_to_add->{params}->{library_id},
@@ -186,11 +193,11 @@ is(
 # Check that adding a problem to a non-existence course fails.
 throws_ok {
 	$problem_pool_rs->addProblemToPool(
-		info => {
+		params => {
 			course_name => "non_existing_course",
-			pool_name   => "adding fractions"
-		},
-		params => $prob_to_add
+			pool_name   => "adding fractions",
+			%$prob_to_add
+		}
 	);
 }
 "DB::Exception::CourseNotFound", "addProblemToPool: try to add to a nonexisting course";
@@ -198,11 +205,11 @@ throws_ok {
 # Check that adding a problem to a non-existence pool fails.
 throws_ok {
 	$problem_pool_rs->addProblemToPool(
-		info => {
+		params => {
 			course_name => $updated_pool->{course_name},
-			pool_name   => "non_existent_pool_name"
-		},
-		params => $prob_to_add
+			pool_name   => "non_existent_pool_name",
+			%$prob_to_add
+		}
 	);
 }
 "DB::Exception::PoolNotInCourse", "addProblemToPool: try to add to a nonexisting pool";

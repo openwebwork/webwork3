@@ -320,7 +320,7 @@ my $new_info = {
 	set_name    => "HW #1"
 };
 
-my $new_user_set = $user_set_rs->addUserSet(info => $new_info);
+my $new_user_set = $user_set_rs->addUserSet(params => $new_info);
 removeIDs($new_user_set);
 
 # Set the other default parameters.
@@ -340,7 +340,7 @@ my $hw_set1 = clone firstval {
 $hw_set1->{username} = "frink";
 
 my $new_merged_set = $user_set_rs->addUserSet(
-	info => {
+	params => {
 		course_name => "Precalculus",
 		set_name    => "HW #1",
 		username    => "frink"
@@ -356,18 +356,16 @@ is_deeply($new_merged_set, $hw_set1, "addUserSet: add a new user set and check t
 my $new_user_params2 = {
 	username    => "ralph",
 	course_name => "Arithmetic",
-	set_name    => "HW #2"
+	set_name    => "HW #2",
+	set_dates   => {}
 };
 
-my $new_user_set2 = $user_set_rs->addUserSet(
-	info            => $new_user_params2,
-	user_set_params => { set_dates => {} }
-);
+my $new_user_set2 = $user_set_rs->addUserSet(params => $new_user_params2);
 
 # Try to add a user set to a course that doesn't exist.
 throws_ok {
 	$user_set_rs->addUserSet(
-		info => {
+		params => {
 			username    => "otto",
 			course_name => "non existent course",
 			set_name    => "HW #1"
@@ -379,7 +377,7 @@ throws_ok {
 # Try to add a user set for a set that does not exist in a course.
 throws_ok {
 	$user_set_rs->addUserSet(
-		info => {
+		params => {
 			username    => "otto",
 			course_name => "Precalculus",
 			set_name    => "HW #99"
@@ -391,7 +389,7 @@ throws_ok {
 # Try to add a user set for a user that is not in a course.
 throws_ok {
 	$user_set_rs->addUserSet(
-		info => {
+		params => {
 			username    => "ralph",
 			course_name => "Precalculus",
 			set_name    => "HW #1"
@@ -403,13 +401,11 @@ throws_ok {
 # Try to add a user set with bad fields.
 throws_ok {
 	$user_set_rs->addUserSet(
-		info => {
+		params => {
 			username    => "otto",
 			course_name => "Precalculus",
-			set_name    => "HW #2"
-		},
-		user_set_params => {
-			bad_field => 1
+			set_name    => "HW #2",
+			bad_field   => 1
 		}
 	);
 }
@@ -418,7 +414,7 @@ throws_ok {
 # Try to add a user_set that already exists.
 throws_ok {
 	$user_set_rs->addUserSet(
-		info => {
+		params => {
 			username    => "otto",
 			course_name => "Precalculus",
 			set_name    => "HW #1"
@@ -433,22 +429,10 @@ my $otto_set_info2 = {
 	set_name    => "HW #2"
 };
 
-my $otto_set_info3 = {
-	username    => "otto",
-	course_name => "Precalculus",
-	set_name    => "HW #3"
-};
-
-my $otto_set_info4 = {
-	username    => "otto",
-	course_name => "Precalculus",
-	set_name    => "HW #4"
-};
-
 # Add a user set with valid params.
 my $user_set2 = $user_set_rs->addUserSet(
-	info            => $otto_set_info2,
-	user_set_params => {
+	params => {
+		%$otto_set_info2,
 		set_params => {
 			description => "This is the description for HW #2"
 		}
@@ -468,9 +452,11 @@ is_deeply($user_set2, $set_params2, "addUserSet: add a new user set with params"
 # Try to add a user set with a bad field.
 throws_ok {
 	$user_set_rs->addUserSet(
-		info            => $otto_set_info3,
-		user_set_params => {
-			set_params => {
+		params => {
+			username    => "otto",
+			course_name => "Precalculus",
+			set_name    => "HW #4",
+			set_params  => {
 				bad_field => 12
 			}
 		}
@@ -487,25 +473,35 @@ my $set_dates3 = {
 	answer          => 1000
 };
 
-my $user_set3 = $user_set_rs->addUserSet(
-	info            => $otto_set_info3,
-	user_set_params => { set_dates => $set_dates3 }
-);
+my $otto_set_info3 = {
+	username    => "otto",
+	course_name => "Precalculus",
+	set_name    => "HW #3",
+};
+
+my $otto_set_info4 = {
+	username    => "otto",
+	course_name => "Precalculus",
+	set_name    => "HW #4",
+};
+
+my $otto_set_params3 = { %$otto_set_info3, set_dates => $set_dates3 };
+
+my $user_set3 = $user_set_rs->addUserSet(params => $otto_set_params3);
 removeIDs($user_set3);
 
-my $set_params3 = clone($otto_set_info3);
-$set_params3->{set_params}  = {};
-$set_params3->{set_dates}   = $set_dates3;
-$set_params3->{set_version} = 1;
+my $set_params3 = clone($otto_set_params3);
 $set_params3->{set_type}    = 'HW';
+$set_params3->{set_params}  = {};
+$set_params3->{set_version} = 1;
 
 is_deeply($user_set3, $set_params3, "addUserSet: add a new user set with dates");
 
 # Try to add a bad date.
 throws_ok {
 	$user_set_rs->addUserSet(
-		info            => $otto_set_info4,
-		user_set_params => {
+		params => {
+			%$otto_set_info4,
 			set_dates => {
 				open   => 100,
 				due    => 9,
@@ -518,8 +514,8 @@ throws_ok {
 
 throws_ok {
 	$user_set_rs->addUserSet(
-		info            => $otto_set_info4,
-		user_set_params => {
+		params => {
+			%$otto_set_info4,
 			set_dates => {
 				open   => 100,
 				due    => 900,
@@ -566,9 +562,8 @@ $merged_set1->{set_dates}->{due}    = $new_dates->{due};
 $merged_set1->{set_dates}->{answer} = $new_dates->{answer};
 
 my $user_set_to_merge = $user_set_rs->addUserSet(
-	info            => $otto_set_info2,
-	user_set_params => {
-		set_dates => $new_dates
+	params => {
+		%$otto_set_info2, set_dates => $new_dates
 	},
 	merged => 1
 );
@@ -580,8 +575,8 @@ is_deeply($merged_set1, $user_set_to_merge, 'addUserSet: adding a user set with 
 
 throws_ok {
 	$user_set_rs->addUserSet(
-		info            => $otto_set_info3,
-		user_set_params => {
+		params => {
+			%$otto_set_info3,
 			set_dates => {
 				due => 1609595640,    # this is after the problem set answer date.
 			}
@@ -606,20 +601,15 @@ my $updated_dates = {
 $otto_set2->{set_dates}->{due}    = $updated_dates->{due};
 $otto_set2->{set_dates}->{answer} = $updated_dates->{answer};
 
-my $updated_user_set = $user_set_rs->updateUserSet(
-	info            => $otto_set_info2,
-	user_set_params => {
-		set_dates => $updated_dates
-	}
-);
+my $updated_user_set = $user_set_rs->updateUserSet(info => $otto_set_info2, params => $otto_set2);
 removeIDs($updated_user_set);
 
 is_deeply($updated_user_set, $otto_set2, "updateUserSet: update the dates");
 
 # Update the params
 my $updated_user_set2 = $user_set_rs->updateUserSet(
-	info            => $otto_set_info2,
-	user_set_params => {
+	info   => $otto_set_info2,
+	params => {
 		set_params => {
 			hide_hint => 1,
 		}
@@ -629,36 +619,51 @@ removeIDs($updated_user_set2);
 $otto_set2->{set_params}->{hide_hint} = 1;
 is_deeply($updated_user_set2, $otto_set2, "updateUserSet: update the params");
 
-# Try updating an invalid field.
+# Update a valid field
 my $updated_user_set3 = $user_set_rs->updateUserSet(
-	info            => $otto_set_info2,
-	user_set_params => {
-		set_version => 2
+	info   => $otto_set_info2,
+	params => {
+		set_visible => 1
 	}
 );
-$otto_set2->{set_version} = 2;
 removeIDs($updated_user_set3);
-is_deeply($otto_set2, $updated_user_set3, "updateUserSet: update the set version");
+$otto_set2->{set_visible} = 1;
+
+is_deeply($otto_set2, $updated_user_set3, "updateUserSet: update the set visibility");
 
 # Try updating an invalid field.
 throws_ok {
 	$user_set_rs->updateUserSet(
-		info            => $otto_set_info2,
-		user_set_params => {
+		info   => $otto_set_info2,
+		params => {
+			not_a_valid_param => "bad"
+		}
+	);
+}
+"DBIx::Class::Exception", "updateUserSet: try setting a field that does not exist";
+
+# Try updating an invalid param.
+throws_ok {
+	$user_set_rs->updateUserSet(
+		info   => $otto_set_info2,
+		params => {
 			set_params => {
 				not_a_valid_param => "bad"
 			}
 		}
 	);
 }
-"DB::Exception::UndefinedParameter", "updateUserSet: try setting a parameter that is not allowed to be updated";
+"DB::Exception::UndefinedParameter", "updateUserSet: try setting a parameter that does not exist";
 
 # Try updating an invalid date.
 throws_ok {
 	$user_set_rs->updateUserSet(
-		info            => $otto_set_info2,
-		user_set_params => {
-			set_dates => { open => 1, closed => 2 }
+		info   => $otto_set_info2,
+		params => {
+			set_dates => {
+				open   => 1,
+				closed => 2
+			}
 		}
 	);
 }
@@ -667,9 +672,13 @@ throws_ok {
 # Test with out of order dates.
 throws_ok {
 	$user_set_rs->updateUserSet(
-		info            => $otto_set_info2,
-		user_set_params => {
-			set_dates => { open => 100, due => 2, answer => 200 }
+		info   => $otto_set_info2,
+		params => {
+			set_dates => {
+				open   => 100,
+				due    => 2,
+				answer => 200
+			}
 		}
 	);
 }
@@ -678,8 +687,8 @@ throws_ok {
 # Try to update a user_set that doesn't exist.
 throws_ok {
 	$user_set_rs->updateUserSet(
-		info            => $otto_set_info3,
-		user_set_params => {
+		info   => $otto_set_info3,
+		params => {
 			set_params => {
 				hide_hint => 1
 			}

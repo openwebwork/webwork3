@@ -40,8 +40,7 @@ my @all_problem_sets;
 
 my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
-	$quiz->{set_type}    = "QUIZ";
-	$quiz->{set_version} = 1 unless defined($quiz->{set_version});
+	$quiz->{set_type} = "QUIZ";
 }
 
 # Remove "Quiz #9" if it exists
@@ -89,8 +88,10 @@ my $new_quiz_params = {
 };
 
 my $new_quiz = $problem_set_rs->addProblemSet(
-	info   => { course_name => "Precalculus" },
-	params => $new_quiz_params
+	params => {
+		course_name => "Precalculus",
+		%$new_quiz_params
+	}
 );
 
 removeIDs($new_quiz);
@@ -98,17 +99,20 @@ is_deeply($new_quiz, $new_quiz_params, "addQuiz: add a new quiz");
 
 # Try to add a quiz to a non existent course.
 throws_ok {
-	$problem_set_rs->addProblemSet(info => { course_name => "nonexistent course", set_name => "Quiz #1" });
+	$problem_set_rs->addProblemSet(
+		params => {
+			course_name => "nonexistent course",
+			set_name    => "Quiz #1"
+		}
+	);
 }
 "DB::Exception::CourseNotFound", "addQuiz: try to add a quiz from a non-existent course";
 
 # Try to add a quiz with non-valid parameters.
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		info => {
-			course_name => "Precalculus"
-		},
 		params => {
+			course_name       => "Precalculus",
 			set_type          => 'QUIZ',
 			set_name          => "Quiz #99",
 			nonexistent_field => 1,
@@ -120,10 +124,8 @@ throws_ok {
 # Try to add a quiz without specifying the name.
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		info => {
-			course_name => "Precalculus"
-		},
 		params => {
+			course_name => "Precalculus",
 			set_type    => 'QUIZ',
 			set_visible => 1,
 		}
@@ -134,10 +136,8 @@ throws_ok {
 # Try to add a quiz with an undefined parameter.
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		info => {
-			course_name => "Precalculus"
-		},
 		params => {
+			course_name => "Precalculus",
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
@@ -157,10 +157,8 @@ throws_ok {
 # Try to add a quiz with a non-valid parameter.
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		info => {
-			course_name => "Precalculus"
-		},
 		params => {
+			course_name => "Precalculus",
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
@@ -180,13 +178,11 @@ throws_ok {
 # Try to add a quiz with a missing required date fields.
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		info => {
-			course_name => "Precalculus"
-		},
 		params => {
-			set_type  => 'QUIZ',
-			set_name  => "Quiz #99",
-			set_dates => {
+			course_name => "Precalculus",
+			set_type    => 'QUIZ',
+			set_name    => "Quiz #99",
+			set_dates   => {
 				open => 10,
 				due  => 100
 			}
@@ -198,10 +194,8 @@ throws_ok {
 # Try to add a quiz with an undefined date field.
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		info => {
-			course_name => "Precalculus"
-		},
 		params => {
+			course_name => "Precalculus",
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
@@ -219,10 +213,8 @@ throws_ok {
 # Try to add a quiz with dates that are out of order.
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		info => {
-			course_name => "Precalculus"
-		},
 		params => {
+			course_name => "Precalculus",
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
@@ -246,7 +238,6 @@ my $updated_quiz   = $problem_set_rs->updateProblemSet(
 	params => $updated_params
 );
 
-$new_quiz->{set_version} = 1;
 $new_quiz->{set_visible} = 0;
 $new_quiz->{set_params}  = {};
 removeIDs($updated_quiz);

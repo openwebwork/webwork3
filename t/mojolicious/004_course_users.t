@@ -57,8 +57,6 @@ if (defined($maggie)) {
 $t->get_ok('/webwork3/api/courses/4/users')->status_is(200)->content_type_is('application/json;charset=UTF-8')
 	->json_is('/0/role' => "instructor")->json_is('/1/role' => 'student');
 
-use Data::Dumper;
-
 # Extract id from the response.
 my $user_id = $t->tx->res->json('/0/user_id');
 
@@ -90,8 +88,6 @@ my $course_user_params = {
 $t->post_ok("/webwork3/api/courses/2/users" => json => $course_user_params)->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/role' => $course_user_params->{role})
 	->json_is('/course_user_params/comment' => $course_user_params->{course_user_params}->{comment});
-
-print Dumper $t->tx->res->json;
 
 # Update the new user.
 $new_user->{recitation} = 2;

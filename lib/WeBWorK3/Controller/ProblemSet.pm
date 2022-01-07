@@ -50,8 +50,12 @@ sub updateProblemSet ($self) {
 }
 
 sub addProblemSet ($self) {
-	my $problem_set = $self->schema->resultset("ProblemSet")
-		->addProblemSet(info => { course_id => int($self->param("course_id")) }, params => $self->req->json);
+	my $problem_set = $self->schema->resultset("ProblemSet")->addProblemSet(
+		params => {
+			course_id => int($self->param("course_id")),
+			%{ $self->req->json }
+		}
+	);
 	$self->render(json => $problem_set);
 	return;
 }

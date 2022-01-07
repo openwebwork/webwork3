@@ -148,17 +148,19 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 
 =cut
 
+use Data::Dumper;
+
 sub getUserProblem ($self, %args) {
 	my $problem  = $self->rs("Problem")->getSetProblem(info => $args{info}, as_result_set => 1);
 	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{info}, as_result_set => 1);
 
-	my $user_problem = $self->find({
-		problem_id  => $problem->problem_id,
-		user_set_id => $user_set->user_set_id,
+	my $user_problem = $problem->user_problems->find({
+		user_set_id     => $user_set->user_set_id,
+		problem_version => $args{info}->{problem_version} // 1
 	});
 
-	# if the problem doesn't exist throw a exception unless skip_throw (used)
-	# for checking in addUserProblem
+	# If the problem doesn't exist throw a exception unless skip_throw (used)
+	# for checking in addUserProblem.
 
 	DB::Exception::UserProblemNotFound->throw(message => "The user problem for the course "
 			. $user_set->problem_sets->courses->course_name
@@ -215,9 +217,11 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 
 =cut
 
+use Data::Dumper;
+
 sub addUserProblem ($self, %args) {
 	my $user_problem = $self->getUserProblem(
-		info          => $args{info},
+		info          => $args{params},
 		skip_throw    => 1,
 		as_result_set => 1
 	);
@@ -230,15 +234,22 @@ sub addUserProblem ($self, %args) {
 			. $user_problem->user_sets->problem_sets->set_name)
 		if $user_problem;
 
-	my $problem  = $self->rs("Problem")->getSetProblem(info => $args{info}, as_result_set => 1);
-	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{info}, as_result_set => 1);
+	my $problem  = $self->rs("Problem")->getSetProblem(info => $args{params}, as_result_set => 1);
+	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{params}, as_result_set => 1);
 
 	my $params = clone($args{params} // {});
-	$params->{user_problem_params} = {} unless defined $params->{user_problem_params};
+
+	# Remove some parameters that are not in the UserProblem database, but may be passed in.
+	for my $key (qw/username user_d course_name set_name set_type set_id problem_number problem_id/) {
+		delete $params->{$key} if defined $params->{$key};
+	}
+
+	$params->{problem_params} = {} unless defined $params->{problem_params};
 	$self->checkParams($params) if defined($args{params});
 
-	$params->{seed}   = int(10000 * rand()) unless defined $params->{seed};
-	$params->{status} = 0                   unless defined $params->{status};
+	$params->{seed}            = int(10000 * rand()) unless defined $params->{seed};
+	$params->{status}          = 0                   unless defined $params->{status};
+	$params->{problem_version} = 1                   unless defined $params->{problem_version};
 
 	my $problem_to_return = $problem->add_to_user_problems({
 		problem_id  => $problem->problem_id,
@@ -371,6 +382,30 @@ sub deleteUserProblem ($self, %args) {
 	return $args{merged} ? _mergeUserProblem($user_problem_to_delete) : _getUserProblem($user_problem_to_delete);
 }
 
+=head2 getUserProblemVersions
+
+This method returns all versions of user problems for a given problem for a user for a set in a course.
+
+=cut
+
+sub getUserProblemVersions ($self, %args) {
+	my $problem  = $self->rs("Problem")->getSetProblem(info => $args{info}, as_result_set => 1);
+	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{info}, as_result_set => 1);
+
+	my @user_problems = $self->search({
+		problem_id  => $problem->problem_id,
+		user_set_id => $user_set->user_set_id,
+	});
+
+	return @user_problems if $args{as_result_set};
+	my @user_problems_to_return = ();
+	for my $user_problem (@user_problems) {
+		my $problem = $args{merged} ? _mergeUserProblem($user_problem) : _getUserProblem($user_problem);
+		push(@user_problems_to_return, $problem);
+	}
+	return @user_problems_to_return;
+}
+
 # The remaining subroutines are private to simpify the above code.
 
 # This is a small subroutine to shorten access to the db.
@@ -388,17 +423,17 @@ sub checkParams ($self, $params) {
 
 	# Check that other fields/params are correct.
 	my $prob_to_check = $self->new($params);
-	return $prob_to_check->validParams("user_problem_params");
+	return $prob_to_check->validParams("problem_params");
 }
 
 sub _mergeUserProblem ($user_problem) {
 	my $user_problem_fields = _getUserProblem($user_problem);
-	delete $user_problem_fields->{user_problem_params};
+	delete $user_problem_fields->{problem_params};
 	my $problem_fields = { $user_problem->problems->get_inflated_columns };
 	delete $problem_fields->{problem_params};
 
-	# Merge the params (problem_params and user_problem_params).
-	my $params = updateAllFields($user_problem->problems->problem_params, $user_problem->user_problem_params);
+	# Merge the params (problem_params and problem_params).
+	my $params = updateAllFields($user_problem->problems->problem_params, $user_problem->problem_params);
 
 	# Merge the main fields.
 	my $merged_params = updateAllFields($problem_fields, $user_problem_fields);

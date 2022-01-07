@@ -258,15 +258,19 @@ An hashref of a problem set or an object of type C<DBIx::Class::ResultSet::Probl
 
 =cut
 
+use Data::Dumper;
+
 sub getProblemSet ($self, %args) {
 	my $course_info = getCourseInfo($args{info});
+	my $set_info    = getSetInfo($args{info});
 	my $course      = $self->rs("Course")->getCourse(info => $course_info, as_result_set => 1);
 
-	my $problem_set = $course->problem_sets->find(getSetInfo($args{info}));
+	my $problem_set = $course->problem_sets->find($set_info);
+
 	DB::Exception::SetNotInCourse->throw(
-		set_name    => getSetInfo($args{info}),
+		set_name    => $set_info,
 		course_name => $course->course_name
-	) unless defined($problem_set);
+	) unless defined($problem_set) || $args{skip_throw};
 
 	return $problem_set if $args{as_result_set};
 	my $set = { $problem_set->get_inflated_columns, set_type => $problem_set->set_type };
@@ -326,27 +330,40 @@ An hashref of a problem set or an object of type C<DBIx::Class::ResultSet::Probl
 
 sub addProblemSet {
 	my ($self, %args) = @_;
-	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{params}), as_result_set => 1);
 
-	my $set_params = clone($args{params});
+	my $set_params = clone $args{params};
 	$set_params->{type} = $SET_TYPES->{ $set_params->{set_type} || 'HW' };
-	delete $set_params->{set_type};
+	# Delete a few fields that may be passed in but are not in the database
+	for my $key (qw/course_id course_name set_type/) {
+		delete $set_params->{$key} if defined $set_params->{$key};
+	}
 
-	DB::Exception::ParametersNeeded->throw(message => "You must defined the field set_name in the 2nd argument")
+	DB::Exception::ParametersNeeded->throw(message => "You must defined the field set_name in the params argument")
 		unless defined($set_params->{set_name});
 
 	# Check if the set exists.
-	my $search_params = { course_id => $course->course_id, set_name => $set_params->{set_name} };
+	my $problem_set = $self->getProblemSet(
+		info => {
+			course_id => $course->course_id,
+			set_name  => $set_params->{set_name}
+		},
+		as_result_set => 1,
+		skip_throw    => 1
+	);
 
-	my $problem_set = $self->find($search_params, prefetch => 'courses');
-	DB::Exception::SetAlreadyExists->throws(set_name => $set_params->{set_name}, course_name => $course->course_name)
+	DB::Exception::SetAlreadyExists->throw(message => "The problem set with name "
+			. $set_params->{set_name}
+			. " already exists in the course "
+			. $course->course_name)
 		if defined($problem_set);
-	my $set_obj = $self->new($set_params);
 
+	# Check that fields/dates/parameters are valid
+	my $set_obj = $self->new($set_params);
 	$set_obj->validDates('set_dates');
 	$set_obj->validParams('set_params');
 
-	my $new_set = $course->add_to_problem_sets($set_params, 1);
+	my $new_set = $course->add_to_problem_sets($set_params);
 
 	return $new_set if $args{as_result_set};
 	my $set = { $new_set->get_inflated_columns, set_type => $new_set->set_type };
@@ -470,50 +487,6 @@ sub deleteProblemSet ($self, %args) {
 	my $set = { $set_to_delete->get_inflated_columns, set_type => $set_to_delete->set_type };
 	delete $set->{type};
 	return $set;
-}
-
-# Versions of problem sets
-
-=head2 newSetVersion
-
-Creates a new version of a problem set for a given course for either any entire course or a specific user
-
-=head3 inputs
-
-=over
-
-=item * A hashref with
-
-=over
-
-=item - course_id or course_name
-
-=item - set_id or set_name
-
-=item - username or user_id (optional)
-
-=back
-
-=back
-
-=head4 output
-
-=cut
-
-sub newSetVersion ($self, %args) {
-	my $problem_set = $self->getProblemSet(info => $args{info});
-
-	# if $info also contains user info
-	my @fields = keys %{ $args{info} };
-	if (scalar(@fields) == 3) {
-		my $user_info = getUserInfo($args{info});
-
-	} else {
-		my $user_set_rs = $self->rs("UserSet");
-
-		# @user_sets = $user_set_rs->get
-	}
-	return $problem_set;
 }
 
 # The following are private methods used in this module.

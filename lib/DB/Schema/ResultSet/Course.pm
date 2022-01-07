@@ -72,7 +72,7 @@ This gets a single course that is stored in the database in the C<courses> table
 
 =item *
 
-C<course_info>, a hashref containing either C<course_name> or C<course_id>
+C<info>, a hashref containing either C<course_name> or C<course_id>
 
 =item *
 
@@ -86,8 +86,6 @@ The course either as a C< DBIx::Class::ResultSet::Course> object or a hashref
 of the fields. See above.
 
 =cut
-
-use Data::Dumper;
 
 sub getCourse ($self, %args) {
 	my $course = $self->find(getCourseInfo($args{info}));
@@ -107,7 +105,7 @@ Adds a single course to the database in the C<courses> table.
 
 =item *
 
-C<course_info>, a hashref containing either C<course_name> or C<course_id>
+C<params>, a hashref containing either C<course_name> or C<course_id>
 
 =item *
 
@@ -123,12 +121,13 @@ of the fields. See above.
 =cut
 
 sub addCourse ($self, %args) {
-	my $course_params = $args{params};
+	my $course_params = clone $args{params};
 	DB::Exception::ParametersNeeded->throw(message => "The parameters must include course_name")
 		unless defined($course_params->{course_name});
 
 	# Check if the course exists.  If so throw an error.
 	my $course = $self->find({ course_name => $course_params->{course_name} });
+
 	DB::Exception::CourseExists->throw(course_name => $course_params->{course_name}) if defined($course);
 
 	my $params = {};
@@ -187,15 +186,15 @@ This updates a single course that is stored in the database in the C<courses> ta
 
 =over
 
-=item * C<course_name>, a string
+=item * C<info>, either C<course_name> or C<course_id>
 
-=item * A hash of the course parameters to be updated.
+=item * C<params>: A hash of the course parameters to be updated.
 
 =back
 
 =head3 output
 
-The updated course as a C<DBIx::Class::ResultSet::Course> object.
+The updated course as a C<DBIx::Class::ResultSet::Course> object or a hashref.
 
 =cut
 

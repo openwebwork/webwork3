@@ -102,6 +102,7 @@ use Exception::Class (
 DB::Exception::UndefinedCourseField->Trace(1);
 DB::Exception::InvalidCourseField->Trace(1);
 DB::Exception::UserSetNotInCourse->Trace(1);
+DB::Exception::SetNotInCourse->Trace(1);
 # DB::Exception::UserNotInCourse->Trace(1);
 DB::Exception::UserNotFound->Trace(1);
 DB::Exception::CourseExists->Trace(1);
@@ -112,4 +113,5 @@ DB::Exception::InvalidDateField->Trace(1);
 DB::Exception::ParametersNeeded->Trace(1);
 DB::Exception::UserSetExists->Trace(1);
 DB::Exception::ImproperDateOrder->Trace(1);
+DB::Exception::SetAlreadyExists->Trace(1);
 1;

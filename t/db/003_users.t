@@ -15,6 +15,7 @@ use lib "$main::ww3_dir/lib";
 
 use Test::More;
 use Test::Exception;
+use Clone qw/clone/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
@@ -29,9 +30,13 @@ my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_use
 my $users_rs  = $schema->resultset("User");
 my $course_rs = $schema->resultset("Course");
 
-# Remove the user "maggie" if it exists in the database
-my $maggie = $users_rs->find({ username => "maggie" });
-$maggie->delete if defined($maggie);
+# Remove a few users if they exists in the database
+my $users_to_remove = $users_rs->search({
+	username => {
+		'-in' => [ 'maggie', 'wiggam', 'selma', 'selma@google.com' ]
+	}
+});
+$users_to_remove->delete_all if defined($users_to_remove);
 
 # Get a list of users from the CSV file
 my @students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
@@ -60,7 +65,7 @@ push(
 );
 my @all_students = sort { $a->{username} cmp $b->{username} } @students;
 
-# Get a list of all users
+# Get a list of all users.
 my @users_from_db = $users_rs->getAllGlobalUsers;
 for my $user (@users_from_db) {
 	removeIDs($user);
@@ -68,12 +73,13 @@ for my $user (@users_from_db) {
 @users_from_db = sort { $a->{username} cmp $b->{username} } @users_from_db;
 is_deeply(\@all_students, \@users_from_db, "getUsers: all users");
 
-# Get one user that exists
+# Get a single user by username
 my $user = $users_rs->getGlobalUser(info => { username => $all_students[0]->{username} });
 removeIDs($user);
 delete $user->{role};
 is_deeply($all_students[0], $user, "getUser: by username");
 
+# Get a single user by user_id
 $user = $users_rs->getGlobalUser(info => { user_id => 2 });
 removeIDs($user);
 my @stud2 = grep { $_->{username} eq $user->{username} } @all_students;
@@ -90,6 +96,12 @@ throws_ok {
 }
 "DB::Exception::UserNotFound", "getUser: undefined username";
 
+# getUsers: Test that not passing either a course_id or course_name results in an error.
+throws_ok {
+	$users_rs->getCourseUsers(info => { my_course => "Precalculus" });
+}
+'DB::Exception::ParametersNeeded', "getUsers: course_name or course_id not passed in";
+
 # Add one user
 $user = {
 	username   => "wiggam",
@@ -104,8 +116,56 @@ my $new_user = $users_rs->addGlobalUser(params => $user);
 removeIDs($new_user);
 is_deeply($user, $new_user, "addUser: adding a user");
 
+# Try to add a user without passing username info
+throws_ok {
+	$users_rs->addGlobalUser(
+		params => {
+			username_name => "selma",
+			email         => 'selma@google.com'
+		}
+	);
+}
+"DB::Exception::ParametersNeeded", "addUser: wrong user_info sent";
+
+# Check that adding a user with an invalid field throws an error
+throws_ok {
+	$users_rs->addGlobalUser(
+		params => {
+			username      => "selma",
+			invalid_field => 1
+		}
+	);
+}
+qr/No such column 'invalid_field'/, "addUser: pass in an invalid field";
+
+# Add a user with an invalid username
+throws_ok {
+	$users_rs->addGlobalUser(
+		params => {
+			username => "my name is selma",
+			email    => 'selma@google.com'
+		}
+	);
+}
+"DB::Exception::InvalidParameter", "addUser: bad username sent";
+
+# Check that using an email address for a username is valid:
+# Add one user
+my $user2 = {
+	username   => 'selma@google.com',
+	last_name  => "Bouvier",
+	first_name => "Selma",
+	email      => 'selma@google.com',
+	student_id => '',
+	is_admin   => 0,
+};
+
+my $added_user2 = $users_rs->addGlobalUser(params => $user2);
+removeIDs($added_user2);
+is_deeply($user2, $added_user2, "addUser: check that using an email for a username is valid.");
+
 # Update a user
-my $updated_user = {%$user};    # Make a copy of $user
+my $updated_user = clone $user;
 $updated_user->{email} = 'spring.cop@gmail.com';
 my $up_user_from_db = $users_rs->updateGlobalUser(
 	info   => { username => $updated_user->{username} },
@@ -130,6 +190,19 @@ throws_ok {
 	$users_rs->updateGlobalUser(info => { user_id => -5 }, params => $updated_user);
 }
 "DB::Exception::UserNotFound", "updateUser: update user for a non-existing user_id";
+
+# Check that updated an invalid field throws an error
+throws_ok {
+	$users_rs->updateGlobalUser(
+		info => {
+			username => "wiggam"
+		},
+		params => {
+			invalid_field => 1
+		}
+	)
+}
+qr/No such column 'invalid_field'/, "updateUser: pass in an invalid field";
 
 # Delete a user
 my $user_to_delete = $users_rs->deleteGlobalUser(info => { username => $user->{username} });

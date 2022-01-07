@@ -228,19 +228,39 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 
 =cut
 
+use Data::Dumper;
+
 sub addSetProblem ($self, %args) {
-	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
+	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{params}, as_result_set => 1);
+	my $params      = clone $args{params};
+
+	# Remove some parameters that are not in the database, but may be passed in.
+	for my $key (qw/course_name course_id set_name set_id/) {
+		delete $params->{$key} if defined $params->{$key};
+	}
+
 	# set the problem number to one more than the set's largest
-	my $new_problem_params = clone($args{params});
-	$new_problem_params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0);
+	$params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0)
+		unless defined $params->{problem_number};
+	$params->{problem_params}{weight} = 1 unless defined($params->{problem_params}{weight});
 
-	$new_problem_params->{problem_params}{weight} = 1 unless defined($new_problem_params->{problem_params}{weight});
+	$self->checkProblemParams($params);
 
-	my $problem_to_add = $self->new($new_problem_params);
+	my $added_problem = $problem_set->add_to_problems($params);
+	return $args{as_result_set} ? $added_problem : { $added_problem->get_inflated_columns };
+}
+
+sub checkProblemParams ($self, $params) {
+
+	# Check that the problem_number field is a positive number.
+	DB::Exception::InvalidParameter->throw(message => "The problem_number must be a positive integer")
+		unless defined $params->{problem_number} && $params->{problem_number} =~ /^\d+$/;
+
+	my $problem_to_add = $self->new($params);
 	$problem_to_add->validParams('problem_params');
 
-	my $added_problem = $problem_set->add_to_problems($new_problem_params);
-	return $args{as_result_set} ? $added_problem : { $added_problem->get_inflated_columns };
+	return 1;
+
 }
 
 =head2 updateSetProblem
@@ -297,8 +317,7 @@ sub updateSetProblem ($self, %args) {
 	my $params  = updateAllFields({ $problem->get_inflated_columns }, $args{params});
 
 	# Check that the new params are valid.
-	my $updated_problem = $self->new($params);
-	$updated_problem->validParams('problem_params');
+	$self->checkProblemParams($params);
 
 	my $problem_to_return = $problem->update($params);
 	return $args{as_result_set} ? $problem_to_return : { $problem_to_return->get_inflated_columns };

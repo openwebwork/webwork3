@@ -93,7 +93,7 @@ my $config = LoadFile($config_file);
 use Data::Dumper;
 
 if ($verbose) {
-	say "Rebuilding the database for course $course_name";
+	say "Rebuilding the database for course $course_name" if $rebuild_course;
 	say "Using the webwork2 database: $db_dsn";
 	say "with user $db_user";
 	say "The webwork3 database: " . $config->{database_dsn};
@@ -112,13 +112,6 @@ my $user_set_rs     = $schema->resultset('UserSet');
 my $user_problem_rs = $schema->resultset('UserProblem');
 my $attempts_rs     = $schema->resultset('Attempt');
 
-# Test if the database tables are created.  If not have DBIx::Class create them.
-try {
-	$course_rs->getCourses();
-} catch {
-	$schema->deploy;
-};
-
 # Create the database based on the schema
 $schema->deploy({ add_drop_table => 1 }) if $rebuild_db;
 
@@ -128,45 +121,36 @@ my %PERMISSIONS = (
 	20 => "admin"
 );
 
-# rebuildCourse() if $rebuild_course;
+rebuildCourse() if $rebuild_course;
 
-# addCourse();
-# addUsers();
-# addProblemSets();
-# addProblems();
-# addUserSets();
-# addUserProblems();
-removeAttempts();
+addCourse();
+addUsers();
+addProblemSets();
+addProblems();
+addUserSets();
+addUserProblems();
 addPastAnswers();
 
 my $db_tables = {};
 
 sub rebuildCourse ($=) {
 	say "rebuilding the database for course $course_name";
-	# check if the course exists in the database;
+	# Check if the course exists in the database.
 	my $course;
 	try {
-		$course = $course_rs->getCourse({ course_name => $course_name });
+		$course = $course_rs->getCourse(info => { course_name => $course_name });
 	} catch {
 	};
 
 	return unless $course;
 
+	removeAttempts();
 	removeUserProblems();
 	removeUserSets();
 	removeUsers();
 	removeProblems();
 	removeProblemSets();
 	removeCourse();
-
-	return;
-}
-
-sub buildTables ($=) {
-	$db_tables = {};
-	for my $name (qw/user key password past_answer/) {
-		$db_tables->{$name} = $course_name . "_" . $name;
-	}
 	return;
 }
 
@@ -177,8 +161,8 @@ sub addCourse ($=) {
 }
 
 sub removeCourse ($=) {
-	my $course = $course_rs->find({ course_name => $course_name });
-	$course->delete                        if $course;
+	say "in removeCourse";
+	$course_rs->deleteCourse(info => { course_name => $course_name });
 	say "deleting the course $course_name" if $verbose;
 	return;
 }
@@ -240,7 +224,7 @@ sub addUsers ($=) {
 }
 
 sub removeUsers ($=) {
-	my @course_users = $user_rs->getCourseUsers({ course_name => $course_name });
+	my @course_users = $user_rs->getCourseUsers(info => { course_name => $course_name });
 	for my $course_user (@course_users) {
 		my @user_courses = $course_rs->getUserCourses(info => { user_id => $course_user->{user_id} });
 		# if each user is only in one course, delete the global user
@@ -273,7 +257,7 @@ sub addProblemSets ($=) {
 			set_visible => $r->{visible} // 0
 		};
 
-		if ($r->{assignment_type} eq 'default') {    # it's a homework set
+		if ($r->{assignment_type} eq 'default') {
 			$set_params->{set_type} = 'HW';
 			for my $key (qw/set_header hardcopy_header hide_hint enable_reduced_scoring/) {
 				$set_params->{set_params}->{$key} = $r->{$key} if defined($r->{$key});
@@ -297,8 +281,14 @@ sub addProblemSets ($=) {
 				$set_params->{set_dates}->{$key} = $r->{ $key . '_date' } // 0;
 			}
 		} elsif ($r->{assignment_type} eq 'jitar') {
-			## need to determine how to handle these problems.
-			next;
+			$set_params->{set_type} = 'HW';
+			for my $key (qw/set_header hardcopy_header hide_hint enable_reduced_scoring/) {
+				$set_params->{set_params}->{$key} = $r->{$key} if defined($r->{$key});
+			}
+			for my $key (qw/open due answer/) {
+				$set_params->{set_dates}->{$key} = $r->{ $key . '_date' } // 0;
+			}
+			$set_params->{set_dates}->{reduced_scoring} = $r->{reduced_scoring_date} // $r->{due_date};
 		}
 
 		$problem_set_rs->addProblemSet(info => { course_name => $course_name }, params => $set_params);
@@ -336,6 +326,29 @@ sub addUserSets ($=) {
 			};
 
 			if ($set->{set_type} eq 'HW') {
+				$set_params->{set_name}    = $r->{set_id};
+				$set_params->{set_version} = 1;
+				for my $key (qw/set_header hardcopy_header hide_hint enable_reduced_scoring/) {
+					$set_params->{set_params}->{$key} = $r->{$key} if defined($r->{$key});
+				}
+				for my $key (qw/open due answer reduced_scoring/) {
+					$set_params->{set_dates}->{$key} = $r->{ $key . '_date' } if defined $r->{ $key . '_date' };
+				}
+			} elsif ($set->{set_type} eq 'QUIZ') {
+				# Only add user sets that have a version.
+				if ($r->{set_id} =~ /^([\w\d]*),v(\d)$/) {
+					$set_params->{set_name}    = $1;
+					$set_params->{set_version} = $2;
+				}
+				for my $key (qw/set_header hardcopy_header hide_hint/) {
+					$set_params->{set_params}->{$key} = $r->{$key} if defined($r->{$key});
+				}
+				for my $key (qw/open due answer/) {
+					$set_params->{set_dates}->{$key} = $r->{ $key . '_date' } if defined $r->{ $key . '_date' };
+				}
+			} elsif ($set->{set_type} eq 'JITAR') {
+				$set_params->{set_name}    = $r->{set_id};
+				$set_params->{set_version} = 1;
 				for my $key (qw/set_header hardcopy_header hide_hint enable_reduced_scoring/) {
 					$set_params->{set_params}->{$key} = $r->{$key} if defined($r->{$key});
 				}
@@ -343,6 +356,7 @@ sub addUserSets ($=) {
 					$set_params->{set_dates}->{$key} = $r->{ $key . '_date' } if defined $r->{ $key . '_date' };
 				}
 			}
+
 			$user_set_rs->addUserSet(
 				info => {
 					course_name => $course_name,
@@ -378,7 +392,7 @@ sub removeUserSets ($=) {
 ## Add/Remove Problems
 
 sub removeProblems ($=) {
-	my @problems = $problem_rs->getProblems(info => { course_name => $course_name }, 1);
+	my @problems = $problem_rs->getProblems(info => { course_name => $course_name }, as_result_set => 1);
 	for my $problem (@problems) {
 		say "Removing problem " . $problem->problem_number . " from " . $problem->problem_set->set_name if $verbose;
 		$problem->delete;
@@ -439,20 +453,48 @@ sub addUserProblems ($=) {
 	my @user_problem_param_fields = keys %{ DB::Schema::Result::UserProblem::valid_params() };
 
 	for my $r (@$ref) {
+
+		# print Dumper $r;
 		next if $r->{user_id} eq 'admin';
 		my $course_user = $user_rs->getCourseUser(
 			info          => { course_name => $course_name, username => $r->{user_id} },
 			as_result_set => 1
 		);
-		my $problem = $problem_rs->getSetProblem(
-			info => {
-				course_name    => $course_name,
-				set_name       => $r->{set_id},
-				problem_number => $r->{problem_id}
-			}
-		);
 
 		my $params = {};
+		my ($set_name, $problem_version);
+
+		if ($r->{user_id} eq 'peter' && $r->{set_id} =~ /^quiz1/) {
+			print Dumper $r;
+		}
+
+		# If there is a quiz, need to parse the set_id differently
+		if ($r->{set_id} =~ /^([\w\d]*),v(\d)$/) {
+			$set_name        = $1;
+			$problem_version = $2;
+
+		} else {
+			$set_name        = $r->{set_id};
+			$problem_version = 1;
+			my $problem_set = $problem_set_rs->getProblemSet(
+				info => {
+					course_name => $course_name,
+					set_name    => $r->{set_id}
+				},
+				as_result_set => 1
+			);
+			# Skip a quiz that doesn't have a version number.
+			next if $problem_set->set_type eq 'QUIZ';
+		}
+		if ($r->{user_id} eq 'peter') {
+			say $r->{set_id};
+			say "username: " . $r->{user_id};
+			say "set_name: $set_name";
+			say "problem_version: $problem_version";
+		}
+
+		# print Dumper $problem;
+
 		for my $key (@user_problem_param_fields) {
 			$params->{$key} = $r->{$key} if defined $r->{$key};
 		}
@@ -463,14 +505,16 @@ sub addUserProblems ($=) {
 
 		$user_problem_rs->addUserProblem(
 			info => {
-				course_name    => $course_name,
-				set_name       => $r->{set_id},
-				problem_number => $r->{problem_id},
-				username       => $r->{user_id}
+				course_name     => $course_name,
+				set_name        => $set_name,
+				problem_number  => $r->{problem_id},
+				username        => $r->{user_id},
+				problem_version => $problem_version // 1
 			},
 			params => {
 				seed                => $r->{problemSeed},
 				status              => $r->{status},
+				problem_version     => $problem_version,
 				user_problem_params => $params
 			}
 		);

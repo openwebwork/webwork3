@@ -111,9 +111,19 @@ is true, the return is a merged hashref.
 =cut
 
 sub addAttempt ($self, %args) {
-	my $user_problem = $self->rs("UserProblem")->getUserProblem(info => $args{info}, as_result_set => 1);
+	my $user_problem = $self->rs("UserProblem")->getUserProblem(info => $args{params}, as_result_set => 1);
 
-	my $attempt = $user_problem->add_to_attempts($args{params});
+	my $params = clone $args{params};
+
+	# Remove some parameters that are not in the UserSet database, but may be passed in.
+	for my $key (qw/username user_id course_name set_name set_id problem_id problem_number/) {
+		delete $params->{$key} if defined $params->{$key};
+	}
+
+	# need to check parameters have the right form.
+	my $attempt_to_add = $self->new($params);
+
+	my $attempt = $user_problem->add_to_attempts($params);
 	return $args{as_result_set} ? $attempt : { $attempt->get_inflated_columns };
 }
 

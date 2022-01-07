@@ -97,11 +97,6 @@ __PACKAGE__->add_columns(
 		default_value => 1,
 		size          => 8
 	},
-	set_version => {
-		data_type     => "int",
-		default_value => 1,
-		size          => 8
-	},
 	set_visible => {
 		data_type     => "boolean",
 		default_value => 1,

@@ -50,7 +50,7 @@ __PACKAGE__->add_columns(
 		size        => 16,
 		is_nullable => 1
 	},
-	user_problem_params => {
+	problem_params => {
 		data_type          => 'text',
 		size               => 512,
 		is_nullable        => 0,
@@ -70,7 +70,7 @@ sub valid_params ($=) {
 		max_attempts         => q{^-?\d+$},
 		att_to_open_children => q{\d+},
 		last_answer          => q{^.*$},
-		prPeriod             => q{\d+},
+		prPeriod             => q{^-?\d+$},
 		prCount              => q{\d+},
 		counts_parent_grade  => q{[01]},
 		attempted            => q{\d+},

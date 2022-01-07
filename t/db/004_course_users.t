@@ -74,16 +74,23 @@ for my $u (@precalc_students_from_db) {
 
 is_deeply(\@precalc_students, \@precalc_students_from_db, "getUsers: get users from a course");
 
-# getUsers: Test that an unknown course results in an error
+# getUsers: Test that an unknown course results in an error.
 throws_ok {
 	$user_rs->getCourseUsers(info => { course_name => "unknown_course" });
 }
 'DB::Exception::CourseNotFound', "getUsers: undefined course_name";
 
+# getUsers: Test that an unknown course_id results in an error.
 throws_ok {
 	$user_rs->getCourseUsers(info => { course_id => -3 });
 }
 'DB::Exception::CourseNotFound', "getUsers: undefined course_id";
+
+# getUsers: Test that not passing either a course_id or course_name results in an error.
+throws_ok {
+	$user_rs->getCourseUsers(info => { my_course => "Precalculus" });
+}
+'DB::Exception::ParametersNeeded', "getUsers: course_name or course_id not passed in";
 
 # Test getUser
 

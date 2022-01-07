@@ -33,9 +33,6 @@ my $problem_set_rs = $schema->resultset("ProblemSet");
 
 # Load all problems from the CVS files.
 my @problems_from_csv = loadCSV("$main::ww3_dir/t/db/sample_data/problems.csv");
-for my $problem (@problems_from_csv) {
-	$problem->{problem_version} = 1 unless defined($problem->{problem_version});
-}
 
 # Filter out precalc problems
 my @precalc_problems = grep { $_->{course_name} eq "Precalculus" } @problems_from_csv;
@@ -44,7 +41,6 @@ my @precalc_problems = grep { $_->{course_name} eq "Precalculus" } @problems_fro
 my @precalc_problems1 = grep { $_->{set_name} eq "HW #1" } @precalc_problems;
 
 for my $problem (@problems_from_csv) {
-	$problem->{problem_version} = 1 unless defined($problem->{problem_version});
 	delete $problem->{course_name};
 }
 
@@ -63,11 +59,33 @@ for my $problem (@precalc_problems_from_db) {
 	removeIDs($problem);
 }
 
+# Try to get all problems from a non existent course
+
+throws_ok {
+	$problem_rs->getProblems(
+		info => {
+			course_name => "non existent course"
+		}
+	);
+}
+"DB::Exception::CourseNotFound", "getProblems: non-existent course";
+
+# Try to get all problems from a non-existent set_id
+
+throws_ok {
+	$problem_rs->getProblems(
+		info => {
+			course_id => 999999
+		}
+	);
+}
+"DB::Exception::CourseNotFound", "getProblems: non-existent course_id";
+
 for my $problem (@precalc_problems) {
 	delete $problem->{set_name};
 }
 
-is_deeply(\@precalc_problems, \@precalc_problems_from_db, "getProblems: get all problems from one course");
+is_deeply(\@precalc_problems, \@precalc_problems_from_db, "getSetProblems: get all problems from one course");
 
 # Get all problems in one course from one set.
 my @set_problems1 = $problem_rs->getSetProblems(info => { course_name => "Precalculus", set_name => "HW #1" });
@@ -82,7 +100,7 @@ is_deeply(\@precalc_problems1, \@set_problems1, "getSetProblems: get all problem
 throws_ok {
 	$problem_rs->getSetProblems(info => { course_name => "non_existing_course", set_name => "HW #1" });
 }
-"DB::Exception::CourseNotFound", "getSetProblem: get problems from non-existing course";
+"DB::Exception::CourseNotFound", "getSetProblems: get problems from non-existing course";
 
 # Try to get problems from a non-existing set.
 throws_ok {
@@ -116,16 +134,103 @@ my $new_problem = {
 };
 
 my $prob1 = $problem_rs->addSetProblem(
-	info => {
+	params => {
 		course_name => "Precalculus",
-		set_name    => "HW #1"
-	},
-	params => $new_problem
+		set_name    => "HW #1",
+		%$new_problem
+	}
 );
+
 my $prob_id = $prob1->{problem_id};
 removeIDs($prob1);
 
-is_deeply($new_problem, $prob1, "addProblem: add a valid problem to a set");
+is_deeply($new_problem, $prob1, "addSetProblem: add a valid problem to a set");
+
+# Try to add a problem to a non-existent course
+throws_ok {
+	$problem_rs->addSetProblem(
+		params => {
+			course_name => "Non existent course",
+			set_name    => "HW #1"
+		}
+	);
+}
+"DB::Exception::CourseNotFound", "addSetProblem: try to add a problem to a non-existent course";
+
+# Try to add a problem to a non-existent course_id
+throws_ok {
+	$problem_rs->addSetProblem(
+		params => {
+			course_id => 999999,
+			set_name  => "HW #1"
+		}
+	);
+}
+"DB::Exception::CourseNotFound", "addSetProblem: try to add a problem to a non-existent course_id";
+
+# Try to add a problem to a non-existent set
+throws_ok {
+	$problem_rs->addSetProblem(
+		params => {
+			course_name => "Precalculus",
+			set_name    => "HW #99999"
+		}
+	);
+}
+"DB::Exception::SetNotInCourse", "addSetProblem: try to add a problem to a non-existent set";
+
+# Try to add a problem to a non-existent set
+throws_ok {
+	$problem_rs->addSetProblem(
+		params => {
+			course_name => "Precalculus",
+			set_id      => 999999
+		}
+	);
+}
+"DB::Exception::SetNotInCourse", "addSetProblem: try to add a problem to a non-existent set_id";
+
+# Try to set a negative problem number.
+throws_ok {
+	$problem_rs->addSetProblem(
+		params => {
+			course_name    => "Precalculus",
+			set_name       => "HW #1",
+			problem_number => -9,
+			problem_params => {
+				file_path => "this_is_a_path"
+			}
+		}
+	);
+}
+"DB::Exception::InvalidParameter", "addSetProblem: try to add a problem with a non positive integer problem_number";
+
+# Try to add a problem without information about the file_path, library_id or problem_pool_id
+throws_ok {
+	$problem_rs->addSetProblem(
+		params => {
+			course_name    => "Precalculus",
+			set_name       => "HW #1",
+			problem_params => {}
+		}
+	);
+}
+"DB::Exception::ParametersNeeded", "addSetProblem: try to add a problem without information about the file_path, etc.";
+
+# Try to add a problem without information about the file_path, library_id or problem_pool_id
+throws_ok {
+	$problem_rs->addSetProblem(
+		params => {
+			course_name    => "Precalculus",
+			set_name       => "HW #1",
+			problem_params => {
+				file_path  => "this_is_a_path",
+				library_id => 123
+			}
+		}
+	);
+}
+"DB::Exception::ParametersNeeded", "addSetProblem: try to add a problem with too much library info";
 
 # Update a problem
 my $updated_params = {
@@ -146,9 +251,82 @@ my $updated_problem = $problem_rs->updateSetProblem(
 );
 removeIDs($updated_problem);
 
-$all_params->{problem_version} = 1 unless defined $all_params->{problem_version};
-
 is_deeply($all_params, $updated_problem, "updateProblem: update a problem");
+
+# Try to update a problem in a non-existent course
+throws_ok {
+	$problem_rs->updateSetProblem(
+		info => {
+			course_name => "Non existent course",
+			set_name    => "HW #1"
+		}
+	);
+}
+"DB::Exception::CourseNotFound", "updateSetProblem: try to update a problem to a non-existent course";
+
+# Try to update a problem to with a non-existent course_id
+throws_ok {
+	$problem_rs->updateSetProblem(
+		info => {
+			course_id => 999999,
+			set_name  => "HW #1"
+		}
+	);
+}
+"DB::Exception::CourseNotFound", "updateSetProblem: try to update a problem to a non-existent course_id";
+
+# Try to update a problem to a non-existent set
+throws_ok {
+	$problem_rs->updateSetProblem(
+		info => {
+			course_name => "Precalculus",
+			set_name    => "HW #99999"
+		}
+	);
+}
+"DB::Exception::SetNotInCourse", "updateSetProblem: try to update a problem to a non-existent set";
+
+# Try to update a problem to a non-existent set_id
+throws_ok {
+	$problem_rs->updateSetProblem(
+		info => {
+			course_name => "Precalculus",
+			set_id      => 999999
+		}
+	);
+}
+"DB::Exception::SetNotInCourse", "updateSetProblem: try to update a problem to a non-existent set_id";
+
+# Try to update a problem with a negative problem number.
+throws_ok {
+	$problem_rs->updateSetProblem(
+		info => {
+			course_name    => "Precalculus",
+			set_name       => "HW #1",
+			problem_number => 1,
+		},
+		params => {
+			problem_number => -9
+		}
+	);
+}
+"DB::Exception::InvalidParameter",
+	"updateSetProblem: try to update a problem with a non positive integer problem_number";
+
+# Try to update a problem without information about the file_path, library_id or problem_pool_id
+throws_ok {
+	$problem_rs->updateSetProblem(
+		params => {
+			course_name    => "Precalculus",
+			set_name       => "HW #1",
+			problem_params => {
+				file_path  => "this_is_a_path",
+				library_id => 123
+			}
+		}
+	);
+}
+"DB::Exception::ParametersNeeded", "updateSetProblem: try to add a problem with too much library info";
 
 # Delete a problem from a set
 my $deleted_problem = $problem_rs->deleteSetProblem(

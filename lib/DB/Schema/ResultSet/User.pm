@@ -115,6 +115,10 @@ sub addGlobalUser ($self, %args) {
 	# remove the user_id if defined and equal to zero.
 	delete $params->{user_id} if (defined($params->{user_id}) && $params->{user_id} == 0);
 
+	# Check that the username is valid
+	DB::Exception::InvalidParameter->throw(message => "The username '$params->{username}' is not valid.")
+		unless $params->{username} =~ /^[\w@\d.]+$/;
+
 	my $new_user = $self->create($params);
 	return $new_user if $args{as_result_set};
 	return removeLoginParams({ $new_user->get_columns });
