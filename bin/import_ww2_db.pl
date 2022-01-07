@@ -291,10 +291,12 @@ sub addProblemSets ($=) {
 			$set_params->{set_dates}->{reduced_scoring} = $r->{reduced_scoring_date} // $r->{due_date};
 		}
 
-		$problem_set_rs->addProblemSet(params => {
-			course_name => $course_name,
-			%$set_params
-		});
+		$problem_set_rs->addProblemSet(
+			params => {
+				course_name => $course_name,
+				%$set_params
+			}
+		);
 		say "Adding set with name: $set_params->{set_name}" if $verbose;
 	}
 	return;
@@ -363,7 +365,7 @@ sub addUserSets ($=) {
 			$user_set_rs->addUserSet(
 				params => {
 					course_name => $course_name,
-					set_id => $set->{set_id},
+					set_id      => $set->{set_id},
 					username    => $r->{user_id},
 					%$set_params
 				}
@@ -496,8 +498,6 @@ sub addUserProblems ($=) {
 			$params->{last_answer} = join(';', split(/\s+/, $params->{last_answer}));
 		}
 
-
-
 		$user_problem_rs->addUserProblem(
 			params => {
 				course_name     => $course_name,
@@ -505,10 +505,10 @@ sub addUserProblems ($=) {
 				problem_number  => $r->{problem_id},
 				username        => $r->{user_id},
 				problem_version => $problem_version // 1,
-				seed                => $r->{problemSeed},
-				status              => $r->{status},
-				problem_version     => $problem_version,
-				problem_params => $params
+				seed            => $r->{problemSeed},
+				status          => $r->{status},
+				problem_version => $problem_version,
+				problem_params  => $params
 			}
 		);
 	}
@@ -531,7 +531,7 @@ sub addPastAnswers ($=) {
 	my $ref = $sth->fetchall_arrayref({});
 
 	my $n = 0;
-	my ($set_name,$problem_version);
+	my ($set_name, $problem_version);
 
 	for my $r (@$ref) {
 		my @answers  = $r->{answer_string} ? split(/\t/, $r->{answer_string}) : ();
@@ -545,14 +545,14 @@ sub addPastAnswers ($=) {
 
 		my $att = $attempts_rs->addAttempt(
 			params => {
-				course_name    => $course_name,
-				set_name       => $set_name,
-				problem_number => $r->{problem_id},
+				course_name     => $course_name,
+				set_name        => $set_name,
+				problem_number  => $r->{problem_id},
 				problem_version => $problem_version,
-				username       => $r->{user_id},
-				comments => \@comments,
-				scores   => \@scores,
-				answers  => \@answers
+				username        => $r->{user_id},
+				comments        => \@comments,
+				scores          => \@scores,
+				answers         => \@answers
 			}
 		);
 	}
