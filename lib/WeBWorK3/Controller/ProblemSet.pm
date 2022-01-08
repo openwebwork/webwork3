@@ -71,13 +71,22 @@ sub deleteProblemSet ($self) {
 	return;
 }
 
+# This subroutine gets a collection of UserSets.
+# If a set_id is given, it is a collection of user sets related to a set.
+# if a user_id is given, it is a collection of user sets related to a user.
+
 sub getUserSets ($self) {
-	my @user_sets = $self->schema->resultset("UserSet")->getUserSetsForSet(
-		info => {
-			course_id => int($self->param("course_id")),
-			set_id    => int($self->param("set_id"))
-		}
-	);
+	my $params = { course_id => int($self->param("course_id")) };
+	if ($self->param("set_id")) {
+		$params->{set_id} = int($self->param("set_id"));
+	} elsif ($self->param("user_id")) {
+		$params->{user_id} = int($self->param("user_id"));
+	}
+	my @user_sets = $self->schema->resultset("UserSet")->getUserSets(info => $params);
+	# Remove the course_name for each of the user sets.
+	for my $user_set (@user_sets) {
+		delete $user_set->{course_name};
+	}
 	$self->render(json => \@user_sets);
 	return;
 }

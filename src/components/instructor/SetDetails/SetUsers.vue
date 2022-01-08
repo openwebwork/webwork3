@@ -278,7 +278,7 @@ export default defineComponent({
 		const route = useRoute();
 		if (route.params.set_id) {
 			logger.debug('Loading UserSets');
-			await store.dispatch('problem_sets/fetchMergedUserSets', {
+			await store.dispatch('problem_sets/fetchCourseMergedUserSets', {
 				course_id: route.params.course_id,
 				set_id: route.params.set_id
 			});

@@ -85,9 +85,18 @@ export default {
 			// TODO: check for errors
 			commit('DELETE_SET_PROBLEM', new SetProblem(_problem));
 		},
-		async fetchMergedUserSets({ commit }: { commit: Commit },
+		async fetchCourseMergedUserSets({ commit }: { commit: Commit },
 			params: {course_id: number, set_id: number }): Promise<void> {
 			const url = `courses/${params.course_id}/sets/${params.set_id}/users`;
+			const response = await api.get(url);
+			const user_sets = response.data as Array<ParseableMergedUserSet>;
+
+			// TODO: check for errors
+			commit('SET_MERGED_USER_SETS', user_sets.map(_set => new MergedUserSet(_set)));
+		},
+		async fetchUserMergedUserSets({ commit }: { commit: Commit },
+			params: {course_id: number, user_id: number }): Promise<void> {
+			const url = `courses/${params.course_id}/users/${params.user_id}/sets`;
 			const response = await api.get(url);
 			const user_sets = response.data as Array<ParseableMergedUserSet>;
 			// TODO: check for errors
