@@ -33,17 +33,31 @@ export interface ViewInfo {
 
 export const student_views: Array<ViewInfo> = [
 	{
+		name: 'Dashboard',
+		component_name: 'StudentDashboard',
+		icon: 'speed',
+		route: '',
+		sidebars: []
+	},
+	{
 		name: 'Calendar',
-		component_name: 'Calendar',
+		component_name: 'StudentCalendar',
 		icon: 'today',
-		route: 'student-calendar',
+		route: 'calendar',
 		sidebars: []
 	},
 	{
 		name: 'Problem Viewer',
-		component_name: 'ProblemViewer',
+		component_name: 'StudentProblemViewer',
 		icon: 'preview',
-		route: 'student-problems',
+		route: 'problems',
+		sidebars: []
+	},
+	{
+		name: 'Grades',
+		component_name: 'Grades',
+		icon: 'list',
+		route: 'grades',
 		sidebars: []
 	}
 ];

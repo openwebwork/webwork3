@@ -11,7 +11,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
-import { instructor_views, admin_views, ViewInfo } from 'src/common/views';
+import { instructor_views, admin_views, student_views, ViewInfo } from 'src/common/views';
 import { useRouter, useRoute } from 'vue-router';
 
 export default defineComponent({
@@ -27,7 +27,7 @@ export default defineComponent({
 					? admin_views
 					: /^\/courses\/\d+\/instructor/.exec(route.path)
 						? instructor_views
-						: []
+						: student_views
 			),
 			changeView: (view: ViewInfo) => {
 				void router.push({ name: view.component_name, params: route.params });
