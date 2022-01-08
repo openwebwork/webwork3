@@ -228,26 +228,21 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 
 =cut
 
+use Data::Dumper;
+
 sub getUserCourses ($self, %args) {
 	my $user = $self->result_source->schema->resultset("User")
 		->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
 
-	my @user_courses = $self->search(
-		{
-			'course_users.user_id' => $user->user_id
-		},
-		{
-			join => ['course_users']
-		}
-	);
+	# my @user_courses = $user->courses->search({});
+
+	my @user_courses = $user->course_users->search({});
 
 	return @user_courses if $args{as_result_set};
 	my @user_courses_hashref = ();
 	for my $user_course (@user_courses) {
-		my $params = {
-			course_name => $user_course->get_column("course_name"),
-			$user_course->course_users->first->get_inflated_columns
-		};
+
+		my $params = { $user_course->get_inflated_columns, $user_course->courses->get_inflated_columns };
 		push(@user_courses_hashref, $params);
 	}
 	return @user_courses_hashref;

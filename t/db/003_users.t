@@ -16,6 +16,7 @@ use lib "$main::ww3_dir/lib";
 use Test::More;
 use Test::Exception;
 use Clone qw/clone/;
+use List::MoreUtils qw/firstval/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
@@ -228,16 +229,20 @@ for my $user_course (@user_courses) {
 	removeIDs($user_course);
 }
 
+my @courses = loadCSV("$main::ww3_dir/t/db/sample_data/courses.csv");
 @students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
 
 my @user_courses_from_csv = grep { $_->{username} eq "lisa" } @students;
 
 for my $user_course (@user_courses_from_csv) {
+	my $course = firstval { $_->{course_name} eq $user_course->{course_name} } @courses;
 	for my $key (qw/email first_name last_name username student_id/) {
 		delete $user_course->{$key};
 	}
 	$user_course->{course_user_params} = $user_course->{params};
 	delete $user_course->{params};
+	$user_course->{visible}      = $course->{visible};
+	$user_course->{course_dates} = $course->{course_dates};
 }
 
 is_deeply(\@user_courses, \@user_courses_from_csv, "getUserCourses: get all courses for a given user");

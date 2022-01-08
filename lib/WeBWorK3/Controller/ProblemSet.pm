@@ -84,12 +84,11 @@ sub getUserSets ($self) {
 
 sub addUserSet ($self) {
 	my $new_user_set = $self->schema->resultset("UserSet")->addUserSet(
-		info => {
-			course_id      => int($self->param("course_id")),
-			set_id         => int($self->param("set_id")),
-			course_user_id => $self->req->json->{course_user_id}
-		},
-		params => $self->req->json
+		params => {
+			course_id => int($self->param("course_id")),
+			set_id    => int($self->param("set_id")),
+			%{ $self->req->json }
+		}
 	);
 	$self->render(json => $new_user_set);
 	return;

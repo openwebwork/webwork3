@@ -80,7 +80,7 @@ export default {
 			if (response.status === 200) {
 				const _merged_users = response.data as Array<ParseableMergedUser>;
 				const merged_users = _merged_users.map(u => new MergedUser(u));
-				console.log(merged_users);
+
 				commit('SET_MERGED_USERS', merged_users);
 				return merged_users;
 			} else if (response.status === 250) {
@@ -161,6 +161,13 @@ export default {
 				logger.error(response.data);
 				throw response.data as ResponseError;
 			}
+		},
+		// This clears out all data for use during logout.
+		clearUsers({ commit }: { commit: Commit }): void {
+			commit('SET_MERGED_USERS', []);
+			commit('SET_COURSE_USERS', []);
+			commit('SET_USERS', []);
+			commit('SET_USER_COURSES', []);
 		}
 	},
 	mutations: {

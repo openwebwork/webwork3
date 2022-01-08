@@ -105,6 +105,9 @@ export default defineComponent({
 			logout: async () => {
 				await endSession();
 				void store.dispatch('session/logout');
+				void store.dispatch('users/clearUsers');
+				void store.dispatch('problem_sets/clearSets');
+				void store.dispatch('settings/clearSettings');
 				void router.push('/login');
 			},
 			menubar_color: computed(() =>

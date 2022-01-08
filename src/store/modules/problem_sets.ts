@@ -120,6 +120,12 @@ export default {
 			// TODO: check for errors
 			commit('DELETE_MERGED_USER_SET', new MergedUserSet(updated_user_set));
 		},
+		// This clears out all data for use during logout.
+		clearSets({ commit }: { commit: Commit }): void {
+			commit('SET_PROBLEM_SETS', []);
+			commit('SET_PROBLEMS', []);
+			commit('SET_MERGED_USER_SETS', []);
+		}
 	},
 	mutations: {
 		SET_PROBLEM_SETS(state: ProblemSetState, _problem_sets: Array<ProblemSet>): void {
