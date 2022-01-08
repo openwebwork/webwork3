@@ -12,6 +12,17 @@ export interface ParseableUser {
 	student_id?: string | number;
 }
 
+export interface CourseUserParams {
+	comment?: string;
+	useMathQuill?: boolean | string | number;
+	useMathView?: boolean | string | number;
+	displayMode?: string;
+	status?: number;
+	lis_source_did?: string;
+	useWirisEditor?: boolean | string | number;
+	showOldAnswers?: boolean | string | number;
+}
+
 export class User extends Model(
 	['is_admin'], ['user_id'], ['username', 'email', 'first_name', 'last_name', 'student_id'], [],
 	{
@@ -39,10 +50,11 @@ export interface ParseableCourseUser {
 	role?: string;
 	section?: string | number;
 	recitation?: string | number;
+	course_user_params?: CourseUserParams;
 }
 
 export class CourseUser extends Model(
-	[], ['course_user_id', 'user_id', 'course_id'], ['role', 'section', 'recitation'], ['params'],
+	[], ['course_user_id', 'user_id', 'course_id'], ['role', 'section', 'recitation'], ['course_user_params'],
 	{
 		course_user_id: { field_type: 'non_neg_int', default_value: 0 },
 		course_id: { field_type: 'non_neg_int', default_value: 0 },
@@ -76,12 +88,13 @@ export interface ParseableMergedUser {
 	role?: string;
 	section?: string | number;
 	recitation?: string | number;
+	course_user_params?: CourseUserParams;
 }
 
 export class MergedUser extends Model(
 	['is_admin'], ['user_id', 'course_id', 'course_user_id'],
 	['username', 'email', 'first_name', 'last_name', 'student_id', 'role', 'section', 'recitation'],
-	['params'],
+	['course_user_params'],
 	{
 		username: { field_type: 'username', required: true },
 		email: { field_type: 'email' },
@@ -99,6 +112,8 @@ export class MergedUser extends Model(
 	static REQUIRED_FIELDS = ['username'];
 	static OPTIONAL_FIELDS = [...User.OPTIONAL_FIELDS, ...CourseUser.OPTIONAL_FIELDS];
 	static ALL_FIELDS = [...MergedUser.REQUIRED_FIELDS, ...MergedUser.OPTIONAL_FIELDS];
+
+	course_user_params = {};
 
 	constructor(params: ParseableMergedUser = {}) {
 		super(params as ParseableModel);

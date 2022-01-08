@@ -248,8 +248,7 @@ sub getCourseUsers ($self, %args) {
 
 	my @users_to_return = ();
 	for my $course_user (@course_users) {
-		my $params = { $course_user->get_inflated_columns };
-		$params = { $course_user->users->get_columns, %$params } if $args{merged};
+		my $params = $args{merged} ? _getMergedUser($course_user) : _getCourseUser($course_user);
 		push(@users_to_return, $params);
 	}
 	return @users_to_return;

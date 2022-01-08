@@ -24,7 +24,7 @@ sub getDefaultCourseSettings ($self) {
 }
 
 sub getCourseSettings ($self) {
-	my $course_settings = $self->schema->resultset("Course")->getCourseSettings({
+	my $course_settings = $self->schema->resultset("Course")->getCourseSettings(info => {
 		course_id => int($self->param("course_id")),
 	});
 	# Flatten to a single array.

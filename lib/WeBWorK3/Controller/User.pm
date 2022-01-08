@@ -39,7 +39,7 @@ sub deleteGlobalUser ($self) {
 
 sub getMergedCourseUsers ($self) {
 	my @course_users =
-		$self->schema->resultset("User")->getMergedCourseUsers(info => { course_id => int($self->param("course_id")) });
+		$self->schema->resultset("User")->getCourseUsers(info => { course_id => int($self->param("course_id")) }, merged => 1);
 	$self->render(json => \@course_users);
 	return;
 }
