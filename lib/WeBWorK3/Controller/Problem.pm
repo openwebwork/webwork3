@@ -46,4 +46,21 @@ sub deleteProblem ($self) {
 	return;
 }
 
+sub getUserProblems ($self) {
+	my @user_problems = $self->schema->resultset("UserProblem")->getCourseUserProblems(
+		info => {
+			course_id => int($self->param('course_id')),
+			user_id => int($self->param('user_id'))
+		}
+	);
+	# delete some unneeded fields before sending back
+	for my $user_problem (@user_problems) {
+		for my $key (qw/course_name problem_number set_name username/){
+			delete $user_problem->{$key} if defined $user_problem->{$key};
+		}
+	}
+	$self->render(json => \@user_problems);
+	return;
+}
+
 1;

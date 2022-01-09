@@ -149,6 +149,7 @@ sub problemRoutes ($self) {
 	$problem_routes->put('/sets/:set_id/problems/:problem_id')->to(action => 'updateProblem');
 	$problem_routes->delete('/sets/:set_id/problems/:problem_id')->to(action => 'deleteProblem');
 
+	$problem_routes->get('/users/:user_id/problems')->to(action => 'getUserProblems');
 	return;
 }
 

@@ -4,7 +4,6 @@
 
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
-import { useRoute } from 'vue-router';
 import { useStore } from 'src/store';
 
 export default defineComponent({
@@ -29,11 +28,9 @@ export default defineComponent({
 	},
 	async created() {
 		const store = useStore();
-		const route = useRoute();
-		console.log('here');
-		await store.dispatch('problem_sets/fetchUserMergedUserSets',
-			{ course_id: route.params.course_id, user_id: store.state.session.user.user_id });
-
+		await store.dispatch('problem_sets/fetchUserMergedUserSets', store.state.session.user.user_id);
+		await store.dispatch('problem_sets/fetchUserProblems', store.state.session.user.user_id);
+		await store.dispatch('problem_sets/fetchSetProblems');
 	}
 });
 </script>
