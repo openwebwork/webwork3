@@ -17,8 +17,10 @@ sub getGlobalUser ($self) {
 }
 
 sub updateGlobalUser ($self) {
-	my $user = $self->schema->resultset("User")
-		->updateGlobalUser(info => { user_id => int($self->param("user_id")) }, params => $self->req->json);
+	my $user = $self->schema->resultset("User")->updateGlobalUser(
+		info   => { user_id => int($self->param("user_id")) },
+		params => $self->req->json
+	);
 	$self->render(json => $user);
 	return;
 }
