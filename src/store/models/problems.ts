@@ -21,9 +21,7 @@ export interface ParseableProblem {
 	problem_id?: string | number;
 	set_id?: string | number;
 	seed?: string | number;
-	id?: string | number; // library_id from OPLv3
 	problem_number?: string | number;
-	problem_version?: string | number;
 	problem_params?: ProblemParams;
 	renderer_params?: RendererParams;
 }
@@ -31,23 +29,25 @@ export interface ParseableProblem {
 export interface SetProblemParams {
 	file_path?: string;
 	library_id?: string | number;
+	problem_pool_id?: string | number;
 	weight?: number;
 }
 
 export interface ProblemParams extends Dictionary<generic> {
 	library_id: number;
 	file_path: string;
+	problem_pool_id: string | number;
 }
 
+// Note: even though problem_version isn't in the database for a Problem,
+// since UserProblem inherits from this, we need problem_version in the Model.
 export class Problem extends Model(
-	[], ['problem_id', 'set_id', 'seed', 'id', 'problem_number', 'problem_version'],
+	[], ['problem_id', 'set_id', 'seed', 'problem_number'],
 	[], ['problem_params', 'renderer_params'],
 	{
 		problem_id: { field_type: 'non_neg_int', default_value: 0 },
 		set_id: { field_type: 'non_neg_int', default_value: 0 },
-		id: { field_type: 'non_neg_int', default_value: 0 },
 		problem_number: { field_type: 'non_neg_int', default_value: 0 },
-		problem_version: { field_type: 'non_neg_int', default_value: 0 },
 	}) {
 	static REQUIRED_FIELDS = [];
 	static OPTIONAL_FIELDS = ['problem_id', 'set_id', 'id'];
@@ -55,6 +55,7 @@ export class Problem extends Model(
 	problem_type = '';
 	_param_fields: ModelField = {
 		library_id: { field_type: 'non_neg_int' },
+		pool_probem_id: { field_type: 'non_neg_int' },
 		file_path: { field_type: 'string' }
 	};
 	_request_fields: ModelField = {
@@ -69,7 +70,11 @@ export class Problem extends Model(
 		show_check_answers_button: { field_type: 'boolean', default_value: false },
 		show_correct_answers_button: { field_type: 'boolean', default_value: false }
 	}
-	problem_params: ProblemParams = { library_id: 0, file_path: '' };
+	problem_params: ProblemParams = {
+		library_id: 0,
+		file_path: '',
+		problem_pool_id: 0
+	};
 	renderer_params = {
 		problemSeed: DEFAULT_LIBRARY_SEED,
 		permission_level: 0,
@@ -150,10 +155,17 @@ export class SetProblem extends Problem {
 			library_id: {
 				field_type: 'non_neg_int'
 			},
+			problem_pool_id: {
+				field_type: 'non_neg_int'
+			},
 			weight: {
 				field_type: 'non_neg_int'
 			}
 		};
+	}
+
+	setParams(params: Dictionary<generic> = {}) {
+		this.problem_params = parseParams(params, this._param_fields) as ProblemParams;
 	}
 
 	isValid() {
@@ -222,5 +234,190 @@ export function parseProblem(problem: ParseableProblem, type: string) {
 	switch (type) {
 	case 'Library': return new LibraryProblem(problem);
 	case 'Set': return new SetProblem(problem);
+	}
+}
+
+// Definition of UserProblem
+
+export interface UserProblemParams extends Dictionary<generic> {
+	file_path: string;
+	library_id: string | number;
+	problem_pool_id: string | number;
+	weight: number;
+	max_attempts : string | number;
+	att_to_open_children: string | number;
+	last_answer: string;
+	prPeriod: string | number;
+	prCount: string | number;
+	counts_parent_grade: string | number;
+	attempted: string | number;
+	num_correct: string | number;
+	num_incorrect: string | number;
+	showMeAnotherCount: string | number;
+}
+
+export type ParseableUserProblem = Partial<UserProblem>;
+
+export class UserProblem extends Model(
+	[], ['user_problem_id', 'problem_id', 'user_set_id', 'seed', 'status', 'problem_version'],
+	[], ['problem_params'],
+	{
+		user_problem_id: { field_type: 'non_neg_int', default_value: 0 },
+		problem_id: { field_type: 'non_neg_int', default_value: 0 },
+		user_set_id: { field_type: 'non_neg_int', default_value: 0 },
+		seed: { field_type: 'non_neg_int', default_value: 0 },
+		status: { field_type: 'number', default_value: 0.0 },
+		problem_version: { field_type: 'non_neg_int', default_value: 0 },
+	}) {
+	static REQUIRED_FIELDS = ['problem_id', 'user_set_id'];
+	static OPTIONAL_FIELDS = ['user_problem_id', 'seed', 'status', 'problem_version'];
+
+	problem_type = '';
+	_param_fields: ModelField = {
+		library_id: { field_type: 'non_neg_int' },
+		pool_probem_id: { field_type: 'non_neg_int' },
+		file_path: { field_type: 'string' },
+		max_attempts: { field_type: 'number' },
+		att_to_open_children: { field_type: 'non_neg_int' },
+		last_answer: { field_type: 'string' },
+		prPeriod: { field_type: 'number' },
+		prCount: { field_type: 'number' },
+		counts_parent_grade: { field_type: 'non_neg_int' },
+		attempted: { field_type: 'non_neg_int' },
+		num_correct: { field_type: 'non_neg_int' },
+		num_incorrect: { field_type: 'non_neg_int' },
+		showMeAnotherCount: { field_type: 'non_neg_int' },
+	}
+
+	problem_params: UserProblemParams = {
+		library_id: 0,
+		file_path: '',
+		problem_pool_id: 0,
+		weight: 1,
+		max_attempts: -1,
+		att_to_open_children: 0,
+		last_answer: '',
+		prPeriod: 0,
+		prCount: 0,
+		counts_parent_grade: 0,
+		attempted: 0,
+		num_correct: 0,
+		num_incorrect: 0,
+		showMeAnotherCount: 0
+	};
+
+	constructor(params: ParseableUserProblem = {}) {
+		super(params as ParseableModel);
+		this.setParams(params.problem_params);
+	}
+
+	setParams(params: Dictionary<generic> = {}) {
+		this.problem_params = parseParams(params, this._param_fields) as UserProblemParams;
+	}
+
+	isValid() {
+		return this.problem_id && this.user_set_id && this.problem_version;
+	}
+
+	clone(): UserProblem {
+		return new UserProblem(this.toObject() as ParseableUserProblem);
+	}
+
+	path() {
+		const params = this.problem_params;
+		return params.file_path ?? '';
+	}
+}
+
+// Definition of MergedUserProblem
+
+export interface MergedUserProblemParams extends Dictionary<generic> {
+	file_path: string;
+	library_id: string | number;
+	problem_pool_id: string | number;
+	weight: number;
+	max_attempts : string | number;
+	att_to_open_children: string | number;
+	last_answer: string;
+	prPeriod: string | number;
+	prCount: string | number;
+	counts_parent_grade: string | number;
+	attempted: string | number;
+	num_correct: string | number;
+	num_incorrect: string | number;
+	showMeAnotherCount: string | number;
+}
+
+export type ParseableMergedUserProblem = Partial<MergedUserProblem>;
+
+export class MergedUserProblem extends Model(
+	[], ['user_problem_id', 'problem_id', 'problem_number', 'user_set_id', 'seed',
+		'status', 'problem_version', 'set_id'],
+	['username', 'set_name'], ['problem_params'],
+	{
+		user_problem_id: { field_type: 'non_neg_int', default_value: 0 },
+		problem_id: { field_type: 'non_neg_int', default_value: 0 },
+		user_set_id: { field_type: 'non_neg_int', default_value: 0 },
+		seed: { field_type: 'non_neg_int', default_value: 0 },
+		status: { field_type: 'number', default_value: 0.0 },
+		problem_version: { field_type: 'non_neg_int', default_value: 0 },
+	}) {
+	static REQUIRED_FIELDS = ['problem_id', 'user_set_id'];
+	static OPTIONAL_FIELDS = ['user_problem_id', 'seed', 'status', 'problem_version'];
+
+	problem_type = '';
+	_param_fields: ModelField = {
+		library_id: { field_type: 'non_neg_int' },
+		pool_probem_id: { field_type: 'non_neg_int' },
+		file_path: { field_type: 'string' },
+		max_attempts: { field_type: 'number' },
+		att_to_open_children: { field_type: 'non_neg_int' },
+		last_answer: { field_type: 'string' },
+		prPeriod: { field_type: 'number' },
+		prCount: { field_type: 'number' },
+		counts_parent_grade: { field_type: 'non_neg_int' },
+		attempted: { field_type: 'non_neg_int' },
+		num_correct: { field_type: 'non_neg_int' },
+		num_incorrect: { field_type: 'non_neg_int' },
+		showMeAnotherCount: { field_type: 'non_neg_int' },
+	}
+
+	problem_params: MergedUserProblemParams = {
+		library_id: 0,
+		file_path: '',
+		problem_pool_id: 0,
+		weight: 1,
+		max_attempts: -1,
+		att_to_open_children: 0,
+		last_answer: '',
+		prPeriod: 0,
+		prCount: 0,
+		counts_parent_grade: 0,
+		attempted: 0,
+		num_correct: 0,
+		num_incorrect: 0,
+		showMeAnotherCount: 0
+	};
+
+	constructor(params: ParseableMergedUserProblem = {}) {
+		super(params as ParseableModel);
+		this.setParams(params.problem_params);
+	}
+
+	setParams(params: Dictionary<generic> = {}) {
+		this.problem_params = parseParams(params, this._param_fields) as MergedUserProblemParams;
+	}
+
+	isValid() {
+		return this.problem_id && this.user_set_id && this.problem_version;
+	}
+
+	clone(): MergedUserProblem {
+		return new MergedUserProblem(this.toObject() as Partial<MergedUserProblem>);
+	}
+
+	path() {
+		const params = this.problem_params;
+		return params.file_path ?? '';
 	}
 }
