@@ -5,19 +5,22 @@ import { isEqual } from 'lodash-es';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet, MergedUserSet,
 	ParseableMergedUserSet, UserSet } from 'src/store/models/problem_sets';
-import { LibraryProblem, SetProblem, ParseableProblem, parseProblem } from 'src/store/models/problems';
+import { LibraryProblem, SetProblem, ParseableProblem, parseProblem,
+	ParseableUserProblem, UserProblem } from 'src/store/models/problems';
 import { logger } from 'boot/logger';
 
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;
 	set_problems: Array<SetProblem>;
 	merged_user_sets: Array<MergedUserSet>;
+	user_problems: Array<UserProblem>;
 }
 
 const initial_state = {
 	problem_sets: [],
 	problems: [],
-	merged_user_sets: []
+	merged_user_sets: [],
+	user_problems: [],
 };
 
 export default {
@@ -32,10 +35,14 @@ export default {
 		},
 		merged_user_sets(state: ProblemSetState): Array<MergedUserSet> {
 			return state.merged_user_sets;
+		},
+		user_problems(state: ProblemSetState): Array<UserProblem> {
+			return state.user_problems;
 		}
 	},
 	actions: {
-		async fetchProblemSets({ commit }: { commit: Commit }, course_id: number): Promise<void> {
+		async fetchProblemSets({ commit, rootState }: { commit: Commit; rootState: StateInterface }): Promise<void> {
+			const course_id = rootState.session.course.course_id;
 			const response = await api.get(`courses/${course_id}/sets`);
 			const _sets_to_parse = response.data as Array<ParseableProblemSet>;
 			commit('SET_PROBLEM_SETS', _sets_to_parse.map((set) => parseProblemSet(set)));
@@ -53,7 +60,8 @@ export default {
 			}
 			return set;
 		},
-		async fetchSetProblems({ commit }: { commit: Commit }, course_id: number): Promise<void> {
+		async fetchSetProblems({ commit, rootState }: { commit: Commit; rootState: StateInterface }): Promise<void> {
+			const course_id = rootState.session.course.course_id;
 			const response = await api.get(`courses/${course_id}/problems`);
 			const all_problems = response.data as Array<ParseableProblem>;
 			commit('SET_PROBLEMS', all_problems.map((prob) => parseProblem(prob, 'Set')));
@@ -85,18 +93,22 @@ export default {
 			// TODO: check for errors
 			commit('DELETE_SET_PROBLEM', new SetProblem(_problem));
 		},
-		async fetchCourseMergedUserSets({ commit }: { commit: Commit },
-			params: {course_id: number, set_id: number }): Promise<void> {
-			const url = `courses/${params.course_id}/sets/${params.set_id}/users`;
+		async fetchCourseMergedUserSets({ commit, rootState }: { commit: Commit; rootState: StateInterface },
+			set_id: number): Promise<void> {
+			const course_id = rootState.session.course.course_id;
+			// console.log(rootState.session);
+			const url = `courses/${course_id}/sets/${set_id}/users`;
+			// console.log(url);
 			const response = await api.get(url);
 			const user_sets = response.data as Array<ParseableMergedUserSet>;
 
 			// TODO: check for errors
 			commit('SET_MERGED_USER_SETS', user_sets.map(_set => new MergedUserSet(_set)));
 		},
-		async fetchUserMergedUserSets({ commit }: { commit: Commit },
-			params: {course_id: number, user_id: number }): Promise<void> {
-			const url = `courses/${params.course_id}/users/${params.user_id}/sets`;
+		async fetchUserMergedUserSets({ commit, rootState }: { commit: Commit; rootState: StateInterface },
+			user_id: number): Promise<void> {
+			const course_id = rootState.session.course.course_id;
+			const url = `courses/${course_id}/users/${user_id}/sets`;
 			const response = await api.get(url);
 			const user_sets = response.data as Array<ParseableMergedUserSet>;
 			// TODO: check for errors
@@ -128,6 +140,15 @@ export default {
 			const updated_user_set = response.data as ParseableMergedUserSet;
 			// TODO: check for errors
 			commit('DELETE_MERGED_USER_SET', new MergedUserSet(updated_user_set));
+		},
+		async fetchUserProblems({ commit, rootState }: { commit: Commit; rootState: StateInterface },
+			user_id: number) {
+			const course_id = rootState.session.course.course_id;
+			const url = `courses/${course_id}/users/${user_id}/problems`;
+			const response = await api.get(url);
+			const user_problems = response.data as Array<ParseableUserProblem>;
+			// TODO: check for errors
+			commit('SET_USER_PROBLEMS', user_problems.map(_problem => new UserProblem(_problem)));
 		},
 		// This clears out all data for use during logout.
 		clearSets({ commit }: { commit: Commit }): void {
@@ -173,6 +194,9 @@ export default {
 			const index = state.merged_user_sets
 				.findIndex((s: MergedUserSet) => s.course_user_id === _user_set.course_user_id);
 			state.merged_user_sets.splice(index, 1);
-		}
+		},
+		SET_USER_PROBLEMS(state: ProblemSetState, _problems: Array<UserProblem>): void {
+			state.user_problems = _problems;
+		},
 	}
 };

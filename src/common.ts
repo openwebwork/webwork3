@@ -47,10 +47,10 @@ export const student_views: Array<ViewInfo> = [
 		sidebars: []
 	},
 	{
-		name: 'Problem Viewer',
-		component_name: 'StudentProblemViewer',
+		name: 'Problem Sets',
+		component_name: 'ProblemSetsContainer',
 		icon: 'preview',
-		route: 'problems',
+		route: 'sets',
 		sidebars: []
 	},
 	{

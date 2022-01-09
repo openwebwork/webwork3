@@ -30,7 +30,7 @@ export default defineComponent({
 		const route = useRoute();
 		await store.dispatch('users/fetchMergedUsers', route.params.course_id);
 		await store.dispatch('problem_sets/fetchProblemSets', route.params.course_id);
-		await store.dispatch('problem_sets/fetchSetProblems', route.params.course_id);
+		await store.dispatch('problem_sets/fetchSetProblems');
 		await store.dispatch('settings/fetchDefaultSettings');
 		await store.dispatch('settings/fetchCourseSettings', route.params.course_id);
 	}
