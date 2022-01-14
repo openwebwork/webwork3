@@ -63,7 +63,7 @@ import { useStore } from 'src/store';
 import { useRouter } from 'vue-router';
 import { useRoute } from 'vue-router';
 import { UserCourse } from 'src/store/models/courses';
-import { endSession } from 'src/api-requests/session';
+import { endSession } from 'src/common/api-requests/session';
 
 export default defineComponent({
 	name: 'MenuBar',

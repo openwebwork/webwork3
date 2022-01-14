@@ -66,7 +66,7 @@ export default defineComponent({
 
 			if (! current_view) { // it may be a child component
 				current_view = views.find((view: ViewInfo) =>
-				 view.children ? view.children?.indexOf(route.name as string) > -1 : false);
+					view.children ? view.children?.indexOf(route.name as string) > -1 : false);
 			}
 
 			logger.debug(`[MainLayout/updateViews] name: ${current_view?.name || 'no name!'}`);

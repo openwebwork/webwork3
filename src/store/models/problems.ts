@@ -1,7 +1,7 @@
 
 /* These are Problem interfaces */
 
-import { RendererParams } from 'src/api-requests/renderer';
+import { RendererParams } from 'src/common/api-requests/renderer';
 import { Dictionary, Model, generic, ParseableModel, ModelField, parseParams } from 'src/store/models/index';
 import { random } from 'src/common/utils';
 
