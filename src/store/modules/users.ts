@@ -8,6 +8,7 @@ import type { ParseableCourseUser, ParseableMergedUser, ParseableUser } from 'sr
 import { User, MergedUser, CourseUser } from 'src/store/models/users';
 import { ResponseError } from 'src/store/models';
 import { UserCourse } from 'src/store/models/courses';
+import { pick } from 'src/common/utils';
 
 export interface UserState {
 	users: Array<User>;
@@ -33,7 +34,10 @@ export default {
 			return state.users;
 		},
 		merged_users(state: UserState): Array<MergedUser> {
-			return state. merged_users;
+			return state.merged_users;
+		},
+		course_users(state: UserState): Array<CourseUser> {
+			return state.course_users;
 		}
 	},
 	actions: {
@@ -108,15 +112,16 @@ export default {
 			return await addCourseUser(_course_user);
 		},
 		async addMergedUser({ commit }: { commit: Commit }, _merged_user: MergedUser): Promise<MergedUser> {
+			let _user: User | undefined;
 			if (_merged_user.user_id === 0) { // this is a new user
-				const _user = await addUser(_merged_user as User) as User;
-				_merged_user.user_id = _user.user_id;
-				_merged_user.username = _user.username;
+				_user = await addUser(_merged_user as User);
+				_merged_user.user_id = _user?.user_id;
+				_merged_user.username = _user?.username;
 			}
-			const f = CourseUser.ALL_FIELDS;
-			const _course_user = _merged_user.toObject(f) as unknown as CourseUser;
-			const cu = await addCourseUser(_course_user);
-			const merged_user = Object.assign(_merged_user, cu, _course_user) as MergedUser;
+
+			const course_user = await addCourseUser(new CourseUser(pick(_merged_user.toObject(),
+				CourseUser.ALL_FIELDS)));
+			const merged_user = Object.assign({}, _user?.toObject() ?? {}, course_user) as MergedUser;
 			commit('ADD_MERGED_USER', merged_user);
 			return merged_user;
 		},
@@ -173,10 +178,10 @@ export default {
 		},
 		DELETE_USER(state: UserState, _user: User): void {
 			const index = state.users.findIndex((u) => u.user_id === _user.user_id);
-			state.users.splice(index, 1);
+			if (index >= 0) state.users.splice(index, 1);
 		},
 		SET_MERGED_USERS(state: UserState, _merged_users: Array<MergedUser>): void {
-			state. merged_users = _merged_users;
+			state.merged_users = _merged_users;
 		},
 		SET_COURSE_USERS(state: UserState, _course_users: Array<CourseUser>): void {
 			state.course_users = _course_users;
@@ -185,24 +190,27 @@ export default {
 			state.course_users.push(_course_user);
 		},
 		ADD_MERGED_USER(state: UserState, _merged_user: MergedUser): void {
-			state. merged_users.push(_merged_user);
+			state.merged_users.push(_merged_user);
 		},
 		UPDATE_MERGED_USER(state: UserState, _merged_user: MergedUser): void {
-			const index = state. merged_users.findIndex((u) => u.course_user_id === _merged_user.course_user_id);
+			const index = state.merged_users.findIndex((u) => u.course_user_id === _merged_user.course_user_id);
 			// splice is used so vue3 reacts to changes.
-			state. merged_users.splice(index, 1, _merged_user);
+			state.merged_users.splice(index, 1, _merged_user);
 		},
 		DELETE_COURSE_USER(state: UserState, _course_user: CourseUser): void {
-			state.course_users.filter((u) => u.course_user_id !== _course_user.course_user_id);
+			const index = state.course_users.findIndex((u) => u.course_user_id === _course_user.course_user_id);
+			if (index >= 0) state.course_users.splice(index, 1);
 		},
 		DELETE_MERGED_USER(state: UserState, _merged_user: MergedUser): void {
-			state.merged_users.filter((u) => u.course_user_id !== _merged_user.course_user_id);
+			const index = state.merged_users.findIndex((u) => u.course_user_id === _merged_user.course_user_id);
+			if (index >= 0) state.merged_users.splice(index, 1);
 		}
 	}
 };
 
 async function addUser(_user: User) {
-	const response = await api.post('users', _user);
+	// console.log(_user.toObject());
+	const response = await api.post('users', pick(_user.toObject(), User.ALL_FIELDS));
 	if (response.status === 200) {
 		const u = response.data as ParseableUser;
 		u.username;
@@ -214,7 +222,7 @@ async function addUser(_user: User) {
 }
 
 async function addCourseUser(_course_user: CourseUser) {
-	const response = await api.post(`courses/${_course_user.course_id ?? 0}/users`, _course_user);
+	const response = await api.post(`courses/${_course_user.course_id ?? 0}/users`, _course_user.toObject());
 	if (response.status === 200) {
 		const u = response.data as ParseableCourseUser;
 		return new CourseUser(u);
