@@ -12,7 +12,6 @@ import { useStore } from 'src/store';
 import { parseNumericRouteParam } from 'src/common';
 
 import Problem from 'src/components/common/Problem.vue';
-import { parse } from 'papaparse';
 
 export default defineComponent({
 	name: 'StudentProblem',
