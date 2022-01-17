@@ -138,3 +138,11 @@ export const admin_views: Array<ViewInfo> = [
 		sidebars: []
 	}
 ];
+
+// This parses route params in a type-safe manner.
+
+export const parseNumericRouteParam = (route_param: string | string []): number => {
+	return Array.isArray(route_param) ?
+		parseInt(route_param[0]) :
+		parseInt(route_param);
+};

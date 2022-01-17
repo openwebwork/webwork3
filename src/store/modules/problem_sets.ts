@@ -5,13 +5,16 @@ import type { StateInterface } from '../index';
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
 import { MergedUserSet, ParseableMergedUserSet, parseMergedUserSet, UserSet } from 'src/common/models/user_sets';
 import { LibraryProblem, SetProblem, ParseableProblem, parseProblem,
-	ParseableSetProblem, UserProblem } from 'src/common/models/problems';
+	ParseableUserProblem, UserProblem, ParseableMergedUserProblem,
+	MergedUserProblem } from 'src/common/models/problems';
+import { logger } from 'boot/logger';
 
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;
 	set_problems: Array<SetProblem>;
 	merged_user_sets: Array<MergedUserSet>;
 	user_problems: Array<UserProblem>;
+	merged_user_problems: Array<MergedUserProblem>;
 }
 
 const initial_state = {
@@ -19,6 +22,7 @@ const initial_state = {
 	set_problems: [],
 	merged_user_sets: [],
 	user_problems: [],
+	merged_user_problems: []
 };
 
 export default {
@@ -36,6 +40,9 @@ export default {
 		},
 		user_problems(state: ProblemSetState): Array<UserProblem> {
 			return state.user_problems;
+		},
+		merged_user_problems(state: ProblemSetState): Array<MergedUserProblem> {
+			return state.merged_user_problems;
 		}
 	},
 	actions: {
@@ -154,6 +161,15 @@ export default {
 			// TODO: check for errors
 			commit('SET_USER_PROBLEMS', user_problems.map(_problem => new UserProblem(_problem)));
 		},
+		async fetchMergedUserProblems({ commit, rootState }: { commit: Commit; rootState: StateInterface },
+			user_id: number) {
+			const course_id = rootState.session.course.course_id;
+			const url = `courses/${course_id}/users/${user_id}/problems?merged=true`;
+			const response = await api.get(url);
+			const user_problems = response.data as Array<ParseableMergedUserProblem>;
+			// TODO: check for errors
+			commit('SET_MERGED_USER_PROBLEMS', user_problems.map(_problem => new MergedUserProblem(_problem)));
+		},
 		// This clears out all data for use during logout.
 		clearSets({ commit }: { commit: Commit }): void {
 			commit('SET_PROBLEM_SETS', []);
@@ -201,6 +217,9 @@ export default {
 		},
 		SET_USER_PROBLEMS(state: ProblemSetState, _problems: Array<UserProblem>): void {
 			state.user_problems = _problems;
+		},
+		SET_MERGED_USER_PROBLEMS(state: ProblemSetState, _problems: Array<MergedUserProblem>): void {
+			state.merged_user_problems = _problems;
 		},
 	}
 };

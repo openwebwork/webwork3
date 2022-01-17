@@ -64,21 +64,21 @@ const routes: RouteRecordRaw[] = [
 							)
 					},
 					{
-						path: 'sets',
-						name: 'ProblemSetsContainer',
+						path: 'sets/:set_id',
+						name: 'StudentProblemContainer',
 						component: () =>
 							import(
-								/* webpackChunkName: "ProblemSetsContainer" */
-								'src/pages/student/ProblemSetsContainer.vue'
+								/* webpackChunkName: "StudentProblemContainer" */
+								'src/pages/student/StudentProblemContainer.vue'
 							),
 						children: [
 							{
-								path: ':set_id',
-								name: 'ProblemSets',
+								path: 'problems/:problem_id',
+								name: 'StudentProblem',
 								component: () =>
 									import(
-										/* webpackChunkName: "ProblemSets" */
-										'src/pages/student/ProblemSets.vue'
+										/* webpackChunkName: "StudentProblem" */
+										'src/pages/student/StudentProblem.vue'
 									)
 							}
 						]

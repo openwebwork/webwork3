@@ -11,7 +11,7 @@
 							clickable
 							v-for="set in open_sets"
 							:key="set.set_id"
-							:to="{name: 'ProblemSets', params: { set_id: set.set_id }}"
+							:to="{name: 'StudentProblemContainer', params: { set_id: set.set_id }}"
 						>
 						{{ set.set_name }}
 						</q-item>
