@@ -51,15 +51,24 @@ sub deleteProblem ($self) {
 }
 
 sub getUserProblems ($self) {
-	my @user_problems = $self->schema->resultset("UserProblem")->getCourseUserProblems(
+	print $self->param("merged") . "\n";
+	my %args = (
 		info => {
 			course_id => int($self->param('course_id')),
 			user_id => int($self->param('user_id'))
 		}
 	);
+	if ($self->param("merged") eq "true") {
+		$args{merged} = 1;
+	}
+	my @user_problems = $self->schema->resultset("UserProblem")->getCourseUserProblems(%args);
+
 	# delete some unneeded fields before sending back
+	my @fields = $self->param("merged") eq "true" ?
+		qw/course_name set_name username/ :
+		qw/course_name problem_number set_name username/;
 	for my $user_problem (@user_problems) {
-		for my $key (qw/course_name problem_number set_name username/){
+		for my $key (@fields){
 			delete $user_problem->{$key} if defined $user_problem->{$key};
 		}
 	}

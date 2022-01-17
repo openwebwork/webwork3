@@ -357,13 +357,15 @@ export class MergedUserProblem extends Model(
 	{
 		user_problem_id: { field_type: 'non_neg_int', default_value: 0 },
 		problem_id: { field_type: 'non_neg_int', default_value: 0 },
+		problem_number: { field_type: 'non_neg_int' },
 		user_set_id: { field_type: 'non_neg_int', default_value: 0 },
 		seed: { field_type: 'non_neg_int', default_value: 0 },
 		status: { field_type: 'number', default_value: 0.0 },
 		problem_version: { field_type: 'non_neg_int', default_value: 0 },
+		set_id: { field_type: 'non_neg_int' }
 	}) {
 	static REQUIRED_FIELDS = ['problem_id', 'user_set_id'];
-	static OPTIONAL_FIELDS = ['user_problem_id', 'seed', 'status', 'problem_version'];
+	static OPTIONAL_FIELDS = ['user_problem_id', 'seed', 'status', 'problem_version', 'problem_number', 'set_id'];
 
 	problem_type = '';
 	_param_fields: ModelField = {
@@ -380,6 +382,18 @@ export class MergedUserProblem extends Model(
 		num_correct: { field_type: 'non_neg_int' },
 		num_incorrect: { field_type: 'non_neg_int' },
 		showMeAnotherCount: { field_type: 'non_neg_int' },
+	}
+
+	renderer_params = {
+		problemSeed: DEFAULT_LIBRARY_SEED,
+		permission_level: 0,
+		outputFormat: 'ww3',
+		answerPrefix: '',
+		showHints: false,
+		showSolutions: false,
+		showPreviewButton: false,
+		showCheckAnswersButton: false,
+		showCorrectAnswersButton: false
 	}
 
 	problem_params: MergedUserProblemParams = {
@@ -419,5 +433,24 @@ export class MergedUserProblem extends Model(
 	path() {
 		const params = this.problem_params;
 		return params.file_path ?? '';
+	}
+
+	// return the RendererRequest params for this Problem
+	requestParams(): RendererParams {
+
+		return {
+			problemSeed: this.seed,
+			outputFormat: this.renderer_params.outputFormat,
+			sourceFilePath: this.path(), // will this respect inheritance?
+			problemNumber: this.problem_number ??  0,
+			answerPrefix: this.renderer_params.answerPrefix,
+			permissionLevel: this.renderer_params.permission_level,
+			language: 'en',
+			showHints: this.renderer_params.showHints,
+			showSolutions: this.renderer_params.showSolutions,
+			showPreviewButton: this.renderer_params.showPreviewButton,
+			showCheckAnswersButton: this.renderer_params.showCheckAnswersButton,
+			showCorrectAnswersButton: this.renderer_params.showCorrectAnswersButton,
+		};
 	}
 }

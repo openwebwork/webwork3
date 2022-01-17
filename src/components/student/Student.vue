@@ -29,7 +29,7 @@ export default defineComponent({
 	async created() {
 		const store = useStore();
 		await store.dispatch('problem_sets/fetchUserMergedUserSets', store.state.session.user.user_id);
-		await store.dispatch('problem_sets/fetchUserProblems', store.state.session.user.user_id);
+		await store.dispatch('problem_sets/fetchMergedUserProblems', store.state.session.user.user_id);
 		await store.dispatch('problem_sets/fetchSetProblems');
 	}
 });
