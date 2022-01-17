@@ -44,10 +44,11 @@ import { defineComponent, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
-import { MergedUser } from 'src/store/models/users';
+import { MergedUser, CourseUser } from 'src/store/models/users';
 import { CourseSetting } from 'src/store/models/settings';
 import { useStore } from 'src/store';
 import { logger } from 'boot/logger';
+import { pick } from 'src/common/utils';
 
 export default defineComponent({
 	props: {
@@ -67,8 +68,11 @@ export default defineComponent({
 		const updateUsers = async () => {
 			const promises: Array<Promise<void>> = [];
 			merged_users.value.forEach(_user => {
-				promises.push(store.dispatch('users/updateCourseUser', _user));
+				// First, only pick the fields from a CourseUser object:
+				const course_user = pick(_user, CourseUser.ALL_FIELDS);
+				promises.push(store.dispatch('users/updateCourseUser', course_user));
 				logger.info(`[EditUsers/updateUsers]: user ${_user.username ?? ''} updated.`);
+				// Additionally, update the merged user in the VUEX store.
 				void store.dispatch('users/updateMergedUser', _user);
 			});
 			await Promise.all(promises)
