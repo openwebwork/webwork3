@@ -40,14 +40,14 @@ my $schema =
 my $t;
 
 if ($TEST_PERMISSIONS) {
-	$config->{ignore_permissions} = 1;
+	$config->{ignore_permissions} = 0;
 	$t = Test::Mojo->new(WeBWorK3 => $config);
 
 	$t->post_ok('/webwork3/api/username' => json => { email => 'admin@google.com', password => 'admin' })
 		->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
 		->json_is('/user/user_id' => 1)->json_is('/user/is_admin' => 1);
 } else {
-	$config->{ignore_permissions} = 0;
+	$config->{ignore_permissions} = 1;
 	$t = Test::Mojo->new(WeBWorK3 => $config);
 }
 
@@ -64,6 +64,10 @@ for my $set (@hw_sets) {
 $t->get_ok('/webwork3/api/courses/2/sets')->status_is(200)->content_type_is('application/json;charset=UTF-8')
 	->json_is('/1/set_name'       => $hw_sets[1]->{set_name})
 	->json_is('/1/set_dates/open' => $hw_sets[1]->{set_dates}->{open});
+
+use Data::Dumper;
+
+print Dumper $t->tx->res->json;
 
 # Extract the id from the response.
 my $set_id = $t->tx->res->json('/2/set_id');

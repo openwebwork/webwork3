@@ -40,13 +40,14 @@ sub has_permission ($user, $perm) {
 
 # Check permission for /api routes
 our $check_permission = sub ($next, $c, $action, $) {
+	return $next->() if ($c->ignore_permissions || $c->req->url->to_string =~ /\/api\/login/x);
 	my $user = $c->current_user;
 	if ($c->stash('course_id')) {
 		my $user_obj    = $c->schema->resultset('User')->getGlobalUser({ user_id => $c->current_user->{user_id} }, 1);
 		my $course_user = $user_obj->course_users->find({ course_id => $c->param('course_id') });
 		$user = { %{$user}, $course_user->get_inflated_columns };
 	}
-	return $next->() if ($c->ignore_permissions || $c->req->url->to_string =~ /\/api\/login/x);
+
 	my $controller_name = $c->{stash}->{controller};
 	my $action_name     = $c->{stash}->{action};
 	if ($c->req->url->to_string =~ /\/api/x) {
