@@ -147,15 +147,17 @@ or an arrayref of C<DBIx::Class::ResultSet::UserProblem>
 
 =cut
 
-sub getCourseUserProblems($self, %args) {
+sub getCourseUserProblems ($self, %args) {
 	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
 
-	my @user_problems = $self->search({
-		'course_users.course_user_id' => $course_user->course_user_id
-	},
-	{
-		join => { user_sets => 'course_users'}
-	});
+	my @user_problems = $self->search(
+		{
+			'course_users.course_user_id' => $course_user->course_user_id
+		},
+		{
+			join => { user_sets => 'course_users' }
+		}
+	);
 
 	return @user_problems if $args{as_result_set};
 
@@ -166,8 +168,6 @@ sub getCourseUserProblems($self, %args) {
 	}
 	return @user_problems_to_return;
 }
-
-
 
 =head1 getUserProblem
 
