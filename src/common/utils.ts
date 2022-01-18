@@ -84,6 +84,16 @@ export const pickBy = <T>(object: { [key: string]: T }, check: (value: T) => boo
 	return obj;
 };
 
+/**
+ * This returns a random integer between ceil(min) and floor(max).
+ *
+ * @param max a number
+ * @param min
+ * @returns a random integer between ceil(min) and floor(max).
+ *
+ * For example, random(5,10) returns one of 5,6,7,8,9
+ */
+
 export const random = (min: number, max: number) => {
 	min = Math.ceil(min);
 	max = Math.floor(max);
