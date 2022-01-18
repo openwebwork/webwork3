@@ -12,8 +12,9 @@
  * Example:
  *
  * const obj = {a: 1, b: 2, c: 3, d: 4}
- * pick(obj,['a', 'c']) returns {a: 1, c: 3}
+ * pick(obj, ['a', 'c']) returns {a: 1, c: 3}
  */
+
 export const pick = <T>(object: { [key: string]: T }, keys: Array<string>): { [key: string]: T } => {
 	return keys.reduce((obj: { [key: string]: T }, key: string) => {
 		if (object && Object.prototype.hasOwnProperty.call(object, key)) {
@@ -91,7 +92,7 @@ export const pickBy = <T>(object: { [key: string]: T }, check: (value: T) => boo
  * @param min
  * @returns a random integer between ceil(min) and floor(max).
  *
- * For example, random(5,10) returns one of 5,6,7,8,9
+ * For example, random(5, 10) returns one of 5, 6, 7, 8, 9
  */
 
 export const random = (min: number, max: number) => {
