@@ -15,7 +15,7 @@ export const mapValues = <T>(object: { [key: string]: T }, mapper: (key: T) => T
 };
 
 export const invert = (object: { [key: string]: string }) => {
-	return Object.keys(object).reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {});
+	return Object.entries(object).reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {});
 };
 
 export const pickBy = <T>(object: { [key: string]: T }, check: (value: T) => boolean) => {
