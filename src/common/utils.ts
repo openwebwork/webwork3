@@ -33,7 +33,15 @@ export const pick = <T>(object: { [key: string]: T }, keys: Array<string>): { [k
  * const obj = { a: 1, b: 2, c: 3, d: 4 };
  * mapValues(obj, (x: number) => x + 1) returns { a: 2, b: 3, c: 4, d: 5 }
  *
- *
+ * This can include nested objects:
+ * const obj2 = {
+ *    apples: { category: 'produce', quantity: 3 },
+ *    hot_dots: { category: 'deli', quantity: 5 },
+ *    ice_cream: { category: 'frozen', quantity: 10 }
+ * };
+ * mapValues(obj2, food => food.category))
+ * returns
+ * { apples: 'produce', hot_dogs: 'deli', ice_cream: 'frozen' }
  */
 
 export const mapValues = <T, S>(object: { [key: string]: T }, mapper: (key: T) => S): { [key: string]: S} => {
@@ -49,7 +57,9 @@ export const mapValues = <T, S>(object: { [key: string]: T }, mapper: (key: T) =
  * @param object Object of the form: { [key: string]: string }
  * @returns the object where the key and value has been swapped.
  *
- *
+ *  invert({ a: '1', b: '2', c: '3', d: '4' })
+ *  returns
+ *  {'1': 'a', '2': 'b', '3': 'c', '4': 'd'}
  */
 
 export const invert = (object: { [key: string]: string }) => {
@@ -74,7 +84,17 @@ export const pickBy = <T>(object: { [key: string]: T }, check: (value: T) => boo
 	return obj;
 };
 
-export const random = (max: number, min: number) => {
+/**
+ * This returns a random integer between ceil(min) and floor(max).
+ *
+ * @param max a number
+ * @param min
+ * @returns a random integer between ceil(min) and floor(max).
+ *
+ * For example, random(5,10) returns one of 5,6,7,8,9
+ */
+
+export const random = (min: number, max: number) => {
 	min = Math.ceil(min);
 	max = Math.floor(max);
 	return Math.floor(Math.random() * (max - min) + min);

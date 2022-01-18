@@ -1,6 +1,6 @@
 // This tests the lodash function replacments in /src/common/utils.ts
 
-import { pick, mapValues, invert, pickBy } from 'src/common/utils';
+import { pick, mapValues, invert, pickBy, random } from 'src/common/utils';
 
 test('testing pick', () => {
 	const obj = { a: 1, b: 2, c: 3, d: 4 };
@@ -54,5 +54,30 @@ test('testing pickBy', () => {
 
 	expect(pickBy(obj2, (v: string) => /^a/.test(v)))
 		.toStrictEqual({ key1: 'apple', key3: 'art history' });
+
+});
+
+test('testing random', () => {
+	// test 1000 random numbers between 5 and 10.
+	// should return numbers in 5,6,7,8,9
+	const arr = [];
+	for (let i = 0; i < 1000; i++) {
+		arr[i] = random(5, 10);
+	}
+
+	expect(arr.filter(v => v >= 5 && v <= 10).length).toBe(1000);
+	expect(arr.filter(v => v == 5).length).toBeGreaterThan(0);
+	expect(arr.filter(v => v == 10).length).toBe(0);
+
+	// test 1000 random numbers between 5.5 and 10.5.
+	// should returns numbers in 6,7,8,9 only.
+	const arr2 = [];
+	for (let i = 0; i < 100; i++) {
+		arr2[i] = random(5.5, 10.5);
+	}
+
+	expect(arr2.filter(v => v >= 5 && v <= 10).length).toBe(100);
+	expect(arr2.filter(v => v == 5).length).toBe(0);
+	expect(arr2.filter(v => v == 10).length).toBe(0);
 
 });
