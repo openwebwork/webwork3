@@ -53,7 +53,7 @@ export const mapValues = <T, S>(object: { [key: string]: T }, mapper: (key: T) =
  */
 
 export const invert = (object: { [key: string]: string }) => {
-	return Object.keys(object).reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {});
+	return Object.entries(object).reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {});
 };
 
 /**
