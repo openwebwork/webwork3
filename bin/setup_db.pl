@@ -95,38 +95,51 @@ if ($database_type eq 'mysql') {
 		exit 1;
 	}
 } elsif ($database_type eq 'Pg') {
-	pod2usage({
-		-message  => 'You must be signed in as the postgres user to create a postgres user.',
-		-verbose  => 99,
-		-sections => 'SYNOPSIS|DESCRIPTION',
-		-exitval  => 1
-	})
-		if (getpwuid($<) ne 'postgres');
+
+	my $postgres_user = $config->{postgres_user} // "postgres";
+	use Data::Dumper;
+	my $dbh;
+
+	try {
+		$dbh = DBI->connect("DBI:Pg:dbname=postgres", "$postgres_user", '', { PrintError => 1, RaiseError => 1 });
+		my $test_write = "SELECT COUNT(*) from information_schema.table_privileges WHERE "
+		. "privilege_type = 'INSERT' AND grantee = '$postgres_user'";
+		my $db_out = $dbh->selectrow_arrayref($test_write);
+
+		# if the user does not have write privileges.
+		if ($db_out->[0] == 0) {
+			pod2usage({
+				-message  => "The user '$postgres_user' does not have write privileges.",
+				-verbose  => 99,
+				-sections => 'SYNOPSIS|DESCRIPTION',
+				-exitval  => 1
+			});
+
+		}
+
+	} catch {
+		say "ERROR: There was an error communicating with postgres.";
+		say "$_";
+		exit 1;
+	};
 
 	my $database_name = $database_attr =~ s/dbname=//gr;
 
-	try {
-		my $dbh = DBI->connect("DBI:Pg:dbname=postgres", 'postgres', '', { PrintError => 0, RaiseError => 1 });
+	# List all databases, and if the database does not already exist, then create it.
+	if (!grep { $_->[0] eq $database_name } @{ $dbh->selectall_arrayref('SELECT datname FROM pg_database') }) {
+		say "Creating database '$database_name'.";
+		$dbh->do(qq{CREATE DATABASE "$database_name"});
+	} else {
+		say "Not Creating database '$database_name'.  Database already exists.";
+	}
 
-		# List all databases, and if the database does not already exist, then create it.
-		if (!grep { $_->[0] eq $database_name } @{ $dbh->selectall_arrayref('SELECT datname FROM pg_database') }) {
-			say "Creating database '$database_name'.";
-			$dbh->do(qq{CREATE DATABASE "$database_name"});
-		} else {
-			say "Not Creating database '$database_name'.  Database already exists.";
-		}
-
-		# List all users, and if the user does not already exist, then create it.
-		if (!grep { $_->[0] eq $config->{database_user} } @{ $dbh->selectall_arrayref('SELECT usename FROM pg_user') })
-		{
-			say "Creating user '$config->{database_user}'.";
-			$dbh->do(qq{CREATE USER "$config->{database_user}" WITH PASSWORD '$config->{database_password}'});
-		} else {
-			say "Not creating user '$config->{database_user}'.  User already exists.";
-		}
-	} catch {
-		say "ERROR: There was an error communicating with postgres.";
-		exit 1;
+	# List all users, and if the user does not already exist, then create it.
+	if (!grep { $_->[0] eq $config->{database_user} } @{ $dbh->selectall_arrayref('SELECT usename FROM pg_user') })
+	{
+		say "Creating user '$config->{database_user}'.";
+		$dbh->do(qq{CREATE USER "$config->{database_user}" WITH PASSWORD '$config->{database_password}'});
+	} else {
+		say "Not creating user '$config->{database_user}'.  User already exists.";
 	}
 }
 
