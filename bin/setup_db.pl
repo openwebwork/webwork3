@@ -9,7 +9,8 @@ setup_db.pl - Create and setup the webwork3 database for production usage.
 setup_db.pl [options]
 
  Options:
-   -h|--help    Show full help
+   -h|--help             Show full help
+   -u|--postgres-user    Postgres user (only needed for postgres)
 
 =head1 DESCRIPTION
 
@@ -20,6 +21,10 @@ C<conf/webwork3.yml> before running this script.
 
 Note that this script must be run as root to create the database and user for
 mysql or mariadb.
+
+This script must be run as a postgres user that has sufficient permissions to
+create a postgres database and user.  If the postgres user you are using is not
+"postgres", then pass the correct user in the --postgres-user option.
 
 At this time it is assumed that the database host is localhost, and this script
 does not support alternate hosts or ports.
@@ -45,8 +50,11 @@ use DBI;
 use DB::Schema;
 use Try::Tiny;
 
-my $showHelp;
-GetOptions('h|help' => \$showHelp);
+my ($showHelp, $postgres_user);
+GetOptions(
+	'h|help'            => \$showHelp,
+	'u|postgres-user=s' => \$postgres_user
+);
 pod2usage({ -verbose => 2, -exitval => 0 }) if $showHelp;
 
 # Load the configuration to obtain the database settings.
@@ -91,55 +99,57 @@ if ($database_type eq 'mysql') {
 		$dbh->do('GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, LOCK TABLES '
 				. "ON $database_name.* TO '$config->{database_user}'\@'localhost'");
 	} catch {
-		say "ERROR: There was an error communicating with mysql.";
+		say 'ERROR: There was an error communicating with mysql.';
 		exit 1;
 	}
 } elsif ($database_type eq 'Pg') {
+	$postgres_user = $postgres_user // 'postgres';
+	pod2usage({
+		-message  => "You must be signed in as '$postgres_user' to create a postgres database and user.",
+		-verbose  => 99,
+		-sections => 'SYNOPSIS|DESCRIPTION',
+		-exitval  => 1
+	})
+		if (getpwuid($<) ne $postgres_user);
 
-	my $postgres_user = $config->{postgres_user} // "postgres";
-	use Data::Dumper;
-	my $dbh;
+	my $database_name = $database_attr =~ s/dbname=//gr;
 
 	try {
-		$dbh = DBI->connect("DBI:Pg:dbname=postgres", "$postgres_user", '', { PrintError => 1, RaiseError => 1 });
-		my $test_write = "SELECT COUNT(*) from information_schema.table_privileges WHERE "
-		. "privilege_type = 'INSERT' AND grantee = '$postgres_user'";
-		my $db_out = $dbh->selectrow_arrayref($test_write);
+		my $dbh = DBI->connect('DBI:Pg:dbname=postgres', $postgres_user, '', { PrintError => 0, RaiseError => 1 });
 
-		# if the user does not have write privileges.
-		if ($db_out->[0] == 0) {
+		# Check to see if the user has the permissions to create databases and users.
+		my $db_perms = $dbh->selectall_arrayref(
+			"SELECT rolcreaterole,rolcreatedb from pg_catalog.pg_roles WHERE rolname = '$postgres_user'");
+
+		unless ($db_perms->[0][0] == 1 && $db_perms->[0][1] == 1) {
 			pod2usage({
-				-message  => "The user '$postgres_user' does not have write privileges.",
+				-message  => "The user '$postgres_user' does not have sufficient privileges.",
 				-verbose  => 99,
 				-sections => 'SYNOPSIS|DESCRIPTION',
 				-exitval  => 1
 			});
-
 		}
 
+		# List all databases, and if the database does not already exist, then create it.
+		if (!grep { $_->[0] eq $database_name } @{ $dbh->selectall_arrayref('SELECT datname FROM pg_database') }) {
+			say "Creating database '$database_name'.";
+			$dbh->do(qq{CREATE DATABASE "$database_name"});
+		} else {
+			say "Not Creating database '$database_name'.  Database already exists.";
+		}
+
+		# List all users, and if the user does not already exist, then create it.
+		if (!grep { $_->[0] eq $config->{database_user} } @{ $dbh->selectall_arrayref('SELECT usename FROM pg_user') })
+		{
+			say "Creating user '$config->{database_user}'.";
+			$dbh->do(qq{CREATE USER "$config->{database_user}" WITH PASSWORD '$config->{database_password}'});
+		} else {
+			say "Not creating user '$config->{database_user}'.  User already exists.";
+		}
 	} catch {
-		say "ERROR: There was an error communicating with postgres.";
-		say "$_";
+		say 'ERROR: There was an error communicating with postgres.';
+		say;
 		exit 1;
-	};
-
-	my $database_name = $database_attr =~ s/dbname=//gr;
-
-	# List all databases, and if the database does not already exist, then create it.
-	if (!grep { $_->[0] eq $database_name } @{ $dbh->selectall_arrayref('SELECT datname FROM pg_database') }) {
-		say "Creating database '$database_name'.";
-		$dbh->do(qq{CREATE DATABASE "$database_name"});
-	} else {
-		say "Not Creating database '$database_name'.  Database already exists.";
-	}
-
-	# List all users, and if the user does not already exist, then create it.
-	if (!grep { $_->[0] eq $config->{database_user} } @{ $dbh->selectall_arrayref('SELECT usename FROM pg_user') })
-	{
-		say "Creating user '$config->{database_user}'.";
-		$dbh->do(qq{CREATE USER "$config->{database_user}" WITH PASSWORD '$config->{database_password}'});
-	} else {
-		say "Not creating user '$config->{database_user}'.  User already exists.";
 	}
 }
 

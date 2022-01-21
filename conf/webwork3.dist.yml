@@ -9,17 +9,13 @@ webwork3_home: .
 database_dsn: dbi:SQLite:./t/db/sample_db.sqlite
 # For mysql or mariadb
 #database_dsn: dbi:mysql:dbname=webwork3
+# For postgres
+#database_dsn: dbi:Pg:dbname=webwork3;host=localhost
 
-# Database credentials for mysql, or mariadb.
+# Database credentials for mysql, mariadb, or postgres.
 # These are ignored if the 'sqlite' database is used.
 database_user: webworkWrite
 database_password: password
-
-# Settings for Postgres
-# database_dsn: dbi:Pg:dbname=webwork3;host=localhost
-# If the postgres user is not postgres, assign the user here.
-# postgres_user: user
-
 
 # URL for the Problem Library (OPLv3)
 opl_url: http:/localhost:3030
