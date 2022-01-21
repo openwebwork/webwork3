@@ -11,7 +11,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
-import { instructor_views, admin_views, ViewInfo } from 'src/common';
+import { instructor_views, admin_views, ViewInfo } from 'src/common/views';
 import { useRouter, useRoute } from 'vue-router';
 
 export default defineComponent({

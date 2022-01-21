@@ -2,7 +2,6 @@
 
 import { Dictionary, parseNonNegInt, Model, ParseError, generic,
 	InvalidFieldsException, ParseableModel, ModelField, parseParams } from 'src/store/models/index';
-import { difference } from 'lodash';
 import { Problem } from './problems';
 
 // const problem_set_types = [/hw/i, /quiz/i, /review/i];
@@ -76,11 +75,13 @@ export class ProblemSet extends Model(
 	}
 
 	setDates(dates: Dictionary<generic> = {}) {
-		// check that only valid dates are present
-		const invalid_dates = difference(Object.keys(dates), this._date_fields);
+		// Check that only valid dates are present.
+		const invalid_dates = Object.keys(dates).filter(date => !this._date_fields.includes(date));
 		if (invalid_dates.length !== 0) {
-			throw new InvalidFieldsException('_all',
-				`The dates(s) '${invalid_dates.join(', ')}' are not valid for ${this.constructor.name}.`);
+			throw new InvalidFieldsException(
+				'_all',
+				`The dates(s) '${invalid_dates.join(', ')}' are not valid for ${this.constructor.name}.`
+			);
 		}
 
 		Object.keys(dates).forEach(key => {

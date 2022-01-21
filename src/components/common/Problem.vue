@@ -54,8 +54,8 @@
 <script lang="ts">
 import { defineComponent, ref, watch, onMounted, nextTick, PropType } from 'vue';
 import type { SubmitButton } from 'src/typings/renderer';
-import { fetchProblem, RendererParams } from 'src/api-requests/renderer';
-import { RENDER_URL } from 'src/constants';
+import { fetchProblem, RendererParams } from 'src/common/api-requests/renderer';
+import { RENDER_URL } from 'src/common/constants';
 import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
 import JQuery from 'jquery';

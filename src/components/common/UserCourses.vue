@@ -18,9 +18,9 @@
 						<template v-for="course in student_courses" :key="course.course_id">
 							<q-item
 								:to="{
-									 name: 'student',
-									 params: { course_id: course.course_id, course_name: course.course_name }
-									 }"
+									name: 'student',
+									params: { course_id: course.course_id, course_name: course.course_name }
+									}"
 								>
 								<q-item-section>
 									<q-item-label>{{ course.course_name }}</q-item-label>
@@ -41,9 +41,9 @@
 						<template v-for="course in instructor_courses" :key="course.course_id">
 							<q-item
 								:to="{
-									 name: 'instructor',
-									 params: { course_id: course.course_id, course_name: course.course_name }
-									 }"
+									name: 'instructor',
+									params: { course_id: course.course_id, course_name: course.course_name }
+									}"
 								>
 								<q-item-section>
 									<q-item-label>{{ course.course_name }}</q-item-label>

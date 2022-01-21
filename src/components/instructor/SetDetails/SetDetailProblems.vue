@@ -29,7 +29,6 @@ import { useStore } from 'src/store';
 import { VueDraggableNext } from 'vue-draggable-next';
 import Problem from 'components/common/Problem.vue';
 import { ProblemSet } from 'src/store/models/problem_sets';
-import { sortBy } from 'lodash-es';
 import { SetProblem } from 'src/store/models/problems';
 import { ResponseError } from 'src/store/models';
 import { logger } from 'boot/logger';
@@ -54,8 +53,9 @@ export default defineComponent({
 		const problem_set = ref<ProblemSet>(new ProblemSet());
 
 		const updateProblemSet = () => {
-			problems.value = sortBy(store.state.problem_sets.set_problems
-				.filter(set => set.set_id === props.set_id), (prob: SetProblem) => prob.problem_number);
+			problems.value = store.state.problem_sets.set_problems.filter(set => set.set_id === props.set_id).concat()
+				.sort((prob_a: SetProblem, prob_b: SetProblem) =>
+					(prob_a?.problem_number ?? 0) - (prob_b?.problem_number ?? 0));
 			problem_set.value = store.state.problem_sets.problem_sets
 				.find(set => set.set_id === props.set_id) || new ProblemSet();
 			logger.debug(`[SetDetailProblems] populating problems... count:${problems.value.length}`);
