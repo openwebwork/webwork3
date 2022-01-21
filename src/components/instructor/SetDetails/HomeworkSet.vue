@@ -29,35 +29,43 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, toRefs } from 'vue';
+import { defineComponent, ref, watch, computed } from 'vue';
 import { useQuasar } from 'quasar';
-import { cloneDeep } from 'lodash-es';
 
 import HomeworkDates from './HomeworkDates.vue';
 import { HomeworkSet } from 'src/store/models/problem_sets';
 import { useStore } from 'src/store';
+import { useRoute } from 'vue-router';
+import { cloneDeep } from 'lodash';
+import { pick } from 'src/common/utils';
+import { Dictionary, generic } from 'src/store/models';
 
 export default defineComponent({
 	components: {
 		HomeworkDates
 	},
 	name: 'HomeworkSet',
-	props: {
-		set_id: Number
-	},
-	setup(props) {
+	setup() {
 		const store = useStore();
+		const route = useRoute();
 		const $q = useQuasar();
 
-		const { set_id } = toRefs(props);
-		const hw = ref<HomeworkSet>(new HomeworkSet());
+		const set = ref<HomeworkSet>(new HomeworkSet());
 
-		const set = ref(hw);
+		const set_id = computed((): number => Array.isArray(route.params.set_id) ?
+			parseInt(route.params.set_id[0]) :
+			parseInt(route.params.set_id));
 
 		const updateSet = () => {
 			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id === set_id.value) ??
 				new HomeworkSet();
-			set.value = new HomeworkSet(s.toObject());
+			// Why isn't clone() always available?  Sometimes when the page is refreshed.
+			// This may be a bug of vuex-persistance.
+			if (s.clone) {
+				set.value = s.clone() as unknown as HomeworkSet;
+			} else {
+				set.value = new HomeworkSet(pick(s as unknown as Dictionary<generic>, HomeworkSet.ALL_FIELDS));
+			}
 		};
 
 		watch(() => set_id.value, updateSet);
@@ -67,16 +75,15 @@ export default defineComponent({
 		// for why we need to do a cloneDeep here
 		watch(() => cloneDeep(set.value), (new_set, old_set) => {
 			// don't update if the homework set changes.
-			if (new_set.set_id == old_set.set_id) {
-				void store.dispatch('problem_sets/updateSet', hw.value);
+			if (new_set['set_id'] == old_set['set_id']) {
+				void store.dispatch('problem_sets/updateSet', set.value);
 				$q.notify({
-					message: `The problem set '${new_set.set_name ?? ''}' was successfully updated.`,
+					message: `The problem set '${new_set['set_name'] as string ?? ''}' was successfully updated.`,
 					color: 'green'
 				});
 
 			}
-		},
-		{ deep: true });
+		}, { deep: true });
 
 		return {
 			set,
@@ -85,6 +92,7 @@ export default defineComponent({
 				{ value: 'QUIZ', label: 'Quiz' },
 				{ value: 'HW', label: 'Homework set' }
 			],
+			set_id
 		};
 	}
 });

@@ -89,7 +89,7 @@ export default defineComponent({
 	setup(props) {
 		const problemText = ref('');
 		const answerTemplate = ref('');
-		const freeProblem = ref<Problem>(props.problem.clone());
+		const freeProblem = ref<Problem>(props.problem.clone() as unknown as Problem);
 		const problem_type = ref(props.problem.problem_type);
 		const problemTextDiv = ref<HTMLElement>();
 		const answerTemplateDiv = ref<HTMLElement>();
@@ -148,7 +148,7 @@ export default defineComponent({
 		};
 
 		watch(() => props.problem, () => {
-			freeProblem.value = props.problem.clone();
+			freeProblem.value = props.problem.clone() as unknown as Problem;
 		}, { deep: true });
 
 		const loadProblem = async (url: string, formData: FormData, overrides: RendererParams) => {

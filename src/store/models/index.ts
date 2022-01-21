@@ -24,9 +24,10 @@ export class ParseError {
 	type: string;
 	message: string;
 	field?: string;
-	constructor(type: string, message: string) {
+	constructor(type: string, message: string, field?: string) {
 		this.type = type;
 		this.message = message;
+		if (field) this.field = field;
 	}
 }
 
@@ -40,13 +41,13 @@ export class NonNegIntException extends ParseError {
 
 export class UsernameParseException extends ParseError {
 	constructor(message: string) {
-		super('UsernameParseExcpeption', message);
+		super('UsernameParseExcpeption', message, 'username');
 	}
 }
 
 export class EmailParseException extends ParseError {
 	constructor(message: string) {
-		super('EmailParseException', message);
+		super('EmailParseException', message, 'email');
 	}
 }
 
@@ -271,7 +272,7 @@ export const Model = <
 		}
 
 		// converts the instance of the class to an regular object.
-		toObject(_fields?: Array<string>) {
+		toObject = (_fields?: Array<string>) => {
 			const obj: Dictionary<generic> = {};
 			const fields = _fields ?? this.all_fields;
 			fields.forEach((key) => {
@@ -282,6 +283,10 @@ export const Model = <
 			return obj;
 		}
 
+		clone = () => {
+			throw 'you must override the clone() method.';
+		}
+
 		/* eslint-enable */
 	}
 
@@ -290,6 +295,7 @@ export const Model = <
 	) => ModelObject<Bool, Num, Str, Dic> & {
 		set(params: Dictionary<generic | Dictionary<generic>>): void;
 		toObject(_fields?: Array<string>): Dictionary<generic>;
+		clone(): typeof Model;
 		all_fields: Array<Bool | Num | Str | Dic>;
 		required_fields: Array<Bool | Num | Str | Dic>[];
 	} extends infer T

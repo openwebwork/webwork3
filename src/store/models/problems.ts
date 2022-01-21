@@ -101,8 +101,8 @@ export class Problem extends Model(
 	}
 
 	// override this in children
-	clone(): Problem {
-		throw 'You must override the clone method';
+	clone = (): typeof Model => {
+		throw 'This class must override the clone() method';
 	}
 
 	// facade for library/set/assigned problems
@@ -165,8 +165,8 @@ export class SetProblem extends Problem {
 		this.renderer_params.problemSeed = random(10000, 99999);
 	}
 
-	clone(): SetProblem {
-		return new SetProblem(this.toObject() as ParseableProblem);
+	clone = (): typeof Model => {
+		return new SetProblem(this.toObject() as ParseableProblem) as unknown as typeof Model;
 	}
 
 	path() {
@@ -208,8 +208,8 @@ export class LibraryProblem extends Problem {
 		this.renderer_params.problemSeed = random(10000, 99999);
 	}
 
-	clone(): LibraryProblem {
-		return new LibraryProblem(this.toObject() as ParseableProblem);
+	clone = (): typeof Model => {
+		return new LibraryProblem(this.toObject() as ParseableProblem) as unknown as typeof Model;
 	}
 
 	path() {

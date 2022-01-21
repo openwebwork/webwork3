@@ -1,8 +1,8 @@
 <template>
 	<q-page class="q-ma-p-lg">
-		<homework-set :set_id="set_id" v-if="set_type==='HW'" />
-		<quiz :set_id="set_id" v-else-if="set_type==='QUIZ'" />
-		<review-set :set_id="set_id" v-else-if="set_type==='REVIEW'" />
+		<homework-set v-if="set_type==='HW'" />
+		<quiz v-else-if="set_type==='QUIZ'" />
+		<review-set v-else-if="set_type==='REVIEW'" />
 	</q-page>
 </template>
 

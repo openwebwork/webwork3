@@ -35,7 +35,6 @@ export interface ParseableProblemSet {
 	course_id?: string | number;
 	set_type?: string;
 	set_visible?: string | number | boolean;
-	set_version?: string | number;
 	set_params?: ProblemSetParams;
 	// set_params?: Dictionary<generic>;
 	set_dates?: ProblemSetDates;
@@ -43,12 +42,11 @@ export interface ParseableProblemSet {
 }
 
 export class ProblemSet extends Model(
-	['set_visible'], ['set_id', 'course_id', 'set_version'], ['set_type', 'set_name'],
+	['set_visible'], ['set_id', 'course_id'], ['set_type', 'set_name'],
 	['set_params', 'set_dates'],
 	{
 		set_type: { field_type: 'string', default_value: 'UNKNOWN' },
 		set_id: { field_type: 'non_neg_int', default_value: 0 },
-		set_version: { field_type: 'non_neg_int', default_value: 1 },
 		set_name: { field_type: 'string' },
 		course_id: { field_type: 'non_neg_int', default_value: 0 },
 		set_visible: { field_type: 'boolean', default_value: false },
@@ -92,6 +90,7 @@ export class ProblemSet extends Model(
 	setParams(params: Dictionary<generic> = {}) {
 		this.set_params = parseParams(params, this._param_fields);
 	}
+
 }
 
 // Quiz interfaces
@@ -122,8 +121,9 @@ export class Quiz extends ProblemSet {
 	set_dates: QuizDates;
 	set_params: QuizParams;
 	constructor(params: ParseableProblemSet = {}) {
-		params.set_type = 'QUIZ';
+
 		super(params as ParseableModel);
+		params.set_type = 'QUIZ';
 		this._date_fields = ['open', 'due', 'answer'];
 		this._param_fields = {
 			timed: {
@@ -149,6 +149,10 @@ export class Quiz extends ProblemSet {
 
 	isValid() {
 		return this.set_dates.open <= this.set_dates.due && this.set_dates.due <= this.set_dates.answer;
+	}
+
+	clone = (): typeof Model => {
+		return new Quiz(this.toObject()) as unknown as typeof Model;
 	}
 }
 
@@ -193,8 +197,8 @@ export class HomeworkSet extends ProblemSet {
 	set_params: HomeworkSetParams;
 	set_dates: HomeworkSetDates;
 	constructor(params: ParseableProblemSet = {}) {
-		params.set_type = 'HW';
 		super(params as ParseableModel);
+		params.set_type = 'HW';
 		this._date_fields = ['open', 'reduced_scoring', 'due', 'answer'];
 
 		this._param_fields = {
@@ -241,6 +245,11 @@ export class HomeworkSet extends ProblemSet {
 		}
 		return false;
 	}
+
+	clone = (): typeof Model => {
+		return new HomeworkSet(this.toObject()) as unknown as typeof Model;
+	}
+
 }
 
 // ReviewSet interfaces
@@ -268,8 +277,8 @@ export class ReviewSet extends ProblemSet {
 	set_dates: ReviewSetDates;
 
 	constructor(params: ParseableProblemSet = {}) {
-		params.set_type = 'REVIEW';
 		super(params as ParseableModel);
+		params.set_type = 'REVIEW';
 		this._date_fields = ['open', 'closed'];
 
 		this.set_dates = {
@@ -280,6 +289,11 @@ export class ReviewSet extends ProblemSet {
 		this.set_params = {};
 		this.setParams(params.set_params as Dictionary<generic>);
 	}
+
+	clone = (): typeof Model => {
+		return new ReviewSet(this.toObject()) as unknown as typeof Model;
+	}
+
 }
 
 export function parseProblemSet(set: ParseableProblemSet) {

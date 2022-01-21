@@ -220,8 +220,7 @@ export default defineComponent({
 				for (const _user of users_to_assign) {
 					const _user_set = new UserSet({
 						set_id: problem_set.value.set_id,
-						course_user_id: _user.course_user_id,
-						set_version: problem_set.value.set_version
+						course_user_id: _user.course_user_id
 					});
 					try {
 						await store.dispatch('problem_sets/addUserSet', _user_set);
