@@ -9,8 +9,7 @@ setup_db.pl - Create and setup the webwork3 database for production usage.
 setup_db.pl [options]
 
  Options:
-   -h|--help             Show full help
-   -u|--postgres-user    Postgres user (only needed for postgres)
+   -h|--help    Show full help
 
 =head1 DESCRIPTION
 
@@ -23,8 +22,8 @@ Note that this script must be run as root to create the database and user for
 mysql or mariadb.
 
 This script must be run as a postgres user that has sufficient permissions to
-create a postgres database and user.  If the postgres user you are using is not
-"postgres", then pass the correct user in the --postgres-user option.
+create a postgres database and user.  On Ubuntu the "postgres" user has these
+permissions, so run this script with C<sudo -u postgres ./setup_db.pl>.
 
 At this time it is assumed that the database host is localhost, and this script
 does not support alternate hosts or ports.
@@ -50,11 +49,8 @@ use DBI;
 use DB::Schema;
 use Try::Tiny;
 
-my ($showHelp, $postgres_user);
-GetOptions(
-	'h|help'            => \$showHelp,
-	'u|postgres-user=s' => \$postgres_user
-);
+my $showHelp;
+GetOptions('h|help' => \$showHelp);
 pod2usage({ -verbose => 2, -exitval => 0 }) if $showHelp;
 
 # Load the configuration to obtain the database settings.
@@ -103,27 +99,19 @@ if ($database_type eq 'mysql') {
 		exit 1;
 	}
 } elsif ($database_type eq 'Pg') {
-	$postgres_user = $postgres_user // 'postgres';
-	pod2usage({
-		-message  => "You must be signed in as '$postgres_user' to create a postgres database and user.",
-		-verbose  => 99,
-		-sections => 'SYNOPSIS|DESCRIPTION',
-		-exitval  => 1
-	})
-		if (getpwuid($<) ne $postgres_user);
-
+	my $user          = getpwuid($<);
 	my $database_name = $database_attr =~ s/dbname=//gr;
 
 	try {
-		my $dbh = DBI->connect('DBI:Pg:dbname=postgres', $postgres_user, '', { PrintError => 0, RaiseError => 1 });
+		my $dbh = DBI->connect('DBI:Pg:dbname=postgres', $user, '', { PrintError => 0, RaiseError => 1 });
 
 		# Check to see if the user has the permissions to create databases and users.
 		my $db_perms = $dbh->selectall_arrayref(
-			"SELECT rolcreaterole,rolcreatedb from pg_catalog.pg_roles WHERE rolname = '$postgres_user'");
+			"SELECT rolcreaterole,rolcreatedb from pg_catalog.pg_roles WHERE rolname = '$user'");
 
 		unless ($db_perms->[0][0] == 1 && $db_perms->[0][1] == 1) {
 			pod2usage({
-				-message  => "The user '$postgres_user' does not have sufficient privileges.",
+				-message  => "The user '$user' does not have sufficient postgres privileges.",
 				-verbose  => 99,
 				-sections => 'SYNOPSIS|DESCRIPTION',
 				-exitval  => 1
