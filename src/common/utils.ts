@@ -45,7 +45,7 @@ export const pick = <T>(object: { [key: string]: T }, keys: Array<string>): { [k
  * { apples: 'produce', hot_dogs: 'deli', ice_cream: 'frozen' }
  */
 
-export const mapValues = <T, S>(object: { [key: string]: T }, mapper: (key: T) => S): { [key: string]: S} => {
+export const mapValues = <T, S>(object: { [key: string]: T }, mapper: (key: T) => S): { [key: string]: S } => {
 	return Object.entries(object).reduce((ret: { [key: string]: S }, [key, obj]) => {
 		ret[key] = mapper(obj);
 		return ret;
