@@ -76,7 +76,7 @@ if ($database_type eq 'mysql') {
 		# List all databases, and if the database does not already exist, then create it.
 		if (!grep { $_->[0] eq $database_name } @{ $dbh->selectall_arrayref('SHOW DATABASES') }) {
 			say "Creating database '$database_name'.";
-			$dbh->do("CREATE DATABASE $database_name");
+			$dbh->do("CREATE DATABASE `$database_name`");
 		} else {
 			say "Not Creating database '$database_name'.  Database already exists.";
 		}
@@ -93,9 +93,10 @@ if ($database_type eq 'mysql') {
 
 		# Grant the necessary permissions to the user.
 		$dbh->do('GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, LOCK TABLES '
-				. "ON $database_name.* TO '$config->{database_user}'\@'localhost'");
+				. "ON `$database_name`.* TO '$config->{database_user}'\@'localhost'");
 	} catch {
 		say 'ERROR: There was an error communicating with mysql.';
+		say;
 		exit 1;
 	}
 } elsif ($database_type eq 'Pg') {
