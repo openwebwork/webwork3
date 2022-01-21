@@ -33,7 +33,7 @@
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue';
 import { useStore } from 'src/store';
-import { CourseSettingInfo, CourseSetting } from 'src/store/models/settings';
+import type { CourseSettingInfo, CourseSetting } from 'src/store/models/settings';
 import SingleSetting from 'src/components/instructor/SingleSetting.vue';
 
 export default defineComponent({
@@ -52,12 +52,8 @@ export default defineComponent({
 			]),
 			getSettings: (cat: string) =>
 				store.state.settings.default_settings.filter((setting: CourseSettingInfo) => setting.category === cat),
-			getSettingValue: (var_name: string) => {
-				const settings = store.state.settings.course_settings.filter(
-					(setting: CourseSetting) => setting.var === var_name
-				);
-				return settings[0].value;
-			}
+			getSettingValue: (store.getters as { [key: string]: (var_name: string) => CourseSetting['value'] })
+				['settings/get_setting_value']
 		};
 	}
 });

@@ -6,6 +6,7 @@
 import { defineComponent } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'src/store';
+import { setI18nLanguage } from 'boot/i18n';
 
 export default defineComponent({
 	name: 'Instructor',
@@ -33,6 +34,10 @@ export default defineComponent({
 		await store.dispatch('problem_sets/fetchSetProblems', route.params.course_id);
 		await store.dispatch('settings/fetchDefaultSettings');
 		await store.dispatch('settings/fetchCourseSettings', route.params.course_id);
+
+		// Set the language from the course settings.
+		await setI18nLanguage((store.getters as { [key: string]: (var_name: string) => string })
+			['settings/get_setting_value']('language'));
 	}
 });
 </script>

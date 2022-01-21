@@ -1,0 +1,10 @@
+---
+  authentication:
+    failure: Your authentication failed.  Please try again.  Please speak with your instructor if you need help.
+    logout: Logout
+  menu_bar:
+    user_settings: User Settings
+  calendar:
+    today: Today
+    prev_week: Previous Week
+    next_week: Next Week
