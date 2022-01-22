@@ -42,6 +42,10 @@ export default defineComponent({
 			problem,
 			loadProblem: () => {
 				problem.value.problem_params.file_path = srcFile.value;
+				problem.value.problem_number = 1;
+				problem.value.renderer_params.showPreviewButton = true;
+				problem.value.renderer_params.showCheckAnswersButton = true;
+				problem.value.renderer_params.showCorrectAnswersButton = true;
 			}
 		};
 	}

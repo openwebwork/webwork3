@@ -33,7 +33,7 @@ export default {
 			return state.users;
 		},
 		merged_users(state: UserState): Array<MergedUser> {
-			return state. merged_users;
+			return state.merged_users;
 		}
 	},
 	actions: {
@@ -176,7 +176,7 @@ export default {
 			state.users.splice(index, 1);
 		},
 		SET_MERGED_USERS(state: UserState, _merged_users: Array<MergedUser>): void {
-			state. merged_users = _merged_users;
+			state.merged_users = _merged_users;
 		},
 		SET_COURSE_USERS(state: UserState, _course_users: Array<CourseUser>): void {
 			state.course_users = _course_users;
@@ -185,12 +185,12 @@ export default {
 			state.course_users.push(_course_user);
 		},
 		ADD_MERGED_USER(state: UserState, _merged_user: MergedUser): void {
-			state. merged_users.push(_merged_user);
+			state.merged_users.push(_merged_user);
 		},
 		UPDATE_MERGED_USER(state: UserState, _merged_user: MergedUser): void {
-			const index = state. merged_users.findIndex((u) => u.course_user_id === _merged_user.course_user_id);
+			const index = state.merged_users.findIndex((u) => u.course_user_id === _merged_user.course_user_id);
 			// splice is used so vue3 reacts to changes.
-			state. merged_users.splice(index, 1, _merged_user);
+			state.merged_users.splice(index, 1, _merged_user);
 		},
 		DELETE_COURSE_USER(state: UserState, _course_user: CourseUser): void {
 			state.course_users.filter((u) => u.course_user_id !== _course_user.course_user_id);

@@ -57,38 +57,35 @@ export class Problem extends Model(
 		library_id: { field_type: 'non_neg_int' },
 		file_path: { field_type: 'string' }
 	};
-	_request_fields: ModelField = {
-		seed: { field_type: 'non_neg_int', default_value: 0 },
-		permission_level: { field_type: 'non_neg_int', default_value: 0 },
-		output_format: { field_type: 'string', default_value: 'ww3' },
-		answer_prefix: { field_type: 'string', default_value: '' },
-		show_hints: { field_type: 'boolean', default_value: false },
-		show_solutions: { field_type: 'boolean', default_value: false },
-		// TODO: drop the button booleans
-		show_preview_button: { field_type: 'boolean', default_value: false },
-		show_check_answers_button: { field_type: 'boolean', default_value: false },
-		show_correct_answers_button: { field_type: 'boolean', default_value: false }
-	}
 	problem_params: ProblemParams = { library_id: 0, file_path: '' };
-	renderer_params = {
+	_request_fields: ModelField = {
+		problemSeed: { field_type: 'non_neg_int', default_value: DEFAULT_LIBRARY_SEED },
+		permissionLevel: { field_type: 'non_neg_int', default_value: 0 },
+		outputFormat: { field_type: 'string', default_value: 'ww3' },
+		answerPrefix: { field_type: 'string', default_value: '' },
+		showHints: { field_type: 'boolean', default_value: false },
+		showSolutions: { field_type: 'boolean', default_value: false },
+		showPreviewButton: { field_type: 'boolean', default_value: false },
+		showCheckAnswersButton: { field_type: 'boolean', default_value: false },
+		showCorrectAnswersButton: { field_type: 'boolean', default_value: false }
+	}
+	renderer_params: RendererParams = {
 		problemSeed: DEFAULT_LIBRARY_SEED,
-		permission_level: 0,
+		permissionLevel: 0,
 		outputFormat: 'ww3',
 		answerPrefix: '',
-		showHints: false,
-		showSolutions: false,
-		showPreviewButton: false,
-		showCheckAnswersButton: false,
-		showCorrectAnswersButton: false
+		language: 'en-US'
 	}
 
 	constructor(params: ParseableProblem = {}) {
 		super(params as ParseableModel);
-		this.setParams(params.problem_params);
+		this.setParams(params.problem_params, params.renderer_params);
 	}
 
-	setParams(params: Dictionary<generic> = {}) {
+	setParams(params: Dictionary<generic> = {}, renderer_params?: Dictionary<generic>) {
 		this.problem_params = parseParams(params, this._param_fields) as ProblemParams;
+		if (renderer_params)
+			this.renderer_params = parseParams(renderer_params, this._request_fields) as RendererParams;
 	}
 
 	isValid() {
@@ -125,8 +122,8 @@ export class Problem extends Model(
 			sourceFilePath: this.path(), // will this respect inheritance?
 			problemNumber: this.problem_number ?? this.problem_params.library_id ?? 0,
 			answerPrefix: this.renderer_params.answerPrefix,
-			permissionLevel: this.renderer_params.permission_level,
-			language: 'en',
+			permissionLevel: this.renderer_params.permissionLevel,
+			language: 'en-US',
 			showHints: this.renderer_params.showHints,
 			showSolutions: this.renderer_params.showSolutions,
 			showPreviewButton: this.renderer_params.showPreviewButton,
@@ -141,8 +138,13 @@ export class SetProblem extends Problem {
 	constructor(params: ParseableProblem = {}) {
 		super(params as ParseableModel);
 		this.problem_type = 'SET';
+
 		this.renderer_params.answerPrefix = `QUESTION_${this.problem_id || 0}`;
 		this.renderer_params.problemSeed = params.renderer_params?.problemSeed ?? 1234;
+		this.renderer_params.showPreviewButton = true;
+		this.renderer_params.showCheckAnswersButton = true;
+		this.renderer_params.showCorrectAnswersButton = true;
+
 		this._param_fields = {
 			file_path: {
 				field_type: 'string'
@@ -170,8 +172,7 @@ export class SetProblem extends Problem {
 	}
 
 	path() {
-		const params = this.problem_params as SetProblemParams;
-		return params.file_path ?? '';
+		return (this.problem_params as SetProblemParams).file_path ?? '';
 	}
 }
 
@@ -182,9 +183,13 @@ export class LibraryProblem extends Problem {
 		// generate blank Problem and fill it in facade-style
 		super(params);
 		this.problem_type = 'LIBRARY';
+
 		// default seed value for viewing library problems
 		this.renderer_params.problemSeed = DEFAULT_LIBRARY_SEED;
-		this.renderer_params.permission_level = 10;
+		this.renderer_params.permissionLevel = 10;
+		this.renderer_params.showPreviewButton = true;
+		this.renderer_params.showCheckAnswersButton = true;
+		this.renderer_params.showCorrectAnswersButton = true;
 
 		this._param_fields = {
 			library_id: {
@@ -194,6 +199,7 @@ export class LibraryProblem extends Problem {
 				field_type: 'string'
 			}
 		};
+
 		// they haven't been assigned, so no problem_id or problem_number
 		// we still need unique problem prefixes, so use library_id as problem_number
 		// this.problem_number = (this.problem_params as LibraryParams).id;

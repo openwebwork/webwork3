@@ -294,8 +294,6 @@ export default defineComponent({
 		};
 
 		const addUsers = async () => {
-			// console.log('in addUsers');
-
 			for await (const _user of merged_users_to_add.value) {
 				_user.course_id = store.state.session.course.course_id;
 				try {
