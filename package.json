@@ -33,6 +33,7 @@
 	"devDependencies": {
 		"@babel/eslint-parser": "^7.13.14",
 		"@quasar/app": "^3.2.1",
+		"@intlify/vue-i18n-loader": "^3.2.0",
 		"@types/bootstrap": "^5.1.6",
 		"@types/jest": "^27.0.2",
 		"@types/jquery": "^3.5.8",
