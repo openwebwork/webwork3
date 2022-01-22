@@ -38,7 +38,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
 import type { PropType } from 'vue';
-import { checkHWDates } from 'src/common';
+import { checkHWDates } from 'src/common/views';
 import { HomeworkSetDates } from 'src/store/models/problem_sets';
 import DateTimeInput from 'components/common/DateTimeInput.vue';
 

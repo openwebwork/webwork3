@@ -58,7 +58,7 @@ import { LibraryProblem } from 'src/store/models/problems';
 import { ResponseError } from 'src/store/models';
 import Problem from 'components/common/Problem.vue';
 import { fetchDisciplines, fetchChapters, fetchSubjects, fetchSections, fetchLibraryProblems, LibraryCategory }
-	from 'src/api-requests/library';
+	from 'src/common/api-requests/library';
 import { logger } from 'boot/logger';
 
 export default defineComponent({

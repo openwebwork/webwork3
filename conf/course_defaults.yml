@@ -29,28 +29,32 @@
   category: general
   doc: Default language for the course
   doc2: >
-    WeBWorK currently has translations for four languages: "English en", "Turkish tr", "Spanish es", and "French fr"
+    WeBWorK currently has translations for the following languages:
+      "English en", "French fr", and "German de"
   type: list
   options:
     -
-      label: English
-      value: en-us
+      label: English (US)
+      value: en-US
     -
-      label: Turkish
-      value: tr
+      label: Deutsch
+      value: de
     -
-      label: Spanish
-      value: es
-    -
-      label: French
+      label: français
       value: fr
-    -
-      label: Chinese (Hong Kong)
-      value: zh_hk
-    -
-      label: Hebrew
-      value: he
-  default: en-us  # select default value here
+    #-
+    #  label: Chinese (Hong Kong)
+    #  value: zh_hk
+    #-
+    #  label: Hebrew
+    #  value: he
+    #-
+    #  label: Spanish
+    #  value: es
+    #-
+    #  label: Turkish
+    #  value: tr
+  default: en-US  # select default value here
 -
   var: per_problem_lang_and_dir_setting_mode
   category: general

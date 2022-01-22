@@ -31,7 +31,7 @@ import { defineComponent, ref, watch } from 'vue';
 import MenuSidebar from './MenuSidebar.vue';
 import MenuBar from './MenuBar.vue';
 
-import { instructor_views, admin_views, ViewInfo } from 'src/common';
+import { instructor_views, admin_views, ViewInfo } from 'src/common/views';
 import { useRoute } from 'vue-router';
 import ProblemSetList from 'components/sidebars/ProblemSetList.vue';
 import UserList from 'components/sidebars/UserList.vue';
@@ -66,7 +66,7 @@ export default defineComponent({
 
 			if (! current_view) { // it may be a child component
 				current_view = views.find((view: ViewInfo) =>
-				 view.children ? view.children?.indexOf(route.name as string) > -1 : false);
+					view.children ? view.children?.indexOf(route.name as string) > -1 : false);
 			}
 
 			logger.debug(`[MainLayout/updateViews] name: ${current_view?.name || 'no name!'}`);

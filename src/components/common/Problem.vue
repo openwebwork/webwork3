@@ -56,9 +56,9 @@
 <script lang="ts">
 import type { PropType } from 'vue';
 import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
-import type { RendererParams, SubmitButton } from 'src/api-requests/renderer';
-import { fetchProblem } from 'src/api-requests/renderer';
-import { RENDER_URL } from 'src/constants';
+import type { RendererParams, SubmitButton } from 'src/common/api-requests/renderer';
+import { fetchProblem } from 'src/common/api-requests/renderer';
+import { RENDER_URL } from 'src/common/constants';
 import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
 import JQuery from 'jquery';

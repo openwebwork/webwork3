@@ -57,7 +57,6 @@ import { User, MergedUser, ParseableMergedUser } from 'src/store/models/users';
 import { ResponseError } from 'src/store/models';
 import { CourseSetting } from 'src/store/models/settings';
 import { AxiosError } from 'axios';
-import { remove, clone } from 'lodash';
 
 export default defineComponent({
 	name: 'AddUsersManually',
@@ -91,13 +90,11 @@ export default defineComponent({
 					}
 				}
 			},
-			roles: computed(() => { // return an array of the roles in the course
-				const all_roles = store.state.settings.course_settings.find(
-					(_setting: CourseSetting) => _setting.var === 'roles'
-				);
-				const r = clone(all_roles?.value as Array<string>);
-				remove(r, (v) => v === 'admin'); // don't allow to set admin level here.
-				return r;
+			roles: computed(() => {
+				// Return an array of the roles in the course.
+				return (store.state.settings.course_settings.find(
+					(setting: CourseSetting) => setting.var === 'roles'
+				)?.value as Array<string>).filter(v => v !== 'admin');
 			}),
 			addUser: async (close: boolean) => {
 				try {

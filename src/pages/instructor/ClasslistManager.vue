@@ -57,10 +57,9 @@
 import { useQuasar } from 'quasar';
 import { defineComponent, computed, ref } from 'vue';
 
-import { pick } from 'lodash-es';
 import { useStore } from 'src/store';
 import { api } from 'boot/axios';
-import { MergedUser, CourseUser } from 'src/store/models/users';
+import { MergedUser } from 'src/store/models/users';
 import { UserCourse } from 'src/store/models/courses';
 import { ResponseError } from 'src/store/models';
 import AddUsersManually from 'src/components/instructor/ClasslistManagerComponents/AddUsersManually.vue';
@@ -151,15 +150,12 @@ export default defineComponent({
 				const users_to_delete = selected.value.map((u) => u.username).join(', ');
 				var conf = confirm(`Are you sure you want to delete the users: ${users_to_delete}`);
 				if (conf) {
-					for await (const _user of selected.value) {
-						const username = _user.username as string;
-						const _user_to_delete = pick(_user, CourseUser.ALL_FIELDS) as CourseUser;
-
+					for await (const user of selected.value) {
 						try {
-
-							await store.dispatch('users/deleteCourseUser', _user_to_delete);
+							await store.dispatch('users/deleteCourseUser', user);
 							$q.notify({
-								message: `The user '${username}' has been succesfully deleted from the course.`,
+								message: `The user '${
+									user.username ?? ''}' has been succesfully deleted from the course.`,
 								color: 'green'
 							});
 						} catch (err) {
@@ -167,15 +163,14 @@ export default defineComponent({
 							$q.notify({ message: error.message, color: 'red' });
 						}
 						// delete the user if they have no other courses
-						const user_id = _user_to_delete.user_id as number;
-						const response = await api.get(`users/${user_id}/courses`);
+						const response = await api.get(`users/${user.user_id ?? ''}/courses`);
 						const user_courses = response.data as  Array<UserCourse>;
 
 						if (user_courses.length === 0) {
 							try {
-								await store.dispatch('users/deleteUser', _user_to_delete);
+								await store.dispatch('users/deleteUser', user);
 								$q.notify({
-									message: `The user '${username}' has been succesfully deleted.`,
+									message: `The user '${user.username ?? ''}' has been succesfully deleted.`,
 									color: 'green'
 								});
 							} catch (err) {
@@ -183,7 +178,7 @@ export default defineComponent({
 								$q.notify({ message: error.message, color: 'red' });
 							}
 						}
-						void store.dispatch('users/deleteMergedCourseUser', _user);
+						void store.dispatch('users/deleteMergedCourseUser', user);
 						selected.value = [];
 					}
 				}

@@ -75,6 +75,15 @@ module.exports = configure(function (ctx) {
 					});
 				}
 
+				if (cfg.optimization && cfg.optimization.splitChunks) {
+					cfg.optimization.splitChunks.cacheGroups.defaultVendors = {
+						test: /[\\/]node_modules[\\/]/,
+						name(module) { return module.identifier().split('/').reduceRight((item) => item); },
+						chunks: 'all',
+						reuseExistingChunk: true
+					};
+				}
+
 				cfg.module.rules.push ({
 					test: /\.m?js/,
 					resolve: {
@@ -84,6 +93,14 @@ module.exports = configure(function (ctx) {
 							fs: false
 						}
 					}
+				});
+
+				// For i18n resources (json/json5/yaml)
+				cfg.module.rules.push({
+					test: /\.(json5?|ya?ml)$/,
+					type: 'javascript/auto',
+					include: [ path.resolve(__dirname, './src/locales') ],
+					loader: '@intlify/vue-i18n-loader'
 				});
 			}
 		},

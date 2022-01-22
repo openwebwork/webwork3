@@ -30,7 +30,7 @@
 <script lang="ts">
 import { defineComponent, ref, watch, toRefs } from 'vue';
 import { useQuasar } from 'quasar';
-import { cloneDeep, pick } from 'lodash-es';
+import { cloneDeep } from 'lodash-es';
 
 import QuizDates from './QuizDates.vue';
 import { Quiz } from 'src/store/models/problem_sets';
@@ -63,9 +63,7 @@ export default defineComponent({
 		// for why we need to do a cloneDeep here
 		watch(() => cloneDeep(set.value), (new_set, old_set) => {
 			if (new_set.set_id === old_set.set_id) {
-				// cloning above in the watch statement changes that it is a Quiz
-				const _set = new Quiz(pick(new_set, Quiz.ALL_FIELDS));
-				void store.dispatch('problem_sets/updateSet', _set);
+				void store.dispatch('problem_sets/updateSet', new_set);
 				$q.notify({
 					message: `The problem set '${new_set.set_name ?? ''}' was successfully updated.`,
 					color: 'green'

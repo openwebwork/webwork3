@@ -23,8 +23,9 @@
 <script lang="ts">
 import { useRouter } from 'vue-router';
 import { defineComponent, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useStore } from 'src/store';
-import { checkPassword } from 'src/api-requests/session';
+import { checkPassword } from 'src/common/api-requests/session';
 
 export default defineComponent({
 	name: 'username',
@@ -33,6 +34,7 @@ export default defineComponent({
 		const username = ref('');
 		const password = ref('');
 		const message = ref('');
+		const i18n = useI18n({ useScope: 'global' });
 
 		const store = useStore();
 		const login = async () => {
@@ -42,7 +44,7 @@ export default defineComponent({
 			};
 			const session = await checkPassword(username_info);
 			if (!session.logged_in) {
-				message.value = session.message;
+				message.value = i18n.t('authentication.failure');
 			} else {
 				// success
 				void store.dispatch('session/updateSessionInfo', session);

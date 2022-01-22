@@ -3,23 +3,12 @@ import { InjectionKey } from 'vue';
 import { createStore, Store as VuexStore, useStore as vuexUseStore } from 'vuex';
 import createPersistedState from 'vuex-persistedstate';
 
-import session from './modules/session';
-import { SessionState } from './modules/session';
-
-import users from './modules/users';
-import { UserState } from './modules/users';
-
-import settings from './modules/settings';
-import { SettingsState } from './modules/settings';
-
-import problem_sets from './modules/problem_sets';
-import { ProblemSetState } from './modules/problem_sets';
-
-import courses from './modules/courses';
-import { CourseState } from './modules/courses';
-
-import app_state from './modules/app_state';
-import { AppState } from './modules/app_state';
+import session, { SessionState } from './modules/session';
+import users, { UserState } from './modules/users';
+import settings, { SettingsState } from './modules/settings';
+import problem_sets, { ProblemSetState } from './modules/problem_sets';
+import courses, { CourseState } from './modules/courses';
+import app_state, { AppState } from './modules/app_state';
 
 export interface StateInterface {
 	// Define your own store structure, using submodules if needed
