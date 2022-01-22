@@ -57,8 +57,9 @@ export class BooleanParseException extends ParseError {
 }
 
 export class RequiredFieldsException extends ParseError {
-	constructor(_field: string, message: string) {
-		super('RequiredFieldsException', message);
+	constructor(_field: string, message?: string) {
+		const msg = message ?? `You must provide the field '${_field}'`;
+		super('RequiredFieldsException', msg);
 		this.field = _field;
 	}
 }
