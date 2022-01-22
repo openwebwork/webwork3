@@ -67,7 +67,7 @@ import { useRouter } from 'vue-router';
 import { useRoute } from 'vue-router';
 import { UserCourse } from 'src/store/models/courses';
 import type { CourseSettingInfo } from 'src/store/models/settings';
-import { endSession } from 'src/api-requests/session';
+import { endSession } from 'src/common/api-requests/session';
 import { useI18n } from 'vue-i18n';
 import { setI18nLanguage } from 'boot/i18n';
 

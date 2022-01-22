@@ -1,6 +1,6 @@
 <template>
 	<q-card v-if="problemText" class="bg-grey-3">
-		<q-card-section v-if="problem_type=='LIBRARY'">
+		<q-card-section v-if="problem_type === 'LIBRARY'">
 			<q-btn-group push>
 				<q-btn size="sm" push icon="add" @click="$emit('addProblem')" />
 				<q-btn size="sm" push icon="edit" />
@@ -9,8 +9,8 @@
 			</q-btn-group>
 		</q-card-section>
 
-		<q-card-section v-if="problem_type==='SET'">
-			<span class="div-h6 number-border">{{freeProblem.problem_number}}</span>
+		<q-card-section v-if="problem_type === 'SET'">
+			<span class="div-h6 problem-number">{{freeProblem.problem_number}}</span>
 			<q-btn-group push>
 				<q-btn size="sm" icon="height" class="move-handle" />
 				<q-btn size="sm" push icon="delete" @click="$emit('removeProblem',freeProblem)" />
@@ -24,6 +24,8 @@
 			file path: {{ freeProblem.path() }}
 		</q-card-section>
 
+		<q-separator v-if="problem_type === 'LIBRARY' || problem_type === 'SET'" />
+
 		<q-card-section v-if="answerTemplate" class="q-pa-sm bg-white">
 			<div ref="answerTemplateDiv" v-html="answerTemplate" class="pg-answer-template-container" />
 		</q-card-section>
@@ -33,8 +35,8 @@
 		<q-card-section v-if="problemText===''">
 			<div><q-spinner-ios color="primary" size="2em" /></div>
 		</q-card-section>
-		<q-card-section class="q-pa-sm" v-else>
-			<div ref="problemTextDiv" v-html="problemText" class="pg-problem-container" />
+		<q-card-section class="q-pa-sm pg-problem-container" v-else>
+			<div ref="problemTextDiv" v-html="problemText" />
 		</q-card-section>
 
 		<q-separator v-if="submitButtons.length"/>
@@ -42,8 +44,8 @@
 		<q-card-actions class="q-pa-sm bg-white" v-if="submitButtons.length">
 			<q-btn v-for="button in submitButtons"
 				:key="button.name" :name="button.name"
-				:id="`${freeProblem.answer_prefix}${button.name}`"
-				type="submit" :form="`${freeProblem.answer_prefix}problemMainForm`"
+				:id="`${freeProblem.renderer_params.answerPrefix}${button.name}`"
+				type="submit" :form="`${freeProblem.renderer_params.answerPrefix}problemMainForm`"
 				color="primary" @click="submitButton = button" no-caps>
 				{{ button.value }}
 			</q-btn>
@@ -52,9 +54,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, onMounted, nextTick, PropType } from 'vue';
-import type { SubmitButton } from 'src/typings/renderer';
-import { fetchProblem, RendererParams } from 'src/common/api-requests/renderer';
+import type { PropType } from 'vue';
+import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
+import type { RendererParams, SubmitButton } from 'src/common/api-requests/renderer';
+import { fetchProblem } from 'src/common/api-requests/renderer';
 import { RENDER_URL } from 'src/common/constants';
 import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
@@ -205,7 +208,6 @@ export default defineComponent({
 					Array.from(origScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
 					newScript.appendChild(document.createTextNode(origScript.innerHTML));
 					origScript.parentNode?.replaceChild(newScript, origScript);
-
 				});
 			}
 
@@ -221,7 +223,6 @@ export default defineComponent({
 			window.dispatchEvent(new Event('PGContentLoaded'));
 
 			insertNativeListeners();
-			submitButton.value = undefined; // make sure to reset the submit button -- necessary?
 		};
 
 		const problemForm = ref<HTMLFormElement>();
@@ -252,7 +253,9 @@ export default defineComponent({
 					return;
 				}
 				void loadProblem(problemForm.value?.action ?? RENDER_URL, new FormData(problemForm.value), {
-					[submitButton.value.name]: submitButton.value.value, ...freeProblem.value.requestParams() });
+					[submitButton.value.name]: submitButton.value.value,
+					...freeProblem.value.requestParams()
+				});
 			});
 		};
 
@@ -264,31 +267,9 @@ export default defineComponent({
 		watch(freeProblem, initialLoad, { deep: true });
 
 		onMounted(async () => {
-			await Promise.all([
-				'js/MathQuill/mathquill.css',
-				'js/MathQuill/mqeditor.css',
-				'js/ImageView/imageview.css',
-				'js/Knowls/knowl.css'
-			].map(
-				async (cssSource) => {
-					await loadResource(cssSource).
-						catch(() => logger.log('error', `Could not load ${cssSource}`));
-				}
-			));
-
-			await Promise.all(([
-				['mathjax/tex-chtml.js', 'MathJax-script'],
-				['js/MathQuill/mathquill.js'],
-				['js/MathQuill/mqeditor.js'],
-				['js/ImageView/imageview.js'],
-				['js/Knowls/knowl.js'],
-				['js/InputColor/color.js']
-			] as Array<[string, string?]>).map(
-				async (jsSource) => {
-					await loadResource(...jsSource).
-						catch(() => logger.log('error', `Could not load ${jsSource[0]}`));
-				}
-			));
+			// Load MathJax
+			await loadResource('mathjax/tex-chtml.js', 'MathJax-script')
+				.catch(() => logger.log('error', 'Could not load mathjax/tex-chtml.js'));
 
 			await nextTick();
 
@@ -319,9 +300,33 @@ export default defineComponent({
 </style>
 
 <style lang="scss" scoped>
-@use "src/css/pg.scss";
+.pg-problem-container {
+	background-color: #f5f5f5;
 
-.number-border {
+	// Override a few of the styles from the dynamically loaded problem.css
+
+	:deep(.problem-main-form) {
+		margin: 0;
+	}
+
+	:deep(.problem-content) {
+		border: none;
+		box-shadow: unset;
+		margin: 0;
+	}
+}
+
+// Answer template
+
+:deep(.pg-answer-template-container) {
+	// We don't have the bootstrap mb-2 class, so add its style.
+
+	.mb-2 {
+		margin-bottom: 0.5rem !important;
+	}
+}
+
+.problem-number {
 	border: 1px black solid;
 	padding: 3px;
 }
