@@ -20,34 +20,37 @@ export interface RenderParamsFields extends Dictionary<generic> {
 	showPreviewButton: boolean;
 	showCheckAnswerButton: boolean;
 	showCorrectAnswerButton: boolean;
+	sourceFilePath: string;
 }
 
 // This provides fields to store rendering information as well as methods
 // needed for rendering.
 
-class RenderParams extends ModelParams(
+export class RenderParams extends ModelParams(
 	// Boolean fields
-	['show_hints', 'show_solutions', 'show_preview_button', 'show_check_answers_button',
-		'show_correct_answers_button'],
+	['showHints', 'showSolutions', 'showPreviewButton', 'showCheckAnswersButton',
+		'showCorrectAnswersButton'],
 	// Number fields
-	['permission_level', 'seed'],
+	['permission_level', 'problemSeed'],
 	// String fields
-	['output_format', 'answer_prefix'],  {
-		seed: { field_type: 'non_neg_int', default_value: 0 },
+	['outputFormat', 'answerPrefix', 'sourceFilePath'],  {
+		problemSeed: { field_type: 'non_neg_int', default_value: 1234 },
 		permission_level: { field_type: 'non_neg_int', default_value: 0 },
-		output_format: { field_type: 'string', default_value: 'ww3' },
-		answer_prefix: { field_type: 'string', default_value: '' },
-		show_hints: { field_type: 'boolean', default_value: false },
-		show_solutions: { field_type: 'boolean', default_value: false },
+		outputFormat: { field_type: 'string', default_value: 'ww3' },
+		answerPrefix: { field_type: 'string', default_value: '' },
+		sourceFilePath: { field_type: 'string', default_value: '' },
+		showHints: { field_type: 'boolean', default_value: false },
+		showSolutions: { field_type: 'boolean', default_value: false },
 		// TODO: drop the button booleans
-		show_preview_button: { field_type: 'boolean', default_value: false },
-		show_check_answers_button: { field_type: 'boolean', default_value: false },
-		show_correct_answers_button: { field_type: 'boolean', default_value: false }
+		showPreviewButton: { field_type: 'boolean', default_value: false },
+		showCheckAnswersButton: { field_type: 'boolean', default_value: false },
+		showCorrectAnswersButton: { field_type: 'boolean', default_value: false }
 	}) {
 
 	constructor(params: Dictionary<generic> = {}) {
 		super(params);
 	}
+
 }
 
 /* The following is a method to have multiple inheritance via mixins.
@@ -67,6 +70,10 @@ export function AddRendering<TBase extends Constructor<Model>>(Base: TBase) {
 
 		get render_params() {
 			return this._render_params.toObject();
+		}
+
+		requestParams() {
+			return this.render_params;
 		}
 	};
 }

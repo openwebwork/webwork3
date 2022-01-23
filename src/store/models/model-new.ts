@@ -88,7 +88,7 @@ const checkForInvalidFields = (model: WithFields, field_names: string []) => {
 	}
 };
 
-export const parseParams = (_params: Dictionary<generic | Dictionary<generic>>, _fields: ModelField) => {
+export const parseParams = (_params: Partial<Dictionary<generic | Dictionary<generic>>>, _fields: ModelField) => {
 	const output_params: Dictionary<generic> = {};
 	Object.keys(_fields).forEach((key: string) => {
 		// set the default value if missing and default_value exists
@@ -149,7 +149,7 @@ export const ModelParams = <
 			checkRequiredfields(this, Object.keys(params));
 
 			// check that no invalid params are set
-			checkForInvalidFields(this, Object.keys(params));
+			// checkForInvalidFields(this, Object.keys(params));
 
 			const parsed_params = parseParams(params, this._field_types);
 			this.all_field_names.forEach((key) => {
@@ -175,9 +175,9 @@ export const ModelParams = <
 			return this._field_types;
 		}
 
-		set(params: Dictionary<generic>) {
+		set(params: Partial<Dictionary<generic>>) {
 			// Check that no invalid params are set.
-			checkForInvalidFields(this, Object.keys(params));
+			// checkForInvalidFields(this, Object.keys(params));
 
 			// Parse and assign only params that are passed in.
 			const parsed_params = parseParams(params, this._field_types);
@@ -218,25 +218,38 @@ export const ModelParams = <
 
 interface ParamMethods {
 	toObject(_fields?: Array<string>): Dictionary<generic>;
-	set(params: Dictionary<generic>): void;
+	set(params: Partial<Dictionary<generic>>): void;
 }
 
 export class Model {
 
 	get all_field_names(): string[] {
 		throw 'You must override this method.';
-		return [];
 	}
 
-	toObject(_fields?: string[]): Dictionary<generic> {
-		const obj: Dictionary<generic> = {};
+	get param_fields(): string[] {
+		throw 'You must override this method in a subclass.';
+	}
+
+	toObject(_fields?: string[]): Dictionary<generic | Dictionary<generic>> {
+		const obj: Dictionary<generic | Dictionary<generic>> = {};
 		const fields = _fields ?? this.all_field_names;
 		fields.forEach((key) => {
 			if (this[key as keyof this] !== undefined) {
-				obj[key] = (this as unknown as Dictionary<generic>)[key];
+				if (this.param_fields.indexOf(key) >= 0) {
+					const param_obj = (this as unknown as Dictionary<generic>)[key] as
+						unknown as { toObject(): Dictionary<generic>};
+					obj[key] = param_obj.toObject();
+				} else {
+					obj[key] = (this as unknown as Dictionary<generic>)[key];
+				}
 			}
 		});
 		return obj;
+	}
+
+	clone(): Model {
+		throw 'The clone method must be overridden in a subclass.';
 	}
 
 }

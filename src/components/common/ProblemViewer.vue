@@ -12,7 +12,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import Problem from './Problem.vue';
-import { LibraryProblem } from 'src/store/models/problems';
+import { LibraryProblem } from 'src/store/models/problems-new';
 
 export default defineComponent({
 	name: 'ProblemViewer',
@@ -41,11 +41,7 @@ export default defineComponent({
 			file,
 			problem,
 			loadProblem: () => {
-				problem.value.problem_params.file_path = srcFile.value;
-				problem.value.problem_number = 1;
-				problem.value.renderer_params.showPreviewButton = true;
-				problem.value.renderer_params.showCheckAnswersButton = true;
-				problem.value.renderer_params.showCorrectAnswersButton = true;
+				problem.value.setLibraryParams({ file_path: srcFile.value });
 			}
 		};
 	}

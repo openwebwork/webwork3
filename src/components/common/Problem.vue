@@ -65,7 +65,7 @@ import JQuery from 'jquery';
 import { logger } from 'boot/logger';
 
 import typeset from './mathjax-config';
-import { Problem } from 'src/store/models/problems';
+import { Problem } from 'src/store/models/problems-new';
 
 declare global {
 	interface Window {
@@ -93,14 +93,15 @@ export default defineComponent({
 		const problemText = ref('');
 		const answerTemplate = ref('');
 		const freeProblem = ref<Problem>(props.problem.clone());
-		const problem_type = ref(props.problem.problem_type);
+		const problem_type = ref<string>(props.problem.problem_type);
 		const problemTextDiv = ref<HTMLElement>();
 		const answerTemplateDiv = ref<HTMLElement>();
 		const submitButtons = ref<Array<SubmitButton>>([]);
 		const submitButton = ref<SubmitButton>();
 		const activePopovers: Array<InstanceType<typeof bootstrap.Popover>> = [];
 
-		logger.debug(`[Problem/setup] file: ${freeProblem.value.path()}, type: ${freeProblem.value.problem_type}`);
+		logger.debug(`[Problem/setup] file: ${freeProblem.value.path()},` +
+			` type: ${freeProblem.value.problem_type}`);
 		const loadResource = async (src: string, id?: string) => {
 			return new Promise<void>((resolve, reject) => {
 				let shouldAppend = false;
@@ -235,7 +236,7 @@ export default defineComponent({
 				return;
 			}
 
-			problemForm.value.id = `${freeProblem.value.renderer_params.answerPrefix || ''}problemMainForm`;
+			problemForm.value.id = `${freeProblem.value.render_params.answerPrefix || ''}problemMainForm`;
 
 			// Add a click handler to any submit buttons in the problem form.
 			// Some Geogebra problems add one of these for example.
@@ -252,16 +253,17 @@ export default defineComponent({
 					logger.error('No button was pressed...');
 					return;
 				}
+				const render_params = freeProblem.value.requestParams() as unknown as RendererParams;
 				void loadProblem(problemForm.value?.action ?? RENDER_URL, new FormData(problemForm.value), {
-					[submitButton.value.name]: submitButton.value.value,
-					...freeProblem.value.requestParams()
+					[submitButton.value.name]: submitButton.value.value, ...render_params
 				});
 			});
 		};
 
 		const initialLoad = () => {
 			logger.debug('[Problem/initialLoad] I have been called.');
-			void loadProblem(RENDER_URL, new FormData(), freeProblem.value.requestParams());
+			const r = freeProblem.value.requestParams() as unknown as RendererParams;
+			void loadProblem(RENDER_URL, new FormData(), r);
 		};
 
 		watch(freeProblem, initialLoad, { deep: true });
