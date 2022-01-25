@@ -65,7 +65,7 @@ import JQuery from 'jquery';
 import { logger } from 'boot/logger';
 
 import typeset from './mathjax-config';
-import { Problem } from 'src/store/models/problems-new';
+import { Problem } from 'src/common/models/problems';
 
 declare global {
 	interface Window {

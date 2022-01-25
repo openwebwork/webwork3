@@ -1,7 +1,7 @@
 // This tests the general features of instances of a ModelParam
 
-import { ModelParams, RequiredFieldsException } from 'src/store/models/model-new';
-import { BooleanParseException, NumberParseException, StringParseException } from 'src/store/models/parsers-new';
+import { ModelParams, RequiredFieldsException } from 'src/common/models';
+import { BooleanParseException, NumberParseException, StringParseException } from 'src/common/models/parsers';
 
 class SampleParams extends ModelParams(['bool1', 'bool2'], ['num1', 'num2'], ['str1'],
 	{

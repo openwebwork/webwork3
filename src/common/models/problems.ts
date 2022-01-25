@@ -1,5 +1,5 @@
-import { Model, ModelParams, Dictionary, generic } from './model-new';
-import { RenderParams, RenderParamsFields } from './renderer-new';
+import { Model, ModelParams, Dictionary, generic } from '.';
+import { RenderParams, RenderParamsFields } from './renderer';
 
 // This is associated with problems from the Library (OPLv3 or local)
 

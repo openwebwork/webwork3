@@ -1,6 +1,6 @@
 
-import { parseNonNegInt, parseUsername, parseBoolean, parseEmail,
-	RequiredFieldsException } from './index';
+import { parseNonNegInt, parseUsername, parseBoolean, parseEmail } from 'src/common/models/parsers';
+import { RequiredFieldsException } from 'src/common/models';
 
 export interface ParseableUser {
 	user_id?: number | string;
@@ -14,7 +14,7 @@ export interface ParseableUser {
 
 export class User {
 	private _user_id = 0;
-	private _username = '__NEW__';
+	private _username = '';
 	private _email?: string;
 	private _first_name?: string;
 	private _last_name?: string;

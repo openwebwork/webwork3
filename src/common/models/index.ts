@@ -1,7 +1,7 @@
 // This is the Model Params as a Class
 
 import { parseNonNegInt, parseBoolean, parseUsername, parseUserRole, parseEmail,
-	parseNumber, parseString } from './parsers-new';
+	parseNumber, parseString } from './parsers';
 
 import { pickBy } from 'src/common/utils';
 
@@ -32,8 +32,9 @@ export class RequiredFieldsException extends ParseError {
 }
 
 export class InvalidFieldsException extends ParseError {
-	constructor(_field: string, message: string) {
-		super('InvalidFieldsException', message);
+	constructor(_field: string, message?: string) {
+		const msg = message ?? `The field ${_field} is not valid.`;
+		super('InvalidFieldsException', msg);
 		this.field = _field;
 	}
 }

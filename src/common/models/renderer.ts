@@ -3,7 +3,7 @@
 
 // This also contains functionality for a mixin to pull in the functionality.
 
-import { generic, Dictionary, ModelParams, Model } from './model-new';
+import { generic, Dictionary, ModelParams, Model } from '.';
 export interface LibraryParams {
 	library_id?: number;
 	file_path?: string;
