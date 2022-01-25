@@ -225,11 +225,11 @@ interface ParamMethods {
 export class Model {
 
 	get all_field_names(): string[] {
-		throw 'You must override this method.';
+		throw 'You must override the getter all_field_names in the subclass.';
 	}
 
 	get param_fields(): string[] {
-		throw 'You must override this method in a subclass.';
+		throw 'You must override the getter param_fields in the subclass.';
 	}
 
 	toObject(_fields?: string[]): Dictionary<generic | Dictionary<generic>> {
@@ -251,6 +251,15 @@ export class Model {
 
 	clone(): Model {
 		throw 'The clone method must be overridden in a subclass.';
+	}
+
+	checkParams(params: Dictionary<generic | Dictionary<generic>>) {
+		const invalid_fields = Object.keys(params).filter(field => this.all_field_names.indexOf(field) < 0);
+		if (invalid_fields.length !== 0) {
+			const fields = invalid_fields.join(', ');
+			const error = `The field(s) '${fields}' is(are) not valid for ${this.constructor.name}.`;
+			throw new InvalidFieldsException(fields, error);
+		}
 	}
 
 }

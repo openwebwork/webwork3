@@ -56,37 +56,57 @@ test('Invalid email', () => {
 test('setting user fields', () => {
 	const user = new User({ username: 'test' });
 
-	// user.set({ username: 'test2' });
 	user.username = 'test2';
 	expect(user.username).toBe('test2');
-	// user.set({ email: 'test@site.com' });
+
 	user.email = 'test@site.com';
 	expect(user.email).toBe('test@site.com');
 
-	// user.set({ user_id: 15 });
 	user.user_id = 15;
 	expect(user.user_id).toBe(15);
 
-	// user.set({ first_name: 'Homer' });
 	user.first_name = 'Homer';
 	expect(user.first_name).toBe('Homer');
 
-	// user.set({ last_name: 'Simpson' });
 	user.last_name = 'Simpson';
 	expect(user.last_name).toBe('Simpson');
 
-	// user.set({ is_admin: true });
 	user.is_admin = true;
 	expect(user.is_admin).toBe(true);
 
-	// user.set({ is_admin: 1 });
 	user.is_admin = 1;
 	expect(user.is_admin).toBe(true);
 
-	// user.set({ is_admin: '0' });
 	user.is_admin = '0';
 	expect(user.is_admin).toBe(false);
 
+});
+
+test('set fields using set() method', () => {
+	const user = new User({ username: 'test' });
+
+	user.set({ username: 'test2' });
+	expect(user.username).toBe('test2');
+	user.set({ email: 'test@site.com' });
+	expect(user.email).toBe('test@site.com');
+
+	user.set({ user_id: 15 });
+	expect(user.user_id).toBe(15);
+
+	user.set({ first_name: 'Homer' });
+	expect(user.first_name).toBe('Homer');
+
+	user.set({ last_name: 'Simpson' });
+	expect(user.last_name).toBe('Simpson');
+
+	user.set({ is_admin: true });
+	expect(user.is_admin).toBe(true);
+
+	user.set({ is_admin: 1 });
+	expect(user.is_admin).toBe(true);
+
+	user.set({ is_admin: '0' });
+	expect(user.is_admin).toBe(false);
 });
 
 test('setting invalid email', () => {

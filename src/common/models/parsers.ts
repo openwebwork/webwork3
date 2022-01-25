@@ -4,9 +4,10 @@ export class ParseError {
 	type: string;
 	message: string;
 	field?: string;
-	constructor(type: string, message: string) {
+	constructor(type: string, message: string, field?: string) {
 		this.type = type;
 		this.message = message;
+		if (field != undefined) this.field = field;
 	}
 }
 
@@ -45,6 +46,12 @@ export class NumberParseException extends ParseError {
 export class StringParseException extends ParseError {
 	constructor(message: string) {
 		super('StringParseException', message);
+	}
+}
+
+export class UserRoleException extends ParseError {
+	constructor(message: string) {
+		super('UserRoleException', message, 'role');
 	}
 }
 
@@ -100,15 +107,14 @@ export function parseNumber(_value: string | number) {
 	throw new NumberParseException(`The value '${_value}' is not a number.`);
 }
 
-export const user_roles = ['admin', 'instructor', 'TA', 'student'];
+export type UserRole = 'admin' | 'instructor' | 'TA' | 'student';
 
-export function parseUserRole(role: string) {
-	if (user_roles.findIndex((v) => v === role) < 0) {
-		const err = new ParseError('InvalidRole', `The value '${role}' is not a valid role`);
-		err.field = 'role';
-		throw err;
-	}
-	return role;
+export function parseUserRole(role: string): UserRole {
+	if (role === 'admin') return 'admin';
+	if (role === 'instructor') return 'instructor';
+	if (role === 'TA') return 'TA';
+	if (role === 'student') return 'student';
+	throw new UserRoleException(`The value '${role}' is not a valid role.`);
 }
 
 export function parseString(_value: string | number | boolean) {
