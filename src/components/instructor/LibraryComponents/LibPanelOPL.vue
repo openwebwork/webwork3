@@ -54,7 +54,7 @@ import { defineComponent, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 
 import { useStore } from 'src/store';
-import { LibraryProblem } from 'src/store/models/problems';
+import { LibraryProblem } from 'src/common/models/problems';
 import { ResponseError } from 'src/store/models';
 import Problem from 'components/common/Problem.vue';
 import { fetchDisciplines, fetchChapters, fetchSubjects, fetchSections, fetchLibraryProblems, LibraryCategory }
@@ -151,6 +151,8 @@ export default defineComponent({
 							// need to be distinct for each problem to prevent id clashes, and have no other meaning, so
 							// just use the order of display.
 							problem.problem_number = index;
+							// Set the answerPrefix as well:
+							problem.render_params.answerPrefix = 'LIBRARY_';
 						}
 					});
 				}

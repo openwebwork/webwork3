@@ -3,7 +3,7 @@
 
 // This also contains functionality for a mixin to pull in the functionality.
 
-import { generic, Dictionary, ModelParams, Model } from '.';
+import { generic, Dictionary, ModelParams } from '.';
 export interface LibraryParams {
 	library_id?: number;
 	file_path?: string;
@@ -51,29 +51,4 @@ export class RenderParams extends ModelParams(
 		super(params);
 	}
 
-}
-
-/* The following is a method to have multiple inheritance via mixins.
-   This is found from https://www.typescriptlang.org/docs/handbook/mixins.html
-
-*/
-
-type Constructor<T> = new (...args: any[]) => T;
-
-// This mixin adds a scale property, with getters and setters
-// for changing it with an encapsulated private property:
-
-export function AddRendering<TBase extends Constructor<Model>>(Base: TBase) {
-	return class Renderer extends Base {
-
-		_render_params = new RenderParams();
-
-		get render_params() {
-			return this._render_params.toObject();
-		}
-
-		requestParams() {
-			return this.render_params;
-		}
-	};
 }

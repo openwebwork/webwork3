@@ -2,27 +2,8 @@
 // than the renderer, unless we're going to go with the JWE route.
 import axios from 'axios';
 import { logger } from 'boot/logger';
-import type { Dictionary, generic } from 'src/store/models';
 
-export interface RendererParams extends Dictionary<generic> {
-	problemSeed: number;
-	outputFormat: string;
-	//sourceFilePath?: string;
-	//problemSourceURL?: string; // OPLv3 endpoint
-	//problemSource?: string;    // raw pg source
-	answerPrefix: string;
-	//problemNumber?: number;
-	//psvn?: number;
-	permissionLevel: number; // we shouldn't set this on the frontend
-	//formURL?: string;
-	//baseURL?: string;
-	language: string;
-	//showHints?: boolean;
-	//showSolutions?: boolean;
-	//showPreviewButton?: boolean;
-	//showCheckAnswersButton?: boolean;
-	//showCorrectAnswersButton?: boolean;
-}
+import { RenderParamsFields } from '../models/renderer';
 
 export interface ExternalDeps {
 	attributes: string;
@@ -64,7 +45,7 @@ export interface RendererResponse {
 	resources: Resources;
 }
 
-export async function fetchProblem(url: string, formData: FormData, overrides: RendererParams) {
+export async function fetchProblem(url: string, formData: FormData, overrides: RenderParamsFields) {
 	for (const key in overrides) {
 		if (key in overrides && overrides[key] !== undefined) {
 			logger.log('silly', `${key}: ${requestString(overrides[key])}`);
@@ -101,3 +82,54 @@ function requestString(value: number | string | boolean | undefined): string {
 	default: throw 'key-value pair of unsupported type';
 	}
 }
+
+/**
+ *
+ * Loads CSS or JS files present in a problem.
+ *
+ * @param src: the URL of the CSS/JS
+ * @param id: The element id of html where the script will be place.
+ * @returns
+ */
+
+export const loadResource = async (src: string, id?: string) => {
+	return new Promise<void>((resolve, reject) => {
+		let shouldAppend = false;
+		let el: HTMLScriptElement | HTMLLinkElement | null;
+		if (/\.js(?:\??[0-9a-zA-Z=]*)$/.exec(src)) {
+			el = document.querySelector(`script[src="${src}"]`);
+			if (!el) {
+				el = document.createElement('script');
+				if (id) el.id = id;
+				el.async = false;
+				el.src = src;
+				shouldAppend = true;
+			}
+		} else if (/\.css(?:\??[0-9a-zA-Z=]*)$/.exec(src)) {
+			el = document.querySelector(`link[href="${src}"]`);
+			if (!el) {
+				el = document.createElement('link');
+				el.rel = 'stylesheet';
+				el.href = src;
+				shouldAppend = true;
+			}
+		} else {
+			reject();
+			return;
+		}
+
+		if (el.dataset.loaded) {
+			resolve();
+			return;
+		}
+
+		el.addEventListener('error', reject);
+		el.addEventListener('abort', reject);
+		el.addEventListener('load', () => {
+			if (el) el.dataset.loaded = 'true';
+			resolve();
+		});
+
+		if (shouldAppend) document.head.appendChild(el);
+	});
+};

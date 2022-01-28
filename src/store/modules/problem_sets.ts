@@ -62,7 +62,7 @@ export default {
 
 			const url = `/courses/${problem_info.course_id}/sets/${problem_info.set_id}/problems`;
 			const response = await api.post(url, { problem_params: problem_info.problem.problem_params });
-			const problem = response.data as LibraryProblem;
+			const problem = response.data as ParseableProblem;
 			// TODO: check for errors
 			commit('ADD_SET_PROBLEM', new SetProblem(problem));
 		},

@@ -1,9 +1,9 @@
 
 /* These are Problem interfaces */
 
-import { RendererParams } from 'src/common/api-requests/renderer';
 import { Dictionary, Model, generic, ParseableModel, ModelField, parseParams } from 'src/store/models/index';
 import { random } from 'src/common/utils';
+import { RenderParamsFields } from 'src/common/models/renderer';
 
 export enum ProblemType {
 	SET = 'SET',
@@ -25,7 +25,7 @@ export interface ParseableProblem {
 	problem_number?: string | number;
 	problem_version?: string | number;
 	problem_params?: ProblemParams;
-	renderer_params?: RendererParams;
+	renderer_params?: RenderParamsFields;
 }
 
 export interface SetProblemParams {
@@ -69,7 +69,8 @@ export class Problem extends Model(
 		showCheckAnswersButton: { field_type: 'boolean', default_value: false },
 		showCorrectAnswersButton: { field_type: 'boolean', default_value: false }
 	}
-	renderer_params: RendererParams = {
+
+	renderer_params: Dictionary<generic> = {
 		problemSeed: DEFAULT_LIBRARY_SEED,
 		permissionLevel: 0,
 		outputFormat: 'ww3',
@@ -85,7 +86,7 @@ export class Problem extends Model(
 	setParams(params: Dictionary<generic> = {}, renderer_params?: Dictionary<generic>) {
 		this.problem_params = parseParams(params, this._param_fields) as ProblemParams;
 		if (renderer_params)
-			this.renderer_params = parseParams(renderer_params, this._request_fields) as RendererParams;
+			this.renderer_params = parseParams(renderer_params, this._request_fields) as RenderParamsFields;
 	}
 
 	isValid() {
@@ -108,7 +109,7 @@ export class Problem extends Model(
 	}
 
 	// return the RendererRequest params for this Problem
-	requestParams(): RendererParams {
+	requestParams(): Dictionary<generic> {
 		if (this.renderer_params.problemSeed === undefined) {
 			throw 'Cannot generate requestParams for problem because there is no seed value.';
 		}
