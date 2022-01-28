@@ -7,10 +7,10 @@ const default_library_params = {
 	answerPrefix: '',
 	sourceFilePath: '',
 	showHints: false,
-	showSolutions: false,
-	showPreviewButton: false,
-	showCheckAnswersButton: false,
-	showCorrectAnswersButton: false
+	showSolutions: true,
+	showPreviewButton: true,
+	showCheckAnswersButton: true,
+	showCorrectAnswersButton: true
 };
 
 test('Test creation of a Library Problem', () => {

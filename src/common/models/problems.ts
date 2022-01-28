@@ -82,6 +82,7 @@ export class LibraryProblem extends Problem {
 		}
 		// For these problems, all buttons are shown by default.
 		this.setRenderParams({
+			showSolutions: true,
 			showPreviewButton: true,
 			showCheckAnswersButton: true,
 			showCorrectAnswersButton: true
@@ -139,6 +140,7 @@ export class SetProblem extends Problem {
 		if (!params.library_params) params.library_params = {};
 		// For these problems, all buttons are shown by default.
 		this.setLibraryParams(Object.assign({
+			showSolutions: true,
 			showPreviewButton: true,
 			showCheckAnswersButton: true,
 			showCorrectAnswersButton: true
@@ -155,8 +157,8 @@ export class SetProblem extends Problem {
 		this._library_params.set(params);
 	}
 
-	clone(): LibraryProblem {
-		return new LibraryProblem(this.toObject() as unknown as ParseableLibraryProblem);
+	clone(): SetProblem {
+		return new SetProblem(this.toObject() as unknown as ParseableSetProblem);
 	}
 
 	path(): string {
