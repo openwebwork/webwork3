@@ -19,6 +19,12 @@ export class NonNegIntException extends ParseError {
 	}
 }
 
+export class NonNegDecimalException extends ParseError {
+	constructor(message: string) {
+		super('NonNegDecimalException', message);
+	}
+}
+
 export class UsernameParseException extends ParseError {
 	constructor(message: string) {
 		super('UsernameParseExcpeption', message);
@@ -62,6 +68,14 @@ export function parseNonNegInt(val: string | number) {
 		return parseInt(`${val}`);
 	} else {
 		throw new NonNegIntException(`The value ${val} is not a non-negative integer`);
+	}
+}
+
+export function parseNonNegDecimal(val: string | number) {
+	if (/(^\s*(\d+)(\.\d*)?\s*$)|(^\s*\.\d+\s*$)/.test(`${val}`)) {
+		return parseFloat(`${val}`);
+	} else {
+		throw new NonNegDecimalException(`The value ${val} is not a non-negative decimal`);
 	}
 }
 
