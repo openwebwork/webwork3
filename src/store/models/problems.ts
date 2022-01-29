@@ -1,9 +1,8 @@
-
 /* These are Problem interfaces */
 
 import { Dictionary, Model, generic, ParseableModel, ModelField, parseParams } from 'src/store/models/index';
 import { random } from 'src/common/utils';
-import { RenderParamsFields } from 'src/common/models/renderer';
+import { ParseableRenderParams } from 'src/common/models/renderer';
 
 export enum ProblemType {
 	SET = 'SET',
@@ -25,7 +24,7 @@ export interface ParseableProblem {
 	problem_number?: string | number;
 	problem_version?: string | number;
 	problem_params?: ProblemParams;
-	renderer_params?: RenderParamsFields;
+	renderer_params?: ParseableRenderParams;
 }
 
 export interface SetProblemParams {
@@ -80,13 +79,13 @@ export class Problem extends Model(
 
 	constructor(params: ParseableProblem = {}) {
 		super(params as ParseableModel);
-		this.setParams(params.problem_params, params.renderer_params);
+		this.setParams(params.problem_params, params.renderer_params as unknown as Dictionary<generic>);
 	}
 
 	setParams(params: Dictionary<generic> = {}, renderer_params?: Dictionary<generic>) {
 		this.problem_params = parseParams(params, this._param_fields) as ProblemParams;
 		if (renderer_params)
-			this.renderer_params = parseParams(renderer_params, this._request_fields) as RenderParamsFields;
+			this.renderer_params = parseParams(renderer_params, this._request_fields);
 	}
 
 	isValid() {

@@ -3,7 +3,7 @@
 import axios from 'axios';
 import { logger } from 'boot/logger';
 
-import { RenderParamsFields } from '../models/renderer';
+import { ParseableRenderParams } from '../models/renderer';
 
 export interface ExternalDeps {
 	attributes: string;
@@ -45,11 +45,11 @@ export interface RendererResponse {
 	resources: Resources;
 }
 
-export async function fetchProblem(url: string, formData: FormData, overrides: RenderParamsFields) {
+export async function fetchProblem(url: string, formData: FormData, overrides: ParseableRenderParams) {
 	for (const key in overrides) {
-		if (key in overrides && overrides[key] !== undefined) {
-			logger.log('silly', `${key}: ${requestString(overrides[key])}`);
-			formData.set(key, requestString(overrides[key]));
+		if (key in overrides && overrides[key as keyof ParseableRenderParams] !== undefined) {
+			logger.log('silly', `${key}: ${requestString(overrides[key as keyof ParseableRenderParams])}`);
+			formData.set(key, requestString(overrides[key as keyof ParseableRenderParams]));
 		}
 	}
 

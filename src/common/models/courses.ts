@@ -1,4 +1,4 @@
-import { RequiredFieldsException, ModelParams, Model, Dictionary, generic  } from 'src/common/models';
+import { RequiredFieldsException, Model, Dictionary, generic  } from 'src/common/models';
 import { parseNonNegInt, parseBoolean } from './parsers';
 
 export interface ParseableCourse {
@@ -13,16 +13,32 @@ export interface ParseableCourseDates {
 	end?: string;
 }
 
-class CourseDates extends ModelParams([], [], ['start', 'end'], {
-	start: { field_type: 'string' },
-	end: { field_type: 'string' }
-}) {
-	constructor() {
+class CourseDates extends Model {
+	private _start = '';
+	private _end = '';
+	constructor(params: ParseableCourseDates = {}) {
 		super();
-		// set default values
-		this.start = '';
-		this.end = '';
+		this.set(params);
 	}
+
+	get all_field_names(): string[] {
+		return ['start', 'end'];
+	}
+
+	get param_fields(): string[] {
+		return [];
+	}
+
+	set(params: ParseableCourseDates) {
+		if (params.end != undefined) this.end = params.end;
+		if (params.start != undefined) this.start = params.start;
+	}
+
+	get start() { return this._start; }
+	set start(value: string) { this._start = value; }
+
+	get end() { return this._end; }
+	set end(value: string) { this._end = value; }
 }
 
 export class Course extends Model {

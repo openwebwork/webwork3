@@ -41,7 +41,7 @@ export default defineComponent({
 			file,
 			problem,
 			loadProblem: () => {
-				problem.value.setLibraryParams({ file_path: srcFile.value });
+				problem.value.setProbLocParams({ file_path: srcFile.value });
 			}
 		};
 	}
