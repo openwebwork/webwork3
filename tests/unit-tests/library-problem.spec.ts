@@ -17,8 +17,8 @@ test('Test creation of a Library Problem', () => {
 	const prob = new LibraryProblem();
 	expect(prob instanceof LibraryProblem).toBe(true);
 
-	const prob2 = new LibraryProblem({ problem_location_params: { file_path: '11234' } });
-	expect(prob2.problem_location_params.file_path).toBe('11234');
+	const prob2 = new LibraryProblem({ location_params: { file_path: '11234' } });
+	expect(prob2.location_params.file_path).toBe('11234');
 
 });
 
@@ -29,10 +29,10 @@ test('Check that default rendering parameters are set.', () => {
 
 test('Check the changing problem location params works', () => {
 	const prob = new LibraryProblem();
-	prob.setProbLocParams({ file_path: 'path' });
-	expect(prob.problem_location_params.file_path).toBe('path');
-	prob.setProbLocParams({ library_id: 1234 });
-	expect(prob.problem_location_params.library_id).toBe(1234);
+	prob.setLocationParams({ file_path: 'path' });
+	expect(prob.location_params.file_path).toBe('path');
+	prob.setLocationParams({ library_id: 1234 });
+	expect(prob.location_params.library_id).toBe(1234);
 });
 
 test('Check that changing the render params works', () => {
