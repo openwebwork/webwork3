@@ -25,6 +25,17 @@ export class User extends Model {
 	private _last_name?: string;
 	private _student_id?: string;
 
+	static ALL_FIELDS = ['user_id', 'username', 'is_admin', 'email', 'first_name',
+		'last_name', 'student_id'];
+
+	get all_field_names(): string[] {
+		return User.ALL_FIELDS;
+	}
+
+	get param_fields(): string[] {
+		return [];
+	}
+
 	constructor(params: ParseableUser = {}) {
 		super();
 		if (params.username == undefined) {
@@ -99,6 +110,16 @@ export class CourseUser extends Model {
 	private _role?: UserRole;
 	private _section?: string;
 	private _recitation?: string;
+
+	static ALL_FIELDS = ['course_user_id', 'course_id', 'user_id', 'role', 'section', 'recitation'];
+
+	get all_field_names(): string[] {
+		return CourseUser.ALL_FIELDS;
+	}
+
+	get param_fields(): string[] {
+		return [];
+	}
 
 	constructor(params: ParseableCourseUser = {}) {
 		super();

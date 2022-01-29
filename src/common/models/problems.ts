@@ -1,4 +1,4 @@
-import { parseNonNegInt } from 'src/store/models';
+import { parseNonNegDecimal, parseNonNegInt } from './parsers';
 import { Model, Dictionary, generic } from '.';
 import { RenderParams, ParseableRenderParams } from './renderer';
 
@@ -55,14 +55,14 @@ export class Problem extends Model {
 // fileSourcePath), but the following makes it more flexible to
 // pull from the library with an id or from
 
-export interface ParseableProblemLocation extends Partial<Dictionary<generic>> {
-library_id?: string | number;
-file_path?: string;
-problem_pool_id?: string | number;
+export interface ParseableLocationParams extends Partial<Dictionary<generic>> {
+	library_id?: string | number;
+	file_path?: string;
+	problem_pool_id?: string | number;
 }
 
 export interface ParseableLibraryProblem {
-	problem_location_params?: ParseableProblemLocation;
+	location_params?: ParseableLocationParams;
 	render_params?: ParseableRenderParams;
 	problem_number?: number;
 }
@@ -72,12 +72,12 @@ class ProblemLocationParams extends Model {
 	private _file_path = '';
 	private _problem_pool_id = 0;
 
-	constructor(params: ParseableProblemLocation = {}) {
+	constructor(params: ParseableLocationParams = {}) {
 		super();
 		this.set(params);
 	}
 
-	set(params: ParseableProblemLocation) {
+	set(params: ParseableLocationParams) {
 		if (params.library_id != undefined) this.library_id = params.library_id;
 		if (params.file_path != undefined) this.file_path = params.file_path;
 		if (params.problem_pool_id != undefined) this.problem_pool_id = params.problem_pool_id;
@@ -101,15 +101,15 @@ class ProblemLocationParams extends Model {
  */
 
 export class LibraryProblem extends Problem {
-	private _problem_location_params = new ProblemLocationParams();
+	private _location_params = new ProblemLocationParams();
 
-	get problem_location_params() { return this._problem_location_params; }
+	get location_params() { return this._location_params; }
 
 	constructor(params: ParseableLibraryProblem = {}) {
 		super(params);
 		this._problem_type = 'LIBRARY';
-		if (params.problem_location_params) {
-			this.setProbLocParams(params.problem_location_params);
+		if (params.location_params) {
+			this.setLocationParams(params.location_params);
 		}
 		// For these problems, all buttons are shown by default.
 		this.setRenderParams({
@@ -121,13 +121,13 @@ export class LibraryProblem extends Problem {
 	}
 
 	get all_field_names() {
-		return [ ...super.all_field_names, ...['library_params']];
+		return [ ...super.all_field_names, ...['location_params']];
 	}
 
 	get param_fields() { return [...super.param_fields, ...['library_params'] ]; }
 
-	setProbLocParams(params: ParseableProblemLocation) {
-		this._problem_location_params.set(params);
+	setLocationParams(params: ParseableLocationParams) {
+		this._location_params.set(params);
 	}
 
 	clone(): LibraryProblem {
@@ -135,27 +135,64 @@ export class LibraryProblem extends Problem {
 	}
 
 	path(): string {
-		return this.problem_location_params.file_path ?? '';
+		return this.location_params.file_path ?? '';
 	}
 
 	requestParams(): ParseableRenderParams {
 		const p = super.requestParams();
 		// Currently the file path must be sent for Render Params.
 		// In the future, we need to be able to send other params.
-		p.sourceFilePath = this.problem_location_params.file_path ?? '';
+		p.sourceFilePath = this.location_params.file_path ?? '';
 		return p;
 	}
 }
 
-export interface ParseableSetProblemParams extends Partial<Dictionary<generic>> {
-	library_id?: string | number;
+export interface ParseableSetProblemParams {
+	weight?: number | string;
+	library_id?: number | string;
 	file_path?: string;
-	problem_pool_id?: string | number;
+	problem_pool_id?: number | string;
+}
+
+class SetProblemParams extends Model {
+	private _weight = 1;
+	private _library_id = 0;
+	private _file_path = '';
+	private _problem_pool_id = 0;
+
+	get all_field_names(): string[] {
+		return ['weight', 'library_id', 'file_path', 'problem_pool_id'];
+	}
+
+	constructor(params: ParseableSetProblemParams = {}) {
+		super();
+		this.set(params);
+	}
+
+	set(params: ParseableSetProblemParams) {
+		if (params.library_id != undefined) this.library_id = params.library_id;
+		if (params.file_path != undefined) this.file_path = params.file_path;
+		if (params.problem_pool_id != undefined) this.problem_pool_id = params.problem_pool_id;
+
+	}
+
+	public get weight(): number { return this._weight; }
+	public set weight(value: number | string) { this._weight = parseNonNegDecimal(value);}
+
+	public get library_id() : number { return this._library_id; }
+	public set library_id(val: string | number) { this._library_id = parseNonNegInt(val);}
+
+	public get file_path() : string { return this._file_path;}
+	public set file_path(value: string) { this._file_path = value;}
+
+	public get problem_pool_id() : number { return this._problem_pool_id; }
+	public set problem_pool_id(val: string | number) { this._problem_pool_id = parseNonNegInt(val);}
+
 }
 
 export interface ParseableSetProblem {
-	problem_location_params?: ParseableProblemLocation;
-	render_params?: ParseableRenderParams;
+	render_params?: RenderParams;
+	problem_params?: SetProblemParams;
 	problem_number?: number;
 }
 
@@ -163,14 +200,14 @@ export interface ParseableSetProblem {
  * The class SetProblem is used for problems in Problem Sets (Homework, Quiz, Review)
  */
 export class SetProblem extends Problem {
-	private _problem_location_params = new ProblemLocationParams();
-
-	get library_params() { return this._problem_location_params; }
+	private _problem_params = new SetProblemParams();
+	private _problem_id = 0;
+	private _set_id = 0;
 
 	constructor(params: ParseableSetProblem = {}) {
 		super(params);
 		this._problem_type = 'SET';
-		if (params.problem_location_params) this.setProbLocParams(params.problem_location_params);
+		if (params.problem_params) this.problem_params.set(params.problem_params);
 		// For these problems, all buttons are shown by default.
 		this.setRenderParams({
 			showSolutions: true,
@@ -180,36 +217,40 @@ export class SetProblem extends Problem {
 		});
 	}
 
+	get problem_params() { return this._problem_params; }
+
 	get all_field_names() {
 		return [ ...super.all_field_names, ...['library_params']];
 	}
 
 	get param_fields() { return [...super.param_fields, ...['library_params'] ]; }
 
-	setProbLocParams(params: ParseableProblemLocation) {
-		this._problem_location_params.set(params);
-	}
+	public get problem_id() : number { return this._problem_id; }
+	public set problem_id(val: string | number) { this._problem_id = parseNonNegInt(val);}
+
+	public get set_id() : number { return this._set_id; }
+	public set set_id(val: string | number) { this._set_id = parseNonNegInt(val);}
 
 	clone(): SetProblem {
 		return new SetProblem(this.toObject() as unknown as ParseableSetProblem);
 	}
 
 	path(): string {
-		return this.library_params.file_path ?? '';
+		return this.problem_params.file_path ?? '';
 	}
 
 	requestParams(): ParseableRenderParams {
 		const p = super.requestParams();
-		p.sourceFilePath = this.library_params.file_path ?? '';
+		p.sourceFilePath = this.problem_params.file_path ?? '';
 		return p;
 	}
 }
 
-type ParseableProblem = ParseableLibraryProblem | ParseableSetProblem;
+export type ParseableProblem = ParseableLibraryProblem | ParseableSetProblem;
 
 export function parseProblem(problem: ParseableProblem, type: 'Library' | 'Set') {
 	switch (type) {
-	case 'Library': return new LibraryProblem(problem);
-	case 'Set': return new SetProblem(problem);
+	case 'Library': return new LibraryProblem(problem as ParseableLibraryProblem);
+	case 'Set': return new SetProblem(problem as ParseableSetProblem);
 	}
 }

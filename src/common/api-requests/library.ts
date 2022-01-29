@@ -41,5 +41,5 @@ export const fetchSections = async (lib_id: LibraryID) => {
 export const fetchLibraryProblems = async(lib_id: LibraryID) => {
 	const response = await axios.get(`/opl/api/problems/sections/${lib_id.sect_id || 0}`);
 	const _problems_to_parse = response.data as Array<{ id: number; file_path: string }>;
-	return _problems_to_parse.map(p => new LibraryProblem({ library_params: { file_path: p.file_path } }));
+	return _problems_to_parse.map(p => new LibraryProblem({ location_params: { file_path: p.file_path } }));
 };

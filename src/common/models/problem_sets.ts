@@ -10,7 +10,7 @@ export enum ProblemSetType {
 	UNKNOWN = 'UNKNOWN'
 }
 
-export function parseProblemSetType(type: ProblemSetType) {
+export function parseProblemSetType(type: string) {
 	if (/hw/i.test(type)) {
 		return ProblemSetType.HW;
 	} else if (/quiz/i.test(type)) {
@@ -18,7 +18,25 @@ export function parseProblemSetType(type: ProblemSetType) {
 	} else if (/review/i.test(type)) {
 		return ProblemSetType.REVIEW_SET;
 	}
-	throw new ParseError('ProblemSetType', `The problem set type '${type.toString()}' is not valid.`);
+	throw new ParseError('ProblemSetType', `The problem set type '${type}' is not valid.`);
+}
+
+/**
+ * This takes in a general problem set and returns the specific subclassed ProblemSet
+ * @param problem ParseableProblemSet
+ * @returns HomeworkSet, Quiz or ReviewSet
+ */
+
+export function parseProblemSet(problem: ParseableProblemSet) {
+	if (problem.set_type === 'HW') {
+		return new HomeworkSet(problem as ParseableHomeworkSet);
+	} else if (problem.set_type === 'QUIZ') {
+		return new Quiz(problem as ParseableQuiz);
+	} else if (problem.set_type === 'REVIEW') {
+		return new ReviewSet(problem as ParseableReviewSet);
+	}
+
+	throw new ParseError('ProblemSetType', `The problem set type '${problem.set_type ?? ''}' is not valid.`);
 }
 
 export type ProblemSetParams = HomeworkSetParams | QuizParams | ReviewSetParams;
@@ -46,7 +64,7 @@ export class ProblemSet extends Model {
 	// protected _set_params?: ProblemSetParams;
 	// protected _set_dates?: ProblemSetDates;
 
-	constructor(params: ParseableProblemSet) {
+	constructor(params: ParseableProblemSet = {}) {
 		super();
 		this.set(params);
 	}
