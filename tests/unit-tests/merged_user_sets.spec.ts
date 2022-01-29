@@ -17,7 +17,12 @@ test('Create a generic MergedUserSet', () => {
 		set_name: '',
 		username: ''
 	};
-	expect(user_set.toObject()).toStrictEqual(user_set_defaults);
+	// Since MergedUserSet has 'set_params' and 'set_dates' as placeholds for subclasses,
+	// don't call them in the toObject.
+	// TODO: find a better way to handle this.
+	const fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_visible',
+		'set_name', 'username'];
+	expect(user_set.toObject(fields)).toStrictEqual(user_set_defaults);
 });
 
 test('Set fields of Merged User Sets directly', () => {

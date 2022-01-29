@@ -34,7 +34,7 @@ export class UserSet extends Model {
 	}
 
 	get param_fields(): string[] {
-		return ['set_params', 'set_dates'];
+		return [];
 	}
 
 	constructor(params: ParseableUserSet = {}) {
@@ -84,6 +84,9 @@ export class UserHomeworkSet extends UserSet {
 	private _set_params = new HomeworkSetParams();
 	private _set_dates = new HomeworkSetDates();
 
+	get param_fields(): string[] {
+		return ['set_params', 'set_dates'];
+	}
 	get set_params() { return this._set_params;}
 	get set_dates() { return this._set_dates;}
 
@@ -117,6 +120,9 @@ export class UserQuiz extends UserSet {
 
 	get set_params() { return this._set_params;}
 	get set_dates() { return this._set_dates;}
+	get param_fields(): string[] {
+		return ['set_params', 'set_dates'];
+	}
 
 	constructor(params: ParseableQuiz = {}) {
 		super(params as ParseableUserSet);
@@ -148,6 +154,9 @@ export class UserReviewSet extends UserSet {
 
 	get set_params() { return this._set_params;}
 	get set_dates() { return this._set_dates;}
+	get param_fields(): string[] {
+		return ['set_params', 'set_dates'];
+	}
 
 	constructor(params: ParseableReviewSet = {}) {
 		super(params as ParseableUserSet);
