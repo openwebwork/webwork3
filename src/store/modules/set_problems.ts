@@ -2,7 +2,7 @@ import { api } from 'boot/axios';
 import { Commit } from 'vuex';
 // import { StateInterface } from '../index';
 
-import { Problem, ParseableProblem, parseProblem } from 'src/store/models/problems';
+import { Problem, ParseableProblem, parseProblem } from 'src/common/models/problems';
 
 export interface SetProblemsState {
 	problems: Array<Problem>;

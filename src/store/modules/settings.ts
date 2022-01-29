@@ -1,9 +1,8 @@
 import { api } from 'boot/axios';
 import type { Commit, GetterTree } from 'vuex';
 import type { StateInterface } from 'src/store';
-import type { CourseSettingInfo } from 'src/store/models/settings';
-import { CourseSetting } from 'src/store/models/settings';
-import { CourseSettingOption } from 'src/store/models/settings';
+import type { CourseSettingInfo } from 'src/common/models/settings';
+import { CourseSetting, CourseSettingOption } from 'src/common/models/settings';
 
 export interface SettingsState {
 	default_settings: Array<CourseSettingInfo>; // this contains default setting and documentation
@@ -24,9 +23,9 @@ type Getters = {
 };
 
 const getters: GetterTree<SettingsState, StateInterface> & Getters = {
-	course_settings: (state) => state.course_settings,
-	default_settings: (state) => state.default_settings,
-	get_setting_value: (state) => (var_name: string) =>
+	course_settings: (state: SettingsState) => state.course_settings,
+	default_settings: (state: SettingsState) => state.default_settings,
+	get_setting_value: (state: SettingsState) => (var_name: string) =>
 		state.course_settings.find((setting: CourseSetting) => setting.var === var_name)?.value ?? ''
 };
 

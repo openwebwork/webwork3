@@ -1,7 +1,7 @@
 import { api } from 'boot/axios';
 import { Commit } from 'vuex';
 
-import { Course } from 'src/store/models/courses';
+import { Course } from 'src/common/models/courses';
 
 export interface CourseState {
 	courses: Array<Course>;

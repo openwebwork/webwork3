@@ -2,9 +2,10 @@ import { api } from 'boot/axios';
 import type { Commit } from 'vuex';
 import type { StateInterface } from '../index';
 
-import { parseProblemSet, ProblemSet, ParseableProblemSet, MergedUserSet,
-	ParseableMergedUserSet, UserSet } from 'src/store/models/problem_sets';
-import { LibraryProblem, SetProblem, ParseableProblem, parseProblem } from 'src/store/models/problems';
+import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
+import { MergedUserSet, ParseableMergedUserSet, UserSet } from 'src/common/models/user_sets';
+import { LibraryProblem, SetProblem, ParseableProblem, parseProblem,
+	ParseableSetProblem } from 'src/common/models/problems';
 import { logger } from 'boot/logger';
 
 export interface ProblemSetState {
@@ -61,17 +62,17 @@ export default {
 			problem_info: { course_id: number, set_id: number, problem: LibraryProblem }): Promise<void> {
 
 			const url = `/courses/${problem_info.course_id}/sets/${problem_info.set_id}/problems`;
-			const response = await api.post(url, { problem_params: problem_info.problem.problem_params });
-			const problem = response.data as ParseableProblem;
+			const response = await api.post(url, { problem_params: problem_info.problem.location_params });
+			const problem = response.data as ParseableSetProblem;
 			// TODO: check for errors
 			commit('ADD_SET_PROBLEM', new SetProblem(problem));
 		},
 		async updateSetProblem({ commit, rootState }: { commit: Commit; rootState: StateInterface },
-			params: { prob: LibraryProblem, props: ParseableProblem}): Promise<void> {
+			params: { set_id: number, problem_id: number, props: ParseableProblem}): Promise<void> {
 			const course_id = rootState.session.course.course_id;
-			const url = `courses/${course_id}/sets/${params.prob.set_id ?? 0}/problems/${params.prob.problem_id ?? 0}`;
+			const url = `courses/${course_id}/sets/${params.set_id}/problems/${params.problem_id ?? 0}`;
 			const response = await api.put(url, params.props);
-			const problem = response.data as ParseableProblem;
+			const problem = response.data as ParseableSetProblem;
 			// TODO: check for errors
 			commit('UPDATE_SET_PROBLEM', new SetProblem(problem));
 		},
@@ -80,7 +81,7 @@ export default {
 			const course_id = rootState.session.course.course_id;
 			const url = `courses/${course_id}/sets/${problem.set_id ?? 0}/problems/${problem.problem_id ?? 0}`;
 			const response = await api.delete(url);
-			const _problem = response.data as ParseableProblem;
+			const _problem = response.data as ParseableSetProblem;
 			// TODO: check for errors
 			commit('DELETE_SET_PROBLEM', new SetProblem(_problem));
 		},

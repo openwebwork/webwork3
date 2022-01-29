@@ -4,10 +4,10 @@ import type { Commit, ActionContext } from 'vuex';
 import type { StateInterface } from 'src/store/index';
 
 import { logger } from 'boot/logger';
-import type { ParseableCourseUser, ParseableMergedUser, ParseableUser } from 'src/store/models/users';
-import { User, MergedUser, CourseUser } from 'src/store/models/users';
-import { ResponseError } from 'src/store/models';
-import { UserCourse } from 'src/store/models/courses';
+import type { ParseableCourseUser, ParseableMergedUser, ParseableUser } from 'src/common/models/users';
+import { User, MergedUser, CourseUser } from 'src/common/models/users';
+import type { ResponseError } from 'src/common/api-requests/interfaces';
+import { UserCourse } from 'src/common/models/courses';
 
 export interface UserState {
 	users: Array<User>;
@@ -109,12 +109,12 @@ export default {
 		},
 		async addMergedUser({ commit }: { commit: Commit }, _merged_user: MergedUser): Promise<MergedUser> {
 			if (_merged_user.user_id === 0) { // this is a new user
-				const _user = await addUser(_merged_user as User) as User;
+				const new_user = _merged_user.toObject(User.ALL_FIELDS) as unknown as User;
+				const _user = await addUser(new_user) as User;
 				_merged_user.user_id = _user.user_id;
 				_merged_user.username = _user.username;
 			}
-			const f = CourseUser.ALL_FIELDS;
-			const _course_user = _merged_user.toObject(f) as unknown as CourseUser;
+			const _course_user = _merged_user.toObject(CourseUser.ALL_FIELDS) as unknown as CourseUser;
 			const cu = await addCourseUser(_course_user);
 			const merged_user = Object.assign(_merged_user, cu, _course_user) as MergedUser;
 			commit('ADD_MERGED_USER', merged_user);
