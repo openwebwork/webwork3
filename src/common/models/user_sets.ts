@@ -24,8 +24,13 @@ export class UserSet extends Model {
 	private _course_user_id = 0;
 	private _set_version = 1;
 
+	get set_dates(): ProblemSetDates { throw 'The subclass must override set_dates()'; }
+	get set_params(): ProblemSetParams { throw 'The subclass must override set_dates()'; }
+
+	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_params', 'set_dates'];
+
 	get all_field_names(): string[] {
-		return ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_params', 'set_dates'];
+		return UserSet.ALL_FIELDS;
 	}
 
 	get param_fields(): string[] {
@@ -55,6 +60,10 @@ export class UserSet extends Model {
 
 	public get set_version(): number { return this._set_version;}
 	public set set_version(value: number | string) { this._set_version = parseNonNegInt(value);}
+
+	public hasValidDates(): boolean {
+		throw 'The subclass must override the hasValidDates() method.';
+	}
 
 }
 
@@ -175,6 +184,9 @@ export class MergedUserSet extends Model {
 	private _set_visible = false;
 	private _set_name = '';
 	private _username = '';
+
+	get set_dates(): ProblemSetDates { throw 'The subclass must override set_dates()'; }
+	get set_params(): ProblemSetParams { throw 'The subclass must override set_dates()'; }
 
 	get all_field_names(): string[] {
 		return ['user_set_id', 'set_id', 'course_user_id', 'set_version',

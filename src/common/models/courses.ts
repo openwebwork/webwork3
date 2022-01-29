@@ -1,5 +1,5 @@
 import { RequiredFieldsException, Model, Dictionary, generic  } from 'src/common/models';
-import { parseNonNegInt, parseBoolean, parseUsername } from './parsers';
+import { parseNonNegInt, parseBoolean, parseUsername, parseUserRole } from './parsers';
 
 export interface ParseableCourse {
 	course_id?: number | string;
@@ -101,6 +101,7 @@ export interface ParseableUserCourse {
 	course_name?: string;
 	username?: string;
 	visible?: number | string | boolean;
+	role?: string;
 	course_dates?: ParseableCourseDates;
 }
 export class UserCourse extends Model {
@@ -109,9 +110,11 @@ export class UserCourse extends Model {
 	private _course_name = '';
 	private _username = '';
 	private _visible = true;
+	private _role = '';
 	private course_dates = new CourseDates();
 
-	static ALL_FIELDS = ['course_id', 'course_name', 'visible', 'course_dates', 'user_id', 'username'];
+	static ALL_FIELDS = ['course_id', 'course_name', 'visible', 'course_dates',
+		'user_id', 'username', 'role'];
 
 	get all_field_names(): string[] {
 		return UserCourse.ALL_FIELDS;
@@ -121,18 +124,24 @@ export class UserCourse extends Model {
 		return ['course_dates'];
 	}
 
-	constructor(params: ParseableCourse = {}) {
+	constructor(params: ParseableUserCourse = {}) {
 		super();
 		if (params.course_name == undefined) {
 			throw new RequiredFieldsException('course_name');
 		}
+		if (params.username == undefined) {
+			throw new RequiredFieldsException('username');
+		}
 		this.set(params);
 	}
 
-	set(params: ParseableCourse) {
+	set(params: ParseableUserCourse) {
 		if (params.course_id != undefined) this.course_id = params.course_id;
 		if (params.course_name != undefined) this.course_name = params.course_name;
 		if (params.visible != undefined) this.visible = params.visible;
+		if (params.user_id != undefined) this.user_id = params.user_id;
+		if (params.username != undefined) this.username = params.username;
+		if (params.role != undefined) this.role = params.role;
 		super.checkParams(params as Dictionary<generic>);
 	}
 
@@ -164,5 +173,8 @@ export class UserCourse extends Model {
 	set visible(value: string | number | boolean) {
 		this._visible = parseBoolean(value);
 	}
+
+	get role() { return this._role; }
+	set role(value: string) { this._role = parseUserRole(value); }
 
 }

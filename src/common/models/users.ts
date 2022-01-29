@@ -200,9 +200,11 @@ export class MergedUser extends Model {
 	private _section?: string;
 	private _recitation?: string;
 
+	static ALL_FIELDS = ['course_user_id', 'course_id', 'user_id', 'is_admin', 'username', 'email',
+		'first_name', 'last_name', 'student_id', 'role', 'section', 'recitation'];
+
 	get all_field_names(): string[] {
-		return ['course_user_id', 'course_id', 'user_id', 'is_admin', 'username', 'email',
-			'first_name', 'last_name', 'student_id', 'role', 'section', 'recitation'];
+		return MergedUser.ALL_FIELDS;
 	}
 
 	get param_fields(): string[] {

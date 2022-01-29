@@ -3,7 +3,7 @@
 
 // This also contains functionality for a mixin to pull in the functionality.
 
-import { generic, Dictionary, ModelParams, Model } from '.';
+import { Model } from '.';
 import { parseBoolean, parseNonNegInt } from './parsers';
 export interface LibraryParams {
 	library_id?: number;
@@ -22,36 +22,6 @@ export interface ParseableRenderParams {
 	showCheckAnswersButton?: number | string | boolean;
 	showCorrectAnswersButton?: number | string | boolean;
 	sourceFilePath?: string;
-}
-
-// This provides fields to store rendering information as well as methods
-// needed for rendering.
-
-export class RenderParams2 extends ModelParams(
-	// Boolean fields
-	['showHints', 'showSolutions', 'showPreviewButton', 'showCheckAnswersButton',
-		'showCorrectAnswersButton'],
-	// Number fields
-	['permission_level', 'problemSeed'],
-	// String fields
-	['outputFormat', 'answerPrefix', 'sourceFilePath'],  {
-		problemSeed: { field_type: 'non_neg_int', default_value: 1234 },
-		permission_level: { field_type: 'non_neg_int', default_value: 0 },
-		outputFormat: { field_type: 'string', default_value: 'ww3' },
-		answerPrefix: { field_type: 'string', default_value: '' },
-		sourceFilePath: { field_type: 'string', default_value: '' },
-		showHints: { field_type: 'boolean', default_value: false },
-		showSolutions: { field_type: 'boolean', default_value: false },
-		// TODO: drop the button booleans
-		showPreviewButton: { field_type: 'boolean', default_value: false },
-		showCheckAnswersButton: { field_type: 'boolean', default_value: false },
-		showCorrectAnswersButton: { field_type: 'boolean', default_value: false }
-	}) {
-
-	constructor(params: Dictionary<generic> = {}) {
-		super(params);
-	}
-
 }
 
 export class RenderParams extends Model {

@@ -61,8 +61,6 @@ export class ProblemSet extends Model {
 	private _course_id = 0;
 	protected _set_type: ProblemSetType = ProblemSetType.UNKNOWN;
 	private _set_name = '';
-	// protected _set_params?: ProblemSetParams;
-	// protected _set_dates?: ProblemSetDates;
 
 	constructor(params: ParseableProblemSet = {}) {
 		super();
@@ -104,6 +102,14 @@ export class ProblemSet extends Model {
 
 	public get set_name() : string { return this._set_name;}
 	public set set_name(value: string) { this._set_name = value;}
+
+	public get set_params(): ProblemSetParams {
+		throw 'The subclass must override set_params();';
+	}
+
+	public get set_dates(): ProblemSetDates {
+		throw 'The subclass must override set_dates();';
+	}
 
 	hasValidDates() {
 		throw 'The hasValidDates() method must be overridden.';
