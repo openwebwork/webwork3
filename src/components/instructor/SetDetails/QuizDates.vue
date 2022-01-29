@@ -30,7 +30,7 @@
 import { defineComponent, ref } from 'vue';
 import type { PropType } from 'vue';
 import { checkQuizDates } from 'src/common/views';
-import { QuizDates } from 'src/store/models/problem_sets';
+import { QuizDates } from 'src/common/models/problem_sets';
 import DateTimeInput from 'src/components/common/DateTimeInput.vue';
 
 export default defineComponent({

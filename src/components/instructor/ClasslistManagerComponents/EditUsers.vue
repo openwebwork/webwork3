@@ -44,8 +44,8 @@ import { defineComponent, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
-import { MergedUser } from 'src/store/models/users';
-import { CourseSetting } from 'src/store/models/settings';
+import { MergedUser } from 'src/common/models/users';
+import { CourseSetting } from 'src/common/models/settings';
 import { useStore } from 'src/store';
 import { logger } from 'boot/logger';
 

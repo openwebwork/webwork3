@@ -34,7 +34,7 @@ import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
 import HomeworkDates from './HomeworkDates.vue';
-import { HomeworkSet } from 'src/store/models/problem_sets';
+import { HomeworkSet } from 'src/common/models/problem_sets';
 import { useStore } from 'src/store';
 
 export default defineComponent({

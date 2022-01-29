@@ -33,7 +33,7 @@ import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
 import QuizDates from './QuizDates.vue';
-import { Quiz } from 'src/store/models/problem_sets';
+import { Quiz } from 'src/common/models/problem_sets';
 import { useStore } from 'src/store';
 
 export default defineComponent({

@@ -55,7 +55,7 @@ import { useQuasar } from 'quasar';
 
 import { useStore } from 'src/store';
 import { LibraryProblem } from 'src/common/models/problems';
-import { ResponseError } from 'src/store/models';
+import type { ResponseError } from 'src/common/api-requests/interfaces';
 import Problem from 'components/common/Problem.vue';
 import { fetchDisciplines, fetchChapters, fetchSubjects, fetchSections, fetchLibraryProblems, LibraryCategory }
 	from 'src/common/api-requests/library';

@@ -53,9 +53,9 @@ import { logger } from 'boot/logger';
 
 import { useStore } from 'src/store';
 
-import { User, MergedUser, ParseableMergedUser } from 'src/store/models/users';
-import { ResponseError } from 'src/store/models';
-import { CourseSetting } from 'src/store/models/settings';
+import { User, MergedUser, ParseableMergedUser } from 'src/common/models/users';
+import type { ResponseError } from 'src/common/api-requests/interfaces';
+import { CourseSetting } from 'src/common/models/settings';
 import { AxiosError } from 'axios';
 
 export default defineComponent({
@@ -75,11 +75,11 @@ export default defineComponent({
 				try {
 					const _user = await store.dispatch('users/getUser', merged_user.value.username) as User;
 					user_exists.value = true;
-					merged_user.value.user_id = _user.user_id as number;
-					merged_user.value.username = _user.username as string;
-					merged_user.value.first_name = _user.first_name as string;
-					merged_user.value.last_name = _user.last_name as string;
-					merged_user.value.email = _user.email as string;
+					merged_user.value.user_id = _user.user_id;
+					merged_user.value.username = _user.username;
+					merged_user.value.first_name = _user.first_name;
+					merged_user.value.last_name = _user.last_name;
+					merged_user.value.email = _user.email;
 				} catch (err) {
 					const error = err as ResponseError;
 					// this will occur is the user is not a global user

@@ -11,7 +11,7 @@ import { defineComponent, computed } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { useStore } from 'src/store';
-import { ProblemSet } from 'src/store/models/problem_sets';
+import { ProblemSet } from 'src/common/models/problem_sets';
 import HomeworkSet from 'src/components/instructor/SetDetails/HomeworkSet.vue';
 import Quiz from 'src/components/instructor/SetDetails/Quiz.vue';
 import ReviewSet from 'src/components/instructor/SetDetails/ReviewSet.vue';

@@ -59,9 +59,9 @@ import { defineComponent, computed, ref } from 'vue';
 
 import { useStore } from 'src/store';
 import { api } from 'boot/axios';
-import { MergedUser } from 'src/store/models/users';
-import { UserCourse } from 'src/store/models/courses';
-import { ResponseError } from 'src/store/models';
+import { MergedUser } from 'src/common/models/users';
+import { UserCourse } from 'src/common/models/courses';
+import type { ResponseError } from 'src/common/api-requests/interfaces';
 import AddUsersManually from 'src/components/instructor/ClasslistManagerComponents/AddUsersManually.vue';
 import AddUsersFromFile from 'src/components/instructor/ClasslistManagerComponents/AddUsersFromFile.vue';
 import EditUsers from 'src/components/instructor/ClasslistManagerComponents/EditUsers.vue';

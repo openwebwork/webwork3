@@ -62,9 +62,9 @@ import { useQuasar } from 'quasar';
 import { useStore } from 'src/store';
 // import { newCourse, newCourseUser } from 'src/store/common';
 
-import { Course } from 'src/store/models/courses';
-import { ResponseError } from 'src/store/models';
-import { User, CourseUser } from 'src/store/models/users';
+import { Course } from 'src/common/models/courses';
+import { ResponseError } from 'src/common/api-requests/interfaces';
+import { User, CourseUser } from 'src/common/models/users';
 import { AxiosError } from 'axios';
 
 interface DateRange {

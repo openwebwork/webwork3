@@ -69,19 +69,25 @@ import { useRoute } from 'vue-router';
 import { pick } from 'src/common/utils';
 
 import { logger } from 'boot/logger';
-import { HomeworkSetDates, QuizDates, ReviewSetDates,
-	MergedUserSet, HomeworkSet, ProblemSet, UserSet } from 'src/store/models/problem_sets';
-import { parseNonNegInt, Dictionary } from 'src/store/models';
+import { MergedUserSet, UserSet, MergedUserHomeworkSet, MergedUserQuiz,
+	MergedUserReviewSet } from 'src/common/models/user_sets';
+import { ProblemSet, HomeworkSet } from 'src/common/models/problem_sets';
+import { Dictionary } from 'src/common/models';
+import { parseNonNegInt } from 'src/common/models/parsers';
 import { formatDate } from 'src/common/views';
 import HomeworkDatesView from './HomeworkDates.vue';
 import ReviewSetDatesView from './ReviewSetDates.vue';
 import QuizDatesView from './QuizDates.vue';
-import type { ResponseError } from 'src/store/models';
+import type { ResponseError } from 'src/common/api-requests/interfaces';
+
+type Field_type = ((row: MergedUserHomeworkSet) => number) |
+	((row: MergedUserQuiz) => number) |
+	((row: MergedUserReviewSet) => number);
 
 interface Column {
 	name: string;
 	label: string;
-	field?: string | ((row: MergedUserSet) => number);
+	field?: string | Field_type;
 	format?: (val: number) => string;
 }
 
@@ -119,41 +125,67 @@ export default defineComponent({
 			if (problem_set.value.set_id && problem_set.value.set_id > 0) {
 				if (problem_set.value.set_type === 'HW') {
 					columns.splice(columns.length, 0,
-						{ name: 'open_date', label: 'Open Date', format: formatTheDate,
-							field: row => row.set_dates ? (row.set_dates as HomeworkSetDates).open : 0 },
-						{ name: 'due_date', label: 'Due Date', format: formatTheDate,
-							field: row => row.set_dates ? (row.set_dates as HomeworkSetDates).due : 0 },
-						{ name: 'answer_date', label: 'Answer Date', format: formatTheDate,
-							field: row => row.set_dates ? (row.set_dates as HomeworkSetDates).answer :  0 }
+						{
+							name: 'open_date',
+							label: 'Open Date',
+							format: formatTheDate,
+							field: (row: MergedUserHomeworkSet) => row.set_dates.open
+						},
+						{
+							name: 'due_date',
+							label: 'Due Date',
+							format: formatTheDate,
+							field: (row: MergedUserHomeworkSet) => row.set_dates.due
+						},
+						{
+							name: 'answer_date',
+							label: 'Answer Date',
+							format: formatTheDate,
+							field: (row: MergedUserHomeworkSet) => row.set_dates.answer
+						}
 					);
-					if ((problem_set.value as HomeworkSet).set_params.enable_reduced_scoring) {
+					if ((problem_set.value as unknown as MergedUserHomeworkSet).set_params.enable_reduced_scoring) {
 						columns.splice(columns.length - 1, 0,
 							{
-								name: 'reduced_scoring_date', label: 'Reduced Scoring Date', format: formatTheDate,
-								field: row => row.set_dates ?
-									(row.set_dates as HomeworkSetDates).reduced_scoring ?? 0
-									: 0
+								name: 'reduced_scoring_date',
+								label: 'Reduced Scoring Date',
+								format: formatTheDate,
+								field: (row: MergedUserHomeworkSet) => row.set_dates ?
+									row.set_dates.reduced_scoring ?? 0 :
+									0
 							}
 						);
 					}
 				} else if (problem_set.value.set_type === 'QUIZ') {
 					columns.splice(columns.length, 0,
-						{ name: 'open_date', label: 'Open Date', format: formatTheDate,
-							field: row => row.set_dates ? (row.set_dates as QuizDates).open : 0 },
-						{ name: 'due_date', label: 'Due Date', format: formatTheDate,
-							field: row => row.set_dates ? (row.set_dates as QuizDates).due : 0 },
-						{ name: 'answer_date', label: 'Answer Date', format: formatTheDate,
-							field: row => row.set_dates ? (row.set_dates as QuizDates).answer :  0 }
+						{
+							name: 'open_date',
+							label: 'Open Date',
+							format: formatTheDate,
+							field: (row: MergedUserQuiz) => row.set_dates ? (row.set_dates).open : 0
+						},
+						{
+							name: 'due_date',
+							label: 'Due Date',
+							format: formatTheDate,
+							field: (row: MergedUserQuiz) => row.set_dates ? (row.set_dates).due : 0
+						},
+						{
+							name: 'answer_date',
+							label: 'Answer Date',
+							format: formatTheDate,
+							field: (row: MergedUserQuiz) => row.set_dates ? (row.set_dates).answer :  0
+						}
 					);
 				} else if (problem_set.value.set_type === 'REVIEW') {
 					columns.splice(columns.length, 0,
 						{ name: 'open_date', label: 'Open Date', format: formatTheDate,
-							field: row => row.set_dates ? (row.set_dates as ReviewSetDates).open : 0 },
+							field: (row: MergedUserReviewSet) => row.set_dates ? (row.set_dates).open : 0 },
 						{ name: 'closed_date', label: 'Closed Date', format: formatTheDate,
-							field: row => row.set_dates ? (row.set_dates as ReviewSetDates).closed : 0 },
+							field: (row: MergedUserReviewSet) => row.set_dates ? (row.set_dates).closed : 0 },
 					);
 				}
-				date_edit.value = { ...problem_set.value.set_dates };
+				date_edit.value = problem_set.value.set_dates.toObject() as Dictionary<number>;
 			}
 		};
 
@@ -190,8 +222,8 @@ export default defineComponent({
 			saveOverrides: async () => {
 				logger.debug('closing the overrides dialog');
 				const updated_user_set = new UserSet(pick(merged_user_set.value, UserSet.ALL_FIELDS));
-				updated_user_set.set_dates = date_edit.value;
-				if (updated_user_set.isValid()) {
+				updated_user_set.set_dates.set(date_edit.value);
+				if (updated_user_set.hasValidDates()) {
 					try {
 						await store.dispatch('problem_sets/updateUserSet', updated_user_set);
 						$q.notify({
@@ -208,7 +240,7 @@ export default defineComponent({
 			},
 			openOverrides: (course_user_id: number) => {
 				updateMergedUserSet(course_user_id);
-				date_edit.value = { ...merged_user_set.value.set_dates };
+				date_edit.value = merged_user_set.value.set_dates.toObject() as Dictionary<number>;
 				edit_dialog.value = true;
 			},
 			assignToAllUsers: async () => {
@@ -221,7 +253,8 @@ export default defineComponent({
 					const _user_set = new UserSet({
 						set_id: problem_set.value.set_id,
 						course_user_id: _user.course_user_id,
-						set_version: problem_set.value.set_version
+						// TODO: handle set versioning.
+						set_version: 1
 					});
 					try {
 						await store.dispatch('problem_sets/addUserSet', _user_set);

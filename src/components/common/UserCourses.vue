@@ -60,10 +60,7 @@
 
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
-// import { useRoute } from 'vue-router';
 import { useStore } from 'src/store';
-
-import { UserCourse } from 'src/store/models/courses';
 
 export default defineComponent({
 	name: 'UserCourses',
@@ -71,10 +68,10 @@ export default defineComponent({
 		const store = useStore();
 		return {
 			student_courses: computed(() =>
-				store.state.users.user_courses.filter((user: UserCourse) => user.role === 'student')
+				store.state.users.user_courses.filter(user_course => user_course.role === 'student')
 			),
 			instructor_courses: computed(() =>
-				store.state.users.user_courses.filter((user: UserCourse) => user.role === 'instructor')
+				store.state.users.user_courses.filter(user_course => user_course.role === 'instructor')
 			),
 			user: computed(() => store.state.session.user)
 		};

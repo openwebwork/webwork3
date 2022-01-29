@@ -23,7 +23,7 @@
 import { defineComponent, ref, watch, toRefs } from 'vue';
 import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
-import { ReviewSet } from 'src/store/models/problem_sets';
+import { ReviewSet } from 'src/common/models/problem_sets';
 import { useStore } from 'src/store';
 import ReviewSetDates from './ReviewSetDates.vue';
 

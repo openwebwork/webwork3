@@ -1,7 +1,7 @@
 /* This file contains common functions and constants needs for general use */
 
 import { date } from 'quasar';
-import type { HomeworkSetDates, ReviewSetDates, QuizDates } from 'src/store/models/problem_sets';
+import type { HomeworkSetDates, ReviewSetDates, QuizDates } from 'src/common/models/problem_sets';
 
 export function formatDate(_date_to_format: string | number) {
 	const _date = new Date();

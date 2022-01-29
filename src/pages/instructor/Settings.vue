@@ -33,7 +33,7 @@
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue';
 import { useStore } from 'src/store';
-import type { CourseSettingInfo, CourseSetting } from 'src/store/models/settings';
+import type { CourseSettingInfo, CourseSetting } from 'src/common/models/settings';
 import SingleSetting from 'src/components/instructor/SingleSetting.vue';
 
 export default defineComponent({

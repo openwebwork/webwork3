@@ -28,9 +28,9 @@ import { useQuasar } from 'quasar';
 import { useStore } from 'src/store';
 import { VueDraggableNext } from 'vue-draggable-next';
 import Problem from 'components/common/Problem.vue';
-import { ProblemSet } from 'src/store/models/problem_sets';
-import { SetProblem } from 'src/store/models/problems';
-import { ResponseError } from 'src/store/models';
+import { ProblemSet } from 'src/common/models/problem_sets';
+import { SetProblem } from 'src/common/models/problems';
+import { ResponseError } from 'src/common/api-requests/interfaces';
 import { logger } from 'boot/logger';
 
 export default defineComponent({

@@ -66,7 +66,7 @@ import { logger } from 'boot/logger';
 
 import typeset from './mathjax-config';
 import { Problem } from 'src/common/models/problems';
-import { RenderParamsFields } from 'src/common/models/renderer';
+import { ParseableRenderParams } from 'src/common/models/renderer';
 
 declare global {
 	interface Window {
@@ -115,7 +115,7 @@ export default defineComponent({
 			freeProblem.value = props.problem.clone();
 		}, { deep: true });
 
-		const loadProblem = async (url: string, formData: FormData, overrides: RenderParamsFields) => {
+		const loadProblem = async (url: string, formData: FormData, overrides: ParseableRenderParams) => {
 			// Make sure that any popovers left open from a previous rendering are removed.
 			for (const popover of activePopovers) {
 				popover.dispose();
