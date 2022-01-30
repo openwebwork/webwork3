@@ -44,7 +44,12 @@ export default store(function () {
 		},
 
 		// Save the current state to session storage
-		plugins: [createPersistedState({ storage: window.sessionStorage })],
+		plugins: [
+			createPersistedState({
+				storage: window.sessionStorage,
+				paths: ['session', 'app_state']
+			})
+		],
 
 		// enable strict mode (adds overhead!)
 		// for dev mode and --debug builds only

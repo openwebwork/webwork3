@@ -1,7 +1,7 @@
-import { User } from 'src/common/models/users';
+import { ParseableUser } from 'src/common/models/users';
 
 export interface SessionInfo {
-	user: User;
+	user: ParseableUser;
 	logged_in: boolean;
 	message: string;
 }
