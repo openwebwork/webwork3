@@ -1,7 +1,7 @@
 import { api } from 'boot/axios';
 
-import { MergedUser } from 'src/store/models/users';
-import { ResponseError } from 'src/store/models';
+import { ParseableCourseUser } from 'src/common/models/users';
+import { ResponseError } from 'src/common/api-requests/interfaces';
 
 export async function checkIfUserExists(course_id: number, username: string) {
 	const url = `courses/${course_id}/users/${username}/exists`;
@@ -9,5 +9,5 @@ export async function checkIfUserExists(course_id: number, username: string) {
 	if (response.status === 250) {
 		throw response.data as ResponseError;
 	}
-	return response.data as MergedUser;
+	return response.data as ParseableCourseUser;
 }

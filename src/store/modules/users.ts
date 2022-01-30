@@ -110,24 +110,22 @@ export default {
 			_course_user: CourseUser): Promise<CourseUser | undefined> {
 			return await addCourseUser(_course_user);
 		},
-		async addMergedUser({ commit }: { commit: Commit }, _merged_user: MergedUser): Promise<MergedUser> {
-			let _user: User | undefined;
-			if (_merged_user.user_id === 0) { // this is a new user
-				const new_user = _merged_user.toObject(User.ALL_FIELDS) as unknown as User;
-				const _user = await addUser(new_user) as User;
-				_merged_user.user_id = _user.user_id;
-				_merged_user.username = _user.username;
+		async addMergedUser({ commit }: { commit: Commit }, merged_user: MergedUser): Promise<MergedUser> {
+			if (merged_user.user_id === 0) { // this is a new user
+				const new_user = new User(merged_user.toObject(User.ALL_FIELDS));
+				const user = await addUser(new_user) as User;
+				merged_user.user_id = user.user_id;
+				merged_user.username = user.username;
 			}
-			const _course_user = _merged_user.toObject(CourseUser.ALL_FIELDS) as unknown as CourseUser;
-			const cu = await addCourseUser(_course_user);
-			const merged_user = new MergedUser(Object.assign({}, _user?.toObject() ?? {}, cu?.toObject()));
+			const new_course_user = new CourseUser(merged_user.toObject(CourseUser.ALL_FIELDS));
+			await addCourseUser(new_course_user);
 			commit('ADD_MERGED_USER', merged_user);
 			return merged_user;
 		},
-		async updateCourseUser(_context: ActionContext<UserState, StateInterface>, _course_user: CourseUser)
+		async updateCourseUser(_context: ActionContext<UserState, StateInterface>, course_user: CourseUser)
 			: Promise<CourseUser | undefined> {
-			const url = `courses/${_course_user.course_id || 0}/users/${_course_user.user_id ?? 0}`;
-			const response = await api.put(url, _course_user);
+			const url = `courses/${course_user.course_id || 0}/users/${course_user.user_id ?? 0}`;
+			const response = await api.put(url, course_user);
 			if (response.status === 200) {
 				return response.data as CourseUser;
 			} else if (response.status === 250) {
@@ -208,8 +206,7 @@ export default {
 };
 
 async function addUser(_user: User) {
-	// console.log(_user.toObject());
-	const response = await api.post('users', pick(_user.toObject(), User.ALL_FIELDS));
+	const response = await api.post('users', _user.toObject());
 	if (response.status === 200) {
 		const u = response.data as ParseableUser;
 		u.username;

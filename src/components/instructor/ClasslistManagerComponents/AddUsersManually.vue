@@ -54,7 +54,7 @@ import { logger } from 'boot/logger';
 import { checkIfUserExists } from 'src/common/api-requests/user';
 import { useStore } from 'src/store';
 
-import { User, MergedUser, ParseableMergedUser } from 'src/common/models/users';
+import { MergedUser, ParseableMergedUser, User } from 'src/common/models/users';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import { CourseSetting } from 'src/common/models/settings';
 import { AxiosError } from 'axios';
@@ -64,7 +64,7 @@ export default defineComponent({
 	emits: ['closeDialog'],
 	setup(props, context) {
 		const $q = useQuasar();
-		const merged_user = ref<ParseableMergedUser>({ username: '__NEW__' });
+		const merged_user = ref<ParseableMergedUser>({});
 		const user_exists = ref<boolean>(true);
 		const store = useStore();
 
@@ -73,16 +73,18 @@ export default defineComponent({
 			user_exists,
 			// see if the user exists already and fill in the known fields
 			checkUser: async () => {
+				// If the user doesn't exist, the catch statement will handle this.
 				try {
 					const course_id = store.state.session.course.course_id;
-					const _user = await checkIfUserExists(course_id, merged_user.value.username ?? '');
+					const user_params = await checkIfUserExists(course_id, merged_user.value.username ?? '');
+					const user = new User(user_params);
 
 					user_exists.value = true;
-					merged_user.value.user_id = _user.user_id;
-					merged_user.value.username = _user.username;
-					merged_user.value.first_name = _user.first_name;
-					merged_user.value.last_name = _user.last_name;
-					merged_user.value.email = _user.email;
+					merged_user.value.user_id = user.user_id;
+					merged_user.value.username = user.username;
+					merged_user.value.first_name = user.first_name;
+					merged_user.value.last_name = user.last_name;
+					merged_user.value.email = user.email;
 				} catch (err) {
 					const error = err as ResponseError;
 					// this will occur is the user is not a global user

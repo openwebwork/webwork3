@@ -67,8 +67,10 @@ export class ProblemSet extends Model {
 		this.set(params);
 	}
 
+	static ALL_FIELDS = ['set_id', 'set_visible', 'course_id', 'set_type', 'set_name', 'set_params', 'set_dates'];
+
 	get all_field_names(): string[] {
-		return ['set_id', 'set_visible', 'course_id', 'set_type', 'set_name', 'set_params', 'set_dates'];
+		return ProblemSet.ALL_FIELDS;
 	}
 
 	get param_fields(): string[] {

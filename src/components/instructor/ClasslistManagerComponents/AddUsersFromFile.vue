@@ -102,7 +102,7 @@ import { useStore } from 'src/store';
 import type { Dictionary } from 'src/common/models';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import { MergedUser, CourseUser, User, ParseableMergedUser } from 'src/common/models/users';
-import { pick, mapValues, invert } from 'src/common/utils';
+import { invert } from 'src/common/utils';
 
 interface ParseError {
 	type: string;

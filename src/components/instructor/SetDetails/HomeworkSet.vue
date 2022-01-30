@@ -38,7 +38,7 @@ import { useStore } from 'src/store';
 import { useRoute } from 'vue-router';
 import { cloneDeep } from 'lodash';
 import { pick } from 'src/common/utils';
-import { Dictionary, generic } from 'src/store/models';
+import { Dictionary, generic } from 'src/common/models';
 
 export default defineComponent({
 	components: {
@@ -78,7 +78,7 @@ export default defineComponent({
 			if (new_set['set_id'] == old_set['set_id']) {
 				void store.dispatch('problem_sets/updateSet', set.value);
 				$q.notify({
-					message: `The problem set '${new_set['set_name'] as string ?? ''}' was successfully updated.`,
+					message: `The problem set '${new_set.set_name}' was successfully updated.`,
 					color: 'green'
 				});
 
