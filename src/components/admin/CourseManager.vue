@@ -48,7 +48,7 @@
 import { defineComponent, computed, ref } from 'vue';
 import { useStore } from 'src/store';
 
-import { Course } from 'src/store/models/courses';
+import { Course } from 'src/common/models/courses';
 
 import NewCourseDialog from './AddCourse.vue';
 

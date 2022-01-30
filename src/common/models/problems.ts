@@ -15,11 +15,11 @@ export class Problem extends Model {
 
 	get problem_type() { return this._problem_type; }
 
-	get all_field_names() { return ['render_params']; }
+	get all_field_names() { return ['problem_number', 'problem_type', 'render_params']; }
 
 	get param_fields() { return ['render_params']; }
 
-	get problem_number() { return this._problem_number; }
+	get problem_number(): number { return this._problem_number; }
 	set problem_number(value: string | number) {
 		this._problem_number = parseNonNegInt(value);
 	}

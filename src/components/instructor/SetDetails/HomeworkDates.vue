@@ -66,7 +66,8 @@ export default defineComponent({
 			hw_dates,
 			enable_reduced_scoring: computed(() => props.reduced_scoring),
 			checkDates: [
-				() => checkHWDates(hw_dates.value, props.reduced_scoring)
+				// Not sure why need to cast this?
+				() => checkHWDates(hw_dates.value as HomeworkSetDates, props.reduced_scoring)
 			]
 		};
 	}

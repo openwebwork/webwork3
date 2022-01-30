@@ -44,7 +44,7 @@ export default defineComponent({
 		return {
 			review_set_dates,
 			checkDates: [
-				() => checkReviewSetDates(review_set_dates.value)
+				() => checkReviewSetDates(review_set_dates.value as ReviewSetDates)
 			]
 		};
 	}

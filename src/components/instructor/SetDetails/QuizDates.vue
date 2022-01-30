@@ -49,7 +49,7 @@ export default defineComponent({
 
 		return {
 			quiz_dates,
-			checkDates: [() => checkQuizDates(quiz_dates.value)]
+			checkDates: [() => checkQuizDates(quiz_dates.value as QuizDates)]
 		};
 	}
 
