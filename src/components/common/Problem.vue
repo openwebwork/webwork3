@@ -112,7 +112,7 @@ export default defineComponent({
 		};
 
 		watch(() => props.problem, () => {
-			freeProblem.value = props.problem.clone();
+			freeProblem.value = props.problem.clone() as unknown as Problem;
 		}, { deep: true });
 
 		const loadProblem = async (url: string, formData: FormData, overrides: ParseableRenderParams) => {

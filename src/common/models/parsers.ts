@@ -19,21 +19,21 @@ export class NonNegIntException extends ParseError {
 	}
 }
 
-export class NonNegDecimalException extends ParseError {
-	constructor(message: string) {
-		super('NonNegDecimalException', message);
-	}
-}
-
 export class UsernameParseException extends ParseError {
 	constructor(message: string) {
-		super('UsernameParseExcpeption', message);
+		super('UsernameParseExcpeption', message, 'username');
 	}
 }
 
 export class EmailParseException extends ParseError {
 	constructor(message: string) {
-		super('EmailParseException', message);
+		super('EmailParseException', message, 'email');
+	}
+}
+
+export class NonNegDecimalException extends ParseError {
+	constructor(message: string) {
+		super('NonNegDecimalException', message);
 	}
 }
 

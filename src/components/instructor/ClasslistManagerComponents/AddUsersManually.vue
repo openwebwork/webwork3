@@ -51,6 +51,7 @@ import { defineComponent, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { logger } from 'boot/logger';
 
+import { checkIfUserExists } from 'src/common/api-requests/user';
 import { useStore } from 'src/store';
 
 import { User, MergedUser, ParseableMergedUser } from 'src/common/models/users';
@@ -73,7 +74,9 @@ export default defineComponent({
 			// see if the user exists already and fill in the known fields
 			checkUser: async () => {
 				try {
-					const _user = await store.dispatch('users/getUser', merged_user.value.username) as User;
+					const course_id = store.state.session.course.course_id;
+					const _user = await checkIfUserExists(course_id, merged_user.value.username ?? '');
+
 					user_exists.value = true;
 					merged_user.value.user_id = _user.user_id;
 					merged_user.value.username = _user.username;
@@ -99,7 +102,8 @@ export default defineComponent({
 			addUser: async (close: boolean) => {
 				try {
 					merged_user.value.course_id = store.state.session.course.course_id;
-					const user = await store.dispatch('users/addMergedUser', new MergedUser(merged_user.value)) as User;
+					const user = await store.dispatch('users/addMergedUser',
+						new MergedUser(merged_user.value)) as MergedUser;
 					$q.notify({
 						message: `The user with username '${user.username ?? ''}' was added successfully.`,
 						color: 'green'

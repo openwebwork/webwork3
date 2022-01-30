@@ -17,6 +17,7 @@
 		"bootstrap": "^5.1.1",
 		"core-js": "^3.6.5",
 		"jquery": "^3.6.0",
+		"jsdoc": "^3.6.7",
 		"lodash-es": "^4.17.21",
 		"mathjax": "^3.2.0",
 		"node-polyfill-webpack-plugin": "^1.1.4",

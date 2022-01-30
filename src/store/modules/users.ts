@@ -34,6 +34,9 @@ export default {
 		},
 		merged_users(state: UserState): Array<MergedUser> {
 			return state.merged_users;
+		},
+		course_users(state: UserState): Array<CourseUser> {
+			return state.course_users;
 		}
 	},
 	actions: {
@@ -108,6 +111,7 @@ export default {
 			return await addCourseUser(_course_user);
 		},
 		async addMergedUser({ commit }: { commit: Commit }, _merged_user: MergedUser): Promise<MergedUser> {
+			let _user: User | undefined;
 			if (_merged_user.user_id === 0) { // this is a new user
 				const new_user = _merged_user.toObject(User.ALL_FIELDS) as unknown as User;
 				const _user = await addUser(new_user) as User;
@@ -116,7 +120,7 @@ export default {
 			}
 			const _course_user = _merged_user.toObject(CourseUser.ALL_FIELDS) as unknown as CourseUser;
 			const cu = await addCourseUser(_course_user);
-			const merged_user = Object.assign(_merged_user, cu, _course_user) as MergedUser;
+			const merged_user = new MergedUser(Object.assign({}, _user?.toObject() ?? {}, cu?.toObject()));
 			commit('ADD_MERGED_USER', merged_user);
 			return merged_user;
 		},
@@ -173,7 +177,7 @@ export default {
 		},
 		DELETE_USER(state: UserState, _user: User): void {
 			const index = state.users.findIndex((u) => u.user_id === _user.user_id);
-			state.users.splice(index, 1);
+			if (index >= 0) state.users.splice(index, 1);
 		},
 		SET_MERGED_USERS(state: UserState, _merged_users: Array<MergedUser>): void {
 			state.merged_users = _merged_users;
@@ -193,16 +197,19 @@ export default {
 			state.merged_users.splice(index, 1, _merged_user);
 		},
 		DELETE_COURSE_USER(state: UserState, _course_user: CourseUser): void {
-			state.course_users.filter((u) => u.course_user_id !== _course_user.course_user_id);
+			const index = state.course_users.findIndex((u) => u.course_user_id === _course_user.course_user_id);
+			if (index >= 0) state.course_users.splice(index, 1);
 		},
 		DELETE_MERGED_USER(state: UserState, _merged_user: MergedUser): void {
-			state.merged_users.filter((u) => u.course_user_id !== _merged_user.course_user_id);
+			const index = state.merged_users.findIndex((u) => u.course_user_id === _merged_user.course_user_id);
+			if (index >= 0) state.merged_users.splice(index, 1);
 		}
 	}
 };
 
 async function addUser(_user: User) {
-	const response = await api.post('users', _user);
+	// console.log(_user.toObject());
+	const response = await api.post('users', pick(_user.toObject(), User.ALL_FIELDS));
 	if (response.status === 200) {
 		const u = response.data as ParseableUser;
 		u.username;
@@ -214,7 +221,7 @@ async function addUser(_user: User) {
 }
 
 async function addCourseUser(_course_user: CourseUser) {
-	const response = await api.post(`courses/${_course_user.course_id ?? 0}/users`, _course_user);
+	const response = await api.post(`courses/${_course_user.course_id ?? 0}/users`, _course_user.toObject());
 	if (response.status === 200) {
 		const u = response.data as ParseableCourseUser;
 		return new CourseUser(u);

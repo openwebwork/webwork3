@@ -16,7 +16,7 @@ User:
   getGlobalUsers:
     admin_required: true
   getGlobalUser:
-    admin_required: true
+    allowed_users: ["admin", "instructor"]
   updateGlobalUser:
     admin_required: true
   addGlobalUser:

@@ -44,13 +44,15 @@ export default {
 			_set: ProblemSet): Promise<ProblemSet> {
 			const course_id = rootState.session.course.course_id;
 			// shouldn't we be throwing an error if set_id is null or 0?
-			const response = await api.put(`courses/${course_id}/sets/${_set.set_id ?? 0}`, _set);
+			const response = await api.put(`courses/${course_id}/sets/${_set.set_id ?? 0}`, _set.toObject());
 			const set = response.data as ProblemSet;
-			if (JSON.stringify(set) === JSON.stringify(_set)) {
-				commit('UPDATE_PROBLEM_SET', _set);
-			} else {
-				logger.error(`Problem set #${_set.set_id ?? 0} failed to update properly.`);
-			}
+			// The following is not working.  TODO: fix-me
+			// if (JSON.stringify(set) === JSON.stringify(_set)) {
+			// commit('UPDATE_PROBLEM_SET', _set);
+			// } else {
+			// logger.error(`Problem set #${_set.set_id ?? 0} failed to update properly.`);
+			// }
+			commit('UPDATE_PROBLEM_SET', _set);
 			return set;
 		},
 		async fetchSetProblems({ commit }: { commit: Commit }, course_id: number): Promise<void> {
