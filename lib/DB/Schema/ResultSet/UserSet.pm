@@ -129,7 +129,8 @@ sub addUserSet ($self, $user_set_info, $user_set_params = {}, $as_result_set = 0
 
 	# Remove user_set_id if it is zero.  On the client side, this means that
 	# the set is a new one.
-	delete $user_set_params->{user_set_id} if $user_set_params->{user_set_id} == 0;
+	delete $user_set_params->{user_set_id}
+		if defined($user_set_params->{user_set_id}) && $user_set_params->{user_set_id} == 0;
 
 	DB::Exception::UserSetExists->throw(
 		username    => $user->username,
