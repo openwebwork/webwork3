@@ -102,7 +102,6 @@ export default {
 			const url = `courses/${course_id}/sets/${user_set.set_id ?? 0}/users`;
 			const response = await api.post(url, user_set.toObject());
 			const updated_user_set = response.data as ParseableMergedUserSet;
-			console.log(parseMergedUserSet(updated_user_set));
 			// TODO: check for errors
 			commit('ADD_MERGED_USER_SET', parseMergedUserSet(updated_user_set));
 		},

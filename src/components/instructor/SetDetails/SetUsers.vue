@@ -175,7 +175,6 @@ export default defineComponent({
 					problem_set.value.set_type === 'REVIEW' ?
 						new UserReviewSet(set_params) :
 						new UserSet(set_params);
-			console.log(user_set);
 			try {
 				await store.dispatch('problem_sets/addUserSet', user_set);
 				$q.notify({
@@ -274,7 +273,6 @@ export default defineComponent({
 				store.state.problem_sets.merged_user_sets
 					.findIndex(user_set => user_set.course_user_id === merged_user.course_user_id) < 0
 			);
-			console.log(users_to_assign);
 			for (const user of users_to_assign) {
 				await assignUser(user.course_user_id);
 			}

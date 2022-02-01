@@ -148,7 +148,7 @@ sub addUserSet ($self, $user_set_info, $user_set_params = {}, $as_result_set = 0
 
 	# If any of the date are 0, then remove them.
 	if ($user_set_params->{set_dates}) {
-		for my $key (keys %{$user_set_params->{set_dates}}) {
+		for my $key (keys %{ $user_set_params->{set_dates} }) {
 			delete $user_set_params->{set_dates}->{$key} if $user_set_params->{set_dates}->{$key} == 0;
 		}
 	}
@@ -189,7 +189,7 @@ sub updateUserSet ($self, $user_set_info, $user_set_params = {}, $as_result_set 
 
 	# If any of the date are 0, then remove them.
 	if ($user_set_params->{set_dates}) {
-		for my $key (keys %{$user_set_params->{set_dates}}) {
+		for my $key (keys %{ $user_set_params->{set_dates} }) {
 			delete $user_set_params->{set_dates}->{$key} if $user_set_params->{set_dates}->{$key} == 0;
 		}
 	}
