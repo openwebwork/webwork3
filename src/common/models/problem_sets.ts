@@ -222,6 +222,10 @@ export class Quiz extends ProblemSet {
 		return this.set_dates.isValid();
 	}
 
+	clone() {
+		return new Quiz(this.toObject());
+	}
+
 }
 
 /**
@@ -334,6 +338,10 @@ export class HomeworkSet extends ProblemSet {
 	public get set_dates() { return this._set_dates; }
 	public get set_params() { return this._set_params; }
 
+	clone() {
+		return new HomeworkSet(this.toObject());
+	}
+
 }
 
 /**
@@ -430,5 +438,9 @@ export class ReviewSet extends ProblemSet {
 
 	public get set_dates() { return this._set_dates; }
 	public get set_params() { return this._set_params; }
+
+	clone() {
+		return new ReviewSet(this.toObject());
+	}
 
 }

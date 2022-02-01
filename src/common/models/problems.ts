@@ -72,6 +72,13 @@ class ProblemLocationParams extends Model {
 	private _file_path = '';
 	private _problem_pool_id = 0;
 
+	get all_field_names(): string[] {
+		return ['library_id', 'file_path', 'problem_pool_id'];
+	}
+	get param_fields(): string[] {
+		return [];
+	}
+
 	constructor(params: ParseableLocationParams = {}) {
 		super();
 		this.set(params);
@@ -164,6 +171,8 @@ class SetProblemParams extends Model {
 		return ['weight', 'library_id', 'file_path', 'problem_pool_id'];
 	}
 
+	get param_fields() { return [];}
+
 	constructor(params: ParseableSetProblemParams = {}) {
 		super();
 		this.set(params);
@@ -193,7 +202,9 @@ class SetProblemParams extends Model {
 export interface ParseableSetProblem {
 	render_params?: RenderParams;
 	problem_params?: SetProblemParams;
-	problem_number?: number;
+	problem_number?: number | string ;
+	problem_id?: number | string;
+	set_id?: number | string;
 }
 
 /**
@@ -206,6 +217,7 @@ export class SetProblem extends Problem {
 
 	constructor(params: ParseableSetProblem = {}) {
 		super(params);
+		this.set(params);
 		this._problem_type = 'SET';
 		if (params.problem_params) this.problem_params.set(params.problem_params);
 		// For these problems, all buttons are shown by default.
@@ -217,13 +229,19 @@ export class SetProblem extends Problem {
 		});
 	}
 
+	set(params: ParseableSetProblem) {
+		if (params.problem_id != undefined) this.problem_id = params.problem_id;
+		if (params.set_id != undefined) this.set_id = params.set_id;
+		if (params.problem_number != undefined) this.problem_number = params.problem_number;
+	}
+
 	get problem_params() { return this._problem_params; }
 
 	get all_field_names() {
-		return [ ...super.all_field_names, ...['library_params']];
+		return ['problem_id', 'problem_number', 'set_id', 'problem_params'];
 	}
 
-	get param_fields() { return [...super.param_fields, ...['library_params'] ]; }
+	get param_fields() { return ['problem_params' ]; }
 
 	public get problem_id() : number { return this._problem_id; }
 	public set problem_id(val: string | number) { this._problem_id = parseNonNegInt(val);}

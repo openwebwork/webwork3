@@ -7,7 +7,8 @@ import { parseBoolean, parseNonNegInt, parseUsername } from './parsers';
 import { ProblemSetDates, ProblemSetParams, HomeworkSetParams, HomeworkSetDates,
 	ParseableHomeworkSetParams, ParseableHomeworkSetDates, QuizParams, QuizDates,
 	ParseableQuiz, ParseableQuizDates, ParseableQuizParams, ParseableReviewSetDates,
-	ParseableReviewSetParams, ParseableReviewSet, ReviewSetDates, ReviewSetParams } from './problem_sets';
+	ParseableReviewSetParams, ParseableReviewSet, ReviewSetDates, ReviewSetParams,
+	ProblemSetType } from './problem_sets';
 
 export interface ParseableUserSet {
 	user_set_id?: number | string;
@@ -23,6 +24,7 @@ export class UserSet extends Model {
 	private _set_id = 0;
 	private _course_user_id = 0;
 	private _set_version = 1;
+	protected _set_type: ProblemSetType = ProblemSetType.UNKNOWN;
 
 	get set_dates(): ProblemSetDates { throw 'The subclass must override set_dates()'; }
 	get set_params(): ProblemSetParams { throw 'The subclass must override set_dates()'; }
@@ -36,6 +38,8 @@ export class UserSet extends Model {
 	get param_fields(): string[] {
 		return [];
 	}
+
+	get set_type() { return this._set_type; }
 
 	constructor(params: ParseableUserSet = {}) {
 		super();
@@ -92,8 +96,9 @@ export class UserHomeworkSet extends UserSet {
 
 	constructor(params: ParseableUserHomeworkSet = {}) {
 		super(params as ParseableUserSet);
-		if (params.set_params) this._set_params.set(params.set_params);
-		if (params.set_dates) this._set_dates.set(params.set_dates);
+		this._set_type = ProblemSetType.HW;
+		if (params.set_params != undefined) this._set_params.set(params.set_params);
+		if (params.set_dates != undefined) this._set_dates.set(params.set_dates);
 	}
 
 	public hasValidDates() {
@@ -126,8 +131,9 @@ export class UserQuiz extends UserSet {
 
 	constructor(params: ParseableQuiz = {}) {
 		super(params as ParseableUserSet);
-		if (params.set_params) this._set_params.set(params.set_params);
-		if (params.set_dates) this._set_dates.set(params.set_dates);
+		this._set_type = ProblemSetType.QUIZ;
+		if (params.set_params != undefined) this._set_params.set(params.set_params);
+		if (params.set_dates != undefined) this._set_dates.set(params.set_dates);
 	}
 
 	public hasValidDates() {
@@ -160,8 +166,9 @@ export class UserReviewSet extends UserSet {
 
 	constructor(params: ParseableReviewSet = {}) {
 		super(params as ParseableUserSet);
-		if (params.set_params) this._set_params.set(params.set_params);
-		if (params.set_dates) this._set_dates.set(params.set_dates);
+		this._set_type = ProblemSetType.REVIEW_SET;
+		if (params.set_params != undefined) this._set_params.set(params.set_params);
+		if (params.set_dates != undefined) this._set_dates.set(params.set_dates);
 	}
 
 	public hasValidDates() {
@@ -181,6 +188,7 @@ export interface ParseableMergedUserSet {
 	set_visible?: number | string | boolean;
 	set_name?: string;
 	username?: string;
+	set_type?: string;
 	set_params?: ProblemSetParams;
 	set_dates?: ProblemSetDates;
 }
@@ -189,6 +197,7 @@ export class MergedUserSet extends Model {
 	private _user_set_id = 0;
 	private _set_id = 0;
 	private _course_user_id = 0;
+	protected _set_type = '';
 	private _set_version = 1;
 	private _set_visible = false;
 	private _set_name = '';
@@ -206,6 +215,8 @@ export class MergedUserSet extends Model {
 	get param_fields(): string[] {
 		return ['set_params', 'set_dates'];
 	}
+
+	get set_type() { return this._set_type; }
 
 	constructor(params: ParseableMergedUserSet = {}) {
 		super();
@@ -256,6 +267,7 @@ export interface ParseableMergedUserHomeworkSet {
 	set_visible?: number | string | boolean;
 	set_name?: string;
 	username?: string;
+	set_type?: string;
 	set_params?: ParseableHomeworkSetParams;
 	set_dates?: ParseableHomeworkSetDates;
 }
@@ -269,8 +281,9 @@ export class MergedUserHomeworkSet extends MergedUserSet {
 
 	constructor(params: ParseableMergedUserHomeworkSet = {}) {
 		super(params as ParseableMergedUserSet);
-		if (params.set_params) this._set_params.set(params.set_params);
-		if (params.set_dates) this._set_dates.set(params.set_dates);
+		this._set_type = 'HW';
+		if (params.set_params) this.set_params.set(params.set_params);
+		if (params.set_dates) this.set_dates.set(params.set_dates);
 	}
 
 	public hasValidDates() {
@@ -292,6 +305,7 @@ export interface ParseableMergedUserQuiz {
 	username?: string;
 	set_params?: ParseableQuizParams;
 	set_dates?: ParseableQuizDates;
+	set_type?: string;
 }
 
 export class MergedUserQuiz extends MergedUserSet {
@@ -303,6 +317,7 @@ export class MergedUserQuiz extends MergedUserSet {
 
 	constructor(params: ParseableMergedUserQuiz = {}) {
 		super(params as ParseableMergedUserSet);
+		this._set_type = 'QUIZ';
 		if (params.set_params) this._set_params.set(params.set_params);
 		if (params.set_dates) this._set_dates.set(params.set_dates);
 	}
@@ -321,6 +336,7 @@ export interface ParseableMergedUserReviewSet {
 	set_id?: number | string;
 	course_user_id?: number | string;
 	set_version?: number | string;
+	set_type?: string;
 	set_params?: ParseableReviewSetParams;
 	set_dates?: ParseableReviewSetDates;
 }
@@ -334,11 +350,23 @@ export class MergedUserReviewSet extends MergedUserSet {
 
 	constructor(params: ParseableMergedUserReviewSet = {}) {
 		super(params as ParseableMergedUserSet);
+		this._set_type = 'REVIEW';
 		if (params.set_params) this._set_params.set(params.set_params);
 		if (params.set_dates) this._set_dates.set(params.set_dates);
 	}
 
 	public hasValidDates() {
 		return this.set_dates.isValid();
+	}
+}
+
+export function parseMergedUserSet(user_set: ParseableMergedUserSet) {
+	console.log(user_set);
+	if (user_set.set_type === 'HW') {
+		return new MergedUserHomeworkSet(user_set as ParseableMergedUserHomeworkSet);
+	} else if (user_set.set_type === 'QUIZ') {
+		return new MergedUserQuiz(user_set as ParseableMergedUserQuiz);
+	} else if (user_set.set_type === 'REVIEW') {
+		return new MergedUserReviewSet(user_set as ParseableMergedUserReviewSet);
 	}
 }

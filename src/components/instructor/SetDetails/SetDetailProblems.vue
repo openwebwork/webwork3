@@ -53,7 +53,8 @@ export default defineComponent({
 		const problem_set = ref<ProblemSet>(new ProblemSet());
 
 		const updateProblemSet = () => {
-			problems.value = store.state.problem_sets.set_problems.filter(set => set.set_id === props.set_id).concat()
+			problems.value = store.state.problem_sets.set_problems.filter(set =>
+				set.set_id === props.set_id).concat()
 				.sort((prob_a: SetProblem, prob_b: SetProblem) =>
 					(prob_a?.problem_number ?? 0) - (prob_b?.problem_number ?? 0));
 			problem_set.value = store.state.problem_sets.problem_sets

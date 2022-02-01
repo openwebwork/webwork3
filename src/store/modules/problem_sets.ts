@@ -3,7 +3,7 @@ import type { Commit } from 'vuex';
 import type { StateInterface } from '../index';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
-import { MergedUserSet, ParseableMergedUserSet, UserSet } from 'src/common/models/user_sets';
+import { MergedUserSet, ParseableMergedUserSet, parseMergedUserSet, UserSet } from 'src/common/models/user_sets';
 import { LibraryProblem, SetProblem, ParseableProblem, parseProblem,
 	ParseableSetProblem } from 'src/common/models/problems';
 
@@ -15,7 +15,7 @@ export interface ProblemSetState {
 
 const initial_state = {
 	problem_sets: [],
-	problems: [],
+	set_problems: [],
 	merged_user_sets: []
 };
 
@@ -63,7 +63,9 @@ export default {
 			problem_info: { course_id: number, set_id: number, problem: LibraryProblem }): Promise<void> {
 
 			const url = `/courses/${problem_info.course_id}/sets/${problem_info.set_id}/problems`;
-			const response = await api.post(url, { problem_params: problem_info.problem.location_params });
+			const response = await api.post(url, {
+				problem_params: problem_info.problem.location_params.toObject()
+			});
 			const problem = response.data as ParseableSetProblem;
 			// TODO: check for errors
 			commit('ADD_SET_PROBLEM', new SetProblem(problem));
@@ -92,16 +94,17 @@ export default {
 			const response = await api.get(url);
 			const user_sets = response.data as Array<ParseableMergedUserSet>;
 			// TODO: check for errors
-			commit('SET_MERGED_USER_SETS', user_sets.map(_set => new MergedUserSet(_set)));
+			commit('SET_MERGED_USER_SETS', user_sets.map(_set => parseMergedUserSet(_set)));
 		},
 		async addUserSet({ commit, rootState }: { commit: Commit; rootState: StateInterface },
-			_set: UserSet) {
+			user_set: UserSet) {
 			const course_id = rootState.session.course.course_id;
-			const url = `courses/${course_id}/sets/${_set.set_id ?? 0}/users`;
-			const response = await api.post(url, _set.toObject());
+			const url = `courses/${course_id}/sets/${user_set.set_id ?? 0}/users`;
+			const response = await api.post(url, user_set.toObject());
 			const updated_user_set = response.data as ParseableMergedUserSet;
+			console.log(parseMergedUserSet(updated_user_set));
 			// TODO: check for errors
-			commit('ADD_MERGED_USER_SET', new MergedUserSet(updated_user_set));
+			commit('ADD_MERGED_USER_SET', parseMergedUserSet(updated_user_set));
 		},
 		async updateUserSet({ commit, rootState }: { commit: Commit; rootState: StateInterface },
 			_set: UserSet) {
@@ -110,16 +113,18 @@ export default {
 			const response = await api.put(url, _set.toObject());
 			const updated_user_set = response.data as ParseableMergedUserSet;
 			// TODO: check for errors
-			commit('UPDATE_MERGED_USER_SET', new MergedUserSet(updated_user_set));
+			commit('UPDATE_MERGED_USER_SET', parseMergedUserSet(updated_user_set));
 		},
 		async deleteUserSet({ commit, rootState }: { commit: Commit; rootState: StateInterface },
-			_set: UserSet) {
+			user_set: UserSet) {
 			const course_id = rootState.session.course.course_id;
-			const url = `courses/${course_id}/sets/${_set.set_id ?? 0}/users/${_set.course_user_id ?? 0}`;
-			const response = await api.delete(url, _set.toObject());
+			const url = `courses/${course_id}/sets/${user_set.set_id ?? 0}/users/${user_set.course_user_id ?? 0}`;
+			const response = await api.delete(url);
 			const updated_user_set = response.data as ParseableMergedUserSet;
 			// TODO: check for errors
-			commit('DELETE_MERGED_USER_SET', new MergedUserSet(updated_user_set));
+			const deleted_merged_user_set = new MergedUserSet(updated_user_set);
+			commit('DELETE_MERGED_USER_SET', deleted_merged_user_set);
+			return deleted_merged_user_set;
 		},
 	},
 	mutations: {

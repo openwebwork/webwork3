@@ -127,6 +127,10 @@ sub addUserSet ($self, $user_set_info, $user_set_params = {}, $as_result_set = 0
 
 	my $user = $self->_course_user_rs->find({ course_user_id => $course_user->course_user_id })->users;
 
+	# Remove user_set_id if it is zero.  On the client side, this means that
+	# the set is a new one.
+	delete $user_set_params->{user_set_id} if $user_set_params->{user_set_id} == 0;
+
 	DB::Exception::UserSetExists->throw(
 		username    => $user->username,
 		set_name    => $problem_set->set_name,
@@ -140,6 +144,13 @@ sub addUserSet ($self, $user_set_info, $user_set_params = {}, $as_result_set = 0
 
 	for my $key (keys %$user_set_params) {
 		$params->{$key} = $user_set_params->{$key};
+	}
+
+	# If any of the date are 0, then remove them.
+	if ($user_set_params->{set_dates}) {
+		for my $key (keys %{$user_set_params->{set_dates}}) {
+			delete $user_set_params->{set_dates}->{$key} if $user_set_params->{set_dates}->{$key} == 0;
+		}
 	}
 
 	# Make sure the parameters and dates are valid.
@@ -175,6 +186,13 @@ sub updateUserSet ($self, $user_set_info, $user_set_params = {}, $as_result_set 
 
 	my $problem_set = $self->_problem_set_rs->find({ set_id         => $user_set->set_id });
 	my $user        = $self->_course_user_rs->find({ course_user_id => $user_set->course_user_id })->users;
+
+	# If any of the date are 0, then remove them.
+	if ($user_set_params->{set_dates}) {
+		for my $key (keys %{$user_set_params->{set_dates}}) {
+			delete $user_set_params->{set_dates}->{$key} if $user_set_params->{set_dates}->{$key} == 0;
+		}
+	}
 
 	# Make sure the parameters and dates are valid.
 	my $new_user_set = $self->new($user_set_params);
