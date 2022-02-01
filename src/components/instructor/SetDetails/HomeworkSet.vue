@@ -31,11 +31,12 @@
 <script lang="ts">
 import { defineComponent, ref, watch, computed } from 'vue';
 import { useQuasar } from 'quasar';
+import { useRoute } from 'vue-router';
+import { parseRouteSetID } from 'src/router/utils';
 
 import HomeworkDates from './HomeworkDates.vue';
 import { HomeworkSet } from 'src/common/models/problem_sets';
 import { useStore } from 'src/store';
-import { useRoute } from 'vue-router';
 import { cloneDeep } from 'lodash';
 import { pick } from 'src/common/utils';
 import { Dictionary, generic } from 'src/common/models';
@@ -52,9 +53,7 @@ export default defineComponent({
 
 		const set = ref<HomeworkSet>(new HomeworkSet());
 
-		const set_id = computed((): number => Array.isArray(route.params.set_id) ?
-			parseInt(route.params.set_id[0]) :
-			parseInt(route.params.set_id));
+		const set_id = computed(() => parseRouteSetID(route));
 
 		const updateSet = () => {
 			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id === set_id.value) ??

@@ -23,47 +23,47 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue';
+import { defineComponent, ref, watch, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { useStore } from 'src/store';
+import { useRoute } from 'vue-router';
 import { VueDraggableNext } from 'vue-draggable-next';
+
 import Problem from 'components/common/Problem.vue';
 import { ProblemSet } from 'src/common/models/problem_sets';
 import { SetProblem } from 'src/common/models/problems';
 import { ResponseError } from 'src/common/api-requests/interfaces';
 import { logger } from 'boot/logger';
+import { parseRouteSetID } from 'src/router/utils';
 
 export default defineComponent({
 	name: 'SetDetailProblems',
-	props: {
-		set_id: {
-			type: Number,
-			default: 0
-		}
-	},
 	components: {
 		Problem,
 		draggable: VueDraggableNext
 	},
-	setup(props) {
+	setup() {
 		const $q = useQuasar();
 		const store = useStore();
+		const route = useRoute();
 		// copy of the set_id prop and ensure it is a number
 		const problems = ref<Array<SetProblem>>([]);
 		const problem_set = ref<ProblemSet>(new ProblemSet());
 
+		const set_id = computed(() => parseRouteSetID(route));
+
 		const updateProblemSet = () => {
 			problems.value = store.state.problem_sets.set_problems.filter(set =>
-				set.set_id === props.set_id).concat()
+				set.set_id === set_id.value).concat()
 				.sort((prob_a: SetProblem, prob_b: SetProblem) =>
 					(prob_a?.problem_number ?? 0) - (prob_b?.problem_number ?? 0));
 			problem_set.value = store.state.problem_sets.problem_sets
-				.find(set => set.set_id === props.set_id) || new ProblemSet();
+				.find(set => set.set_id === set_id.value) || new ProblemSet();
 			logger.debug(`[SetDetailProblems] populating problems... count:${problems.value.length}`);
 		};
 		updateProblemSet();
 
-		watch(() => props.set_id, updateProblemSet);
+		watch(() => set_id.value, updateProblemSet);
 
 		return {
 			problem_set,

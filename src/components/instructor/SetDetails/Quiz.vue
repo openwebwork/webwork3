@@ -28,27 +28,27 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, toRefs } from 'vue';
+import { defineComponent, ref, watch, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { cloneDeep } from 'lodash-es';
 
 import QuizDates from './QuizDates.vue';
 import { Quiz } from 'src/common/models/problem_sets';
 import { useStore } from 'src/store';
+import { useRoute } from 'vue-router';
+import { parseRouteSetID } from 'src/router/utils';
 
 export default defineComponent({
 	components: { QuizDates },
 	name: 'Quiz',
-	props: {
-		set_id: Number
-	},
-	setup(props) {
+	setup() {
 		const store = useStore();
 		const $q = useQuasar();
-
-		const { set_id } = toRefs(props);
+		const route = useRoute();
 
 		const set = ref<Quiz>(new Quiz());
+
+		const set_id = computed(() => parseRouteSetID(route));
 
 		const updateSet = () => {
 			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id == set_id.value) ||
@@ -73,6 +73,7 @@ export default defineComponent({
 		{ deep: true });
 
 		return {
+			set_id,
 			set,
 			set_options: [ // probably should be a course_setting or in common.ts
 				{ value: 'REVIEW', label: 'Review set' },

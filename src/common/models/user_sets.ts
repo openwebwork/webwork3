@@ -361,7 +361,6 @@ export class MergedUserReviewSet extends MergedUserSet {
 }
 
 export function parseMergedUserSet(user_set: ParseableMergedUserSet) {
-	console.log(user_set);
 	if (user_set.set_type === 'HW') {
 		return new MergedUserHomeworkSet(user_set as ParseableMergedUserHomeworkSet);
 	} else if (user_set.set_type === 'QUIZ') {

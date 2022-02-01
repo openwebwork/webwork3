@@ -1,12 +1,15 @@
 <template>
 	<div>
 		<div class="row">
-			<div class="col-2">
-				<div class="q-pl-lg q-pt-sm text-h6"> {{ set_name }} </div>
+			<div class="col-3">
+				<q-select
+					:options="problem_sets_info" v-model="selected_set"
+					label="Select Problem Set" map-options
+				/>
 			</div>
-			<div class="col-10">
+			<div class="col-9">
 				<q-tabs
-					v-if="selected_set_id"
+					v-if="selected_set"
 					v-model="set_details_tab"
 					dense
 					inline-label
@@ -19,13 +22,13 @@
 			</div>
 		</div>
 		<q-tab-panels
-			v-if="selected_set_id"
+			v-if="selected_set"
 			v-model="set_details_tab" animated>
 			<q-tab-panel name="details">
 				<router-view />
 			</q-tab-panel>
 			<q-tab-panel name="problems">
-				<set-detail-problems :set_id="selected_set_id"/>
+				<set-detail-problems/>
 			</q-tab-panel>
 			<q-tab-panel name="users">
 				<set-users/>
@@ -36,17 +39,20 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import SetDetailProblems from 'components/instructor/SetDetails/SetDetailProblems.vue';
 import SetUsers from 'components/instructor/SetDetails/SetUsers.vue';
+import { parseRouteSetID } from 'src/router/utils';
 
 import { useStore } from 'src/store';
 
+interface SetInfo {
+	label: string;
+	value: number;
+}
+
 export default defineComponent({
 	name: 'SetDetailContainer',
-	props: {
-		set_id: String
-	},
 	components: {
 		SetDetailProblems,
 		SetUsers
@@ -55,36 +61,54 @@ export default defineComponent({
 		const router = useRouter();
 		const route = useRoute();
 		const store = useStore();
-		const selected_set_id = ref<number>(0);
+		const selected_set = ref<SetInfo | null>(null);
 		const set_details_tab = ref<string>('details');
 
-		const updateSet = (_set_id: number) => {
-			void router.push({ name: 'ProblemSetDetails', params: { set_id: parseInt(`${_set_id}`) } });
-			set_details_tab.value = 'details'; // reset the tabs to the first one.
+		const set_id = computed(() => parseRouteSetID(route));
+
+		const problem_sets_info = computed(() => store.state.problem_sets.problem_sets
+			.map(set => ({ label: set.set_name, value: set.set_id })));
+
+		// const updateSet = (_set_id: number) => {
+		// void router.push({ name: 'ProblemSetDetails', params: { set_id: parseInt(`${_set_id}`) } });
+		// set_details_tab.value = 'details'; // reset the tabs to the first one.
+		// };
+
+		const updateSet = () => {
+			const set_id = parseRouteSetID(route);
+			const set_info = problem_sets_info.value.find(s => s.value === set_id);
+			if (set_info) {
+				selected_set.value = set_info;
+				set_details_tab.value = 'details';
+			}
 		};
 
-		const updateSetID = () => {
-			const s = route.params.set_id; // a param is either a string or an array of strings
-			const set_id = Array.isArray(s) ? parseInt(s[0]) : parseInt(s);
-			selected_set_id.value = set_id;
-		};
-
-		if (route.params.set_id) {
-			updateSetID();
+		if (set_id.value) {
+			updateSet();
 		}
-		updateSetID();
 
-		watch(() => route.fullPath, updateSetID);
+		// if (selected_set.value) {
+		// updateSet();
+		// }
 
-		watch(() => selected_set_id.value, updateSet);
+		// updateSet();
+
+		// If there is a link to this page with the set_id parameter, update.
+		watch(() => route.params, updateSet);
+
+		// If the selected set changes.
+		watch(() => selected_set.value, () => {
+			void router.push({
+				name: 'ProblemSetDetails',
+				params: { set_id: parseInt(`${selected_set.value?.value ?? 0}`) }
+			});
+		}, { deep: true });
 
 		return {
+			selected_set,
 			set_details_tab,
-			selected_set_id,
-			set_name: computed(() => {
-				const set = store.state.problem_sets.problem_sets.find(_set => _set.set_id === selected_set_id.value);
-				return set ? set.set_name : 'Select a set to the right';
-			})
+			set_id,
+			problem_sets_info
 		};
 	}
 });

@@ -11,6 +11,7 @@ import { defineComponent, computed } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { useStore } from 'src/store';
+import { parseRouteSetID } from 'src/router/utils';
 import { ProblemSet } from 'src/common/models/problem_sets';
 import HomeworkSet from 'src/components/instructor/SetDetails/HomeworkSet.vue';
 import Quiz from 'src/components/instructor/SetDetails/Quiz.vue';
@@ -26,17 +27,12 @@ export default defineComponent({
 	setup() {
 		const route = useRoute();
 		const store = useStore();
-		const parseSetId = () => {
-			return Array.isArray(route.params.set_id)
-				? parseInt(route.params.set_id[0])
-				: parseInt(route.params.set_id);
-		};
 
 		return {
-			set_id: computed(() => parseSetId()),
+			set_id: computed(() => parseRouteSetID(route)),
 			set_type: computed(() => {
-				const _set_id = parseSetId();
-				const s = store.state.problem_sets.problem_sets.find((_set: ProblemSet) => _set.set_id == _set_id) ||
+				const _set_id = parseRouteSetID(route);
+				const s = store.state.problem_sets.problem_sets.find((_set: ProblemSet) => _set.set_id == _set_id) ??
 					new ProblemSet();
 				return s.set_type;
 			})

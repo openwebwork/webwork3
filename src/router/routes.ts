@@ -53,7 +53,6 @@ const routes: RouteRecordRaw[] = [
 						'pages/instructor/Instructor.vue'
 					),
 				name: 'instructor',
-				props: true,
 				meta: { requiresAuth: true },
 				children: [
 					{
