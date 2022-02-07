@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# This file fills a database with sample data for testing.
+# This file fills a database with sample data from csv files.
 
 use warnings;
 use strict;
@@ -25,13 +25,18 @@ use DB::TestUtils qw/loadCSV/;
 
 my $verbose = 1;
 
-# Load the database
+# Load the configuration for the database settings.
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
 $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
-my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-#$schema->storage->debug(1);  # Print out the SQL commands.
+# Connect to the database.
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
 
 say "restoring the database with dbi: $config->{database_dsn}" if $verbose;
 
