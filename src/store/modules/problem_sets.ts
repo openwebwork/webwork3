@@ -6,8 +6,7 @@ import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/mod
 import { MergedUserSet, ParseableMergedUserSet, parseMergedUserSet, UserSet } from 'src/common/models/user_sets';
 import { LibraryProblem, SetProblem, ParseableProblem, parseProblem,
 	ParseableUserProblem, UserProblem, ParseableMergedUserProblem,
-	MergedUserProblem } from 'src/common/models/problems';
-import { logger } from 'boot/logger';
+	MergedUserProblem, ParseableSetProblem } from 'src/common/models/problems';
 
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;

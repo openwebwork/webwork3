@@ -1,7 +1,34 @@
 // Tests for Quizzes
 
-import { Quiz, ProblemSet } from 'src/common/models/problem_sets';
+import { Quiz, ProblemSet, ParseableQuizDates, ParseableQuizParams } from 'src/common/models/problem_sets';
 import { BooleanParseException, NonNegIntException } from 'src/common/models/parsers';
+
+const default_quiz_dates: ParseableQuizDates = {
+	answer: 0,
+	due: 0,
+	open: 0
+};
+
+const default_quiz_params: ParseableQuizParams = {
+	timed: false,
+	quiz_duration: 0
+};
+
+const default_quiz = {
+	set_dates: { ...default_quiz_dates },
+	set_params: { ...default_quiz_params },
+	set_id: 0,
+	course_id: 0,
+	set_name: '',
+	set_visible: false,
+	set_type: 'QUIZ'
+};
+
+test('Test default Homework Set', () => {
+	const set = new Quiz();
+	expect(set instanceof Quiz).toBe(true);
+	expect(set.toObject()).toStrictEqual(default_quiz);
+});
 
 test('Build a Quiz', () => {
 	const quiz = new Quiz();
@@ -45,6 +72,24 @@ test('Build a Quiz', () => {
 	};
 	expect(quiz2.toObject()).toStrictEqual(params);
 
+});
+
+test('Check that calling all_fields() and params() is correct', () => {
+	const quiz_fields = ['set_id', 'set_name', 'course_id', 'set_type', 'set_visible',
+		'set_params', 'set_dates'];
+	const quiz = new Quiz();
+
+	expect(quiz.all_field_names.sort()).toStrictEqual(quiz_fields.sort());
+	expect(quiz.param_fields.sort()).toStrictEqual(['set_dates', 'set_params']);
+
+	expect(Quiz.ALL_FIELDS.sort()).toStrictEqual(quiz_fields.sort());
+
+});
+
+test('Check that cloning a Quiz works', () => {
+	const quiz = new Quiz();
+	expect(quiz.clone().toObject()).toStrictEqual(default_quiz);
+	expect(quiz.clone() instanceof Quiz).toBe(true);
 });
 
 test('Check that the quiz param defaults are working', () => {

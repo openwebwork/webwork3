@@ -1,17 +1,26 @@
-// General Parsing error
+/**
+ * This module contains all parsing functions and needed regular expressions
+ * for all of webwork3.
+ */
 
-export class ParseError {
+/**
+ * ParseError is a general Error class for any parsing errors.
+ */
+export class ParseError extends Error {
 	type: string;
 	message: string;
 	field?: string;
 	constructor(type: string, message: string, field?: string) {
+		super();
 		this.type = type;
 		this.message = message;
 		if (field != undefined) this.field = field;
 	}
 }
 
-// Some specific parsing errors/exceptions
+/**
+ * NonNegIntException is thrown when the input is not an nonnegative integer.
+ */
 
 export class NonNegIntException extends ParseError {
 	constructor(message: string) {
@@ -19,11 +28,19 @@ export class NonNegIntException extends ParseError {
 	}
 }
 
+/**
+ * UsernameParseException is thrown when the input is not an valid username.
+ */
+
 export class UsernameParseException extends ParseError {
 	constructor(message: string) {
 		super('UsernameParseExcpeption', message, 'username');
 	}
 }
+
+/**
+ * EmailParseException is thrown when the input is not an valid email address.
+ */
 
 export class EmailParseException extends ParseError {
 	constructor(message: string) {
@@ -31,11 +48,20 @@ export class EmailParseException extends ParseError {
 	}
 }
 
+/**
+ * NonNegDecimalException is thrown when the input is not an nonnegative decimal.
+ */
+
 export class NonNegDecimalException extends ParseError {
 	constructor(message: string) {
 		super('NonNegDecimalException', message);
 	}
 }
+
+/**
+ * BooleanParseException is thrown when the input is not a valid boolean
+ * including perl boolean (0, 1) and the strings 'true' and 'false'.
+ */
 
 export class BooleanParseException extends ParseError {
 	constructor(message: string) {
@@ -43,17 +69,29 @@ export class BooleanParseException extends ParseError {
 	}
 }
 
+/**
+ * NumberParseException is thrown when the input is not a number.
+ */
+
 export class NumberParseException extends ParseError {
 	constructor(message: string) {
 		super('NumberParseException', message);
 	}
 }
 
+/**
+ * StringParseException is thrown when the input is not a string.
+ */
+
 export class StringParseException extends ParseError {
 	constructor(message: string) {
 		super('StringParseException', message);
 	}
 }
+
+/**
+ * UserRoleException is thrown when the input is not a valid UserRole
+ */
 
 export class UserRoleException extends ParseError {
 	constructor(message: string) {
@@ -83,7 +121,7 @@ export const mailRE = /^[\w.]+@([a-zA-Z_.]+)+\.[a-zA-Z]{2,9}$/;
 export const usernameRE = /^[_a-zA-Z]([a-zA-Z._0-9])+$/;
 
 export function parseUsername(val: string | undefined) {
-	if (typeof val === 'string' && (mailRE.test(`${val}`) || usernameRE.test(`${val}`))) {
+	if (typeof val === 'string' && (val === '' || mailRE.test(`${val ?? ''}`) || usernameRE.test(`${val}`))) {
 		return val;
 	} else {
 		throw new UsernameParseException(`The value '${val?.toString() ?? ''}'' is not a value username`);
@@ -121,13 +159,19 @@ export function parseNumber(_value: string | number) {
 	throw new NumberParseException(`The value '${_value}' is not a number.`);
 }
 
-export type UserRole = 'admin' | 'instructor' | 'TA' | 'student';
+export enum UserRole {
+	admin = 'ADMIN',
+	instructor = 'INSTRUCTOR',
+	ta = 'TA',
+	student = 'STUDENT',
+	unknown = 'UNKNOWN'
+}
 
 export function parseUserRole(role: string): UserRole {
-	if (role === 'admin') return 'admin';
-	if (role === 'instructor') return 'instructor';
-	if (role === 'TA') return 'TA';
-	if (role === 'student') return 'student';
+	if (role.toLocaleLowerCase() === 'admin') return UserRole.admin;
+	if (role.toLocaleLowerCase() === 'instructor') return UserRole.instructor;
+	if (role.toLocaleLowerCase() === 'ta') return UserRole.ta;
+	if (role.toLocaleLowerCase() === 'student') return UserRole.student;
 	throw new UserRoleException(`The value '${role}' is not a valid role.`);
 }
 

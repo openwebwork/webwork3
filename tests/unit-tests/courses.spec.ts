@@ -4,15 +4,38 @@ import { Course, ParseableCourse } from 'src/common/models/courses';
 import { NonNegIntException } from 'src/common/models/parsers';
 import { InvalidFieldsException } from 'src/common/models';
 
+const default_course_dates = { start: '', end: '' };
+
+const default_course = {
+	course_id: 0,
+	course_name: 'Arithmetic',
+	visible: true,
+	course_dates: { ...default_course_dates }
+};
+
 test('Create a Valid Course', () => {
 	const course = new Course({ course_name: 'Arithmetic' });
 	expect(course instanceof Course).toBe(true);
 
-	const course1 = new Course({ course_name: 'Arithmetic' });
-	const course2 = new Course({ course_name: 'Arithmetic', course_id: 0 });
-	course2.setDates({ start: '', end: '' });
-	expect(course1.toObject()).toStrictEqual(course2.toObject());
+	expect(course.toObject()).toStrictEqual(default_course);
 
+});
+
+test('Check that calling all_fields() and params() is correct', () => {
+	const course_fields = ['course_id', 'course_name', 'visible', 'course_dates'];
+	const course = new Course({ course_name: 'Arithmetic' });
+
+	expect(course.all_field_names.sort()).toStrictEqual(course_fields.sort());
+	expect(course.param_fields.sort()).toStrictEqual(['course_dates']);
+
+	expect(Course.ALL_FIELDS.sort()).toStrictEqual(course_fields.sort());
+
+});
+
+test('Check that cloning works', () => {
+	const course = new Course({ course_name: 'Arithmetic' });
+	expect(course.clone().toObject()).toStrictEqual(default_course);
+	expect(course.clone() instanceof Course).toBe(true);
 });
 
 test('Parsing of undefined and null values', () => {

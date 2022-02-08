@@ -1,23 +1,42 @@
 // Tests for UserSets
 
 import { NonNegIntException } from 'src/common/models/parsers';
-import { UserHomeworkSet, UserQuiz, UserReviewSet, UserSet } from 'src/common/models/user_sets';
+import { UserHomeworkSet, UserQuiz, UserReviewSet, UserSet, ParseableUserHomeworkSet, ParseableUserQuiz }
+	from 'src/common/models/user_sets';
+
+const default_user_set = {
+	user_set_id: 0,
+	set_id: 0,
+	course_user_id: 0,
+	set_version: 1
+};
 
 test('Create a generic UserSet', () => {
 	const user_set = new UserSet();
 	expect(user_set instanceof UserSet).toBe(true);
 
-	const user_set_defaults = {
-		user_set_id: 0,
-		set_id: 0,
-		course_user_id: 0,
-		set_version: 1
-	};
 	// Since UserSet has 'set_params' and 'set_dates' as placeholds for subclasses,
 	// don't call them in the toObject.
 	// TODO: find a better way to handle this.
 	const fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version'];
-	expect(user_set.toObject(fields)).toStrictEqual(user_set_defaults);
+	expect(user_set.toObject(fields)).toStrictEqual(default_user_set);
+});
+
+test('Check that calling all_fields() and params() is correct', () => {
+	const user_set_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version'];
+	const user_set = new UserSet();
+
+	expect(user_set.all_field_names.sort()).toStrictEqual(user_set_fields.sort());
+	expect(user_set.param_fields.sort()).toStrictEqual([]);
+
+	expect(UserSet.ALL_FIELDS.sort()).toStrictEqual(user_set_fields.sort());
+
+});
+
+test('Check that cloning a Quiz works', () => {
+	const user_set = new UserSet();
+	expect(user_set.clone().toObject()).toStrictEqual(default_user_set);
+	expect(user_set.clone() instanceof UserSet).toBe(true);
 });
 
 test('Set fields of user_set directly', () => {
@@ -116,20 +135,38 @@ test('Checking that setting invalid fields with set() throws errors', () => {
 
 });
 
+const default_user_homework_set: ParseableUserHomeworkSet = {
+	user_set_id: 0,
+	set_id: 0,
+	course_user_id: 0,
+	set_version: 1,
+	set_params: { enable_reduced_scoring: false },
+	set_dates: { open: 0, due: 0, reduced_scoring: 0, answer: 0 }
+};
+
 test('Create a UserHomeworkSet', () => {
 	const user_hw = new UserHomeworkSet();
 	expect(user_hw instanceof UserHomeworkSet).toBe(true);
 	expect(user_hw instanceof UserSet).toBe(true);
+	expect(user_hw.toObject()).toStrictEqual(default_user_homework_set);
+});
 
-	const defaults = {
-		user_set_id: 0,
-		set_id: 0,
-		course_user_id: 0,
-		set_version: 1,
-		set_params: { enable_reduced_scoring: false },
-		set_dates: { open: 0, due: 0, reduced_scoring: 0, answer: 0 }
-	};
-	expect(user_hw.toObject()).toStrictEqual(defaults);
+test('Check that calling all_fields() and params() is correct', () => {
+	const hw_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
+		'set_params', 'set_dates'];
+	const hw = new UserHomeworkSet();
+
+	expect(hw.all_field_names.sort()).toStrictEqual(hw_fields.sort());
+	expect(hw.param_fields.sort()).toStrictEqual(['set_dates', 'set_params']);
+
+	expect(UserHomeworkSet.ALL_FIELDS.sort()).toStrictEqual(hw_fields.sort());
+
+});
+
+test('Check that cloning a UserHomeworkSet works', () => {
+	const user_hw = new UserHomeworkSet();
+	expect(user_hw.clone().toObject()).toStrictEqual(default_user_homework_set);
+	expect(user_hw.clone() instanceof UserHomeworkSet).toBe(true);
 });
 
 test('Set params of a UserHomeworkSet', () => {
@@ -173,21 +210,39 @@ test('Set dates of a UserHomeworkSet', () => {
 
 });
 
+const default_user_quiz: ParseableUserQuiz = {
+	user_set_id: 0,
+	set_id: 0,
+	course_user_id: 0,
+	set_version: 1,
+	set_params: { timed: false, quiz_duration: 0 },
+	set_dates: { open: 0, due: 0, answer: 0 }
+};
+
 test('Create a UserQuiz', () => {
 	const user_quiz = new UserQuiz();
 	expect(user_quiz instanceof UserHomeworkSet).toBe(false);
 	expect(user_quiz instanceof UserQuiz).toBe(true);
 	expect(user_quiz instanceof UserSet).toBe(true);
+	expect(user_quiz.toObject()).toStrictEqual(default_user_quiz);
+});
 
-	const defaults = {
-		user_set_id: 0,
-		set_id: 0,
-		course_user_id: 0,
-		set_version: 1,
-		set_params: { timed: false, quiz_duration: 0 },
-		set_dates: { open: 0, due: 0, answer: 0 }
-	};
-	expect(user_quiz.toObject()).toStrictEqual(defaults);
+test('Check that calling all_fields() and params() is correct', () => {
+	const quiz_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
+		'set_params', 'set_dates'];
+	const quiz = new UserQuiz();
+
+	expect(quiz.all_field_names.sort()).toStrictEqual(quiz_fields.sort());
+	expect(quiz.param_fields.sort()).toStrictEqual(['set_dates', 'set_params']);
+
+	expect(UserQuiz.ALL_FIELDS.sort()).toStrictEqual(quiz_fields.sort());
+
+});
+
+test('Check that cloning a UserHomeworkSet works', () => {
+	const quiz = new UserQuiz();
+	expect(quiz.clone().toObject()).toStrictEqual(default_user_quiz);
+	expect(quiz.clone() instanceof UserQuiz).toBe(true);
 });
 
 test('Set params of a UserQuiz', () => {
@@ -228,21 +283,39 @@ test('Set dates of a UserQuiz', () => {
 
 });
 
-test('Create a UserReviewSet', () => {
+const default_user_review_set = {
+	user_set_id: 0,
+	set_id: 0,
+	course_user_id: 0,
+	set_version: 1,
+	set_params: { dummy_params: false },
+	set_dates: { open: 0, closed: 0 }
+};
+
+test('Create a default UserReviewSet', () => {
 	const user_review_set = new UserReviewSet();
 	expect(user_review_set instanceof UserHomeworkSet).toBe(false);
 	expect(user_review_set instanceof UserReviewSet).toBe(true);
 	expect(user_review_set instanceof UserSet).toBe(true);
+	expect(user_review_set.toObject()).toStrictEqual(default_user_review_set);
+});
 
-	const defaults = {
-		user_set_id: 0,
-		set_id: 0,
-		course_user_id: 0,
-		set_version: 1,
-		set_params: { dummy_params: false },
-		set_dates: { open: 0, closed: 0 }
-	};
-	expect(user_review_set.toObject()).toStrictEqual(defaults);
+test('Check that calling all_fields() and params() is correct', () => {
+	const review_set_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
+		'set_params', 'set_dates'];
+	const review = new UserReviewSet();
+
+	expect(review.all_field_names.sort()).toStrictEqual(review_set_fields.sort());
+	expect(review.param_fields.sort()).toStrictEqual(['set_dates', 'set_params']);
+
+	expect(UserReviewSet.ALL_FIELDS.sort()).toStrictEqual(review_set_fields.sort());
+
+});
+
+test('Check that cloning a UserReviewSet works', () => {
+	const review = new UserReviewSet();
+	expect(review.clone().toObject()).toStrictEqual(default_user_review_set);
+	expect(review.clone() instanceof UserReviewSet).toBe(true);
 });
 
 test('Set dates of a UserReviewSet', () => {

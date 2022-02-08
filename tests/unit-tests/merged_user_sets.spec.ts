@@ -2,7 +2,7 @@
 
 import { BooleanParseException, NonNegIntException, UsernameParseException } from 'src/common/models/parsers';
 import { MergedUserHomeworkSet, MergedUserQuiz, MergedUserSet,
-	MergedUserReviewSet } from 'src/common/models/user_sets';
+	MergedUserReviewSet, ParseableMergedUserHomeworkSet } from 'src/common/models/user_sets';
 
 test('Create a generic MergedUserSet', () => {
 	const user_set = new MergedUserSet();
@@ -163,23 +163,42 @@ test('Checking that setting invalid fields with set() throws errors', () => {
 
 });
 
+const default_merged_homework_set: ParseableMergedUserHomeworkSet = {
+	user_set_id: 0,
+	set_id: 0,
+	course_user_id: 0,
+	set_version: 1,
+	set_name: '',
+	username: '',
+	set_visible: false,
+	set_params: { enable_reduced_scoring: false },
+	set_dates: { open: 0, due: 0, reduced_scoring: 0, answer: 0 }
+};
+
 test('Create a MergedUserHomeworkSet', () => {
 	const user_hw = new MergedUserHomeworkSet();
 	expect(user_hw instanceof MergedUserHomeworkSet).toBe(true);
 	expect(user_hw instanceof MergedUserSet).toBe(true);
 
-	const defaults = {
-		user_set_id: 0,
-		set_id: 0,
-		course_user_id: 0,
-		set_version: 1,
-		set_name: '',
-		username: '',
-		set_visible: false,
-		set_params: { enable_reduced_scoring: false },
-		set_dates: { open: 0, due: 0, reduced_scoring: 0, answer: 0 }
-	};
-	expect(user_hw.toObject()).toStrictEqual(defaults);
+	expect(user_hw.toObject()).toStrictEqual(default_merged_homework_set);
+});
+
+test('Check that calling all_fields() and params() is correct', () => {
+	const merged_user_hw_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
+		'set_visible', 'set_name', 'username', 'set_params', 'set_dates'];
+	const hw = new MergedUserHomeworkSet();
+
+	expect(hw.all_field_names.sort()).toStrictEqual(merged_user_hw_fields.sort());
+	expect(hw.param_fields.sort()).toStrictEqual(['set_dates', 'set_params']);
+
+	expect(MergedUserHomeworkSet.ALL_FIELDS.sort()).toStrictEqual(merged_user_hw_fields.sort());
+
+});
+
+test('Check that cloning a Quiz works', () => {
+	const hw = new MergedUserHomeworkSet();
+	expect(hw.clone().toObject()).toStrictEqual(default_merged_homework_set);
+	expect(hw.clone() instanceof MergedUserHomeworkSet).toBe(true);
 });
 
 test('Set fields of Merged Homework Set directly', () => {

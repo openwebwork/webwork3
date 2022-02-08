@@ -50,7 +50,6 @@ export interface ParseableProblemSet {
 	course_id?: string | number;
 	set_type?: string;
 	set_visible?: string | number | boolean;
-	set_version?: string | number;
 	set_params?: ProblemSetParams;
 	set_dates?: ProblemSetDates;
 }

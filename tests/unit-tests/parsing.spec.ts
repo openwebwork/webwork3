@@ -66,8 +66,8 @@ test('parsing usernames', () => {
 });
 
 test('parsing user roles', () => {
-	expect(parseUserRole('instructor')).toBe('instructor');
+	expect(parseUserRole('instructor')).toBe('INSTRUCTOR');
 	expect(parseUserRole('TA')).toBe('TA');
-	expect(parseUserRole('student')).toBe('student');
+	expect(parseUserRole('student')).toBe('STUDENT');
 	expect(() => {parseUserRole('not_existent'); }).toThrow(UserRoleException);
 });
