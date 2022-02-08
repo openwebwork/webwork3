@@ -10,33 +10,22 @@ export enum ProblemSetType {
 	UNKNOWN = 'UNKNOWN'
 }
 
-export function parseProblemSetType(type: string) {
-	if (/hw/i.test(type)) {
-		return ProblemSetType.HW;
-	} else if (/quiz/i.test(type)) {
-		return ProblemSetType.QUIZ;
-	} else if (/review/i.test(type)) {
-		return ProblemSetType.REVIEW_SET;
-	}
-	throw new ParseError('ProblemSetType', `The problem set type '${type}' is not valid.`);
-}
-
 /**
  * This takes in a general problem set and returns the specific subclassed ProblemSet
  * @param problem ParseableProblemSet
  * @returns HomeworkSet, Quiz or ReviewSet
  */
 
-export function parseProblemSet(problem: ParseableProblemSet) {
-	if (problem.set_type === 'HW') {
-		return new HomeworkSet(problem as ParseableHomeworkSet);
-	} else if (problem.set_type === 'QUIZ') {
-		return new Quiz(problem as ParseableQuiz);
-	} else if (problem.set_type === 'REVIEW') {
-		return new ReviewSet(problem as ParseableReviewSet);
+export function parseProblemSet(set: ParseableProblemSet) {
+	if (/hw/i.test(set.set_type ?? '')) {
+		return new HomeworkSet(set as ParseableHomeworkSet);
+	} else if (/quiz/i.test(set.set_type ?? '')) {
+		return new Quiz(set as ParseableQuiz);
+	} else if (/review/i.test(set.set_type ?? '')) {
+		return new ReviewSet(set as ParseableReviewSet);
 	}
 
-	throw new ParseError('ProblemSetType', `The problem set type '${problem.set_type ?? ''}' is not valid.`);
+	throw new ParseError('ProblemSetType', `The problem set type '${set.set_type ?? ''}' is not valid.`);
 }
 
 export type ProblemSetParams = HomeworkSetParams | QuizParams | ReviewSetParams;
@@ -426,7 +415,7 @@ export class ReviewSet extends ProblemSet {
 	private _set_dates = new ReviewSetDates();
 	constructor(params: ParseableReviewSet = {}) {
 		super(params as ParseableProblemSet);
-		this._set_type = ProblemSetType.HW;
+		this._set_type = ProblemSetType.REVIEW_SET;
 		if (params.set_params) this.set_params.set(params.set_params);
 		if (params.set_dates) this.set_dates.set(params.set_dates);
 	}

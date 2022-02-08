@@ -69,32 +69,23 @@ export default defineComponent({
 		const problem_sets_info = computed(() => store.state.problem_sets.problem_sets
 			.map(set => ({ label: set.set_name, value: set.set_id })));
 
-		// const updateSet = (_set_id: number) => {
-		// void router.push({ name: 'ProblemSetDetails', params: { set_id: parseInt(`${_set_id}`) } });
-		// set_details_tab.value = 'details'; // reset the tabs to the first one.
-		// };
-
 		const updateSet = () => {
-			const set_id = parseRouteSetID(route);
-			const set_info = problem_sets_info.value.find(s => s.value === set_id);
+			const set_info = problem_sets_info.value.find(s => s.value === set_id.value);
 			if (set_info) {
 				selected_set.value = set_info;
 				set_details_tab.value = 'details';
-			}
+				void router.push({ name: 'ProblemSetDetails', params: { set_id: set_id.value } });
+				set_details_tab.value = 'details'; // reset the tabs to the first one.
+			};
 		};
 
+		watch(() => set_id.value, updateSet);
+		watch(() => problem_sets_info.value, updateSet);
+
+		// On page load if set_id exists, render the problem set.
 		if (set_id.value) {
 			updateSet();
 		}
-
-		// if (selected_set.value) {
-		// updateSet();
-		// }
-
-		// updateSet();
-
-		// If there is a link to this page with the set_id parameter, update.
-		watch(() => route.params, updateSet);
 
 		// If the selected set changes.
 		watch(() => selected_set.value, () => {

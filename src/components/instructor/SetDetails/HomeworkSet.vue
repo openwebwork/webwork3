@@ -20,11 +20,7 @@
 		<homework-dates v-if="set"
 			:dates="set.set_dates"
 			:reduced_scoring="set.set_params.enable_reduced_scoring"
-			/>
-		<tr>
-			<td class="header">Other</td>
-			<td><q-toggle v-model="set.set_params.allow" /></td>
-		</tr>
+		/>
 	</table>
 </template>
 

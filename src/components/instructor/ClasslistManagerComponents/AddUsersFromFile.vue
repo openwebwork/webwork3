@@ -24,7 +24,13 @@
 						<q-toggle v-model="use_single_role"/> Import All users as
 					</div>
 					<div class="col-3">
-							<q-select :options="roles" v-model="common_role" />
+							<q-select
+							:disable="!use_single_role"
+							:options="roles"
+							v-model="common_role"
+							label="Select Role"
+							:options-dense="true"
+						/>
 					</div>
 				</div>
 				<div class="row">
@@ -170,8 +176,13 @@ export default defineComponent({
 		const getMergedUser = (row: UserFromFile) => {
 			// The following pulls the keys out from the user_param_map and the the values out of row
 			// to get the merged user.
-			return Object.entries(user_param_map).reduce((acc, [k, v]) =>
-				({ ...acc, [v]: row[k as keyof UserFromFile] }), {});
+			const merged_user = Object.entries(user_param_map).reduce((acc, [k, v]) =>
+				({ ...acc, [v]: row[k as keyof UserFromFile] }), {}) as ParseableMergedUser;
+			// Set the role if a common role for all users is selected.
+			merged_user.role = use_single_role.value ?
+				common_role.value ?? 'UNKOWN' :
+				'UNKNOWN';
+			return merged_user;
 		};
 
 		// Parse the selected users from the file.
@@ -196,12 +207,7 @@ export default defineComponent({
 				let parse_error: ParseError | null = null;
 				const row = parseInt(`${params?._row || -1}`);
 				try {
-					const merged_user = getMergedUser(params) as ParseableMergedUser;
-					// Set the role if a common role for all users is selected.
-					if (use_single_role.value && common_role.value) {
-						merged_user.role = common_role.value;
-					}
-
+					const merged_user = getMergedUser(params);
 					// If the user is already in the course, show a warning
 					const u = store.state.users.merged_users.find(_u => _u.username === merged_user.username);
 					if (u) {
@@ -324,7 +330,7 @@ export default defineComponent({
 			}
 		};
 
-		watch(() => selected, parseUsers, { deep: true });
+		watch([selected, common_role], parseUsers, { deep: true });
 
 		watch(() => column_headers, () => {
 			// Update the user_param_map if the column headers change.

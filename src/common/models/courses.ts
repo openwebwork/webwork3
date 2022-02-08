@@ -9,13 +9,13 @@ export interface ParseableCourse {
 }
 
 export interface ParseableCourseDates {
-	start?: string;
-	end?: string;
+	start?: number | string;
+	end?: number | string;
 }
 
 class CourseDates extends Model {
-	private _start = '';
-	private _end = '';
+	private _start = 0; // start date in unix_time
+	private _end = 0; // end date in unix_time
 	constructor(params: ParseableCourseDates = {}) {
 		super();
 		this.set(params);
@@ -35,10 +35,10 @@ class CourseDates extends Model {
 	}
 
 	get start() { return this._start; }
-	set start(value: string) { this._start = value; }
+	set start(value: number | string) { this._start = parseNonNegInt(value); }
 
 	get end() { return this._end; }
-	set end(value: string) { this._end = value; }
+	set end(value: number | string) { this._end = parseNonNegInt(value); }
 }
 
 export class Course extends Model {

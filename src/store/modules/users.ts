@@ -106,9 +106,12 @@ export default {
 			}
 			return u;
 		},
-		async addCourseUser(_context: ActionContext<UserState, StateInterface>,
-			_course_user: CourseUser): Promise<CourseUser | undefined> {
-			return await addCourseUser(_course_user);
+		async addCourseUser({ commit }: { commit: Commit }, course_user: CourseUser): Promise<CourseUser | undefined> {
+			const course_user_to_add = await addCourseUser(course_user);
+			if (course_user_to_add) {
+				commit('ADD_COURSE_USER', course_user_to_add);
+			}
+			return course_user_to_add;
 		},
 		async addMergedUser({ commit }: { commit: Commit }, merged_user: MergedUser): Promise<MergedUser> {
 			if (merged_user.user_id === 0) { // this is a new user
@@ -118,7 +121,8 @@ export default {
 				merged_user.username = user.username;
 			}
 			const new_course_user = new CourseUser(merged_user.toObject(CourseUser.ALL_FIELDS));
-			await addCourseUser(new_course_user);
+			const course_user_to_add = await addCourseUser(new_course_user);
+			merged_user.course_user_id = course_user_to_add?.course_user_id ?? 0;
 			commit('ADD_MERGED_USER', merged_user);
 			return merged_user;
 		},
@@ -209,7 +213,6 @@ async function addUser(_user: User) {
 	const response = await api.post('users', _user.toObject());
 	if (response.status === 200) {
 		const u = response.data as ParseableUser;
-		u.username;
 		return new User(u);
 	} else if (response.status === 250) {
 		logger.error(response.data);

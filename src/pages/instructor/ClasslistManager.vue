@@ -55,7 +55,7 @@
 
 <script lang="ts">
 import { useQuasar } from 'quasar';
-import { defineComponent, computed, ref } from 'vue';
+import { defineComponent, computed, ref, watch } from 'vue';
 
 import { useStore } from 'src/store';
 import { api } from 'boot/axios';
@@ -137,6 +137,14 @@ export default defineComponent({
 				sortable: true
 			}
 		];
+
+		watch(() => open_edit_dialog.value, () => {
+			// When the Edit Users Dialog closes
+			if (!open_edit_dialog.value) {
+				// clear the selected rows
+				selected.value = [];
+			}
+		});
 
 		return {
 			filter,

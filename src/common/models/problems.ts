@@ -112,7 +112,7 @@ class ProblemLocationParams extends Model {
 
 export class LibraryProblem extends Problem {
 	private _location_params = new ProblemLocationParams();
-
+	private _problem_number = 0; // used for display in library browser.
 	get location_params() { return this._location_params; }
 
 	constructor(params: ParseableLibraryProblem = {}) {
@@ -136,7 +136,12 @@ export class LibraryProblem extends Problem {
 		return [ ...super.all_field_names, ...['location_params']];
 	}
 
+	get problem_number(): number { return this._problem_number; }
+	set problem_number(value: string | number) { this._problem_number = parseNonNegInt(value); }
+
 	get param_fields() { return [...super.param_fields, ...['location_params'] ]; }
+
+	// Maybe get rid of this and just assign location_params directly.
 
 	setLocationParams(params: ParseableLocationParams) {
 		this._location_params.set(params);
@@ -267,9 +272,7 @@ export class SetProblem extends Problem {
 	public set set_id(val: string | number) { this._set_id = parseNonNegInt(val);}
 
 	get problem_number(): number { return this._problem_number; }
-	set problem_number(value: string | number) {
-		this._problem_number = parseNonNegInt(value);
-	}
+	set problem_number(value: string | number) { this._problem_number = parseNonNegInt(value); }
 
 	clone(): SetProblem {
 		return new SetProblem(this.toObject() as unknown as ParseableSetProblem);

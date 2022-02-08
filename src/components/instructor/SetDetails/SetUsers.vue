@@ -320,36 +320,43 @@ export default defineComponent({
 								0
 						}
 					);
+				} else if (problem_set.value.set_type === 'QUIZ') {
+					columns.splice(columns.length, 0,
+						{
+							name: 'open_date',
+							label: 'Open Date',
+							format: formatTheDate,
+							field: (row: MergedUserQuiz) => row.set_dates ? row.set_dates.open : 0
+						},
+						{
+							name: 'due_date',
+							label: 'Due Date',
+							format: formatTheDate,
+							field: (row: MergedUserQuiz) => row.set_dates ? row.set_dates.due : 0
+						},
+						{
+							name: 'answer_date',
+							label: 'Answer Date',
+							format: formatTheDate,
+							field: (row: MergedUserQuiz) => row.set_dates ? row.set_dates.answer :  0
+						}
+					);
+				} else if (problem_set.value.set_type === 'REVIEW') {
+					columns.splice(columns.length, 0,
+						{
+							name: 'open_date',
+							label: 'Open Date',
+							format: formatTheDate,
+							field: (row: MergedUserReviewSet) => row.set_dates ? (row.set_dates).open : 0
+						},
+						{
+							name: 'closed_date',
+							label: 'Closed Date',
+							format: formatTheDate,
+							field: (row: MergedUserReviewSet) => row.set_dates ? (row.set_dates).closed : 0
+						},
+					);
 				}
-				// } else if (problem_set.value.set_type === 'QUIZ') {
-				// columns.splice(columns.length, 0,
-				// {
-				// name: 'open_date',
-				// label: 'Open Date',
-				// format: formatTheDate,
-				// field: (row: MergedUserQuiz) => row.set_dates ? (row.set_dates).open : 0
-				// },
-				// {
-				// name: 'due_date',
-				// label: 'Due Date',
-				// format: formatTheDate,
-				// field: (row: MergedUserQuiz) => row.set_dates ? (row.set_dates).due : 0
-				// },
-				// {
-				// name: 'answer_date',
-				// label: 'Answer Date',
-				// format: formatTheDate,
-				// field: (row: MergedUserQuiz) => row.set_dates ? (row.set_dates).answer :  0
-				// }
-				// );
-				// } else if (problem_set.value.set_type === 'REVIEW') {
-				// columns.splice(columns.length, 0,
-				// { name: 'open_date', label: 'Open Date', format: formatTheDate,
-				// field: (row: MergedUserReviewSet) => row.set_dates ? (row.set_dates).open : 0 },
-				// { name: 'closed_date', label: 'Closed Date', format: formatTheDate,
-				// field: (row: MergedUserReviewSet) => row.set_dates ? (row.set_dates).closed : 0 },
-				// );
-				// }
 				date_edit.value = problem_set.value.set_dates.toObject() as Dictionary<number>;
 			}
 		};
