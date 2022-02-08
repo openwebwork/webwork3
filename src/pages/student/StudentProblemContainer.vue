@@ -36,7 +36,7 @@
 import { defineComponent, ref, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useStore } from 'src/store';
-import { parseNumericRouteParam } from 'src/common';
+import { parseNumericRouteParam } from 'src/common/views';
 
 export default defineComponent({
 	name: 'ProblemContainer',
