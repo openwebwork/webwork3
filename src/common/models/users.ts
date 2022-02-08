@@ -89,6 +89,10 @@ export class User extends Model {
 	set student_id(value: string | number | undefined) {
 		if (value != undefined) this._student_id = `${value}`;
 	}
+
+	clone() {
+		return new User(this.toObject() as ParseableUser);
+	}
 }
 
 export interface ParseableCourseUser {
@@ -105,9 +109,9 @@ export interface ParseableCourseUser {
  */
 export class CourseUser extends Model {
 	private _course_user_id = 0;
-	private _course_id?: number;
-	private _user_id?: number;
-	private _role?: UserRole;
+	private _course_id = 0;
+	private _user_id = 0;
+	private _role: UserRole = UserRole.unknown;
 	private _section?: string;
 	private _recitation?: string;
 
@@ -162,6 +166,10 @@ export class CourseUser extends Model {
 	get recitation(): string | undefined { return this._recitation; }
 	set recitation(value: string | number | undefined) {
 		if (value != undefined) this._recitation = `${value}`;
+	}
+
+	clone() {
+		return new CourseUser(this.toObject() as ParseableCourseUser);
 	}
 }
 
@@ -288,5 +296,9 @@ export class MergedUser extends Model {
 	get student_id(): string | undefined { return this._student_id; }
 	set student_id(value: string | number | undefined) {
 		if (value != undefined) this._student_id = `${value}`;
+	}
+
+	clone() {
+		return new MergedUser(this.toObject() as ParseableMergedUser);
 	}
 }

@@ -5,16 +5,40 @@ import { BooleanParseException, EmailParseException, NonNegIntException,
 import { RequiredFieldsException } from 'src/common/models';
 import { User } from 'src/common/models/users';
 
-test('Create a Valid User', () => {
-	const user1 = new User({ username: 'test' });
-	expect(user1 instanceof User).toBe(true);
-	const user2 = new User({ username: 'test', user_id: 0, is_admin: false });
-	expect(user1).toStrictEqual(user2);
+const default_user = {
+	user_id: 0,
+	username: 'test',
+	is_admin: false,
+};
+
+test('Create a default User', () => {
+	const user = new User({ username: 'test' });
+	expect(user instanceof User).toBe(true);
+	expect(user.toObject()).toStrictEqual(default_user);
+
 });
 
 test('Missing Username', () => {
 	// missing username
 	expect(() => { new User();}).toThrow(RequiredFieldsException);
+});
+
+test('Check that calling all_fields() and params() is correct', () => {
+	const user_fields = ['user_id', 'username', 'is_admin', 'email', 'first_name',
+		'last_name', 'student_id'];
+	const user = new User({ username: 'test' });
+
+	expect(user.all_field_names.sort()).toStrictEqual(user_fields.sort());
+	expect(user.param_fields.sort()).toStrictEqual([]);
+
+	expect(User.ALL_FIELDS.sort()).toStrictEqual(user_fields.sort());
+
+});
+
+test('Check that cloning a User works', () => {
+	const user = new User({ username: 'test' });
+	expect(user.clone().toObject()).toStrictEqual(default_user);
+	expect(user.clone() instanceof User).toBe(true);
 });
 
 test('Invalid user_id', () => {

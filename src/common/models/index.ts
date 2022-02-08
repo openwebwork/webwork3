@@ -1,19 +1,10 @@
 // This is the Model as a Class
 
+import { ParseError } from './parsers';
 export interface Dictionary<T> {
 	[key: string]: T;
 }
 export type generic = string | number | boolean;
-
-export class ParseError {
-	type: string;
-	message: string;
-	field?: string;
-	constructor(type: string, message: string) {
-		this.type = type;
-		this.message = message;
-	}
-}
 
 export class RequiredFieldsException extends ParseError {
 	constructor(_field: string, message?: string) {

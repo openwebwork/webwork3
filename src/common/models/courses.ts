@@ -48,12 +48,14 @@ export class Course extends Model {
 	private course_dates = new CourseDates();
 
 	get all_field_names(): string[] {
-		return ['course_id', 'course_name', 'visible', 'course_dates'];
+		return Course.ALL_FIELDS;
 	}
 
 	get param_fields(): string[] {
 		return ['course_dates'];
 	}
+
+	static ALL_FIELDS = ['course_id', 'course_name', 'visible', 'course_dates'];
 
 	constructor(params: ParseableCourse = {}) {
 		super();
@@ -89,6 +91,9 @@ export class Course extends Model {
 		this._visible = parseBoolean(value);
 	}
 
+	clone() {
+		return new Course(this.toObject() as ParseableCourse);
+	}
 }
 
 /**

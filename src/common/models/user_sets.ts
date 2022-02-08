@@ -29,7 +29,7 @@ export class UserSet extends Model {
 	get set_dates(): ProblemSetDates { throw 'The subclass must override set_dates()'; }
 	get set_params(): ProblemSetParams { throw 'The subclass must override set_dates()'; }
 
-	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_params', 'set_dates'];
+	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version'];
 
 	get all_field_names(): string[] {
 		return UserSet.ALL_FIELDS;
@@ -39,6 +39,7 @@ export class UserSet extends Model {
 		return [];
 	}
 
+	// This should only be readable.  There is no setter.
 	get set_type() { return this._set_type; }
 
 	constructor(params: ParseableUserSet = {}) {
@@ -69,6 +70,9 @@ export class UserSet extends Model {
 		throw 'The subclass must override the hasValidDates() method.';
 	}
 
+	public clone() {
+		return new UserSet(this.toObject());
+	}
 }
 
 /**
@@ -88,6 +92,12 @@ export class UserHomeworkSet extends UserSet {
 	private _set_params = new HomeworkSetParams();
 	private _set_dates = new HomeworkSetDates();
 
+	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
+		'set_params', 'set_dates'];
+
+	get all_field_names(): string[] {
+		return UserHomeworkSet.ALL_FIELDS;
+	}
 	get param_fields(): string[] {
 		return ['set_params', 'set_dates'];
 	}
@@ -103,6 +113,10 @@ export class UserHomeworkSet extends UserSet {
 
 	public hasValidDates() {
 		return this.set_dates.isValid({ enable_reduced_scoring: this.set_params.enable_reduced_scoring });
+	}
+
+	public clone() {
+		return new UserHomeworkSet(this.toObject());
 	}
 }
 
@@ -123,6 +137,13 @@ export class UserQuiz extends UserSet {
 	private _set_params = new QuizParams();
 	private _set_dates = new QuizDates();
 
+	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
+		'set_params', 'set_dates'];
+
+	get all_field_names(): string[] {
+		return UserQuiz.ALL_FIELDS;
+	}
+
 	get set_params() { return this._set_params;}
 	get set_dates() { return this._set_dates;}
 	get param_fields(): string[] {
@@ -138,6 +159,10 @@ export class UserQuiz extends UserSet {
 
 	public hasValidDates() {
 		return this.set_dates.isValid();
+	}
+
+	public clone() {
+		return new UserQuiz(this.toObject());
 	}
 }
 
@@ -158,6 +183,13 @@ export class UserReviewSet extends UserSet {
 	private _set_params = new ReviewSetParams();
 	private _set_dates = new ReviewSetDates();
 
+	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
+		'set_params', 'set_dates'];
+
+	get all_field_names(): string[] {
+		return UserReviewSet.ALL_FIELDS;
+	}
+
 	get set_params() { return this._set_params;}
 	get set_dates() { return this._set_dates;}
 	get param_fields(): string[] {
@@ -173,6 +205,10 @@ export class UserReviewSet extends UserSet {
 
 	public hasValidDates() {
 		return this.set_dates.isValid();
+	}
+
+	public clone() {
+		return new UserReviewSet(this.toObject());
 	}
 }
 
@@ -206,10 +242,12 @@ export class MergedUserSet extends Model {
 	get set_dates(): ProblemSetDates { throw 'The subclass must override set_dates()'; }
 	get set_params(): ProblemSetParams { throw 'The subclass must override set_dates()'; }
 
+	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
+		'set_visible', 'set_name', 'username',
+		'set_params', 'set_dates'];
+
 	get all_field_names(): string[] {
-		return ['user_set_id', 'set_id', 'course_user_id', 'set_version',
-			'set_visible', 'set_name', 'username',
-			'set_params', 'set_dates'];
+		return MergedUserSet.ALL_FIELDS;
 	}
 
 	get param_fields(): string[] {
@@ -253,6 +291,10 @@ export class MergedUserSet extends Model {
 
 	public get username(): string { return this._username; }
 	public set username(value: string) { this._username = parseUsername(value);}
+
+	clone() {
+		return new MergedUserHomeworkSet(this.toObject());
+	}
 }
 
 /**
