@@ -13,8 +13,9 @@
 			<td class="header">Visible</td>
 			<td><q-toggle v-model="quiz.set_visible" /></td>
 		</tr>
-		<quiz-dates v-if="set"
+		<quiz-dates-input v-if="set"
 			:dates="quiz.set_dates"
+			@update-dates="updateDates"
 			/>
 		<tr>
 			<td class="header">Timed</td>
@@ -28,17 +29,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, computed } from 'vue';
+import { defineComponent, ref, watch } from 'vue';
 
-import QuizDates from './QuizDates.vue';
+import QuizDatesInput from './QuizDates.vue';
 import InputWithBlur from 'src/components/common/InputWithBlur.vue';
-import { Quiz } from 'src/common/models/problem_sets';
-import { useRoute } from 'vue-router';
-import { parseRouteSetID } from 'src/router/utils';
+import { Quiz, QuizDates } from 'src/common/models/problem_sets';
+import { problem_set_type_options } from 'src/common/views';
 
 export default defineComponent({
 	components: {
-		QuizDates,
+		QuizDatesInput,
 		InputWithBlur
 	},
 	props: {
@@ -48,25 +48,27 @@ export default defineComponent({
 		}
 	},
 	name: 'Quiz',
+	emits: ['updateSet'],
 	setup(props, { emit }) {
-		const route = useRoute();
-
-		const set_id = computed(() => parseRouteSetID(route));
 		const quiz = ref<Quiz>(props.set.clone());
 
-		watch(() => quiz.value.clone(), () => {
-			emit('updateSet', quiz.value);
+		watch(() => props.set, () => {
+			quiz.value = props.set.clone();
+		}, { deep: true });
+
+		watch(() => quiz.value.clone(), (new_quiz, old_quiz) => {
+			if (JSON.stringify(new_quiz) !== JSON.stringify(old_quiz)) {
+				emit('updateSet', quiz.value);
+			}
 		},
 		{ deep: true });
 
 		return {
-			set_options: [ // probably should be a course_setting or in common.ts
-				{ value: 'REVIEW', label: 'Review set' },
-				{ value: 'QUIZ', label: 'Quiz' },
-				{ value: 'HW', label: 'Homework set' }
-			],
-			set_id,
+			set_options: problem_set_type_options,
 			quiz,
+			updateDates: (dates: QuizDates) => {
+				quiz.value.set_dates.set(dates.toObject());
+			},
 			quizDuration: [
 				(val: string) => /^\d+\s(secs?|mins?)$/.test(val) || // add this RegExp elsewhere
 				'The duration of the quiz must be a valid length of time'

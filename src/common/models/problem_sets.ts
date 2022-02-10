@@ -148,6 +148,10 @@ export class QuizDates extends Model {
 		return this.open <= this.due && this.due <= this.answer;
 	}
 
+	public clone() {
+		return new QuizDates(this.toObject());
+	}
+
 }
 
 export interface ParseableQuizParams {
@@ -296,6 +300,9 @@ export class HomeworkSetDates extends Model {
 			this.open <= this.due && this.due <= this.answer;
 	}
 
+	public clone() {
+		return new HomeworkSetDates(this.toObject());
+	}
 }
 
 export interface ParseableHomeworkSet {
@@ -396,6 +403,10 @@ export class ReviewSetDates extends Model {
 
 	public isValid() {
 		return this.open <= this.closed;
+	}
+
+	public clone() {
+		return new ReviewSetDates(this.toObject());
 	}
 }
 

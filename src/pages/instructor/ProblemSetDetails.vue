@@ -19,6 +19,7 @@
 import { defineComponent, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useQuasar } from 'quasar';
+import { logger } from 'boot/logger';
 
 import { useStore } from 'src/store';
 import { parseRouteSetID } from 'src/router/utils';
@@ -50,8 +51,10 @@ export default defineComponent({
 				// if the entire set just changed, don't update.
 				if (problem_set.value.set_id === set.set_id) {
 					void store.dispatch('problem_sets/updateSet', set);
+					const msg = `The problem set '${set.set_name}' was successfully updated.`;
+					logger.debug(`[ProblemSetDetails]: ${msg}`);
 					$q.notify({
-						message: `The problem set '${set.set_name}' was successfully updated.`,
+						message: msg,
 						color: 'green'
 					});
 				}

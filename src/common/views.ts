@@ -124,3 +124,10 @@ export const admin_views: Array<ViewInfo> = [
 		sidebars: []
 	}
 ];
+
+// Used in multiple views
+export const problem_set_type_options = [
+	{ value: 'REVIEW', label: 'Review set' },
+	{ value: 'QUIZ', label: 'Quiz' },
+	{ value: 'HW', label: 'Homework set' }
+];

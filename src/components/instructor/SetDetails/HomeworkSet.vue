@@ -19,19 +19,19 @@
 		</tr>
 		<homework-dates v-if="homework_set"
 			:dates="homework_set.set_dates"
+			@update-dates="updateDates"
 			:reduced_scoring="homework_set.set_params.enable_reduced_scoring"
 		/>
 	</table>
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, watch, ref } from 'vue';
-import { useRoute } from 'vue-router';
-import { parseRouteSetID } from 'src/router/utils';
+import { defineComponent, watch, ref } from 'vue';
 
 import HomeworkDates from './HomeworkDates.vue';
 import InputWithBlur from 'src/components/common/InputWithBlur.vue';
-import { HomeworkSet } from 'src/common/models/problem_sets';
+import { HomeworkSet, HomeworkSetDates } from 'src/common/models/problem_sets';
+import { problem_set_type_options } from 'src/common/views';
 
 export default defineComponent({
 	components: {
@@ -47,24 +47,25 @@ export default defineComponent({
 	name: 'HomeworkSet',
 	emits: ['updateSet'],
 	setup(props, { emit }) {
-		const route = useRoute();
-
-		const set_id = computed(() => parseRouteSetID(route));
 		const homework_set = ref<HomeworkSet>(props.set.clone());
 
-		watch(() => homework_set.value.clone(), () => {
-			emit('updateSet', homework_set.value);
+		watch(() => props.set, () => {
+			homework_set.value = props.set.clone();
+		}, { deep: true });
+
+		watch(() => homework_set.value.clone(), (new_set, old_set) => {
+			if (JSON.stringify(new_set) !== JSON.stringify(old_set)) {
+				emit('updateSet', homework_set.value);
+			}
 		},
 		{ deep: true });
 
 		return {
-			set_options: [ // probably should be a course_setting or in common.ts
-				{ value: 'REVIEW', label: 'Review set' },
-				{ value: 'QUIZ', label: 'Quiz' },
-				{ value: 'HW', label: 'Homework set' }
-			],
-			set_id,
-			homework_set
+			set_options: problem_set_type_options,
+			homework_set,
+			updateDates: (dates: HomeworkSetDates) => {
+				homework_set.value.set_dates.set(dates.toObject());
+			}
 		};
 	}
 });

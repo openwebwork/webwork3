@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref, computed, watch } from 'vue';
 import type { PropType } from 'vue';
 import { checkHWDates } from 'src/common/views';
 import { HomeworkSetDates } from 'src/common/models/problem_sets';
@@ -56,11 +56,16 @@ export default defineComponent({
 	components: {
 		DateTimeInput
 	},
-	setup(props) {
-		const hw_dates = ref<HomeworkSetDates>(props.dates);
+	emits: ['updateDates'],
+	setup(props, { emit }) {
+		const hw_dates = ref<HomeworkSetDates>(props.dates.clone());
 		if (!hw_dates.value.reduced_scoring) {
 			hw_dates.value.reduced_scoring = hw_dates.value.due;
 		}
+
+		watch(() => hw_dates.value, () => {
+			emit('updateDates', hw_dates.value);
+		}, { deep: true });
 
 		return {
 			hw_dates,

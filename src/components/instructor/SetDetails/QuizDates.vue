@@ -27,7 +27,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, watch } from 'vue';
 import type { PropType } from 'vue';
 import { checkQuizDates } from 'src/common/views';
 import { QuizDates } from 'src/common/models/problem_sets';
@@ -44,8 +44,13 @@ export default defineComponent({
 	components: {
 		DateTimeInput
 	},
-	setup(props) {
-		const quiz_dates = ref<QuizDates>(props.dates);
+	emits: ['updateDates'],
+	setup(props, { emit }) {
+		const quiz_dates = ref<QuizDates>(props.dates.clone());
+
+		watch(() => quiz_dates.value, () => {
+			emit('updateDates', quiz_dates.value);
+		}, { deep: true });
 
 		return {
 			quiz_dates,

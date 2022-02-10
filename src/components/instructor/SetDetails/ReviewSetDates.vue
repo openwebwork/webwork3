@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, watch } from 'vue';
 import type { PropType } from 'vue';
 import { checkReviewSetDates } from 'src/common/views';
 import { ReviewSetDates } from 'src/common/models/problem_sets';
@@ -38,8 +38,13 @@ export default defineComponent({
 	components: {
 		DateTimeInput
 	},
-	setup(props) {
-		const review_set_dates = ref<ReviewSetDates>(props.dates);
+	emits: ['updateDates'],
+	setup(props, { emit }) {
+		const review_set_dates = ref<ReviewSetDates>(props.dates.clone());
+
+		watch(() => review_set_dates.value, () => {
+			emit('updateDates', review_set_dates.value);
+		}, { deep: true });
 
 		return {
 			review_set_dates,
