@@ -2,90 +2,71 @@
 	<table id="settable">
 		<tr>
 			<td class="header">Set Name</td>
-			<td><q-input v-model="set.set_name" /></td>
+			<td><input-with-blur v-model="quiz.set_name" /></td>
 		</tr>
 		<tr>
 			<td class="header">Set Type</td>
-			<td><q-select :options="set_options" v-model="set.set_type"
+			<td><q-select :options="set_options" v-model="quiz.set_type"
 				emit-value map-options/></td>
 		</tr>
 		<tr>
 			<td class="header">Visible</td>
-			<td><q-toggle v-model="set.set_visible" /></td>
+			<td><q-toggle v-model="quiz.set_visible" /></td>
 		</tr>
 		<quiz-dates v-if="set"
-			:dates="set.set_dates"
+			:dates="quiz.set_dates"
 			/>
 		<tr>
 			<td class="header">Timed</td>
-			<td><q-toggle v-model="set.set_params.timed" /></td>
+			<td><q-toggle v-model="quiz.set_params.timed" /></td>
 		</tr>
-		<tr v-if="set.set_params.timed">
+		<tr v-if="quiz.set_params.timed">
 			<td class="header">Duration of Quiz</td>
-			<td><q-input v-model="set.set_params.quiz_duration" :rules="quizDuration" debounce="500"/> </td>
+			<td><q-input v-model="quiz.set_params.quiz_duration" :rules="quizDuration" debounce="500"/> </td>
 		</tr>
 	</table>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, watch, computed } from 'vue';
-import { useQuasar } from 'quasar';
-import { cloneDeep } from 'lodash-es';
 
 import QuizDates from './QuizDates.vue';
+import InputWithBlur from 'src/components/common/InputWithBlur.vue';
 import { Quiz } from 'src/common/models/problem_sets';
-import { useStore } from 'src/store';
 import { useRoute } from 'vue-router';
 import { parseRouteSetID } from 'src/router/utils';
 
 export default defineComponent({
-	components: { QuizDates },
+	components: {
+		QuizDates,
+		InputWithBlur
+	},
+	props: {
+		set: {
+			type: Quiz,
+			required: true
+		}
+	},
 	name: 'Quiz',
-	setup() {
-		const store = useStore();
-		const $q = useQuasar();
+	setup(props, { emit }) {
 		const route = useRoute();
 
-		const set = ref<Quiz>(new Quiz());
-
 		const set_id = computed(() => parseRouteSetID(route));
+		const quiz = ref<Quiz>(props.set.clone());
 
-		const updateSet = () => {
-			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id == set_id.value) ||
-				new Quiz();
-			set.value = cloneDeep(s as Quiz);
-		};
-
-		watch(() => set_id.value, updateSet);
-		updateSet();
-
-		// see the docs at https://v3.vuejs.org/guide/reactivity-computed-watchers.html#watching-reactive-objects
-		// for why we need to do a cloneDeep here
-		watch(() => cloneDeep(set.value), (new_set, old_set) => {
-			if (new_set.set_id === old_set.set_id) {
-				void store.dispatch('problem_sets/updateSet', new_set);
-				$q.notify({
-					message: `The problem set '${new_set.set_name ?? ''}' was successfully updated.`,
-					color: 'green'
-				});
-			}
+		watch(() => quiz.value.clone(), () => {
+			emit('updateSet', quiz.value);
 		},
 		{ deep: true });
 
 		return {
-			set_id,
-			set,
 			set_options: [ // probably should be a course_setting or in common.ts
 				{ value: 'REVIEW', label: 'Review set' },
 				{ value: 'QUIZ', label: 'Quiz' },
 				{ value: 'HW', label: 'Homework set' }
 			],
-			checkDates: [
-				() => {
-					const d = set.value.set_dates;
-					return d.open <= d.due && d.due <= d.answer || 'The dates must be in order';
-				}
-			],
+			set_id,
+			quiz,
 			quizDuration: [
 				(val: string) => /^\d+\s(secs?|mins?)$/.test(val) || // add this RegExp elsewhere
 				'The duration of the quiz must be a valid length of time'

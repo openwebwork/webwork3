@@ -337,11 +337,11 @@ export class HomeworkSet extends ProblemSet {
  */
 
 export interface ParseableReviewSetParams {
-	dummy_params?: boolean | string | number;
+	test_param?: boolean | string | number;
 }
 
 export class ReviewSetParams extends Model {
-	private _dummy_params = false;
+	private _test_param = false;
 
 	constructor(params: ParseableReviewSetParams = {}) {
 		super();
@@ -349,17 +349,17 @@ export class ReviewSetParams extends Model {
 	}
 
 	set(params: ParseableReviewSetParams) {
-		if (params.dummy_params != undefined) this.dummy_params = params.dummy_params;
+		if (params.test_param != undefined) this.test_param = params.test_param;
 	}
 
 	get all_field_names(): string[] {
-		return ['dummy_params'];
+		return ['test_param'];
 	}
 	get param_fields(): string[] { return [];}
 
-	public get dummy_params() : boolean { return this._dummy_params;}
-	public set dummy_params(value: number | string | boolean) {
-		this._dummy_params = parseBoolean(value);
+	public get test_param() : boolean { return this._test_param;}
+	public set test_param(value: number | string | boolean) {
+		this._test_param = parseBoolean(value);
 	}
 
 }

@@ -42,7 +42,6 @@
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
-import { cloneDeep } from 'lodash-es';
 
 import { MergedUser, CourseUser } from 'src/common/models/users';
 import { CourseSetting } from 'src/common/models/settings';
@@ -60,8 +59,9 @@ export default defineComponent({
 	setup(props, context) {
 		const $q = useQuasar();
 
-		const merged_users =
-			ref<Array<MergedUser>>(cloneDeep(props.users_to_edit) as Array<MergedUser>);
+		const users = (props.users_to_edit as MergedUser[]).map(u => u.clone());
+
+		const merged_users = ref<Array<MergedUser>>(users);
 		const store = useStore();
 
 		const updateUsers = async () => {
