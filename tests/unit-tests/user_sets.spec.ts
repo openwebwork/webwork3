@@ -288,7 +288,7 @@ const default_user_review_set = {
 	set_id: 0,
 	course_user_id: 0,
 	set_version: 1,
-	set_params: { dummy_params: false },
+	set_params: { test_param: false },
 	set_dates: { open: 0, closed: 0 }
 };
 
