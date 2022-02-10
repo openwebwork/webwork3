@@ -95,14 +95,12 @@ export default defineComponent({
 		});
 
 		const quizDurationToValue = (duration: string) => {
-			console.log(duration);
 			const vals = /(\d?\d):(\d\d):(\d\d)/.exec(duration);
 			return vals?.length == 4 ? parseInt(vals[1]) * 60 * 60 + parseInt(vals[2]) * 60 + parseInt(vals[3]) : 0;
 		};
 
 		watch(() => quiz_duration.value, () => {
 			quiz.value.set_params.quiz_duration = quizDurationToValue(quiz_duration.value);
-			console.log(quizDurationToValue(quiz_duration.value));
 		});
 
 		return {
