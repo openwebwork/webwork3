@@ -1,35 +1,29 @@
 <template>
-	<div style="max-width: 300px">
-		<q-input filled v-model="date_string" :rules="rules">
-			<template v-slot:prepend>
-				<q-icon name="event" class="cursor-pointer">
-					<q-popup-proxy transition-show="scale" transition-hide="scale">
-						<q-date v-model="date_string" mask="YYYY-MM-DD HH:mm">
-							<div class="row items-center justify-end">
-								<q-btn v-close-popup label="Close" color="primary" flat />
-							</div>
-						</q-date>
-					</q-popup-proxy>
-				</q-icon>
-			</template>
-
+	<div class="row q-pa-md">
+		<q-field filled>
+			<template v-slot:control>
+          <div class="self-center full-width no-outline" tabindex="0">{{date_time}}</div>
+        </template>
 			<template v-slot:append>
-				<q-icon name="access_time" class="cursor-pointer">
+				<q-icon name="today" color="primary" size="sm">
 					<q-popup-proxy transition-show="scale" transition-hide="scale">
-						<q-time v-model="date_string" mask="YYYY-MM-DD HH:mm" format24h>
-							<div class="row items-center justify-end">
-								<q-btn v-close-popup label="Close" color="primary" flat />
-							</div>
-						</q-time>
+						<div class="row items-center">
+							<q-date v-model="model_date" mask="YYYY-MM-DD" />
+							<q-time v-model="model_time" mask="HH:mm" format24h/>
+						</div>
+						<div class="row items-center justify-end">
+							<q-btn v-close-popup label="Cancel" color="primary" flat />
+							<q-btn label="Save" color="primary" flat @click="saveDateTime"/>
+						</div>
 					</q-popup-proxy>
 				</q-icon>
 			</template>
-		</q-input>
+		</q-field>
 	</div>
 </template>
 
 <script lang="ts">
-import { defineComponent, watch, ref, computed } from 'vue';
+import { defineComponent, ref, computed } from 'vue';
 import { date } from 'quasar';
 
 export default defineComponent({
@@ -46,18 +40,19 @@ export default defineComponent({
 	},
 	emits: ['update:modelValue'],
 	setup (props, { emit }) {
-		const date_string = ref(date.formatDate((props.modelValue || Date.now()) * 1000, 'YYYY-MM-DD HH:mm'));
+		const model_date = ref<string>(date.formatDate((props.modelValue || Date.now()) * 1000, 'YYYY-MM-DD'));
+		const model_time = ref<string>(date.formatDate((props.modelValue || Date.now()) * 1000, 'HH:mm'));
+		const date_time = computed(() => `${model_date.value} ${model_time.value}`);
 
-		watch(
-			() => date_string.value,
-			(val) => {
-				const d = date.extractDate(val, 'YYYY-MM-DD HH:mm');
+		return {
+			model_date,
+			model_time,
+			date_time,
+			rules: computed(() => props.validation as Array<(val: string)=>boolean>),
+			saveDateTime: () => {
+				const d = date.extractDate(date_time.value, 'YYYY-MM-DD HH:mm');
 				emit('update:modelValue', d.getTime() / 1000);
 			}
-		);
-		return {
-			date_string,
-			rules: computed(() => props.validation as Array<(val: string)=>boolean>)
 		};
 	}
 });
