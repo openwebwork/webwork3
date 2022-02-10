@@ -6,8 +6,14 @@
 		</tr>
 		<tr>
 			<td class="header">Set Type</td>
-			<td><q-select :options="set_options" v-model="review_set.set_type"
-				emit-value map-options/></td>
+			<td>
+				<q-select
+					map-options
+					:options="set_options"
+					v-model="set_type"
+					@update:model-value="$emit('changeSetType', set_type)"
+				/>
+			</td>
 		</tr>
 		<tr>
 			<td class="header">Visible</td>
@@ -37,11 +43,22 @@ export default defineComponent({
 		set: {
 			type: ReviewSet,
 			required: true
+		},
+		reset_set_type: {
+			type: String,
+			required: false
 		}
 	},
 	name: 'ReviewSet',
+	emits: ['updateSet', 'changeSetType'],
 	setup(props, { emit }) {
 		const review_set = ref<ReviewSet>(props.set.clone());
+		const set_type = ref<string | undefined>(props.set.set_type);
+
+		// If a set type changed is cancelled this resets to the original.
+		watch(() => props.reset_set_type, () => {
+			set_type.value = props.reset_set_type;
+		});
 
 		watch(() => props.set, () => {
 			review_set.value = props.set.clone();
@@ -55,6 +72,7 @@ export default defineComponent({
 		{ deep: true });
 
 		return {
+			set_type,
 			set_options: problem_set_type_options,
 			review_set,
 			updateDates: (dates: ReviewSetDates) => {

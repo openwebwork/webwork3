@@ -125,9 +125,11 @@ export const admin_views: Array<ViewInfo> = [
 	}
 ];
 
+import { ProblemSetType } from 'src/common/models/problem_sets';
+
 // Used in multiple views
 export const problem_set_type_options = [
-	{ value: 'REVIEW', label: 'Review set' },
-	{ value: 'QUIZ', label: 'Quiz' },
-	{ value: 'HW', label: 'Homework set' }
+	{ value: ProblemSetType.REVIEW_SET, label: 'Review set' },
+	{ value: ProblemSetType.QUIZ, label: 'Quiz' },
+	{ value: ProblemSetType.HW, label: 'Homework set' }
 ];

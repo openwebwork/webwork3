@@ -185,7 +185,10 @@ sub updateProblemSet ($self, $course_set_info, $updated_params = {}, $as_result_
 		delete $params->{set_type};
 	}
 
-	my $params2 = updateAllFields($set_params, $params);
+  # If the problem set type changed, don't update the params, just used the ones passed in.
+	my $params2 = ($problem_set->type == $params->{type}) ?
+		updateAllFields($set_params, $params) :
+		$params;
 	my $set_obj = $self->new($params2);
 
 	# Check the parameters are valid.

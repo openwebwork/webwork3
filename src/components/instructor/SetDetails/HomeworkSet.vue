@@ -6,8 +6,14 @@
 		</tr>
 		<tr>
 			<td class="header">Set Type</td>
-			<td><q-select :options="set_options" v-model="homework_set.set_type"
-				emit-value map-options/></td>
+			<td>
+				<q-select
+					map-options
+					:options="set_options"
+					v-model="set_type"
+					@update:model-value="$emit('changeSetType', set_type)"
+				/>
+			</td>
 		</tr>
 		<tr>
 			<td class="header">Visible</td>
@@ -23,6 +29,7 @@
 			:reduced_scoring="homework_set.set_params.enable_reduced_scoring"
 		/>
 	</table>
+
 </template>
 
 <script lang="ts">
@@ -42,12 +49,22 @@ export default defineComponent({
 		set: {
 			type: HomeworkSet,
 			required: true
+		},
+		reset_set_type: {
+			type: String,
+			required: false
 		}
 	},
 	name: 'HomeworkSet',
-	emits: ['updateSet'],
+	emits: ['updateSet', 'changeSetType'],
 	setup(props, { emit }) {
 		const homework_set = ref<HomeworkSet>(props.set.clone());
+		const set_type = ref<string | undefined>(props.set.set_type);
+
+		// If a set type changed is cancelled this resets to the original.
+		watch(() => props.reset_set_type, () => {
+			set_type.value = props.reset_set_type;
+		});
 
 		watch(() => props.set, () => {
 			homework_set.value = props.set.clone();
@@ -61,6 +78,7 @@ export default defineComponent({
 		{ deep: true });
 
 		return {
+			set_type,
 			set_options: problem_set_type_options,
 			homework_set,
 			updateDates: (dates: HomeworkSetDates) => {

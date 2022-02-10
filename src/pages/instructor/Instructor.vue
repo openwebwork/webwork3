@@ -7,6 +7,7 @@ import { defineComponent } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'src/store';
 import { setI18nLanguage } from 'boot/i18n';
+import { logger } from 'boot/logger';
 
 export default defineComponent({
 	name: 'Instructor',
@@ -29,11 +30,13 @@ export default defineComponent({
 		// fetch most data needed for instructor views
 		const store = useStore();
 		const route = useRoute();
+		logger.debug('[Intructor]: fetching data from the server.');
 		await store.dispatch('users/fetchMergedUsers', route.params.course_id);
 		await store.dispatch('problem_sets/fetchProblemSets', route.params.course_id);
-		await store.dispatch('problem_sets/fetchSetProblems', route.params.course_id);
 		await store.dispatch('settings/fetchDefaultSettings');
+		logger.debug('[Intructor]: fetching course settings from the server.');
 		await store.dispatch('settings/fetchCourseSettings', route.params.course_id);
+		logger.debug('[Intructor]: finished fetching data.');
 
 		// Set the language from the course settings.
 		await setI18nLanguage((store.getters as { [key: string]: (var_name: string) => string })
