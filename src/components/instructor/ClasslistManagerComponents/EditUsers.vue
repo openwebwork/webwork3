@@ -10,6 +10,7 @@
 					<div class="col header">Username</div>
 					<div class="col header">First Name</div>
 					<div class="col header">Last Name</div>
+					<div class="col header">Student ID</div>
 					<div class="col header">Course Role</div>
 					<div class="col header">Section</div>
 					<div class="col header">Recitation</div>
@@ -18,6 +19,7 @@
 					<div class="col"> {{ user.username }} </div>
 					<div class="col"> {{ user.first_name }} </div>
 					<div class="col"> {{ user.last_name }} </div>
+					<div class="col"> {{ user.student_id }} </div>
 					<div class="col">
 						<q-select :options="roles" v-model="user.role"/>
 					</div>

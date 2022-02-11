@@ -8,7 +8,15 @@
 			<q-card-section class="q-pt-none">
 				<div class="row">
 					<div class="col">
-						<q-input outlined v-model="merged_user.username" label="Username" @blur="checkUser" />
+						<q-input
+							outlined
+							v-model="merged_user.username"
+							label="Username *"
+							@blur="checkUser"
+							ref="username_ref"
+							lazy-rules
+							:rules="[(val) => validateUsername(val)]"
+						/>
 					</div>
 					<div class="col">
 						<q-input outlined v-model="merged_user.first_name" label="First Name" :disable="user_exists"/>
@@ -31,7 +39,15 @@
 						<q-input outlined v-model="merged_user.section" label="Section" :disable="user_exists" />
 					</div>
 					<div class="col">
-						<q-select outlined v-model="merged_user.role" :options="roles" label="Role" />
+						<q-select
+							outlined
+							ref="role_ref"
+							v-model="merged_user.role"
+							:options="roles"
+							label="Role *"
+							:validate="validateRole"
+							:rules="[(val) => validateRole(val)]"
+							/>
 					</div>
 				</div>
 			</q-card-section>
@@ -58,6 +74,12 @@ import { MergedUser, ParseableMergedUser, User } from 'src/common/models/users';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import { CourseSetting } from 'src/common/models/settings';
 import { AxiosError } from 'axios';
+import { parseUsername } from 'src/common/models/parsers';
+
+interface QRef {
+	validate: () => boolean;
+	hasError: string;
+}
 
 export default defineComponent({
 	name: 'AddUsersManually',
@@ -66,11 +88,15 @@ export default defineComponent({
 		const $q = useQuasar();
 		const merged_user = ref<ParseableMergedUser>({});
 		const user_exists = ref<boolean>(true);
+		const username_ref = ref<QRef | null>(null);
+		const role_ref = ref<QRef | null>(null);
 		const store = useStore();
 
 		return {
 			merged_user,
 			user_exists,
+			username_ref,
+			role_ref,
 			// see if the user exists already and fill in the known fields
 			checkUser: async () => {
 				// If the user doesn't exist, the catch statement will handle this.
@@ -103,6 +129,14 @@ export default defineComponent({
 			}),
 			addUser: async (close: boolean) => {
 				try {
+					// Check to ensure username is correct and a role is selected.
+					if (username_ref.value && role_ref.value) {
+						username_ref.value.validate();
+						role_ref.value.validate();
+						if (username_ref.value.hasError || role_ref.value.hasError) {
+							return;
+						}
+					}
 					merged_user.value.course_id = store.state.session.course.course_id;
 					const user = await store.dispatch('users/addMergedUser',
 						new MergedUser(merged_user.value)) as MergedUser;
@@ -123,6 +157,23 @@ export default defineComponent({
 						message: data.exception,
 						color: 'red'
 					});
+				}
+			},
+			validateRole: (val: string | null) => {
+				if (val == undefined) {
+					return 'You must select a role';
+				}
+				return true;
+			},
+			validateUsername: (val: string) => {
+				try {
+					const username = parseUsername(val);
+					if (store.state.users.merged_users.findIndex(u => u.username === username) >= 0) {
+						return 'This user is already in the course.';
+					}
+					return true;
+				} catch (err) {
+					return 'This is not a valid username';
 				}
 			}
 		};
