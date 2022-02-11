@@ -18,21 +18,21 @@
 			v-else-if="problem_set.set_type==='REVIEW'" />
 	</q-page>
 	<q-dialog v-model="change_set_type_dialog" persistent>
-      <q-card>
-        <q-card-section class="row items-center">
-          <span class="q-ml-sm">You have requested that this set be converted from a
-						{{ problem_set.set_type }} to a {{ new_set_type.label }}.  You may lose
-						information that the old set has that the new set does not have capabilities
-						of. Please select "Ok" or "Cancel".
-					</span>
-				</q-card-section>
+		<q-card>
+			<q-card-section class="row items-center">
+				<span class="q-ml-sm">You have requested that this set be converted from a
+					{{ problem_set.set_type }} to a {{ new_set_type.label }}.  You may lose
+					information that the old set has that the new set does not have capabilities
+					of. Please select "Ok" or "Cancel".
+				</span>
+			</q-card-section>
 
-				<q-card-actions align="right">
-					<q-btn flat label="Cancel" color="primary" v-close-popup @click="cancelChangeSetType"/>
-					<q-btn flat label="OK" color="primary" v-close-popup @click="changeSetType"/>
-				</q-card-actions>
-			</q-card>
-		</q-dialog>
+			<q-card-actions align="right">
+				<q-btn flat label="Cancel" color="primary" v-close-popup @click="cancelChangeSetType"/>
+				<q-btn flat label="OK" color="primary" v-close-popup @click="changeSetType"/>
+			</q-card-actions>
+		</q-card>
+	</q-dialog>
 </template>
 
 <script lang="ts">
