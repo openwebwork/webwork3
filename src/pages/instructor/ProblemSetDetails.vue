@@ -25,14 +25,14 @@
 						information that the old set has that the new set does not have capabilities
 						of. Please select "Ok" or "Cancel".
 					</span>
-        </q-card-section>
+				</q-card-section>
 
-        <q-card-actions align="right">
-          <q-btn flat label="Cancel" color="primary" v-close-popup @click="cancelChangeSetType"/>
-          <q-btn flat label="OK" color="primary" v-close-popup @click="changeSetType"/>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+				<q-card-actions align="right">
+					<q-btn flat label="Cancel" color="primary" v-close-popup @click="cancelChangeSetType"/>
+					<q-btn flat label="OK" color="primary" v-close-popup @click="changeSetType"/>
+				</q-card-actions>
+			</q-card>
+		</q-dialog>
 </template>
 
 <script lang="ts">
