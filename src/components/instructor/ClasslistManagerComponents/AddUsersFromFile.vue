@@ -104,7 +104,8 @@ import { parse } from 'papaparse';
 import { AxiosError } from 'axios';
 import { logger } from 'boot/logger';
 
-import { useStore } from 'src/store';
+import { useUserStore } from 'src/stores/users';
+import { useSessionStore } from 'src/stores/session';
 import type { Dictionary } from 'src/common/models';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import { MergedUser, CourseUser, User, ParseableMergedUser } from 'src/common/models/users';
@@ -127,7 +128,8 @@ export default defineComponent({
 	name: 'AddUsersFromFile',
 	emits: ['closeDialog'],
 	setup(props, context) {
-		const store = useStore();
+		const users = useUserStore();
+		const session = useSessionStore();
 		const $q = useQuasar();
 		const file = ref<File>(new File([], ''));
 		// Stores all users from the file as well as parsing errors.
@@ -209,7 +211,7 @@ export default defineComponent({
 				try {
 					const merged_user = getMergedUser(params);
 					// If the user is already in the course, show a warning
-					const u = store.state.users.merged_users.find(_u => _u.username === merged_user.username);
+					const u = users.merged_users.find(_u => _u.username === merged_user.username);
 					if (u) {
 						users_already_in_course.value = true;
 						parse_error = {
@@ -297,11 +299,12 @@ export default defineComponent({
 
 		// Add the Merged Users to the course.
 		const addMergedUsers = async () => {
-			for await (const _user of merged_users_to_add.value) {
-				_user.course_id = store.state.session.course.course_id;
+			for await (const user of merged_users_to_add.value) {
+				user.course_id = session.course.course_id;
 				try {
-					const u = await store.dispatch('users/getUser', _user.username) as User;
-					_user.user_id = u.user_id;
+					// Skip if username is undefined?
+					const u = await users.getUser(user.username ?? '') as User;
+					user.user_id = u.user_id;
 				} catch (err) {
 					const error = err as ResponseError;
 					// this will occur is the user is not a global user
@@ -310,7 +313,7 @@ export default defineComponent({
 					}
 				}
 				try {
-					const merged_user = await store.dispatch('users/addMergedUser', _user) as MergedUser;
+					const merged_user = await users.addMergedUser(new MergedUser(user));
 					const full_name = `${merged_user.first_name as string} ${merged_user.last_name as string}`;
 					$q.notify({
 						message: `The user ${full_name} was successfully added to the course.`,

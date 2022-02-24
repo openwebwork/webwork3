@@ -41,7 +41,7 @@ import { useRoute } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { logger } from 'boot/logger';
 
-import { useStore } from 'src/store';
+import { useProblemSetStore } from 'src/stores/problem_sets';
 import { parseRouteSetID } from 'src/router/utils';
 import { ProblemSet, HomeworkSet, ReviewSet, Quiz } from 'src/common/models/problem_sets';
 import HomeworkSetView from 'src/components/instructor/SetDetails/HomeworkSet.vue';
@@ -57,7 +57,7 @@ export default defineComponent({
 	},
 	setup() {
 		const route = useRoute();
-		const store = useStore();
+		const problem_sets = useProblemSetStore();
 		const $q = useQuasar();
 
 		const change_set_type_dialog = ref<boolean>(false);
@@ -66,13 +66,13 @@ export default defineComponent({
 		// This seems like overkill--perhaps a better way.
 		const reset_set_type = ref<string>('');
 		const set_id = computed(() => parseRouteSetID(route));
-		const problem_set = computed(() => store.state.problem_sets.problem_sets
+		const problem_set = computed(() => problem_sets.problem_sets
 			.find((_set) => _set.set_id === set_id.value) ?? new ProblemSet());
 
 		const updateSet =  (set: ProblemSet) => {
 			// if the entire set just changed, don't update.
 			if (problem_set.value.set_id === set.set_id) {
-				void store.dispatch('problem_sets/updateSet', set);
+				void problem_sets.updateSet(set);
 				const msg = `The problem set '${set.set_name}' was successfully updated.`;
 				logger.debug(`[ProblemSetDetails]: ${msg}`);
 				$q.notify({

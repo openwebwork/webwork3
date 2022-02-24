@@ -44,7 +44,7 @@ import SetDetailProblems from 'components/instructor/SetDetails/SetDetailProblem
 import SetUsers from 'components/instructor/SetDetails/SetUsers.vue';
 import { parseRouteSetID } from 'src/router/utils';
 
-import { useStore } from 'src/store';
+import { useProblemSetStore } from 'src/stores/problem_sets';
 
 interface SetInfo {
 	label: string;
@@ -60,13 +60,13 @@ export default defineComponent({
 	setup() {
 		const router = useRouter();
 		const route = useRoute();
-		const store = useStore();
+		const problem_sets = useProblemSetStore();
 		const selected_set = ref<SetInfo | null>(null);
 		const set_details_tab = ref<string>('details');
 
 		const set_id = computed(() => parseRouteSetID(route));
 
-		const problem_sets_info = computed(() => store.state.problem_sets.problem_sets
+		const problem_sets_info = computed(() => problem_sets.problem_sets
 			.map(set => ({ label: set.set_name, value: set.set_id })));
 
 		const updateSet = () => {

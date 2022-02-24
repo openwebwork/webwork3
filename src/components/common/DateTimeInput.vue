@@ -2,8 +2,8 @@
 	<div class="row q-pa-md">
 		<q-field filled>
 			<template v-slot:control>
-          <div class="self-center full-width no-outline" tabindex="0">{{date_time}}</div>
-        </template>
+				<div class="self-center full-width no-outline" tabindex="0">{{date_time}}</div>
+			</template>
 			<template v-slot:append>
 				<q-icon name="today" color="primary" size="sm">
 					<q-popup-proxy transition-show="scale" transition-hide="scale">

@@ -17,6 +17,7 @@ module.exports = configure(function (ctx) {
 		},
 
 		boot: [
+			'pinia',
 			'axios',
 			'i18n',
 			'logger'

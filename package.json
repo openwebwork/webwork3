@@ -21,12 +21,12 @@
 		"mathjax": "^3.2.0",
 		"node-polyfill-webpack-plugin": "^1.1.4",
 		"papaparse": "^5.3.1",
+		"pinia": "^2.0.11",
+		"pinia-plugin-persistedstate": "^1.2.2",
 		"quasar": "^2.3.1",
 		"setimmediate": "^1.0.5",
 		"vue-draggable-next": "^2.1.1",
 		"vue-i18n": "^9.1.7",
-		"vuex": "^4.0.1",
-		"vuex-persistedstate": "^4.0.0",
 		"winston": "^3.3.3"
 	},
 	"devDependencies": {

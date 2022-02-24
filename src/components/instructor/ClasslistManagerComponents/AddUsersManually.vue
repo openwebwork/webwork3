@@ -68,11 +68,12 @@ import { useQuasar } from 'quasar';
 import { logger } from 'boot/logger';
 
 import { checkIfUserExists } from 'src/common/api-requests/user';
-import { useStore } from 'src/store';
+import { useUserStore } from 'src/stores/users';
+import { useSessionStore } from 'src/stores/session';
+import { useSettingsStore } from 'src/stores/settings';
 
 import { MergedUser, ParseableMergedUser, User } from 'src/common/models/users';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
-import { CourseSetting } from 'src/common/models/settings';
 import { AxiosError } from 'axios';
 import { parseUsername } from 'src/common/models/parsers';
 
@@ -90,7 +91,9 @@ export default defineComponent({
 		const user_exists = ref<boolean>(true);
 		const username_ref = ref<QRef | null>(null);
 		const role_ref = ref<QRef | null>(null);
-		const store = useStore();
+		const users = useUserStore();
+		const session = useSessionStore();
+		const settings = useSettingsStore();
 
 		return {
 			merged_user,
@@ -101,7 +104,7 @@ export default defineComponent({
 			checkUser: async () => {
 				// If the user doesn't exist, the catch statement will handle this.
 				try {
-					const course_id = store.state.session.course.course_id;
+					const course_id = session.course.course_id;
 					const user_params = await checkIfUserExists(course_id, merged_user.value.username ?? '');
 					const user = new User(user_params);
 
@@ -121,12 +124,9 @@ export default defineComponent({
 					}
 				}
 			},
-			roles: computed(() => {
-				// Return an array of the roles in the course.
-				return (store.state.settings.course_settings.find(
-					(setting: CourseSetting) => setting.var === 'roles'
-				)?.value as Array<string>).filter(v => v !== 'admin');
-			}),
+			// Return an array of the roles in the course.
+			roles: computed(() =>
+				(settings.getCourseSetting('roles').value as string[]).filter(v => v !== 'admin')),
 			addUser: async (close: boolean) => {
 				try {
 					// Check to ensure username is correct and a role is selected.
@@ -137,9 +137,8 @@ export default defineComponent({
 							return;
 						}
 					}
-					merged_user.value.course_id = store.state.session.course.course_id;
-					const user = await store.dispatch('users/addMergedUser',
-						new MergedUser(merged_user.value)) as MergedUser;
+					merged_user.value.course_id = session.course.course_id;
+					const user = await users.addMergedUser(new MergedUser(merged_user.value));
 					$q.notify({
 						message: `The user with username '${user.username ?? ''}' was added successfully.`,
 						color: 'green'
@@ -168,7 +167,7 @@ export default defineComponent({
 			validateUsername: (val: string) => {
 				try {
 					const username = parseUsername(val);
-					if (store.state.users.merged_users.findIndex(u => u.username === username) >= 0) {
+					if (users.merged_users.findIndex(u => u.username === username) >= 0) {
 						return 'This user is already in the course.';
 					}
 					return true;

@@ -9,16 +9,16 @@
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { useStore } from 'src/store';
+import { useUserStore } from 'src/stores/users';
 
 export default defineComponent({
 	name: 'ProblemSetList',
 	setup() {
-		const store = useStore();
+		const users = useUserStore();
 		const router = useRouter();
 
 		return {
-			users: computed(() => store.state.users.users),
+			users: computed(() => users.users),
 			changeSet: (set_id: number) => {
 				void router.push({ name: 'ProblemSetDetails', params: { set_id: set_id } });
 			}

@@ -37,7 +37,6 @@ import LibPanelOpl from 'src/components/instructor/LibraryComponents/LibPanelOPL
 import LibPanelDir from 'src/components/instructor/LibraryComponents/LibPanelDir.vue';
 import LibPanelLocal from 'src/components/instructor/LibraryComponents/LibPanelLocal.vue';
 import LibPanelSearch from 'src/components/instructor/LibraryComponents/LibPanelSearch.vue';
-// import { useStore } from 'vuex';
 
 export default defineComponent({
 	name: 'LibraryBrowser',
