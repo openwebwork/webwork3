@@ -36,7 +36,6 @@
 		"@types/bootstrap": "^5.1.6",
 		"@types/jest": "^27.0.2",
 		"@types/jquery": "^3.5.8",
-		"@types/lodash-es": "^4.17.4",
 		"@types/node": "^10.17.15",
 		"@types/papaparse": "^5.2.6",
 		"@typescript-eslint/eslint-plugin": "^4.16.1",

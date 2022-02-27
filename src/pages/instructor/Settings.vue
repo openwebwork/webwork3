@@ -31,7 +31,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, ref } from 'vue';
+import { defineComponent, computed, ref, watch } from 'vue';
 import { useSettingsStore } from 'src/stores/settings';
 import type { CourseSettingInfo } from 'src/common/models/settings';
 import SingleSetting from 'src/components/instructor/SingleSetting.vue';
@@ -43,7 +43,12 @@ export default defineComponent({
 	},
 	setup() {
 		const settings = useSettingsStore();
-		const tab = ref('general');
+		const tab = ref('');
+
+		// Needed if you start on this page.
+		watch(() => settings.course_settings, () => {
+			tab.value = 'general';
+		});
 
 		return {
 			tab,
@@ -52,7 +57,7 @@ export default defineComponent({
 			]),
 			getSettings: (cat: string) =>
 				settings.default_settings.filter((setting: CourseSettingInfo) => setting.category === cat),
-			getSettingValue: (var_name: string) => settings.getCourseSetting(var_name)
+			getSettingValue: (var_name: string) => settings.getCourseSetting(var_name).value
 		};
 	}
 });
