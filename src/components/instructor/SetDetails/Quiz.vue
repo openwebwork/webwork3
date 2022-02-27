@@ -86,7 +86,10 @@ export default defineComponent({
 			const secs = value % 60;
 			const hrs = Math.floor(value / 3600);
 			const mins = Math.floor((value - 3600 * hrs) / 60);
-			return hrs < 10 ? `0${hrs}:${mins}:${secs}` : `${hrs}:${mins}:${secs}`;
+			const hr_str = hrs < 10 ? `0${hrs}` : `${hrs}`;
+			const min_str = mins < 10 ? `0${mins}` : `${mins}`;
+			const sec_str = secs < 10 ? `0${secs}` : `${secs}`;
+			return `${hr_str}:${min_str}:${sec_str}`;
 		};
 		quiz_duration.value = quizDurationToString(quiz.value.set_params.quiz_duration ?? 0);
 

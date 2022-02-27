@@ -24,8 +24,6 @@ export const useUserStore = defineStore('user', {
 		user_courses: [],
 		set_users: []
 	}),
-	// List of getters.  No need to create getters for elements of the state
-	getters: {},
 	actions: {
 		// no context as first argument, use `this` instead
 		async fetchUsers(): Promise<void | ResponseError> {
@@ -115,12 +113,15 @@ export const useUserStore = defineStore('user', {
 				= await this.addCourseUser(new CourseUser(merged_user.toObject(CourseUser.ALL_FIELDS)));
 			if (new_course_user) {
 				this.course_users.push(new_course_user);
+				merged_user.course_user_id = new_course_user.course_user_id;
+				this.merged_users.push(merged_user);
 			}
+
 			return merged_user;
 		},
 		async updateCourseUser(course_user: CourseUser): Promise<void> {
 			const url = `courses/${course_user.course_id || 0}/users/${course_user.user_id ?? 0}`;
-			const response = await api.put(url, course_user);
+			const response = await api.put(url, course_user.toObject());
 			if (response.status === 200) {
 				const index = this.course_users.findIndex((u) => u.course_user_id === course_user.course_user_id);
 				// splice is used so vue3 reacts to changes.

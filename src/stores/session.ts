@@ -44,6 +44,7 @@ export const useSessionStore = defineStore('session', {
 		},
 		logout() {
 			this.logged_in = false;
+			this.user = {};
 			this.course =  { course_id: 0, course_name: '' };
 		}
 	}

@@ -20,15 +20,18 @@ export default defineComponent({
 		course_name: String,
 		course_id: String
 	},
-	setup(props) {
+	setup() {
 		const session = useSessionStore();
+		const users = useUserStore();
+		const route = useRoute();
 
-		if (props.course_id && props.course_name) {
-			const course = {
-				course_id: parseInt(props.course_id),
-				course_name: props.course_name
-			};
-			void session.setCourse(course);
+		const course_id = parseRouteCourseID(route);
+		const course = users.user_courses.find(c => c.course_id === course_id);
+		if (course) {
+			void session.setCourse({
+				course_id,
+				course_name: course.course_name
+			});
 		}
 	},
 	async created() {

@@ -73,7 +73,7 @@ export default defineComponent({
 				// First, only pick the fields from a CourseUser object:
 				const course_user = _user.toObject(CourseUser.ALL_FIELDS);
 				promises.push(store_users.updateCourseUser(new CourseUser(course_user)));
-				logger.info(`[EditUsers/updateUsers]: user ${_user.username ?? ''} updated.`);
+				logger.debug(`[EditUsers/updateUsers]: user ${_user.username ?? ''} to be updated.`);
 				// Additionally, update the merged user in the store.
 				void store_users.updateMergedUser(new MergedUser(_user));
 			});

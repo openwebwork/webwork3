@@ -51,6 +51,8 @@ import { useSessionStore } from 'src/stores/session';
 import { ProblemSet, QuizDates } from 'src/common/models/problem_sets';
 import { formatDate } from 'src/common/views';
 
+// TODO: Edit set functionality
+
 export default defineComponent({
 	name: 'ProblemSetsManager',
 	setup() {
