@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
-import { useStore } from 'src/store';
+import { useSessionStore } from 'src/stores/session';
 
 export default defineComponent({
 	name: 'Student',
@@ -13,7 +13,7 @@ export default defineComponent({
 		course_id: String
 	},
 	setup(props) {
-		const store = useStore();
+		const session = useSessionStore();
 
 		if (props.course_id && props.course_name) {
 			const course = {
@@ -23,7 +23,7 @@ export default defineComponent({
 			void store.dispatch('session/setCourse', course);
 		}
 		return {
-			courseName: computed(() => store.state.session.course.course_name)
+			course_name: computed(() => session.course.course_name)
 		};
 	},
 	async created() {

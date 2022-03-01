@@ -156,6 +156,7 @@ sub problemRoutes ($self) {
 sub settingsRoutes ($self) {
 	$self->routes->get('/webwork3/api/default_settings')->to("Settings#getDefaultCourseSettings");
 	$self->routes->get('/webwork3/api/courses/:course_id/settings')->to("Settings#getCourseSettings");
+	$self->routes->put('/webwork3/api/courses/:course_id/setting')->to("Settings#updateCourseSetting");
 	return;
 }
 

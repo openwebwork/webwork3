@@ -1,6 +1,6 @@
 /* eslint-env node */
 
-const { pathsToModuleNameMapper } = require('ts-jest/utils');
+const { pathsToModuleNameMapper } = require('ts-jest');
 const requireJSON5 = require('require-json5');
 const { compilerOptions } = requireJSON5('./node_modules/@quasar/app/tsconfig-preset.json');
 

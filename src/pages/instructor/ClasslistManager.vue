@@ -55,11 +55,11 @@
 
 <script lang="ts">
 import { useQuasar } from 'quasar';
-import { defineComponent, computed, ref } from 'vue';
+import { defineComponent, computed, ref, watch } from 'vue';
 
-import { useStore } from 'src/store';
+import { useUserStore } from 'src/stores/users';
 import { api } from 'boot/axios';
-import { MergedUser } from 'src/common/models/users';
+import { User, MergedUser, CourseUser } from 'src/common/models/users';
 import { UserCourse } from 'src/common/models/courses';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import AddUsersManually from 'src/components/instructor/ClasslistManagerComponents/AddUsersManually.vue';
@@ -76,7 +76,7 @@ export default defineComponent({
 	emits: ['closeDialog'],
 	setup() {
 		const $q = useQuasar();
-		const store = useStore();
+		const users = useUserStore();
 		const selected = ref<Array<MergedUser>>([]);
 		const filter = ref<string>('');
 		const open_users_manually = ref<boolean>(false);
@@ -138,6 +138,14 @@ export default defineComponent({
 			}
 		];
 
+		watch(() => open_edit_dialog.value, () => {
+			// When the Edit Users Dialog closes
+			if (!open_edit_dialog.value) {
+				// clear the selected rows
+				selected.value = [];
+			}
+		});
+
 		return {
 			filter,
 			selected,
@@ -145,14 +153,14 @@ export default defineComponent({
 			open_users_from_file,
 			open_edit_dialog,
 			columns,
-			merged_users: computed(() => store.state.users.merged_users),
+			merged_users: computed(() => users.merged_users),
 			deleteCourseUsers: async () => {
 				const users_to_delete = selected.value.map((u) => u.username).join(', ');
 				var conf = confirm(`Are you sure you want to delete the users: ${users_to_delete}`);
 				if (conf) {
 					for await (const user of selected.value) {
 						try {
-							await store.dispatch('users/deleteCourseUser', user);
+							await users.deleteCourseUser(new CourseUser(user));
 							$q.notify({
 								message: `The user '${
 									user.username ?? ''}' has been succesfully deleted from the course.`,
@@ -168,7 +176,7 @@ export default defineComponent({
 
 						if (user_courses.length === 0) {
 							try {
-								await store.dispatch('users/deleteUser', user);
+								await users.deleteUser(new User(user));
 								$q.notify({
 									message: `The user '${user.username ?? ''}' has been succesfully deleted.`,
 									color: 'green'
@@ -178,7 +186,7 @@ export default defineComponent({
 								$q.notify({ message: error.message, color: 'red' });
 							}
 						}
-						void store.dispatch('users/deleteMergedCourseUser', user);
+						void users.deleteMergedUser(new MergedUser(user));
 						selected.value = [];
 					}
 				}

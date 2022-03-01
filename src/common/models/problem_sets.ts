@@ -10,33 +10,22 @@ export enum ProblemSetType {
 	UNKNOWN = 'UNKNOWN'
 }
 
-export function parseProblemSetType(type: string) {
-	if (/hw/i.test(type)) {
-		return ProblemSetType.HW;
-	} else if (/quiz/i.test(type)) {
-		return ProblemSetType.QUIZ;
-	} else if (/review/i.test(type)) {
-		return ProblemSetType.REVIEW_SET;
-	}
-	throw new ParseError('ProblemSetType', `The problem set type '${type}' is not valid.`);
-}
-
 /**
  * This takes in a general problem set and returns the specific subclassed ProblemSet
  * @param problem ParseableProblemSet
  * @returns HomeworkSet, Quiz or ReviewSet
  */
 
-export function parseProblemSet(problem: ParseableProblemSet) {
-	if (problem.set_type === 'HW') {
-		return new HomeworkSet(problem as ParseableHomeworkSet);
-	} else if (problem.set_type === 'QUIZ') {
-		return new Quiz(problem as ParseableQuiz);
-	} else if (problem.set_type === 'REVIEW') {
-		return new ReviewSet(problem as ParseableReviewSet);
+export function parseProblemSet(set: ParseableProblemSet) {
+	if (/hw/i.test(set.set_type ?? '')) {
+		return new HomeworkSet(set as ParseableHomeworkSet);
+	} else if (/quiz/i.test(set.set_type ?? '')) {
+		return new Quiz(set as ParseableQuiz);
+	} else if (/review/i.test(set.set_type ?? '')) {
+		return new ReviewSet(set as ParseableReviewSet);
 	}
 
-	throw new ParseError('ProblemSetType', `The problem set type '${problem.set_type ?? ''}' is not valid.`);
+	throw new ParseError('ProblemSetType', `The problem set type '${set.set_type ?? ''}' is not valid.`);
 }
 
 export type ProblemSetParams = HomeworkSetParams | QuizParams | ReviewSetParams;
@@ -157,6 +146,10 @@ export class QuizDates extends Model {
 
 	public isValid() {
 		return this.open <= this.due && this.due <= this.answer;
+	}
+
+	public clone() {
+		return new QuizDates(this.toObject());
 	}
 
 }
@@ -307,6 +300,9 @@ export class HomeworkSetDates extends Model {
 			this.open <= this.due && this.due <= this.answer;
 	}
 
+	public clone() {
+		return new HomeworkSetDates(this.toObject());
+	}
 }
 
 export interface ParseableHomeworkSet {
@@ -348,11 +344,11 @@ export class HomeworkSet extends ProblemSet {
  */
 
 export interface ParseableReviewSetParams {
-	dummy_params?: boolean | string | number;
+	test_param?: boolean | string | number;
 }
 
 export class ReviewSetParams extends Model {
-	private _dummy_params = false;
+	private _test_param = false;
 
 	constructor(params: ParseableReviewSetParams = {}) {
 		super();
@@ -360,17 +356,17 @@ export class ReviewSetParams extends Model {
 	}
 
 	set(params: ParseableReviewSetParams) {
-		if (params.dummy_params != undefined) this.dummy_params = params.dummy_params;
+		if (params.test_param != undefined) this.test_param = params.test_param;
 	}
 
 	get all_field_names(): string[] {
-		return ['dummy_params'];
+		return ['test_param'];
 	}
 	get param_fields(): string[] { return [];}
 
-	public get dummy_params() : boolean { return this._dummy_params;}
-	public set dummy_params(value: number | string | boolean) {
-		this._dummy_params = parseBoolean(value);
+	public get test_param() : boolean { return this._test_param;}
+	public set test_param(value: number | string | boolean) {
+		this._test_param = parseBoolean(value);
 	}
 
 }
@@ -408,6 +404,10 @@ export class ReviewSetDates extends Model {
 	public isValid() {
 		return this.open <= this.closed;
 	}
+
+	public clone() {
+		return new ReviewSetDates(this.toObject());
+	}
 }
 
 export interface ParseableReviewSet {
@@ -426,7 +426,7 @@ export class ReviewSet extends ProblemSet {
 	private _set_dates = new ReviewSetDates();
 	constructor(params: ParseableReviewSet = {}) {
 		super(params as ParseableProblemSet);
-		this._set_type = ProblemSetType.HW;
+		this._set_type = ProblemSetType.REVIEW_SET;
 		if (params.set_params) this.set_params.set(params.set_params);
 		if (params.set_dates) this.set_dates.set(params.set_dates);
 	}

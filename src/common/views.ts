@@ -146,3 +146,11 @@ export const parseNumericRouteParam = (route_param: string | string []): number 
 		parseInt(route_param[0]) :
 		parseInt(route_param);
 };
+import { ProblemSetType } from 'src/common/models/problem_sets';
+
+// Used in multiple views
+export const problem_set_type_options = [
+	{ value: ProblemSetType.REVIEW_SET, label: 'Review set' },
+	{ value: ProblemSetType.QUIZ, label: 'Quiz' },
+	{ value: ProblemSetType.HW, label: 'Homework set' }
+];

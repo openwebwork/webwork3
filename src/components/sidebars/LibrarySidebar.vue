@@ -15,8 +15,10 @@
 
 <script lang="ts">
 import { defineComponent, computed, ref, watch } from 'vue';
-import { useStore } from 'src/store';
+import { useAppStateStore } from 'src/stores/app_state';
+import { useUserStore } from 'src/stores/users';
 import { useRouter } from 'vue-router';
+import { useProblemSetStore } from 'src/stores/problem_sets';
 
 interface SelectItem {
 	label: string;
@@ -26,18 +28,20 @@ interface SelectItem {
 export default defineComponent({
 	name: 'ProblemSetList',
 	setup() {
-		const store = useStore();
+		const app_state = useAppStateStore();
+		const users = useUserStore();
+		const problem_sets = useProblemSetStore();
 		const router = useRouter();
 		const target_set = ref<SelectItem | null>(null);
 
 		watch([target_set], () => {
-			void store.dispatch('app_state/setTargetSetID', target_set.value?.value ?? 0);
+			void app_state.setTargetSetID(target_set.value?.value ?? 0);
 		});
 
 		return {
 			target_set,
-			users: computed(() => store.state.users.users),
-			problem_sets: computed(() => store.state.problem_sets.problem_sets
+			users: computed(() => users.users),
+			problem_sets: computed(() => problem_sets.problem_sets
 				.map(set => ({ label: set.set_name, value: set.set_id }))),
 			viewTargetSet: () => {
 				if (target_set.value) {

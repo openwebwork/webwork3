@@ -39,12 +39,7 @@
 				<q-card-section>
 					<q-list>
 						<template v-for="course in instructor_courses" :key="course.course_id">
-							<q-item
-								:to="{
-									name: 'instructor',
-									params: { course_id: course.course_id, course_name: course.course_name }
-									}"
-								>
+							<q-item to="instructor">
 								<q-item-section>
 									<q-item-label>{{ course.course_name }}</q-item-label>
 								</q-item-section>
@@ -60,27 +55,31 @@
 
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
-import { useStore } from 'src/store';
+import { useUserStore } from 'src/stores/users';
+import { useSessionStore } from 'src/stores/session';
+import { parseNonNegInt } from 'src/common/models/parsers';
 
 export default defineComponent({
 	name: 'UserCourses',
 	setup() {
-		const store = useStore();
+		const users = useUserStore();
+		const session = useSessionStore();
 		return {
 			student_courses: computed(() =>
-				store.state.users.user_courses.filter(user_course => user_course.role === 'student')
+				users.user_courses.filter(user_course => user_course.role === 'student')
 			),
 			instructor_courses: computed(() =>
-				store.state.users.user_courses.filter(user_course => user_course.role === 'instructor')
+				users.user_courses.filter(user_course => user_course.role === 'instructor')
 			),
-			user: computed(() => store.state.session.user)
+			user: computed(() => session.user)
 		};
 	},
 	async created() {
 		// fetch the data when the view is created and the data is
 		// already being observed
-		const store = useStore();
-		await store.dispatch('users/fetchUserCourses', store.state.session.user.user_id);
+		const users = useUserStore();
+		const session = useSessionStore();
+		await users.fetchUserCourses(parseNonNegInt(session.user.user_id ?? 0));
 	}
 });
 </script>

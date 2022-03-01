@@ -124,7 +124,7 @@ export function parseUsername(val: string | undefined) {
 	if (typeof val === 'string' && (val === '' || mailRE.test(`${val ?? ''}`) || usernameRE.test(`${val}`))) {
 		return val;
 	} else {
-		throw new UsernameParseException(`The value '${val?.toString() ?? ''}'' is not a value username`);
+		throw new UsernameParseException(`The value '${val?.toString() ?? ''}' is not a value username`);
 	}
 }
 

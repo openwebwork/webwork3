@@ -73,8 +73,9 @@
 <script lang="ts">
 import { defineComponent, computed, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
-import { useStore } from 'src/store';
 import { useRoute } from 'vue-router';
+import { useUserStore } from 'src/stores/users';
+import { useProblemSetStore } from 'src/stores/problem_sets';
 
 import { logger } from 'boot/logger';
 import { MergedUserSet, UserSet, MergedUserHomeworkSet, MergedUserQuiz,
@@ -88,6 +89,7 @@ import HomeworkDatesView from './HomeworkDates.vue';
 import ReviewSetDatesView from './ReviewSetDates.vue';
 import QuizDatesView from './QuizDates.vue';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
+import { parseRouteCourseID, parseRouteSetID } from 'src/router/utils';
 
 type Field_type = ((row: MergedUserHomeworkSet) => number) |
 	((row: MergedUserQuiz) => number) |
@@ -118,7 +120,8 @@ export default defineComponent({
 	},
 	setup() {
 		const $q = useQuasar();
-		const store = useStore();
+		const users  = useUserStore();
+		const problem_sets = useProblemSetStore();
 		const route = useRoute();
 
 		const problem_set = ref<ProblemSet>(new ProblemSet());
@@ -140,9 +143,9 @@ export default defineComponent({
 		// An array of User info for the table including if the set is assigned and any
 		// overridden dates.
 		const updateUserSetInfo = () => {
-			user_set_info.value = store.state.users.merged_users.map(user => {
+			user_set_info.value = users.merged_users.map(user => {
 				// This matches the user_set for the given user.
-				const user_set = store.state.problem_sets.merged_user_sets
+				const user_set = problem_sets.merged_user_sets
 					.find(merged_user => merged_user.course_user_id === user.course_user_id);
 				return {
 					course_user_id: user.course_user_id,
@@ -160,7 +163,7 @@ export default defineComponent({
 		 */
 
 		const assignUser = async (course_user_id: number) => {
-			const user = store.state.users.merged_users.find(u => u.course_user_id === course_user_id);
+			const user = users.merged_users.find(u => u.course_user_id === course_user_id);
 			logger.debug(`assigning the set '${problem_set.value.set_name}' to the user '${user?.username ?? ''}'`);
 			const set_params = {
 				set_id: problem_set.value.set_id,
@@ -176,7 +179,7 @@ export default defineComponent({
 						new UserReviewSet(set_params) :
 						new UserSet(set_params);
 			try {
-				await store.dispatch('problem_sets/addUserSet', user_set);
+				await problem_sets.addUserSet(user_set);
 				$q.notify({
 					message: `The user ${user?.username ?? ''} has been assigned to `
 						+ `${problem_set.value.set_name ?? ''}`,
@@ -192,13 +195,13 @@ export default defineComponent({
 		};
 
 		const unassignUser = async (course_user_id: number) => {
-			const user = store.state.users.merged_users.find(u => u.course_user_id === course_user_id);
-			const merged_user_set = store.state.problem_sets.merged_user_sets
+			const user = users.merged_users.find(u => u.course_user_id === course_user_id);
+			const merged_user_set = problem_sets.merged_user_sets
 				.find(u => u.course_user_id === course_user_id);
 			if (merged_user_set) {
 				const user_set = new UserSet(merged_user_set.toObject(UserSet.ALL_FIELDS));
 				try {
-					await store.dispatch('problem_sets/deleteUserSet', user_set);
+					await problem_sets.deleteUserSet(user_set);
 					const msg =  `The user ${user?.username ?? ''} has been unassigned from the set `
 						+ `${problem_set.value.set_name ?? ''}`;
 					$q.notify({
@@ -250,7 +253,7 @@ export default defineComponent({
 			updated_user_set.set_dates.set(date_edit.value);
 			if (updated_user_set.hasValidDates()) {
 				try {
-					await store.dispatch('problem_sets/updateUserSet', updated_user_set);
+					await problem_sets.updateUserSet(updated_user_set);
 					const msg = `The problem set '${merged_user_set.value.set_name ?? ''}' ` +
 							`for user ${merged_user_set.value.username ?? ''} has been succesfully updated.`;
 					$q.notify({
@@ -269,8 +272,8 @@ export default defineComponent({
 
 		const assignToAllUsers = async () => {
 			// find users not assigned.
-			const users_to_assign = store.state.users.merged_users.filter(merged_user =>
-				store.state.problem_sets.merged_user_sets
+			const users_to_assign = users.merged_users.filter(merged_user =>
+				problem_sets.merged_user_sets
 					.findIndex(user_set => user_set.course_user_id === merged_user.course_user_id) < 0
 			);
 			for (const user of users_to_assign) {
@@ -280,11 +283,11 @@ export default defineComponent({
 		};
 
 		updateUserSetInfo();
-		watch(() => store.state.problem_sets.merged_user_sets, updateUserSetInfo);
+		watch(() => problem_sets.merged_user_sets, updateUserSetInfo);
 
 		const updateProblemSet = () => {
 			if (route.params.set_id) {
-				problem_set.value = store.state.problem_sets.problem_sets.find(
+				problem_set.value = problem_sets.problem_sets.find(
 					_set => _set.set_id === parseNonNegInt(route.params.set_id as string)
 				) ?? new ProblemSet();
 			}
@@ -320,52 +323,59 @@ export default defineComponent({
 								0
 						}
 					);
+				} else if (problem_set.value.set_type === 'QUIZ') {
+					columns.splice(columns.length, 0,
+						{
+							name: 'open_date',
+							label: 'Open Date',
+							format: formatTheDate,
+							field: (row: MergedUserQuiz) => row.set_dates ? row.set_dates.open : 0
+						},
+						{
+							name: 'due_date',
+							label: 'Due Date',
+							format: formatTheDate,
+							field: (row: MergedUserQuiz) => row.set_dates ? row.set_dates.due : 0
+						},
+						{
+							name: 'answer_date',
+							label: 'Answer Date',
+							format: formatTheDate,
+							field: (row: MergedUserQuiz) => row.set_dates ? row.set_dates.answer :  0
+						}
+					);
+				} else if (problem_set.value.set_type === 'REVIEW') {
+					columns.splice(columns.length, 0,
+						{
+							name: 'open_date',
+							label: 'Open Date',
+							format: formatTheDate,
+							field: (row: MergedUserReviewSet) => row.set_dates ? (row.set_dates).open : 0
+						},
+						{
+							name: 'closed_date',
+							label: 'Closed Date',
+							format: formatTheDate,
+							field: (row: MergedUserReviewSet) => row.set_dates ? (row.set_dates).closed : 0
+						},
+					);
 				}
-				// } else if (problem_set.value.set_type === 'QUIZ') {
-				// columns.splice(columns.length, 0,
-				// {
-				// name: 'open_date',
-				// label: 'Open Date',
-				// format: formatTheDate,
-				// field: (row: MergedUserQuiz) => row.set_dates ? (row.set_dates).open : 0
-				// },
-				// {
-				// name: 'due_date',
-				// label: 'Due Date',
-				// format: formatTheDate,
-				// field: (row: MergedUserQuiz) => row.set_dates ? (row.set_dates).due : 0
-				// },
-				// {
-				// name: 'answer_date',
-				// label: 'Answer Date',
-				// format: formatTheDate,
-				// field: (row: MergedUserQuiz) => row.set_dates ? (row.set_dates).answer :  0
-				// }
-				// );
-				// } else if (problem_set.value.set_type === 'REVIEW') {
-				// columns.splice(columns.length, 0,
-				// { name: 'open_date', label: 'Open Date', format: formatTheDate,
-				// field: (row: MergedUserReviewSet) => row.set_dates ? (row.set_dates).open : 0 },
-				// { name: 'closed_date', label: 'Closed Date', format: formatTheDate,
-				// field: (row: MergedUserReviewSet) => row.set_dates ? (row.set_dates).closed : 0 },
-				// );
-				// }
 				date_edit.value = problem_set.value.set_dates.toObject() as Dictionary<number>;
 			}
 		};
 
 		const updateMergedUserSet = (course_user_id: number) => {
-			merged_user_set.value = store.state.problem_sets.merged_user_sets
+			merged_user_set.value = problem_sets.merged_user_sets
 				.find(_user_set => _user_set.course_user_id === course_user_id) ??
 				new MergedUserSet();
 		};
 
 		updateProblemSet();
-		watch([store.state.problem_sets.merged_user_sets], updateProblemSet);
+		watch([problem_sets.merged_user_sets], updateProblemSet);
 
 		return {
 			columns,
-			users: computed(() => store.state.users.merged_users),
+			users: computed(() => users.merged_users),
 			// produces the merge between users and user_sets for display
 			problem_set,
 			user_set_info,
@@ -393,13 +403,13 @@ export default defineComponent({
 	},
 	async created() {
 		// fetch the user sets for this set
-		const store = useStore();
+		const problem_sets = useProblemSetStore();
 		const route = useRoute();
 		if (route.params.set_id) {
 			logger.debug('Loading UserSets');
-			await store.dispatch('problem_sets/fetchCourseMergedUserSets', {
-				course_id: route.params.course_id,
-				set_id: route.params.set_id
+			await problem_sets.fetchMergedUserSets({
+				course_id: parseRouteCourseID(route),
+				set_id: parseRouteSetID(route)
 			});
 		}
 	}

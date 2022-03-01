@@ -357,7 +357,7 @@ test('Create a MergedUserReviewSet', () => {
 		set_name: '',
 		username: '',
 		set_visible: false,
-		set_params: { dummy_params: false },
+		set_params: { test_param: false },
 		set_dates: { open: 0, closed: 0 }
 	};
 	expect(user_review_set.toObject()).toStrictEqual(defaults);

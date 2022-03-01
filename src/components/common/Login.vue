@@ -24,11 +24,11 @@
 import { useRouter } from 'vue-router';
 import { defineComponent, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useStore } from 'src/store';
 import { checkPassword } from 'src/common/api-requests/session';
+import { useSessionStore } from 'src/stores/session';
 
 export default defineComponent({
-	name: 'username',
+	name: 'Login',
 	setup() {
 		const router = useRouter();
 		const username = ref('');
@@ -36,19 +36,19 @@ export default defineComponent({
 		const message = ref('');
 		const i18n = useI18n({ useScope: 'global' });
 
-		const store = useStore();
+		const session = useSessionStore();
 		const login = async () => {
 			const username_info = {
 				username: username.value,
 				password: password.value
 			};
-			const session = await checkPassword(username_info);
-			if (!session.logged_in) {
+			const session_info = await checkPassword(username_info);
+			if (!session_info.logged_in) {
 				message.value = i18n.t('authentication.failure');
 			} else {
 				// success
-				void store.dispatch('session/updateSessionInfo', session);
-				if (session && session.user && session.user.is_admin) {
+				void session.updateSessionInfo(session_info);
+				if (session_info?.user?.is_admin) {
 					void router.push('/admin');
 				} else if (session && session.user && session.user.user_id) {
 					void router.push(`/users/${session.user.user_id}/courses`);

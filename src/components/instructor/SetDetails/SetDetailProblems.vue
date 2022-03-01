@@ -25,9 +25,10 @@
 <script lang="ts">
 import { defineComponent, ref, watch, computed } from 'vue';
 import { useQuasar } from 'quasar';
-import { useStore } from 'src/store';
 import { useRoute } from 'vue-router';
 import { VueDraggableNext } from 'vue-draggable-next';
+
+import { useProblemSetStore } from 'src/stores/problem_sets';
 
 import Problem from 'components/common/Problem.vue';
 import { ProblemSet } from 'src/common/models/problem_sets';
@@ -44,7 +45,7 @@ export default defineComponent({
 	},
 	setup() {
 		const $q = useQuasar();
-		const store = useStore();
+		const problem_sets = useProblemSetStore();
 		const route = useRoute();
 		// copy of the set_id prop and ensure it is a number
 		const problems = ref<Array<SetProblem>>([]);
@@ -53,11 +54,11 @@ export default defineComponent({
 		const set_id = computed(() => parseRouteSetID(route));
 
 		const updateProblemSet = () => {
-			problems.value = store.state.problem_sets.set_problems.filter(set =>
-				set.set_id === set_id.value).concat()
-				.sort((prob_a: SetProblem, prob_b: SetProblem) =>
-					(prob_a?.problem_number ?? 0) - (prob_b?.problem_number ?? 0));
-			problem_set.value = store.state.problem_sets.problem_sets
+			problems.value = problem_sets.set_problems
+				.filter(set => set.set_id === set_id.value)
+				.sort((prob_a, prob_b) =>
+					(prob_a.problem_number ?? 0) - (prob_b.problem_number ?? 0));
+			problem_set.value = problem_sets.problem_sets
 				.find(set => set.set_id === set_id.value) || new ProblemSet();
 			logger.debug(`[SetDetailProblems] populating problems... count:${problems.value.length}`);
 		};
@@ -72,11 +73,11 @@ export default defineComponent({
 				const promises: Array<Promise<void>> = [];
 				problems.value.forEach((prob, i) => {
 					if (prob.problem_number !== i + 1) {
-						promises.push(
-							store.dispatch('problem_sets/updateSetProblem',
-								{ prob, props: { problem_number: i + 1 } }
-							)
-						);
+						promises.push(problem_sets.updateSetProblem({
+							set_id: prob.set_id,
+							problem_id: prob.problem_id,
+							props: { problem_number: i + 1 }
+						}));
 					}
 				});
 				await Promise.all(promises)
@@ -99,7 +100,7 @@ export default defineComponent({
 				logger.debug(`[Problem/deleteProblem]: Remove problem ${problem.path()} `
 					+ `from set : ${problem_set.value.set_name ?? 'UNKNOWN'}.`);
 				try {
-					await store.dispatch('problem_sets/deleteSetProblem', problem);
+					await problem_sets.deleteSetProblem(problem);
 					$q.notify({
 						message: `A problem has been removed from set ${problem_set.value.set_name ?? 'UNKNOWN'}`,
 						color: 'green'

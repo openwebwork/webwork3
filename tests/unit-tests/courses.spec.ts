@@ -4,7 +4,7 @@ import { Course, ParseableCourse } from 'src/common/models/courses';
 import { NonNegIntException } from 'src/common/models/parsers';
 import { InvalidFieldsException } from 'src/common/models';
 
-const default_course_dates = { start: '', end: '' };
+const default_course_dates = { start: 0, end: 0 };
 
 const default_course = {
 	course_id: 0,

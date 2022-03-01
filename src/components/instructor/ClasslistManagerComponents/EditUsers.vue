@@ -10,6 +10,7 @@
 					<div class="col header">Username</div>
 					<div class="col header">First Name</div>
 					<div class="col header">Last Name</div>
+					<div class="col header">Student ID</div>
 					<div class="col header">Course Role</div>
 					<div class="col header">Section</div>
 					<div class="col header">Recitation</div>
@@ -18,6 +19,7 @@
 					<div class="col"> {{ user.username }} </div>
 					<div class="col"> {{ user.first_name }} </div>
 					<div class="col"> {{ user.last_name }} </div>
+					<div class="col"> {{ user.student_id }} </div>
 					<div class="col">
 						<q-select :options="roles" v-model="user.role"/>
 					</div>
@@ -42,12 +44,11 @@
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
-import { cloneDeep } from 'lodash-es';
 
 import { MergedUser, CourseUser } from 'src/common/models/users';
-import { CourseSetting } from 'src/common/models/settings';
-import { useStore } from 'src/store';
+import { useUserStore } from 'src/stores/users';
 import { logger } from 'boot/logger';
+import { useSettingsStore } from 'src/stores/settings';
 
 export default defineComponent({
 	props: {
@@ -60,19 +61,21 @@ export default defineComponent({
 	setup(props, context) {
 		const $q = useQuasar();
 
-		const merged_users =
-			ref<Array<MergedUser>>(cloneDeep(props.users_to_edit) as Array<MergedUser>);
-		const store = useStore();
+		const users = (props.users_to_edit as MergedUser[]).map(u => u.clone());
+
+		const merged_users = ref<Array<MergedUser>>(users);
+		const store_users = useUserStore();
+		const settings = useSettingsStore();
 
 		const updateUsers = async () => {
 			const promises: Array<Promise<void>> = [];
 			merged_users.value.forEach(_user => {
 				// First, only pick the fields from a CourseUser object:
 				const course_user = _user.toObject(CourseUser.ALL_FIELDS);
-				promises.push(store.dispatch('users/updateCourseUser', course_user));
-				logger.info(`[EditUsers/updateUsers]: user ${_user.username ?? ''} updated.`);
-				// Additionally, update the merged user in the VUEX store.
-				void store.dispatch('users/updateMergedUser', _user);
+				promises.push(store_users.updateCourseUser(new CourseUser(course_user)));
+				logger.debug(`[EditUsers/updateUsers]: user ${_user.username ?? ''} to be updated.`);
+				// Additionally, update the merged user in the store.
+				void store_users.updateMergedUser(new MergedUser(_user));
 			});
 			await Promise.all(promises)
 				.then(() => {
@@ -95,12 +98,8 @@ export default defineComponent({
 			merged_users,
 			updateUsers,
 			// This is just copied over from AddUsersManually.  Perhaps put in a central location.
-			roles: computed(() => {
-				// Return an array of the roles in the course.
-				return (store.state.settings.course_settings.find(
-					(setting: CourseSetting) => setting.var === 'roles'
-				)?.value as Array<string>).filter(v => v !== 'admin');
-			}),
+			roles: computed(() =>
+				(settings.getCourseSetting('roles').value as string[]).filter(v => v !== 'admin')),
 		};
 	}
 });

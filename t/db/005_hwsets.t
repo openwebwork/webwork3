@@ -276,6 +276,24 @@ removeIDs($updated_set);
 delete $updated_set->{set_visible};
 is_deeply($new_set_params, $updated_set, "updateSet: update a set with set_type defined.");
 
+# Change the type of a problem set from a Homework Set to a Quiz.
+
+my $set_with_new_type_params = clone($new_set_params);
+$set_with_new_type_params->{set_dates}  = { open => 0, answer => 0, due => 0 };
+$set_with_new_type_params->{set_params} = {};
+$set_with_new_type_params->{set_type}   = 'QUIZ';
+
+my $set_with_new_type =
+	$problem_set_rs->updateProblemSet({ course_name => "Precalculus", set_id => $new_set_id }, { set_type => "QUIZ" });
+removeIDs($set_with_new_type);
+# PS: Look into this.  Why are we deleting this throughout this test?
+delete $set_with_new_type->{set_visible};
+
+is_deeply($set_with_new_type, $set_with_new_type_params, "updateSet: change the type of the problem set");
+
+use Data::Dumper;
+print Dumper $set_with_new_type;
+
 # Try to update a set with an illegal field
 throws_ok {
 	$problem_set_rs->updateProblemSet({ course_name => "Precalculus", set_id => $new_set_id }, { bad_field => 0 });
@@ -300,7 +318,7 @@ throws_ok {
 my $deleted_set = $problem_set_rs->deleteProblemSet({ course_name => "Precalculus", set_name => "HW #88" });
 removeIDs($deleted_set);
 delete $deleted_set->{set_visible};
-is_deeply($new_set_params, $deleted_set, "deleteProblemSet: delete a set");
+is_deeply($set_with_new_type_params, $deleted_set, "deleteProblemSet: delete a set");
 
 done_testing;
 
