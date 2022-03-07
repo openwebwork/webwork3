@@ -3,34 +3,36 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue';
+import { defineComponent } from 'vue';
 import { useSessionStore } from 'src/stores/session';
+import { useProblemSetStore } from 'src/stores/problem_sets';
+import { useUserStore } from 'src/stores/users';
+import { useRoute } from 'vue-router';
+import { parseRouteCourseID } from 'src/router/utils';
+import { parseNonNegInt } from 'src/common/models/parsers';
 
 export default defineComponent({
 	name: 'Student',
-	props: {
-		course_name: String,
-		course_id: String
-	},
-	setup(props) {
+	setup() {
 		const session = useSessionStore();
+		const users = useUserStore();
+		const route = useRoute();
 
-		if (props.course_id && props.course_name) {
-			const course = {
-				course_id: props.course_id,
-				course_name: props.course_name
-			};
-			void store.dispatch('session/setCourse', course);
+		const course_id = parseRouteCourseID(route);
+		const course = users.user_courses.find(c => c.course_id === course_id);
+		if (course) {
+			void session.setCourse({
+				course_id,
+				course_name: course.course_name
+			});
 		}
-		return {
-			course_name: computed(() => session.course.course_name)
-		};
 	},
 	async created() {
-		const store = useStore();
-		await store.dispatch('problem_sets/fetchUserMergedUserSets', store.state.session.user.user_id);
-		await store.dispatch('problem_sets/fetchMergedUserProblems', store.state.session.user.user_id);
-		await store.dispatch('problem_sets/fetchSetProblems');
+		const problem_sets = useProblemSetStore();
+		const session = useSessionStore();
+		await problem_sets.fetchUserMergedUserSets(parseNonNegInt(session.user.user_id ?? 0));
+		await problem_sets.fetchMergedUserProblems(parseNonNegInt(session.user.user_id ?? 0));
+		await problem_sets.fetchSetProblems();
 	}
 });
 </script>

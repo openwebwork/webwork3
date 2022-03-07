@@ -30,14 +30,14 @@
 
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
-import { useStore } from 'src/store';
+import { useProblemSetStore } from 'src/stores/problem_sets';
 
 export default defineComponent({
 	name: 'StudentDashboard',
 	setup() {
-		const store = useStore();
+		const problem_sets = useProblemSetStore();
 		return {
-			open_sets: computed(() => store.state.problem_sets.merged_user_sets)
+			open_sets: computed(() => problem_sets.merged_user_sets)
 		};
 	}
 });

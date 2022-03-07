@@ -16,10 +16,6 @@ import { parseRouteCourseID } from 'src/router/utils';
 
 export default defineComponent({
 	name: 'Instructor',
-	props: {
-		course_name: String,
-		course_id: String
-	},
 	setup() {
 		const session = useSessionStore();
 		const users = useUserStore();

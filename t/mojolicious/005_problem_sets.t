@@ -65,10 +65,6 @@ $t->get_ok('/webwork3/api/courses/2/sets')->status_is(200)->content_type_is('app
 	->json_is('/1/set_name'       => $hw_sets[1]->{set_name})
 	->json_is('/1/set_dates/open' => $hw_sets[1]->{set_dates}->{open});
 
-use Data::Dumper;
-
-print Dumper $t->tx->res->json;
-
 # Extract the id from the response.
 my $set_id = $t->tx->res->json('/2/set_id');
 

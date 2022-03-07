@@ -35,10 +35,7 @@ sub getProblemSet ($self) {
 
 ## update the course given by course_id with given params
 
-use Data::Dumper;
-
 sub updateProblemSet ($self) {
-	print Dumper $self->req->json;
 	my $problem_set = $self->schema->resultset("ProblemSet")->updateProblemSet(
 		{
 			course_id => int($self->param("course_id")),
@@ -72,13 +69,15 @@ sub deleteProblemSet ($self) {
 # if a user_id is given, it is a collection of user sets related to a user.
 
 sub getUserSets ($self) {
+	my @user_sets;
 	my $params = { course_id => int($self->param("course_id")) };
 	if ($self->param("set_id")) {
 		$params->{set_id} = int($self->param("set_id"));
+		@user_sets = $self->schema->resultset("UserSet")->getUserSetsForSet($params);
 	} elsif ($self->param("user_id")) {
 		$params->{user_id} = int($self->param("user_id"));
+		@user_sets = $self->schema->resultset("UserSet")->getUserSetsForUser($params);
 	}
-	my @user_sets = $self->schema->resultset("UserSet")->getUserSets(info => $params);
 	# Remove the course_name for each of the user sets.
 	for my $user_set (@user_sets) {
 		delete $user_set->{course_name};
