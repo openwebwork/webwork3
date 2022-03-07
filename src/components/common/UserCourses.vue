@@ -39,7 +39,11 @@
 				<q-card-section>
 					<q-list>
 						<template v-for="course in instructor_courses" :key="course.course_id">
-							<q-item to="instructor">
+							<q-item
+								:to="{
+									name: 'instructor',
+									params: { course_id: course.course_id }
+								}">
 								<q-item-section>
 									<q-item-label>{{ course.course_name }}</q-item-label>
 								</q-item-section>
