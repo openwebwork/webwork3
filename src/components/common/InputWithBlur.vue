@@ -3,7 +3,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { logger } from 'src/boot/logger';
+import { defineComponent, ref, watch } from 'vue';
 
 export default defineComponent({
 	name: 'InputWithBlur',
@@ -16,6 +17,12 @@ export default defineComponent({
 	emits: ['update:modelValue'],
 	setup(props, { emit }) {
 		const model_value = ref(props.modelValue);
+
+		watch(() => props.modelValue, () => {
+			logger.debug(`[InputWithBlur]: old value: ${model_value.value}`);
+			model_value.value = props.modelValue;
+			logger.debug(`[InputWithBlur]: new value: ${model_value.value}`);
+		});
 
 		return {
 			model_value,
