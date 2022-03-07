@@ -2,7 +2,7 @@
 // Test the Course Store
 
 import { setActivePinia, createPinia } from 'pinia';
-import { useCourseStore } from 'src/stores/courses';
+// import { useCourseStore } from 'src/stores/courses';
 
 jest.mock('src/stores/courses');
 
@@ -14,7 +14,7 @@ describe('Set up the Course Store', () => {
 		setActivePinia(createPinia());
 	});
 
-	test('Fetch the courses', async () => {
+	test('Fetch the courses', () => {
 		// The following is not working right now.
 		// const courses = useCourseStore();
 
