@@ -69,7 +69,7 @@ export default defineComponent({
 		const problem_set = computed(() => problem_sets.problem_sets
 			.find((_set) => _set.set_id === set_id.value) ?? new ProblemSet());
 
-		const updateSet =  (set: ProblemSet) => {
+		const updateSet = (set: ProblemSet) => {
 			// if the entire set just changed, don't update.
 			if (problem_set.value.set_id === set.set_id) {
 				void problem_sets.updateSet(set);
@@ -103,6 +103,7 @@ export default defineComponent({
 			// Change the type of the set.  Since the set_params don't really overlap (right now)
 			// this is just adjusting dates.
 			changeSetType: () => {
+				logger.debug('[ProblemSetDetails/changeSetType]');
 				const problem_set_params = problem_set.value.toObject();
 				delete problem_set_params.set_params;
 				delete problem_set_params.set_dates;
@@ -154,7 +155,6 @@ export default defineComponent({
 				} else {
 					logger.debug('ProblemSetDetails: oops, set type ' +
 						`${new_set_type.value.value ?? 'UNKNOWN'} not defined.`);
-					return;
 				}
 
 			}

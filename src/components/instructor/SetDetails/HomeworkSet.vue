@@ -39,6 +39,7 @@ import HomeworkDates from './HomeworkDates.vue';
 import InputWithBlur from 'src/components/common/InputWithBlur.vue';
 import { HomeworkSet, HomeworkSetDates } from 'src/common/models/problem_sets';
 import { problem_set_type_options } from 'src/common/views';
+import { logger } from 'src/boot/logger';
 
 export default defineComponent({
 	components: {
@@ -66,13 +67,19 @@ export default defineComponent({
 			set_type.value = props.reset_set_type;
 		});
 
-		watch(() => props.set, () => {
+		watch(() => props.set, (new_set, old_set) => {
+			logger.debug(`[HomeworkSet] parent changed homework set from: ${old_set.set_name} to ${new_set.set_name}`);
 			homework_set.value = props.set.clone();
 		}, { deep: true });
 
-		watch(() => homework_set.value.clone(), (new_set, old_set) => {
-			if (JSON.stringify(new_set) !== JSON.stringify(old_set)) {
+		watch(() => homework_set.value, (new_set, old_set) => {
+			logger.debug('[HomeworkSet] detected mutation in homework_set...');
+			if (old_set.set_id === new_set.set_id && JSON.stringify(new_set) !== JSON.stringify(old_set)) {
+				logger.debug(`[HomeworkSet] mutation has occurred, updating ${homework_set.value.set_name}.`);
 				emit('updateSet', homework_set.value);
+			} else {
+				logger.debug(`[HomeworkSet] nevermind, still getting from ${old_set.set_name} to ${new_set.set_name}.`);
+				if (JSON.stringify(new_set) === JSON.stringify(old_set)) logger.debug('[HomeworkSet] again?');
 			}
 		},
 		{ deep: true });
@@ -82,6 +89,7 @@ export default defineComponent({
 			set_options: problem_set_type_options,
 			homework_set,
 			updateDates: (dates: HomeworkSetDates) => {
+				logger.debug('[HomeworkSet/updateDates] setting dates on homework_set.');
 				homework_set.value.set_dates.set(dates.toObject());
 			}
 		};
