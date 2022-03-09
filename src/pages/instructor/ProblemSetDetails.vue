@@ -69,15 +69,14 @@ export default defineComponent({
 		const problem_set = computed(() => problem_sets.problem_sets
 			.find((_set) => _set.set_id === set_id.value));
 
-		const updateSet = (set: ProblemSet) => {
+		const updateSet = async (set: ProblemSet) => {
 			// if the entire set just changed, don't update.
 			if (problem_set.value && problem_set.value.set_id === set.set_id) {
-				void problem_sets.updateSet(set);
-				const msg = `The problem set '${set.set_name}' was successfully updated.`;
-				logger.debug(`[ProblemSetDetails]: ${msg}`);
+				const { error, message } = await problem_sets.updateSet(set);
+				logger.debug(`[ProblemSetDetails/updateSet]: ${message}`);
 				$q.notify({
-					message: msg,
-					color: 'green'
+					message: message,
+					color: error ? 'red' : 'green'
 				});
 			}
 		};
