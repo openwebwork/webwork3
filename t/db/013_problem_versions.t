@@ -22,8 +22,6 @@ use Clone qw/clone/;
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
 
-use Data::Dumper;
-
 # Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
 $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);

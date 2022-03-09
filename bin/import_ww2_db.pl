@@ -52,7 +52,6 @@ use Pod::Usage;
 use Try::Tiny;
 use DBI;
 use YAML::XS qw/LoadFile/;
-use Data::Dumper;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -89,8 +88,6 @@ die "The file $config_file does not exist.  Did you make a copy of it from ww3-d
 	unless (-e $config_file);
 
 my $config = LoadFile($config_file);
-
-use Data::Dumper;
 
 if ($verbose) {
 	say "Rebuilding the database for course $course_name" if $rebuild_course;

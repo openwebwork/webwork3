@@ -11,7 +11,7 @@ use Clone qw/clone/;
 use DB::Utils qw/getCourseInfo getUserInfo/;
 use DB::Exception;
 use Exception::Class ('DB::Exception::CourseNotFound', 'DB::Exception::CourseExists');
-use Data::Dump qw/dump/;
+
 
 #use DB::TestUtils qw/removeIDs/;
 use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings mergeCourseSettings
@@ -90,7 +90,7 @@ of the fields. See above.
 sub getCourse ($self, %args) {
 	my $course = $self->find(getCourseInfo($args{info}));
 	DB::Exception::CourseNotFound->throw(
-		message => "The course: " . dump(getCourseInfo($args{info})) . " does not exist.")
+		message => "The course: " . getCourseInfo($args{info})->{course_name} . " does not exist.")
 		unless defined($course);
 	return $course if $args{as_result_set};
 
@@ -227,8 +227,6 @@ An array of courses as a C<DBIx::Class::ResultSet::Course> object
 if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 
 =cut
-
-use Data::Dumper;
 
 sub getUserCourses ($self, %args) {
 	my $user = $self->result_source->schema->resultset("User")
