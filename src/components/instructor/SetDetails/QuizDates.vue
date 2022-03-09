@@ -51,23 +51,23 @@ export default defineComponent({
 
 		watch(() => props.dates, (new_dates, old_dates) => {
 			logger.debug('[QuizDates] parent has changed the quiz set.');
-			logger.debug(`---old: ${JSON.stringify(old_dates)}`);
-			logger.debug(`---new: ${JSON.stringify(new_dates)}`);
-			quiz_dates.value = props.dates.clone();
+			if (JSON.stringify(old_dates) === JSON.stringify(new_dates)) {
+				logger.debug('--- nevermind, this is fallout from the changes we just reported.');
+			} else {
+				quiz_dates.value = props.dates.clone();
+			}
 		});
 
-		watch(() => quiz_dates.value, (new_dates, old_dates) => {
+		watch(() => quiz_dates.value, () => {
 			logger.debug('[QuizDates] detected mutation in quiz_dates...');
 
-			const dates_are_valid = quiz_dates.value.isValid();
-			const is_updated = JSON.stringify(old_dates) !== JSON.stringify(new_dates);
-			if (dates_are_valid && is_updated) {
-				logger.debug('[QuizDates] mutation confirmed + dates are valid -> telling parent.');
+			if (quiz_dates.value.isValid()) {
+				logger.debug('[QuizDates] dates are valid -> telling parent & clearing error message.');
 				error_message.value = '';
 				emit('updateDates', quiz_dates.value);
 			} else {
-				if (!dates_are_valid) error_message.value = 'Dates must be in order.';
-				logger.debug(error_message.value || 'Nothing changed. We must be changing between quiz sets...');
+				error_message.value = 'Dates must be in order.';
+				logger.debug(error_message.value);
 			};
 		}, { deep: true });
 

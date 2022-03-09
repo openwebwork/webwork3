@@ -37,15 +37,14 @@ export default defineComponent({
 	},
 	emits: ['update:modelValue'],
 	setup (props, { emit }) {
-		const model_value = ref<number>(props.modelValue);
+		const model_value = computed(() => props.modelValue);
 		const model_string = ref<string>(date.formatDate((props.modelValue || Date.now()) * 1000, 'YYYY-MM-DD HH:mm'));
 		const error_message = computed(() => props.errorMessage);
 		const is_valid = computed(() => error_message.value === '');
 
 		watch(() => model_string.value, () => {
 			logger.debug('[DateTimeInput] model string has changed, telling parent.');
-			model_value.value = date.extractDate(model_string.value, 'YYYY-MM-DD HH:mm').getTime() / 1000;
-			emit('update:modelValue', model_value.value);
+			emit('update:modelValue', date.extractDate(model_string.value, 'YYYY-MM-DD HH:mm').getTime() / 1000);
 		});
 
 		return {

@@ -2,17 +2,20 @@
 	<q-page class="q-ma-p-lg">
 		<homework-set-view
 			:set="problem_set"
+			:key="set_id"
 			:reset_set_type="reset_set_type"
 			@update-set="updateSet"
 			@change-set-type="requestChangeSetType"
 			v-if="problem_set?.set_type==='HW'" />
 		<quiz-view
 			:set="problem_set"
+			:key="set_id"
 			@update-set="updateSet"
 			@change-set-type="requestChangeSetType"
 			v-else-if="problem_set?.set_type==='QUIZ'" />
 		<review-set-view
 			:set="problem_set"
+			:key="set_id"
 			@update-set="updateSet"
 			@change-set-type="requestChangeSetType"
 			v-else-if="problem_set?.set_type==='REVIEW'" />
@@ -68,11 +71,20 @@ export default defineComponent({
 		const set_id = computed(() => parseRouteSetID(route));
 		const problem_set = computed(() => problem_sets.problem_sets
 			.find((_set) => _set.set_id === set_id.value));
+		// avoid a race condition while updating a set
+		const updatePending = ref<boolean>(false);
 
 		const updateSet = async (set: ProblemSet) => {
+			logger.debug('[ProblemSetDetails] updating set');
+			if (updatePending.value) {
+				logger.debug('--- but there is already an update pending... race condition?');
+				return;
+			}
 			// if the entire set just changed, don't update.
 			if (problem_set.value && problem_set.value.set_id === set.set_id) {
+				updatePending.value = true;
 				const { error, message } = await problem_sets.updateSet(set);
+				updatePending.value = false;
 				logger.debug(`[ProblemSetDetails/updateSet]: ${message}`);
 				$q.notify({
 					message: message,
@@ -98,7 +110,7 @@ export default defineComponent({
 			logger.debug('[ProblemSetDetails/changeSetType]');
 			if (problem_set.value && new_set_type.value.value) {
 				const updated_set = convertSet((problem_set.value as ProblemSet), new_set_type.value.value);
-				updateSet(updated_set);
+				void updateSet(updated_set);
 			} else {
 				logger.error('[changeSetType] missing either problem_set or new_set_type?! TSNH');
 			}

@@ -63,12 +63,14 @@ export default defineComponent({
 
 		watch(() => props.dates, (new_dates, old_dates) => {
 			logger.debug('[HomeworkDates] parent has changed the homework set dates.');
-			logger.debug(`---old: ${JSON.stringify(old_dates)}`);
-			logger.debug(`---new: ${JSON.stringify(new_dates)}`);
-			hw_dates.value = props.dates.clone();
+			if (JSON.stringify(old_dates) === JSON.stringify(new_dates)) {
+				logger.debug('--- nevermind, this is fallout from the changes we just reported.');
+			} else {
+				hw_dates.value = props.dates.clone();
+			}
 		});
 
-		watch(() => hw_dates.value, (new_dates, old_dates) => {
+		watch(() => hw_dates.value, () => {
 			logger.debug('[HomeworkDates] detected mutation in hw_dates...');
 
 			// avoid reactive loop
@@ -76,15 +78,13 @@ export default defineComponent({
 				hw_dates.value.reduced_scoring = hw_dates.value.due;
 			}
 
-			const dates_are_valid = hw_dates.value.isValid({ enable_reduced_scoring: props.reduced_scoring });
-			const is_updated = JSON.stringify(old_dates) !== JSON.stringify(new_dates);
-			if (dates_are_valid && is_updated) {
-				logger.debug('[HomeworkDates] mutation confirmed + dates are valid -> telling parent.');
+			if (hw_dates.value.isValid({ enable_reduced_scoring: props.reduced_scoring })) {
+				logger.debug('[HomeworkDates] dates are valid -> telling parent & clearing error message.');
 				error_message.value = '';
 				emit('updateDates', hw_dates.value);
 			} else {
-				if (!dates_are_valid) error_message.value = 'Dates must be in order.';
-				logger.debug(error_message.value || 'Nothing changed. We must be changing between hw sets...');
+				error_message.value = 'Dates must be in order.';
+				logger.debug(error_message.value);
 			};
 		}, { deep: true });
 

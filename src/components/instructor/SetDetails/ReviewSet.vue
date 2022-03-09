@@ -64,17 +64,11 @@ export default defineComponent({
 		watch(() => props.set, (new_set, old_set) => {
 			logger.debug(`[HomeworkSet] parent changed homework set from: ${old_set.set_name} to ${new_set.set_name}`);
 			review_set.value = props.set.clone();
-		}, { deep: true });
+		});
 
-		watch(() => review_set.value, (new_set, old_set) => {
+		watch(() => review_set.value, () => {
 			logger.debug('[HomeworkSet] detected mutation in homework_set...');
-			if (old_set.set_id === new_set.set_id && JSON.stringify(new_set) !== JSON.stringify(old_set)) {
-				logger.debug(`[HomeworkSet] mutation has occurred, updating ${review_set.value.set_name}.`);
-				emit('updateSet', review_set.value);
-			} else {
-				logger.debug(`[HomeworkSet] nevermind, still getting from ${old_set.set_name} to ${new_set.set_name}.`);
-				if (JSON.stringify(new_set) === JSON.stringify(old_set)) logger.debug('[HomeworkSet] again?');
-			}
+			emit('updateSet', review_set.value);
 		},
 		{ deep: true });
 

@@ -45,23 +45,23 @@ export default defineComponent({
 
 		watch(() => props.dates, (new_dates, old_dates) => {
 			logger.debug('[ReviewDates] parent has changed the review set.');
-			logger.debug(`---old: ${JSON.stringify(old_dates)}`);
-			logger.debug(`---new: ${JSON.stringify(new_dates)}`);
-			review_dates.value = props.dates.clone();
+			if (JSON.stringify(old_dates) === JSON.stringify(new_dates)) {
+				logger.debug('--- nevermind, this is fallout from the changes we just reported.');
+			} else {
+				review_dates.value = props.dates.clone();
+			}
 		});
 
-		watch(() => review_dates.value, (new_dates, old_dates) => {
+		watch(() => review_dates.value, () => {
 			logger.debug('[ReviewDates] detected mutation in review_dates...');
 
-			const dates_are_valid = review_dates.value.isValid();
-			const is_updated = JSON.stringify(old_dates) !== JSON.stringify(new_dates);
-			if (dates_are_valid && is_updated) {
-				logger.debug('[ReviewDates] mutation confirmed + dates are valid -> telling parent.');
+			if (review_dates.value.isValid()) {
+				logger.debug('[ReviewDates] dates are valid -> telling parent & clearing error message.');
 				error_message.value = '';
 				emit('updateDates', review_dates.value);
 			} else {
-				if (!dates_are_valid) error_message.value = 'Dates must be in order.';
-				logger.debug(error_message.value || 'Nothing changed. We must be changing between review sets...');
+				error_message.value = 'Dates must be in order.';
+				logger.debug(error_message.value);
 			};
 		}, { deep: true });
 
