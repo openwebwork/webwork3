@@ -7,7 +7,6 @@ no warnings qw(experimental::signatures);
 use Carp;
 use Array::Utils qw/array_minus intersect/;
 use DB::Schema::Result::ProblemSet::HWSet;
-use Data::Dumper;
 
 use DB::Exception;
 

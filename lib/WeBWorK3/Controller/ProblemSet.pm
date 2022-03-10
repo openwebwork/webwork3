@@ -35,10 +35,7 @@ sub getProblemSet ($self) {
 
 ## update the course given by course_id with given params
 
-use Data::Dumper;
-
 sub updateProblemSet ($self) {
-	print Dumper $self->req->json;
 	my $problem_set = $self->schema->resultset("ProblemSet")->updateProblemSet(
 		{
 			course_id => int($self->param("course_id")),

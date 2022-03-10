@@ -6,7 +6,7 @@
 			</template>
 			<template v-slot:append>
 				<q-icon name="today" color="primary" size="sm">
-					<q-popup-proxy transition-show="scale" transition-hide="scale">
+					<q-popup-proxy transition-show="scale" transition-hide="scale" @hide="updateDateTime">
 						<div class="row items-center">
 							<q-date v-model="model_string" mask="YYYY-MM-DD HH:mm" />
 							<q-time v-model="model_string" mask="YYYY-MM-DD HH:mm" format24h/>
@@ -19,7 +19,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, watch } from 'vue';
+import { defineComponent, ref, computed } from 'vue';
 import { date } from 'quasar';
 import { logger } from 'src/boot/logger';
 
@@ -42,16 +42,17 @@ export default defineComponent({
 		const error_message = computed(() => props.errorMessage);
 		const is_valid = computed(() => error_message.value === '');
 
-		watch(() => model_string.value, () => {
+		const updateDateTime = () => {
 			logger.debug('[DateTimeInput] model string has changed, telling parent.');
 			emit('update:modelValue', date.extractDate(model_string.value, 'YYYY-MM-DD HH:mm').getTime() / 1000);
-		});
+		};
 
 		return {
 			model_value,
 			model_string,
 			is_valid,
 			error_message,
+			updateDateTime
 		};
 	}
 });

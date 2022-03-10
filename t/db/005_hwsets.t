@@ -291,9 +291,6 @@ delete $set_with_new_type->{set_visible};
 
 is_deeply($set_with_new_type, $set_with_new_type_params, "updateSet: change the type of the problem set");
 
-use Data::Dumper;
-print Dumper $set_with_new_type;
-
 # Try to update a set with an illegal field
 throws_ok {
 	$problem_set_rs->updateProblemSet({ course_name => "Precalculus", set_id => $new_set_id }, { bad_field => 0 });
