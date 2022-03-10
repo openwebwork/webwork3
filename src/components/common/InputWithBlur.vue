@@ -18,15 +18,15 @@ export default defineComponent({
 	setup(props, { emit }) {
 		const model_value = ref(props.modelValue);
 
-		watch(() => props.modelValue, () => {
-			logger.debug(`[InputWithBlur]: old value: ${model_value.value}`);
+		watch(() => props.modelValue, (new_str, old_str) => {
+			logger.debug(`[InputWithBlur] parent has changed me from: ${old_str} to:${new_str}`);
 			model_value.value = props.modelValue;
-			logger.debug(`[InputWithBlur]: new value: ${model_value.value}`);
 		});
 
 		return {
 			model_value,
 			sendValue: () => {
+				logger.debug('[InputWithBlur] My input has changed, telling parent.');
 				emit('update:modelValue', model_value.value);
 			}
 		};

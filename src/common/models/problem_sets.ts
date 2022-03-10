@@ -1,5 +1,6 @@
 /* These are Problem Set interfaces */
 
+import { logger } from 'src/boot/logger';
 import { Model } from '.';
 import { parseBoolean, ParseError, parseNonNegInt } from './parsers';
 
@@ -442,4 +443,62 @@ export class ReviewSet extends ProblemSet {
 		return new ReviewSet(this.toObject());
 	}
 
+}
+
+/**
+ * This function takes in a ProblemSet and a ProblemSetType,
+ * returning a new ProblemSet of the requested type
+ * @param set ProblemSet
+ * @param set_type ProblemSetType
+ * @returns HomeworkSet | Quiz | ReviewSet
+ */
+
+export function convertSet(old_set: ProblemSet, new_set_type: ProblemSetType) {
+	if (old_set.set_type === new_set_type) return old_set;
+
+	const new_set_params = old_set.toObject();
+	delete new_set_params.set_params;
+	delete new_set_params.set_dates;
+
+	// pull dates from old_set
+	const open = old_set.set_dates.open;
+	let reduced = 0, due = 0, answer = 0;
+	switch (old_set.set_type) {
+	case 'HW':
+		reduced = (old_set as HomeworkSet).set_dates.reduced_scoring;
+		due = (old_set as HomeworkSet).set_dates.due;
+		answer = (old_set as HomeworkSet).set_dates.answer;
+		break;
+	case 'QUIZ':
+		reduced = due = (old_set as Quiz).set_dates.due;
+		answer = (old_set as Quiz).set_dates.answer;
+		break;
+	case 'REVIEW':
+		reduced = due = answer = (old_set as ReviewSet).set_dates.closed;
+		break;
+	default:
+		throw new ParseError('ProblemSetType', `convertSet does not support incoming ${old_set.set_type} sets.`);
+	}
+
+	// create new_set with new_set_type and set dates
+	let new_set: HomeworkSet | Quiz | ReviewSet;
+	switch (new_set_type) {
+	case 'HW':
+		new_set = new HomeworkSet(new_set_params);
+		new_set.set_dates.set({ open, reduced_scoring: reduced, due, answer });
+		break;
+	case 'QUIZ':
+		new_set = new Quiz(new_set_params);
+		new_set.set_dates.set({ open, due, answer });
+		break;
+	case 'REVIEW':
+		new_set = new ReviewSet(new_set_params);
+		new_set.set_dates.set({ open, closed: due });
+		break;
+	default:
+		throw new ParseError('ProblemSetType', `convertSet does not support conversion to ${new_set_type || 'EMPTY'}`);
+	}
+
+	if (!new_set.hasValidDates()) logger.error('[problem_sets/convertSet] corrupt dates in conversion of set, TSNH?');
+	return new_set;
 }

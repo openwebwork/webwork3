@@ -8,6 +8,7 @@ import { MergedUserSet, ParseableMergedUserSet, parseMergedUserSet, UserSet } fr
 import { LibraryProblem, SetProblem, ParseableProblem, parseProblem,
 	ParseableSetProblem } from 'src/common/models/problems';
 import { logger } from 'src/boot/logger';
+import { ResponseError } from 'src/common/api-requests/interfaces';
 
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;
@@ -25,15 +26,33 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		async fetchProblemSets(course_id: number): Promise<void> {
 			const response = await api.get(`courses/${course_id}/sets`);
 			const sets_to_parse = response.data as Array<ParseableProblemSet>;
+			logger.debug(`[problem_sets/fetchProblemSets] parsing response: ${sets_to_parse.join(', ')}`);
 			this.problem_sets = sets_to_parse.map((set) => parseProblemSet(set));
 		},
-		async updateSet(set: ProblemSet): Promise<void> {
+		async updateSet(set: ProblemSet): Promise<{ error: boolean; message: string }> {
 			const sessionStore = useSessionStore();
 			const course_id = sessionStore.course.course_id;
 			// shouldn't we be throwing an error if set_id is null or 0?
 			const response = await api.put(`courses/${course_id}/sets/${set.set_id ?? 0}`, set.toObject());
-			const updated_set = parseProblemSet(response.data as ParseableProblemSet);
-			const index = this.problem_sets.findIndex(s => s.set_id === set.set_id);
+			let message = '';
+			let is_error = false;
+			if (response.status === 200) {
+				const updated_set = parseProblemSet(response.data as ParseableProblemSet);
+				if (JSON.stringify(updated_set) !== JSON.stringify(set)) {
+					logger.error('[updateSet] response does not match requested update to set');
+				}
+				message = `${updated_set.set_name} was successfully updated.`;
+				const index = this.problem_sets.findIndex(s => s.set_id === set.set_id);
+				this.problem_sets[index] = updated_set;
+			} else {
+				const error = response.data as ResponseError;
+				message = error.message;
+				is_error = true;
+				logger.error(`Error updating set: ${message}`);
+				// TODO: app-level error handling -- should throw here
+			}
+
+			return { error: is_error, message };
 
 			// The following is not working.  TODO: fix-me
 			// if (JSON.stringify(set) === JSON.stringify(_set)) {
@@ -42,7 +61,6 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			// logger.error(`Problem set #${_set.set_id ?? 0} failed to update properly.`);
 			// }
 
-			this.problem_sets[index] = updated_set;
 		},
 		async fetchSetProblems(course_id: number): Promise<void> {
 			const response = await api.get(`courses/${course_id}/problems`);
