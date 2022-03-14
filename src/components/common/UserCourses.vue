@@ -61,7 +61,7 @@
 import { defineComponent, computed } from 'vue';
 import { useUserStore } from 'src/stores/users';
 import { useSessionStore } from 'src/stores/session';
-import { parseNonNegInt } from 'src/common/models/parsers';
+import { parseNonNegInt, parseUserRole } from 'src/common/models/parsers';
 
 export default defineComponent({
 	name: 'UserCourses',
@@ -70,10 +70,10 @@ export default defineComponent({
 		const session = useSessionStore();
 		return {
 			student_courses: computed(() =>
-				users.user_courses.filter(user_course => user_course.role === 'student')
+				users.user_courses.filter(user_course => parseUserRole(user_course.role) === 'STUDENT')
 			),
 			instructor_courses: computed(() =>
-				users.user_courses.filter(user_course => user_course.role === 'instructor')
+				users.user_courses.filter(user_course => parseUserRole(user_course.role) === 'INSTRUCTOR')
 			),
 			user: computed(() => session.user)
 		};
