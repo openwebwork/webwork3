@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 // Tests for Homework Sets
 
 import { HomeworkSet, ParseableHomeworkSetDates, ParseableHomeworkSetParams,

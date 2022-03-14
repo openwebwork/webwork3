@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 // Test Merged User Sets
 
 import { BooleanParseException, NonNegIntException, UsernameParseException } from 'src/common/models/parsers';

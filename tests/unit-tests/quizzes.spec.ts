@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 // Tests for Quizzes
 
 import { Quiz, ProblemSet, ParseableQuizDates, ParseableQuizParams } from 'src/common/models/problem_sets';

@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 // Tests for UserSets
 
 import { NonNegIntException } from 'src/common/models/parsers';
