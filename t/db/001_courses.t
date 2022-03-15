@@ -94,7 +94,7 @@ is_deeply($new_course_params, $new_course, "addCourse: add a new course");
 throws_ok {
 	$course_rs->addCourse(params => { course_name => "Geometry", visible => 1 });
 }
-"DB::Exception::CourseExists", "addCourse: course already exists";
+"DB::Exception::CourseAlreadyExists", "addCourse: course already exists";
 
 # Update the course name
 my $updated_course = $course_rs->updateCourse(

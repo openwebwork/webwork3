@@ -133,7 +133,7 @@ sub addCourse ($self, %args) {
 	# Check if the course exists.  If so throw an error.
 	my $course = $self->find({ course_name => $course_params->{course_name} });
 
-	DB::Exception::CourseExists->throw(course_name => $course_params->{course_name}) if defined($course);
+	DB::Exception::CourseAlreadyExists->throw(course_name => $course_params->{course_name}) if defined($course);
 
 	my $params = {};
 	for my $field (qw/course_name visible course_dates/) {

@@ -27,7 +27,7 @@ use Exception::Class (
 		fields      => ['course_name'],
 		description => 'The given course is not found.'
 	},
-	'DB::Exception::CourseExists' => {
+	'DB::Exception::CourseAlreadyExists' => {
 		fields      => ['course_name'],
 		description => 'The course already exists.'
 	},
@@ -109,7 +109,7 @@ DB::Exception::UserSetNotInCourse->Trace(1);
 DB::Exception::SetNotInCourse->Trace(1);
 # DB::Exception::UserNotInCourse->Trace(1);
 DB::Exception::UserNotFound->Trace(1);
-DB::Exception::CourseExists->Trace(1);
+DB::Exception::CourseAlreadyExists->Trace(1);
 DB::Exception::InvalidParameter->Trace(1);
 DB::Exception::UndefinedParameter->Trace(1);
 DB::Exception::InvalidDateField->Trace(1);

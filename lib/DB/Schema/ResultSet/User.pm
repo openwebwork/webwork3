@@ -21,7 +21,11 @@ use Clone qw/clone/;
 use DB::Utils qw/getCourseInfo getUserInfo removeLoginParams/;
 
 use DB::Exception;
-use Exception::Class ('DB::Exception::UserNotFound', 'DB::Exception::CourseExists', "DB::Exception::UserNotInCourse");
+use Exception::Class (
+	'DB::Exception::UserNotFound',
+	'DB::Exception::CourseAlreadyExists',
+	"DB::Exception::UserNotInCourse"
+);
 
 =head1 getAllGlobalUsers
 
