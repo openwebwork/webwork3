@@ -96,6 +96,10 @@ use Exception::Class (
 	'DB::Exception::PoolProblemNotInPool' => {
 		fields      => ['info'],
 		description => 'The requested problem is not in the selected problem pool'
+	},
+	'DB::Exception::UserProblemNotFound' => {
+		fields      => [ 'course_name', 'problem_number', 'problem_version', 'username', 'set_name' ],
+		description => 'The requested user problem is not found.'
 	}
 );
 
@@ -114,4 +118,5 @@ DB::Exception::ParametersNeeded->Trace(1);
 DB::Exception::UserSetExists->Trace(1);
 DB::Exception::ImproperDateOrder->Trace(1);
 DB::Exception::SetAlreadyExists->Trace(1);
+DB::Exception::UserProblemNotFound->Trace(1);
 1;

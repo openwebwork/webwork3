@@ -12,7 +12,6 @@ use DB::Utils qw/getCourseInfo getUserInfo/;
 use DB::Exception;
 use Exception::Class ('DB::Exception::CourseNotFound', 'DB::Exception::CourseExists');
 
-
 #use DB::TestUtils qw/removeIDs/;
 use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings mergeCourseSettings
 	getDefaultCourseValues validateCourseSettings/;
@@ -89,9 +88,15 @@ of the fields. See above.
 
 sub getCourse ($self, %args) {
 	my $course = $self->find(getCourseInfo($args{info}));
-	DB::Exception::CourseNotFound->throw(
-		message => "The course: " . getCourseInfo($args{info})->{course_name} . " does not exist.")
-		unless defined($course);
+	unless (defined($course)) {
+		my $info = getCourseInfo($args{info});
+		DB::Exception::CourseNotFound->throw(message => "The course: $info->{course_name} does not exist.")
+			if defined($info->{course_name});
+		DB::Exception::CourseNotFound->throw(
+			message => "The course with course_id of $info->{course_id} does not exist.")
+			if defined($info->{course_id});
+	}
+
 	return $course if $args{as_result_set};
 
 	return { $course->get_inflated_columns };

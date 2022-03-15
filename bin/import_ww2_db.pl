@@ -32,9 +32,6 @@ import_ww2_db.pl [options]
    -u|--database-user      The database user for webwork2
    -p|--database-password  The password for the user on webwork2
 
-Note that at least one of the options --webwork-root or --pg-root must be provided
-(or there is nothing to do!).
-
 =head1 DESCRIPTION
 
 Import a course from webwork2 database to webwork3 format.
@@ -88,6 +85,11 @@ die "The file $config_file does not exist.  Did you make a copy of it from ww3-d
 	unless (-e $config_file);
 
 my $config = LoadFile($config_file);
+
+die 'The webwork2 database must be passed in.'              unless $db_dsn;
+die 'The webwork2 user must be passed in.'                  unless $db_user;
+die 'The webwork2 password must be passed in.'              unless $db_pass;
+die 'The webwork2 course to be imported must be passed in.' unless $course_name;
 
 if ($verbose) {
 	say "Rebuilding the database for course $course_name" if $rebuild_course;
@@ -185,6 +187,9 @@ sub addUsers ($=) {
 		# skip admin users to the course
 		next if $r->{user_id} eq 'admin';
 
+		# skip any proctors
+		next if $r->{user_id} =~ /\w[\w\d\_]+:\w[\w\d\_]/;
+
 		my $user_params = {
 			username => $r->{user_id},
 			email    => $r->{email_address}
@@ -264,7 +269,7 @@ sub addProblemSets ($=) {
 			}
 			$set_params->{set_dates}->{reduced_scoring} = $r->{reduced_scoring_date} // $r->{due_date};
 
-		} elsif ($r->{assignment_type} eq 'gateway') {
+		} elsif ($r->{assignment_type} eq 'gateway' || $r->{assignment_type} eq 'proctored_gateway') {
 			$set_params->{set_type} = 'QUIZ';
 			for my $key (
 				qw/set_header hardcopy_header problem_randorder problems_per_page
@@ -287,14 +292,14 @@ sub addProblemSets ($=) {
 			}
 			$set_params->{set_dates}->{reduced_scoring} = $r->{reduced_scoring_date} // $r->{due_date};
 		}
-
+		say "Adding set with name: $set_params->{set_name}" if $verbose;
 		$problem_set_rs->addProblemSet(
 			params => {
 				course_name => $course_name,
 				%$set_params
 			}
 		);
-		say "Adding set with name: $set_params->{set_name}" if $verbose;
+
 	}
 	return;
 }
@@ -455,8 +460,7 @@ sub addUserProblems ($=) {
 	my @user_problem_param_fields = keys %{ DB::Schema::Result::UserProblem::valid_params() };
 
 	for my $r (@$ref) {
-
-		# print Dumper $r;
+		# Skip any user problems from 'admin'.
 		next if $r->{user_id} eq 'admin';
 		my $course_user = $user_rs->getCourseUser(
 			info          => { course_name => $course_name, username => $r->{user_id} },
@@ -467,9 +471,10 @@ sub addUserProblems ($=) {
 		my ($set_name, $problem_version);
 
 		# If there is a quiz, need to parse the set_id differently
-		if ($r->{set_id} =~ /^([\w\d]*),v(\d)$/) {
+		if ($r->{set_id} =~ /^([\w\d]*),v(\d+)$/) {
 			$set_name        = $1;
 			$problem_version = $2;
+			# say "$set_name $problem_version $r->{user_id}";
 
 		} else {
 			$set_name        = $r->{set_id};
@@ -485,8 +490,6 @@ sub addUserProblems ($=) {
 			next if $problem_set->set_type eq 'QUIZ';
 		}
 
-		# print Dumper $problem;
-
 		for my $key (@user_problem_param_fields) {
 			$params->{$key} = $r->{$key} if defined $r->{$key};
 		}
@@ -494,7 +497,7 @@ sub addUserProblems ($=) {
 		if ($params->{last_answer}) {
 			$params->{last_answer} = join(';', split(/\s+/, $params->{last_answer}));
 		}
-
+		# say "Adding UserProblem for $r->{user_id} in set $set_name" if $verbose;
 		$user_problem_rs->addUserProblem(
 			params => {
 				course_name     => $course_name,
@@ -534,12 +537,13 @@ sub addPastAnswers ($=) {
 		my @answers  = $r->{answer_string} ? split(/\t/, $r->{answer_string}) : ();
 		my @scores   = $r->{scores}        ? split(//,   $r->{scores})        : ();
 		my @comments = $r->{comments}      ? split(/\t/, $r->{comments})      : ();
-		if ($r->{set_id} =~ /^([\w\d]*),v(\d)$/) {
+		if ($r->{set_id} =~ /^([\w\d]*),v(\d+)$/) {
 			$set_name        = $1;
 			$problem_version = $2;
-
 		}
-
+		say "Adding an attempt for user $r->{user_id} problem number $r->{problem_id}"
+			. " and problem version $problem_version in set $set_name"
+			if $verbose;
 		my $att = $attempts_rs->addAttempt(
 			params => {
 				course_name     => $course_name,

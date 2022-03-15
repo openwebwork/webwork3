@@ -229,7 +229,6 @@ sub addUserProblems {
 	say "adding user problems" if $verbose;
 	my @user_problems = loadCSV("$main::ww3_dir/t/db/sample_data/user_problems.csv");
 	for my $user_problem (@user_problems) {
-		# print Dumper $user_problem;
 		my $user_set = $user_set_rs->find(
 			{
 				'users.username'        => $user_problem->{username},
