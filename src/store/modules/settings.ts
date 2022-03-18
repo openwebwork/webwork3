@@ -45,8 +45,12 @@ export default {
 		getCurrentSetting({ state }: { state: SettingsState}, _var: string): CourseSetting {
 			const setting = state.course_settings.find((_setting: CourseSetting) => _setting.var === _var);
 			return setting || new CourseSetting({});
+		},
+		// This clears out all data for use during logout.
+		clearSettings({ commit }: { commit: Commit }): void {
+			commit('SET_COURSE_SETTINGS', []);
+			commit('SET_DEFAULT_SETTINGS', []);
 		}
-
 	},
 	mutations: {
 		SET_DEFAULT_SETTINGS(state: SettingsState, _default_settings: Array<CourseSettingInfo>): void {

@@ -1,10 +1,10 @@
 package DB::Schema::Result::ProblemSet;
-use base qw/DBIx::Class::Core/;
-
 use strict;
 use warnings;
 use feature 'signatures';
 no warnings qw(experimental::signatures);
+
+use base qw(DBIx::Class::Core);
 
 =head1 DESCRIPTION
 
@@ -37,12 +37,12 @@ C<set_visible>: (boolean) visiblility of the set to a student
 
 =item *
 
-C<dates>: a hash of dates related to the problem set.  Note: different types have
+C<set_dates>: a hash of dates related to the problem set.  Note: different types have
 different date fields.
 
 =item *
 
-C<params>: a hash of additional parameters of the problem set.  Note: different problem set types
+C<set_params>: a hash of additional parameters of the problem set.  Note: different problem set types
 have different params fields.
 
 =back

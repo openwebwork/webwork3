@@ -13,7 +13,6 @@ BEGIN {
 use lib "$main::lib_dir";
 
 use Text::CSV qw/csv/;
-use Data::Dump qw/dd/;
 use List::Util qw(uniq);
 use Test::More;
 use Test::Exception;

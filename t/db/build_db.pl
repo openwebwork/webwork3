@@ -48,6 +48,8 @@ my $user_rs         = $schema->resultset('User');
 my $course_user_rs  = $schema->resultset('CourseUser');
 my $problem_set_rs  = $schema->resultset('ProblemSet');
 my $problem_pool_rs = $schema->resultset('ProblemPool');
+my $problem_rs      = $schema->resultset('Problem');
+my $user_set_rs     = $schema->resultset('UserSet');
 
 sub addCourses {
 	say "adding courses" if $verbose;
@@ -100,17 +102,12 @@ sub addUsers {
 		for my $key (qw/section recitation params role/) {
 			$params->{$key} = $student->{$key};
 		}
-		$params->{params} = {} unless defined $params->{params};
+		$params->{course_user_params} = $params->{params} // {};
+		delete $params->{params};
 		my $u = $course_user->update($params);
 	}
 	return;
 }
-
-my @hw_dates  = @DB::Schema::Result::ProblemSet::HWSet::VALID_DATES;
-my @hw_params = @DB::Schema::Result::ProblemSet::HWSet::VALID_PARAMS;
-
-my @quiz_dates  = @DB::Schema::Result::ProblemSet::HWSet::VALID_DATES;
-my @quiz_params = @DB::Schema::Result::ProblemSet::HWSet::VALID_PARAMS;
 
 my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 
@@ -123,10 +120,6 @@ sub addSets {
 		my $course = $course_rs->find({ course_name => $set->{course_name} });
 		if (!defined($course)) {
 			croak "The course " . $set->{course_name} . " does not exist";
-		}
-		for my $date (keys %{ $set->{set_dates} }) {
-			my $dt = $strp->parse_datetime($set->{set_dates}->{$date});
-			$set->{set_dates}->{$date} = $dt->epoch;
 		}
 
 		delete $set->{course_name};
@@ -142,10 +135,6 @@ sub addSets {
 		if (!defined($course)) {
 			croak "The course " . $quiz->{course_name} . " does not exist";
 		}
-		for my $date (keys %{ $quiz->{set_dates} }) {
-			my $dt = $strp->parse_datetime($quiz->{set_dates}->{$date});
-			$quiz->{set_dates}->{$date} = $dt->epoch;
-		}
 
 		$quiz->{type} = 2;
 		delete $quiz->{course_name};
@@ -158,10 +147,6 @@ sub addSets {
 	for my $set (@review_sets) {
 		my $course = $course_rs->find({ course_name => $set->{course_name} });
 		croak "The course |$set->{course_name}| does not exist" unless defined($course);
-		for my $date (keys %{ $set->{set_dates} }) {
-			my $dt = $strp->parse_datetime($set->{set_dates}->{$date});
-			$set->{set_dates}->{$date} = $dt->epoch;
-		}
 
 		$set->{type} = 4;
 		delete $set->{course_name};
@@ -177,7 +162,7 @@ sub addProblems {
 	my @problems = loadCSV("$main::ww3_dir/t/db/sample_data/problems.csv");
 	for my $prob (@problems) {
 		# Check if the course_name/set_name exists
-		my $set = $problem_set_rs->search(
+		my $set = $problem_set_rs->find(
 			{
 				'me.set_name'         => $prob->{set_name},
 				'courses.course_name' => $prob->{course_name}
@@ -185,9 +170,8 @@ sub addProblems {
 			{
 				join => 'courses'
 			}
-		)->single;
+		);
 		croak "The course |$set->{course_name}| with set name |$set->{name}| is not defined" unless defined($set);
-		$prob->{problem_params} = clone($prob->{params});
 		delete $prob->{course_name};
 		delete $prob->{set_name};
 		delete $prob->{params};
@@ -213,6 +197,7 @@ sub addUserSets {
 			user_id   => $user_in_course->user_id,
 			course_id => $course->course_id
 		});
+		# say "adding the user set for " . $user_set->{username} . " in " . $user_set->{course_name};
 		if (defined $course_user) {
 			my $problem_set = $schema->resultset('ProblemSet')->find({
 				course_id => $course->course_id,
@@ -245,11 +230,47 @@ sub addProblemPools {
 	return;
 }
 
+sub addUserProblems {
+	say "adding user problems" if $verbose;
+	my @user_problems = loadCSV("$main::ww3_dir/t/db/sample_data/user_problems.csv");
+	for my $user_problem (@user_problems) {
+		my $user_set = $user_set_rs->find(
+			{
+				'users.username'        => $user_problem->{username},
+				'courses.course_name'   => $user_problem->{course_name},
+				'problem_sets.set_name' => $user_problem->{set_name}
+			},
+			{
+				join => [ { problem_sets => 'courses' }, { course_users => 'users' } ]
+			}
+		);
+		my $problem = $problem_rs->find(
+			{
+				'courses.course_name'  => $user_problem->{course_name},
+				'problem_set.set_name' => $user_problem->{set_name},
+				'problem_number'       => $user_problem->{problem_number}
+			},
+			{
+				join => { 'problem_set' => 'courses' }
+			}
+		);
+
+		$user_set->add_to_user_problems({
+			problem_id      => $problem->problem_id,
+			seed            => $user_problem->{seed},
+			problem_version => 1,
+			status          => 1
+		});
+	}
+	return;
+}
+
 addCourses;
 addUsers;
 addSets;
 addProblems;
 addUserSets;
 addProblemPools;
+addUserProblems;
 
 1;

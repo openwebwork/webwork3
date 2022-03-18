@@ -32,7 +32,7 @@ C<problem_number>: the number of the problem (integer, non-negative?)
 
 =item *
 
-C<params>: a JSON object storing parameters.  These are:
+C<problem_params>: a JSON object storing parameters.  These are:
 
 =over
 
@@ -67,7 +67,8 @@ sub valid_params ($=) {
 		weight          => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},    # positive integers or decimals
 		library_id      => q{\d+},
 		file_path       => q{.*},
-		problem_pool_id => q{\d+}
+		problem_pool_id => q{\d+},
+		max_attempts    => q{-?\d+}
 	};
 }
 
@@ -98,12 +99,6 @@ __PACKAGE__->add_columns(
 		size        => 16,
 		is_nullable => 1,
 	},
-	problem_version => {
-		data_type     => 'integer',
-		size          => 8,
-		is_nullable   => 0,
-		default_value => 1
-	},
 	# Store params as a JSON object.
 	problem_params => {
 		data_type          => 'text',
@@ -118,10 +113,9 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('problem_id');
 
 # Maybe we don't need this.
-__PACKAGE__->add_unique_constraint([qw/problem_id set_id problem_version problem_number/]);
+__PACKAGE__->add_unique_constraint([qw/problem_id set_id problem_number/]);
 
 __PACKAGE__->belongs_to(problem_set => 'DB::Schema::Result::ProblemSet', 'set_id');
-
-__PACKAGE__->has_many(user_problem => 'DB::Schema::Result::UserProblem', 'problem_id');
+__PACKAGE__->has_many(user_problems => 'DB::Schema::Result::UserProblem', 'problem_id');
 
 1;

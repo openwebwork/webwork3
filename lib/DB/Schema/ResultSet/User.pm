@@ -21,7 +21,11 @@ use Clone qw/clone/;
 use DB::Utils qw/getCourseInfo getUserInfo removeLoginParams/;
 
 use DB::Exception;
-use Exception::Class ('DB::Exception::UserNotFound', 'DB::Exception::CourseExists', "DB::Exception::UserNotInCourse");
+use Exception::Class (
+	'DB::Exception::UserNotFound',
+	'DB::Exception::CourseAlreadyExists',
+	"DB::Exception::UserNotInCourse"
+);
 
 =head1 getAllGlobalUsers
 
@@ -37,9 +41,9 @@ An array of courses as a C<DBIx::Class::ResultSet::Course> object.
 
 =cut
 
-sub getAllGlobalUsers ($self, $as_result_set = 0) {
+sub getAllGlobalUsers ($self, %args) {
 	my @users = $self->search({});
-	return \@users if $as_result_set;
+	return \@users if $args{as_result_set};
 	return map { removeLoginParams({ $_->get_inflated_columns }); } @users;
 }
 
@@ -64,10 +68,14 @@ C<result_set> determine which is returned.
 
 =cut
 
-sub getGlobalUser ($self, $user_info, $as_result_set = 0) {
-	my $user = $self->find(getUserInfo($user_info));
-	DB::Exception::UserNotFound->throw(username => $user_info) unless defined($user);
-	return $user if $as_result_set;
+sub getGlobalUser ($self, %args) {
+	my $user = $self->find(getUserInfo($args{info}));
+	DB::Exception::UserNotFound->throw(message => "The user with "
+			. ($args{info}->{username} ? "username '"            : "user_id '")
+			. ($args{info}->{username} ? $args{info}->{username} : $args{info}->{user_id})
+			. "' does not exist ")
+		unless defined($user);
+	return $user if $args{as_result_set};
 	my $params = { $user->get_inflated_columns };
 	$params->{role} = "admin" if $user->is_admin;
 	return removeLoginParams($params);
@@ -103,17 +111,20 @@ The user as  C<DBIx::Class::ResultSet::User> object or C<undef> if no user exist
 
 # TODO: Check that other params are legal.
 
-sub addGlobalUser ($self, $user_params, $as_result_set = 0) {
+sub addGlobalUser ($self, %args) {
+
 	DB::Exception::ParametersNeeded->throw(message => "The parameters must include username")
-		unless defined($user_params->{username});
-	my $params = clone($user_params);
-	# Remove the user_id if defined and equal to zero.
-	if (defined($params->{user_id}) && $params->{user_id} == 0) {
-		delete $params->{user_id};
-	}
+		unless defined($args{params}->{username});
+	my $params = clone($args{params});
+	# remove the user_id if defined and equal to zero.
+	delete $params->{user_id} if (defined($params->{user_id}) && $params->{user_id} == 0);
+
+	# Check that the username is valid
+	DB::Exception::InvalidParameter->throw(message => "The username '$params->{username}' is not valid.")
+		unless $params->{username} =~ /^[\w@\d.]+$/;
 
 	my $new_user = $self->create($params);
-	return $new_user if $as_result_set;
+	return $new_user if $args{as_result_set};
 	return removeLoginParams({ $new_user->get_columns });
 }
 
@@ -139,11 +150,11 @@ The deleted user as a C<DBIx::Class::ResultSet::User> object.
 
 # TODO: Delete everything related to the user from all tables.
 
-sub deleteGlobalUser ($self, $user_info, $as_result_set = 0) {
-	my $user_to_delete = $self->getGlobalUser($user_info, 1);
+sub deleteGlobalUser ($self, %args) {
+	my $user_to_delete = $self->getGlobalUser(info => $args{info}, as_result_set => 1);
 
 	my $deleted_user = $user_to_delete->delete;
-	return $deleted_user if $as_result_set;
+	return $deleted_user if $args{as_result_set};
 	return removeLoginParams({ $deleted_user->get_inflated_columns });
 }
 
@@ -183,12 +194,12 @@ The updated course as a C<DBIx::Class::ResultSet::Course> or a hashref.
 
 # TODO: Check that the user_params are valid.
 
-sub updateGlobalUser ($self, $user_info, $user_params, $as_result_set = 0) {
-	my $user     = $self->getGlobalUser($user_info, 1);
-	my $user_obj = $self->new($user_params);
+sub updateGlobalUser ($self, %args) {
+	my $user     = $self->getGlobalUser(info => $args{info}, as_result_set => 1);
+	my $user_obj = $self->new($args{params});
 
 	my $updated_user = $user->update({ $user_obj->get_inflated_columns });
-	return $updated_user if $as_result_set;
+	return $updated_user if $args{as_result_set};
 	return removeLoginParams({ $updated_user->get_inflated_columns });
 }
 
@@ -196,81 +207,60 @@ sub updateGlobalUser ($self, $user_info, $user_params, $as_result_set = 0) {
 # We need to decide on what encryption algorithm.
 
 sub authenticate ($self, $username, $password) {
-	my $user = $self->getGlobalUser({ username => $username }, 1);
+	my $user = $self->getGlobalUser(info => { username => $username }, as_result_set => 1);
 	return $user->login_params->{password} eq $password;
 }
 
 #  The following is CRUD for users in a given course
 
-=head1 getUsers
+=head1 getCourseUsers
 
 This gets all users in a given course.
 
 =head3 input
 
+A hash of input values.
+
 =over
 
-=item * C<course_name>, a string
+=item * C<info>, either a course name or course_id.
+
+For example, C<{ course_name => 'Precalculus'}> or C<{course_id => 3}>
+
+=item * C<merged>, a boolean on whether to return a merged user or course user
+
+=item * C<as_result_set>, a boolean.  If true this an object of type
+C<DBIx::Class::ResultSet::User>
+if false, a hashrefs of a course user.
 
 =back
 
 =head3 output
 
-An array of Users (as hashrefs) or an arrayref of C<DBIx::Class::ResultSet::User>
+An array of a hashref of a course user or merged course user
+or an arrayref of C<DBIx::Class::ResultSet::User>
 
 =cut
 
-sub getCourseUsers ($self, $course_info, $as_result_set = 0) {
-	my $course_rs = $self->result_source->schema->resultset("Course");
-	my $course    = $course_rs->getCourse(getCourseInfo($course_info), 1);
-	my @users     = $self->search({ 'course_users.course_id' => $course->course_id }, { prefetch => ["course_users"] });
+sub getCourseUsers ($self, %args) {
+	my $course       = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+	my @course_users = $self->rs("CourseUser")->search({
+		'course_id' => $course->course_id
+	});
 
-	return \@users if $as_result_set;
-	return map {
-		removeLoginParams({
-			#$_->get_columns,
-			$_->course_users->first->get_columns,
-			params => $_->course_users->first->get_inflated_column("params")
-		});
-	} @users;
-}
+	return \@course_users if $args{as_result_set};
 
-=head1 getMergedUsers
-
-This returns all users in a given course as a merge between global users
-and course users.
-
-=head3 input
-
-=over
-
-=item * C<course_name>, a string OR
-=item * C<course_id>, a key
-
-=back
-
-=head3 output
-
-An array of MergedCourseUsers (as hashrefs)
-
-=cut
-
-sub getMergedCourseUsers ($self, $course_info) {
-	my $course_rs = $self->result_source->schema->resultset("Course");
-	my $course    = $course_rs->getCourse(getCourseInfo($course_info), 1);
-	my @users     = $self->search({ 'course_users.course_id' => $course->course_id }, { prefetch => ["course_users"] });
-
-	return map {
-		removeLoginParams({
-			$_->get_columns, $_->course_users->first->get_columns,
-			params => $_->course_users->first->get_inflated_column("params")
-		});
-	} @users;
+	my @users_to_return = ();
+	for my $course_user (@course_users) {
+		my $params = $args{merged} ? _getMergedUser($course_user) : _getCourseUser($course_user);
+		push(@users_to_return, $params);
+	}
+	return @users_to_return;
 }
 
 # CRUD for users in a course
 
-=head1 getUser
+=head1 getCourseUser
 
 This gets a single user in a given course.
 
@@ -278,364 +268,247 @@ This gets a single user in a given course.
 
 =over
 
-=item * C<params>, a hashref containing:
+=item * C<info>, a hashref containing:
 
 =over
 
-=item - C<course_name>, the name of an existing course
+=item - C<course_name>, the name of an existing course or C<course_id> the id of the course
 
-=item - C<username>, the username of an existing user.
+=item - C<username>, the username of an existing user or C<user_id>, the id of the user
 
 =back
+
+=item * C<merged>, a boolean whether or not to return a merged user (include information
+from the global user table)
+
+=item * C<as_result_set>, a boolean if true returns as a C<DBIx::Class::ResultSet>
 
 =back
 
 =head3 notes:
-if either the course or username doesn't exist, an error will be thrown.
+
+=over
+=item - If either information about the user or the course is missing, an exception will be thrown
+=item - If the user isn't in the course, an exception will be thrown.
+=back
 
 =head3 output
 
-An hashref of the user.
+An hashref of the user or merged user or a C<DBIx::Class::ResultSet>
 
 =cut
 
-sub getUser ($self, $course_user_info, $as_result_set = 0) {
-	my $course_info = getCourseInfo($course_user_info);
-	my $course      = $self->result_source->schema->resultset("Course")->getCourse($course_info, 1);
-	my $course_user = $course->users->find(getUserInfo($course_user_info));
-	DB::Exception::UserNotInCourse->throw(
-		course_name => $course->course_name,
-		username    => $course_user_info->{username}
-	) unless defined($course_user);
+sub getCourseUser ($self, %args) {
 
-	return $course_user if $as_result_set;
-	my $user_params = { $course_user->get_columns, $course_user->course_users->first->get_columns };
-	$user_params->{params} = $course_user->course_users->first->get_inflated_column("params");
-	return removeLoginParams($user_params);
-}
+	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+	my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
+	my @keys   = keys %{ $args{info} };
 
-sub getCourseUser ($self, $course_user_info, $as_result_set = 0) {
-	my $course = $self->result_source->schema->resultset("Course")->getCourse(getCourseInfo($course_user_info), 1);
-	my $user   = $self->getGlobalUser(getUserInfo($course_user_info), 1);
-	my @keys   = keys %$course_user_info;
-
-	DB::Exception::TooManyParameters->throw(message => "Too many parameters were passed into getCourseUser")
-		if (scalar(@keys) != 2);
-
-	my $course_user = $self->result_source->schema->resultset("CourseUser")
-		->find({ course_id => $course->course_id, user_id => $user->user_id });
+	my $course_user = $self->rs("CourseUser")->find({ course_id => $course->course_id, user_id => $user->user_id });
 
 	DB::Exception::UserNotInCourse->throw(
 		message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}")
-		unless defined $course_user;
+		unless defined $course_user || $args{skip_throw};
 
-	return $course_user if $as_result_set;
-	return { $course_user->get_inflated_columns };
+	return $course_user if $args{as_result_set};
+
+	return $args{merged} ? _getMergedUser($course_user) : _getCourseUser($course_user);
 }
 
-# This is used to add a user to an existing course
+=head1 addCourseUser
 
-=head2 addCourseUser
+This adds a single user in a given course.
 
-This method adds a course user to the course_users database knowing that there is
-an existing user and course.
+=head3 input
 
-The method returns only the information in the course_user table
+=over
+
+=item * C<info>, a hashref containing:
+
+=over
+
+=item - C<course_name>, the name of an existing course or C<course_id> the id of the course
+
+=item - C<username>, the username of an existing user or C<user_id>, the id of the user
+
+=back
+
+=item * C<params>, a hashref of all valid CourseUser parameters.  See C<DB::Schema::Result::CourseUser>
+for details.
+
+=item * C<merged>, a boolean whether or not to return a merged user (include information
+from the global user table)
+
+=item * C<as_result_set>, a boolean if true returns as a C<DB::Schema::ResultSet::CourseUser>
+
+=back
+
+=head3 notes:
+
+=over
+=item - If either information about the user or the course is missing, an exception will be thrown
+=item - If the user is already in the course, an exception will be thrown.
+=back
+
+=head3 output
+
+An hashref of the user or merged user or a C<DB::Schema::ResultSet::CourseUser>
 
 =cut
 
-sub addCourseUser ($self, $course_user_params, $as_result_set = 0) {
-	my $course = $self->result_source->schema->resultset("Course")->getCourse(getCourseInfo($course_user_params), 1);
-	my $user   = $self->getGlobalUser(getUserInfo($course_user_params), 1);
+sub addCourseUser ($self, %args) {
 
-	# Check if the user is already in the given course
-	my $cu = $self->result_source->schema->resultset("CourseUser")
-		->find({ user_id => $user->user_id, course_id => $course->course_id });
-
-	# Remove the course_user_id if it is 0 (it's new)
-	delete $course_user_params->{course_user_id}
-		if defined($course_user_params->{course_user_id}) && $course_user_params->{course_user_id} == 0;
-
+	my $course_user = $self->getCourseUser(info => $args{info}, as_result_set => 1, skip_throw => 1);
 	DB::Exception::UserAlreadyInCourse->throw(
-		message => "The user with username: ${\$user->username} is already in the course: ${\$course->course_name}")
-		if defined($cu);
+		message => "The user with " . $args{info}->{username} ? ("username: " . $args{info}->{username})
+		: ("user_id: " . $args{info}->{user_id}) . " is already in the course with " . $args{params}->{course_name}
+		? ("course name: " . $args{info}->{course_name})
+		: ("course_id: " . $args{info}->{course_id}))
+		if defined($course_user);
 
-	my $params = clone($course_user_params);
+	my $params = clone($args{params});
+	## remove the course_user_id if it is 0 (it's new)
+	delete $params->{course_user_id} if defined($params->{course_user_id}) && $params->{course_user_id} == 0;
 
 	for my $key (qw/ course_id course_name username user_id/) {
 		delete $params->{$key};
 	}
 
-	# Still need to check params for validity.
+	# check for valid fields and parameters
+	my $updated_user = $self->rs("CourseUser")->new($params);
+	$updated_user->validParams('course_user_params');
 
-	my $course_user = $self->result_source->schema->resultset("CourseUser")->new($params);
+	my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
+	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 	$course->add_to_users({ user_id => $user->user_id });
 
-	my $user_to_return = $self->result_source->schema->resultset("CourseUser")
-		->find({ course_id => $course->course_id, user_id => $user->user_id })->update($params);
+	my $user_to_return = $self->getCourseUser(
+		info          => { user_id => $user->user_id, course_id => $course->course_id },
+		as_result_set => 1
+	);
+	$user_to_return->update($params);
 
-	return $user_to_return if $as_result_set;
-	return { $user_to_return->get_inflated_columns };
+	return $user_to_return if $args{as_result_set};
+	return $args{merged} ? _getMergedUser($user_to_return) : _getCourseUser($user_to_return);
 }
 
 =head2 updateCourseUser
 
 This method updates the course user table
 
+=head3 input
+
+=over
+
+=item * C<info>, a hashref containing:
+
+=over
+
+=item - C<course_name>, the name of an existing course or C<course_id> the id of the course
+
+=item - C<username>, the username of an existing user or C<user_id>, the id of the user
+
+=back
+
+=item * C<params>, a hashref of all valid CourseUser parameters.  See C<DB::Schema::Result::CourseUser>
+for details.
+
+=item * C<merged>, a boolean whether or not to return a merged user (include information
+from the global user table)
+
+=item * C<as_result_set>, a boolean if true returns as a C<DB::Schema::ResultSet::CourseUser>
+
+=back
+
+=head3 notes:
+
+=over
+=item - If either information about the user or the course is missing, an exception will be thrown
+=item - If the user is already in the course, an exception will be thrown.
+=back
+
+=head3 output
+
+An hashref of the updated course user or merged user or a C<DB::Schema::ResultSet::CourseUser>
+
 =cut
 
-sub updateCourseUser ($self, $course_user_info, $course_user_params = {}, $as_result_set = 0) {
-	my $course_user = $self->getCourseUser($course_user_info, 1);
+sub updateCourseUser ($self, %args) {
+	my $course_user = $self->getCourseUser(info => $args{info}, as_result_set => 1);
 
-	my $course_user_to_return = $course_user->update($course_user_params);
+	my $params_to_check = $self->rs("CourseUser")->new($args{params});
+	$params_to_check->validParams("course_user_params");
 
-	return $course_user_to_return if $as_result_set;
-	return { $course_user_to_return->get_inflated_columns };
+	my $user_to_return = $course_user->update($args{params});
+
+	return $user_to_return if $args{as_result_set};
+	return return $args{merged} ? _getMergedUser($user_to_return) : _getCourseUser($user_to_return);
 }
 
 =head2 deleteCourseUser
 
-This method updates the course user table
+This delete a single user from the course_user table.
+
+=head3 input
+
+=over
+
+=item * C<info>, a hashref containing:
+
+=over
+
+=item - C<course_name>, the name of an existing course or C<course_id> the id of the course
+
+=item - C<username>, the username of an existing user or C<user_id>, the id of the user
+
+=back
+
+=item * C<merged>, a boolean whether or not to return a merged user (include information
+from the global user table)
+
+=item * C<as_result_set>, a boolean if true returns as a C<DB::Schema::ResultSet::CourseUser>
+
+=back
+
+=head3 notes:
+
+=over
+=item - If either information about the user or the course is missing, an exception will be thrown
+=item - If the user is already in the course, an exception will be thrown.
+=back
+
+=head3 output
+
+An hashref of the deleted user or merged user or a C<DB::Schema::ResultSet::CourseUser>
 
 =cut
 
-sub deleteCourseUser ($self, $course_user_info, $course_user_params = {}, $as_result_set = 0) {
-	my $course_user_to_delete = $self->getCourseUser($course_user_info, 1)->delete;
+sub deleteCourseUser ($self, %args) {
+	my $course_user_to_delete = $self->getCourseUser(info => $args{info}, as_result_set => 1)->delete;
 
-	return $course_user_to_delete if $as_result_set;
-	return { $course_user_to_delete->get_inflated_columns };
+	return $course_user_to_delete if $args{as_result_set};
+	return $args{merged} ? _getMergedUser($course_user_to_delete) : _getCourseUser($course_user_to_delete);
+
 }
 
-# The following are deprecated and just here for reference
+# This is a small subroutine to shorten access to the db.
 
-=head1 addUser
-
-This adds a User to an existing course
-
-=head3 input
-
-=over
-
-=item * C<course_info> containing either course_name or course_id as a hashref.
-
-=item * C<params>, a hashref containing
-
-=over
-
-=item - C<username>, the username of a user (required)
-
-=item - C<first_name>, the first name of the user
-
-=item - C<last_name>, the last name of the user
-
-=item - C<student_id>, the student id of the user
-
-=item - C<roles>, A listing of roles of the user (instructor, student)
-
-=back
-
-=back
-
-=head3 notes
-
-=over
-
-=item * If both the username and course name is not included, an error will be thrown.
-
-=item * If the course doesn't exist, an error will be thrown
-
-=item * If the user's username already exists as a global user, an error will be thrown.
-
-=back
-
-=head3 output
-
-An hashref of the added user.
-
-=cut
-
-# sub addUser ($self, $course_info, $params, $as_result_set = 0) {
-# 	my $course = $self->result_source->schema->resultset("Course")->getCourse( $course_info, 1 );
-
-# 	DB::Exception::ParametersNeeded->throw( message => "You must defined the field username in the 2nd argument" )
-# 		unless defined( $params->{username} ) || defined( $params->{user_id} );
-
-# 	my $user_info = {};
-# 	if (defined($params->{user_id})) {
-# 		$user_info->{user_id} = $params->{user_id};
-# 	} else {
-# 		$user_info->{username} = $params->{username};
-# 	}
-
-# 	my $user_exists = $course->users->find( $user_info );
-# 	DB::Exception::UserAlreadyInCourse->throw( course_name => $course_info, username => $params->{username} )
-# 		if defined $user_exists;
-
-# 	my $course_user_params = clone($params);
-# 	my $user_params        = {};
-# 	for my $key ( $self->result_source->columns ) {    # remove all parameters that don't fit in the user table
-# 		$user_params->{$key} = $params->{$key} if defined $params->{$key};
-# 		delete $course_user_params->{$key};
-# 	}
-
-# 	my $globalUser = $self->find($user_info);
-# 	$globalUser    = $self->new($user_params) unless (defined($globalUser));
-# 	my $new_user   = $course->add_to_users( { $globalUser->get_inflated_columns }, 1 );
-# 	my $user_course_ids = { user_id => $new_user->user_id, course_id => $course->course_id };
-
-# 	# TO CHECK: Not sure this is needed.
-# 	# Just call the updateUser to fill in the fields of the new user.
-# 	my $updated_user = $self->updateUser( $user_course_ids, $course_user_params );
-
-# 	return $new_user if $as_result_set;
-# 	return removeLoginParams( { $new_user->get_inflated_columns, %{$updated_user} } );
-# }
-
-# It doesn't look like this is used.
-
-sub _checkCourseUser ($self, $params) {
-	my @fields         = keys %$params;
-	my $course_user_rs = $self->result_source->schema->resultset("CourseUser");
-
-	my @cols = $course_user_rs->result_source->columns;
-	@cols = grep { !($_ =~ /_id$/x) } @cols;
-
-	my @illegal_fields = array_minus(@fields, @cols);
-	DB::Exception::ParametersNeeded->throw(
-		message => "The fields " . join(", ", @illegal_fields) . " are not legal for a user.")
-		unless scalar(@illegal_fields) == 0;
-	return 1;
+sub rs {
+	my ($self, $table) = @_;
+	return $self->result_source->schema->resultset($table);
 }
 
-=head2 updateUser
+# This returns the course user fields
 
-This updates a User in an existing course
+sub _getCourseUser {
+	return { shift->get_inflated_columns };
+}
 
-=head3 input
+# This returns the merged user fields (course user and global user)
 
-=over
-
-=item * C<course_info> containing either course_name or course_id as a hashref.
-
-=item * C<params>, a hashref containing
-
-=over
-
-=item - C<username>, the username of a user (required)
-
-=item - C<first_name>, the first name of the user
-
-=item - C<last_name>, the last name of the user
-
-=item - C<student_id>, the student id of the user
-
-=item - C<roles>, A listing of roles of the user (instructor, student)
-
-=back
-
-=back
-
-=head3 notes
-
-=over
-
-=item * If the course doesn't exist, an error will be thrown
-
-=item * If the username field is not defined, an error will be thrown.
-
-=back
-
-=head3 output
-
-An hashref of the added user.
-
-=cut
-
-# sub updateUser ($self, $course_user_info, $params, $as_result_set) {
-# 	my $user = $self->getUser( $course_user_info, 1 );
-
-# 	my $course = $self->result_source->schema->resultset("Course")->getCourse( getCourseInfo($course_user_info), 1 );
-
-# 	$self->_checkCourseUser($params);
-
-# 	my $user_to_update = $self->result_source->schema->resultset("CourseUser")
-# 		->find( { course_id => $course->course_id, user_id => $user->user_id } );
-
-# 	DB::Excpetion::UserNotInCourse->throw(
-#	course_name => $course->course_name, username => $course_user_info->{username}
-#	) unless defined($user_to_update);
-
-# 	my $updated_user = $user_to_update->update( {%$params} );    # seems like update changes $params, so make a copy.
-
-# 	my $course_user_to_return = { $updated_user->get_inflated_columns };
-
-# 	return $user if $as_result_set;
-# 	return removeLoginParams( { $user->get_columns, %$course_user_to_return } );
-# }
-
-=head2 deleteUser
-
-This deletes a User in an existing course.  This doesn't remove the global user however.
-
-=head3 input
-
-=over
-
-=item * C<course_info> containing either course_name or course_id as a hashref.
-
-=item * C<user_params>, a hashref containing either
-
-=over
-
-=item - C<username>, the username of a user
-
-=item - C<user_id>, user_id of the user
-
-=back
-
-=back
-
-=head3 notes
-
-=over
-
-=item * If the course doesn't exist, an error will be thrown
-
-=item * If the username field is not defined, an error will be thrown.
-
-=back
-
-=head3 output
-
-An hashref of the added user.
-
-=cut
-
-# sub deleteUser ($self, $course_user_info, $as_result_set) {
-# 	my $course_rs   = $self->result_source->schema->resultset("Course");
-# 	my $course_info = getCourseInfo($course_user_info);
-# 	my $course      = $course_rs->getCourse( $course_info, 1 );
-
-# 	my $user_info = getUserInfo($course_user_info);
-# 	my $user      = $course->users->find($user_info);
-# 	DB::Exception::UserNotInCourse->throw( course_name => $course->course_name, username => $course_info->{username} )
-# 		unless defined $user;
-
-# 	my $course_user_rs = $self->result_source->schema->resultset("CourseUser");
-
-# 	# Get the CourseUser data from the DB
-# 	my $deleted_course_user = $course_user_rs->find(
-# 		{
-# 			course_id => $course->course_id,
-# 			user_id   => $user->user_id
-# 		}
-# 	)->delete;
-
-# 	# my $deleted_course_user = $course_user_db->delete;
-
-# 	return $deleted_course_user if $as_result_set;
-# 	return removeLoginParams( { $user->get_columns, $deleted_course_user->get_inflated_columns } );
-
-# }
+sub _getMergedUser {
+	my $course_user = shift;
+	return removeLoginParams({ $course_user->get_inflated_columns, $course_user->users->get_inflated_columns });
+}
 
 1;

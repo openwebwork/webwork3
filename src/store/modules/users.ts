@@ -159,6 +159,13 @@ export default {
 				logger.error(response.data);
 				throw response.data as ResponseError;
 			}
+		},
+		// This clears out all data for use during logout.
+		clearUsers({ commit }: { commit: Commit }): void {
+			commit('SET_MERGED_USERS', []);
+			commit('SET_COURSE_USERS', []);
+			commit('SET_USERS', []);
+			commit('SET_USER_COURSES', []);
 		}
 	},
 	mutations: {

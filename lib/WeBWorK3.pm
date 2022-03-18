@@ -77,7 +77,7 @@ sub startup ($self) {
 }
 
 sub load_account ($self, $user_id) {
-	my $user = $self->schema->resultset("User")->getGlobalUser({ username => $user_id });
+	my $user = $self->schema->resultset("User")->getGlobalUser(info => { username => $user_id });
 	return $user;
 }
 

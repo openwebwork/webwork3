@@ -27,7 +27,7 @@ use Exception::Class (
 		fields      => ['course_name'],
 		description => 'The given course is not found.'
 	},
-	'DB::Exception::CourseExists' => {
+	'DB::Exception::CourseAlreadyExists' => {
 		fields      => ['course_name'],
 		description => 'The course already exists.'
 	},
@@ -96,18 +96,27 @@ use Exception::Class (
 	'DB::Exception::PoolProblemNotInPool' => {
 		fields      => ['info'],
 		description => 'The requested problem is not in the selected problem pool'
+	},
+	'DB::Exception::UserProblemNotFound' => {
+		fields      => [ 'course_name', 'problem_number', 'problem_version', 'username', 'set_name' ],
+		description => 'The requested user problem is not found.'
 	}
 );
 
 DB::Exception::UndefinedCourseField->Trace(1);
 DB::Exception::InvalidCourseField->Trace(1);
+DB::Exception::UserSetNotInCourse->Trace(1);
+DB::Exception::SetNotInCourse->Trace(1);
 # DB::Exception::UserNotInCourse->Trace(1);
 DB::Exception::UserNotFound->Trace(1);
-# DB::Exception::CourseNotFound->Trace(1);
+DB::Exception::CourseAlreadyExists->Trace(1);
 DB::Exception::InvalidParameter->Trace(1);
 DB::Exception::UndefinedParameter->Trace(1);
 DB::Exception::InvalidDateField->Trace(1);
 # DB::Exception::PoolNotInCourse->Trace(1);
 DB::Exception::ParametersNeeded->Trace(1);
-
+DB::Exception::UserSetExists->Trace(1);
+DB::Exception::ImproperDateOrder->Trace(1);
+DB::Exception::SetAlreadyExists->Trace(1);
+DB::Exception::UserProblemNotFound->Trace(1);
 1;
