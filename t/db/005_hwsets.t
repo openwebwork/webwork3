@@ -311,8 +311,10 @@ $set_with_new_type_params->{set_dates}  = { open => 0, answer => 0, due => 0 };
 $set_with_new_type_params->{set_params} = {};
 $set_with_new_type_params->{set_type}   = 'QUIZ';
 
-my $set_with_new_type =
-	$problem_set_rs->updateProblemSet({ course_name => "Precalculus", set_id => $new_set_id }, { set_type => "QUIZ" });
+my $set_with_new_type = $problem_set_rs->updateProblemSet(
+	info   => { course_name => "Precalculus", set_id => $new_set_id },
+	params => { set_type    => "QUIZ" }
+);
 removeIDs($set_with_new_type);
 # PS: Look into this.  Why are we deleting this throughout this test?
 delete $set_with_new_type->{set_visible};

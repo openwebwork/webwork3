@@ -270,13 +270,16 @@ sub addUserSet ($self, %args) {
 
 	my $user_set = $self->getUserSet(info => $args{params}, skip_throw => 1, as_result_set => 1);
 
-	DB::Exception::UserSetExists->throw(message => "The user " . $course_user->users->username
-			. " is already assigned to the set " . $problem_set->set_name) if $user_set;
+	DB::Exception::UserSetExists->throw(message => "The user "
+			. $course_user->users->username
+			. " is already assigned to the set "
+			. $problem_set->set_name)
+		if $user_set;
 
 	# Remove user_set_id if it is zero.  On the client side, this means that
 	# the set is a new one.
-	delete $user_set_params->{user_set_id}
-		if defined($user_set_params->{user_set_id}) && $user_set_params->{user_set_id} == 0;
+	delete $args{params}->{user_set_id}
+		if defined($args{params}->{user_set_id}) && $args{params}->{user_set_id} == 0;
 
 	# The hashref of parameters is a mixture of passed in parameters and defaults.
 
@@ -292,9 +295,9 @@ sub addUserSet ($self, %args) {
 	my $original_dates = $params->{set_dates} // {};
 
 	# If any of the date are 0, then remove them.
-	if ($user_set_params->{set_dates}) {
-		for my $key (keys %{ $user_set_params->{set_dates} }) {
-			delete $user_set_params->{set_dates}->{$key} if $user_set_params->{set_dates}->{$key} == 0;
+	if ($args{params}->{set_dates}) {
+		for my $key (keys %{ $args{params}->{set_dates} }) {
+			delete $args{params}->{set_dates}->{$key} if $args{params}->{set_dates}->{$key} == 0;
 		}
 	}
 
@@ -344,9 +347,9 @@ sub updateUserSet ($self, %args) {
 	}
 
 	# If any of the date are 0, then remove them.
-	if ($user_set_params->{set_dates}) {
-		for my $key (keys %{ $user_set_params->{set_dates} }) {
-			delete $user_set_params->{set_dates}->{$key} if $user_set_params->{set_dates}->{$key} == 0;
+	if ($args{params}->{set_dates}) {
+		for my $key (keys %{ $args{params}->{set_dates} }) {
+			delete $args{params}->{set_dates}->{$key} if $args{params}->{set_dates}->{$key} == 0;
 		}
 	}
 	# Remove the set type as a string.
