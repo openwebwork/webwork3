@@ -10,27 +10,29 @@ sub getGlobalUsers ($self) {
 sub getGlobalUser ($self) {
 	my $user =
 		$self->param("user") =~ /^\d+$/
-		? $self->schema->resultset("User")->getGlobalUser({ user_id  => int($self->param("user")) })
-		: $self->schema->resultset("User")->getGlobalUser({ username => $self->param("user") });
+		? $self->schema->resultset("User")->getGlobalUser(info => { user_id  => int($self->param("user")) })
+		: $self->schema->resultset("User")->getGlobalUser(info => { username => $self->param("user") });
 	$self->render(json => $user);
 	return;
 }
 
 sub updateGlobalUser ($self) {
-	my $user = $self->schema->resultset("User")
-		->updateGlobalUser({ user_id => int($self->param("user_id")) }, $self->req->json);
+	my $user = $self->schema->resultset("User")->updateGlobalUser(
+		info   => { user_id => int($self->param("user_id")) },
+		params => $self->req->json
+	);
 	$self->render(json => $user);
 	return;
 }
 
 sub addGlobalUser ($self) {
-	my $user = $self->schema->resultset("User")->addGlobalUser($self->req->json);
+	my $user = $self->schema->resultset("User")->addGlobalUser(params => $self->req->json);
 	$self->render(json => $user);
 	return;
 }
 
 sub deleteGlobalUser ($self) {
-	my $user = $self->schema->resultset("User")->deleteGlobalUser({ user_id => int($self->param("user_id")) });
+	my $user = $self->schema->resultset("User")->deleteGlobalUser(info => { user_id => int($self->param("user_id")) });
 	$self->render(json => $user);
 	return;
 }
@@ -39,58 +41,70 @@ sub deleteGlobalUser ($self) {
 
 sub getMergedCourseUsers ($self) {
 	my @course_users =
-		$self->schema->resultset("User")->getMergedCourseUsers({ course_id => int($self->param("course_id")) });
+		$self->schema->resultset("User")
+		->getCourseUsers(info => { course_id => int($self->param("course_id")) }, merged => 1);
 	$self->render(json => \@course_users);
 	return;
 }
 
 sub getCourseUsers ($self) {
 	my @course_users =
-		$self->schema->resultset("User")->getCourseUsers({ course_id => int($self->param("course_id")) });
+		$self->schema->resultset("User")->getCourseUsers(info => { course_id => int($self->param("course_id")) });
 	$self->render(json => \@course_users);
 	return;
 }
 
 sub getCourseUser ($self) {
-	my $course_user = $self->schema->resultset("User")->getCourseUser({
-		course_id => int($self->param("course_id")),
-		user_id   => int($self->param("user_id"))
-	});
+	my $course_user = $self->schema->resultset("User")->getCourseUser(
+		info => {
+			course_id => int($self->param("course_id")),
+			user_id   => int($self->param("user_id"))
+		}
+	);
 	$self->render(json => $course_user);
 	return;
 }
 
 sub addCourseUser ($self) {
-	my $params = $self->req->json;
-	$params->{course_id} = $self->param("course_id");
-	my $course_user = $self->schema->resultset("User")->addCourseUser($params);
+
+	my $info = { course_id => int($self->param("course_id")) };
+	$info->{username} = $self->req->json->{username}     if $self->req->json->{username};
+	$info->{user_id}  = int($self->req->json->{user_id}) if $self->req->json->{user_id};
+
+	my $course_user = $self->schema->resultset("User")->addCourseUser(
+		info   => $info,
+		params => $self->req->json
+	);
 	$self->render(json => $course_user);
 	return;
 }
 
 sub updateCourseUser ($self) {
 	my $course_user = $self->schema->resultset("User")->updateCourseUser(
-		{
+		info => {
 			course_id => int($self->param("course_id")),
 			user_id   => int($self->param("user_id"))
 		},
-		$self->req->json
+		params => $self->req->json
 	);
 	$self->render(json => $course_user);
 	return;
 }
 
 sub deleteCourseUser ($self) {
-	my $course_user = $self->schema->resultset("User")->deleteCourseUser({
-		course_id => int($self->param("course_id")),
-		user_id   => int($self->param("user_id"))
-	});
+	my $course_user = $self->schema->resultset("User")->deleteCourseUser(
+		info => {
+			course_id => int($self->param("course_id")),
+			user_id   => int($self->param("user_id"))
+		}
+	);
 	$self->render(json => $course_user);
 	return;
 }
 
 sub getUserCourses ($self) {
-	my @user_courses = $self->schema->resultset("Course")->getUserCourses({ user_id => $self->param('user_id') });
+	my @user_courses =
+		$self->schema->resultset("Course")->getUserCourses(info => { user_id => $self->param('user_id') });
 	$self->render(json => \@user_courses);
 	return;
 }

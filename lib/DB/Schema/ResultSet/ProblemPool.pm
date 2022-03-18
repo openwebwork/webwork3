@@ -8,6 +8,7 @@ no warnings qw(experimental::signatures);
 use base 'DBIx::Class::ResultSet';
 
 use Try::Tiny;
+use Clone qw/clone/;
 
 use DB::Utils qw/getCourseInfo getPoolInfo getPoolProblemInfo/;
 
@@ -28,18 +29,18 @@ This gets a list of all problems stored in the database in the C<problem_pool> t
 
 =head3 input
 
-C<$as_result_set>, a boolean if the return is to be a result_set
+C<as_result_set>, a boolean if the return is to be a result_set
 
 =head3 output
 
 An array of courses as a C<DBIx::Class::ResultSet::Course> object
-if C<$as_result_set> is true.  Otherwise an array of hash_ref.
+if C<$args{as_result_set}> is true.  Otherwise an array of hash_ref.
 
 =cut
 
-sub getAllProblemPools ($self, $as_result_set = 0) {
-	my @problem_pools = $self->search({}, { prefetch => [qw/courses/] });
-	return @problem_pools if $as_result_set;
+sub getAllProblemPools ($self, %args) {
+	my @problem_pools = $self->search({});
+	return @problem_pools if $args{as_result_set};
 	return map {
 		{ $_->get_inflated_columns, course_name => $_->courses->course_name };
 	} @problem_pools;
@@ -51,13 +52,19 @@ Get all problem pools for a given course
 
 =cut
 
-sub getProblemPools ($self, $course_info, $as_result_set = 0) {
-	my $course_rs = $self->result_source->schema->resultset("Course");
-	my $course    = $course_rs->getCourse($course_info, 1);
+sub getProblemPools ($self, %args) {
+	my $course = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
 
-	my @pools = $self->search({ 'courses.course_id' => $course->course_id }, { prefetch => [qw/courses/] });
+	my @pools = $self->search(
+		{
+			'courses.course_id' => $course->course_id
+		},
+		{
+			join => [qw/courses/]
+		}
+	);
 
-	return \@pools if $as_result_set;
+	return @pools if $args{as_result_set};
 	return map {
 		{ $_->get_inflated_columns };
 	} @pools;
@@ -71,11 +78,10 @@ Get a single problem pool for a given course
 
 =cut
 
-sub getProblemPool ($self, $course_pool_info, $as_result_set = 0) {
-	my $course_rs = $self->result_source->schema->resultset("Course");
-	my $course    = $course_rs->getCourse(getCourseInfo($course_pool_info), 1);
+sub getProblemPool ($self, %args) {
+	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 
-	my $search_info = getPoolInfo($course_pool_info);
+	my $search_info = getPoolInfo($args{info});
 	$search_info->{'courses.course_id'} = $course->course_id;
 
 	my $pool = $self->find($search_info, { join => [qw/courses/] });
@@ -84,9 +90,9 @@ sub getProblemPool ($self, $course_pool_info, $as_result_set = 0) {
 		my $course_name = $course->course_name;
 
 		DB::Exception::PoolNotInCourse->throw(
-			message => "The pool with name \{$course_pool_info->{pool_name}} is not in the course $course_name");
+			message => "The pool with name \{$args{info}->{pool_name}} is not in the course $course_name");
 	}
-	return $pool if $as_result_set;
+	return $pool if $args{as_result_set};
 	return { $pool->get_columns };
 }
 
@@ -96,30 +102,43 @@ Add a problem pool for a given course
 
 =cut
 
-sub addProblemPool ($self, $course_info, $pool_params = {}, $as_result_set = 0) {
-	my $course_rs   = $self->result_source->schema->resultset("Course");
-	my $course      = $course_rs->getCourse(getCourseInfo($course_info), 1);
-	my $course_name = $course->course_name;
+sub addProblemPool ($self, %args) {
+	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{params}), as_result_set => 1);
 
 	DB::Exception::ParametersNeeded->throw(message => "The pool_name is missing from the parameters")
-		unless defined($pool_params->{pool_name});
+		unless defined($args{params}->{pool_name});
 
 	my $existing_pool = $self->find(
 		{
 			'courses.course_id' => $course->course_id,
-			pool_name           => $pool_params->{pool_name}
+			pool_name           => $args{params}->{pool_name}
 		},
 		{ prefetch => [qw/courses/] }
 	);
 
-	DB::Exception::PoolAlreadyInCourse->throw(course_name => $course_name, pool_name => $pool_params->{pool_name})
-		if defined($existing_pool);
+	DB::Exception::PoolAlreadyInCourse->throw(
+		message => "The problem pool "
+			. (
+			$args{info}->{pool_name} || $args{params}->{pool_name}
+			? " with name " . ($args{info}->{pool_name} // $args{params}->{pool_name})
+			: " with id " . $args{info}->{problem_pool_id}
+			)
+			. " is already defined in the course "
+			. $course->course_name
+	) if defined($existing_pool);
 
-	my $pool_to_add = $self->new($pool_params);
+	my $params = clone $args{params};
+	# Delete some fields that may be passed in but are not in the database
+	for my $key (qw/course_name course_id/) {
+		delete $params->{$key} if defined $params->{$key};
+	}
 
-	my $problem_pool = $course->add_to_problem_pools({ $pool_to_add->get_columns });
+	# need to check for valid parameters.
+	my $pool_to_add = $self->new($params);
 
-	return $problem_pool if $as_result_set;
+	my $problem_pool = $course->add_to_problem_pools($params);
+
+	return $problem_pool if $args{as_result_set};
 	return { $problem_pool->get_columns };
 }
 
@@ -129,20 +148,29 @@ updates the parameters of an existing problem pool
 
 =cut
 
-sub updateProblemPool ($self, $course_pool_info, $pool_params = {}, $as_result_set = 0) {
-	my $pool = $self->getProblemPool($course_pool_info, 1);
+sub updateProblemPool ($self, %args) {
+
+	my $pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
 
 	DB::Excpetion::PoolNotInCourse->throw(
-		course_name => getCourseInfo($course_pool_info),
-		pool_name   => $pool_params->{pool_name}
+		message => "The problem pool "
+			. (
+			$args{info}->{pool_name}
+			? " named " . $args{info}->{pool_name}
+			: " with id " . $args{info}->{problem_pool_id}
+			)
+			. " is not in the course "
+			. (
+			$args{info}->{course_name} ? " named " . $args{info}->{course_name} : " with id " . $args{info}->{course_id}
+			)
 	) unless defined($pool);
 
 	# create a new problem pool to check for valid fields
-	my $new_pool = $self->new($pool_params);
+	my $pool_params = $self->new($args{params});
 
-	my $updated_pool = $pool->update($pool_params);
+	my $updated_pool = $pool->update($args{params});
 
-	return $updated_pool if $as_result_set;
+	return $updated_pool if $args{as_result_set};
 	return { $updated_pool->get_columns };
 }
 
@@ -152,15 +180,15 @@ updates the parameters of an existing problem pool
 
 =cut
 
-sub deleteProblemPool ($self, $course_pool_info, $pool_params = {}, $as_result_set = 0) {
-	my $pool = $self->getProblemPool($course_pool_info, 1);
+sub deleteProblemPool ($self, %args) {
+	my $pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
 
 	DB::Exception::PoolNotInCourse->throws(error => "The problem pool does not exist")
 		unless defined($pool);
 
 	my $deleted_pool = $pool->delete();
 
-	return $as_result_set ? $deleted_pool : { $deleted_pool->get_columns };
+	return $args{as_result_set} ? $deleted_pool : { $deleted_pool->get_columns };
 }
 
 #####
@@ -193,16 +221,14 @@ This gets a single problem out of a ProblemPool.
 
 =cut
 
-sub getPoolProblem ($self, $course_pool_problem_info, $as_result_set = 0) {
-	my $course_pool_info =
-		{ %{ getCourseInfo($course_pool_problem_info) }, %{ getPoolInfo($course_pool_problem_info) } };
+sub getPoolProblem ($self, %args) {
 
-	my $problem_pool = $self->getProblemPool($course_pool_info, 1);
+	my $problem_pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
 
 	my $pool_problem_info = {};
 
 	try {    # if problem_info was passed in, then parse it.
-		$pool_problem_info = getPoolProblemInfo($course_pool_problem_info);
+		$pool_problem_info = getPoolProblemInfo($args{info});
 	} catch {    # else just use an empty hash;
 		$pool_problem_info = {};
 	};
@@ -210,10 +236,10 @@ sub getPoolProblem ($self, $course_pool_problem_info, $as_result_set = 0) {
 	my @pool_problems = $problem_pool->search_related("pool_problems", $pool_problem_info)->all;
 
 	if (scalar(@pool_problems) == 1) {
-		return $as_result_set ? $pool_problems[0] : { $pool_problems[0]->get_inflated_columns };
+		return $args{as_result_set} ? $pool_problems[0] : { $pool_problems[0]->get_inflated_columns };
 	} else {     # pick a random problem.
 		my $prob = $pool_problems[ rand @pool_problems ];
-		return $as_result_set ? $prob : { $prob->get_inflated_columns };
+		return $args{as_result_set} ? $prob : { $prob->get_inflated_columns };
 	}
 }
 
@@ -223,23 +249,29 @@ This adds a problem as a hashref to an existing problem pool.
 
 =cut
 
-sub addProblemToPool ($self, $course_pool_info, $problem_params, $as_result_set = 0) {
-	my $pool = $self->getProblemPool($course_pool_info, 1);
-	DB::Exception::PoolNotInCourse->throw(
-		message => "The pool with name \{$pool->{pool_name}} is not in the course "
-			. getCourseInfo($course_pool_info)->{course_name})
+sub addProblemToPool ($self, %args) {
+
+	my $pool   = $self->getProblemPool(info => $args{params}, as_result_set => 1);
+	my $params = clone $args{params};
+	DB::Excpetion::PoolNotInCourse->throw(message => "The problem pool "
+			. ($params->{pool_name} ? " named " . $params->{pool_name} : " with id " . $params->{problem_pool_id})
+			. " is not in the course "
+			. ($params->{course_name} ? " named " . $params->{course_name} : " with id " . $params->{course_id}))
 		unless defined($pool);
 
-	my $course_rs = $self->result_source->schema->resultset("Course");
-	my $course    = $course_rs->find({ course_id => $pool->course_id });
+	# Remove some parameters that are not in the UserSet database, but may be passed in.
+	for my $key (qw/pool_name problem_pool_id course_name course_id/) {
+		delete $params->{$key} if defined $params->{$key};
+	}
 
-	my $problem_pool_rs = $self->result_source->schema->resultset("PoolProblem");
-	$problem_params->{problem_pool_id} = $pool->problem_pool_id;
-	my $pool_problem = $problem_pool_rs->new($problem_params);
+	my $course = $self->rs("Course")->find({ course_id => $pool->course_id });
 
-	my $added_problem = $pool->add_to_pool_problems({ $pool_problem->get_columns });
+	$params->{problem_pool_id} = $pool->problem_pool_id;
+	my $pool_problem = $self->rs("PoolProblem")->new($params);
 
-	return $added_problem if $as_result_set;
+	my $added_problem = $pool->add_to_pool_problems($params);
+
+	return $added_problem if $args{as_result_set};
 	return { $added_problem->get_inflated_columns };
 }
 
@@ -269,16 +301,21 @@ updated an existing problem to an existing ProblemPool in a course
 
 =cut
 
-sub updatePoolProblem ($self, $course_pool_problem_info, $prob_params, $as_result_set = 0) {
-	my $prob = $self->getPoolProblem($course_pool_problem_info, 1);
-	DB::Exception::PoolProblemNotInPool->throw(info => $course_pool_problem_info) unless defined($prob);
+sub updatePoolProblem ($self, %args) {
+	my $prob = $self->getPoolProblem(info => $args{info}, as_result_set => 1);
+	DB::Exception::PoolProblemNotInPool->throw(info => $args{info}) unless defined($prob);
 
-	my $problem_pool_rs = $self->result_source->schema->resultset("PoolProblem");
-	my $prob_to_update  = $problem_pool_rs->new($prob_params);
+	my $prob_to_update = $self->rs("PoolProblem")->new($args{params});
 
 	my $prob2 = $prob->update({ $prob_to_update->get_columns });
-	return $prob2 if $as_result_set;
+	return $prob2 if $args{as_result_set};
 	return { $prob2->get_inflated_columns };
+}
+
+# just a small subroutine to shorten access to the db.
+
+sub rs ($self, $table) {
+	return $self->result_source->schema->resultset($table);
 }
 
 1;

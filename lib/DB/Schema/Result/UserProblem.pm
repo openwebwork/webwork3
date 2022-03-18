@@ -1,7 +1,13 @@
 package DB::Schema::Result::UserProblem;
-use base qw/DBIx::Class::Core/;
+use DBIx::Class::Core;
+use DB::WithParams;
+
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
+
+use base qw(DBIx::Class::Core DB::WithParams);
 
 # This is the table that stores problems for a given Problem Set.
 # Note: we probably also need to store the problem info if it changes.
@@ -24,7 +30,7 @@ __PACKAGE__->add_columns(
 		size        => 16,
 		is_nullable => 0,
 	},
-	user_id => {
+	user_set_id => {
 		data_type   => 'integer',
 		size        => 16,
 		is_nullable => 0,
@@ -35,19 +41,18 @@ __PACKAGE__->add_columns(
 		is_nullable => 0,
 	},
 	status => {
-		data_type   => 'integer',
+		data_type   => 'real',
 		size        => 16,
 		is_nullable => 0,
 	},
 	problem_version => {
-		data_type     => 'integer',
-		size          => 16,
-		is_nullable   => 0,
-		default_value => 1,
+		data_type   => 'integer',
+		size        => 16,
+		is_nullable => 1
 	},
-	params => {
+	problem_params => {
 		data_type          => 'text',
-		size               => 256,
+		size               => 1024,
 		is_nullable        => 0,
 		default_value      => '{}',
 		serializer_class   => 'JSON',
@@ -55,9 +60,35 @@ __PACKAGE__->add_columns(
 	}
 );
 
+sub valid_params ($=) {
+	return {
+		# positive integers or decimals
+		weight               => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},
+		library_id           => q{\d+},
+		file_path            => q{.*},
+		problem_pool_id      => q{\d+},
+		max_attempts         => q{^-?\d+$},
+		att_to_open_children => q{\d+},
+		last_answer          => q{^.*$},
+		prPeriod             => q{^-?\d+$},
+		prCount              => q{\d+},
+		counts_parent_grade  => q{[01]},
+		attempted            => q{\d+},
+		num_correct          => q{\d+},
+		num_incorrect        => q{\d+},
+		showMeAnotherCount   => q{\d+}
+	};
+}
+
+sub required_params ($=) {
+	return {};
+}
+
 __PACKAGE__->set_primary_key('user_problem_id');
 
-__PACKAGE__->belongs_to(problems     => 'DB::Schema::Result::Problem',    'problem_id');
-__PACKAGE__->belongs_to(course_users => 'DB::Schema::Result::CourseUser', 'user_id');
+__PACKAGE__->belongs_to(problems  => 'DB::Schema::Result::Problem', 'problem_id');
+__PACKAGE__->belongs_to(user_sets => 'DB::Schema::Result::UserSet', 'user_set_id');
+
+__PACKAGE__->has_many(attempts => 'DB::Schema::Result::Attempt', 'user_problem_id');
 
 1;

@@ -1,6 +1,6 @@
 # Collections in WeBWorK
 
-This is a data structure that is a bunch of problems.  There are a
+This is a data structure that is a bunch of problems.  In WeBWorK2, there  were a
 number of existing structures that fall into this:
 
 - HomeworkSet

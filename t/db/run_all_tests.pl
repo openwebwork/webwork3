@@ -6,7 +6,6 @@ use strict;
 # Run all tests in this directory.
 
 use TAP::Harness;
-use Data::Dump qw/dd/;
 use File::Basename qw/dirname/;
 
 my $test_dir = dirname(__FILE__);
