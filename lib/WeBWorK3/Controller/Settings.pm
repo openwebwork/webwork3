@@ -24,9 +24,11 @@ sub getDefaultCourseSettings ($self) {
 }
 
 sub getCourseSettings ($self) {
-	my $course_settings = $self->schema->resultset("Course")->getCourseSettings({
-		course_id => int($self->param("course_id")),
-	});
+	my $course_settings = $self->schema->resultset("Course")->getCourseSettings(
+		info => {
+			course_id => int($self->param("course_id")),
+		}
+	);
 	# Flatten to a single array.
 	my @course_settings = ();
 	for my $category (keys %$course_settings) {
@@ -39,8 +41,8 @@ sub getCourseSettings ($self) {
 }
 
 sub updateCourseSetting ($self) {
-	my $course_setting = $self->schema->resultset("Course")->updateCourseSettings(
-		{ course_id => $self->param("course_id") }, $self->req->json);
+	my $course_setting = $self->schema->resultset("Course")
+		->updateCourseSettings({ course_id => $self->param("course_id") }, $self->req->json);
 	$self->render(json => $course_setting);
 	return;
 }

@@ -1,27 +1,31 @@
 <template>
 	<q-page class="q-ma-p-lg">
+		<!-- The key attribute needs to be unique on the component so prefix it. -->
 		<homework-set-view
 			:set="problem_set"
+			:key="'HW' + set_id"
 			:reset_set_type="reset_set_type"
 			@update-set="updateSet"
 			@change-set-type="requestChangeSetType"
-			v-if="problem_set.set_type==='HW'" />
+			v-if="problem_set?.set_type==='HW'" />
 		<quiz-view
 			:set="problem_set"
+			:key="'QUIZ' + set_id"
 			@update-set="updateSet"
 			@change-set-type="requestChangeSetType"
-			v-else-if="problem_set.set_type==='QUIZ'" />
+			v-else-if="problem_set?.set_type==='QUIZ'" />
 		<review-set-view
 			:set="problem_set"
+			:key="'REVIEW_SET' + set_id"
 			@update-set="updateSet"
 			@change-set-type="requestChangeSetType"
-			v-else-if="problem_set.set_type==='REVIEW'" />
+			v-else-if="problem_set?.set_type==='REVIEW'" />
 	</q-page>
 	<q-dialog v-model="change_set_type_dialog" persistent>
 		<q-card>
 			<q-card-section class="row items-center">
 				<span class="q-ml-sm">You have requested that this set be converted from a
-					{{ problem_set.set_type }} to a {{ new_set_type.label }}.  You may lose
+					{{ problem_set?.set_type }} to a {{ new_set_type.label }}.  You may lose
 					information that the old set has that the new set does not have capabilities
 					of. Please select "Ok" or "Cancel".
 				</span>
@@ -43,7 +47,7 @@ import { logger } from 'boot/logger';
 
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { parseRouteSetID } from 'src/router/utils';
-import { ProblemSet, HomeworkSet, ReviewSet, Quiz } from 'src/common/models/problem_sets';
+import { ProblemSet, ProblemSetType, convertSet } from 'src/common/models/problem_sets';
 import HomeworkSetView from 'src/components/instructor/SetDetails/HomeworkSet.vue';
 import QuizView from 'src/components/instructor/SetDetails/Quiz.vue';
 import ReviewSetView from 'src/components/instructor/SetDetails/ReviewSet.vue';
@@ -61,24 +65,55 @@ export default defineComponent({
 		const $q = useQuasar();
 
 		const change_set_type_dialog = ref<boolean>(false);
-		const new_set_type = ref<{value?: string, label?: string}>({});
+		const new_set_type = ref<{value?: ProblemSetType, label?: string}>({});
 		// Used to reset the set type in the children views if the set type change is cancelled.
 		// This seems like overkill--perhaps a better way.
 		const reset_set_type = ref<string>('');
 		const set_id = computed(() => parseRouteSetID(route));
 		const problem_set = computed(() => problem_sets.problem_sets
-			.find((_set) => _set.set_id === set_id.value) ?? new ProblemSet());
+			.find((_set) => _set.set_id === set_id.value));
+		// avoid a race condition while updating a set
+		const updatePending = ref<boolean>(false);
 
-		const updateSet =  (set: ProblemSet) => {
+		const updateSet = async (set: ProblemSet) => {
+			logger.debug('[ProblemSetDetails] updating set');
+			if (updatePending.value) {
+				logger.debug('--- but there is already an update pending... race condition?');
+				return;
+			}
 			// if the entire set just changed, don't update.
-			if (problem_set.value.set_id === set.set_id) {
-				void problem_sets.updateSet(set);
-				const msg = `The problem set '${set.set_name}' was successfully updated.`;
-				logger.debug(`[ProblemSetDetails]: ${msg}`);
+			if (problem_set.value && problem_set.value.set_id === set.set_id) {
+				updatePending.value = true;
+				const { error, message } = await problem_sets.updateSet(set);
+				updatePending.value = false;
+				logger.debug(`[ProblemSetDetails/updateSet]: ${message}`);
 				$q.notify({
-					message: msg,
-					color: 'green'
+					message: message,
+					color: error ? 'red' : 'green'
 				});
+			}
+		};
+
+		const requestChangeSetType = (set_type: {value: ProblemSetType, label: string}) => {
+			logger.debug('ProblemSetDetails: Requesting a set type change');
+			change_set_type_dialog.value = true;
+			new_set_type.value = set_type;
+			// This is needed if the set type change is cancelled.
+			reset_set_type.value = '';
+		};
+
+		const cancelChangeSetType = () => {
+			// If the set type change is cancelled, reset the set type in any child of this.
+			if (problem_set.value) reset_set_type.value = problem_set.value.set_type;
+		};
+
+		const changeSetType = () => {
+			logger.debug('[ProblemSetDetails/changeSetType]');
+			if (problem_set.value && new_set_type.value.value) {
+				const updated_set = convertSet((problem_set.value as ProblemSet), new_set_type.value.value);
+				void updateSet(updated_set);
+			} else {
+				logger.error('[changeSetType] missing either problem_set or new_set_type?! TSNH');
 			}
 		};
 
@@ -89,75 +124,9 @@ export default defineComponent({
 			new_set_type,
 			reset_set_type,
 			updateSet,
-			requestChangeSetType: (set_type: {value: string, label: string}) => {
-				change_set_type_dialog.value = true;
-				new_set_type.value = set_type;
-				// This is needed if the set type change is cancelled.
-				reset_set_type.value = '';
-				logger.debug('ProblemSetDetails: Requesting a set type change');
-			},
-			cancelChangeSetType: () => {
-				// If the set type change is cancel, reset the set type in any child of this.
-				reset_set_type.value = problem_set.value.set_type;
-			},
-			// Change the type of the set.  Since the set_params don't really overlap (right now)
-			// this is just adjusting dates.
-			changeSetType: () => {
-				const problem_set_params = problem_set.value.toObject();
-				delete problem_set_params.set_params;
-				delete problem_set_params.set_dates;
-
-				// Try to best keep the dates consistent.
-				if (new_set_type.value.value === 'QUIZ') {
-					const new_quiz = new Quiz(problem_set_params);
-					if (problem_set.value instanceof HomeworkSet) {
-						new_quiz.set_dates.set({
-							open: problem_set.value.set_dates.open,
-							due: problem_set.value.set_dates.due,
-							answer: problem_set.value.set_dates.answer
-						});
-					} else if (problem_set.value instanceof ReviewSet) {
-						new_quiz.set_dates.set({
-							open: problem_set.value.set_dates.open,
-							due: problem_set.value.set_dates.closed,
-							answer: problem_set.value.set_dates.closed
-						});
-					}
-					updateSet(new_quiz);
-				} else if (new_set_type.value.value === 'REVIEW') {
-					const new_review_set = new ReviewSet(problem_set_params);
-					if (problem_set.value instanceof HomeworkSet || problem_set.value instanceof Quiz) {
-						new_review_set.set_dates.set({
-							open: problem_set.value.set_dates.open,
-							closed: problem_set.value.set_dates.due,
-						});
-					}
-					updateSet(new_review_set);
-				} else if (new_set_type.value.value === 'HW') {
-					const new_hw_set = new HomeworkSet(problem_set_params);
-					if (problem_set.value instanceof ReviewSet) {
-						new_hw_set.set_dates.set({
-							open: problem_set.value.set_dates.open,
-							reduced_scoring: problem_set.value.set_dates.closed,
-							due: problem_set.value.set_dates.closed,
-							answer: problem_set.value.set_dates.closed
-						});
-					} else if (problem_set.value instanceof Quiz) {
-						new_hw_set.set_dates.set({
-							open: problem_set.value.set_dates.open,
-							reduced_scoring: problem_set.value.set_dates.due,
-							due: problem_set.value.set_dates.due,
-							answer: problem_set.value.set_dates.answer
-						});
-					}
-					updateSet(new_hw_set);
-				} else {
-					logger.debug('ProblemSetDetails: oops, set type ' +
-						`${new_set_type.value.value ?? 'UNKNOWN'} not defined.`);
-					return;
-				}
-
-			}
+			requestChangeSetType,
+			cancelChangeSetType,
+			changeSetType
 		};
 	}
 });

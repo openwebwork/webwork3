@@ -6,10 +6,13 @@ use feature 'signatures';
 no warnings qw(experimental::signatures);
 
 use Text::CSV qw/csv/;
+use DateTime::Format::Strptime;
 
 require Exporter;
 use base qw(Exporter);
 our @EXPORT_OK = qw/buildHash loadCSV removeIDs filterBySetType loadSchema/;
+
+my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 
 =head1 DESCRIPTION
 
@@ -32,8 +35,15 @@ sub buildHash ($input) {
 			$output->{$key} = $input->{$key};
 		}
 	}
-	my @date_fields = keys %{ $output->{set_dates} };
-	delete $output->{set_dates} if (scalar(@date_fields) == 0);
+
+	# parse dates
+	if ($output->{set_dates}) {
+		for my $date (keys %{ $output->{set_dates} }) {
+			my $dt = $strp->parse_datetime($output->{set_dates}->{$date});
+			$output->{set_dates}->{$date} = $dt->epoch;
+		}
+	}
+
 	return $output;
 }
 

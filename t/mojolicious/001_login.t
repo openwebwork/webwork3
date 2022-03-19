@@ -6,6 +6,8 @@ use Test::More;
 use Test::Mojo;
 use YAML::XS qw/LoadFile/;
 
+use YAML::XS qw/LoadFile/;
+
 BEGIN {
 	use File::Basename qw/dirname/;
 	use Cwd qw/abs_path/;

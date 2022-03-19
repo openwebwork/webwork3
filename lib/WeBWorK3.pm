@@ -31,8 +31,10 @@ sub startup ($self) {
 	# Load the database and DBIC plugin
 	$self->plugin(
 		DBIC => {
-			schema =>
-				DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password})
+			schema => DB::Schema->connect(
+				$config->{database_dsn}, $config->{database_user},
+				$config->{database_password}, { quote_names => 1 }
+			)
 		}
 	);
 
@@ -75,7 +77,7 @@ sub startup ($self) {
 }
 
 sub load_account ($self, $user_id) {
-	my $user = $self->schema->resultset("User")->getGlobalUser({ username => $user_id });
+	my $user = $self->schema->resultset("User")->getGlobalUser(info => { username => $user_id });
 	return $user;
 }
 

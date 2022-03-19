@@ -1,3 +1,9 @@
+/**
+ * @jest-environment jsdom
+ */
+// The above is needed because the logger uses the window object, which is only present
+// when using the jsdom environment.
+
 // Tests for Quizzes
 
 import { Quiz, ProblemSet, ParseableQuizDates, ParseableQuizParams } from 'src/common/models/problem_sets';

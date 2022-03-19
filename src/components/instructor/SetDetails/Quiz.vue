@@ -41,6 +41,7 @@ import QuizDatesInput from './QuizDates.vue';
 import InputWithBlur from 'src/components/common/InputWithBlur.vue';
 import { Quiz, QuizDates } from 'src/common/models/problem_sets';
 import { problem_set_type_options } from 'src/common/views';
+import { logger } from 'src/boot/logger';
 
 export default defineComponent({
 	components: {
@@ -69,14 +70,14 @@ export default defineComponent({
 			set_type.value = props.reset_set_type;
 		});
 
-		watch(() => props.set, () => {
+		watch(() => props.set, (new_set, old_set) => {
+			logger.debug(`[Quiz] parent changed homework set from: ${old_set.set_name} to ${new_set.set_name}`);
 			quiz.value = props.set.clone();
-		}, { deep: true });
+		});
 
-		watch(() => quiz.value.clone(), (new_quiz, old_quiz) => {
-			if (JSON.stringify(new_quiz) !== JSON.stringify(old_quiz)) {
-				emit('updateSet', quiz.value);
-			}
+		watch(() => quiz.value, () => {
+			logger.debug('[Quiz] detected mutation in homework_set...');
+			emit('updateSet', quiz.value);
 		},
 		{ deep: true });
 
@@ -111,6 +112,7 @@ export default defineComponent({
 			set_options: problem_set_type_options,
 			quiz,
 			updateDates: (dates: QuizDates) => {
+				logger.debug('[Quiz/updateDates] setting dates on quiz.');
 				quiz.value.set_dates.set(dates.toObject());
 			},
 			quiz_duration
