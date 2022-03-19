@@ -4,6 +4,10 @@ import { defineStore } from 'pinia';
 import { ParseableUser } from 'src/common/models/users';
 import type { SessionInfo } from 'src/common/models/session';
 
+import { useUserStore } from 'src/stores/users';
+import { useSettingsStore } from 'src/stores/settings';
+import { useProblemSetStore } from 'src/stores/problem_sets';
+
 interface CourseInfo {
 	course_name: string;
 	course_id: number;
@@ -46,6 +50,9 @@ export const useSessionStore = defineStore('session', {
 			this.logged_in = false;
 			this.user = {};
 			this.course =  { course_id: 0, course_name: '' };
+			useProblemSetStore().clearAll();
+			useSettingsStore().clearAll();
+			useUserStore().clearAll();
 		}
 	}
 });

@@ -161,10 +161,14 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			this.merged_user_problems = user_problems.map(_problem => new MergedUserProblem(_problem));
 		},
 		// This clears out all data for use during logout.
-		clearSets(): void {
-			this.set_problems = [];
+		clearAll(): void {
 			this.set_problems = [];
 			this.merged_user_sets = [];
+
+			this.set_problems = [];
+			this.merged_user_sets = [];
+			this.user_problems = [];
+			this.merged_user_problems = [];
 		},
 		async addUserSet(user_set: UserSet) {
 			const course_id = useSessionStore().course.course_id;

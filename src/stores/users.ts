@@ -164,6 +164,13 @@ export const useUserStore = defineStore('user', {
 				logger.error(response.data);
 				throw response.data as ResponseError;
 			}
+		},
+		clearAll() {
+			this.users = [];
+			this.course_users = [];
+			this.merged_users = [];
+			this.user_courses = [];
+			this.set_users = [];
 		}
 	}
 
