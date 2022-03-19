@@ -64,6 +64,15 @@ const routes: RouteRecordRaw[] = [
 							)
 					},
 					{
+						path: 'sets',
+						name: 'ProblemSets',
+						component: () =>
+							import(
+								/* webpackChunkName: "ProblemSets" */
+								'pages/student/ProblemSets.vue'
+							)
+					},
+					{
 						path: 'sets/:set_id',
 						name: 'StudentProblemContainer',
 						component: () =>

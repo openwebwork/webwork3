@@ -164,7 +164,6 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		clearAll(): void {
 			this.set_problems = [];
 			this.merged_user_sets = [];
-
 			this.set_problems = [];
 			this.merged_user_sets = [];
 			this.user_problems = [];

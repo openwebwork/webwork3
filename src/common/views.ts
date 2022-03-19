@@ -34,7 +34,7 @@ export const student_views: Array<ViewInfo> = [
 	},
 	{
 		name: 'Problem Sets',
-		component_name: 'ProblemSetsContainer',
+		component_name: 'ProblemSets',
 		icon: 'preview',
 		route: 'sets',
 		sidebars: []
