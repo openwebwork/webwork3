@@ -78,12 +78,12 @@ export default defineComponent({
 			user: computed(() => session.user)
 		};
 	},
-	async created() {
+	created() {
 		// fetch the data when the view is created and the data is
 		// already being observed
 		const users = useUserStore();
 		const session = useSessionStore();
-		await users.fetchUserCourses(parseNonNegInt(session.user.user_id ?? 0));
+		void users.fetchUserCourses(parseNonNegInt(session.user.user_id ?? 0));
 	}
 });
 </script>

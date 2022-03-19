@@ -27,12 +27,12 @@ export default defineComponent({
 			});
 		}
 	},
-	async created() {
+	created() {
 		const problem_sets = useProblemSetStore();
 		const session = useSessionStore();
-		await problem_sets.fetchUserMergedUserSets(parseNonNegInt(session.user.user_id ?? 0));
-		await problem_sets.fetchMergedUserProblems(parseNonNegInt(session.user.user_id ?? 0));
-		await problem_sets.fetchSetProblems();
+		void problem_sets.fetchUserMergedUserSets(parseNonNegInt(session.user.user_id ?? 0));
+		void problem_sets.fetchMergedUserProblems(parseNonNegInt(session.user.user_id ?? 0));
+		void problem_sets.fetchSetProblems();
 	}
 });
 </script>

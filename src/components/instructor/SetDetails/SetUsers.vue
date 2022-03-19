@@ -54,11 +54,13 @@
 				<q-card-section class="q-pt-none">
 					<homework-dates-view
 						v-if="problem_set.set_type === 'HW'"
-						:dates="date_edit"
+						:dates="(date_edit as unknown as typeof HomeworkSetDates)"
 						:reduced_scoring="reduced_scoring"
 					/>
-					<quiz-dates-view v-if="problem_set.set_type ==='QUIZ'" :dates="date_edit" />
-					<review-set-dates-view v-if="problem_set.set_type ==='REVIEW'" :dates="date_edit" />
+					<quiz-dates-view v-if="problem_set.set_type ==='QUIZ'"
+						:dates="(date_edit as unknown as typeof QuizDates)" />
+					<review-set-dates-view v-if="problem_set.set_type ==='REVIEW'"
+						:dates="(date_edit as unknown as typeof ReviewSetDates)" />
 				</q-card-section>
 
 				<q-card-actions align="right">
@@ -128,11 +130,11 @@ export default defineComponent({
 
 		// This is needed for editing dates of a single user
 		const merged_user_set = ref<MergedUserSet>(new MergedUserSet());
-		const columns: Array<Column> = [
-			{ name: 'assign', label: 'Assign', align: 'center' },
+		const columns: Column[] = [
+			{ name: 'assign', label: 'Assign', field: 'assign', align: 'center' },
 			{ name: 'first_name', label: 'First Name', field: 'first_name' },
 			{ name: 'last_name', label: 'Last Name', field: 'last_name' },
-			{ name: 'edit_dates', label: 'Edit Dates', align: 'center' }
+			{ name: 'edit_dates', label: 'Edit Dates', field: 'edit_dates', align: 'center' }
 		];
 		const edit_dialog = ref<boolean>(false);
 		const date_edit = ref<Dictionary<number>>({});
@@ -398,16 +400,19 @@ export default defineComponent({
 				} else {
 					return false;
 				}
-			})
+			}),
+			HomeworkSetDates,
+			QuizDates,
+			ReviewSetDates
 		};
 	},
-	async created() {
+	created() {
 		// fetch the user sets for this set
 		const problem_sets = useProblemSetStore();
 		const route = useRoute();
 		if (route.params.set_id) {
 			logger.debug('Loading UserSets');
-			await problem_sets.fetchMergedUserSets({
+			void problem_sets.fetchMergedUserSets({
 				course_id: parseRouteCourseID(route),
 				set_id: parseRouteSetID(route)
 			});

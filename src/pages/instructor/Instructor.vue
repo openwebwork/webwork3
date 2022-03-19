@@ -30,7 +30,7 @@ export default defineComponent({
 			});
 		}
 	},
-	async created() {
+	created() {
 		// fetch most data needed for instructor views
 		const users = useUserStore();
 		const settings = useSettingsStore();
@@ -40,18 +40,18 @@ export default defineComponent({
 		const course_id = parseRouteCourseID(route);
 
 		logger.debug('[Intructor]: fetching users from the server.');
-		await users.fetchMergedUsers(course_id);
+		void users.fetchMergedUsers(course_id);
 
 		logger.debug('[Instructor]: fetch problem_sets from server');
-		await problem_sets.fetchProblemSets(course_id);
+		void problem_sets.fetchProblemSets(course_id);
 
 		logger.debug('[Intructor]: fetch settings from the server.');
-		await settings.fetchDefaultSettings();
-		await settings.fetchCourseSettings(course_id);
+		void settings.fetchDefaultSettings();
+		void settings.fetchCourseSettings(course_id);
 
 		// Set the language from the course settings.
 
-		await setI18nLanguage(settings.getCourseSetting('language').value as string);
+		void setI18nLanguage(settings.getCourseSetting('language').value as string);
 
 	}
 });
