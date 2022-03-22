@@ -66,8 +66,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 
 		},
 		async fetchSetProblems(): Promise<void> {
-			const sessionStore = useSessionStore();
-			const course_id = sessionStore.course.course_id;
+			const course_id = useSessionStore().course.course_id;
 
 			const response = await api.get(`courses/${course_id}/problems`);
 			const all_problems = response.data as Array<ParseableProblem>;
@@ -119,8 +118,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			});
 		},
 		async fetchCourseMergedUserSets(set_id: number): Promise<void> {
-			const sessionStore = useSessionStore();
-			const course_id = sessionStore.course.course_id;
+			const course_id = useSessionStore().course.course_id;
 
 			const url = `courses/${course_id}/sets/${set_id}/users`;
 			// console.log(url);
@@ -131,8 +129,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			this.merged_user_sets = user_sets.map(_set => new MergedUserSet(_set));
 		},
 		async fetchUserMergedUserSets(user_id: number): Promise<void> {
-			const sessionStore = useSessionStore();
-			const course_id = sessionStore.course.course_id;
+			const course_id = useSessionStore().course.course_id;
 
 			const url = `courses/${course_id}/users/${user_id}/sets`;
 			const response = await api.get(url);
@@ -141,8 +138,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		 	this.merged_user_sets = user_sets.map(_set => new MergedUserSet(_set));
 		},
 		async fetchUserProblems(user_id: number) {
-			const sessionStore = useSessionStore();
-			const course_id = sessionStore.course.course_id;
+			const course_id = useSessionStore().course.course_id;
 
 			const url = `courses/${course_id}/users/${user_id}/problems`;
 			const response = await api.get(url);
@@ -151,19 +147,29 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			this.user_problems = user_problems.map(_problem => new UserProblem(_problem));
 		},
 		async fetchMergedUserProblems(user_id: number) {
-			const sessionStore = useSessionStore();
-			const course_id = sessionStore.course.course_id;
-
-			const url = `courses/${course_id}/users/${user_id}/problems?merged=true`;
-			const response = await api.get(url);
+			const course_id = useSessionStore().course.course_id;
+			const response = await api.get(`courses/${course_id}/users/${user_id}/problems?merged=true`);
 			const user_problems = response.data as Array<ParseableMergedUserProblem>;
 			// TODO: check for errors
 			this.merged_user_problems = user_problems.map(_problem => new MergedUserProblem(_problem));
 		},
+		async addUserProblem(user_problem: UserProblem) {
+			const course_id = useSessionStore().course.course_id;
+			const response = await api.post(`courses/${course_id}/users/${user_problem.user_id}/problem`);
+			const new_user_problem = new UserProblem(response.data as ParseableUserProblem);
+			this.user_problems.push(new_user_problem);
+		},
+		// This is the same as above, but adds a merged user problem to the store.
+		async addMergedUserProblem(user_problem: UserProblem) {
+			const course_id = useSessionStore().course.course_id;
+			const response = await api.post(`courses/${course_id}/users/${user_problem.user_id}/problem?merged=true`);
+			const new_merged_user_problem = new MergedUserProblem(response.data as ParseableMergedUserProblem);
+			this.merged_user_problems.push(new_merged_user_problem);
+		},
+
 		// This clears out all data for use during logout.
 		clearAll(): void {
-			this.set_problems = [];
-			this.merged_user_sets = [];
+			this.problem_sets = [],
 			this.set_problems = [];
 			this.merged_user_sets = [];
 			this.user_problems = [];
@@ -176,6 +182,16 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			const merged_user_set = parseMergedUserSet(response.data as ParseableMergedUserSet);
 			if (merged_user_set) {
 				this.merged_user_sets.push(merged_user_set);
+			}
+
+			// Add user problems for the given user set.
+			const set_problems = this.set_problems.filter(prob => prob.set_id === merged_user_set?.set_id);
+			for await (const prob of set_problems) {
+				await this.addUserProblem(new UserProblem({
+					user_id: merged_user_set?.user_set_id,
+					problem_id: prob.problem_id,
+					seed: Math.floor(10000 * Math.random())
+				}));
 			}
 		},
 		async updateUserSet(set: UserSet) {

@@ -61,7 +61,7 @@ sub getUserProblems ($self) {
 	if ($self->param("merged") eq "true") {
 		$args{merged} = 1;
 	}
-	my @user_problems = $self->schema->resultset("UserProblem")->getCourseUserProblems(%args);
+	my @user_problems = $self->schema->resultset("UserProblem")->getUserProblems(%args);
 
 	# delete some unneeded fields before sending back
 	my @fields =
