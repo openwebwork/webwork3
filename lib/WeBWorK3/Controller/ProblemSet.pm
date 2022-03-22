@@ -78,13 +78,13 @@ sub deleteProblemSet ($self) {
 
 sub getUserSets ($self) {
 	my @user_sets;
-	my $params = { course_id => int($self->param("course_id")) };
+	my $info = { course_id => int($self->param("course_id")) };
 	if ($self->param("set_id")) {
-		$params->{set_id} = int($self->param("set_id"));
-		@user_sets = $self->schema->resultset("UserSet")->getUserSetsForSet($params);
+		$info->{set_id} = int($self->param("set_id"));
+		@user_sets = $self->schema->resultset("UserSet")->getUserSetsForSet(info => $info);
 	} elsif ($self->param("user_id")) {
-		$params->{user_id} = int($self->param("user_id"));
-		@user_sets = $self->schema->resultset("UserSet")->getUserSetsForUser($params);
+		$info->{user_id} = int($self->param("user_id"));
+		@user_sets = $self->schema->resultset("UserSet")->getUserSetsForUser(info => $info);
 	}
 	# Remove the course_name for each of the user sets.
 	for my $user_set (@user_sets) {
