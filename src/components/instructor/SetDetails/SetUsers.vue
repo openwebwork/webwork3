@@ -54,11 +54,17 @@
 				<q-card-section class="q-pt-none">
 					<homework-dates-view
 						v-if="problem_set.set_type === 'HW'"
-						:dates="date_edit"
+						:dates="(date_edit as HomeworkSetDates)"
 						:reduced_scoring="reduced_scoring"
 					/>
-					<quiz-dates-view v-if="problem_set.set_type ==='QUIZ'" :dates="date_edit" />
-					<review-set-dates-view v-if="problem_set.set_type ==='REVIEW'" :dates="date_edit" />
+					<quiz-dates-view
+						v-if="problem_set.set_type ==='QUIZ'"
+						:dates="(date_edit as QuizDates)"
+					/>
+					<review-set-dates-view
+						v-if="problem_set.set_type ==='REVIEW'"
+						:dates="(date_edit as ReviewSetDates)"
+					/>
 				</q-card-section>
 
 				<q-card-actions align="right">
@@ -374,6 +380,9 @@ export default defineComponent({
 		watch([problem_sets.merged_user_sets], updateProblemSet);
 
 		return {
+			HomeworkSetDates,
+			QuizDates,
+			ReviewSetDates,
 			columns,
 			users: computed(() => users.merged_users),
 			// produces the merge between users and user_sets for display
@@ -401,13 +410,13 @@ export default defineComponent({
 			})
 		};
 	},
-	async created() {
+	created() {
 		// fetch the user sets for this set
 		const problem_sets = useProblemSetStore();
 		const route = useRoute();
 		if (route.params.set_id) {
 			logger.debug('Loading UserSets');
-			await problem_sets.fetchMergedUserSets({
+			void problem_sets.fetchMergedUserSets({
 				course_id: parseRouteCourseID(route),
 				set_id: parseRouteSetID(route)
 			});

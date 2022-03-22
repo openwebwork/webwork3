@@ -8,9 +8,9 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
 	name: 'Admin',
-	async created() {
+	created() {
 		const courses = useCourseStore();
-		await courses.fetchCourses();
+		void courses.fetchCourses();
 	}
 });
 </script>
