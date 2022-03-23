@@ -156,7 +156,7 @@ export default defineComponent({
 							// just use the order of display.
 							problem.problem_number = index;
 							// Set the answerPrefix as well:
-							problem.render_params.answerPrefix = 'LIBRARY_';
+							problem.render_params.answerPrefix = `LIBRARY${index}_`;
 						}
 					});
 				}
