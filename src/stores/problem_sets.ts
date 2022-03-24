@@ -1,7 +1,10 @@
+// This store is for problem sets, user sets, merged user sets and set problems.
+
 import { api } from 'boot/axios';
 import { defineStore } from 'pinia';
 
-import { useSessionStore } from 'src/stores/session';
+import { useSessionStore } from './session';
+import { useUserStore } from './users';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
 import { MergedUserSet, ParseableMergedUserSet, parseMergedUserSet, UserSet } from 'src/common/models/user_sets';
@@ -10,18 +13,48 @@ import { LibraryProblem, SetProblem, ParseableProblem, parseProblem,
 import { logger } from 'src/boot/logger';
 import { ResponseError } from 'src/common/api-requests/interfaces';
 
+import { CourseUser, User } from 'src/common/models/users';
+
+const user_store = useUserStore();
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;
 	set_problems: Array<SetProblem>;
-	merged_user_sets: Array<MergedUserSet>;
+	user_sets: Array<UserSet>;
+}
+
+const createMergedUserSet = (user_set: UserSet, problem_set: ProblemSet, user: User) => {
+	return new MergedUserSet({
+		user_set_id: user_set.user_set_id,
+		set_id: user_set.set_id,
+		course_user_id: user_set.course_user_id,
+		set_version: user_set.set_version,
+		set_visible: user_set.set_visible,
+		set_name: problem_set.set_name,
+		username: user.username,
+		set_type: problem_set.set_type,
+		set_params: user_set.set_params,
+		set_dates: user_set.set_dates
+	});
 }
 
 export const useProblemSetStore = defineStore('problem_sets', {
 	state: (): ProblemSetState => ({
 		problem_sets: [],
 		set_problems: [],
-		merged_user_sets: []
+		user_sets: [],
 	}),
+	getters: {
+		// Returns all user sets merged with a user and a problem set.
+		merged_user_sets: (state) => state.user_sets.map(user_set => {
+			const course_user = user_store.course_users.find(u => u.user_id === user_set.course_user_id);
+			return createMergedUserSet(
+				user_set as UserSet,
+				state.problem_sets.find(set => set.set_id === user_set.set_id) as ProblemSet,
+				(user_store.users.find(u => u.user_id === course_user?.user_id) as User) ??
+					new User()
+			);
+		})
+	},
 	actions: {
 		async fetchProblemSets(course_id: number): Promise<void> {
 			const response = await api.get(`courses/${course_id}/sets`);
@@ -95,20 +128,6 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			// TODO: check for errors
 			const index = this.set_problems.findIndex(prob => prob.problem_id === deleted_problem.problem_id);
 			this.set_problems.splice(index, 1);
-		},
-		async fetchMergedUserSets(params: {course_id: number, set_id: number }): Promise<void> {
-			const response = await api.get(`courses/${params.course_id}/sets/${params.set_id}/users`);
-			const user_sets_to_parse = response.data as Array<ParseableMergedUserSet>;
-			const user_sets = user_sets_to_parse.map(_set => parseMergedUserSet(_set));
-			// TODO: check for errors
-			this.merged_user_sets = [];
-			user_sets.forEach(set => {
-				if (set) {
-					this.merged_user_sets.push(set);
-				} else {
-					logger.error('[stores/problem_sets/fetchMergedUserSets]: the set is not defined.');
-				}
-			});
 		},
 		async addUserSet(user_set: UserSet) {
 			const course_id = useSessionStore().course.course_id;
