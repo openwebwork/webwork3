@@ -239,10 +239,16 @@ export default defineComponent({
 			if (assigned) {
 				await assignUser(course_user_id);
 			} else {
-				const conf = confirm('Unassigning a user from a set cannot be undone.  Do you want to proceed?');
-				if (conf) {
-					await unassignUser(course_user_id);
-				}
+				$q.dialog({
+					message: 'Unassigning a user from a set cannot be undone.  Do you want to proceed?',
+					cancel: true,
+					persistent: true
+				}).onOk(() => {
+					void unassignUser(course_user_id);
+				}).onCancel(() => {
+					// return the user to the selected rows of the table.
+					updateUserSetInfo();
+				});
 			}
 		};
 

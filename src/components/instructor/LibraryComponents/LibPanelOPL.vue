@@ -164,7 +164,10 @@ export default defineComponent({
 			addProblem: async (prob: LibraryProblem) => {
 				const set_id = app_state.library_state.target_set_id;
 				if (set_id == 0) {
-					alert('You must select a target problem set');
+					$q.dialog({
+						message: 'You must select a target problem set',
+						persistent: true
+					});
 				} else {
 					try {
 						await problem_sets.addSetProblem({
