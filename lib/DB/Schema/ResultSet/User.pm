@@ -300,15 +300,20 @@ An hashref of the user or merged user or a C<DBIx::Class::ResultSet>
 
 sub getCourseUser ($self, %args) {
 
-	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
-	my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
-	my @keys   = keys %{ $args{info} };
+	my $course_user;
+	if (defined($args{info}->{course_user_id})) {
+		$course_user = $self->rs("CourseUser")->find({
+			course_user_id => $args{info}->{course_user_id}
+		});
+	} else {
+		my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+		my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
+		$course_user = $self->rs("CourseUser")->find({ course_id => $course->course_id, user_id => $user->user_id });
+		DB::Exception::UserNotInCourse->throw(
+			message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}"
+		) unless defined $course_user || $args{skip_throw};
 
-	my $course_user = $self->rs("CourseUser")->find({ course_id => $course->course_id, user_id => $user->user_id });
-
-	DB::Exception::UserNotInCourse->throw(
-		message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}")
-		unless defined $course_user || $args{skip_throw};
+	}
 
 	return $course_user if $args{as_result_set};
 
