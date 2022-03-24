@@ -299,8 +299,8 @@ An hashref of the user or merged user or a C<DBIx::Class::ResultSet>
 =cut
 
 sub getCourseUser ($self, %args) {
-
 	my $course_user;
+
 	if (defined($args{info}->{course_user_id})) {
 		$course_user = $self->rs("CourseUser")->find({
 			course_user_id => $args{info}->{course_user_id}
@@ -310,9 +310,8 @@ sub getCourseUser ($self, %args) {
 		my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
 		$course_user = $self->rs("CourseUser")->find({ course_id => $course->course_id, user_id => $user->user_id });
 		DB::Exception::UserNotInCourse->throw(
-			message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}"
-		) unless defined $course_user || $args{skip_throw};
-
+			message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}")
+			unless defined $course_user || $args{skip_throw};
 	}
 
 	return $course_user if $args{as_result_set};
