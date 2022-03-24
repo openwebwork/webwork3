@@ -15,6 +15,7 @@ export interface ParseableUserSet {
 	set_id?: number | string;
 	course_user_id?: number | string;
 	set_version?: number | string;
+	set_visible?: number | string | boolean;
 	set_params?: ProblemSetParams;
 	set_dates?: ProblemSetDates;
 }
@@ -24,12 +25,13 @@ export class UserSet extends Model {
 	private _set_id = 0;
 	private _course_user_id = 0;
 	private _set_version = 1;
+	private _set_visible?: boolean;
 	protected _set_type: ProblemSetType = ProblemSetType.UNKNOWN;
 
 	get set_dates(): ProblemSetDates { throw 'The subclass must override set_dates()'; }
 	get set_params(): ProblemSetParams { throw 'The subclass must override set_dates()'; }
 
-	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version'];
+	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version','set_visible'];
 
 	get all_field_names(): string[] {
 		return UserSet.ALL_FIELDS;
@@ -52,6 +54,7 @@ export class UserSet extends Model {
 		if (params.set_id != undefined) this.set_id = params.set_id;
 		if (params.course_user_id != undefined) this.course_user_id = params.course_user_id;
 		if (params.set_version != undefined) this.set_version = params.set_version;
+		if (params.set_visible != undefined) this._set_visible = parseBoolean(params.set_visible);
 	}
 
 	public get user_set_id(): number { return this._user_set_id;}
@@ -65,6 +68,11 @@ export class UserSet extends Model {
 
 	public get set_version(): number { return this._set_version;}
 	public set set_version(value: number | string) { this._set_version = parseNonNegInt(value);}
+
+	public get set_visible(): boolean | undefined { return this._set_visible;}
+	public set set_visible(value: number | string | boolean | undefined) {
+		if (value != undefined) this._set_visible = parseBoolean(value);
+	}
 
 	public hasValidDates(): boolean {
 		throw 'The subclass must override the hasValidDates() method.';
@@ -84,6 +92,7 @@ export interface ParseableUserHomeworkSet {
 	set_id?: number | string;
 	course_user_id?: number | string;
 	set_version?: number | string;
+	set_visible?: number | string | boolean;
 	set_params?: ParseableHomeworkSetParams;
 	set_dates?: ParseableHomeworkSetDates;
 }
@@ -93,7 +102,7 @@ export class UserHomeworkSet extends UserSet {
 	private _set_dates = new HomeworkSetDates();
 
 	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
-		'set_params', 'set_dates'];
+		'set_visible', 'set_params', 'set_dates'];
 
 	get all_field_names(): string[] {
 		return UserHomeworkSet.ALL_FIELDS;
@@ -129,6 +138,7 @@ export interface ParseableUserQuiz {
 	set_id?: number | string;
 	course_user_id?: number | string;
 	set_version?: number | string;
+	set_visible?: number | string | boolean;
 	set_params?: ParseableQuizParams;
 	set_dates?: ParseableQuizDates;
 }
@@ -138,7 +148,7 @@ export class UserQuiz extends UserSet {
 	private _set_dates = new QuizDates();
 
 	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
-		'set_params', 'set_dates'];
+		'set_visible', 'set_params', 'set_dates'];
 
 	get all_field_names(): string[] {
 		return UserQuiz.ALL_FIELDS;
@@ -175,6 +185,7 @@ export interface ParseableUserReviewSet {
 	set_id?: number | string;
 	course_user_id?: number | string;
 	set_version?: number | string;
+	set_visible?: number | string | boolean;
 	set_params?: ParseableReviewSetParams;
 	set_dates?: ParseableReviewSetDates;
 }
@@ -184,7 +195,7 @@ export class UserReviewSet extends UserSet {
 	private _set_dates = new ReviewSetDates();
 
 	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
-		'set_params', 'set_dates'];
+		'set_visible', 'set_params', 'set_dates'];
 
 	get all_field_names(): string[] {
 		return UserReviewSet.ALL_FIELDS;
@@ -235,7 +246,7 @@ export class MergedUserSet extends Model {
 	private _course_user_id = 0;
 	protected _set_type = '';
 	private _set_version = 1;
-	private _set_visible = false;
+	private _set_visible?: boolean;
 	private _set_name = '';
 	private _username = '';
 
@@ -283,8 +294,12 @@ export class MergedUserSet extends Model {
 	public get set_version(): number { return this._set_version;}
 	public set set_version(value: number | string) { this._set_version = parseNonNegInt(value);}
 
-	public get set_visible(): boolean { return this._set_visible; }
-	public set set_visible(value: number | string | boolean) { this._set_visible = parseBoolean(value);}
+	public get set_visible(): boolean | undefined { return this._set_visible; }
+	public set set_visible(value: number | string | boolean | undefined) {
+		if (value != undefined) {
+			this._set_visible = parseBoolean(value);
+		}
+	}
 
 	public get set_name(): string { return this._set_name; }
 	public set set_name(value: string) { this._set_name = value; }

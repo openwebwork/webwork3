@@ -19,7 +19,6 @@ test('Create a generic MergedUserSet', () => {
 		set_id: 0,
 		course_user_id: 0,
 		set_version: 1,
-		set_visible: false,
 		set_name: '',
 		username: ''
 	};
@@ -176,7 +175,6 @@ const default_merged_homework_set: ParseableMergedUserHomeworkSet = {
 	set_version: 1,
 	set_name: '',
 	username: '',
-	set_visible: false,
 	set_params: { enable_reduced_scoring: false },
 	set_dates: { open: 0, due: 0, reduced_scoring: 0, answer: 0 }
 };
@@ -304,7 +302,6 @@ test('Create a MergedUserQuiz', () => {
 		set_version: 1,
 		set_name: '',
 		username: '',
-		set_visible: false,
 		set_params: { timed: false, quiz_duration: 0 },
 		set_dates: { open: 0, due: 0, answer: 0 }
 	};
@@ -362,7 +359,6 @@ test('Create a MergedUserReviewSet', () => {
 		set_version: 1,
 		set_name: '',
 		username: '',
-		set_visible: false,
 		set_params: { test_param: false },
 		set_dates: { open: 0, closed: 0 }
 	};

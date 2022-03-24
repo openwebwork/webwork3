@@ -24,12 +24,12 @@ test('Create a generic UserSet', () => {
 	// Since UserSet has 'set_params' and 'set_dates' as placeholds for subclasses,
 	// don't call them in the toObject.
 	// TODO: find a better way to handle this.
-	const fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version'];
+	const fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_visible'];
 	expect(user_set.toObject(fields)).toStrictEqual(default_user_set);
 });
 
 test('Check that calling all_fields() and params() is correct', () => {
-	const user_set_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version'];
+	const user_set_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_visible'];
 	const user_set = new UserSet();
 
 	expect(user_set.all_field_names.sort()).toStrictEqual(user_set_fields.sort());
@@ -159,7 +159,7 @@ test('Create a UserHomeworkSet', () => {
 
 test('Check that calling all_fields() and params() is correct', () => {
 	const hw_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
-		'set_params', 'set_dates'];
+		'set_visible', 'set_params', 'set_dates'];
 	const hw = new UserHomeworkSet();
 
 	expect(hw.all_field_names.sort()).toStrictEqual(hw_fields.sort());
@@ -233,9 +233,9 @@ test('Create a UserQuiz', () => {
 	expect(user_quiz.toObject()).toStrictEqual(default_user_quiz);
 });
 
-test('Check that calling all_fields() and params() is correct', () => {
+test('Check that calling all_fields() and params() is correct for a quiz', () => {
 	const quiz_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
-		'set_params', 'set_dates'];
+		'set_visible', 'set_params', 'set_dates'];
 	const quiz = new UserQuiz();
 
 	expect(quiz.all_field_names.sort()).toStrictEqual(quiz_fields.sort());
@@ -306,9 +306,9 @@ test('Create a default UserReviewSet', () => {
 	expect(user_review_set.toObject()).toStrictEqual(default_user_review_set);
 });
 
-test('Check that calling all_fields() and params() is correct', () => {
+test('Check that calling all_fields() and params() is correct for a review set', () => {
 	const review_set_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
-		'set_params', 'set_dates'];
+		'set_visible', 'set_params', 'set_dates'];
 	const review = new UserReviewSet();
 
 	expect(review.all_field_names.sort()).toStrictEqual(review_set_fields.sort());
