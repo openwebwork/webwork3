@@ -50,12 +50,16 @@ export default defineComponent({
 		void problem_sets.fetchProblemSets(course_id);
 
 		logger.debug('[Intructor]: fetch settings from the server.');
-		void settings.fetchDefaultSettings();
-		void settings.fetchCourseSettings(course_id);
-
-		// Set the language from the course settings.
-
-		void setI18nLanguage(settings.getCourseSetting('language').value as string);
+		settings.fetchDefaultSettings().then(() => {
+			settings.fetchCourseSettings(course_id).then(() => {
+				// Set the language from the course settings.
+				void setI18nLanguage(settings.getCourseSetting('language').value as string);
+			}).catch((err) => {
+				logger.error(err);
+			});
+		}).catch((err) => {
+			logger.error(err);
+		});
 
 	}
 });

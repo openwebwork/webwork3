@@ -83,11 +83,10 @@ sub getAllUserSets ($self, %args) {
 	return @all_user_sets;
 }
 
-=head3 getUserSets
+=head3 getUserSetForSet
 
-This fetches a collection of user sets.  This could either be 1) a collection
-for a given problem set or 2) a collection for a given user (see arguments below)
-on how to specify.
+This fetches a collection of user sets for a given Set; that is this is collection
+of users within a set.
 
 This results a collection of three different types 1) a result set 2) a collection
 of user sets or 3) a collection of merged sets (problem sets with user overrides).
@@ -98,10 +97,8 @@ see below on how to specify with arguments.
 =over
 
 =item * C<info> a hashref specifying information on what type of UserSets
-are to be returns.  One must include either the course_id or course_name and if the
-collection is related to a ProblemSet, the specify either C<set_id> or C<set_name>
-otherwise if it is a collection related to a given user then specifiy either
-C<user_id> or C<username>
+are to be returned.  One must include either the course_id or course_name and either
+a C<set_id> or C<set_name>.
 
 =item * C<as_result_set>: boolean
 
@@ -121,33 +118,82 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 
 =cut
 
-sub getUserSets ($self, %args) {
-	my $course = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+sub getUserSetsForSet ($self, %args) {
+	my $course      = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
+	my @user_sets   = $self->search(
+		{ 'problem_sets.set_id' => $problem_set->set_id },
+		{
+			join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
+		}
+	);
 
-	my @user_sets;
+	# } elsif ($args{info}->{user_id} || $args{info}->{username}) {
+	# 	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
 
-	if ($args{info}->{set_id} || $args{info}->{set_name}) {
-		my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
-		@user_sets = $self->search(
-			{ 'problem_sets.set_id' => $problem_set->set_id },
-			{
-				join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
-			}
-		);
+	# 	@user_sets = $self->search(
+	# 		{ 'course_users.user_id' => $course_user->user_id },
+	# 		{
+	# 			join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
+	# 		}
+	# 	);
 
-	} elsif ($args{info}->{user_id} || $args{info}->{username}) {
-		my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
+	return @user_sets if $args{as_result_set};
 
-		@user_sets = $self->search(
-			{ 'course_users.user_id' => $course_user->user_id },
-			{
-				join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
-			}
-		);
-
-	} else {
-		# throw an error.
+	my @sets = ();
+	for my $user_set (@user_sets) {
+		my $params = $args{merged} ? _mergeUserSet($user_set) : _getUserSet($user_set);
+		delete $params->{type};
+		push(@sets, $params);
 	}
+
+	return @sets;
+}
+
+=head3 getUserSetForUser
+
+This fetches a collection of user sets for a given Set; that is this is collection
+of sets for a given user.
+
+This results a collection of three different types 1) a result set 2) a collection
+of user sets or 3) a collection of merged sets (problem sets with user overrides).
+see below on how to specify with arguments.
+
+=head3 arguments
+
+=over
+
+=item * C<info> a hashref specifying information on what type of UserSets
+are to be returned.  One must include either the course_id or course_name and either
+a C<user_id> or C<username>.
+
+=item * C<as_result_set>: boolean
+
+If C<as_result_set> is true, then the user sets are returned as a C<ResultSet>.
+See C<DBIx::Class::ResultSet> for more information
+
+=item * C<merged>: boolean
+
+This only pertains to if C<as_result_set> is false.
+
+If C<merged> is false, the result is an array of hashrefs of UserSet fields.
+
+If C<merged> is true, the result is an array of hashrefs of Merged User Sets.
+That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
+
+=over
+
+=cut
+
+sub getUserSetsForUser ($self, %args) {
+	my $course      = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
+	my @user_sets   = $self->search(
+		{ 'course_users.user_id' => $course_user->user_id },
+		{
+			join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
+		}
+	);
 
 	return @user_sets if $args{as_result_set};
 
@@ -264,7 +310,10 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 
 =cut
 
+use Data::Dumper;
+
 sub addUserSet ($self, %args) {
+	print Dumper \%args;
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{params}, as_result_set => 1);
 	my $course_user = $self->rs("User")->getCourseUser(info => $args{params}, as_result_set => 1);
 

@@ -59,6 +59,8 @@ import { defineComponent, computed, ref, watch } from 'vue';
 
 import { useUserStore } from 'src/stores/users';
 import { api } from 'boot/axios';
+import { logger } from 'src/boot/logger';
+
 import { User, MergedUser, CourseUser } from 'src/common/models/users';
 import { UserCourse } from 'src/common/models/courses';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
@@ -139,11 +141,8 @@ export default defineComponent({
 		];
 
 		watch(() => open_edit_dialog.value, () => {
-			// When the Edit Users Dialog closes
-			if (!open_edit_dialog.value) {
-				// clear the selected rows
-				selected.value = [];
-			}
+			// When the Edit Users Dialog closes clear the selected row.
+			if (!open_edit_dialog.value) selected.value = [];
 		});
 
 		return {
@@ -154,42 +153,47 @@ export default defineComponent({
 			open_edit_dialog,
 			columns,
 			merged_users: computed(() => users.merged_users),
-			deleteCourseUsers: async () => {
+			deleteCourseUsers: () => {
 				const users_to_delete = selected.value.map((u) => u.username).join(', ');
-				var conf = confirm(`Are you sure you want to delete the users: ${users_to_delete}`);
-				if (conf) {
-					for await (const user of selected.value) {
-						try {
-							await users.deleteCourseUser(new CourseUser(user));
+				$q.dialog({
+					message: `Are you sure you want to delete the users: ${users_to_delete}`,
+					cancel: true,
+					persistent: true
+				}).onOk(() => {
+					for (const user of selected.value) {
+						users.deleteCourseUser(new CourseUser(user)).then(() => {
 							$q.notify({
 								message: `The user '${
 									user.username ?? ''}' has been succesfully deleted from the course.`,
 								color: 'green'
 							});
-						} catch (err) {
+						}).catch((err) => {
 							const error = err as ResponseError;
 							$q.notify({ message: error.message, color: 'red' });
-						}
-						// delete the user if they have no other courses
-						const response = await api.get(`users/${user.user_id ?? ''}/courses`);
-						const user_courses = response.data as  Array<UserCourse>;
+						});
 
-						if (user_courses.length === 0) {
-							try {
-								await users.deleteUser(new User(user));
-								$q.notify({
-									message: `The user '${user.username ?? ''}' has been succesfully deleted.`,
-									color: 'green'
+						// Delete the user if they have no other courses
+						api.get(`users/${user.user_id ?? ''}/courses`).then((response) => {
+							const user_courses = response.data as  Array<UserCourse>;
+
+							if (user_courses.length === 0) {
+								users.deleteUser(new User(user)).then(() => {
+									$q.notify({
+										message: `The user '${user.username ?? ''}' has been succesfully deleted.`,
+										color: 'green'
+									});
+								}).catch((err) => {
+									const error = err as ResponseError;
+									$q.notify({ message: error.message, color: 'red' });
 								});
-							} catch (err) {
-								const error = err as ResponseError;
-								$q.notify({ message: error.message, color: 'red' });
 							}
-						}
-						void users.deleteMergedUser(new MergedUser(user));
-						selected.value = [];
+							void users.deleteMergedUser(new MergedUser(user));
+							selected.value = [];
+						}).catch((err) => {
+							logger.error(err);
+						});
 					}
-				}
+				});
 			}
 		};
 	}

@@ -138,16 +138,16 @@ export default defineComponent({
 			// Load all css files needed for the problem.
 			await Promise.all(css.map(
 				async (cssSource) => {
-					await loadResource(cssSource).
-						catch(() => logger.log('error', `Could not load ${cssSource}`));
+					await loadResource(cssSource)
+						.catch(() => logger.log('error', `Could not load ${cssSource}`));
 				}
 			));
 
 			// Load all js files needed for the problem.
 			await Promise.all(js.map(
 				async (jsSource) => {
-					await loadResource(jsSource).
-						catch(() => logger.log('error', `Could not load ${jsSource}`));
+					await loadResource(jsSource)
+						.catch(() => logger.log('error', `Could not load ${jsSource}`));
 				}
 			));
 

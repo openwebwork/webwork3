@@ -5,7 +5,7 @@ import { Problem } from 'src/common/models/problems';
 
 const default_render_params = {
 	problemSeed: 1234,
-	permission_level: 0,
+	permissionLevel: 0,
 	outputFormat: 'ww3',
 	answerPrefix: '',
 	sourceFilePath: '',
@@ -32,11 +32,11 @@ test('check setters/getters of basic problem', () => {
 	prob.render_params.problemSeed = 789;
 	expect(prob.render_params.problemSeed).toBe(789);
 
-	prob.render_params.permission_level = 10;
-	expect(prob.render_params.permission_level).toBe(10);
+	prob.render_params.permissionLevel = 10;
+	expect(prob.render_params.permissionLevel).toBe(10);
 
-	prob.render_params.permission_level = '5';
-	expect(prob.render_params.permission_level).toBe(5);
+	prob.render_params.permissionLevel = '5';
+	expect(prob.render_params.permissionLevel).toBe(5);
 
 	prob.render_params.outputFormat = 'xyz';
 	expect(prob.render_params.outputFormat).toBe('xyz');
@@ -99,11 +99,11 @@ test('check that set() works for basic problem', () => {
 	prob.setRenderParams({ problemSeed: 789 });
 	expect(prob.render_params.problemSeed).toBe(789);
 
-	prob.setRenderParams({ permission_level: 10 });
-	expect(prob.render_params.permission_level).toBe(10);
+	prob.setRenderParams({ permissionLevel: 10 });
+	expect(prob.render_params.permissionLevel).toBe(10);
 
-	prob.setRenderParams({ permission_level: '5' });
-	expect(prob.render_params.permission_level).toBe(5);
+	prob.setRenderParams({ permissionLevel: '5' });
+	expect(prob.render_params.permissionLevel).toBe(5);
 
 	prob.setRenderParams({ outputFormat: 'xyz' });
 	expect(prob.render_params.outputFormat).toBe('xyz');
@@ -163,9 +163,9 @@ test('Check that setting invalid parameters throw an error.', () => {
 	expect(() => { prob.render_params.problemSeed = '-1';}).toThrow(NonNegIntException);
 	expect(() => { prob.render_params.problemSeed = 'one';}).toThrow(NonNegIntException);
 
-	expect(() => { prob.render_params.permission_level = -1;}).toThrow(NonNegIntException);
-	expect(() => { prob.render_params.permission_level = '-1';}).toThrow(NonNegIntException);
-	expect(() => { prob.render_params.permission_level = 'one';}).toThrow(NonNegIntException);
+	expect(() => { prob.render_params.permissionLevel = -1;}).toThrow(NonNegIntException);
+	expect(() => { prob.render_params.permissionLevel = '-1';}).toThrow(NonNegIntException);
+	expect(() => { prob.render_params.permissionLevel = 'one';}).toThrow(NonNegIntException);
 
 	expect(() => { prob.render_params.showHints = -1;}).toThrow(BooleanParseException);
 	expect(() => { prob.render_params.showHints = 2;}).toThrow(BooleanParseException);
@@ -179,9 +179,9 @@ test('Check that setting invalid parameters throw an error.', () => {
 
 test('Check that setting invalid parameters via the setRenderParams() method throws an error', () => {
 	const prob = new Problem();
-	expect(() => { prob.setRenderParams({ permission_level: -1 });}).toThrow(NonNegIntException);
-	expect(() => { prob.setRenderParams({ permission_level: -1 });}).toThrow(NonNegIntException);
-	expect(() => { prob.setRenderParams({ permission_level: -1 });}).toThrow(NonNegIntException);
+	expect(() => { prob.setRenderParams({ permissionLevel: -1 });}).toThrow(NonNegIntException);
+	expect(() => { prob.setRenderParams({ permissionLevel: -1 });}).toThrow(NonNegIntException);
+	expect(() => { prob.setRenderParams({ permissionLevel: -1 });}).toThrow(NonNegIntException);
 
 	expect(() => { prob.setRenderParams({ showCheckAnswersButton: 2 });}).toThrow(BooleanParseException);
 	expect(() => { prob.setRenderParams({ showCheckAnswersButton: '-1' });}).toThrow(BooleanParseException);

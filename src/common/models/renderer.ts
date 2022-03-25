@@ -13,7 +13,7 @@ export interface LibraryParams {
 
 export interface ParseableRenderParams {
 	problemSeed?: number | string;
-	permission_level?: number | string;
+	permissionLevel?: number | string;
 	outputFormat?: string;
 	answerPrefix?: string;
 	showHints?: number | string | boolean;
@@ -26,7 +26,7 @@ export interface ParseableRenderParams {
 
 export class RenderParams extends Model {
 	private _problemSeed = 1234;
-	private _permission_level = 0;
+	private _permissionLevel = 0;
 	private _outputFormat = 'ww3';
 	private _answerPrefix = '';
 	private _sourceFilePath = '';
@@ -42,7 +42,7 @@ export class RenderParams extends Model {
 	}
 
 	get all_field_names(): string[] {
-		return ['problemSeed', 'permission_level', 'outputFormat', 'answerPrefix',
+		return ['problemSeed', 'permissionLevel', 'outputFormat', 'answerPrefix',
 			'sourceFilePath', 'showHints', 'showSolutions', 'showPreviewButton',
 			'showCheckAnswersButton', 'showCorrectAnswersButton'];
 	}
@@ -50,7 +50,7 @@ export class RenderParams extends Model {
 
 	set(params: ParseableRenderParams) {
 		if (params.problemSeed != undefined) this.problemSeed = params.problemSeed;
-		if (params.permission_level != undefined) this.permission_level = params.permission_level;
+		if (params.permissionLevel != undefined) this.permissionLevel = params.permissionLevel;
 		if (params.outputFormat != undefined) this.outputFormat = params.outputFormat;
 		if (params.answerPrefix != undefined) this.answerPrefix = params.answerPrefix;
 		if (params.sourceFilePath != undefined) this.sourceFilePath = params.sourceFilePath;
@@ -66,8 +66,8 @@ export class RenderParams extends Model {
 	public get problemSeed() : number { return this._problemSeed;}
 	public set problemSeed(value: number | string) { this._problemSeed = parseNonNegInt(value);}
 
-	public get permission_level() : number { return this._permission_level;}
-	public set permission_level(value: number | string) { this._permission_level = parseNonNegInt(value);}
+	public get permissionLevel() : number { return this._permissionLevel;}
+	public set permissionLevel(value: number | string) { this._permissionLevel = parseNonNegInt(value);}
 
 	public get outputFormat() : string { return this._outputFormat;}
 	public set outputFormat(value: string) { this._outputFormat = value;}

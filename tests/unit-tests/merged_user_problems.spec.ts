@@ -5,7 +5,7 @@ import { ProblemType, MergedUserProblem } from 'src/common/models/problems';
 
 const default_render_params = {
 	problemSeed: 1234,
-	permission_level: 0,
+	permissionLevel: 0,
 	outputFormat: 'ww3',
 	answerPrefix: '',
 	sourceFilePath: '',
