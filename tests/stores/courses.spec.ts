@@ -5,29 +5,68 @@ import { setActivePinia, createPinia } from 'pinia';
 import { useCourseStore } from 'src/stores/courses';
 import { createApp } from 'vue';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import papa from 'papaparse';
+import fs from 'fs';
+import { CourseSetting } from 'src/common/models/settings';
+import { parseBoolean } from 'src/common/models/parsers';
+import { Dictionary } from 'src/common/models';
+import { Course, ParseableCourse } from 'src/common/models/courses';
 
 const app = createApp({});
 
+
+
+const convertCourses = (data: Dictionary<string>[]): ParseableCourse[] => {
+	return data.map(row => ({
+		course_name: row.course_name,
+		visible: parseBoolean(row.visible),
+		// course_params: Object.entries(row)
+		// 	.reduce((prev: Dictionary<string|number|Dictionary<string>>, [key, value]) => {
+		// 		const parse_params = /PARAMS:(\w+)(:(\w+))?$/.exec(key);
+		// 		if (parse_params) {
+		// 			const obj = (prev[parse_params[1]] ?? {}) as Dictionary<string>;
+		// 			obj[parse_params[3] as string] = value;
+		// 			prev[parse_params[1]] = obj;
+		// 		}
+		// 		return prev;
+		// 	}, {}),
+		course_dates: Object.entries(row)
+			.reduce((prev: Dictionary<string|number>, [key, value]) => {
+				const parse_dates = /DATES:(\w+)?$/.exec(key);
+				if (parse_dates) {
+					prev[parse_dates[1]] = value;
+				}
+				return prev;
+			},{})
+	}));
+};
+
 describe('Set up the Course Store', () => {
+	let courses_from_csv: ParseableCourse[];
 	beforeEach(() => {
-		// creates a fresh pinia and make it active so it's automatically picked
-		// up by any useStore() call without having to pass it to it:
-		// `useStore(pinia)`
+		// Since we have the piniaPluginPersistedState as a plugin, duplicate for the test.
 		const pinia = createPinia().use(piniaPluginPersistedstate);
 		app.use(pinia);
 		setActivePinia(pinia);
 
-		// setActivePinia(createPinia());
+		// read the courses.csv file
+		papa.parse(fs.createReadStream('t/db/sample_data/courses.csv'), {
+			header: true,
+			complete: function(results) {
+				courses_from_csv = convertCourses(results.data as { [key: string]: string }[]);
+			}
+		});
 	});
 
 	test('Fetch the courses', async () => {
-		// The following is not working right now.
 		const course_store = useCourseStore();
-
 		await course_store.fetchCourses();
+		const all_courses = course_store.courses.map(course => ({
+			course_name: course.course_name,
+			visible: course.visible,
+			course_dates: {...course.course_dates}
+		}));
 
-		expect(course_store.courses.length).toBeGreaterThan(0);
-
-		expect(1).toBe(1);
+		expect(all_courses).toStrictEqual(courses_from_csv);
 	});
 });

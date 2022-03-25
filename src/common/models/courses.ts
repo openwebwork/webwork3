@@ -45,7 +45,7 @@ export class Course extends Model {
 	private _course_id = 0;
 	private _course_name = '';
 	private _visible = true;
-	private course_dates = new CourseDates();
+	private _course_dates = new CourseDates();
 
 	get all_field_names(): string[] {
 		return Course.ALL_FIELDS;
@@ -54,6 +54,8 @@ export class Course extends Model {
 	get param_fields(): string[] {
 		return ['course_dates'];
 	}
+
+	get course_dates() { return this._course_dates; }
 
 	static ALL_FIELDS = ['course_id', 'course_name', 'visible', 'course_dates'];
 
