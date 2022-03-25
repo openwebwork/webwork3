@@ -422,7 +422,7 @@ export default defineComponent({
 		const route = useRoute();
 		if (route.params.set_id) {
 			logger.debug('Loading UserSets');
-			void problem_sets.fetchMergedUserSets({
+			void problem_sets.fetchUserSets({
 				course_id: parseRouteCourseID(route),
 				set_id: parseRouteSetID(route)
 			});

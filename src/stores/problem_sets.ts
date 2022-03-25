@@ -7,13 +7,14 @@ import { useSessionStore } from './session';
 import { useUserStore } from './users';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
-import { MergedUserSet, ParseableMergedUserSet, parseMergedUserSet, UserSet } from 'src/common/models/user_sets';
+import { MergedUserSet, ParseableMergedUserSet, ParseableUserSet, parseMergedUserSet,
+	parseUserSet, UserSet } from 'src/common/models/user_sets';
 import { LibraryProblem, SetProblem, ParseableProblem, parseProblem,
 	ParseableSetProblem } from 'src/common/models/problems';
 import { logger } from 'src/boot/logger';
 import { ResponseError } from 'src/common/api-requests/interfaces';
 
-import { CourseUser, User } from 'src/common/models/users';
+import { User } from 'src/common/models/users';
 
 const user_store = useUserStore();
 export interface ProblemSetState {
@@ -35,7 +36,7 @@ const createMergedUserSet = (user_set: UserSet, problem_set: ProblemSet, user: U
 		set_params: user_set.set_params,
 		set_dates: user_set.set_dates
 	});
-}
+};
 
 export const useProblemSetStore = defineStore('problem_sets', {
 	state: (): ProblemSetState => ({
@@ -137,6 +138,11 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			if (merged_user_set) {
 				this.merged_user_sets.push(merged_user_set);
 			}
+		},
+		async fetchUserSets(params: { course_id: number; set_id: number}) {
+			const response = await api.get(`courses/${params.course_id}/sets/${params.set_id}/users`);
+			const user_sets_to_parse = response.data as ParseableUserSet[];
+			this.user_sets = user_sets_to_parse.map(user_set => parseUserSet(user_set));
 		},
 		async updateUserSet(set: UserSet) {
 			const sessionStore = useSessionStore();

@@ -14,6 +14,7 @@ export interface ParseableUserSet {
 	user_set_id?: number | string;
 	set_id?: number | string;
 	course_user_id?: number | string;
+	set_type?: string;
 	set_version?: number | string;
 	set_visible?: number | string | boolean;
 	set_params?: ProblemSetParams;
@@ -31,7 +32,7 @@ export class UserSet extends Model {
 	get set_dates(): ProblemSetDates { throw 'The subclass must override set_dates()'; }
 	get set_params(): ProblemSetParams { throw 'The subclass must override set_dates()'; }
 
-	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version','set_visible'];
+	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_visible'];
 
 	get all_field_names(): string[] {
 		return UserSet.ALL_FIELDS;
@@ -220,6 +221,18 @@ export class UserReviewSet extends UserSet {
 
 	public clone() {
 		return new UserReviewSet(this.toObject());
+	}
+}
+
+export function parseUserSet(user_set: ParseableUserSet) {
+	if (user_set.set_type === 'HW') {
+		return new UserHomeworkSet(user_set as ParseableUserHomeworkSet);
+	} else if (user_set.set_type === 'QUIZ') {
+		return new UserQuiz(user_set as ParseableUserQuiz);
+	} else if (user_set.set_type === 'REVIEW') {
+		return new UserReviewSet(user_set as ParseableUserReviewSet);
+	} else {
+		return new UserSet(user_set);
 	}
 }
 
