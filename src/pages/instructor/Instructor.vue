@@ -20,47 +20,34 @@ export default defineComponent({
 		course_name: String,
 		course_id: String
 	},
-	setup() {
+	async setup() {
 		const session = useSessionStore();
-		const users = useUserStore();
-		const route = useRoute();
-
-		const course_id = parseRouteCourseID(route);
-		const course = users.user_courses.find(c => c.course_id === course_id);
-		if (course) {
-			void session.setCourse({
-				course_id,
-				course_name: course.course_name
-			});
-		}
-	},
-	created() {
-		// fetch most data needed for instructor views
 		const users = useUserStore();
 		const settings = useSettingsStore();
 		const problem_sets = useProblemSetStore();
 		const route = useRoute();
 
 		const course_id = parseRouteCourseID(route);
-
-		logger.debug('[Intructor]: fetching users from the server.');
-		void users.fetchMergedUsers(course_id);
-
-		logger.debug('[Instructor]: fetch problem_sets from server');
-		void problem_sets.fetchProblemSets(course_id);
-
-		logger.debug('[Intructor]: fetch settings from the server.');
-		settings.fetchDefaultSettings().then(() => {
-			settings.fetchCourseSettings(course_id).then(() => {
-				// Set the language from the course settings.
-				void setI18nLanguage(settings.getCourseSetting('language').value as string);
-			}).catch((err) => {
-				logger.error(err);
+		if (session.user.user_id) await users.fetchUserCourses(session.getUser.user_id)
+			.then(() => {
+				const course = users.user_courses.find(c => c.course_id === course_id);
+				if (course) {
+					session.setCourse({
+						course_id,
+						course_name: course.course_name
+					});
+				} else {
+					logger.warn(`Can't find ${course_id} in ${users.user_courses.map((c) => c.course_id).join(', ')}`);
+				}
 			});
-		}).catch((err) => {
-			logger.error(err);
-		});
 
-	}
+		await users.fetchMergedUsers(course_id);
+		await problem_sets.fetchProblemSets(course_id);
+		await settings.fetchDefaultSettings()
+			.then(() => settings.fetchCourseSettings(course_id))
+			.then(() => void setI18nLanguage(settings.getCourseSetting('language').value as string))
+			.catch((err) => logger.error(`${JSON.stringify(err)}`));
+
+	},
 });
 </script>
