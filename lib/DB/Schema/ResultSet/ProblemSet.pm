@@ -333,7 +333,9 @@ sub addProblemSet {
 	my $set_params = clone $args{params};
 	$set_params->{type} = $SET_TYPES->{ $set_params->{set_type} || 'HW' };
 	# Delete a few fields that may be passed in but are not in the database
-	for my $key (qw/course_id course_name set_type/) {
+	# Note: on client-side set_id=0 means that the set is new, so delete this
+	#  and it will be determined.
+	for my $key (qw/course_id course_name set_type set_id/) {
 		delete $set_params->{$key} if defined $set_params->{$key};
 	}
 

@@ -15,7 +15,7 @@ export const useCourseStore = defineStore('courses', {
 	actions: {
 		async fetchCourses() : Promise<void> {
 			const response = await api.get('courses');
-			this.courses = response.data as Course[];
+			this.courses = (response.data as ParseableCourse[]).map(course => new Course(course));
 		},
 		async addCourse(course: Course): Promise<Course> {
 			const response = await api.post('courses', course);

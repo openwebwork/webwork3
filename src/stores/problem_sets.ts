@@ -16,7 +16,6 @@ import { ResponseError } from 'src/common/api-requests/interfaces';
 
 import { User } from 'src/common/models/users';
 
-const user_store = useUserStore();
 export interface ProblemSetState {
 	problem_sets: Array<ProblemSet>;
 	set_problems: Array<SetProblem>;
@@ -47,6 +46,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 	getters: {
 		// Returns all user sets merged with a user and a problem set.
 		merged_user_sets: (state) => state.user_sets.map(user_set => {
+			const user_store = useUserStore();
 			const course_user = user_store.course_users.find(u => u.user_id === user_set.course_user_id);
 			return createMergedUserSet(
 				user_set as UserSet,
@@ -54,7 +54,12 @@ export const useProblemSetStore = defineStore('problem_sets', {
 				(user_store.users.find(u => u.user_id === course_user?.user_id) as User) ??
 					new User()
 			);
-		})
+		}),
+		// Return a Problem Set from a set_id or set_name
+		getProblemSet: (state) => (set_info: {set_id?: number, set_name?: string}) =>
+			set_info.set_id ?
+				state.problem_sets.find(set => set.set_id === set_info.set_id) :
+				state.problem_sets.find(set => set.set_name === set_info.set_name)
 	},
 	actions: {
 		async fetchProblemSets(course_id: number): Promise<void> {
@@ -63,9 +68,14 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			logger.debug(`[problem_sets/fetchProblemSets] parsing response: ${sets_to_parse.join(', ')}`);
 			this.problem_sets = sets_to_parse.map((set) => parseProblemSet(set));
 		},
+		async addProblemSet(set: ProblemSet): Promise<ProblemSet> {
+			const response = await api.post(`courses/${set.course_id}/sets`, set.toObject());
+			const new_set = parseProblemSet(response.data as ParseableProblemSet);
+			this.problem_sets.push(new_set);
+			return new_set;
+		},
 		async updateSet(set: ProblemSet): Promise<{ error: boolean; message: string }> {
-			const course_id = useSessionStore().course.course_id;
-			const response = await api.put(`courses/${course_id}/sets/${set.set_id}`, set.toObject());
+			const response = await api.put(`courses/${set.course_id}/sets/${set.set_id}`, set.toObject());
 			let message = '';
 			let is_error = false;
 			if (response.status === 200) {
@@ -93,6 +103,16 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			// logger.error(`Problem set #${_set.set_id ?? 0} failed to update properly.`);
 			// }
 
+		},
+		async deleteProblemSet(set: ProblemSet) {
+			const response = await api.delete(`courses/${set.course_id}/sets/${set.set_id}`);
+			const set_to_delete = parseProblemSet(response.data as ParseableProblemSet);
+			const index = this.problem_sets.findIndex(set => set.set_id === set_to_delete.set_id);
+			if (index >= 0) {
+				this.problem_sets.splice(index, 1);
+			}
+			// TODO: what if this fails
+			return set_to_delete;
 		},
 		async fetchSetProblems(course_id: number): Promise<void> {
 			const response = await api.get(`courses/${course_id}/problems`);

@@ -1,3 +1,9 @@
+/**
+ * @jest-environment jsdom
+ */
+// The above is needed because the logger uses the window object, which is only present
+// when using the jsdom environment.
+
 // courses.spec.ts
 // Test the Course Store
 
@@ -15,21 +21,10 @@ import { Course, ParseableCourse } from 'src/common/models/courses';
 const app = createApp({});
 
 
-
 const convertCourses = (data: Dictionary<string>[]): ParseableCourse[] => {
 	return data.map(row => ({
 		course_name: row.course_name,
 		visible: parseBoolean(row.visible),
-		// course_params: Object.entries(row)
-		// 	.reduce((prev: Dictionary<string|number|Dictionary<string>>, [key, value]) => {
-		// 		const parse_params = /PARAMS:(\w+)(:(\w+))?$/.exec(key);
-		// 		if (parse_params) {
-		// 			const obj = (prev[parse_params[1]] ?? {}) as Dictionary<string>;
-		// 			obj[parse_params[3] as string] = value;
-		// 			prev[parse_params[1]] = obj;
-		// 		}
-		// 		return prev;
-		// 	}, {}),
 		course_dates: Object.entries(row)
 			.reduce((prev: Dictionary<string|number>, [key, value]) => {
 				const parse_dates = /DATES:(\w+)?$/.exec(key);

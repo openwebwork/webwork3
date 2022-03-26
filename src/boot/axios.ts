@@ -14,10 +14,7 @@ declare module '@vue/runtime-core' {
 // "export default () => {}" function below (which runs individually
 // for each client)
 
-// Create a different setup for axios if it is in testing mode:
-const api = process.env.JEST_WORKER_ID ?
-	axios.create({ baseURL: 'http://localhost:3000/webwork3/api' }) :
-	axios.create({ baseURL: (process.env.VUE_ROUTER_BASE ?? '') + 'api' });
+const api = axios.create({ baseURL: (process.env.VUE_ROUTER_BASE ?? '') + 'api' });
 
 export default boot(({ app }) => {
 	// for use inside Vue files (Options API) through this.$axios and this.$api

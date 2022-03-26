@@ -196,6 +196,7 @@ class SetProblemParams extends Model {
 	}
 
 	set(params: ParseableSetProblemParams) {
+		console.log(params);
 		if (params.weight != undefined) this.weight = params.weight;
 		if (params.library_id != undefined) this.library_id = params.library_id;
 		if (params.file_path != undefined) this.file_path = params.file_path;

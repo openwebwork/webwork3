@@ -105,6 +105,7 @@ export function parseNonNegInt(val: string | number) {
 	if (/^\s*(\d+)\s*$/.test(`${val}`)) {
 		return parseInt(`${val}`);
 	} else {
+		console.log(val);
 		throw new NonNegIntException(`The value ${val} is not a non-negative integer`);
 	}
 }
