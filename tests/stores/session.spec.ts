@@ -3,19 +3,19 @@
 
 import { setActivePinia, createPinia } from 'pinia';
 import { SessionInfo } from 'src/common/models/session';
-import { ParseableUser } from 'src/common/models/users';
+import { User } from 'src/common/models/users';
 import { useSessionStore } from 'src/stores/session';
 
 // Some common objects.
 
-const user: ParseableUser = {
+const user: User = new User({
 	first_name: 'Homer',
 	last_name: 'Simpson',
 	user_id: 1234,
 	email: 'homer@msn.com',
 	username: 'homer',
 	is_admin: false
-};
+});
 
 const session_info: SessionInfo = {
 	logged_in: true,
