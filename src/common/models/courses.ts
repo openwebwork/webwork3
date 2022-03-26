@@ -76,7 +76,7 @@ export class Course extends Model {
 		this.course_dates.set(date_params as Dictionary<generic>);
 	}
 
-	get course_id() { return this._course_id; }
+	get course_id(): number { return this._course_id; }
 	set course_id(value: string | number) {
 		this._course_id = parseNonNegInt(value);
 	}
@@ -154,7 +154,7 @@ export class UserCourse extends Model {
 		this.course_dates.set(date_params as Dictionary<generic>);
 	}
 
-	get course_id() { return this._course_id; }
+	get course_id(): number { return this._course_id; }
 	set course_id(value: string | number) {
 		this._course_id = parseNonNegInt(value);
 	}

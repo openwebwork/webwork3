@@ -78,16 +78,16 @@ $t->post_ok("/webwork3/api/users" => json => $new_user)->status_is(200)
 # Add the user to a course.
 my $new_user_id        = $t->tx->res->json('/user_id');
 my $course_user_params = {
-	user_id => $new_user_id,
-	role    => "student",
-	params  => {
+	user_id            => $new_user_id,
+	role               => "student",
+	course_user_params => {
 		comment => "I love my big sister"
 	}
 };
 
 $t->post_ok("/webwork3/api/courses/2/users" => json => $course_user_params)->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/role' => $course_user_params->{role})
-	->json_is('/params/comment' => $course_user_params->{params}->{comment});
+	->json_is('/course_user_params/comment' => $course_user_params->{course_user_params}->{comment});
 
 # Update the new user.
 $new_user->{recitation} = 2;
@@ -127,14 +127,13 @@ $t->delete_ok("/webwork3/api/courses/2/users/$new_user_id")->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/user_id' => $new_user_id);
 
 if ($TEST_PERMISSIONS) {
+	print "HERE!!!\n";
 	$t->post_ok("/webwork3/api/logout")->status_is(200)->json_is('/logged_in' => 0);
-}
 
-# Check that a non_admin user has proper access.
-my @all_users   = $schema->resultset("User")->getCourseUsers({ course_id => 1 });
-my @instructors = grep { $_->{role} eq 'instructor' } @all_users;
+	# Check that a non_admin user has proper access.
+	my @all_users   = $schema->resultset("User")->getCourseUsers(info => { course_id => 1 });
+	my @instructors = grep { $_->{role} eq 'instructor' } @all_users;
 
-if ($TEST_PERMISSIONS) {
 	$t->post_ok(
 		"/webwork3/api/username" => json => {
 			email    => $instructors[0]->{email},

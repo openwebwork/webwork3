@@ -1,6 +1,8 @@
 /**
  * @jest-environment jsdom
  */
+// The above is needed because the logger uses the window object, which is only present
+// when using the jsdom environment.
 
 // Test Merged User Sets
 

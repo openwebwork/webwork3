@@ -27,14 +27,14 @@ export const fetchSubjects = async (lib_id: LibraryID) => {
 };
 
 export const fetchChapters = async (lib_id: LibraryID) => {
-	const url = `/opl/api/taxo/disciplines/${lib_id.disc_id}/subjects/${lib_id.subj_id ?? 0}/chapters`;
-	const response = await axios.get(url);
+	const response = await axios.get(`/opl/api/taxo/disciplines/${
+		lib_id.disc_id}/subjects/${lib_id.subj_id ?? 0}/chapters`);
 	return response.data as Array<LibraryCategory>;
 };
 
 export const fetchSections = async (lib_id: LibraryID) => {
-	const url = `${lib_id.disc_id}/subjects/${lib_id.subj_id ?? 0}/chapters/${lib_id.chap_id ?? 0}`;
-	const response = await axios.get(`/opl/api/taxo/disciplines/${url}/sections`);
+	const response = await axios.get(`/opl/api/taxo/disciplines/${lib_id.disc_id}/subjects/${
+		lib_id.subj_id ?? 0}/chapters/${lib_id.chap_id ?? 0}/sections`);
 	return response.data as Array<LibraryCategory>;
 };
 

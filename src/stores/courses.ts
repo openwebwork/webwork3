@@ -15,7 +15,7 @@ export const useCourseStore = defineStore('courses', {
 	}),
 	getters: {
 		getCourseByName: (state) => {
-			return (courseName:string) => state.courses.find((course) => course.course_name === courseName);
+			return (courseName: string) => state.courses.find((course) => course.course_name === courseName);
 		}
 	},
 	actions: {

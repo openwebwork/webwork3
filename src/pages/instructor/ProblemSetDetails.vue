@@ -1,21 +1,22 @@
 <template>
 	<q-page class="q-ma-p-lg">
+		<!-- The key attribute needs to be unique on the component so prefix it. -->
 		<homework-set-view
 			:set="problem_set"
-			:key="set_id"
+			:key="'HW' + set_id"
 			:reset_set_type="reset_set_type"
 			@update-set="updateSet"
 			@change-set-type="requestChangeSetType"
 			v-if="problem_set?.set_type==='HW'" />
 		<quiz-view
 			:set="problem_set"
-			:key="set_id"
+			:key="'QUIZ' + set_id"
 			@update-set="updateSet"
 			@change-set-type="requestChangeSetType"
 			v-else-if="problem_set?.set_type==='QUIZ'" />
 		<review-set-view
 			:set="problem_set"
-			:key="set_id"
+			:key="'REVIEW_SET' + set_id"
 			@update-set="updateSet"
 			@change-set-type="requestChangeSetType"
 			v-else-if="problem_set?.set_type==='REVIEW'" />

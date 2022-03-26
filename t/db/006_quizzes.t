@@ -30,8 +30,7 @@ my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_use
 
 my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 
-my @hw_dates  = @DB::Schema::Result::ProblemSet::HWSet::VALID_DATES;
-my @hw_params = @DB::Schema::Result::ProblemSet::HWSet::VALID_PARAMS;
+# $schema->storage->debug(1);  # print out the SQL commands.
 
 my $problem_set_rs = $schema->resultset("ProblemSet");
 my $course_rs      = $schema->resultset("Course");
@@ -42,10 +41,6 @@ my @all_problem_sets;
 my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
 for my $quiz (@quizzes) {
 	$quiz->{set_type} = "QUIZ";
-	for my $date (keys %{ $quiz->{set_dates} }) {
-		my $dt = $strp->parse_datetime($quiz->{set_dates}->{$date});
-		$quiz->{set_dates}->{$date} = $dt->epoch;
-	}
 }
 
 # Remove "Quiz #9" if it exists
@@ -58,7 +53,7 @@ for my $quiz (@precalc_quizzes) {
 	delete $quiz->{course_name};
 }
 @precalc_quizzes = sort { $a->{set_name} cmp $b->{set_name} } @precalc_quizzes;
-my @precalc_quizzes_from_db = $problem_set_rs->getQuizzes({ course_name => "Precalculus" });
+my @precalc_quizzes_from_db = $problem_set_rs->getQuizzes(info => { course_name => "Precalculus" });
 
 # Remove id tags
 for my $quiz (@precalc_quizzes_from_db) {
@@ -67,7 +62,7 @@ for my $quiz (@precalc_quizzes_from_db) {
 is_deeply(\@precalc_quizzes, \@precalc_quizzes_from_db, "getQuizzes: get all quizzes for one course");
 
 # Get a single quiz
-my $quiz_from_db = $problem_set_rs->getProblemSet({ course_name => "Precalculus", set_name => "Quiz #1" });
+my $quiz_from_db = $problem_set_rs->getProblemSet(info => { course_name => "Precalculus", set_name => "Quiz #1" });
 removeIDs($quiz_from_db);
 my @quiz_from_csv = grep { $_->{set_name} eq "Quiz #1" } @precalc_quizzes;
 delete $quiz_from_csv[0]->{type};
@@ -75,13 +70,13 @@ is_deeply($quiz_from_csv[0], $quiz_from_db, "getQuiz: get one quiz from a single
 
 # Try to get a quiz that doesn't exist in a course that does.
 throws_ok {
-	$problem_set_rs->getProblemSet({ course_name => "Precalculus", set_name => "nonexisent quiz" });
+	$problem_set_rs->getProblemSet(info => { course_name => "Precalculus", set_name => "nonexisent quiz" });
 }
 "DB::Exception::SetNotInCourse", "getQuiz: non-existent set name";
 
 # Try to get a quiz from a course that doesn't exist.
 throws_ok {
-	$problem_set_rs->getProblemSet({ course_name => "nonexistent course", set_name => "Quiz #1" });
+	$problem_set_rs->getProblemSet(info => { course_name => "nonexistent course", set_name => "Quiz #1" });
 }
 "DB::Exception::CourseNotFound", "getQuiz: try to get a quiz from a non-existent course";
 
@@ -91,23 +86,33 @@ my $new_quiz_params = {
 	set_dates => { open => 100, due => 140, answer => 200 },
 	set_type  => "QUIZ"
 };
-my $new_quiz = $problem_set_rs->addProblemSet({ course_name => "Precalculus" }, $new_quiz_params);
+
+my $new_quiz = $problem_set_rs->addProblemSet(
+	params => {
+		course_name => "Precalculus",
+		%$new_quiz_params
+	}
+);
+
 removeIDs($new_quiz);
 is_deeply($new_quiz, $new_quiz_params, "addQuiz: add a new quiz");
 
 # Try to add a quiz to a non existent course.
 throws_ok {
-	$problem_set_rs->addProblemSet({ course_name => "nonexistent course", set_name => "Quiz #1" });
+	$problem_set_rs->addProblemSet(
+		params => {
+			course_name => "nonexistent course",
+			set_name    => "Quiz #1"
+		}
+	);
 }
 "DB::Exception::CourseNotFound", "addQuiz: try to add a quiz from a non-existent course";
 
 # Try to add a quiz with non-valid parameters.
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		{
-			course_name => "Precalculus"
-		},
-		{
+		params => {
+			course_name       => "Precalculus",
 			set_type          => 'QUIZ',
 			set_name          => "Quiz #99",
 			nonexistent_field => 1,
@@ -119,10 +124,8 @@ throws_ok {
 # Try to add a quiz without specifying the name.
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		{
-			course_name => "Precalculus"
-		},
-		{
+		params => {
+			course_name => "Precalculus",
 			set_type    => 'QUIZ',
 			set_visible => 1,
 		}
@@ -133,10 +136,8 @@ throws_ok {
 # Try to add a quiz with an undefined parameter.
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		{
-			course_name => "Precalculus"
-		},
-		{
+		params => {
+			course_name => "Precalculus",
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
@@ -156,10 +157,8 @@ throws_ok {
 # Try to add a quiz with a non-valid parameter.
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		{
-			course_name => "Precalculus"
-		},
-		{
+		params => {
+			course_name => "Precalculus",
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
@@ -179,13 +178,11 @@ throws_ok {
 # Try to add a quiz with a missing required date fields.
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		{
-			course_name => "Precalculus"
-		},
-		{
-			set_type  => 'QUIZ',
-			set_name  => "Quiz #99",
-			set_dates => {
+		params => {
+			course_name => "Precalculus",
+			set_type    => 'QUIZ',
+			set_name    => "Quiz #99",
+			set_dates   => {
 				open => 10,
 				due  => 100
 			}
@@ -197,10 +194,8 @@ throws_ok {
 # Try to add a quiz with an undefined date field.
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		{
-			course_name => "Precalculus"
-		},
-		{
+		params => {
+			course_name => "Precalculus",
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
@@ -218,10 +213,8 @@ throws_ok {
 # Try to add a quiz with dates that are out of order.
 throws_ok {
 	$problem_set_rs->addProblemSet(
-		{
-			course_name => "Precalculus"
-		},
-		{
+		params => {
+			course_name => "Precalculus",
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
 			set_visible => 1,
@@ -238,12 +231,13 @@ throws_ok {
 # Update the visibility of the quiz
 my $updated_params = { set_visible => 0 };
 my $updated_quiz   = $problem_set_rs->updateProblemSet(
-	{
+	info => {
 		course_name => "Precalculus",
 		set_name    => "Quiz #9"
 	},
-	$updated_params
+	params => $updated_params
 );
+
 $new_quiz->{set_visible} = 0;
 $new_quiz->{set_params}  = {};
 removeIDs($updated_quiz);
@@ -256,11 +250,11 @@ $updated_params = {
 	}
 };
 $updated_quiz = $problem_set_rs->updateProblemSet(
-	{
+	info => {
 		course_name => "Precalculus",
 		set_name    => "Quiz #9"
 	},
-	$updated_params
+	params => $updated_params
 );
 removeIDs($updated_quiz);
 $new_quiz->{set_params} = { timed => 1 };
@@ -275,11 +269,11 @@ $updated_params = {
 	}
 };
 $updated_quiz = $problem_set_rs->updateProblemSet(
-	{
+	info => {
 		course_name => "Precalculus",
 		set_name    => "Quiz #9"
 	},
-	$updated_params
+	params => $updated_params
 );
 removeIDs($updated_quiz);
 $new_quiz->{set_dates} = clone($updated_params->{set_dates});
@@ -288,11 +282,11 @@ is_deeply($new_quiz, $updated_quiz, "updateQuiz: successfully update the dates o
 # Try to update a non-existent field of the quiz.
 throws_ok {
 	$problem_set_rs->updateProblemSet(
-		{
+		info => {
 			course_name => "Precalculus",
 			set_name    => "Quiz #9"
 		},
-		{
+		params => {
 			nonexistent_field => 1
 		}
 	);
@@ -302,11 +296,11 @@ throws_ok {
 # Try to update a non-existent param of the quiz.
 throws_ok {
 	$problem_set_rs->updateProblemSet(
-		{
+		info => {
 			course_name => "Precalculus",
 			set_name    => "Quiz #9"
 		},
-		{
+		params => {
 			set_params => {
 				show_hint => 1
 			}
@@ -318,11 +312,11 @@ throws_ok {
 # Try to update a parameter with a bad value
 throws_ok {
 	$problem_set_rs->updateProblemSet(
-		{
+		info => {
 			course_name => "Precalculus",
 			set_name    => "Quiz #9"
 		},
-		{
+		params => {
 			set_params => {
 				timed => 'yes'
 			}
@@ -334,11 +328,11 @@ throws_ok {
 # Try to update a quiz with an invalid  date
 throws_ok {
 	$problem_set_rs->updateProblemSet(
-		{
+		info => {
 			course_name => "Precalculus",
 			set_name    => "Quiz #9"
 		},
-		{
+		params => {
 			set_dates => {
 				reduced_scoring => 1000
 			}
@@ -350,11 +344,11 @@ throws_ok {
 # Try to update a quiz with a date out of order.
 throws_ok {
 	$problem_set_rs->updateProblemSet(
-		{
+		info => {
 			course_name => "Precalculus",
 			set_name    => "Quiz #9"
 		},
-		{
+		params => {
 			set_dates => {
 				open => 50,
 				due  => 40
@@ -366,45 +360,55 @@ throws_ok {
 
 # Try to delete from a non-existent course.
 throws_ok {
-	$problem_set_rs->deleteProblemSet({
-		course_name => "Course does not exist",
-		set_name    => "Quiz #9"
-	});
+	$problem_set_rs->deleteProblemSet(
+		info => {
+			course_name => "Course does not exist",
+			set_name    => "Quiz #9"
+		}
+	);
 }
 "DB::Exception::CourseNotFound", 'deleteQuiz: try to delete a quiz from a non-existent course';
 
 # Try to delete from a non-existent course.
 throws_ok {
-	$problem_set_rs->deleteProblemSet({
-		course_id => 9999,
-		set_name  => "Quiz #9"
-	});
+	$problem_set_rs->deleteProblemSet(
+		info => {
+			course_id => 9999,
+			set_name  => "Quiz #9"
+		}
+	);
 }
 "DB::Exception::CourseNotFound", 'deleteQuiz: try to delete a quiz from a non-existent course_id';
 
 # Try to delete from a non-existent set in a course.
 throws_ok {
-	$problem_set_rs->deleteProblemSet({
-		course_name => "Precalculus",
-		set_name    => "Quiz #999"
-	});
+	$problem_set_rs->deleteProblemSet(
+		info => {
+			course_name => "Precalculus",
+			set_name    => "Quiz #999"
+		}
+	);
 }
 "DB::Exception::SetNotInCourse", 'deleteQuiz: try to delete a non-existent quiz';
 
 # Try to delete from a non-existent set in a course.
 throws_ok {
-	$problem_set_rs->deleteProblemSet({
-		course_name => "Precalculus",
-		set_id      => 99999
-	});
+	$problem_set_rs->deleteProblemSet(
+		info => {
+			course_name => "Precalculus",
+			set_id      => 99999
+		}
+	);
 }
 "DB::Exception::SetNotInCourse", 'deleteQuiz: try to delete a non-existent quiz as set_id';
 
 # Try to delete from a non-existent set in a  course:
-my $deleted_quiz = $problem_set_rs->deleteProblemSet({
-	course_name => "Precalculus",
-	set_name    => "Quiz #9"
-});
+my $deleted_quiz = $problem_set_rs->deleteProblemSet(
+	info => {
+		course_name => "Precalculus",
+		set_name    => "Quiz #9"
+	}
+);
 removeIDs($deleted_quiz);
 is_deeply($deleted_quiz, $new_quiz, "delete Quiz: successfully delete a quiz");
 

@@ -13,10 +13,11 @@ webwork3_home: .
 # For the sqlite database
 database_dsn: dbi:SQLite:./t/db/sample_db.sqlite
 # For mysql or mariadb
-# note: choose a database
 #database_dsn: dbi:mysql:dbname=webwork3_test
+# For postgres
+#database_dsn: dbi:Pg:dbname=webwork3_test;host=localhost
 
-# Database credentials for mysql or mariadb.
+# Database credentials for mysql, mariadb, or postgres.
 # These are ignored if the 'sqlite' database is used.
 database_user: webworkWrite
 database_password: password

@@ -1,6 +1,9 @@
 /**
  * @jest-environment jsdom
  */
+// The above is needed because the logger uses the window object, which is only present
+// when using the jsdom environment.
+
 // Tests for UserSets
 
 import { NonNegIntException } from 'src/common/models/parsers';

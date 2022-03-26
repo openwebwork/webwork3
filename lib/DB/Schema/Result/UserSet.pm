@@ -44,12 +44,16 @@ C<set_visible>: (boolean) visiblility of the set to a student
 
 =item *
 
-C<dates>: a hash of dates related to the problem set.  Note: different types
+C<set_version>: (non-negative integer) the version of the user set.
+
+=item *
+
+C<set_dates>: a hash of dates related to the problem set.  Note: different types
 have different date fields.
 
 =item *
 
-C<params>: a hash of additional parameters of the problem set.  Note: different problem set
+C<set_params>: a hash of additional parameters of the problem set.  Note: different problem set
 types have different params fields.
 
 =back
@@ -78,7 +82,7 @@ L<DB::Schema::Result::ProblemSet::ReviewSet> which gives properties common to re
 
 __PACKAGE__->table('user_set');
 
-__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
+__PACKAGE__->load_components(qw/DynamicSubclass Core/, qw/InflateColumn::Serializer Core/);
 
 __PACKAGE__->add_columns(
 	user_set_id => {
@@ -102,6 +106,15 @@ __PACKAGE__->add_columns(
 		size          => 16,
 		is_nullable   => 0,
 		default_value => 1,
+	},
+	type => {
+		data_type     => "int",
+		default_value => 1,
+		size          => 8
+	},
+	set_visible => {
+		data_type   => "boolean",
+		is_nullable => 1
 	},
 	# Store dates as a JSON object.
 	set_dates => {
@@ -130,39 +143,28 @@ __PACKAGE__->belongs_to(
 	{ 'foreign.course_user_id' => 'self.course_user_id' }
 );
 __PACKAGE__->belongs_to(problem_sets => 'DB::Schema::Result::ProblemSet', 'set_id');
+__PACKAGE__->has_many(user_problems => 'DB::Schema::Result::UserProblem', 'user_set_id');
 
 # This defines the non-abstract classes of ProblemSets.
-
-# __PACKAGE__->typecast_map(
-# 	type => {
-# 		1 => 'DB::Schema::Result::UserSet::HWSet',
-# 		2 => 'DB::Schema::Result::UserSet::Quiz',
-# 		3 => 'DB::Schema::Result::UserSet::JITAR',
-# 		4 => 'DB::Schema::Result::UserSet::ReviewSet',
-# 	}
-# );
+__PACKAGE__->typecast_map(
+	type => {
+		1 => 'DB::Schema::Result::UserSet::HWSet',
+		2 => 'DB::Schema::Result::UserSet::Quiz',
+		3 => 'DB::Schema::Result::UserSet::JITAR',
+		4 => 'DB::Schema::Result::UserSet::ReviewSet',
+	}
+);
 
 my $set_type = {
-	1 => 'DB::Schema::Result::ProblemSet::HWSet',
-	2 => 'DB::Schema::Result::ProblemSet::Quiz',
-	3 => 'DB::Schema::Result::ProblemSet::JITAR',
-	4 => 'DB::Schema::Result::ProblemSet::ReviewSet'
+	1 => 'DB::Schema::Result::UserSet::HWSet',
+	2 => 'DB::Schema::Result::UserSet::Quiz',
+	3 => 'DB::Schema::Result::UserSet::JITAR',
+	4 => 'DB::Schema::Result::UserSet::ReviewSet'
 };
 
-sub valid_params ($, $type) {
-	return $set_type->{$type}->valid_params;
-}
-
-sub required_params ($, $type) {
-	return $set_type->{$type}->required_params;
-}
-
-sub valid_dates ($, $type) {
-	return $set_type->{$type}->valid_dates;
-}
-
-sub required_dates ($, $type) {
-	return $set_type->{$type}->required_dates;
+sub set_type ($) {
+	my %set_type_rev = reverse %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES};
+	return $set_type_rev{ shift->type };
 }
 
 1;
