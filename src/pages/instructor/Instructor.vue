@@ -49,6 +49,8 @@ export default defineComponent({
 		logger.debug('[Instructor]: fetch problem_sets from server');
 		void problem_sets.fetchProblemSets(course_id);
 
+		void problem_sets.fetchSetProblems(course_id);
+
 		logger.debug('[Intructor]: fetch settings from the server.');
 		settings.fetchDefaultSettings().then(() => {
 			settings.fetchCourseSettings(course_id).then(() => {
