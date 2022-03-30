@@ -50,10 +50,7 @@ sub updateProblemSet ($self) {
 	return;
 }
 
-use Data::Dumper;
-
 sub addProblemSet ($self) {
-	print Dumper $self->req->json;
 	my $problem_set = $self->schema->resultset("ProblemSet")->addProblemSet(
 		params => {
 			course_id => int($self->param("course_id")),

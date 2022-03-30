@@ -8,7 +8,8 @@ sub addProblem ($self) {
 	my $problem = $self->schema->resultset("Problem")->addSetProblem(
 		params => {
 			course_id => int($self->param("course_id")),
-			set_id    => int($self->param("set_id")) % { $self->req->json }
+			set_id    => int($self->param("set_id")),
+			%{ $self->req->json }
 		}
 	);
 	$self->render(json => $problem);
@@ -26,13 +27,16 @@ sub getAllProblems ($self) {
 }
 
 sub updateProblem ($self) {
+	my $params = $self->req->json;
+	# The render_params shouldn't be passed to the database, so delete that field
+	delete $params->{render_params} if defined($params->{render_params});
 	my $updated_problem = $self->schema->resultset("Problem")->updateSetProblem(
 		info => {
 			course_id  => int($self->param("course_id")),
 			set_id     => int($self->param("set_id")),
 			problem_id => int($self->param("problem_id"))
 		},
-		params => $self->req->json
+		params => $params
 	);
 	$self->render(json => $updated_problem);
 	return;
