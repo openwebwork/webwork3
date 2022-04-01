@@ -46,11 +46,11 @@
 
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue';
-import { useStore } from 'src/store';
 
-import { Course } from 'src/store/models/courses';
+import { Course } from 'src/common/models/courses';
 
 import NewCourseDialog from './AddCourse.vue';
+import { useCourseStore } from 'src/stores/courses';
 
 interface CourseDate {
 	start: string;
@@ -63,7 +63,7 @@ export default defineComponent({
 		NewCourseDialog
 	},
 	setup() {
-		const store = useStore();
+		const courses = useCourseStore();
 		const columns = [
 			{
 				name: 'course_id',
@@ -106,7 +106,7 @@ export default defineComponent({
 			filter,
 			selected,
 			new_course_dialog,
-			courses: computed(() => store.state.courses.courses)
+			courses: computed(() => courses.courses)
 		};
 	}
 });

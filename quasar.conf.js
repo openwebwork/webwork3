@@ -17,6 +17,7 @@ module.exports = configure(function (ctx) {
 		},
 
 		boot: [
+			'pinia',
 			'axios',
 			'i18n',
 			'logger'
@@ -33,7 +34,8 @@ module.exports = configure(function (ctx) {
 
 		framework: {
 			plugins: [
-				'Notify'
+				'Notify',
+				'Dialog'
 			],
 			config: {
 				notify: { /* look at QuasarConfOptions from the API card */ }

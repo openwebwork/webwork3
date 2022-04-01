@@ -8,7 +8,15 @@
 			<q-card-section class="q-pt-none">
 				<div class="row">
 					<div class="col">
-						<q-input outlined v-model="merged_user.username" label="Username" @blur="checkUser" />
+						<q-input
+							outlined
+							v-model="merged_user.username"
+							label="Username *"
+							@blur="checkUser"
+							ref="username_ref"
+							lazy-rules
+							:rules="[(val) => validateUsername(val)]"
+						/>
 					</div>
 					<div class="col">
 						<q-input outlined v-model="merged_user.first_name" label="First Name" :disable="user_exists"/>
@@ -31,7 +39,15 @@
 						<q-input outlined v-model="merged_user.section" label="Section" :disable="user_exists" />
 					</div>
 					<div class="col">
-						<q-select outlined v-model="merged_user.role" :options="roles" label="Role" />
+						<q-select
+							outlined
+							ref="role_ref"
+							v-model="merged_user.role"
+							:options="roles"
+							label="Role *"
+							:validate="validateRole"
+							:rules="[(val) => validateRole(val)]"
+							/>
 					</div>
 				</div>
 			</q-card-section>
@@ -51,35 +67,53 @@ import { defineComponent, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { logger } from 'boot/logger';
 
-import { useStore } from 'src/store';
+import { checkIfUserExists } from 'src/common/api-requests/user';
+import { useUserStore } from 'src/stores/users';
+import { useSessionStore } from 'src/stores/session';
+import { useSettingsStore } from 'src/stores/settings';
 
-import { User, MergedUser, ParseableMergedUser } from 'src/store/models/users';
-import { ResponseError } from 'src/store/models';
-import { CourseSetting } from 'src/store/models/settings';
+import { MergedUser, ParseableMergedUser, User } from 'src/common/models/users';
+import type { ResponseError } from 'src/common/api-requests/interfaces';
 import { AxiosError } from 'axios';
+import { parseUsername } from 'src/common/models/parsers';
+
+interface QRef {
+	validate: () => boolean;
+	hasError: string;
+}
 
 export default defineComponent({
 	name: 'AddUsersManually',
 	emits: ['closeDialog'],
 	setup(props, context) {
 		const $q = useQuasar();
-		const merged_user = ref<ParseableMergedUser>({ username: '__NEW__' });
+		const merged_user = ref<ParseableMergedUser>({});
 		const user_exists = ref<boolean>(true);
-		const store = useStore();
+		const username_ref = ref<QRef | null>(null);
+		const role_ref = ref<QRef | null>(null);
+		const users = useUserStore();
+		const session = useSessionStore();
+		const settings = useSettingsStore();
 
 		return {
 			merged_user,
 			user_exists,
+			username_ref,
+			role_ref,
 			// see if the user exists already and fill in the known fields
 			checkUser: async () => {
+				// If the user doesn't exist, the catch statement will handle this.
 				try {
-					const _user = await store.dispatch('users/getUser', merged_user.value.username) as User;
+					const course_id = session.course.course_id;
+					const user_params = await checkIfUserExists(course_id, merged_user.value.username ?? '');
+					const user = new User(user_params);
+
 					user_exists.value = true;
-					merged_user.value.user_id = _user.user_id as number;
-					merged_user.value.username = _user.username as string;
-					merged_user.value.first_name = _user.first_name as string;
-					merged_user.value.last_name = _user.last_name as string;
-					merged_user.value.email = _user.email as string;
+					merged_user.value.user_id = user.user_id;
+					merged_user.value.username = user.username;
+					merged_user.value.first_name = user.first_name;
+					merged_user.value.last_name = user.last_name;
+					merged_user.value.email = user.email;
 				} catch (err) {
 					const error = err as ResponseError;
 					// this will occur is the user is not a global user
@@ -90,16 +124,21 @@ export default defineComponent({
 					}
 				}
 			},
-			roles: computed(() => {
-				// Return an array of the roles in the course.
-				return (store.state.settings.course_settings.find(
-					(setting: CourseSetting) => setting.var === 'roles'
-				)?.value as Array<string>).filter(v => v !== 'admin');
-			}),
+			// Return an array of the roles in the course.
+			roles: computed(() =>
+				(settings.getCourseSetting('roles').value as string[]).filter(v => v !== 'admin')),
 			addUser: async (close: boolean) => {
 				try {
-					merged_user.value.course_id = store.state.session.course.course_id;
-					const user = await store.dispatch('users/addMergedUser', new MergedUser(merged_user.value)) as User;
+					// Check to ensure username is correct and a role is selected.
+					if (username_ref.value && role_ref.value) {
+						username_ref.value.validate();
+						role_ref.value.validate();
+						if (username_ref.value.hasError || role_ref.value.hasError) {
+							return;
+						}
+					}
+					merged_user.value.course_id = session.course.course_id;
+					const user = await users.addMergedUser(new MergedUser(merged_user.value));
 					$q.notify({
 						message: `The user with username '${user.username ?? ''}' was added successfully.`,
 						color: 'green'
@@ -117,6 +156,23 @@ export default defineComponent({
 						message: data.exception,
 						color: 'red'
 					});
+				}
+			},
+			validateRole: (val: string | null) => {
+				if (val == undefined) {
+					return 'You must select a role';
+				}
+				return true;
+			},
+			validateUsername: (val: string) => {
+				try {
+					const username = parseUsername(val);
+					if (users.merged_users.findIndex(u => u.username === username) >= 0) {
+						return 'This user is already in the course.';
+					}
+					return true;
+				} catch (err) {
+					return 'This is not a valid username';
 				}
 			}
 		};

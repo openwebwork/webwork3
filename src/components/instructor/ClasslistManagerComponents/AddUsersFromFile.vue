@@ -24,7 +24,13 @@
 						<q-toggle v-model="use_single_role"/> Import All users as
 					</div>
 					<div class="col-3">
-							<q-select :options="roles" v-model="common_role" />
+							<q-select
+							:disable="!use_single_role"
+							:options="roles"
+							v-model="common_role"
+							label="Select Role"
+							:options-dense="true"
+						/>
 					</div>
 				</div>
 				<div class="row">
@@ -85,7 +91,7 @@
 
 			<q-card-actions align="right" class="bg-white text-teal">
 				<q-btn flat label="Cancel" v-close-popup />
-				<q-btn flat :label="`Add ${merged_users_to_add.length} Users and Close`" @click="addUsers" />
+				<q-btn flat :label="`Add ${merged_users_to_add.length} Users and Close`" @click="addMergedUsers" />
 			</q-card-actions>
 		</q-card>
 	</div>
@@ -98,10 +104,12 @@ import { parse } from 'papaparse';
 import { AxiosError } from 'axios';
 import { logger } from 'boot/logger';
 
-import { useStore } from 'src/store';
-import type { Dictionary, ResponseError } from 'src/store/models';
-import { MergedUser, CourseUser, User, ParseableMergedUser } from 'src/store/models/users';
-import { pick, mapValues, invert } from 'src/common/utils';
+import { useUserStore } from 'src/stores/users';
+import { useSessionStore } from 'src/stores/session';
+import type { Dictionary } from 'src/common/models';
+import type { ResponseError } from 'src/common/api-requests/interfaces';
+import { MergedUser, CourseUser, User, ParseableMergedUser } from 'src/common/models/users';
+import { invert } from 'src/common/utils';
 
 interface ParseError {
 	type: string;
@@ -120,14 +128,17 @@ export default defineComponent({
 	name: 'AddUsersFromFile',
 	emits: ['closeDialog'],
 	setup(props, context) {
-		const store = useStore();
+		const users = useUserStore();
+		const session = useSessionStore();
 		const $q = useQuasar();
 		const file = ref<File>(new File([], ''));
-		// stores all users from the file as well as parsing errors
+		// Stores all users from the file as well as parsing errors.
 		const merged_users = ref<Array<UserFromFile>>([]);
-		const selected = ref<Array<UserFromFile>>([]); // stores the selected users
+		// Stores the selected users.
+		const selected = ref<Array<UserFromFile>>([]);
 		const column_headers = ref<Dictionary<string>>({});
-		const user_param_map = ref<Dictionary<string>>({}); // provides a map from column number to field name
+		// Provides a map from column number to field name. It doesn't need to be reactive.
+		const user_param_map: Dictionary<string> = {};
 		const use_single_role = ref<boolean>(false);
 		const common_role = ref<string | null>(null);
 		const loading = ref<boolean>(false); // used to indicate parsing is occurring
@@ -153,64 +164,54 @@ export default defineComponent({
 		// field names.
 		const fillHeaders = () => {
 			Object.keys(header_row.value).forEach((key) => {
-				user_fields.forEach((field: { regexp: RegExp; label: string}) => {
+				user_fields.forEach((field: { regexp: RegExp; label: string; field: string}) => {
 					if (field.regexp.test(`${header_row.value[key]}`)) {
 						column_headers.value[key] = field.label;
+						user_param_map[key] = field.field;
 					}
 				});
 			});
 		};
 
-		watch([column_headers], () => {
-			// this is an object of the fields selected from the table
-			const fields = Object.fromEntries(user_fields.map((obj) => [obj.label, obj.field]));
+		// This converts converts each selected row to a ParseableMerged User
+		// based on the column headers.
+		const getMergedUser = (row: UserFromFile) => {
+			// The following pulls the keys out from the user_param_map and the the values out of row
+			// to get the merged user.
+			const merged_user = Object.entries(user_param_map).reduce((acc, [k, v]) =>
+				({ ...acc, [v]: row[k as keyof UserFromFile] }), {}) as ParseableMergedUser;
+			// Set the role if a common role for all users is selected.
+			merged_user.role = use_single_role.value ?
+				common_role.value ?? 'UNKOWN' :
+				'UNKNOWN';
+			return merged_user;
+		};
 
-			// mapping of column number to user field
-			user_param_map.value = invert(mapValues(column_headers.value, (obj) => fields[obj]));
-		},
-		{ deep: true });
-
-		watch([first_row_header], () => {
-			selected.value = [];
-			if (first_row_header.value) {
-				const first_row = merged_users.value.shift();
-				if (first_row) {
-					header_row.value = first_row;
-					fillHeaders();
-				}
-			} else {
-				merged_users.value.unshift(header_row.value);
-			}
-		});
-
-		watch([selected, user_param_map, common_role], () => {
+		// Parse the selected users from the file.
+		const parseUsers = () => {
+			// Clear Errors and reset reactive variables.
 			loading.value = true;
 			merged_users_to_add.value = [];
 			selected_user_error.value = false;
 			users_already_in_course.value = false;
+			merged_users.value.filter((u: UserFromFile) => u._error?.type !== 'none').forEach(u => {
+				// reset the error for each selected row
+				u._error = {
+					type: 'none',
+					message: ''
+				};
+			});
 
-			// reset all of the errors
-			merged_users.value.filter((u: UserFromFile) => u._error?.type !== 'none')
-				.forEach(u => {
-					u._error = { // reset the error for each selected row
-						type: 'none',
-						message: ''
-					};
-				});
+			// This is needed for parsing errors.
+			const inverse_param_map = invert(user_param_map) as Dictionary<string>;
 
 			selected.value.forEach((params: UserFromFile) => {
 				let parse_error: ParseError | null = null;
 				const row = parseInt(`${params?._row || -1}`);
-
 				try {
-					const merged_user = pick(mapValues(user_param_map.value, (obj) => params[obj]),
-						MergedUser.ALL_FIELDS) as unknown as ParseableMergedUser;
-					if (use_single_role.value && common_role.value) {
-						merged_user.role = common_role.value;
-					}
-
-					// if the user is already in the course, show a warning
-					const u = store.state.users.merged_users.find(_u => _u.username === merged_user.username);
+					const merged_user = getMergedUser(params);
+					// If the user is already in the course, show a warning
+					const u = users.merged_users.find(_u => _u.username === merged_user.username);
 					if (u) {
 						users_already_in_course.value = true;
 						parse_error = {
@@ -225,8 +226,6 @@ export default defineComponent({
 				} catch (error) {
 					const err = error as ParseError;
 					selected_user_error.value = true;
-					const user_fields = Object.keys(new User());
-					const course_user_fields = Object.keys(new CourseUser());
 
 					parse_error = {
 						type: 'error',
@@ -236,19 +235,21 @@ export default defineComponent({
 					if (err.field === '_all') {
 						Object.assign(parse_error, { entire_row: true });
 					} else if (err.field &&
-						(user_fields.indexOf(err.field) >= 0 || course_user_fields.indexOf(err.field) >= 0)) {
-						Object.assign(parse_error, {
-							col: user_param_map.value[err.field],
-							entire_row: user_param_map.value[err.field] == undefined
-						});
+						(User.ALL_FIELDS.indexOf(err.field) >= 0 || CourseUser.ALL_FIELDS.indexOf(err.field) >= 0)) {
+						if (inverse_param_map[err.field]) {
+							parse_error.col = inverse_param_map[err.field];
+						} else {
+							parse_error.entire_row = true;
+						}
 					} else if (err.field != undefined) { // missing field
-						Object.assign(parse_error, { entire_row: true });
+						parse_error.entire_row = true;
 					}
 				}
 
 				if (parse_error) {
 					const row_index = merged_users.value.findIndex((u: UserFromFile) => u._row === row);
 					if (row_index >= 0) {
+						// Copy the user, update and splice in.  This is needed to make the load file table reactive.
 						const user = { ...merged_users.value[row_index] };
 						user._error = parse_error;
 						merged_users.value.splice(row_index, 1, user);
@@ -256,11 +257,14 @@ export default defineComponent({
 				}
 			});
 			loading.value = false; // turn off the loading UI on table
-		});
+		};
 
 		const loadFile = () => {
+			// Reset the header row and UI toggle when loading the file.
 			header_row.value = {};
-			first_row_header.value = false; // reset the toggle when loading the file.
+			first_row_header.value = false;
+			logger.debug(`Loading file--${file.value.name}`);
+
 			const reader: FileReader = new FileReader();
 			reader.readAsText(file.value);
 			reader.onload = (evt: ProgressEvent) => {
@@ -293,12 +297,14 @@ export default defineComponent({
 			};
 		};
 
-		const addUsers = async () => {
-			for await (const _user of merged_users_to_add.value) {
-				_user.course_id = store.state.session.course.course_id;
+		// Add the Merged Users to the course.
+		const addMergedUsers = async () => {
+			for await (const user of merged_users_to_add.value) {
+				user.course_id = session.course.course_id;
 				try {
-					const u = await store.dispatch('users/getUser', _user.username) as User;
-					_user.user_id = u.user_id;
+					// Skip if username is undefined?
+					const u = await users.getUser(user.username ?? '') as User;
+					user.user_id = u.user_id;
 				} catch (err) {
 					const error = err as ResponseError;
 					// this will occur is the user is not a global user
@@ -307,7 +313,7 @@ export default defineComponent({
 					}
 				}
 				try {
-					const merged_user = await store.dispatch('users/addMergedUser', _user) as MergedUser;
+					const merged_user = await users.addMergedUser(new MergedUser(user));
 					const full_name = `${merged_user.first_name as string} ${merged_user.last_name as string}`;
 					$q.notify({
 						message: `The user ${full_name} was successfully added to the course.`,
@@ -326,11 +332,40 @@ export default defineComponent({
 
 			}
 		};
-		const getColumns = () => {
+
+		watch([selected, common_role], parseUsers, { deep: true });
+
+		watch(() => column_headers, () => {
+			// Update the user_param_map if the column headers change.
+			Object.keys(column_headers.value).forEach(key => {
+				const user_field = user_fields.find(obj => obj.label === column_headers.value[key]);
+				if (user_field) {
+					user_param_map[key] = user_field.field;
+				}
+			});
+			// And then reparse the file.
+			parseUsers();
+		},
+		{ deep: true });
+
+		watch([first_row_header], () => {
+			selected.value = [];
+			if (first_row_header.value) {
+				const first_row = merged_users.value.shift();
+				if (first_row) {
+					header_row.value = first_row;
+					fillHeaders();
+				}
+			} else {
+				merged_users.value.unshift(header_row.value);
+			}
+		});
+
+		const columns = computed(() => {
 			return merged_users.value.length === 0 ? [] :
 				Object.keys(merged_users.value[0]).filter((v: string) => (v !== '_row' && v !== '_error'))
 					.map((v) => ({ name: v, label: v, field: v }));
-		};
+		});
 
 		return {
 			file,
@@ -344,11 +379,11 @@ export default defineComponent({
 			users_already_in_course,
 			loading,
 			loadFile,
-			addUsers,
+			addMergedUsers,
 			use_single_role,
 			common_role,
 			roles: ref(['student', 'TA', 'instructor']),
-			columns: computed(() => getColumns()),
+			columns,
 			getErrorClass: (col_name: string, err: ParseError) => {
 				if (col_name === err.col || err.entire_row) {
 					return err.type === 'none' ?

@@ -151,7 +151,7 @@ is_deeply(\@merged_sets_from_db, \@merged_user_sets, "getAllUserSets: get all me
 
 my @user_sets_for_one_user = grep { $_->{course_name} eq 'Precalculus' && $_->{username} eq 'homer' } @all_user_sets;
 
-my @user_sets_from_db = $user_set_rs->getUserSets(
+my @user_sets_from_db = $user_set_rs->getUserSetsForUser(
 	info => {
 		course_name => $course->course_name,
 		username    => "homer"
@@ -170,7 +170,7 @@ is_deeply(\@user_sets_from_db, \@user_sets_for_one_user, 'getUserSets: get all u
 my @merged_sets_for_one_user =
 	grep { $_->{course_name} eq 'Precalculus' && $_->{username} eq 'homer' } @merged_user_sets;
 
-@merged_sets_from_db = $user_set_rs->getUserSets(
+@merged_sets_from_db = $user_set_rs->getUserSetsForUser(
 	info => {
 		course_name => $course->course_name,
 		username    => "homer"
@@ -188,7 +188,7 @@ is_deeply(\@merged_sets_from_db, \@merged_sets_for_one_user, 'getUserSets: get a
 
 my @user_sets_for_one_set = grep { $_->{course_name} eq 'Precalculus' && $_->{set_name} eq 'HW #1' } @all_user_sets;
 
-@user_sets_from_db = $user_set_rs->getUserSets(info => { course_name => "Precalculus", set_name => "HW #1" });
+@user_sets_from_db = $user_set_rs->getUserSetsForSet(info => { course_name => "Precalculus", set_name => "HW #1" });
 
 for my $user_set (@user_sets_from_db) {
 	removeIDs($user_set);
@@ -202,7 +202,7 @@ is_deeply(\@user_sets_from_db, \@user_sets_for_one_set, "getUserSets: get all us
 my @merged_sets_for_one_set =
 	grep { $_->{course_name} eq 'Precalculus' && $_->{set_name} eq 'HW #1' } @merged_user_sets;
 
-@merged_sets_from_db = $user_set_rs->getUserSets(
+@merged_sets_from_db = $user_set_rs->getUserSetsForSet(
 	info   => { course_name => "Precalculus", set_name => "HW #1" },
 	merged => 1
 );
@@ -215,19 +215,19 @@ is_deeply(\@merged_sets_from_db, \@merged_sets_for_one_set, "getUserSets: get al
 
 # Try to get a user set from a non-existing course.
 throws_ok {
-	$user_set_rs->getUserSets(info => { course_name => "non_existent_course", username => "homer" });
+	$user_set_rs->getUserSetsForUser(info => { course_name => "non_existent_course", username => "homer" });
 }
 "DB::Exception::CourseNotFound", "getUserSets: attempt to get user sets from a nonexistent course";
 
 # Try to get a user set from a non-existing course.
 throws_ok {
-	$user_set_rs->getUserSets(info => { course_name => "Precalculus", username => "non_existent_user" });
+	$user_set_rs->getUserSetsForUser(info => { course_name => "Precalculus", username => "non_existent_user" });
 }
 "DB::Exception::UserNotFound", "getUserSets: attempt to get user sets from a nonexistent user";
 
 # Try to get a user set from a user not in the course.
 throws_ok {
-	$user_set_rs->getUserSets(info => { course_name => "non_existent_course", username => "bart" });
+	$user_set_rs->getUserSetsForUser(info => { course_name => "non_existent_course", username => "bart" });
 }
 "DB::Exception::CourseNotFound", "getUserSets: attempt to get user sets from user not in the course";
 

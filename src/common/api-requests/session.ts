@@ -1,9 +1,9 @@
 import { api } from 'boot/axios';
-import type { SessionInfo, UserPassword } from 'src/store/models/session';
+import { parseSessionInfo, SessionInfo, ParseableSessionInfo, UserPassword } from 'src/common/models/session';
 
 export async function checkPassword(username: UserPassword): Promise<SessionInfo> {
 	const response = await api.post('login', username);
-	return response.data as SessionInfo;
+	return parseSessionInfo(response.data as ParseableSessionInfo);
 }
 
 export async function endSession() {

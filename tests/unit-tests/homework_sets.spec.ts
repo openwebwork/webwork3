@@ -1,8 +1,41 @@
-//FizzBuzz.test.ts
-/// <reference types="jest" />
+/**
+ * @jest-environment jsdom
+ */
+// The above is needed because the logger uses the window object, which is only present
+// when using the jsdom environment.
 
-import { HomeworkSet, ProblemSet } from 'src/store/models/problem_sets';
-import { BooleanParseException, NonNegIntException } from 'src/store/models';
+// Tests for Homework Sets
+
+import { HomeworkSet, ParseableHomeworkSetDates, ParseableHomeworkSetParams,
+	ProblemSet } from 'src/common/models/problem_sets';
+import { BooleanParseException, NonNegIntException } from 'src/common/models/parsers';
+
+const default_set_dates: ParseableHomeworkSetDates = {
+	answer: 0,
+	due: 0,
+	reduced_scoring: 0,
+	open: 0
+};
+
+const default_set_params: ParseableHomeworkSetParams = {
+	enable_reduced_scoring: false
+};
+
+const default_homework_set = {
+	set_dates: { ...default_set_dates },
+	set_params: { ...default_set_params },
+	set_id: 0,
+	course_id: 0,
+	set_name: '',
+	set_visible: false,
+	set_type: 'HW'
+};
+
+test('Test default Homework Set', () => {
+	const set = new HomeworkSet();
+	expect(set instanceof HomeworkSet).toBe(true);
+	expect(set.toObject()).toStrictEqual(default_homework_set);
+});
 
 test('Build a HomeworkSet', () => {
 	const set = new HomeworkSet();
@@ -20,13 +53,12 @@ test('Build a HomeworkSet', () => {
 			open: 1609545540,
 			reduced_scoring: 1610323140
 		},
-		set_id:7,
+		set_id: 7,
 		set_name: 'HW #1',
 		set_params: {
 			enable_reduced_scoring: '1'
 		},
-		set_type: 'HW',
-		set_visible:true
+		set_visible: true
 	});
 	const params = {
 		course_id: 4,
@@ -36,8 +68,7 @@ test('Build a HomeworkSet', () => {
 			open: 1609545540,
 			reduced_scoring: 1610323140
 		},
-		set_id:7,
-		set_version: 1,
+		set_id: 7,
 		set_name: 'HW #1',
 		set_params: {
 			enable_reduced_scoring: true
@@ -47,6 +78,24 @@ test('Build a HomeworkSet', () => {
 	};
 	expect(set2.toObject()).toStrictEqual(params);
 
+});
+
+test('Check that calling all_fields() and params() is correct', () => {
+	const hw_fields = ['set_id', 'set_name', 'course_id', 'set_type', 'set_visible',
+		'set_params', 'set_dates'];
+	const hw = new HomeworkSet();
+
+	expect(hw.all_field_names.sort()).toStrictEqual(hw_fields.sort());
+	expect(hw.param_fields.sort()).toStrictEqual(['set_dates', 'set_params']);
+
+	expect(HomeworkSet.ALL_FIELDS.sort()).toStrictEqual(hw_fields.sort());
+
+});
+
+test('Check that cloning a Quiz works', () => {
+	const hw = new HomeworkSet();
+	expect(hw.clone().toObject()).toStrictEqual(default_homework_set);
+	expect(hw.clone() instanceof HomeworkSet).toBe(true);
 });
 
 test('Check that the param defaults are working', () => {
@@ -86,41 +135,41 @@ test('Test valid Homework Set params', () => {
 
 test('Test the homework set dates', () => {
 	const set = new HomeworkSet();
-	set.setParams({ enable_reduced_scoring: true });
+	set.set_params.set({ enable_reduced_scoring: true });
 	expect(set.set_params.enable_reduced_scoring).toBe(true);
 
-	set.setDates({
+	set.set_dates.set({
 		open: 0,
 		reduced_scoring: 10,
 		due: 10,
 		answer: 20
 	});
-	expect(set.isValid()).toBe(true);
+	expect(set.hasValidDates()).toBe(true);
 
-	set.setDates({
+	set.set_dates.set({
 		open: 0,
 		reduced_scoring: 30,
 		due: 10,
 		answer: 20
 	});
-	expect(set.isValid()).toBe(false);
+	expect(set.hasValidDates()).toBe(false);
 
-	set.setDates({
+	set.set_dates.set({
 		open: 0,
 		reduced_scoring: 10,
 		due: 20,
 		answer: 15
 	});
-	expect(set.isValid()).toBe(false);
+	expect(set.hasValidDates()).toBe(false);
 
-	set.setParams({ enable_reduced_scoring: false });
+	set.set_params.set({ enable_reduced_scoring: false });
 	expect(set.set_params.enable_reduced_scoring).toBe(false);
 
-	set.setDates({
+	set.set_dates.set({
 		open: 0,
 		reduced_scoring: 100,
 		due: 10,
 		answer: 15
 	});
-	expect(set.isValid()).toBe(true);
+	expect(set.hasValidDates()).toBe(true);
 });

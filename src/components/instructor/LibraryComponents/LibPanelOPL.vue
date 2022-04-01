@@ -53,9 +53,11 @@
 import { defineComponent, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 
-import { useStore } from 'src/store';
-import { LibraryProblem } from 'src/store/models/problems';
-import { ResponseError } from 'src/store/models';
+import { useAppStateStore } from 'src/stores/app_state';
+import { useProblemSetStore } from 'src/stores/problem_sets';
+
+import { LibraryProblem } from 'src/common/models/problems';
+import type { ResponseError } from 'src/common/api-requests/interfaces';
 import Problem from 'components/common/Problem.vue';
 import { fetchDisciplines, fetchChapters, fetchSubjects, fetchSections, fetchLibraryProblems, LibraryCategory }
 	from 'src/common/api-requests/library';
@@ -69,7 +71,9 @@ export default defineComponent({
 	setup() {
 		logger.debug('in setup()');
 		const $q = useQuasar();
-		const store = useStore();
+		const app_state = useAppStateStore();
+		const problem_sets = useProblemSetStore();
+
 		const discipline = ref<LibraryCategory | null>(null); // start with the select field to be empty.
 		const disciplines = ref<Array<LibraryCategory>>([]);
 		const subject = ref<LibraryCategory | null>(null);
@@ -151,18 +155,23 @@ export default defineComponent({
 							// need to be distinct for each problem to prevent id clashes, and have no other meaning, so
 							// just use the order of display.
 							problem.problem_number = index;
+							// Set the answerPrefix as well:
+							problem.render_params.answerPrefix = `LIBRARY${index}_`;
 						}
 					});
 				}
 			},
 			addProblem: async (prob: LibraryProblem) => {
-				const set_id = store.state.app_state.library_state.target_set_id;
+				const set_id = app_state.library_state.target_set_id;
 				if (set_id == 0) {
-					alert('You must select a target problem set');
+					$q.dialog({
+						message: 'You must select a target problem set',
+						persistent: true
+					});
 				} else {
-					const course_id = store.state.session.course.course_id;
 					try {
-						await store.dispatch('problem_sets/addSetProblem', { set_id, course_id,
+						await problem_sets.addSetProblem({
+							set_id,
 							problem: prob
 						});
 						$q.notify({

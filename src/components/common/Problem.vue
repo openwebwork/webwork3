@@ -44,8 +44,8 @@
 		<q-card-actions class="q-pa-sm bg-white" v-if="submitButtons.length">
 			<q-btn v-for="button in submitButtons"
 				:key="button.name" :name="button.name"
-				:id="`${freeProblem.renderer_params.answerPrefix}${button.name}`"
-				type="submit" :form="`${freeProblem.renderer_params.answerPrefix}problemMainForm`"
+				:id="`${freeProblem.render_params.answerPrefix}${button.name}`"
+				type="submit" :form="`${freeProblem.render_params.answerPrefix}problemMainForm`"
 				color="primary" @click="submitButton = button" no-caps>
 				{{ button.value }}
 			</q-btn>
@@ -56,8 +56,8 @@
 <script lang="ts">
 import type { PropType } from 'vue';
 import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
-import type { RendererParams, SubmitButton } from 'src/common/api-requests/renderer';
-import { fetchProblem } from 'src/common/api-requests/renderer';
+import type { SubmitButton } from 'src/common/api-requests/renderer';
+import { fetchProblem, loadResource } from 'src/common/api-requests/renderer';
 import { RENDER_URL } from 'src/common/constants';
 import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
@@ -65,7 +65,8 @@ import JQuery from 'jquery';
 import { logger } from 'boot/logger';
 
 import typeset from './mathjax-config';
-import { Problem } from 'src/store/models/problems';
+import { Problem } from 'src/common/models/problems';
+import { ParseableRenderParams } from 'src/common/models/renderer';
 
 declare global {
 	interface Window {
@@ -93,55 +94,15 @@ export default defineComponent({
 		const problemText = ref('');
 		const answerTemplate = ref('');
 		const freeProblem = ref<Problem>(props.problem.clone());
-		const problem_type = ref(props.problem.problem_type);
+		const problem_type = ref<string>(props.problem.problem_type);
 		const problemTextDiv = ref<HTMLElement>();
 		const answerTemplateDiv = ref<HTMLElement>();
 		const submitButtons = ref<Array<SubmitButton>>([]);
 		const submitButton = ref<SubmitButton>();
 		const activePopovers: Array<InstanceType<typeof bootstrap.Popover>> = [];
 
-		logger.debug(`[Problem/setup] file: ${freeProblem.value.path()}, type: ${freeProblem.value.problem_type}`);
-		const loadResource = async (src: string, id?: string) => {
-			return new Promise<void>((resolve, reject) => {
-				let shouldAppend = false;
-				let el: HTMLScriptElement | HTMLLinkElement | null;
-				if (/\.js(?:\??[0-9a-zA-Z=]*)$/.exec(src)) {
-					el = document.querySelector(`script[src="${src}"]`);
-					if (!el) {
-						el = document.createElement('script');
-						if (id) el.id = id;
-						el.async = false;
-						el.src = src;
-						shouldAppend = true;
-					}
-				} else if (/\.css(?:\??[0-9a-zA-Z=]*)$/.exec(src)) {
-					el = document.querySelector(`link[href="${src}"]`);
-					if (!el) {
-						el = document.createElement('link');
-						el.rel = 'stylesheet';
-						el.href = src;
-						shouldAppend = true;
-					}
-				} else {
-					reject();
-					return;
-				}
-
-				if (el.dataset.loaded) {
-					resolve();
-					return;
-				}
-
-				el.addEventListener('error', reject);
-				el.addEventListener('abort', reject);
-				el.addEventListener('load', () => {
-					if (el) el.dataset.loaded = 'true';
-					resolve();
-				});
-
-				if (shouldAppend) document.head.appendChild(el);
-			});
-		};
+		logger.debug(`[Problem/setup] file: ${freeProblem.value.path()},` +
+			` type: ${freeProblem.value.problem_type}`);
 
 		const clearUI = () => {
 			logger.debug('[Problem/clearUI]');
@@ -151,10 +112,10 @@ export default defineComponent({
 		};
 
 		watch(() => props.problem, () => {
-			freeProblem.value = props.problem.clone();
+			freeProblem.value = props.problem.clone() as unknown as Problem;
 		}, { deep: true });
 
-		const loadProblem = async (url: string, formData: FormData, overrides: RendererParams) => {
+		const loadProblem = async (url: string, formData: FormData, overrides: ParseableRenderParams) => {
 			// Make sure that any popovers left open from a previous rendering are removed.
 			for (const popover of activePopovers) {
 				popover.dispose();
@@ -174,17 +135,19 @@ export default defineComponent({
 				return;
 			}
 
-			await Promise.all((css).map(
+			// Load all css files needed for the problem.
+			await Promise.all(css.map(
 				async (cssSource) => {
-					await loadResource(cssSource).
-						catch(() => logger.log('error', `Could not load ${cssSource}`));
+					await loadResource(cssSource)
+						.catch(() => logger.log('error', `Could not load ${cssSource}`));
 				}
 			));
 
+			// Load all js files needed for the problem.
 			await Promise.all(js.map(
 				async (jsSource) => {
-					await loadResource(jsSource).
-						catch(() => logger.log('error', `Could not load ${jsSource}`));
+					await loadResource(jsSource)
+						.catch(() => logger.log('error', `Could not load ${jsSource}`));
 				}
 			));
 
@@ -235,7 +198,7 @@ export default defineComponent({
 				return;
 			}
 
-			problemForm.value.id = `${freeProblem.value.renderer_params.answerPrefix || ''}problemMainForm`;
+			problemForm.value.id = `${freeProblem.value.render_params.answerPrefix || ''}problemMainForm`;
 
 			// Add a click handler to any submit buttons in the problem form.
 			// Some Geogebra problems add one of these for example.
@@ -252,16 +215,17 @@ export default defineComponent({
 					logger.error('No button was pressed...');
 					return;
 				}
+				const render_params = freeProblem.value.requestParams();
 				void loadProblem(problemForm.value?.action ?? RENDER_URL, new FormData(problemForm.value), {
-					[submitButton.value.name]: submitButton.value.value,
-					...freeProblem.value.requestParams()
+					[submitButton.value.name]: submitButton.value.value, ...render_params
 				});
 			});
 		};
 
 		const initialLoad = () => {
 			logger.debug('[Problem/initialLoad] I have been called.');
-			void loadProblem(RENDER_URL, new FormData(), freeProblem.value.requestParams());
+			const render_params = freeProblem.value.requestParams();
+			void loadProblem(RENDER_URL, new FormData(), render_params);
 		};
 
 		watch(freeProblem, initialLoad, { deep: true });

@@ -45,6 +45,7 @@ sub updateProblemSet ($self) {
 		},
 		params => $self->req->json
 	);
+
 	$self->render(json => $problem_set);
 	return;
 }
@@ -72,12 +73,19 @@ sub deleteProblemSet ($self) {
 }
 
 sub getUserSets ($self) {
-	my @user_sets = $self->schema->resultset("UserSet")->getUserSetsForSet(
-		info => {
-			course_id => int($self->param("course_id")),
-			set_id    => int($self->param("set_id"))
-		}
-	);
+	my @user_sets;
+	my $info = { course_id => int($self->param("course_id")) };
+	if ($self->param("set_id")) {
+		$info->{set_id} = int($self->param("set_id"));
+		@user_sets = $self->schema->resultset("UserSet")->getUserSetsForSet(info => $info);
+	} elsif ($self->param("user_id")) {
+		$info->{user_id} = int($self->param("user_id"));
+		@user_sets = $self->schema->resultset("UserSet")->getUserSetsForUser(info => $info);
+	}
+	# Remove the course_name for each of the user sets.
+	for my $user_set (@user_sets) {
+		delete $user_set->{course_name};
+	}
 	$self->render(json => \@user_sets);
 	return;
 }

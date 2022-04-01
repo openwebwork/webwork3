@@ -39,7 +39,7 @@ my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_use
 my $t;
 
 if ($TEST_PERMISSIONS) {
-	$config->{ignore_permissions} = 1;
+	$config->{ignore_permissions} = 0;
 	$t = Test::Mojo->new(WeBWorK3 => $config);
 
 	$t->post_ok('/webwork3/api/username' => json => { email => 'admin@google.com', password => 'admin' })
@@ -47,7 +47,7 @@ if ($TEST_PERMISSIONS) {
 		->json_is('/user/user_id' => 1)->json_is('/user/is_admin' => 1);
 
 } else {
-	$config->{ignore_permissions} = 0;
+	$config->{ignore_permissions} = 1;
 	$t = Test::Mojo->new(WeBWorK3 => $config);
 }
 

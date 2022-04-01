@@ -62,67 +62,57 @@
 
 <script lang="ts">
 import { computed, defineComponent, ref } from 'vue';
-import { useStore } from 'src/store';
 import { useRouter } from 'vue-router';
 import { useRoute } from 'vue-router';
-import { UserCourse } from 'src/store/models/courses';
-import type { CourseSettingInfo } from 'src/store/models/settings';
 import { endSession } from 'src/common/api-requests/session';
 import { useI18n } from 'vue-i18n';
 import { setI18nLanguage } from 'boot/i18n';
+import { useSessionStore } from 'src/stores/session';
+import { useUserStore } from 'src/stores/users';
+import type { CourseSettingInfo } from 'src/common/models/settings';
+import { useSettingsStore } from 'src/stores/settings';
 
 export default defineComponent({
 	name: 'MenuBar',
 	emits: ['toggle-menu', 'toggle-sidebar'],
 	setup() {
-		const store = useStore();
+		const session = useSessionStore();
+		const users = useUserStore();
+		const settings = useSettingsStore();
 		const router = useRouter();
 		const route = useRoute();
 		const current_view = ref('');
 		const currentLocale = ref(useI18n({ useScope: 'global' }).locale.value);
 
-		const current_course_name = computed(() => store.state.session.course.course_name);
+		const current_course_name = computed(() => session.course.course_name);
 
 		return {
-			logged_in: computed(() => store.state.session.logged_in),
-			user: computed(() => store.state.session.user),
+			logged_in: computed(() => session.logged_in),
+			user: computed(() => session.user),
 			current_course_name,
-			full_name: computed(() =>
-				`${store.state.session.user.first_name || ''} ${store.state.session.user.last_name || ''}`),
-			user_courses: computed(() => {
-				return store.state.users.user_courses.filter(
-					(course: UserCourse) => course.course_name !== current_course_name.value
-				);
-			}),
+			full_name: computed(() => session.full_name),
+			user_courses: computed(() =>
+				users.user_courses.filter(course => course.course_name !== current_course_name.value)),
 			changeCourse: (course_id: number, course_name: string) => {
-				const current_course = store.state.users.user_courses.filter(
-					(course: UserCourse) => course.course_name === current_course_name.value
-				)[0];
+				const current_course = users.user_courses
+					.find(course => course.course_name === current_course_name.value);
 
-				const new_course = store.state.users.user_courses.filter(
-					(course: UserCourse) => course.course_name === course_name
-				)[0];
-				if (current_course.role !== new_course.role) {
+				const new_course = users.user_courses.find(course => course.course_name === course_name);
+				if (current_course && new_course && current_course.role !== new_course.role) {
 					void router.push({ name: new_course.role, params: { course_id: course_id } });
 				}
-				void store.dispatch('session/setCourse', { course_name, course_id });
+				void session.setCourse({ course_name, course_id });
 			},
 			currentLocale,
-			availableLocales: computed(() => {
-				const language_setting = store.state.settings.default_settings.find(
-					(setting: CourseSettingInfo) => setting.var === 'language'
-				);
-				return language_setting?.options;
-			}),
+			availableLocales: computed(() =>
+				settings.default_settings.find((setting: CourseSettingInfo) => setting.var === 'language')?.options
+			),
 			setI18nLanguage,
 			open_user_settings: ref(false),
 			current_view,
 			logout: async () => {
 				await endSession();
-				void store.dispatch('session/logout');
-				void store.dispatch('users/clearUsers');
-				void store.dispatch('problem_sets/clearSets');
-				void store.dispatch('settings/clearSettings');
+				void session.logout();
 				void router.push('/login');
 			},
 			menubar_color: computed(() =>

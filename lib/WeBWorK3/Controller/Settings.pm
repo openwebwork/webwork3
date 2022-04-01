@@ -40,4 +40,11 @@ sub getCourseSettings ($self) {
 	return;
 }
 
+sub updateCourseSetting ($self) {
+	my $course_setting = $self->schema->resultset("Course")
+		->updateCourseSettings({ course_id => $self->param("course_id") }, $self->req->json);
+	$self->render(json => $course_setting);
+	return;
+}
+
 1;

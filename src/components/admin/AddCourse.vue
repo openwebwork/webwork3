@@ -59,13 +59,13 @@
 import { defineComponent, ref } from 'vue';
 import { useQuasar } from 'quasar';
 
-import { useStore } from 'src/store';
-// import { newCourse, newCourseUser } from 'src/store/common';
+import { useCourseStore } from 'src/stores/courses';
 
-import { Course } from 'src/store/models/courses';
-import { ResponseError } from 'src/store/models';
-import { User, CourseUser } from 'src/store/models/users';
+import { Course } from 'src/common/models/courses';
+import { ResponseError } from 'src/common/api-requests/interfaces';
+import { User, CourseUser } from 'src/common/models/users';
 import { AxiosError } from 'axios';
+import { useUserStore } from 'src/stores/users';
 
 interface DateRange {
 	to: string;
@@ -77,7 +77,8 @@ export default defineComponent({
 	emits: ['closeDialog'],
 	setup(props, context) {
 		const $q = useQuasar();
-		const store = useStore();
+		const courses = useCourseStore();
+		const users = useUserStore();
 
 		const course = ref<Course>(new Course());
 		const user = ref<User>(new User());
@@ -93,9 +94,9 @@ export default defineComponent({
 			instructor_exists,
 			checkUser: async () => {
 				// lookup the user by username to see if already exists
-				const _user = (await store.dispatch('users/getGlobalUser', user.value.username)) as User;
+				const _user = (await users.getUser(user.value.username));
 				if (_user !== undefined) {
-					user.value = _user;
+					user.value = new User(_user);
 					instructor_exists.value = true;
 				} else {
 					instructor_exists.value = false;
@@ -103,21 +104,20 @@ export default defineComponent({
 			},
 			addCourse: async () => {
 				try {
-					const _course = (await store.dispatch('courses/addCourse', course.value)) as unknown as Course;
-
+					const added_course = (await courses.addCourse(course.value as Course));
 					$q.notify({
-						message: `The course '${_course.course_name || ''}' was successfully added.`,
+						message: `The course '${added_course.course_name || ''}' was successfully added.`,
 						color: 'green'
 					});
 					if (!instructor_exists.value) {
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-						void (await store.dispatch('users/addGlobalUser', user.value));
+						void users.addUser(user.value as User);
 					}
 					// add the user to the course
-					const _course_user = new CourseUser({});
-					_course_user.role = 'instructor';
-					_course_user.course_id = _course.course_id;
-					await store.dispatch('users/addCourseUser', _course_user);
+					const course_user = new CourseUser({});
+					course_user.role = 'instructor';
+					course_user.course_id = added_course.course_id;
+					await users.addCourseUser(course_user);
 					$q.notify({
 						message: `The user ${user.value.username ?? ''} was successfully added to the course.`,
 						color: 'green'

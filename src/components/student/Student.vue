@@ -4,15 +4,15 @@
 
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
-import { useStore } from 'src/store';
+import { useSessionStore } from 'src/stores/session';
 
 export default defineComponent({
 	name: 'Student',
 	setup() {
-		const store = useStore();
+		const session = useSessionStore();
 
 		return {
-			course_name: computed(() => store.state.session.course.course_name)
+			course_name: computed(() => session.course.course_name)
 		};
 	}
 });

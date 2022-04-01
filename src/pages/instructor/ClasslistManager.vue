@@ -55,13 +55,15 @@
 
 <script lang="ts">
 import { useQuasar } from 'quasar';
-import { defineComponent, computed, ref } from 'vue';
+import { defineComponent, computed, ref, watch } from 'vue';
 
-import { useStore } from 'src/store';
+import { useUserStore } from 'src/stores/users';
 import { api } from 'boot/axios';
-import { MergedUser } from 'src/store/models/users';
-import { UserCourse } from 'src/store/models/courses';
-import { ResponseError } from 'src/store/models';
+import { logger } from 'src/boot/logger';
+
+import { User, MergedUser, CourseUser } from 'src/common/models/users';
+import { UserCourse } from 'src/common/models/courses';
+import type { ResponseError } from 'src/common/api-requests/interfaces';
 import AddUsersManually from 'src/components/instructor/ClasslistManagerComponents/AddUsersManually.vue';
 import AddUsersFromFile from 'src/components/instructor/ClasslistManagerComponents/AddUsersFromFile.vue';
 import EditUsers from 'src/components/instructor/ClasslistManagerComponents/EditUsers.vue';
@@ -76,7 +78,7 @@ export default defineComponent({
 	emits: ['closeDialog'],
 	setup() {
 		const $q = useQuasar();
-		const store = useStore();
+		const users = useUserStore();
 		const selected = ref<Array<MergedUser>>([]);
 		const filter = ref<string>('');
 		const open_users_manually = ref<boolean>(false);
@@ -138,6 +140,11 @@ export default defineComponent({
 			}
 		];
 
+		watch(() => open_edit_dialog.value, () => {
+			// When the Edit Users Dialog closes clear the selected row.
+			if (!open_edit_dialog.value) selected.value = [];
+		});
+
 		return {
 			filter,
 			selected,
@@ -145,43 +152,48 @@ export default defineComponent({
 			open_users_from_file,
 			open_edit_dialog,
 			columns,
-			merged_users: computed(() => store.state.users.merged_users),
-			deleteCourseUsers: async () => {
+			merged_users: computed(() => users.merged_users),
+			deleteCourseUsers: () => {
 				const users_to_delete = selected.value.map((u) => u.username).join(', ');
-				var conf = confirm(`Are you sure you want to delete the users: ${users_to_delete}`);
-				if (conf) {
-					for await (const user of selected.value) {
-						try {
-							await store.dispatch('users/deleteCourseUser', user);
+				$q.dialog({
+					message: `Are you sure you want to delete the users: ${users_to_delete}`,
+					cancel: true,
+					persistent: true
+				}).onOk(() => {
+					for (const user of selected.value) {
+						users.deleteCourseUser(new CourseUser(user)).then(() => {
 							$q.notify({
 								message: `The user '${
 									user.username ?? ''}' has been succesfully deleted from the course.`,
 								color: 'green'
 							});
-						} catch (err) {
+						}).catch((err) => {
 							const error = err as ResponseError;
 							$q.notify({ message: error.message, color: 'red' });
-						}
-						// delete the user if they have no other courses
-						const response = await api.get(`users/${user.user_id ?? ''}/courses`);
-						const user_courses = response.data as  Array<UserCourse>;
+						});
 
-						if (user_courses.length === 0) {
-							try {
-								await store.dispatch('users/deleteUser', user);
-								$q.notify({
-									message: `The user '${user.username ?? ''}' has been succesfully deleted.`,
-									color: 'green'
+						// Delete the user if they have no other courses
+						api.get(`users/${user.user_id ?? ''}/courses`).then((response) => {
+							const user_courses = response.data as  Array<UserCourse>;
+
+							if (user_courses.length === 0) {
+								users.deleteUser(new User(user)).then(() => {
+									$q.notify({
+										message: `The user '${user.username ?? ''}' has been succesfully deleted.`,
+										color: 'green'
+									});
+								}).catch((err) => {
+									const error = err as ResponseError;
+									$q.notify({ message: error.message, color: 'red' });
 								});
-							} catch (err) {
-								const error = err as ResponseError;
-								$q.notify({ message: error.message, color: 'red' });
 							}
-						}
-						void store.dispatch('users/deleteMergedCourseUser', user);
-						selected.value = [];
+							void users.deleteMergedUser(new MergedUser(user));
+							selected.value = [];
+						}).catch((err) => {
+							logger.error(err);
+						});
 					}
-				}
+				});
 			}
 		};
 	}

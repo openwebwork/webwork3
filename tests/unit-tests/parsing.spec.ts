@@ -1,7 +1,8 @@
 // This tests the parsing of various formats
 
 import { parseNonNegInt, parseBoolean, parseEmail, parseUsername, EmailParseException,
-	NonNegIntException, BooleanParseException, UsernameParseException } from 'src/store/models';
+	NonNegIntException, BooleanParseException, UsernameParseException,
+	parseUserRole, UserRoleException, parseNonNegDecimal, NonNegDecimalException } from 'src/common/models/parsers';
 
 test('parsing nonnegative integers', () => {
 	expect(parseNonNegInt(1)).toBe(1);
@@ -10,6 +11,21 @@ test('parsing nonnegative integers', () => {
 	expect(parseNonNegInt('0')).toBe(0);
 	expect(() => {parseNonNegInt(-1);}).toThrow(NonNegIntException);
 	expect(() => {parseNonNegInt('-1');}).toThrow(NonNegIntException);
+});
+
+test('parsing nonnegative decimals', () => {
+	expect(parseNonNegDecimal(1.5)).toBe(1.5);
+	expect(parseNonNegDecimal(0.5)).toBe(0.5);
+	expect(parseNonNegDecimal(.5)).toBe(.5);
+	expect(parseNonNegDecimal(2)).toBe(2);
+	expect(parseNonNegDecimal('1.5')).toBe(1.5);
+	expect(parseNonNegDecimal('0.5')).toBe(0.5);
+	expect(parseNonNegDecimal('.5')).toBe(.5);
+	expect(parseNonNegDecimal('2')).toBe(2);
+
+	expect(() => {parseNonNegDecimal(-1);}).toThrow(NonNegDecimalException);
+	expect(() => {parseNonNegDecimal(-0.5);}).toThrow(NonNegDecimalException);
+	expect(() => {parseNonNegDecimal(-.5);}).toThrow(NonNegDecimalException);
 });
 
 test('parsing booleans', () => {
@@ -47,4 +63,11 @@ test('parsing usernames', () => {
 	expect(parseUsername('first.last@sub.site.com')).toBe('first.last@sub.site.com');
 	expect(() => {parseUsername('first last@site.com');}).toThrow(UsernameParseException);
 
+});
+
+test('parsing user roles', () => {
+	expect(parseUserRole('instructor')).toBe('INSTRUCTOR');
+	expect(parseUserRole('TA')).toBe('TA');
+	expect(parseUserRole('student')).toBe('STUDENT');
+	expect(() => {parseUserRole('not_existent'); }).toThrow(UserRoleException);
 });
