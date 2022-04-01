@@ -45,14 +45,13 @@ export class User extends Model {
 	}
 
 	set(params: ParseableUser) {
-		// Since the first three are required, only set if the field exists.
-		if (params.username != undefined) this.username = params.username;
-		if (params.user_id != undefined) this.user_id = params.user_id;
-		if (params.is_admin != undefined) this.is_admin = params.is_admin;
-		this.email = params.email;
-		this.first_name = params.first_name;
-		this.last_name = params.last_name;
-		this.student_id = params.student_id;
+		if (params.username) this.username = params.username;
+		if (params.user_id) this.user_id = params.user_id;
+		if (params.is_admin) this.is_admin = params.is_admin;
+		if (params.email) this.email = params.email;
+		if (params.first_name) this.first_name = params.first_name;
+		if (params.last_name) this.last_name = params.last_name;
+		if (params.student_id) this.student_id = params.student_id;
 	}
 
 	get user_id() { return this._user_id; }
@@ -130,12 +129,12 @@ export class CourseUser extends Model {
 		this.set(params);
 	}
 	set(params: ParseableCourseUser) {
-		if (params.course_user_id != undefined) this.course_user_id = params.course_user_id;
-		this.user_id = params.user_id;
-		this.course_id = params.course_id;
-		this.role = params.role;
-		this.section = params.section;
-		this.recitation = params.recitation;
+		if (params.course_user_id) this.course_user_id = params.course_user_id;
+		if (params.user_id) this.user_id = params.user_id;
+		if (params.course_id) this.course_id = params.course_id;
+		if (params.role) this.role = params.role;
+		if (params.section) this.section = params.section;
+		if (params.recitation) this.recitation = params.recitation;
 	}
 
 	get course_user_id(): number { return this._course_user_id; }
@@ -224,18 +223,18 @@ export class MergedUser extends Model {
 		this.set(params);
 	}
 	set(params: ParseableMergedUser) {
-		if (params.course_user_id != undefined) this.course_user_id = params.course_user_id;
-		if (params.course_id != undefined) this.course_id = params.course_id;
-		if (params.user_id != undefined) this.user_id = params.user_id;
-		if (params.is_admin != undefined) this.is_admin = params.is_admin;
-		this.username = params.username;
-		this.email = params.email;
-		this.first_name = params.first_name;
-		this.last_name = params.last_name;
-		this.student_id = params.student_id;
-		this.role = params.role;
-		this.section = params.section;
-		this.recitation = params.recitation;
+		if (params.course_user_id) this.course_user_id = params.course_user_id;
+		if (params.course_id) this.course_id = params.course_id;
+		if (params.user_id) this.user_id = params.user_id;
+		if (params.is_admin) this.is_admin = params.is_admin;
+		if (params.username) this.username = params.username;
+		if (params.email) this.email = params.email;
+		if (params.first_name) this.first_name = params.first_name;
+		if (params.last_name) this.last_name = params.last_name;
+		if (params.student_id) this.student_id = params.student_id;
+		if (params.role) this.role = params.role;
+		if (params.section) this.section = params.section;
+		if (params.recitation) this.recitation = params.recitation;
 	}
 
 	get course_user_id(): number { return this._course_user_id; }

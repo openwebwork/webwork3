@@ -203,6 +203,31 @@ sub updateGlobalUser ($self, %args) {
 	return removeLoginParams({ $updated_user->get_inflated_columns });
 }
 
+=head1 getGlobalCourseUsers
+
+This gets a list of all global users in a given course
+
+=head3 input
+
+=item * C<info>, a hashref of the form C<{course_id => 1}> or C<{course_name => "coursename"}>.
+
+=head3 output
+
+An array of users as a C<DBIx::Class::ResultSet::User> object.
+
+=cut
+
+sub getGlobalCourseUsers ($self, %args) {
+	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+	my @users = $self->search({
+		'course_users.course_id' => $course->course_id
+	}, {
+		prefetch => qw/course_users/
+	});
+	return \@users if $args{as_result_set};
+	return map { removeLoginParams({ $_->get_inflated_columns }); } @users;
+}
+
 # This clearly needs to be fixed to include encryption of the password.
 # We need to decide on what encryption algorithm.
 

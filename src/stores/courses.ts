@@ -11,7 +11,16 @@ export const useCourseStore = defineStore('courses', {
 	state: (): CourseState => ({
 		courses: []
 	}),
-	getters: { },
+	getters: {
+		findCourse: (state) => (course_info: { course_id?: number; course_name?: string }) => {
+			if (course_info.course_id) {
+				return state.courses.find(course => course.course_id === course_info.course_id);
+			} else if (course_info.course_name) {
+				return state.courses.find(course => course.course_name === course_info.course_name);
+			}
+		}
+
+	},
 	actions: {
 		async fetchCourses() : Promise<void> {
 			const response = await api.get('courses');

@@ -109,6 +109,8 @@ sub userRoutes ($self) {
 	$user_routes->put('/:user_id')->to(action => 'updateGlobalUser');
 	$user_routes->delete('/:user_id')->to(action => 'deleteGlobalUser');
 	$user_routes->get('/:user_id/courses')->to(action => 'getUserCourses');
+	# Get global users for a course.
+	$self->routes->get('/webwork3/api/courses/:course_id/global-users')->to('User#getGlobalCourseUsers');
 	# This is needed to get global users as instructor permission.  Need to have
 	# the parameter course_id.
 	$self->routes->any('/webwork3/api/courses/:course_id/users/:user/exists')->to('User#getGlobalUser');

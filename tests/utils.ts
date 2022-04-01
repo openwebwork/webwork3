@@ -1,21 +1,11 @@
 // utils.ts
 
-import { Dictionary, Model } from 'src/common/models';
+import { Dictionary, generic, Model } from 'src/common/models';
 import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
-import { logger } from 'src/boot/logger';
 import papa from 'papaparse';
 import fs from 'fs';
 
 // Utility functions for testing
-
-/**
- * Parse a date string in ISO ???? format to unix time.
- * @param date_str
- */
-
-const parseDate = (date_str: string) => {
-
-};
 
 /**
  * convert takes data in the form of an array of objects of strings or numbers
@@ -48,7 +38,7 @@ function convert(data: Dictionary<string>[], config: CSVConfig): Output[] {
 	});
 
 	const all_param_fields = Object.entries(p_fields)
-		.reduce((prev, [key, value]) => prev = [...prev, ...value], [] as string[]);
+		.reduce((prev, [, value]) => prev = [...prev, ...value], [] as string[]);
 	const known_fields = [...all_param_fields, ...(config.boolean_fields ?? []),
 		...(config.non_neg_fields ?? [])];
 	const other_fields = keys.filter(k => known_fields.indexOf(k) < 0);
@@ -58,20 +48,24 @@ function convert(data: Dictionary<string>[], config: CSVConfig): Output[] {
 		// All non-param, non-boolean and non-integer fields don't need to be parsed.
 		other_fields.forEach(key => { d[key] = row[key]; });
 		// Parse boolean fields
-		(config.boolean_fields ?? []).forEach(key => { d[key] = parseBoolean(row[key]); });
+		(config.boolean_fields ?? []).forEach(key => {
+			if (row[key] != undefined) d[key] = parseBoolean(row[key]);
+		});
 		// Parse int fields
-		(config.non_neg_fields ?? []).forEach(key => { d[key] = parseNonNegInt(row[key]); });
+		(config.non_neg_fields ?? []).forEach(key => {
+			if (row[key] != undefined) d[key] = parseNonNegInt(row[key]);
+		});
 		// Parse parameter fields
-		Object.entries(p_fields).forEach(([key, value]) => {
+		Object.entries(p_fields).forEach(([key, ]) => {
 			d[key] = p_fields[key].reduce((prev: Dictionary<string | number>, val) => {
 				const field = val.split(':')[1];
 				// Parse any date field as date.
 				prev[field] = /DATES:/.test(val) ?
 				// and shift due to timezone. THIS NEEDS TO BE FIXED.
-					Date.parse(row[val])/1000 - 5 * 3600 :
+					Date.parse(row[val]) / 1000 - 5 * 3600 :
 					row[val];
 				return prev;
-			},{});
+			}, {});
 		});
 		return d;
 	});
@@ -85,16 +79,35 @@ function convert(data: Dictionary<string>[], config: CSVConfig): Output[] {
  */
 
 export async function loadCSV(filepath: string, config: CSVConfig): Promise<Output[]> {
-	const file = fs.createReadStream(filepath)
+	const file = fs.createReadStream(filepath);
 	return new Promise((resolve, reject) => {
 		papa.parse(file, {
 			header: true,
-			complete (results, file) {
+			complete (results) {
 				return resolve(convert(results.data as Dictionary<string>[], config));
 			},
-			error (err, file) {
+			error (err) {
 				return reject(err);
 			}
 		});
 	});
 }
+
+/**
+ * cleanIDs removes all fields ending in _id.  This is useful for comparing data from
+ * the database where the internal _id are not important.
+ *
+ *
+ */
+
+export const cleanIDs = (m: Model | Model[]): Dictionary<generic> | Dictionary<generic>[] => {
+	if (Array.isArray(m)) {
+		return m.map(o => cleanIDs(o)) as Dictionary<generic>[];
+	} else {
+		const obj = m.toObject();
+		return Object.keys(obj)
+			.filter(k => k == 'student_id' || !/_id$/.test(k))
+			.reduce((res: Dictionary<generic>, key: string) =>
+				Object.assign(res, { [key]: obj[key] }), {});
+	}
+};
