@@ -54,7 +54,7 @@ describe('User store tests', () => {
 		precalc_course = course_store.findCourse({ course_name: 'Precalculus' }) as Course;
 	});
 
-	describe.only('Fetch all global users', () => {
+	describe('Fetch all global users', () => {
 		test('Fetch all users', async () => {
 			const user_store = useUserStore();
 			await user_store.fetchUsers();
@@ -138,7 +138,7 @@ describe('User store tests', () => {
 		});
 	});
 
-	describe.only('Check merged users', () => {
+	describe('Check merged users', () => {
 
 		test('Fetch global users for a course', async () => {
 			const user_store = useUserStore();

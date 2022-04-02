@@ -219,11 +219,14 @@ An array of users as a C<DBIx::Class::ResultSet::User> object.
 
 sub getGlobalCourseUsers ($self, %args) {
 	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
-	my @users = $self->search({
-		'course_users.course_id' => $course->course_id
-	}, {
-		prefetch => qw/course_users/
-	});
+	my @users  = $self->search(
+		{
+			'course_users.course_id' => $course->course_id
+		},
+		{
+			prefetch => qw/course_users/
+		}
+	);
 	return \@users if $args{as_result_set};
 	return map { removeLoginParams({ $_->get_inflated_columns }); } @users;
 }
@@ -335,8 +338,8 @@ sub getCourseUser ($self, %args) {
 		my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
 		$course_user = $self->rs("CourseUser")->find({ course_id => $course->course_id, user_id => $user->user_id });
 		DB::Exception::UserNotInCourse->throw(
-			message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}"
-		) unless defined $course_user || $args{skip_throw};
+			message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}")
+			unless defined $course_user || $args{skip_throw};
 
 	}
 

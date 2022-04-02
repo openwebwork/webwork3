@@ -60,10 +60,12 @@ function convert(data: Dictionary<string>[], config: CSVConfig): Output[] {
 			d[key] = p_fields[key].reduce((prev: Dictionary<string | number>, val) => {
 				const field = val.split(':')[1];
 				// Parse any date field as date.
-				prev[field] = /DATES:/.test(val) ?
-				// and shift due to timezone. THIS NEEDS TO BE FIXED.
-					Date.parse(row[val]) / 1000 - 5 * 3600 :
-					row[val];
+				if (row[val]) {
+					prev[field] = /DATES:/.test(val) ?
+					// and shift due to timezone. THIS NEEDS TO BE FIXED.
+						Date.parse(row[val]) / 1000 - 5 * 3600 :
+						row[val];
+				}
 				return prev;
 			}, {});
 		});

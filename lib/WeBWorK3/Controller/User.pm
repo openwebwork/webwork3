@@ -39,9 +39,11 @@ sub deleteGlobalUser ($self) {
 
 # This gets all global users for a given course
 sub getGlobalCourseUsers ($self) {
-	my @users = $self->schema->resultset("User")->getGlobalCourseUsers( info => {
-		course_id => int($self->param('course_id'))
-	});
+	my @users = $self->schema->resultset("User")->getGlobalCourseUsers(
+		info => {
+			course_id => int($self->param('course_id'))
+		}
+	);
 	$self->render(json => \@users);
 	return;
 }

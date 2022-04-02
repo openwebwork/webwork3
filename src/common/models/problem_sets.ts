@@ -18,15 +18,16 @@ export enum ProblemSetType {
  */
 
 export function parseProblemSet(set: ParseableProblemSet) {
-	if (/hw/i.test(set.set_type ?? '')) {
+	const set_type = set.set_type ?? '';
+	if (/hw/i.test(set_type) || set_type === '') {
 		return new HomeworkSet(set as ParseableHomeworkSet);
-	} else if (/quiz/i.test(set.set_type ?? '')) {
+	} else if (/quiz/i.test(set_type)) {
 		return new Quiz(set as ParseableQuiz);
-	} else if (/review/i.test(set.set_type ?? '')) {
+	} else if (/review/i.test(set_type)) {
 		return new ReviewSet(set as ParseableReviewSet);
 	}
 
-	throw new ParseError('ProblemSetType', `The problem set type '${set.set_type ?? ''}' is not valid.`);
+	throw new ParseError('ProblemSetType', `The problem set type '${set_type}' is not valid.`);
 }
 
 export type ProblemSetParams = HomeworkSetParams | QuizParams | ReviewSetParams;

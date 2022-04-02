@@ -71,9 +71,9 @@ export interface ParseableLibraryProblem {
 }
 
 class ProblemLocationParams extends Model {
-	private _library_id = 0;
-	private _file_path = '';
-	private _problem_pool_id = 0;
+	private _library_id?: number;
+	private _file_path?: string;
+	private _problem_pool_id?: number;
 
 	get all_field_names(): string[] {
 		return ['library_id', 'file_path', 'problem_pool_id'];
@@ -94,14 +94,20 @@ class ProblemLocationParams extends Model {
 
 	}
 
-	public get library_id() : number { return this._library_id; }
-	public set library_id(val: string | number) { this._library_id = parseNonNegInt(val);}
+	public get library_id() : number | undefined { return this._library_id; }
+	public set library_id(val: string | number | undefined)
+	{
+		if (val != undefined) this._library_id = parseNonNegInt(val);
+	}
 
-	public get file_path() : string { return this._file_path;}
-	public set file_path(value: string) { this._file_path = value;}
+	public get file_path() : string | undefined { return this._file_path;}
+	public set file_path(value: string | undefined) { this._file_path = value;}
 
-	public get problem_pool_id() : number { return this._problem_pool_id; }
-	public set problem_pool_id(val: string | number) { this._problem_pool_id = parseNonNegInt(val);}
+	public get problem_pool_id() : number | undefined { return this._problem_pool_id; }
+	public set problem_pool_id(val: string | number | undefined)
+	{
+		if (val != undefined) this._problem_pool_id = parseNonNegInt(val);
+	}
 
 }
 
@@ -178,11 +184,11 @@ export interface ParseableSetProblemParams {
  * about the location of the problem and the weight of the problem.
  */
 
-class SetProblemParams extends Model {
+export class SetProblemParams extends Model {
 	private _weight = 1;
-	private _library_id = 0;
-	private _file_path = '';
-	private _problem_pool_id = 0;
+	private _library_id?: number;
+	private _file_path?: string;
+	private _problem_pool_id?: number;
 
 	get all_field_names(): string[] {
 		return ['weight', 'library_id', 'file_path', 'problem_pool_id'];
@@ -196,7 +202,6 @@ class SetProblemParams extends Model {
 	}
 
 	set(params: ParseableSetProblemParams) {
-		console.log(params);
 		if (params.weight != undefined) this.weight = params.weight;
 		if (params.library_id != undefined) this.library_id = params.library_id;
 		if (params.file_path != undefined) this.file_path = params.file_path;
@@ -207,14 +212,18 @@ class SetProblemParams extends Model {
 	public get weight(): number { return this._weight; }
 	public set weight(value: number | string) { this._weight = parseNonNegDecimal(value);}
 
-	public get library_id() : number { return this._library_id; }
-	public set library_id(val: string | number) { this._library_id = parseNonNegInt(val);}
+	public get library_id() : number | undefined { return this._library_id; }
+	public set library_id(val: string | number | undefined) {
+		if (val != undefined) this._library_id = parseNonNegInt(val);
+	}
 
-	public get file_path() : string { return this._file_path;}
-	public set file_path(value: string) { this._file_path = value;}
+	public get file_path() : string | undefined { return this._file_path;}
+	public set file_path(value: string | undefined) { this._file_path = value;}
 
-	public get problem_pool_id() : number { return this._problem_pool_id; }
-	public set problem_pool_id(val: string | number) { this._problem_pool_id = parseNonNegInt(val);}
+	public get problem_pool_id() : number | undefined { return this._problem_pool_id; }
+	public set problem_pool_id(val: string | number | undefined) {
+		if (val != undefined) this._problem_pool_id = parseNonNegInt(val);
+	}
 
 }
 

@@ -6,8 +6,8 @@ import { Model } from '.';
 import { parseBoolean, parseNonNegInt, parseUsername } from './parsers';
 import { ProblemSetDates, ProblemSetParams, HomeworkSetParams, HomeworkSetDates,
 	ParseableHomeworkSetParams, ParseableHomeworkSetDates, QuizParams, QuizDates,
-	ParseableQuiz, ParseableQuizDates, ParseableQuizParams, ParseableReviewSetDates,
-	ParseableReviewSetParams, ParseableReviewSet, ReviewSetDates, ReviewSetParams,
+	ParseableQuizDates, ParseableQuizParams, ParseableReviewSetDates,
+	ParseableReviewSetParams, ReviewSetDates, ReviewSetParams,
 	ProblemSetType } from './problem_sets';
 
 export interface ParseableUserSet {
@@ -51,11 +51,11 @@ export class UserSet extends Model {
 	}
 
 	set(params: ParseableUserSet) {
-		if (params.user_set_id != undefined) this.user_set_id = params.user_set_id;
-		if (params.set_id != undefined) this.set_id = params.set_id;
-		if (params.course_user_id != undefined) this.course_user_id = params.course_user_id;
-		if (params.set_version != undefined) this.set_version = params.set_version;
-		if (params.set_visible != undefined) this._set_visible = parseBoolean(params.set_visible);
+		if (params.user_set_id) this.user_set_id = params.user_set_id;
+		if (params.set_id) this.set_id = params.set_id;
+		if (params.course_user_id) this.course_user_id = params.course_user_id;
+		if (params.set_version) this.set_version = params.set_version;
+		if (params.set_visible) this._set_visible = parseBoolean(params.set_visible);
 	}
 
 	public get user_set_id(): number { return this._user_set_id;}
@@ -72,7 +72,7 @@ export class UserSet extends Model {
 
 	public get set_visible(): boolean | undefined { return this._set_visible;}
 	public set set_visible(value: number | string | boolean | undefined) {
-		if (value != undefined) this._set_visible = parseBoolean(value);
+		if (value) this._set_visible = parseBoolean(value);
 	}
 
 	public hasValidDates(): boolean {
@@ -161,7 +161,7 @@ export class UserQuiz extends UserSet {
 		return ['set_params', 'set_dates'];
 	}
 
-	constructor(params: ParseableQuiz = {}) {
+	constructor(params: ParseableUserQuiz = {}) {
 		super(params as ParseableUserSet);
 		this._set_type = ProblemSetType.QUIZ;
 		if (params.set_params != undefined) this._set_params.set(params.set_params);
@@ -208,7 +208,7 @@ export class UserReviewSet extends UserSet {
 		return ['set_params', 'set_dates'];
 	}
 
-	constructor(params: ParseableReviewSet = {}) {
+	constructor(params: ParseableUserReviewSet = {}) {
 		super(params as ParseableUserSet);
 		this._set_type = ProblemSetType.REVIEW_SET;
 		if (params.set_params != undefined) this._set_params.set(params.set_params);
