@@ -5,7 +5,7 @@ const default_render_params = {
 	problemSeed: 1234,
 	permissionLevel: 0,
 	outputFormat: 'ww3',
-	answerPrefix: '',
+	answerPrefix: 'SET0_',
 	sourceFilePath: '',
 	showHints: false,
 	showSolutions: true,

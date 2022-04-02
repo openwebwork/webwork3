@@ -69,6 +69,7 @@ import { useI18n } from 'vue-i18n';
 import { setI18nLanguage } from 'boot/i18n';
 import { useSessionStore } from 'src/stores/session';
 import { useUserStore } from 'src/stores/users';
+import type { CourseSettingInfo } from 'src/common/models/settings';
 import { useSettingsStore } from 'src/stores/settings';
 
 export default defineComponent({
@@ -103,9 +104,9 @@ export default defineComponent({
 				void session.setCourse({ course_name, course_id });
 			},
 			currentLocale,
-			availableLocales: computed(() => {
-				return settings.getCourseSetting('languages').value as string[];
-			}),
+			availableLocales: computed(() =>
+				settings.default_settings.find((setting: CourseSettingInfo) => setting.var === 'language')?.options
+			),
 			setI18nLanguage,
 			open_user_settings: ref(false),
 			current_view,

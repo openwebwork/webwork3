@@ -254,7 +254,8 @@ export class SetProblem extends Problem {
 			showSolutions: true,
 			showPreviewButton: true,
 			showCheckAnswersButton: true,
-			showCorrectAnswersButton: true
+			showCorrectAnswersButton: true,
+			answerPrefix: `${this.problem_type}${this.problem_number}_`,
 		});
 	}
 
@@ -494,7 +495,8 @@ export class MergedUserProblem extends Problem {
 			showSolutions: false,
 			showPreviewButton: true,
 			showCheckAnswersButton: true,
-			showCorrectAnswersButton: false
+			showCorrectAnswersButton: false,
+			answerPrefix: `${this.problem_type}${this.problem_number}_`,
 		});
 	}
 

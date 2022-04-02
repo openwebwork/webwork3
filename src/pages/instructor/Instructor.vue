@@ -23,6 +23,8 @@ export default defineComponent({
 	setup() {
 		const session = useSessionStore();
 		const users = useUserStore();
+		const settings = useSettingsStore();
+		const problem_sets = useProblemSetStore();
 		const route = useRoute();
 
 		const course_id = parseRouteCourseID(route);
@@ -32,35 +34,16 @@ export default defineComponent({
 				course_id,
 				course_name: course.course_name
 			});
+			void users.fetchMergedUsers(course_id);
+			void problem_sets.fetchProblemSets(course_id);
+			void problem_sets.fetchSetProblems(course_id);
+			void settings.fetchDefaultSettings()
+				.then(() => settings.fetchCourseSettings(course_id))
+				.then(() => setI18nLanguage(settings.getCourseSetting('language').value as string))
+				.catch((err) => logger.error(err));
+		} else {
+			logger.error(`[Instructor] Do you even GO here? Course #${course_id} not associated with your user.`);
 		}
 	},
-	created() {
-		// fetch most data needed for instructor views
-		const users = useUserStore();
-		const settings = useSettingsStore();
-		const problem_sets = useProblemSetStore();
-		const route = useRoute();
-
-		const course_id = parseRouteCourseID(route);
-
-		logger.debug('[Intructor]: fetching users from the server.');
-		void users.fetchMergedUsers(course_id);
-
-		logger.debug('[Instructor]: fetch problem_sets from server');
-		void problem_sets.fetchProblemSets(course_id);
-
-		logger.debug('[Intructor]: fetch settings from the server.');
-		settings.fetchDefaultSettings().then(() => {
-			settings.fetchCourseSettings(course_id).then(() => {
-				// Set the language from the course settings.
-				void setI18nLanguage(settings.getCourseSetting('language').value as string);
-			}).catch((err) => {
-				logger.error(err);
-			});
-		}).catch((err) => {
-			logger.error(err);
-		});
-
-	}
 });
 </script>
