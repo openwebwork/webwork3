@@ -20,9 +20,6 @@ const default_merged_user_problem = {
 	render_params: { ...default_render_params },
 	set_problem_params: {
 		weight: 1,
-		library_id: 0,
-		file_path: '',
-		problem_pool_id: 0
 	},
 	user_problem_params: {},
 	user_problem_id: 0,

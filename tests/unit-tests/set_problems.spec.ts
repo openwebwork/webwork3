@@ -16,9 +16,6 @@ const default_render_params = {
 
 const default_problem_params: ParseableSetProblemParams = {
 	weight: 1,
-	problem_pool_id: 0,
-	library_id: 0,
-	file_path:''
 };
 
 const default_problem_set: ParseableSetProblem = {
