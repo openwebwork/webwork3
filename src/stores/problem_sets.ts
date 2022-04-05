@@ -17,9 +17,8 @@ import { ResponseError } from 'src/common/api-requests/interfaces';
 import { User } from 'src/common/models/users';
 
 export interface ProblemSetState {
-	problem_sets: Array<ProblemSet>;
-	set_problems: Array<SetProblem>;
-	user_sets: Array<UserSet>;
+	problem_sets: ProblemSet[];
+	user_sets: UserSet[];
 }
 
 const createMergedUserSet = (user_set: UserSet, problem_set: ProblemSet, user: User) => {
@@ -40,7 +39,6 @@ const createMergedUserSet = (user_set: UserSet, problem_set: ProblemSet, user: U
 export const useProblemSetStore = defineStore('problem_sets', {
 	state: (): ProblemSetState => ({
 		problem_sets: [],
-		set_problems: [],
 		user_sets: [],
 	}),
 	getters: {
@@ -60,21 +58,6 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			set_info.set_id ?
 				state.problem_sets.find(set => set.set_id === set_info.set_id) :
 				state.problem_sets.find(set => set.set_name === set_info.set_name),
-		// set_problems
-		findSetProblems: (state) => (set_info: {set_id?: number, set_name?: string }) => {
-			if (set_info.set_id) {
-				return state.set_problems.filter(prob => prob.set_id === set_info.set_id);
-			} else if (set_info.set_name) {
-				const set = state.problem_sets.find(set => set.set_name === set_info.set_name);
-				if (set) {
-					return state.set_problems.filter(prob => prob.set_id === set.set_id);
-				} else {
-					return [];
-				}
-			} else {
-				return [];
-			}
-		},
 		findUserSet: (state) => (set_info: { set_id?: number, set_name?: string }) => {
 			if (set_info.set_id) {
 				return state.user_sets.filter(user_set => user_set.set_id === set_info.set_id);
@@ -142,49 +125,6 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			}
 			// TODO: what if this fails
 			return set_to_delete;
-		},
-		// SetProblem actions:
-
-		async fetchSetProblems(course_id: number): Promise<void> {
-			const response = await api.get(`courses/${course_id}/problems`);
-			const all_problems = response.data as Array<ParseableProblem>;
-			this.set_problems = all_problems.map((prob) => parseProblem(prob, 'Set') as SetProblem);
-		},
-		async addSetProblem(problem_info: { set_id: number, problem: LibraryProblem }): Promise<SetProblem> {
-			const course_id = useSessionStore().course.course_id;
-
-			const response = await api.post(`/courses/${course_id}/sets/${problem_info.set_id}/problems`, {
-				problem_params: problem_info.problem.location_params.toObject()
-			});
-
-			// TODO: check for errors
-			const new_problem = new SetProblem(response.data as ParseableSetProblem);
-			this.set_problems.push(new_problem);
-			return new_problem;
-		},
-		async updateSetProblem(params: { set_id: number, problem_id: number, props: ParseableSetProblem}):
-			Promise<SetProblem> {
-			const sessionStore = useSessionStore();
-			const course_id = sessionStore.course.course_id;
-
-			const response = await api.put(`courses/${course_id}/sets/${params.set_id}/problems/${
-				params.problem_id}`, params.props);
-			const updated_problem = new SetProblem(response.data as ParseableSetProblem);
-			// TODO: check for errors
-			const index = this.set_problems.findIndex(prob => prob.problem_id === updated_problem.problem_id);
-			this.set_problems.splice(index, 1, updated_problem);
-			return updated_problem;
-		},
-		async deleteSetProblem(problem: SetProblem): Promise<SetProblem> {
-			const course_id = useSessionStore().course.course_id;
-
-			const response = await api.delete(`courses/${course_id}/sets/${
-				problem.set_id}/problems/${problem.problem_id}`);
-			const deleted_problem = new SetProblem(response.data as ParseableSetProblem);
-			// TODO: check for errors
-			const index = this.set_problems.findIndex(prob => prob.problem_id === deleted_problem.problem_id);
-			this.set_problems.splice(index, 1);
-			return deleted_problem;
 		},
 		// UserSet actions
 		async fetchUserSets(params: { course_id: number; set_id: number}) {

@@ -54,4 +54,15 @@ sub deleteProblem ($self) {
 	return;
 }
 
+sub getUserProblemsForSet ($self) {
+	my @user_problems = $self->schema->resultset("UserProblem")->getUserProblemsForSet(
+		info => {
+			course_id => int($self->param('course_id')),
+			set_id => int($self->param('set_id'))
+		}
+	);
+	$self->render(json => \@user_problems);
+	return;
+}
+
 1;

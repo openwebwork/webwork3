@@ -397,12 +397,12 @@ export class UserProblem extends Problem {
 	}
 
 	set(params: ParseableUserProblem) {
-		if (params.problem_id != undefined) this.problem_id = params.problem_id;
-		if (params.user_id != undefined) this.user_id = params.user_id;
-		if (params.user_problem_id != undefined) this.user_problem_id = params.user_problem_id;
+		if (params.problem_id) this.problem_id = params.problem_id;
+		if (params.user_id) this.user_id = params.user_id;
+		if (params.user_problem_id) this.user_problem_id = params.user_problem_id;
 		if (params.seed != undefined) this.seed = params.seed;
-		if (params.status != undefined) this.status = params.status;
-		if (params.problem_version != undefined) this.problem_version = params.problem_version;
+		if (params.status) this.status = params.status;
+		if (params.problem_version) this.problem_version = params.problem_version;
 	}
 
 	static ALL_FIELDS = ['user_problem_id', 'problem_id', 'user_id', 'seed', 'status',
