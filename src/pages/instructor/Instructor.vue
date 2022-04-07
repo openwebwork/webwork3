@@ -28,7 +28,7 @@ export default defineComponent({
 		const route = useRoute();
 
 		const course_id = parseRouteCourseID(route);
-		if (session.user.user_id) await users.fetchUserCourses(session.getUser.user_id)
+		if (session.user.user_id) await users.fetchUserCourses(session.user.user_id)
 			.then(() => {
 				const course = users.user_courses.find(c => c.course_id === course_id);
 				if (course) {
