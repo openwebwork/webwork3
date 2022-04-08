@@ -17,6 +17,10 @@ const user: User = new User({
 	is_admin: false
 });
 
+const logged_out: User = new User({
+	username: 'logged_out'
+});
+
 const session_info: SessionInfo = {
 	logged_in: true,
 	user,
@@ -35,7 +39,7 @@ describe('Session Store', () => {
 		const session = useSessionStore();
 
 		expect(session.logged_in).toBe(false);
-		expect(session.user).toStrictEqual({});
+		expect(session.user).toStrictEqual(logged_out);
 		expect(session.course).toStrictEqual({
 			course_id: 0,
 			course_name: ''
@@ -69,7 +73,7 @@ describe('Session Store', () => {
 		session.logout();
 
 		expect(session.logged_in).toBe(false);
-		expect(session.user).toStrictEqual({});
+		expect(session.user).toStrictEqual(logged_out);
 
 	});
 
