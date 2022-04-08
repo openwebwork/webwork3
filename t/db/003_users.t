@@ -28,7 +28,6 @@ my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
 $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
-
 my $strp   = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
 
 my $users_rs  = $schema->resultset("User");
