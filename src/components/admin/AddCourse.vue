@@ -39,7 +39,7 @@
 						</div>
 						<div class="row q-col-gutter-lg">
 							<div class="col-6">
-								<q-input outlined :disable="instructor_exists"
+								<input-with-blur outlined :disable="instructor_exists"
 									v-model="user.email" label="Email" />
 							</div>
 						</div>
@@ -63,6 +63,7 @@ import { useUserStore } from 'src/stores/users';
 import { Course } from 'src/common/models/courses';
 import { User, CourseUser } from 'src/common/models/users';
 import { logger } from 'src/boot/logger';
+import InputWithBlur from 'src/components/common/InputWithBlur.vue';
 
 interface DateRange {
 	to: string;
@@ -72,6 +73,9 @@ interface DateRange {
 export default defineComponent({
 	name: 'NewCourseDialog',
 	emits: ['closeDialog'],
+	components: {
+		InputWithBlur
+	},
 	setup(props, context) {
 		const $q = useQuasar();
 		const courses = useCourseStore();
