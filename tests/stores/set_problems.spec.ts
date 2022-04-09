@@ -14,22 +14,19 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { cleanIDs, loadCSV } from '../utils';
 import { useCourseStore } from 'src/stores/courses';
 import { Course } from 'src/common/models/courses';
-import { CourseUser, MergedUser, User } from 'src/common/models/users';
 import { useUserStore } from 'src/stores/users';
 import { HomeworkSet, ProblemSet, Quiz, ReviewSet } from 'src/common/models/problem_sets';
 import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 import { useSessionStore } from 'src/stores/session';
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useSetProblemStore } from 'src/stores/set_problems';
-import { LibraryProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemParams, UserProblem } from 'src/common/models/problems';
+import { LibraryProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemParams,
+	UserProblem } from 'src/common/models/problems';
 
 const app = createApp({});
 
-
 describe('Problem Set store tests', () => {
-	let problem_sets_from_csv: ProblemSet[];
 	let precalc_course: Course;
-	let precalc_user_problems: UserProblem[];
 	let precalc_hw1_user_problems: UserProblem[];
 	beforeAll(async () => {
 		// Since we have the piniaPluginPersistedState as a plugin, duplicate for the test.
@@ -67,7 +64,7 @@ describe('Problem Set store tests', () => {
 			set.set_params.test_param = parseBoolean(set.set_params.test_param);
 		});
 		// combine quizzes, review sets and homework sets
-		problem_sets_from_csv = [...hw_sets_from_csv, ...quizzes_from_csv, ...review_sets_from_csv];
+		// const problem_sets_from_csv = [...hw_sets_from_csv, ...quizzes_from_csv, ...review_sets_from_csv];
 
 		// Load the User Problem information from the csv file:
 		const user_problems_from_csv = await loadCSV('t/db/sample_data/user_problems.csv', {
@@ -75,30 +72,25 @@ describe('Problem Set store tests', () => {
 			non_neg_fields: ['problem_number', 'seed']
 		});
 
-		precalc_user_problems = user_problems_from_csv
-			.filter(prob => prob.course_name === 'Precalculus')
-			.map(prob => new UserProblem(prob));
+		// const precalc_user_problems = user_problems_from_csv
+		// .filter(prob => prob.course_name === 'Precalculus')
+		// .map(prob => new UserProblem(prob));
 
 		precalc_hw1_user_problems = user_problems_from_csv
 			.filter(prob => prob.course_name === 'Precalculus' && prob.set_name === 'HW #1')
 			.map(prob => new UserProblem(prob));
 
 		// Load the users from the csv file.
-		const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
-			boolean_fields: ['is_admin'],
-			non_neg_fields: ['user_id']
-		});
+		// const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
+		// boolean_fields: ['is_admin'],
+		// non_neg_fields: ['user_id']
+		// });
 		// Do some parsing and cleanup.
-		const all_users_from_csv = users_to_parse.map(user => new User(user));
-		const all_precalc_users = users_to_parse.filter(user => user.course_name === 'Precalculus')
-			.map(user => new User(user));
-		const precalc_merged_users = users_to_parse.filter(user => user.course_name === 'Precalculus')
-			.map(user => new MergedUser(user));
-
-		// remove duplicates (for users in multiple courses) for global users
-		const usernames = [... new Set(all_users_from_csv.map(user => user.username))];
-		const global_users = usernames.map(username => all_users_from_csv
-			.find(user => user.username === username) ?? new User());
+		// const all_users_from_csv = users_to_parse.map(user => new User(user));
+		// const all_precalc_users = users_to_parse.filter(user => user.course_name === 'Precalculus')
+		// .map(user => new User(user));
+		// const precalc_merged_users = users_to_parse.filter(user => user.course_name === 'Precalculus')
+		// .map(user => new MergedUser(user));
 
 		// We'll need the courses as well.
 		const courses_store = useCourseStore();
@@ -141,7 +133,8 @@ describe('Problem Set store tests', () => {
 			});
 
 			// Create Problems as Models and then convert to Object to compare.
-			precalc_problems_from_csv = precalc_probs.map(prob => parseProblem(prob as ParseableSetProblem, 'Set') as SetProblem);
+			precalc_problems_from_csv = precalc_probs
+				.map(prob => parseProblem(prob as ParseableSetProblem, 'Set') as SetProblem);
 			expect(cleanIDs(set_problem_store.set_problems))
 				.toStrictEqual(cleanIDs(precalc_problems_from_csv));
 		});
@@ -161,7 +154,7 @@ describe('Problem Set store tests', () => {
 			});
 			const set_problem_store = useSetProblemStore();
 			// grab the set problems for HW #1 so we know which is the next problem number.
-			const probs = set_problem_store.findSetProblems({set_name: 'HW #1'});
+			const probs = set_problem_store.findSetProblems({ set_name: 'HW #1' });
 
 			const new_set_problem = new SetProblem({
 				set_id: hw1?.set_id,
@@ -191,10 +184,10 @@ describe('Problem Set store tests', () => {
 
 		test('Delete a set problem', async () => {
 			const set_problem_store = useSetProblemStore();
-			const problems = set_problem_store.findSetProblems({ set_name: 'HW #1'});
+			const problems = set_problem_store.findSetProblems({ set_name: 'HW #1' });
 			const deleted_problem = await set_problem_store.deleteSetProblem(new_problem);
 			expect(deleted_problem).toStrictEqual(updated_problem);
-			expect(set_problem_store.findSetProblems({ set_name: 'HW #1'}).length)
+			expect(set_problem_store.findSetProblems({ set_name: 'HW #1' }).length)
 				.toBe(problems.length - 1);
 		});
 	});
@@ -202,12 +195,50 @@ describe('Problem Set store tests', () => {
 	describe('Fetch user problems', () => {
 		test('Fetch all User Problems for a set in a course', async () => {
 			const problem_set_store = useProblemSetStore();
-			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1'}) ?? new ProblemSet();
+			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' }) ?? new ProblemSet();
 			const set_problems_store = useSetProblemStore();
 			await set_problems_store.fetchUserProblems(hw1.set_id);
-			const hw1_problems = set_problems_store.findSetProblems({ set_name: 'HW #1' });
+			// const hw1_problems = set_problems_store.findSetProblems({ set_name: 'HW #1' });
 			const hw1_user_problems = set_problems_store.findUserProblems({ set_name: 'HW #1' });
 			expect(cleanIDs(precalc_hw1_user_problems)).toStrictEqual(cleanIDs(hw1_user_problems));
+		});
+	});
+
+	describe('CRUD operations on user problems', () => {
+		let added_user_problem: UserProblem;
+		let new_problem: SetProblem;
+		test('Add a new Problem and User Problem ', async () => {
+			const problem_set_store = useProblemSetStore();
+			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
+			const path = 'path/to/the/problem.pg';
+			const lib_prob = new LibraryProblem({
+				location_params: {
+					file_path: path
+				}
+			});
+			const set_problem_store = useSetProblemStore();
+			// grab the set problems for HW #1 so we know which is the next problem number.
+			// const probs = set_problem_store.findSetProblems({ set_name: 'HW #1' });
+			new_problem = await set_problem_store.addSetProblem({ set_id: hw1?.set_id ?? 0, problem: lib_prob });
+
+			const users_store = useUserStore();
+			await users_store.fetchCourseUsers(precalc_course.course_id);
+			const user = users_store.course_users[0];
+			// console.log(user);
+			const user_problem = new UserProblem({
+				user_id: user.user_id,
+				problem_id: new_problem.problem_id,
+				seed: 4321
+			});
+			added_user_problem = await set_problem_store.addUserProblem(user_problem);
+			// console.log(added_user_problem);
+			expect(cleanIDs(user_problem)).toStrictEqual(cleanIDs(added_user_problem));
+		});
+
+		test('Delete a user problem', async () => {
+			const set_problem_store = useSetProblemStore();
+			const deleted_problem = await set_problem_store.deleteUserProblem(added_user_problem);
+			expect(cleanIDs(deleted_problem)).toStrictEqual(cleanIDs(added_user_problem));
 		});
 	});
 });

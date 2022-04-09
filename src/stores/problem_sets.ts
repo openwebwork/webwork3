@@ -9,8 +9,6 @@ import { useUserStore } from './users';
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
 import { MergedUserSet, ParseableUserSet,
 	parseUserSet, UserSet } from 'src/common/models/user_sets';
-import { LibraryProblem, SetProblem, ParseableProblem, parseProblem,
-	ParseableSetProblem } from 'src/common/models/problems';
 import { logger } from 'src/boot/logger';
 import { ResponseError } from 'src/common/api-requests/interfaces';
 

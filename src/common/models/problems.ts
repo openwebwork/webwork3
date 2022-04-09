@@ -400,7 +400,7 @@ export class UserProblem extends Problem {
 		if (params.problem_id) this.problem_id = params.problem_id;
 		if (params.user_id) this.user_id = params.user_id;
 		if (params.user_problem_id) this.user_problem_id = params.user_problem_id;
-		if (params.seed != undefined) this.seed = params.seed;
+		if (params.seed) this.seed = params.seed;
 		if (params.status) this.status = params.status;
 		if (params.problem_version) this.problem_version = params.problem_version;
 	}
@@ -445,6 +445,7 @@ export class UserProblem extends Problem {
 	requestParams(): ParseableRenderParams {
 		const p = super.requestParams();
 		p.sourceFilePath = this.problem_params.file_path ?? '';
+		p.problemSeed = this.seed;
 		return p;
 	}
 }

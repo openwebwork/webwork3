@@ -103,6 +103,7 @@ use Exception::Class (
 	}
 );
 
+DB::Exception::ParametersNeeded->Trace(1);
 DB::Exception::UndefinedCourseField->Trace(1);
 DB::Exception::InvalidCourseField->Trace(1);
 DB::Exception::UserSetNotInCourse->Trace(1);

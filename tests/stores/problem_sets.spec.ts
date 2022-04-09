@@ -16,8 +16,6 @@ import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useCourseStore } from 'src/stores/courses';
 import { Course } from 'src/common/models/courses';
-import { LibraryProblem, SetProblemParams, ParseableSetProblem, parseProblem,
-	Problem, SetProblem } from 'src/common/models/problems';
 import { useSessionStore } from 'src/stores/session';
 import { useUserStore } from 'src/stores/users';
 import { UserHomeworkSet, UserQuiz, UserReviewSet, UserSet } from 'src/common/models/user_sets';
@@ -251,7 +249,7 @@ describe('Problem Set store tests', () => {
 		});
 	});
 
-	let precalc_problems_from_csv: Problem[];
+	// let precalc_problems_from_csv: Problem[];
 
 	describe('Fetching UserSets', () => {
 		test('Fetching User sets from a course', async () => {

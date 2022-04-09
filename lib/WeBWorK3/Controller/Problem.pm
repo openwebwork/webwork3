@@ -65,4 +65,30 @@ sub getUserProblemsForSet ($self) {
 	return;
 }
 
+sub addUserProblem ($self) {
+	my $problem_params = $self->req->json;
+	$problem_params->{course_id} = int($self->param('course_id'))
+		unless defined($problem_params->{course_id}) || defined($problem_params->{course_name});
+	$problem_params->{set_id} = int($self->param('set_id'))
+		unless defined($problem_params->{set_id}) || defined($problem_params->{set_name});
+	$problem_params->{user_id} = int($self->param('user_id'))
+		unless defined($problem_params->{user_id}) || defined($problem_params->{username});
+	my $user_problem = $self->schema->resultset("UserProblem")->addUserProblem(params => $problem_params);
+	$self->render(json => $user_problem);
+	return;
+}
+
+sub deleteUserProblem ($self) {
+	my $deleted_problem = $self->schema->resultset("UserProblem")->deleteUserProblem(
+		info => {
+			course_id => int($self->param('course_id')),
+			set_id => int($self->param('set_id')),
+			user_id => int($self->param('user_id')),
+			problem_id => int($self->param('problem_id'))
+		}
+	);
+	$self->render(json => $deleted_problem);
+	return;
+}
+
 1;

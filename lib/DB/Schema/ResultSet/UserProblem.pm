@@ -246,7 +246,7 @@ A hash of input values.
 
 =item - either a C<course name> or C<course_id>.
 =item - either a C<username> or C<user_id>
-=item - either a C<set_nam> or C<set_id>
+=item - either a C<set_name> or C<set_id>
 =item - either a C<problem_number> or C<problem_id>
 
 For example, C<{ course_name => 'Precalculus', username=> 'homer', set_id => 3, problem_number => 1}>
@@ -270,7 +270,6 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 =cut
 
 sub addUserProblem ($self, %args) {
-
 	my $user_problem = $self->getUserProblem(
 		info          => $args{params},
 		skip_throw    => 1,
@@ -290,8 +289,11 @@ sub addUserProblem ($self, %args) {
 
 	my $params = clone($args{params} // {});
 
+	# If the user_problem_id field is 0, it is a new problem, so delete the field
+	delete $params->{user_problem_id} if $params->{user_problem_id} == 0;
+
 	# Remove some parameters that are not in the UserProblem database, but may be passed in.
-	for my $key (qw/username user_d course_name set_name set_type set_id problem_number problem_id/) {
+	for my $key (qw/username user_id course_id course_name set_name set_type set_id problem_number problem_id/) {
 		delete $params->{$key} if defined $params->{$key};
 	}
 
