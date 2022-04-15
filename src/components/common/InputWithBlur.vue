@@ -10,8 +10,9 @@ export default defineComponent({
 	name: 'InputWithBlur',
 	props: {
 		modelValue: {
-			type: String,
-			required: true
+			type: [String, Number],
+			required: true,
+			default: ''
 		}
 	},
 	emits: ['update:modelValue'],
