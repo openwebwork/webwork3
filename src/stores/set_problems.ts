@@ -102,14 +102,19 @@ export const useSetProblemStore = defineStore('set_problems', {
 			this.user_problems = (response.data as ParseableUserProblem[]).map(prob => new UserProblem(prob));
 		},
 		async addUserProblem(user_problem: UserProblem): Promise<UserProblem> {
+			console.log(user_problem);
 			const course_id = useSessionStore().course.course_id;
 			const set_problem = this.set_problems.find(prob => prob.problem_id === user_problem.problem_id);
-			// handle if undefined.
+			const problem_set_store = useProblemSetStore();
+			const user_set = problem_set_store.findMergedUserSet({ user_set_id: user_problem.user_set_id});
+			console.log(user_set);
+			// TODO: handle if either set_problem or user_set undefined.
+
 			const user_problem_params = user_problem.toObject();
 			// The render params are not stored in the DB.
 			delete user_problem_params.render_params;
 			const response = await api.post(`courses/${course_id}/sets/${set_problem?.set_id ?? 0}/users/${
-				user_problem.user_id}/problems`, user_problem_params);
+				user_set?.user_id ?? 0}/problems`, user_problem_params);
 			const added_user_problem = new UserProblem(response.data as ParseableUserProblem);
 			this.user_problems.push(added_user_problem);
 			return added_user_problem;
@@ -117,9 +122,12 @@ export const useSetProblemStore = defineStore('set_problems', {
 		async deleteUserProblem(user_problem: UserProblem): Promise<UserProblem> {
 			const course_id = useSessionStore().course.course_id;
 			const set_problem = this.set_problems.find(prob => prob.problem_id === user_problem.problem_id);
+			const problem_set_store = useProblemSetStore();
+			const user_set = problem_set_store.findMergedUserSet({ set_id: set_problem?.set_id});
+
 			// handle if undefined.
 			const response = await api.delete(`courses/${course_id}/sets/${set_problem?.set_id ?? 0
-			}/users/${user_problem.user_id}/problems/${user_problem.problem_id}`);
+			}/users/${user_set.user_id}/problems/${user_problem.problem_id}`);
 			const deleted_problem = new UserProblem(response.data as ParseableUserProblem);
 			const index = this.user_problems
 				.findIndex(user_problem => user_problem.user_problem_id === deleted_problem.user_problem_id);

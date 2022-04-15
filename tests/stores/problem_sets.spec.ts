@@ -18,7 +18,8 @@ import { useCourseStore } from 'src/stores/courses';
 import { Course } from 'src/common/models/courses';
 import { useSessionStore } from 'src/stores/session';
 import { useUserStore } from 'src/stores/users';
-import { UserHomeworkSet, UserQuiz, UserReviewSet, UserSet } from 'src/common/models/user_sets';
+import { UserHomeworkSet, UserQuiz, UserReviewSet, UserSet, parseMergedUserSet, MergedUserSet }
+	from 'src/common/models/user_sets';
 
 const app = createApp({});
 
@@ -197,7 +198,6 @@ describe('Problem Set store tests', () => {
 	});
 
 	describe('CRUD test for review sets', () => {
-
 		test('Add a new Review Set', async () => {
 			const problem_set_store = useProblemSetStore();
 			const new_set_info = {
@@ -250,15 +250,13 @@ describe('Problem Set store tests', () => {
 	});
 
 	// let precalc_problems_from_csv: Problem[];
+	let precalc_user_sets: MergedUserSet[];
 
 	describe('Fetching UserSets', () => {
 		test('Fetching User sets from a course', async () => {
 			const problem_set_store = useProblemSetStore();
 			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
-			await problem_set_store.fetchUserSets({
-				course_id: precalc_course.course_id,
-				set_id: hw1?.set_id ?? 0
-			});
+			await problem_set_store.fetchAllUserSets(precalc_course.course_id);
 			expect(problem_set_store.user_sets.length).toBeGreaterThan(0);
 
 			// Setup and load the user sets data from a csv file.
@@ -267,15 +265,21 @@ describe('Problem Set store tests', () => {
 			};
 			const user_sets_to_parse = await loadCSV('t/db/sample_data/user_sets.csv', user_set_config);
 
-			// Filter only user sets from Precalculus, set: HW #1
-			const user_sets_from_csv = user_sets_to_parse
-				.filter(set => set.set_name === 'HW #1' && set.course_name === 'Precalculus')
+			// Filter only user sets from HW #1
+			const hw1_from_csv = user_sets_to_parse
+				.filter(set => set.course_name === 'Precalculus' && set.set_name === 'HW #1')
 				.map(set => new UserHomeworkSet(set));
-			const user_sets_from_store = problem_set_store.findUserSet({ set_name: 'HW #1' });
+			const user_sets_from_store = problem_set_store.findUserSets({ set_name: 'HW #1' });
+			expect(cleanIDs(user_sets_from_store)).toStrictEqual(cleanIDs(hw1_from_csv));
 
-			expect(cleanIDs(user_sets_from_store)).toStrictEqual(cleanIDs(user_sets_from_csv));
+			precalc_user_sets = user_sets_to_parse
+				.filter(set => set.course_name === 'Precalculus')
+				.map(obj => {
+					const problem_set = problem_sets_from_csv.find(set => set.set_name == obj.set_name);
+					return parseMergedUserSet(Object.assign({}, obj, problem_set?.toObject() ?? {})) ??
+						new MergedUserSet();
+				});
 		});
-
 	});
 
 	describe('CRUD functions on User Homework', () => {
@@ -412,4 +416,45 @@ describe('Problem Set store tests', () => {
 			await problem_set_store.deleteProblemSet(new_review_set);
 		});
 	});
+
+	describe('Test merged user sets', () => {
+		test('Test all merged user sets', async () => {
+			const problem_set_store = useProblemSetStore();
+			await problem_set_store.fetchProblemSets(precalc_course.course_id);
+			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
+			await problem_set_store.fetchAllUserSets(precalc_course.course_id);
+			expect(cleanIDs(precalc_user_sets)).toStrictEqual(cleanIDs(problem_set_store.merged_user_sets));
+		});
+
+		test('Add a user set and test that the overrides work.', async () => {
+			const problem_set_store = useProblemSetStore();
+			const user_store = useUserStore();
+
+			// Make a new Problem Set
+			const new_hw_set = await problem_set_store.addProblemSet(new HomeworkSet({
+				set_name: 'HW #99',
+				course_id: precalc_course.course_id,
+				set_dates: {
+					open: 1000,
+					due: 1500,
+					answer: 2000
+				}
+			}));
+
+			// Add a User set
+			const new_user_set = problem_set_store.addUserSet(new UserHomeworkSet({
+				set_id: new_hw_set.set_id,
+				course_user_id: user_store.merged_users[0].course_user_id,
+				set_dates: {
+					open: 1200,
+					due: 2000,
+					answer: 2200
+				}
+			}));
+
+			console.log(problem_set_store.user_sets); //.find(set => set.set_name === 'HW #99'));
+
+		})
+	});
+
 });

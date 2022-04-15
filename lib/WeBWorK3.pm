@@ -137,6 +137,9 @@ sub problemSetRoutes ($self) {
 	$problem_set_routes->put('/:set_id')->to(action => 'updateProblemSet');
 	$problem_set_routes->post('/')->to(action => 'addProblemSet');
 	$problem_set_routes->delete('/:set_id')->to(action => 'deleteProblemSet');
+
+	# CRUD for User Sets
+	$self->routes->get('/webwork3/api/courses/:course_id/user-sets')->to('ProblemSet#getAllUserSets');
 	$problem_set_routes->get('/:set_id/users')->to(action => 'getUserSets');
 	$problem_set_routes->post('/:set_id/users')->to(action => 'addUserSet');
 	$problem_set_routes->put('/:set_id/users/:course_user_id')->to(action => 'updateUserSet');
@@ -153,9 +156,8 @@ sub problemRoutes ($self) {
 
 	# UserProblem routes
 	$problem_routes->get('/sets/:set_id/user-problems')->to(action => 'getUserProblemsForSet');
-	$problem_routes->post('/sets/:set_id/users/:user_id/problems')->to(action => 'addUserProblem');
-	$problem_routes->delete('/sets/:set_id/users/:user_id/problems/:problem_id')
-		->to(action => 'deleteUserProblem');
+	$problem_routes->post('user-problems')->to(action => 'addUserProblem');
+	$problem_routes->delete('user-problems/:problem_id')->to(action => 'deleteUserProblem');
 
 	return;
 }

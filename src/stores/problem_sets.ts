@@ -8,18 +8,34 @@ import { useUserStore } from './users';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
 import { MergedUserSet, ParseableUserSet,
+	parseMergedUserSet,
 	parseUserSet, UserSet } from 'src/common/models/user_sets';
 import { logger } from 'src/boot/logger';
 import { ResponseError } from 'src/common/api-requests/interfaces';
 
-import { User } from 'src/common/models/users';
+import { MergedUser, User } from 'src/common/models/users';
 
+/**
+ * This is an object to retirive set info.
+ */
+type SetInfo =  { set_name: string; set_id?: never } | { set_id: number; set_name?: never};
+
+type UserInfo = { user_id: number; username?: never; } | { username: string; user_id?: never };
+
+/**
+ * This is an object to retrieve user set info.  There are a few different options.
+ */
+type UserSetInfo = { user_set_id: number } |
+	{ set_id: number; user_id: number } |
+	{ set_id: number; username: string } |
+	{ set_name: string; user_id: number; } |
+	{ set_name: string; username: string };
 export interface ProblemSetState {
 	problem_sets: ProblemSet[];
 	user_sets: UserSet[];
 }
 
-const createMergedUserSet = (user_set: UserSet, problem_set: ProblemSet, user: User) => {
+const createMergedUserSet = (user_set: UserSet, problem_set: ProblemSet, user: User | MergedUser) => {
 	return new MergedUserSet({
 		user_set_id: user_set.user_set_id,
 		set_id: user_set.set_id,
@@ -42,48 +58,87 @@ export const useProblemSetStore = defineStore('problem_sets', {
 	getters: {
 		// Returns all user sets merged with a user and a problem set.
 		merged_user_sets: (state) => state.user_sets.map(user_set => {
-			const user_store = useUserStore();
-			const course_user = user_store.course_users.find(u => u.course_user_id === user_set.course_user_id);
-			return createMergedUserSet(
-				user_set as UserSet,
-				state.problem_sets.find(set => set.set_id === user_set.set_id) as ProblemSet,
-				(user_store.users.find(u => u.user_id === course_user?.user_id) as User) ??
-					new User()
-			);
+				const problem_set = state.problem_sets.find(set => set.set_id == user_set.set_id);
+				const user_store = useUserStore();
+				const course_user = user_store.merged_users.find(u => u.course_user_id === user_set.course_user_id);
+				return parseMergedUserSet(Object.assign(user_set.toObject(),
+					problem_set?.toObject(), course_user?.toObject())) ?? new MergedUserSet();
 		}),
 		// Return a Problem Set from a set_id or set_name
-		findProblemSet: (state) => (set_info: {set_id?: number, set_name?: string}) =>
+		findProblemSet: (state) => (set_info: { set_name?: string; set_id?: number}) =>
 			set_info.set_id ?
 				state.problem_sets.find(set => set.set_id === set_info.set_id) :
 				state.problem_sets.find(set => set.set_name === set_info.set_name),
-		findUserSet: (state) => (set_info: { set_id?: number, set_name?: string }) => {
+		findUserSets: (state) => (set_info: { set_id?: number, set_name?: string }): UserSet[] => {
 			if (set_info.set_id) {
-				return state.user_sets.filter(user_set => user_set.set_id === set_info.set_id);
+				return state.user_sets.filter(user_set => user_set.set_id === set_info.set_id) as UserSet[];
 			} else if (set_info.set_name) {
 				const set = state.problem_sets.find(set => set.set_name === set_info.set_name);
 				if (set) {
-					return state.user_sets.filter(user_set => user_set.set_id === set.set_id);
+					return state.user_sets.filter(user_set => user_set.set_id === set.set_id) as UserSet[];
 				} else {
 					return [];
 				}
 			} else {
 				return [];
 			}
+		},
+		/**
+		 * findMergedUserSet returns a merged user set for a given set id or set name
+		 * and user_id or user_name
+		 * @param state
+		 */
+		findMergedUserSet(state) {
+			return (user_set_info: { user_set_id?: number; set_id?: number; set_name?: string; user_id?: number; username?: string }) => {
+				const user_store = useUserStore();
+				let user_set: UserSet;
+				let problem_set: ProblemSet;
+				let user: MergedUser;
+				console.log(user_set_info);
+				if (user_set_info.user_set_id) {
+					user_set = (this.user_sets.find(set => set.user_set_id == user_set_info.user_set_id) as UserSet)?? new UserSet();
+					problem_set = this.problem_sets.find(set => set.set_id === user_set.set_id) as ProblemSet;
+					user = user_store.findMergedUser({ course_user_id: user_set.course_user_id});
+				} else {
+					problem_set = ((user_set_info.set_id ?
+						this.problem_sets.find(set => set.set_id === user_set_info.set_id) :
+						this.problem_sets.find(set => set.set_name === user_set_info.set_name))
+							?? new ProblemSet()) as ProblemSet;
+					user = user_store
+						.findMergedUser({ user_id: user_set_info.user_id, username: user_set_info.username }) as MergedUser;
+					user_set = this.user_sets.find(set => set.set_id === problem_set.set_id &&
+						set.course_user_id === user.course_user_id) as UserSet ?? new UserSet();
+				}
+
+				return createMergedUserSet(user_set, problem_set, user)
+			}
 		}
 	},
 	actions: {
+		/**
+		 * fetches all problem sets for the given course.
+		 * @param {number} course_id -- the database course id.
+		 */
 		async fetchProblemSets(course_id: number): Promise<void> {
 			const response = await api.get(`courses/${course_id}/sets`);
 			const sets_to_parse = response.data as Array<ParseableProblemSet>;
-			logger.debug(`[problem_sets/fetchProblemSets] parsing response: ${sets_to_parse.join(', ')}`);
 			this.problem_sets = sets_to_parse.map((set) => parseProblemSet(set));
 		},
+		/**
+		 * adds a problem set to the store and the database.
+		 * @param {ProblemSet} set -- the set to add to the database.
+		 * @returns {Promise<ProblemSet>} the added problem set.
+		 */
 		async addProblemSet(set: ProblemSet): Promise<ProblemSet> {
 			const response = await api.post(`courses/${set.course_id}/sets`, set.toObject());
 			const new_set = parseProblemSet(response.data as ParseableProblemSet);
 			this.problem_sets.push(new_set);
 			return new_set;
 		},
+		/**
+		 * updates a set in the store and the database.
+		 * @param {ProblemSet} set -- the problem set to be updated.
+		 */
 		async updateSet(set: ProblemSet): Promise<{ error: boolean; message: string }> {
 			const response = await api.put(`courses/${set.course_id}/sets/${set.set_id}`, set.toObject());
 			let message = '';
@@ -125,6 +180,15 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			return set_to_delete;
 		},
 		// UserSet actions
+		/**
+		 * fetchAllUserSets fetches all user sets for a given course.
+		 * @param course_id: number
+		 */
+		async fetchAllUserSets(course_id: number) {
+			const response = await api.get(`courses/${course_id}/user-sets`);
+			const user_sets_to_parse = response.data as ParseableUserSet[];
+			this.user_sets = user_sets_to_parse.map(user_set => parseUserSet(user_set));
+		},
 		async fetchUserSets(params: { course_id: number; set_id: number}) {
 			const response = await api.get(`courses/${params.course_id}/sets/${params.set_id}/users`);
 			const user_sets_to_parse = response.data as ParseableUserSet[];
@@ -135,6 +199,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			const response = await api.post(`courses/${course_id}/sets/${user_set.set_id}/users`, user_set.toObject());
 			// TODO: check for errors
 			const user_set_to_add = parseUserSet(response.data as ParseableUserSet);
+			console.log(user_set_to_add);
 			if (user_set_to_add) {
 				this.user_sets.push(user_set_to_add);
 				return user_set_to_add;

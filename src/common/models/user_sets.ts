@@ -117,8 +117,8 @@ export class UserHomeworkSet extends UserSet {
 	constructor(params: ParseableUserHomeworkSet = {}) {
 		super(params as ParseableUserSet);
 		this._set_type = ProblemSetType.HW;
-		if (params.set_params != undefined) this._set_params.set(params.set_params);
-		if (params.set_dates != undefined) this._set_dates.set(params.set_dates);
+		if (params.set_params) this._set_params.set(params.set_params);
+		if (params.set_dates) this._set_dates.set(params.set_dates);
 	}
 
 	public hasValidDates() {
@@ -164,8 +164,8 @@ export class UserQuiz extends UserSet {
 	constructor(params: ParseableUserQuiz = {}) {
 		super(params as ParseableUserSet);
 		this._set_type = ProblemSetType.QUIZ;
-		if (params.set_params != undefined) this._set_params.set(params.set_params);
-		if (params.set_dates != undefined) this._set_dates.set(params.set_dates);
+		if (params.set_params) this._set_params.set(params.set_params);
+		if (params.set_dates) this._set_dates.set(params.set_dates);
 	}
 
 	public hasValidDates() {
@@ -211,8 +211,8 @@ export class UserReviewSet extends UserSet {
 	constructor(params: ParseableUserReviewSet = {}) {
 		super(params as ParseableUserSet);
 		this._set_type = ProblemSetType.REVIEW_SET;
-		if (params.set_params != undefined) this._set_params.set(params.set_params);
-		if (params.set_dates != undefined) this._set_dates.set(params.set_dates);
+		if (params.set_params) this._set_params.set(params.set_params);
+		if (params.set_dates) this._set_dates.set(params.set_dates);
 	}
 
 	public hasValidDates() {
@@ -244,6 +244,7 @@ export interface ParseableMergedUserSet {
 	user_set_id?: number | string;
 	set_id?: number | string;
 	course_user_id?: number | string;
+	user_id?: number | string;
 	set_version?: number | string;
 	set_visible?: number | string | boolean;
 	set_name?: string;
@@ -257,6 +258,7 @@ export class MergedUserSet extends Model {
 	private _user_set_id = 0;
 	private _set_id = 0;
 	private _course_user_id = 0;
+	private _user_id = 0;
 	protected _set_type = '';
 	private _set_version = 1;
 	private _set_visible?: boolean;
@@ -266,7 +268,7 @@ export class MergedUserSet extends Model {
 	get set_dates(): ProblemSetDates { throw 'The subclass must override set_dates()'; }
 	get set_params(): ProblemSetParams { throw 'The subclass must override set_dates()'; }
 
-	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
+	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'user_id', 'set_version',
 		'set_visible', 'set_name', 'username',
 		'set_params', 'set_dates'];
 
@@ -286,13 +288,14 @@ export class MergedUserSet extends Model {
 	}
 
 	set(params: ParseableMergedUserSet) {
-		if (params.user_set_id != undefined) this.user_set_id = params.user_set_id;
-		if (params.set_id != undefined) this.set_id = params.set_id;
-		if (params.course_user_id != undefined) this.course_user_id = params.course_user_id;
-		if (params.set_version != undefined) this.set_version = params.set_version;
-		if (params.set_visible != undefined) this.set_visible = params.set_visible;
-		if (params.set_name != undefined) this.set_name = params.set_name;
-		if (params.username != undefined) this.username = params.username;
+		if (params.user_set_id) this.user_set_id = params.user_set_id;
+		if (params.set_id) this.set_id = params.set_id;
+		if (params.course_user_id) this.course_user_id = params.course_user_id;
+		if (params.user_id) this.user_id = params.user_id;
+		if (params.set_version) this.set_version = params.set_version;
+		if (params.set_visible) this.set_visible = params.set_visible;
+		if (params.set_name) this.set_name = params.set_name;
+		if (params.username) this.username = params.username;
 	}
 
 	public get user_set_id(): number { return this._user_set_id;}
@@ -304,12 +307,15 @@ export class MergedUserSet extends Model {
 	public get course_user_id(): number { return this._course_user_id;}
 	public set course_user_id(value: number | string) { this._course_user_id = parseNonNegInt(value);}
 
+	public get user_id(): number { return this._user_id;}
+	public set user_id(value: number | string) { this._user_id = parseNonNegInt(value);}
+
 	public get set_version(): number { return this._set_version;}
 	public set set_version(value: number | string) { this._set_version = parseNonNegInt(value);}
 
 	public get set_visible(): boolean | undefined { return this._set_visible; }
 	public set set_visible(value: number | string | boolean | undefined) {
-		if (value != undefined) {
+		if (value) {
 			this._set_visible = parseBoolean(value);
 		}
 	}

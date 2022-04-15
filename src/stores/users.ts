@@ -28,7 +28,29 @@ export const useUserStore = defineStore('user', {
 					state.users.find(u => u.user_id === course_user.user_id)?.toObject() ?? {}
 				)
 			)
-		)
+		),
+		findMergedUser(state) {
+			return (user_info: { course_user_id?: number; user_id?: number; username?: string }) => {
+				let user: User;
+				let course_user: CourseUser;
+				console.log(user_info);
+				if (user_info.course_user_id) {
+					course_user = (this.course_users
+						.find(user => user.course_user_id === user_info.course_user_id) as CourseUser) ?? new CourseUser();
+					console.log(course_user);
+					console.log(this.users);
+					user = (this.users.find(user => user.user_id === course_user.user_id) as User) ?? new User();
+					console.log(user);
+				} else {
+					user = (( user_info.user_id ?
+						this.users.find(user => user.user_id === user_info.user_id) :
+						this.users.find(user => user.username === user_info.username)) as User) ?? new User();
+					course_user = (this.course_users
+						.find(course_user => user.user_id === course_user.user_id) as CourseUser) ?? new CourseUser();
+				}
+				return new MergedUser(Object.assign(user.toObject(), course_user.toObject()));
+			}
+		}
 	},
 	actions: {
 		// no context as first argument, use `this` instead

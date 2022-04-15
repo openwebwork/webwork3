@@ -127,7 +127,7 @@ for my $user_set (@merged_user_sets) {
 	$user_set->{set_visible} = $set->{set_visible} unless defined($user_set->{set_visible});
 }
 
-# Get all user set for a given user in a course.
+# Get all user sets for a given user in a course.
 my @all_user_sets_from_db = $user_set_rs->getAllUserSets();
 
 for my $set (@all_user_sets_from_db) {
@@ -496,6 +496,28 @@ $set_params3->{set_params}  = {};
 $set_params3->{set_version} = 1;
 
 is_deeply($user_set3, $set_params3, "addUserSet: add a new user set with dates");
+
+# add a user with only override dates set.
+
+my $ralph_set_info = {
+	username => "ralph",
+	course_name => "Precalculus",
+	set_name => "HW #4",
+	set_dates => {
+		open => 1000,
+		due => 2000,
+	},
+	set_params => {
+		enable_reduced_scoring => 0
+	}
+};
+
+my $maggie_user_set = $user_set_rs->addUserSet(params => $ralph_set_info);
+
+use Data::Dumper;
+
+print Dumper $maggie_user_set;
+
 
 # Try to add a bad date.
 throws_ok {

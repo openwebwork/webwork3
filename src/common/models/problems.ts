@@ -364,7 +364,7 @@ export interface ParseableUserProblem {
 	problem_params?: UserProblemParams;
 	problem_id?: number | string;
 	user_problem_id?: number | string;
-	user_id?: number | string;
+	user_set_id?: number | string;
 	seed?: number | string;
 	status?: number | string;
 	problem_version?: number | string;
@@ -377,7 +377,7 @@ export class UserProblem extends Problem {
 	private _problem_params = new UserProblemParams();
 	private _user_problem_id = 0;
 	private _problem_id = 0;
-	private _user_id = 0;
+	private _user_set_id = 0;
 	private _seed = 0;
 	private _status = 0;
 	private _problem_version = 1;
@@ -398,7 +398,7 @@ export class UserProblem extends Problem {
 
 	set(params: ParseableUserProblem) {
 		if (params.problem_id) this.problem_id = params.problem_id;
-		if (params.user_id) this.user_id = params.user_id;
+		if (params.user_set_id) this.user_set_id = params.user_set_id;
 		if (params.user_problem_id) this.user_problem_id = params.user_problem_id;
 		if (params.seed) this.seed = params.seed;
 		if (params.status) this.status = params.status;
@@ -422,8 +422,8 @@ export class UserProblem extends Problem {
 	public get user_problem_id() : number { return this._user_problem_id; }
 	public set user_problem_id(val: string | number) { this._user_problem_id = parseNonNegInt(val);}
 
-	public get user_id() : number { return this._user_id; }
-	public set user_id(val: string | number) { this._user_id = parseNonNegInt(val);}
+	public get user_set_id() : number { return this._user_set_id; }
+	public set user_set_id(val: string | number) { this._user_set_id = parseNonNegInt(val);}
 
 	public get seed() : number { return this._seed; }
 	public set seed(val: string | number) { this._seed = parseNonNegInt(val);}

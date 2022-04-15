@@ -22,6 +22,7 @@ import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useSetProblemStore } from 'src/stores/set_problems';
 import { LibraryProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemParams,
 	UserProblem } from 'src/common/models/problems';
+import { UserHomeworkSet, UserSet } from 'src/common/models/user_sets';
 
 const app = createApp({});
 
@@ -205,33 +206,50 @@ describe('Problem Set store tests', () => {
 	});
 
 	describe('CRUD operations on user problems', () => {
+		let added_hw: HomeworkSet;
+		let added_user_set: UserSet;
 		let added_user_problem: UserProblem;
 		let new_problem: SetProblem;
-		test('Add a new Problem and User Problem ', async () => {
+		test('Add a new ProblemSet, UserSet, SetProblem and UserProblem ', async () => {
+			// Note: adding a Problem Set, UserSet and SetProblem are done elsewhere,
+			// so no need to test that these are working.  Just add them to make testing
+			// UserProblems easier.
 			const problem_set_store = useProblemSetStore();
-			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
-			const path = 'path/to/the/problem.pg';
+			const hw = new HomeworkSet({
+				course_id: precalc_course.course_id,
+				set_name: 'HW #9'
+			});
+			added_hw = await problem_set_store.addProblemSet(hw) as HomeworkSet;
+
 			const lib_prob = new LibraryProblem({
 				location_params: {
-					file_path: path
+					file_path: 'path/to/the/problem.pg'
 				}
 			});
 			const set_problem_store = useSetProblemStore();
 			// grab the set problems for HW #1 so we know which is the next problem number.
 			// const probs = set_problem_store.findSetProblems({ set_name: 'HW #1' });
-			new_problem = await set_problem_store.addSetProblem({ set_id: hw1?.set_id ?? 0, problem: lib_prob });
+			new_problem = await set_problem_store.addSetProblem({ set_id: added_hw?.set_id ?? 0, problem: lib_prob });
 
 			const users_store = useUserStore();
 			await users_store.fetchCourseUsers(precalc_course.course_id);
+			await users_store.fetchGlobalCourseUsers(precalc_course.course_id);
 			const user = users_store.course_users[0];
 			// console.log(user);
+			const user_set = new UserHomeworkSet({
+				course_user_id: user.course_user_id,
+				set_id: added_hw.set_id
+			});
+			added_user_set = await problem_set_store.addUserSet(user_set) ?? new UserSet();
+			console.log(added_user_set);
+
 			const user_problem = new UserProblem({
-				user_id: user.user_id,
+				user_set_id: added_user_set.user_set_id,
 				problem_id: new_problem.problem_id,
 				seed: 4321
 			});
 			added_user_problem = await set_problem_store.addUserProblem(user_problem);
-			// console.log(added_user_problem);
+			console.log(added_user_problem);
 			expect(cleanIDs(user_problem)).toStrictEqual(cleanIDs(added_user_problem));
 		});
 
