@@ -20,7 +20,7 @@ export default defineComponent({
 		course_name: String,
 		course_id: String
 	},
-	setup() {
+	async setup() {
 		const session = useSessionStore();
 		const users = useUserStore();
 		const settings = useSettingsStore();
@@ -28,22 +28,26 @@ export default defineComponent({
 		const route = useRoute();
 
 		const course_id = parseRouteCourseID(route);
-		const course = users.user_courses.find(c => c.course_id === course_id);
-		if (course) {
-			void session.setCourse({
-				course_id,
-				course_name: course.course_name
+		if (session.user.user_id) await users.fetchUserCourses(session.user.user_id)
+			.then(() => {
+				const course = users.user_courses.find(c => c.course_id === course_id);
+				if (course) {
+					session.setCourse({
+						course_id,
+						course_name: course.course_name
+					});
+				} else {
+					logger.warn(`Can't find ${course_id} in ${users.user_courses.map((c) => c.course_id).join(', ')}`);
+				}
 			});
-			void users.fetchMergedUsers(course_id);
-			void problem_sets.fetchProblemSets(course_id);
-			void problem_sets.fetchSetProblems(course_id);
-			void settings.fetchDefaultSettings()
-				.then(() => settings.fetchCourseSettings(course_id))
-				.then(() => setI18nLanguage(settings.getCourseSetting('language').value as string))
-				.catch((err) => logger.error(err));
-		} else {
-			logger.error(`[Instructor] Do you even GO here? Course #${course_id} not associated with your user.`);
-		}
+
+		await users.fetchMergedUsers(course_id);
+		await problem_sets.fetchProblemSets(course_id);
+		await settings.fetchDefaultSettings()
+			.then(() => settings.fetchCourseSettings(course_id))
+			.then(() => void setI18nLanguage(settings.getCourseSetting('language').value as string))
+			.catch((err) => logger.error(`${JSON.stringify(err)}`));
+
 	},
 });
 </script>

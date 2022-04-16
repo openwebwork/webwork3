@@ -72,6 +72,7 @@ export class Course extends Model {
 		if (params.course_name != undefined) this.course_name = params.course_name;
 		if (params.visible != undefined) this.visible = params.visible;
 		super.checkParams(params as Dictionary<generic>);
+		if (params.course_dates) this.setDates(params.course_dates);
 	}
 
 	setDates(date_params: ParseableCourseDates = {}) {

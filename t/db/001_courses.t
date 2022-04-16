@@ -18,6 +18,7 @@ use List::MoreUtils qw(uniq);
 use Test::More;
 use Test::Exception;
 use YAML::XS qw/LoadFile/;
+use DateTime::Format::Strptime;
 
 use DB::WithParams;
 use DB::WithDates;
@@ -30,6 +31,7 @@ my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
 $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
+my $strp   = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
 
 my $course_rs = $schema->resultset("Course");
 
@@ -37,6 +39,10 @@ my $course_rs = $schema->resultset("Course");
 my @courses = loadCSV("$main::ww3_dir/t/db/sample_data/courses.csv");
 @courses = sortByCourseName(\@courses);
 for my $course (@courses) {
+	for my $date (keys %{ $course->{course_dates} }) {
+		my $dt = $strp->parse_datetime($course->{course_dates}->{$date});
+		$course->{course_dates}->{$date} = $dt->epoch;
+	}
 	delete $course->{course_params};
 }
 

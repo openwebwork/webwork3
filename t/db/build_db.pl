@@ -51,6 +51,8 @@ my $problem_pool_rs = $schema->resultset('ProblemPool');
 my $problem_rs      = $schema->resultset('Problem');
 my $user_set_rs     = $schema->resultset('UserSet');
 
+my $strp_date = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
+
 sub addCourses {
 	say "adding courses" if $verbose;
 	my @courses = loadCSV("$main::ww3_dir/t/db/sample_data/courses.csv");
@@ -61,6 +63,10 @@ sub addCourses {
 			$course->{course_settings}->{ $fields[0] } = { $fields[1] => $course->{course_params}->{$key} };
 		}
 		delete $course->{course_params};
+		for my $date (keys %{ $course->{course_dates} }) {
+			my $dt = $strp_date->parse_datetime($course->{course_dates}->{$date});
+			$course->{course_dates}->{$date} = $dt->epoch;
+		}
 		$course_rs->create($course);
 	}
 	return;

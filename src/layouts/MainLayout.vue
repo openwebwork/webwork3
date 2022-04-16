@@ -10,7 +10,9 @@
 		</q-drawer>
 
 		<q-page-container>
-			<router-view />
+			<Suspense>
+				<router-view />
+			</Suspense>
 		</q-page-container>
 
 <!-- this only opens the first sidebar in the list
