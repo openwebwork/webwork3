@@ -34,7 +34,8 @@ describe('Problem Set store tests', () => {
 
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
-			boolean_fields: ['set_visible']
+			boolean_fields: ['set_visible'],
+			time_zone_shift: 5*3600, // compensating for some strangeness with Dates.
 		};
 
 		const hw_sets_to_parse = await loadCSV('t/db/sample_data/hw_sets.csv', problem_set_config);
@@ -260,10 +261,10 @@ describe('Problem Set store tests', () => {
 			expect(problem_set_store.user_sets.length).toBeGreaterThan(0);
 
 			// Setup and load the user sets data from a csv file.
-			const user_set_config = {
-				params: ['set_dates', 'set_params']
-			};
-			const user_sets_to_parse = await loadCSV('t/db/sample_data/user_sets.csv', user_set_config);
+			const user_sets_to_parse = await loadCSV('t/db/sample_data/user_sets.csv', {
+				params: ['set_dates', 'set_params'],
+				time_zone_shift: 5*3600
+			});
 
 			// Filter only user sets from HW #1
 			const hw1_from_csv = user_sets_to_parse
@@ -441,8 +442,7 @@ describe('Problem Set store tests', () => {
 				}
 			}));
 
-			// Add a User set
-			const new_user_set = problem_set_store.addUserSet(new UserHomeworkSet({
+			const new_user_hw = new UserHomeworkSet({
 				set_id: new_hw_set.set_id,
 				course_user_id: user_store.merged_users[0].course_user_id,
 				set_dates: {
@@ -450,11 +450,18 @@ describe('Problem Set store tests', () => {
 					due: 2000,
 					answer: 2200
 				}
-			}));
+			});
 
-			console.log(problem_set_store.user_sets); //.find(set => set.set_name === 'HW #99'));
+			console.log(new_user_hw);
 
-		})
+			// Add a User set
+			const new_user_set = await problem_set_store.addUserSet(new_user_hw) ?? new UserSet();
+
+			console.log(new_user_set);
+
+			expect(cleanIDs(new_user_hw)).toStrictEqual(cleanIDs(new_user_set));
+
+		});
 	});
 
 });

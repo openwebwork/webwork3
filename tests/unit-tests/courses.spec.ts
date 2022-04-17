@@ -19,7 +19,7 @@ describe('Test Course Models', () => {
 
 		test('Create a Valid Course', () => {
 			const course = new Course({ course_name: 'Arithmetic' });
-			expect(course instanceof Course).toBe(true);
+			expect(course).toBeInstanceOf(Course);
 
 			expect(course.toObject()).toStrictEqual(default_course);
 
@@ -39,7 +39,7 @@ describe('Test Course Models', () => {
 		test('Check that cloning works', () => {
 			const course = new Course({ course_name: 'Arithmetic' });
 			expect(course.clone().toObject()).toStrictEqual(default_course);
-			expect(course.clone() instanceof Course).toBe(true);
+			expect(course.clone()).toBeInstanceOf(Course);
 		});
 
 	});
@@ -82,16 +82,16 @@ describe('Test Course Models', () => {
 			expect(course.course_name).toBe('Geometry');
 
 			course.visible = true;
-			expect(course.visible).toBe(true);
+			expect(course.visible).toBeTruthy();
 
 			course.visible = 0;
-			expect(course.visible).toBe(false);
+			expect(course.visible).toBeFalsy();
 
 			course.visible = 'true';
-			expect(course.visible).toBe(true);
+			expect(course.visible).toBeTruthy();
 
 			course.visible = 'false';
-			expect(course.visible).toBe(false);
+			expect(course.visible).toBeFalsy();
 
 		});
 
@@ -104,16 +104,16 @@ describe('Test Course Models', () => {
 			expect(course.course_name).toBe('Geometry');
 
 			course.set({ visible: true });
-			expect(course.visible).toBe(true);
+			expect(course.visible).toBeTruthy();
 
 			course.set({ visible: 'true' });
-			expect(course.visible).toBe(true);
+			expect(course.visible).toBeTruthy();
 
 			course.set({ visible: 'false' });
-			expect(course.visible).toBe(false);
+			expect(course.visible).toBeFalsy();
 
 			course.set({ visible: 0 });
-			expect(course.visible).toBe(false);
+			expect(course.visible).toBeFalsy();
 		});
 	});
 });
