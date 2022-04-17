@@ -6,6 +6,14 @@ import papa from 'papaparse';
 import fs from 'fs';
 
 // Utility functions for testing
+interface CSVConfig {
+	params?: string[];
+	boolean_fields?: string[];
+	non_neg_fields?: string[];
+	time_zone_shift?: number;
+}
+
+type Output = Dictionary<string | number | boolean | Dictionary<string | number>>
 
 /**
  * convert takes data in the form of an array of objects of strings or numbers
@@ -15,16 +23,6 @@ import fs from 'fs';
  *
  * @param data
  */
-
-// class ParseableType<T> extends Model {}
-
-interface CSVConfig {
-	params?: string[];
-	boolean_fields?: string[];
-	non_neg_fields?: string[];
-}
-
-type Output = Dictionary<string | number | boolean | Dictionary<string | number>>
 
 function convert(data: Dictionary<string>[], config: CSVConfig): Output[] {
 	const keys = Object.keys(data[0]);
@@ -62,8 +60,9 @@ function convert(data: Dictionary<string>[], config: CSVConfig): Output[] {
 				// Parse any date field as date.
 				if (row[val]) {
 					prev[field] = /DATES:/.test(val) ?
-					// and shift due to timezone. THIS NEEDS TO BE FIXED.
-						Date.parse(row[val]) / 1000 - 5 * 3600 :
+						// and shift due to timezone. THIS NEEDS TO BE FIXED. I don't know
+						// why it is needed.
+						Date.parse(row[val]) / 1000 - (config.time_zone_shift ?? 0) :
 						row[val];
 				}
 				return prev;
@@ -74,7 +73,7 @@ function convert(data: Dictionary<string>[], config: CSVConfig): Output[] {
 };
 
 /**
- *
+ * load and parse a CSV file for testing.
  * @param filename
  * @param params_name
  * @param dates_name
@@ -99,7 +98,8 @@ export async function loadCSV(filepath: string, config: CSVConfig): Promise<Outp
  * cleanIDs removes all fields ending in _id.  This is useful for comparing data from
  * the database where the internal _id are not important.
  *
- *
+ * @param {Model|Model[]} m - a model or array of models.
+ * @returns a JS object or array of objects.
  */
 
 export const cleanIDs = (m: Model | Model[]): Dictionary<generic> | Dictionary<generic>[] => {
