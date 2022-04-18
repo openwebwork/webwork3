@@ -30,12 +30,11 @@ describe('User store tests', () => {
 		app.use(pinia);
 		setActivePinia(pinia);
 
-		const user_config = {
+		const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
 			boolean_fields: ['is_admin'],
 			non_neg_fields: ['user_id']
-		};
+		});
 
-		const users_to_parse = await loadCSV('t/db/sample_data/students.csv', user_config);
 		// Do some parsing and cleanup.
 		const all_users_from_csv = users_to_parse.map(user => new User(user));
 		all_precalc_users = users_to_parse.filter(user => user.course_name === 'Precalculus')

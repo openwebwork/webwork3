@@ -397,15 +397,15 @@ export class UserProblem extends Problem {
 	}
 
 	set(params: ParseableUserProblem) {
-		if (params.problem_id) this.problem_id = params.problem_id;
-		if (params.user_set_id) this.user_set_id = params.user_set_id;
-		if (params.user_problem_id) this.user_problem_id = params.user_problem_id;
-		if (params.seed) this.seed = params.seed;
-		if (params.status) this.status = params.status;
-		if (params.problem_version) this.problem_version = params.problem_version;
+		if (params.problem_id != undefined) this.problem_id = params.problem_id;
+		if (params.user_set_id != undefined) this.user_set_id = params.user_set_id;
+		if (params.user_problem_id != undefined) this.user_problem_id = params.user_problem_id;
+		if (params.seed != undefined) this.seed = params.seed;
+		if (params.status != undefined) this.status = params.status;
+		if (params.problem_version != undefined) this.problem_version = params.problem_version;
 	}
 
-	static ALL_FIELDS = ['user_problem_id', 'problem_id', 'user_id', 'seed', 'status',
+	static ALL_FIELDS = ['user_problem_id', 'problem_id', 'user_set_id', 'seed', 'status',
 		'problem_version', 'render_params', 'problem_params'];
 
 	get problem_params() { return this._problem_params; }
@@ -459,6 +459,7 @@ export interface ParseableMergedUserProblem {
 	problem_id?: number | string;
 	user_problem_id?: number | string;
 	user_id?: number | string;
+	user_set_id?: number | string;
 	set_id?: number | string;
 	seed?: number | string;
 	status?: number | string;
@@ -477,6 +478,7 @@ export class MergedUserProblem extends Problem {
 	private _user_problem_id = 0;
 	private _problem_id = 0;
 	private _user_id = 0;
+	private _user_set_id = 0;
 	private _set_id = 0;
 	private _seed = 0;
 	private _status = 0;
@@ -505,6 +507,7 @@ export class MergedUserProblem extends Problem {
 		if (params.problem_id != undefined) this.problem_id = params.problem_id;
 		if (params.user_id != undefined) this.user_id = params.user_id;
 		if (params.set_id != undefined) this.set_id = params.set_id;
+		if (params.user_set_id != undefined) this.user_set_id = params.user_set_id;
 		if (params.user_problem_id != undefined) this.user_problem_id = params.user_problem_id;
 		if (params.seed != undefined) this.seed = params.seed;
 		if (params.status != undefined) this.status = params.status;
@@ -520,7 +523,7 @@ export class MergedUserProblem extends Problem {
 	get set_problem_params() { return this._set_problem_params; }
 	get user_problem_params() { return this._user_problem_params; }
 
-	static ALL_FIELDS = ['user_problem_id', 'problem_id', 'user_id', 'seed', 'status',
+	static ALL_FIELDS = ['user_problem_id', 'problem_id', 'user_id', 'user_set_id', 'seed', 'status',
 		'problem_number', 'username', 'set_name', 'problem_version', 'set_problem_params',
 		'user_problem_params', 'render_params'];
 
@@ -538,6 +541,9 @@ export class MergedUserProblem extends Problem {
 
 	public get user_id() : number { return this._user_id; }
 	public set user_id(val: string | number) { this._user_id = parseNonNegInt(val);}
+
+	public get user_set_id() : number { return this._user_set_id; }
+	public set user_set_id(val: string | number) { this._user_set_id = parseNonNegInt(val);}
 
 	public get set_id() : number { return this._set_id; }
 	public set set_id(val: string | number) { this._set_id = parseNonNegInt(val);}

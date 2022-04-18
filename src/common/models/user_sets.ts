@@ -290,12 +290,12 @@ export class MergedUserSet extends Model {
 	}
 
 	set(params: ParseableMergedUserSet) {
-		if (params.user_set_id) this.user_set_id = params.user_set_id;
-		if (params.set_id) this.set_id = params.set_id;
-		if (params.course_user_id) this.course_user_id = params.course_user_id;
-		if (params.user_id) this.user_id = params.user_id;
-		if (params.set_version) this.set_version = params.set_version;
-		if (params.set_visible) this.set_visible = params.set_visible;
+		if (params.user_set_id != undefined) this.user_set_id = params.user_set_id;
+		if (params.set_id != undefined) this.set_id = params.set_id;
+		if (params.course_user_id != undefined) this.course_user_id = params.course_user_id;
+		if (params.user_id != undefined) this.user_id = params.user_id;
+		if (params.set_version != undefined) this.set_version = params.set_version;
+		if (params.set_visible != undefined) this.set_visible = params.set_visible;
 		if (params.set_name) this.set_name = params.set_name;
 		if (params.username) this.username = params.username;
 	}
@@ -328,8 +328,8 @@ export class MergedUserSet extends Model {
 	public get username(): string { return this._username; }
 	public set username(value: string) { this._username = parseUsername(value);}
 
-	clone() {
-		return new MergedUserHomeworkSet(this.toObject());
+	clone(): MergedUserSet {
+		throw 'the clone() method should be overridden in a subclass of MergedUserSet';
 	}
 }
 
@@ -368,6 +368,10 @@ export class MergedUserHomeworkSet extends MergedUserSet {
 	public hasValidDates() {
 		return this.set_dates.isValid({ enable_reduced_scoring: this.set_params.enable_reduced_scoring });
 	}
+
+	public clone(): MergedUserHomeworkSet {
+		return new MergedUserHomeworkSet(this.toObject());
+	}
 }
 
 /**
@@ -405,6 +409,10 @@ export class MergedUserQuiz extends MergedUserSet {
 	public hasValidDates() {
 		return this.set_dates.isValid();
 	}
+
+	public clone() {
+		return new MergedUserQuiz(this.toObject());
+	}
 }
 
 /**
@@ -437,6 +445,10 @@ export class MergedUserReviewSet extends MergedUserSet {
 
 	public hasValidDates() {
 		return this.set_dates.isValid();
+	}
+
+	public clone() {
+		return new MergedUserReviewSet(this.toObject());
 	}
 }
 

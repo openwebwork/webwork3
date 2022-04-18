@@ -505,19 +505,20 @@ is_deeply($user_set3, $set_params3, "addUserSet: add a new user set with dates")
 
 # add a user with only override dates set.
 
-my $hw4 = $problem_set_rs->getProblemSet(info => {
-	course_name => 'Precalculus',
-	set_name => 'HW #4'
-});
-
+my $hw4 = $problem_set_rs->getProblemSet(
+	info => {
+		course_name => 'Precalculus',
+		set_name    => 'HW #4'
+	}
+);
 
 my $ralph_set_info = {
 	username    => "ralph",
 	course_name => "Precalculus",
-	set_name => "HW #4",
-	set_dates => {
-		open => $hw4->{set_dates}->{open} - 100,
-		answer => $hw4->{set_dates}->{answer}+100,
+	set_name    => "HW #4",
+	set_dates   => {
+		open   => $hw4->{set_dates}->{open} - 100,
+		answer => $hw4->{set_dates}->{answer} + 100,
 	},
 	set_params => {
 		enable_reduced_scoring => 0
@@ -528,10 +529,10 @@ my $ralph_user_set = $user_set_rs->addUserSet(params => $ralph_set_info);
 removeIDs($ralph_user_set);
 
 # set some fields that are created from defaults when written to the DB.
-$ralph_set_info->{set_type} = 'HW';
+$ralph_set_info->{set_type}    = 'HW';
 $ralph_set_info->{set_version} = 1;
 
-is_deeply($ralph_user_set, $ralph_set_info,'addUserSet: add a new user with dates (some are missing).');
+is_deeply($ralph_user_set, $ralph_set_info, 'addUserSet: add a new user with dates (some are missing).');
 
 # Try to add a bad date.
 throws_ok {

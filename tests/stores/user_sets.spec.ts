@@ -8,8 +8,7 @@ import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { Course } from 'src/common/models/courses';
 import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
-import { ProblemSet, HomeworkSet, Quiz, ReviewSet, ParseableHomeworkSetParams
-} from 'src/common/models/problem_sets';
+import { ProblemSet, HomeworkSet, Quiz, ReviewSet } from 'src/common/models/problem_sets';
 import { MergedUserSet, UserHomeworkSet, parseMergedUserSet, UserSet, UserQuiz,
 	UserReviewSet, mergeUserSet, MergedUserHomeworkSet } from 'src/common/models/user_sets';
 import { useCourseStore } from 'src/stores/courses';
@@ -296,13 +295,17 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 				set_name: new_hw_set.set_name,
 				username: user_to_assign.username,
 				set_type: new_hw_set.set_type,
-				set_params: new_user_hw.set_params.clone() as ParseableHomeworkSetParams,
-				set_dates: new_user_hw.set_dates.clone()
+				set_params: new_user_hw.set_params.toObject(),
+				set_dates: new_user_hw.set_dates.toObject()
 			});
 
 			expect(cleanIDs(new_user_hw)).toStrictEqual(cleanIDs(new_user_set));
+
 			const merged_user_set = mergeUserSet(new_hw_set, new_user_set, user_to_assign);
 
+			// Copy over the user_set_id from the database object to one in merged_hw.
+			// Not sure why directly setting the user_set_id results in a type error.
+			merged_hw.set({ user_set_id: merged_user_set?.user_set_id });
 			expect(merged_user_set).toStrictEqual(merged_hw);
 		});
 	});

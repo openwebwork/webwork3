@@ -74,7 +74,7 @@ export const useUserStore = defineStore('user', {
 	},
 	actions: {
 		/**
-		 * fetch all users in all courses.
+		 * fetch all global users in all courses.
 		 */
 		async fetchUsers(): Promise<void> {
 			logger.debug('[UserStore/fetchUsers] fetching users...');

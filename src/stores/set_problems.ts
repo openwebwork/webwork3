@@ -121,7 +121,7 @@ export const useSetProblemStore = defineStore('set_problems', {
 			const course_id = useSessionStore().course.course_id;
 			const set_problem = this.set_problems.find(prob => prob.problem_id === user_problem.problem_id);
 			const problem_set_store = useProblemSetStore();
-			const user_set = problem_set_store.findMergedUserSet({ set_id: set_problem?.set_id });
+			const user_set = problem_set_store.findMergedUserSet({ user_set_id: user_problem.user_set_id,  });
 
 			// handle if undefined.
 			const response = await api.delete(`courses/${course_id}/sets/${set_problem?.set_id ?? 0

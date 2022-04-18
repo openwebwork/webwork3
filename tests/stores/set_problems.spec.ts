@@ -1,3 +1,4 @@
+
 /**
  * @jest-environment jsdom
  */
@@ -117,12 +118,10 @@ describe('Problem Set store tests', () => {
 			await set_problem_store.fetchSetProblems(precalc_course.course_id);
 			expect(set_problem_store.set_problems.length).toBeGreaterThan(0);
 
-			const problems_config = {
+			const problems_to_parse = await loadCSV('t/db/sample_data/problems.csv', {
 				params: ['problem_params'],
 				non_neg_fields: ['problem_number']
-			};
-
-			const problems_to_parse = await loadCSV('t/db/sample_data/problems.csv', problems_config);
+			});
 
 			// Filter only Precalc problems and remove any undefined library_ids
 			const precalc_probs = problems_to_parse.filter(prob => prob.course_name === 'Precalculus');
@@ -180,7 +179,6 @@ describe('Problem Set store tests', () => {
 				props: updated_problem.toObject() as ParseableSetProblem
 			});
 			expect(problem_from_server).toStrictEqual(updated_problem);
-
 		});
 
 		test('Delete a set problem', async () => {
@@ -255,6 +253,15 @@ describe('Problem Set store tests', () => {
 			const set_problem_store = useSetProblemStore();
 			const deleted_problem = await set_problem_store.deleteUserProblem(added_user_problem);
 			expect(cleanIDs(deleted_problem)).toStrictEqual(cleanIDs(added_user_problem));
+		});
+
+		// clean up some created sets.
+		afterAll(async () => {
+			const problem_set_store = useProblemSetStore();
+			const set_problem_store = useSetProblemStore();
+			await problem_set_store.deleteProblemSet(added_hw);
+			await problem_set_store.deleteUserSet(added_user_set);
+			await set_problem_store.deleteSetProblem(new_problem);
 		});
 	});
 });
