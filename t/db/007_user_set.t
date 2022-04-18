@@ -500,12 +500,12 @@ is_deeply($user_set3, $set_params3, "addUserSet: add a new user set with dates")
 # add a user with only override dates set.
 
 my $ralph_set_info = {
-	username => "ralph",
+	username    => "ralph",
 	course_name => "Precalculus",
-	set_name => "HW #4",
-	set_dates => {
+	set_name    => "HW #4",
+	set_dates   => {
 		open => 1000,
-		due => 2000,
+		due  => 2000,
 	},
 	set_params => {
 		enable_reduced_scoring => 0
@@ -517,7 +517,6 @@ my $maggie_user_set = $user_set_rs->addUserSet(params => $ralph_set_info);
 use Data::Dumper;
 
 print Dumper $maggie_user_set;
-
 
 # Try to add a bad date.
 throws_ok {

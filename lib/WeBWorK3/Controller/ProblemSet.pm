@@ -77,9 +77,11 @@ sub deleteProblemSet ($self) {
 # Get all user sets for a single course.
 
 sub getAllUserSets ($self) {
-	my @user_sets = $self->schema->resultset('UserSet')->getAllUserSetsForCourse(info => {
-		course_id => int($self->param('course_id'))
-	});
+	my @user_sets = $self->schema->resultset('UserSet')->getAllUserSetsForCourse(
+		info => {
+			course_id => int($self->param('course_id'))
+		}
+	);
 	$self->render(json => \@user_sets);
 	return;
 }

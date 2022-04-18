@@ -112,7 +112,6 @@ sub getUserProblems ($self, %args) {
 	return @user_problems_to_return;
 }
 
-
 =head1 getUserProblemsForSet
 
 Get all user problems (or merged user problems) for one set in one course
@@ -148,7 +147,7 @@ sub getUserProblemsForSet ($self, %args) {
 	my $problem_set   = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
 	my @user_problems = $self->search(
 		{
-			'courses.course_id' => $course->course_id,
+			'courses.course_id'  => $course->course_id,
 			'problem_set.set_id' => $problem_set->set_id
 		},
 		{

@@ -58,7 +58,7 @@ sub getUserProblemsForSet ($self) {
 	my @user_problems = $self->schema->resultset("UserProblem")->getUserProblemsForSet(
 		info => {
 			course_id => int($self->param('course_id')),
-			set_id => int($self->param('set_id'))
+			set_id    => int($self->param('set_id'))
 		}
 	);
 	$self->render(json => \@user_problems);
@@ -81,9 +81,9 @@ sub addUserProblem ($self) {
 sub deleteUserProblem ($self) {
 	my $deleted_problem = $self->schema->resultset("UserProblem")->deleteUserProblem(
 		info => {
-			course_id => int($self->param('course_id')),
-			set_id => int($self->param('set_id')),
-			user_id => int($self->param('user_id')),
+			course_id  => int($self->param('course_id')),
+			set_id     => int($self->param('set_id')),
+			user_id    => int($self->param('user_id')),
 			problem_id => int($self->param('problem_id'))
 		}
 	);

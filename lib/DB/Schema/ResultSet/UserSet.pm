@@ -112,7 +112,7 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 =cut
 
 sub getAllUserSetsForCourse ($self, %args) {
-		my $course = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+	my $course    = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
 	my @user_sets = $self->search(
 		{
 			'courses.course_id' => $course->course_id
