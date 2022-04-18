@@ -145,27 +145,32 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		 * updates a set in the store and the database.
 		 * @param {ProblemSet} set -- the problem set to be updated.
 		 */
-		async updateSet(set: ProblemSet): Promise<{ error: boolean; message: string }> {
+		// async updateSet(set: ProblemSet): Promise<{ error: boolean; message: string }> {
+		async updateSet(set: ProblemSet): Promise<ProblemSet | undefined> {
 			const response = await api.put(`courses/${set.course_id}/sets/${set.set_id}`, set.toObject());
-			let message = '';
-			let is_error = false;
+			// let message = '';
+			// let is_error = false;
 			if (response.status === 200) {
 				const updated_set = parseProblemSet(response.data as ParseableProblemSet);
+				// This is being handled in the tests, so we probably don't need to test for each
+				// request.
 				if (JSON.stringify(updated_set) !== JSON.stringify(set)) {
 					logger.error('[updateSet] response does not match requested update to set');
 				}
-				message = `${updated_set.set_name} was successfully updated.`;
+				// message = `${updated_set.set_name} was successfully updated.`;
 				const index = this.problem_sets.findIndex(s => s.set_id === set.set_id);
 				this.problem_sets[index] = updated_set;
+				return updated_set;
 			} else {
 				const error = response.data as ResponseError;
-				message = error.message;
-				is_error = true;
-				logger.error(`Error updating set: ${message}`);
+				// message = error.message;
+				// is_error = true;
+				logger.error(`Error updating set: ${error}`);
+				throw new Error(error.message);
 				// TODO: app-level error handling -- should throw here
 			}
 
-			return { error: is_error, message };
+			// return { error: is_error, message };
 
 			// The following is not working.  TODO: fix-me
 			// if (JSON.stringify(set) === JSON.stringify(_set)) {
@@ -232,7 +237,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 				set.course_user_id ?? 0}`, set.toObject());
 			const updated_user_set = parseUserSet(response.data as ParseableUserSet);
 			// TODO: check for errors
-			const index = this.merged_user_sets.findIndex(s => s.set_id === updated_user_set.set_id);
+			const index = this.user_sets.findIndex(s => s.set_id === updated_user_set.set_id);
 			this.user_sets.splice(index, 1, updated_user_set);
 			return updated_user_set;
 		},
@@ -242,15 +247,13 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		 * @returns the deleted user set.
 		 */
 		async deleteUserSet(user_set: UserSet) {
-			const sessionStore = useSessionStore();
-			const course_id = sessionStore.course.course_id;
-
+			const course_id = useSessionStore().course.course_id;
 			const response = await
-			api.delete(`courses/${course_id}/sets/${user_set.set_id}/users/${user_set.course_user_id ?? 0}`);
+				api.delete(`courses/${course_id}/sets/${user_set.set_id}/users/${user_set.course_user_id ?? 0}`);
 			// TODO: check for errors
 			const deleted_user_set = parseUserSet(response.data as ParseableUserSet);
-			const index = this.merged_user_sets.findIndex(s => s.set_id === deleted_user_set.set_id);
-			this.merged_user_sets.splice(index, 1);
+			const index = this.user_sets.findIndex(s => s.set_id === deleted_user_set.set_id);
+			this.user_sets.splice(index, 1);
 			return deleted_user_set;
 		},
 	}

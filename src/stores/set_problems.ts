@@ -102,12 +102,10 @@ export const useSetProblemStore = defineStore('set_problems', {
 			this.user_problems = (response.data as ParseableUserProblem[]).map(prob => new UserProblem(prob));
 		},
 		async addUserProblem(user_problem: UserProblem): Promise<UserProblem> {
-			console.log(user_problem);
 			const course_id = useSessionStore().course.course_id;
 			const set_problem = this.set_problems.find(prob => prob.problem_id === user_problem.problem_id);
 			const problem_set_store = useProblemSetStore();
-			const user_set = problem_set_store.findMergedUserSet({ user_set_id: user_problem.user_set_id});
-			console.log(user_set);
+			const user_set = problem_set_store.findMergedUserSet({ user_set_id: user_problem.user_set_id });
 			// TODO: handle if either set_problem or user_set undefined.
 
 			const user_problem_params = user_problem.toObject();
@@ -123,7 +121,7 @@ export const useSetProblemStore = defineStore('set_problems', {
 			const course_id = useSessionStore().course.course_id;
 			const set_problem = this.set_problems.find(prob => prob.problem_id === user_problem.problem_id);
 			const problem_set_store = useProblemSetStore();
-			const user_set = problem_set_store.findMergedUserSet({ set_id: set_problem?.set_id});
+			const user_set = problem_set_store.findMergedUserSet({ set_id: set_problem?.set_id });
 
 			// handle if undefined.
 			const response = await api.delete(`courses/${course_id}/sets/${set_problem?.set_id ?? 0

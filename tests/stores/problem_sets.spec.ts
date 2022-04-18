@@ -18,7 +18,7 @@ import { useCourseStore } from 'src/stores/courses';
 import { Course } from 'src/common/models/courses';
 import { useSessionStore } from 'src/stores/session';
 import { useUserStore } from 'src/stores/users';
-import { UserHomeworkSet, UserQuiz, UserReviewSet, UserSet, parseMergedUserSet, MergedUserSet }
+import { UserHomeworkSet, UserQuiz, UserReviewSet, UserSet, parseMergedUserSet, MergedUserSet, mergeUserSet }
 	from 'src/common/models/user_sets';
 
 const app = createApp({});
@@ -79,7 +79,6 @@ describe('Problem Set store tests', () => {
 	});
 
 	describe('Fetch problem sets', () => {
-
 		test('Fetch the Problem Sets for a course', async () => {
 			const problem_set_store = useProblemSetStore();
 			await problem_set_store.fetchProblemSets(precalc_course?.course_id ?? 0);
@@ -90,7 +89,6 @@ describe('Problem Set store tests', () => {
 	});
 
 	describe('CRUD test for homework sets', () => {
-
 		test('Add a new Homework Set', async () => {
 			const problem_set_store = useProblemSetStore();
 			const new_set_info = {
@@ -120,17 +118,14 @@ describe('Problem Set store tests', () => {
 			const problem_set = (problem_set_store.findProblemSet({ set_name: 'HW #9' }) as HomeworkSet).clone();
 			problem_set.set_params.enable_reduced_scoring = false;
 			await problem_set_store.updateSet(problem_set);
-			const updated_set = (problem_set_store.problem_sets
+			const set_to_update = (problem_set_store.problem_sets
 				.find(set => set.set_id === problem_set.set_id) as HomeworkSet).clone();
-			expect(updated_set?.set_params.enable_reduced_scoring).toBeFalsy();
+			expect(set_to_update?.set_params.enable_reduced_scoring).toBeFalsy();
 
 			// update the answer date
-			const new_answer_date = updated_set.set_dates.answer + 100;
-			updated_set.set_dates.answer = new_answer_date;
-			await problem_set_store.updateSet(updated_set);
-			const updated_set2 = problem_set_store.problem_sets
-				.find(set => set.set_id === problem_set.set_id) as HomeworkSet;
-			expect(updated_set2.set_dates.answer).toBe(new_answer_date);
+			set_to_update.set_dates.answer = set_to_update.set_dates.answer! + 100;
+			const updated_set = await problem_set_store.updateSet(set_to_update) ?? new ProblemSet();
+			expect(cleanIDs(updated_set)).toStrictEqual(cleanIDs(set_to_update));
 		});
 
 		test('Delete a Homework Set', async () => {
@@ -145,7 +140,6 @@ describe('Problem Set store tests', () => {
 	});
 
 	describe('CRUD test for quizzes', () => {
-
 		test('Add a new Quiz', async () => {
 			const problem_set_store = useProblemSetStore();
 			const new_set_info = {
@@ -174,17 +168,14 @@ describe('Problem Set store tests', () => {
 			const problem_set = (problem_set_store.findProblemSet({ set_name: 'Quiz #9' }) as Quiz).clone();
 			problem_set.set_params.timed = false;
 			await problem_set_store.updateSet(problem_set);
-			const updated_set = (problem_set_store.problem_sets
-				.find(set => set.set_id === problem_set.set_id) as HomeworkSet).clone();
-			expect(updated_set?.set_params.enable_reduced_scoring).toBeFalsy();
+			const quiz_to_update = (problem_set_store.problem_sets
+				.find(set => set.set_id === problem_set.set_id) as Quiz).clone();
+			expect(quiz_to_update?.set_params.timed).toBeFalsy();
 
 			// update the answer date
-			const new_answer_date = updated_set.set_dates.answer + 100;
-			updated_set.set_dates.answer = new_answer_date;
-			await problem_set_store.updateSet(updated_set);
-			const updated_set2 = problem_set_store.problem_sets
-				.find(set => set.set_id === problem_set.set_id) as Quiz;
-			expect(updated_set2.set_dates.answer).toBe(new_answer_date);
+			quiz_to_update.set_dates.answer = quiz_to_update.set_dates.answer! + 100;
+			const updated_quiz = await problem_set_store.updateSet(quiz_to_update);
+			expect(updated_quiz).toStrictEqual(quiz_to_update);
 		});
 
 		test('Delete a Quiz', async () => {
@@ -226,17 +217,14 @@ describe('Problem Set store tests', () => {
 			const problem_set = (problem_set_store.findProblemSet({ set_name: 'Review Set #9' }) as ReviewSet).clone();
 			problem_set.set_params.test_param = false;
 			await problem_set_store.updateSet(problem_set);
-			const updated_set = (problem_set_store.problem_sets
+			const set_to_update = (problem_set_store.problem_sets
 				.find(set => set.set_id === problem_set.set_id) as ReviewSet).clone();
-			expect(updated_set?.set_params.test_param).toBeFalsy();
+			expect(set_to_update?.set_params.test_param).toBeFalsy();
 
 			// update the closed date
-			const new_closed_date = updated_set.set_dates.closed + 100;
-			updated_set.set_dates.closed = new_closed_date;
-			await problem_set_store.updateSet(updated_set);
-			const updated_set2 = problem_set_store.problem_sets
-				.find(set => set.set_id === problem_set.set_id) as ReviewSet;
-			expect(updated_set2.set_dates.closed).toBe(new_closed_date);
+			set_to_update.set_dates.closed = set_to_update.set_dates.closed! + 100;
+			const updated_set = await problem_set_store.updateSet(set_to_update);
+			expect(updated_set).toStrictEqual(set_to_update);
 		});
 
 		test('Delete a Review Set', async () => {
@@ -249,219 +237,4 @@ describe('Problem Set store tests', () => {
 			expect(is_the_set_deleted).toBeUndefined();
 		});
 	});
-
-	// let precalc_problems_from_csv: Problem[];
-	let precalc_user_sets: MergedUserSet[];
-
-	describe('Fetching UserSets', () => {
-		test('Fetching User sets from a course', async () => {
-			const problem_set_store = useProblemSetStore();
-			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
-			await problem_set_store.fetchAllUserSets(precalc_course.course_id);
-			expect(problem_set_store.user_sets.length).toBeGreaterThan(0);
-
-			// Setup and load the user sets data from a csv file.
-			const user_sets_to_parse = await loadCSV('t/db/sample_data/user_sets.csv', {
-				params: ['set_dates', 'set_params'],
-				time_zone_shift: 5*3600
-			});
-
-			// Filter only user sets from HW #1
-			const hw1_from_csv = user_sets_to_parse
-				.filter(set => set.course_name === 'Precalculus' && set.set_name === 'HW #1')
-				.map(set => new UserHomeworkSet(set));
-			const user_sets_from_store = problem_set_store.findUserSets({ set_name: 'HW #1' });
-			expect(cleanIDs(user_sets_from_store)).toStrictEqual(cleanIDs(hw1_from_csv));
-
-			precalc_user_sets = user_sets_to_parse
-				.filter(set => set.course_name === 'Precalculus')
-				.map(obj => {
-					const problem_set = problem_sets_from_csv.find(set => set.set_name == obj.set_name);
-					return parseMergedUserSet(Object.assign({}, obj, problem_set?.toObject() ?? {})) ??
-						new MergedUserSet();
-				});
-		});
-	});
-
-	describe('CRUD functions on User Homework', () => {
-		let new_problem_set: ProblemSet;
-		let added_user_set: UserSet;
-		test('Add a new User Homework set to a course.', async () => {
-			// First, make a new problem set
-			const problem_set_store = useProblemSetStore();
-			new_problem_set = await problem_set_store.addProblemSet(new HomeworkSet({
-				set_name: 'HW #9',
-				course_id: precalc_course.course_id
-			}));
-
-			// Fetch the users from the course
-			const user_store = useUserStore();
-			await user_store.fetchGlobalCourseUsers(precalc_course.course_id);
-			await user_store.fetchCourseUsers(precalc_course.course_id);
-			const user = user_store.merged_users[0];
-
-			const user_set = new UserHomeworkSet({
-				set_id: new_problem_set.set_id,
-				course_user_id: user.course_user_id,
-				set_visible: true
-			});
-			added_user_set = await problem_set_store.addUserSet(user_set) ?? new UserSet();
-			expect(cleanIDs(added_user_set)).toStrictEqual(cleanIDs(user_set));
-		});
-
-		let user_set_to_update: UserSet;
-		test('Update a User Set', async () => {
-			const problem_set_store = useProblemSetStore();
-			user_set_to_update = added_user_set.clone();
-			user_set_to_update.set_visible = false;
-			const updated_user_set = await problem_set_store.updateUserSet(user_set_to_update);
-			expect(cleanIDs(updated_user_set)).toStrictEqual(cleanIDs(user_set_to_update));
-		});
-
-		test('Delete a User Set', async () => {
-			const problem_set_store = useProblemSetStore();
-			const user_set_to_delete = await problem_set_store.deleteUserSet(added_user_set);
-			expect(cleanIDs(user_set_to_delete)).toStrictEqual(cleanIDs(user_set_to_update));
-
-			// Also need to delete the problem set that was created.
-			await problem_set_store.deleteProblemSet(new_problem_set);
-		});
-	});
-
-	describe('CRUD functions on User Quiz', () => {
-		let new_quiz: ProblemSet;
-		let added_user_set: UserSet;
-		test('Add a new User Quiz to a course.', async () => {
-			// First, make a new problem set
-			const problem_set_store = useProblemSetStore();
-			new_quiz = await problem_set_store.addProblemSet(new Quiz({
-				set_name: 'Quiz #9',
-				course_id: precalc_course.course_id
-			}));
-
-			// Fetch the users from the course
-			const user_store = useUserStore();
-			await user_store.fetchGlobalCourseUsers(precalc_course.course_id);
-			await user_store.fetchCourseUsers(precalc_course.course_id);
-			const user = user_store.merged_users[0];
-
-			const user_set = new UserQuiz({
-				set_id: new_quiz.set_id,
-				course_user_id: user.course_user_id,
-				set_visible: true
-			});
-			added_user_set = await problem_set_store.addUserSet(user_set) ?? new UserSet();
-			expect(cleanIDs(added_user_set)).toStrictEqual(cleanIDs(user_set));
-		});
-
-		let user_set_to_update: UserSet;
-		test('Update a User Set', async () => {
-			const problem_set_store = useProblemSetStore();
-			user_set_to_update = added_user_set.clone();
-			user_set_to_update.set_visible = false;
-			const updated_user_set = await problem_set_store.updateUserSet(user_set_to_update);
-			expect(cleanIDs(updated_user_set)).toStrictEqual(cleanIDs(user_set_to_update));
-		});
-
-		test('Delete a User Set', async () => {
-			const problem_set_store = useProblemSetStore();
-			const user_set_to_delete = await problem_set_store.deleteUserSet(added_user_set);
-			expect(cleanIDs(user_set_to_delete)).toStrictEqual(cleanIDs(user_set_to_update));
-
-			// Also need to delete the problem set that was created.
-			await problem_set_store.deleteProblemSet(new_quiz);
-		});
-	});
-
-	describe('CRUD functions on User Review Set', () => {
-		let new_review_set: ProblemSet;
-		let added_user_set: UserSet;
-		test('Add a new User Homework set to a course.', async () => {
-			// First, make a new problem set
-			const problem_set_store = useProblemSetStore();
-			new_review_set = await problem_set_store.addProblemSet(new ReviewSet({
-				set_name: 'Review #9',
-				course_id: precalc_course.course_id
-			}));
-
-			// Fetch the users from the course
-			const user_store = useUserStore();
-			await user_store.fetchGlobalCourseUsers(precalc_course.course_id);
-			await user_store.fetchCourseUsers(precalc_course.course_id);
-			const user = user_store.merged_users[0];
-
-			const user_set = new UserReviewSet({
-				set_id: new_review_set.set_id,
-				course_user_id: user.course_user_id,
-				set_visible: true
-			});
-			added_user_set = await problem_set_store.addUserSet(user_set) ?? new UserSet();
-			expect(cleanIDs(added_user_set)).toStrictEqual(cleanIDs(user_set));
-		});
-
-		let user_set_to_update: UserSet;
-		test('Update a User Set', async () => {
-			const problem_set_store = useProblemSetStore();
-			user_set_to_update = added_user_set.clone();
-			user_set_to_update.set_visible = false;
-			const updated_user_set = await problem_set_store.updateUserSet(user_set_to_update);
-			expect(cleanIDs(updated_user_set)).toStrictEqual(cleanIDs(user_set_to_update));
-		});
-
-		test('Delete a User Set', async () => {
-			const problem_set_store = useProblemSetStore();
-			const user_set_to_delete = await problem_set_store.deleteUserSet(added_user_set);
-			expect(cleanIDs(user_set_to_delete)).toStrictEqual(cleanIDs(user_set_to_update));
-
-			// Also need to delete the problem set that was created.
-			await problem_set_store.deleteProblemSet(new_review_set);
-		});
-	});
-
-	describe('Test merged user sets', () => {
-		test('Test all merged user sets', async () => {
-			const problem_set_store = useProblemSetStore();
-			await problem_set_store.fetchProblemSets(precalc_course.course_id);
-			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
-			await problem_set_store.fetchAllUserSets(precalc_course.course_id);
-			expect(cleanIDs(precalc_user_sets)).toStrictEqual(cleanIDs(problem_set_store.merged_user_sets));
-		});
-
-		test('Add a user set and test that the overrides work.', async () => {
-			const problem_set_store = useProblemSetStore();
-			const user_store = useUserStore();
-
-			// Make a new Problem Set
-			const new_hw_set = await problem_set_store.addProblemSet(new HomeworkSet({
-				set_name: 'HW #99',
-				course_id: precalc_course.course_id,
-				set_dates: {
-					open: 1000,
-					due: 1500,
-					answer: 2000
-				}
-			}));
-
-			const new_user_hw = new UserHomeworkSet({
-				set_id: new_hw_set.set_id,
-				course_user_id: user_store.merged_users[0].course_user_id,
-				set_dates: {
-					open: 1200,
-					due: 2000,
-					answer: 2200
-				}
-			});
-
-			console.log(new_user_hw);
-
-			// Add a User set
-			const new_user_set = await problem_set_store.addUserSet(new_user_hw) ?? new UserSet();
-
-			console.log(new_user_set);
-
-			expect(cleanIDs(new_user_hw)).toStrictEqual(cleanIDs(new_user_set));
-
-		});
-	});
-
 });

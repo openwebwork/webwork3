@@ -171,7 +171,7 @@ describe('Tests for Homework Sets', () => {
 
 			set.set_dates.set({
 				open: 0,
-				reduced_scoring: 100,
+				reduced_scoring: undefined,
 				due: 10,
 				answer: 15
 			});

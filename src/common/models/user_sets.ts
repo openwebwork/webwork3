@@ -2,13 +2,18 @@
  * This defines UserSets and MergedUserSets
  */
 
-import { Model } from '.';
+import { Dictionary } from 'express-serve-static-core';
+import { generic, Model } from '.';
 import { parseBoolean, parseNonNegInt, parseUsername } from './parsers';
 import { ProblemSetDates, ProblemSetParams, HomeworkSetParams, HomeworkSetDates,
 	ParseableHomeworkSetParams, ParseableHomeworkSetDates, QuizParams, QuizDates,
 	ParseableQuizDates, ParseableQuizParams, ParseableReviewSetDates,
 	ParseableReviewSetParams, ReviewSetDates, ReviewSetParams,
-	ProblemSetType } from './problem_sets';
+	ProblemSetType,
+ProblemSet,
+ParseableProblemSetParams,
+ParseableProblemSetDates} from './problem_sets';
+import { MergedUser, User } from './users';
 
 export interface ParseableUserSet {
 	user_set_id?: number | string;
@@ -17,8 +22,8 @@ export interface ParseableUserSet {
 	set_type?: string;
 	set_version?: number | string;
 	set_visible?: number | string | boolean;
-	set_params?: ProblemSetParams;
-	set_dates?: ProblemSetDates;
+	set_params?: ParseableProblemSetParams;
+	set_dates?: ParseableProblemSetDates;
 }
 
 export class UserSet extends Model {
@@ -97,6 +102,7 @@ export interface ParseableUserHomeworkSet {
 	set_params?: ParseableHomeworkSetParams;
 	set_dates?: ParseableHomeworkSetDates;
 }
+
 
 export class UserHomeworkSet extends UserSet {
 	private _set_params = new HomeworkSetParams();
@@ -193,7 +199,7 @@ export interface ParseableUserReviewSet {
 
 export class UserReviewSet extends UserSet {
 	private _set_params = new ReviewSetParams();
-	private _set_dates = new ReviewSetDates();
+	private _set_dates = new ReviewSetDates({ open: 0, closed: 0 });
 
 	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
 		'set_visible', 'set_params', 'set_dates'];
@@ -250,8 +256,8 @@ export interface ParseableMergedUserSet {
 	set_name?: string;
 	username?: string;
 	set_type?: string;
-	set_params?: ProblemSetParams;
-	set_dates?: ProblemSetDates;
+	set_params?: ParseableProblemSetParams;
+	set_dates?: ParseableProblemSetDates;
 }
 
 export class MergedUserSet extends Model {
@@ -336,6 +342,7 @@ export class MergedUserSet extends Model {
  */
 
 export interface ParseableMergedUserHomeworkSet {
+	user_id?: number | string;
 	user_set_id?: number | string;
 	set_id?: number | string;
 	course_user_id?: number | string;
@@ -373,6 +380,7 @@ export class MergedUserHomeworkSet extends MergedUserSet {
 
 export interface ParseableMergedUserQuiz {
 	user_set_id?: number | string;
+	user_id?: number | string;
 	set_id?: number | string;
 	course_user_id?: number | string;
 	set_version?: number | string;
@@ -444,4 +452,57 @@ export function parseMergedUserSet(user_set: ParseableMergedUserSet) {
 	} else if (user_set.set_type === 'REVIEW') {
 		return new MergedUserReviewSet(user_set as ParseableMergedUserReviewSet);
 	}
+}
+
+class MergingError extends Error {
+	constructor(str: string) {
+		super(str);
+	}
+};
+
+/**
+ * merge a ProblemSet and a UserSet in that the result is a MergedUserSet with overrides
+ * taken from the UserSet.  Additional info is taken from the MergedUser instance.
+ * @param {ProblemSet} set - a problem set
+ * @param {UserSet} user_set - a user set that will override the problem set dates and parameters.
+ * @param {MergedUser} user - the user associated with the set.
+ * @returns a MergedUserSet with the appropriate overrides.
+ */
+export function mergeUserSet(set: ProblemSet, user_set: UserSet, user: MergedUser) {
+	// Check if the user_set is related to the Problem Set
+	if (set.set_id !== user_set.set_id) {
+		throw new MergingError('The User set is not related to the Problem set');
+	}
+	// Check if the user is related to the user set.
+	if (user_set.course_user_id !== user.course_user_id) {
+		throw new MergingError('The Merged user is not related to the user set.');
+	}
+	const merged_user_set: ParseableMergedUserSet = {
+		user_id: user.user_id,
+		course_user_id: user.course_user_id,
+		username: user.username,
+		set_id: set.set_id,
+		user_set_id: user_set.user_set_id,
+		set_name: set.set_name,
+		set_type: set.set_type,
+		set_visible: user_set.set_visible,
+		set_version: user_set.set_version
+	};
+
+	// override set params
+	const params = set.set_params.toObject() as Dictionary<generic>;
+	const user_params = user_set.set_params.toObject() as Dictionary<generic>;
+	Object.keys(user_params).forEach(key => {
+		if (user_params[key] !== undefined) params[key] = user_params[key];
+	});
+	merged_user_set.set_params = params;
+
+	// override set dates
+	const dates = set.set_dates.toObject() as Dictionary<generic>;
+	const user_dates = user_set.set_dates.toObject() as Dictionary<generic>;
+	Object.keys(user_dates).forEach(key => {
+		if (user_dates[key] != undefined) dates[key] = user_dates[key];
+	});
+	merged_user_set.set_dates = dates;
+	return parseMergedUserSet(merged_user_set);
 }
