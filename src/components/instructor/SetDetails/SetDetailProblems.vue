@@ -6,8 +6,8 @@
 			:list="problems"
 			@change="reorderProblems"
 		>
-			<div v-for="problem in problems" :key="problem.problem_number">
-				<problem
+			<div v-for="problem in (problems as SetProblem)" :key="problem.problem_number">
+				<problem-vue
 					:problem="problem"
 					class="q-mb-md"
 					@remove-problem="deleteProblem"
@@ -30,22 +30,24 @@ import { VueDraggableNext } from 'vue-draggable-next';
 
 import { useProblemSetStore } from 'src/stores/problem_sets';
 
-import Problem from 'components/common/Problem.vue';
+import ProblemVue from 'components/common/Problem.vue';
 import { ProblemSet } from 'src/common/models/problem_sets';
-import { SetProblem } from 'src/common/models/problems';
+import { Problem, SetProblem } from 'src/common/models/problems';
 import { ResponseError } from 'src/common/api-requests/interfaces';
 import { logger } from 'boot/logger';
 import { parseRouteSetID } from 'src/router/utils';
+import { useSetProblemStore } from 'src/stores/set_problems';
 
 export default defineComponent({
 	name: 'SetDetailProblems',
 	components: {
-		Problem,
+		ProblemVue,
 		draggable: VueDraggableNext
 	},
 	setup() {
 		const $q = useQuasar();
 		const problem_sets = useProblemSetStore();
+		const set_problem_store = useSetProblemStore();
 		const route = useRoute();
 		// copy of the set_id prop and ensure it is a number
 		const problems = ref<Array<SetProblem>>([]);
@@ -54,7 +56,7 @@ export default defineComponent({
 		const set_id = computed(() => parseRouteSetID(route));
 
 		const updateProblemSet = () => {
-			problems.value = problem_sets.set_problems
+			problems.value = set_problem_store.set_problems
 				.filter(set => set.set_id === set_id.value)
 				.sort((prob_a, prob_b) =>
 					(prob_a.problem_number ?? 0) - (prob_b.problem_number ?? 0));
@@ -67,13 +69,14 @@ export default defineComponent({
 		watch(() => set_id.value, updateProblemSet);
 
 		return {
+			SetProblem,
 			problem_set,
 			problems,
 			reorderProblems: async () => {
-				const promises: Array<Promise<void>> = [];
+				const promises: Promise<Problem | undefined>[] = [];
 				problems.value.forEach((prob, i) => {
 					if (prob.problem_number !== i + 1) {
-						promises.push(problem_sets.updateSetProblem({
+						promises.push(set_problem_store.updateSetProblem({
 							set_id: prob.set_id,
 							problem_id: prob.problem_id,
 							props: { problem_number: i + 1 }
@@ -100,7 +103,7 @@ export default defineComponent({
 				logger.debug(`[Problem/deleteProblem]: Remove problem ${problem.path()} `
 					+ `from set : ${problem_set.value.set_name ?? 'UNKNOWN'}.`);
 				try {
-					await problem_sets.deleteSetProblem(problem);
+					await set_problem_store.deleteSetProblem(problem);
 					$q.notify({
 						message: `A problem has been removed from set ${problem_set.value.set_name ?? 'UNKNOWN'}`,
 						color: 'green'

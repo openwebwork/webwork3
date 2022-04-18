@@ -211,7 +211,7 @@ export interface ParseableQuiz {
 
 export class Quiz extends ProblemSet {
 	private _set_params = new QuizParams();
-	private _set_dates = new QuizDates({open: 0, due: 0, answer: 0});
+	private _set_dates = new QuizDates({ open: 0, due: 0, answer: 0 });
 	constructor(params: ParseableQuiz = {}) {
 		super(params as ParseableProblemSet);
 		this._set_type = ProblemSetType.QUIZ;
@@ -340,7 +340,7 @@ export interface ParseableHomeworkSet {
 
 export class HomeworkSet extends ProblemSet {
 	private _set_params = new HomeworkSetParams();
-	private _set_dates = new HomeworkSetDates({open: 0, due: 0, answer: 0});
+	private _set_dates = new HomeworkSetDates({ open: 0, due: 0, answer: 0 });
 	constructor(params: ParseableHomeworkSet = {}) {
 		super(params as ParseableProblemSet);
 		this._set_type = ProblemSetType.HW;
@@ -451,7 +451,7 @@ export interface ParseableReviewSet {
 
 export class ReviewSet extends ProblemSet {
 	private _set_params = new ReviewSetParams();
-	private _set_dates = new ReviewSetDates({open: 0, closed: 0});
+	private _set_dates = new ReviewSetDates({ open: 0, closed: 0 });
 	constructor(params: ParseableReviewSet = {}) {
 		super(params as ParseableProblemSet);
 		this._set_type = ProblemSetType.REVIEW_SET;

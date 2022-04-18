@@ -289,7 +289,8 @@ sub addUserProblem ($self, %args) {
 	my $params = clone($args{params} // {});
 
 	# If the user_problem_id field is 0, it is a new problem, so delete the field
-	delete $params->{user_problem_id} if $params->{user_problem_id} == 0;
+	delete $params->{user_problem_id}
+		if defined($params->{user_problem_id}) && $params->{user_problem_id} == 0;
 
 	# Remove some parameters that are not in the UserProblem database, but may be passed in.
 	for my $key (qw/username user_id course_id course_name set_name set_type set_id problem_number problem_id/) {

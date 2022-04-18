@@ -8,12 +8,9 @@ import { parseBoolean, parseNonNegInt, parseUsername } from './parsers';
 import { ProblemSetDates, ProblemSetParams, HomeworkSetParams, HomeworkSetDates,
 	ParseableHomeworkSetParams, ParseableHomeworkSetDates, QuizParams, QuizDates,
 	ParseableQuizDates, ParseableQuizParams, ParseableReviewSetDates,
-	ParseableReviewSetParams, ReviewSetDates, ReviewSetParams,
-	ProblemSetType,
-ProblemSet,
-ParseableProblemSetParams,
-ParseableProblemSetDates} from './problem_sets';
-import { MergedUser, User } from './users';
+	ParseableReviewSetParams, ReviewSetDates, ReviewSetParams, ProblemSetType,
+	ProblemSet, ParseableProblemSetParams, ParseableProblemSetDates } from './problem_sets';
+import { MergedUser } from './users';
 
 export interface ParseableUserSet {
 	user_set_id?: number | string;
@@ -102,7 +99,6 @@ export interface ParseableUserHomeworkSet {
 	set_params?: ParseableHomeworkSetParams;
 	set_dates?: ParseableHomeworkSetDates;
 }
-
 
 export class UserHomeworkSet extends UserSet {
 	private _set_params = new HomeworkSetParams();

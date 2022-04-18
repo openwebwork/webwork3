@@ -11,31 +11,11 @@ import { setActivePinia, createPinia } from 'pinia';
 import { useCourseStore } from 'src/stores/courses';
 import { createApp } from 'vue';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
-import { parseBoolean } from 'src/common/models/parsers';
-import { Dictionary } from 'src/common/models';
-import { Course, ParseableCourse } from 'src/common/models/courses';
+import { Course } from 'src/common/models/courses';
 import { cleanIDs, loadCSV } from '../utils';
-import { text } from 'body-parser';
-import { add } from 'winston';
-
 describe('Test the course store', () => {
 
 	const app = createApp({});
-
-	const convertCourses = (data: Dictionary<string>[]): ParseableCourse[] => {
-		return data.map(row => ({
-			course_name: row.course_name,
-			visible: parseBoolean(row.visible),
-			course_dates: Object.entries(row)
-				.reduce((prev: Dictionary<string | number>, [key, value]) => {
-					const parse_dates = /DATES:(\w+)?$/.exec(key);
-					if (parse_dates) {
-						prev[parse_dates[1]] = value;
-					}
-					return prev;
-				}, {})
-		}));
-	};
 
 	describe('Set up the Course Store', () => {
 		let courses_from_csv: Course[];
@@ -59,12 +39,6 @@ describe('Test the course store', () => {
 		test('Fetch the courses', async () => {
 			const course_store = useCourseStore();
 			await course_store.fetchCourses();
-			const all_courses = course_store.courses.map(course => ({
-				course_name: course.course_name,
-				visible: course.visible,
-				course_dates: { ...course.course_dates }
-			}));
-
 			expect(cleanIDs(course_store.courses)).toStrictEqual(cleanIDs(courses_from_csv));
 		});
 	});
@@ -86,7 +60,7 @@ describe('Test the course store', () => {
 			expect(cleanIDs(added_course)).toStrictEqual(cleanIDs(new_course));
 		});
 
-		test('Update a course',async () => {
+		test('Update a course', async () => {
 			const course_store = useCourseStore();
 			const course_to_update = added_course.clone();
 			course_to_update.visible = false;

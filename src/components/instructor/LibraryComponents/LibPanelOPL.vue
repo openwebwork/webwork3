@@ -38,7 +38,7 @@
 		</div>
 	</header>
 	<div v-if="problems.length > 0" class="col">
-		<div v-for="problem in problems" :key="problem.problem_number">
+		<div v-for="problem in (problems as LibraryProblem[])" :key="problem.problem_number">
 			<problem
 				:problem="problem"
 				class="q-mb-md"
@@ -54,14 +54,14 @@ import { defineComponent, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 
 import { useAppStateStore } from 'src/stores/app_state';
-import { useProblemSetStore } from 'src/stores/problem_sets';
 
 import { LibraryProblem } from 'src/common/models/problems';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import Problem from 'components/common/Problem.vue';
-import { fetchDisciplines, fetchChapters, fetchSubjects, fetchSections, fetchLibraryProblems, LibraryCategory }
-	from 'src/common/api-requests/library';
+import { fetchDisciplines, fetchChapters, fetchSubjects, fetchSections, fetchLibraryProblems,
+	LibraryCategory } from 'src/common/api-requests/library';
 import { logger } from 'boot/logger';
+import { useSetProblemStore } from 'src/stores/set_problems';
 
 export default defineComponent({
 	name: 'LibPanelOpl',
@@ -72,7 +72,7 @@ export default defineComponent({
 		logger.debug('in setup()');
 		const $q = useQuasar();
 		const app_state = useAppStateStore();
-		const problem_sets = useProblemSetStore();
+		const set_problem_store = useSetProblemStore();
 
 		const discipline = ref<LibraryCategory | null>(null); // start with the select field to be empty.
 		const disciplines = ref<Array<LibraryCategory>>([]);
@@ -131,6 +131,7 @@ export default defineComponent({
 		});
 
 		return {
+			LibraryProblem,
 			discipline,
 			disciplines,
 			subject,
@@ -170,7 +171,7 @@ export default defineComponent({
 					});
 				} else {
 					try {
-						await problem_sets.addSetProblem({
+						await set_problem_store.addSetProblem({
 							set_id,
 							problem: prob
 						});

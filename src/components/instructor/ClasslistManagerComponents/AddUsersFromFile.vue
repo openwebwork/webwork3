@@ -110,6 +110,7 @@ import type { Dictionary } from 'src/common/models';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import { MergedUser, CourseUser, User, ParseableMergedUser } from 'src/common/models/users';
 import { invert } from 'src/common/utils';
+import { getUser } from 'src/common/api-requests/user';
 
 interface ParseError {
 	type: string;
@@ -303,7 +304,7 @@ export default defineComponent({
 				user.course_id = session.course.course_id;
 				try {
 					// Skip if username is undefined?
-					const u = await users.getUser(user.username ?? '') as User;
+					const u = await getUser(user.username ?? '') as User;
 					user.user_id = u.user_id;
 				} catch (err) {
 					const error = err as ResponseError;
@@ -313,8 +314,8 @@ export default defineComponent({
 					}
 				}
 				try {
-					const merged_user = await users.addMergedUser(new MergedUser(user));
-					const full_name = `${merged_user.first_name as string} ${merged_user.last_name as string}`;
+					await users.addCourseUser(new CourseUser(user));
+					const full_name = `${user.first_name as string} ${user.last_name as string}`;
 					$q.notify({
 						message: `The user ${full_name} was successfully added to the course.`,
 						color: 'green'

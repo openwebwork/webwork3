@@ -265,7 +265,7 @@ sub addUserProblems {
 			problem_id      => $problem->problem_id,
 			seed            => $user_problem->{seed},
 			problem_version => 1,
-			status          => 0,
+			status          => $user_problem->{status}
 		});
 	}
 	return;

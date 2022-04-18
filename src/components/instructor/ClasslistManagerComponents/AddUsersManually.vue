@@ -72,10 +72,10 @@ import { useUserStore } from 'src/stores/users';
 import { useSessionStore } from 'src/stores/session';
 import { useSettingsStore } from 'src/stores/settings';
 
-import { MergedUser, ParseableMergedUser, User } from 'src/common/models/users';
+import { CourseUser, ParseableMergedUser, User } from 'src/common/models/users';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import { AxiosError } from 'axios';
-import { parseUsername } from 'src/common/models/parsers';
+import { parseNonNegInt, parseUsername } from 'src/common/models/parsers';
 
 interface QRef {
 	validate: () => boolean;
@@ -138,9 +138,10 @@ export default defineComponent({
 						}
 					}
 					merged_user.value.course_id = session.course.course_id;
-					const user = await users.addMergedUser(new MergedUser(merged_user.value));
+					const user = await users.addCourseUser(new CourseUser(merged_user.value));
+					const u = users.findMergedUser({ user_id: parseNonNegInt(user.user_id ?? 0) });
 					$q.notify({
-						message: `The user with username '${user.username ?? ''}' was added successfully.`,
+						message: `The user with username '${u.username ?? ''}' was added successfully.`,
 						color: 'green'
 					});
 					if (close) {

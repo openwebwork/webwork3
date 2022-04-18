@@ -68,14 +68,14 @@ export default defineComponent({
 		const settings = useSettingsStore();
 
 		const updateUsers = async () => {
-			const promises: Array<Promise<void>> = [];
+			const promises: Array<Promise<CourseUser | undefined>> = [];
 			merged_users.value.forEach(_user => {
 				// First, only pick the fields from a CourseUser object:
 				const course_user = _user.toObject(CourseUser.ALL_FIELDS);
 				promises.push(store_users.updateCourseUser(new CourseUser(course_user)));
 				logger.debug(`[EditUsers/updateUsers]: user ${_user.username ?? ''} to be updated.`);
 				// Additionally, update the merged user in the store.
-				void store_users.updateMergedUser(new MergedUser(_user));
+				void store_users.updateCourseUser(new CourseUser(_user));
 			});
 			await Promise.all(promises)
 				.then(() => {

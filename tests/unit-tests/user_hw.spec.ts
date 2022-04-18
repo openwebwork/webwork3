@@ -6,8 +6,8 @@
 
 import { HomeworkSet } from 'src/common/models/problem_sets';
 import { MergedUser } from 'src/common/models/users';
-import { MergedUserHomeworkSet, MergedUserSet, mergeUserSet, ParseableMergedUserHomeworkSet, ParseableUserHomeworkSet, UserHomeworkSet, UserSet } from 'src/common/models/user_sets';
-
+import { MergedUserHomeworkSet, MergedUserSet, mergeUserSet, ParseableMergedUserHomeworkSet,
+	ParseableUserHomeworkSet, UserHomeworkSet, UserSet } from 'src/common/models/user_sets';
 
 describe('Test user Homework sets', () => {
 
@@ -295,4 +295,4 @@ describe('Test user Homework sets', () => {
 			expect(expected_user_hw).toStrictEqual(merged_set);
 		});
 	});
-})
+});

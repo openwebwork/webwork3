@@ -5,8 +5,7 @@
 // when using the jsdom environment.
 
 import { BooleanParseException, NonNegIntException, UsernameParseException } from 'src/common/models/parsers';
-import { UserHomeworkSet, UserQuiz, UserReviewSet, UserSet, ParseableUserHomeworkSet, ParseableUserQuiz, MergedUserSet }
-	from 'src/common/models/user_sets';
+import { UserSet, MergedUserSet } from 'src/common/models/user_sets';
 
 describe('Test Generic User sets and Merged User sets', () => {
 

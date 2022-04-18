@@ -17,9 +17,6 @@ import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useCourseStore } from 'src/stores/courses';
 import { Course } from 'src/common/models/courses';
 import { useSessionStore } from 'src/stores/session';
-import { useUserStore } from 'src/stores/users';
-import { UserHomeworkSet, UserQuiz, UserReviewSet, UserSet, parseMergedUserSet, MergedUserSet, mergeUserSet }
-	from 'src/common/models/user_sets';
 
 const app = createApp({});
 
@@ -35,7 +32,7 @@ describe('Problem Set store tests', () => {
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
 			boolean_fields: ['set_visible'],
-			time_zone_shift: 5*3600, // compensating for some strangeness with Dates.
+			time_zone_shift: 5 * 3600, // compensating for some strangeness with Dates.
 		};
 
 		const hw_sets_to_parse = await loadCSV('t/db/sample_data/hw_sets.csv', problem_set_config);
@@ -123,7 +120,7 @@ describe('Problem Set store tests', () => {
 			expect(set_to_update?.set_params.enable_reduced_scoring).toBeFalsy();
 
 			// update the answer date
-			set_to_update.set_dates.answer = set_to_update.set_dates.answer! + 100;
+			set_to_update.set_dates.answer = (set_to_update.set_dates.answer ?? 0) + 100;
 			const updated_set = await problem_set_store.updateSet(set_to_update) ?? new ProblemSet();
 			expect(cleanIDs(updated_set)).toStrictEqual(cleanIDs(set_to_update));
 		});
@@ -173,7 +170,7 @@ describe('Problem Set store tests', () => {
 			expect(quiz_to_update?.set_params.timed).toBeFalsy();
 
 			// update the answer date
-			quiz_to_update.set_dates.answer = quiz_to_update.set_dates.answer! + 100;
+			quiz_to_update.set_dates.answer = (quiz_to_update.set_dates.answer ?? 0) + 100;
 			const updated_quiz = await problem_set_store.updateSet(quiz_to_update);
 			expect(updated_quiz).toStrictEqual(quiz_to_update);
 		});
@@ -222,7 +219,7 @@ describe('Problem Set store tests', () => {
 			expect(set_to_update?.set_params.test_param).toBeFalsy();
 
 			// update the closed date
-			set_to_update.set_dates.closed = set_to_update.set_dates.closed! + 100;
+			set_to_update.set_dates.closed = (set_to_update.set_dates.closed ?? 0) + 100;
 			const updated_set = await problem_set_store.updateSet(set_to_update);
 			expect(updated_set).toStrictEqual(set_to_update);
 		});

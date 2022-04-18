@@ -241,7 +241,6 @@ describe('Problem Set store tests', () => {
 				set_id: added_hw.set_id
 			});
 			added_user_set = await problem_set_store.addUserSet(user_set) ?? new UserSet();
-			console.log(added_user_set);
 
 			const user_problem = new UserProblem({
 				user_set_id: added_user_set.user_set_id,
@@ -249,7 +248,6 @@ describe('Problem Set store tests', () => {
 				seed: 4321
 			});
 			added_user_problem = await set_problem_store.addUserProblem(user_problem);
-			console.log(added_user_problem);
 			expect(cleanIDs(user_problem)).toStrictEqual(cleanIDs(added_user_problem));
 		});
 

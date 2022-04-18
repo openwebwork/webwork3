@@ -6,7 +6,8 @@
 
 import { Quiz } from 'src/common/models/problem_sets';
 import { MergedUser } from 'src/common/models/users';
-import { MergedUserHomeworkSet, MergedUserQuiz, MergedUserSet, mergeUserSet, ParseableUserQuiz, UserHomeworkSet, UserQuiz, UserSet } from 'src/common/models/user_sets';
+import { MergedUserHomeworkSet, MergedUserQuiz, MergedUserSet, mergeUserSet, ParseableUserQuiz,
+	UserHomeworkSet, UserQuiz, UserSet } from 'src/common/models/user_sets';
 
 describe('Test User Quizzes', () => {
 	describe('Create User Quizzes', () => {
@@ -85,7 +86,6 @@ describe('Test User Quizzes', () => {
 
 		});
 	});
-
 
 	describe('Create Merged User quizzes', () => {
 		test('Create a MergedUserQuiz', () => {

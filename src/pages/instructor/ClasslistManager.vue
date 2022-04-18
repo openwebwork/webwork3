@@ -187,7 +187,7 @@ export default defineComponent({
 									$q.notify({ message: error.message, color: 'red' });
 								});
 							}
-							void users.deleteMergedUser(new MergedUser(user));
+							void users.deleteCourseUser(new CourseUser(user));
 							selected.value = [];
 						}).catch((err) => {
 							logger.error(err);

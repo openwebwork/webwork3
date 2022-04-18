@@ -8,8 +8,10 @@ import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { Course } from 'src/common/models/courses';
 import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
-import { ProblemSet, HomeworkSet, Quiz, ReviewSet, ParseableHomeworkSetParams } from 'src/common/models/problem_sets';
-import { MergedUserSet, UserHomeworkSet, parseMergedUserSet, UserSet, UserQuiz, UserReviewSet, mergeUserSet, MergedUserHomeworkSet } from 'src/common/models/user_sets';
+import { ProblemSet, HomeworkSet, Quiz, ReviewSet, ParseableHomeworkSetParams
+} from 'src/common/models/problem_sets';
+import { MergedUserSet, UserHomeworkSet, parseMergedUserSet, UserSet, UserQuiz,
+	UserReviewSet, mergeUserSet, MergedUserHomeworkSet } from 'src/common/models/user_sets';
 import { useCourseStore } from 'src/stores/courses';
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useSessionStore } from 'src/stores/session';
@@ -32,7 +34,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
 			boolean_fields: ['set_visible'],
-			time_zone_shift: 5*3600, // compensating for some strangeness with Dates.
+			time_zone_shift: 5 * 3600, // compensating for some strangeness with Dates.
 		};
 
 		const hw_sets_to_parse = await loadCSV('t/db/sample_data/hw_sets.csv', problem_set_config);
@@ -85,14 +87,13 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		test('Fetching User sets from a course', async () => {
 			const problem_set_store = useProblemSetStore();
 			await problem_set_store.fetchProblemSets(precalc_course.course_id);
-			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
 			await problem_set_store.fetchAllUserSets(precalc_course.course_id);
 			expect(problem_set_store.user_sets.length).toBeGreaterThan(0);
 
 			// Setup and load the user sets data from a csv file.
 			const user_sets_to_parse = await loadCSV('t/db/sample_data/user_sets.csv', {
 				params: ['set_dates', 'set_params'],
-				time_zone_shift: 5*3600
+				time_zone_shift: 5 * 3600
 			});
 
 			// Filter only user sets from HW #1
@@ -230,7 +231,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 			const num_user_sets = problem_set_store.user_sets.length;
 			const user_set_to_delete = await problem_set_store.deleteUserSet(user_review_set_to_update);
 			expect(cleanIDs(user_set_to_delete)).toStrictEqual(cleanIDs(user_review_set_to_update));
-			expect(problem_set_store.user_sets.length).toBe(num_user_sets-1);
+			expect(problem_set_store.user_sets.length).toBe(num_user_sets - 1);
 		});
 
 		afterAll(async () => {
@@ -244,10 +245,8 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 	let new_user_hw: UserSet;
 	describe('Test merged user sets', () => {
-		test('Test all merged user sets', async () => {
+		test('Test all merged user sets', () => {
 			const problem_set_store = useProblemSetStore();
-			console.log(problem_set_store.user_sets);
-			console.log(problem_set_store.merged_user_sets);
 			expect(cleanIDs(precalc_user_sets)).toStrictEqual(cleanIDs(problem_set_store.merged_user_sets));
 		});
 
@@ -287,7 +286,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 			});
 
 			const new_user_set = await problem_set_store.addUserSet(new_user_hw) ?? new UserSet();
-			let merged_hw = new MergedUserHomeworkSet({
+			const merged_hw = new MergedUserHomeworkSet({
 				user_id: user_to_assign.user_id,
 				user_set_id: new_user_hw.user_set_id,
 				set_id: new_hw_set.set_id,
@@ -313,5 +312,5 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		const problem_set_store = useProblemSetStore();
 		// delete the newly made problem set:
 		await problem_set_store.deleteProblemSet(new_hw_set);
-	})
+	});
 });
