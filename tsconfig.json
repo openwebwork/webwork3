@@ -3,7 +3,8 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"target": "es2020",
-		"lib": ["esnext", "dom", "dom.iterable"]
+		"lib": ["esnext", "dom", "dom.iterable"],
+		"jsx": "preserve"
 	},
 	"exclude": ["dist", ".quasar", "node_modules"]
 }
