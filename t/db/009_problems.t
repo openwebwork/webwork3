@@ -221,25 +221,22 @@ throws_ok {
 # Try to add a problem with both information about the file_path, and library_id .
 
 my $set_prob_params2 = {
-		course_name    => "Precalculus",
-		set_name       => "HW #1",
-		problem_params => {
-			file_path  => "this_is_a_path",
-			library_id => 123,
-			weight => 1
-		}
-	};
+	course_name    => "Precalculus",
+	set_name       => "HW #1",
+	problem_params => {
+		file_path  => "this_is_a_path",
+		library_id => 123,
+		weight     => 1
+	}
+};
 
-my $set_problem2 = $problem_rs->addSetProblem(
-	params => $set_prob_params2
-);
+my $set_problem2 = $problem_rs->addSetProblem(params => $set_prob_params2);
 delete $set_prob_params2->{course_name};
 delete $set_prob_params2->{set_name};
 removeIDs($set_problem2);
 delete $set_problem2->{problem_number};
 
-is_deeply($set_problem2, $set_prob_params2,
-	'addSetProblem: adding a problem with both file_path and library_id');
+is_deeply($set_problem2, $set_prob_params2, 'addSetProblem: adding a problem with both file_path and library_id');
 
 # Update a problem
 my $updated_params = {

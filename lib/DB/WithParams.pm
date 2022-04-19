@@ -91,7 +91,8 @@ sub _check_for_one_of ($self, $field_name, $value = undef) {
 }
 
 sub _check_for_at_least_one_of ($self, $field_name, $value = undef) {
-	croak "The value of the _AT_LEAST_ONE_OF_ required type needs to be an array ref." unless reftype($value) eq "ARRAY";
+	croak "The value of the _AT_LEAST_ONE_OF_ required type needs to be an array ref."
+		unless reftype($value) eq "ARRAY";
 	my @fields = keys %{ $self->get_inflated_column($field_name) };
 	DB::Exception::ParametersNeeded->throw(
 		message => "Request must include ONE or more of the following parameters: " . join(', ', @$value))
