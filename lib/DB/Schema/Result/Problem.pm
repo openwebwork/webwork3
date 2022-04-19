@@ -76,7 +76,7 @@ sub required_params ($=) {
 	# Although the following is desirable eventually.
 	# return { '_ALL_' => [ 'weight', { '_ONE_OF_' => [ 'library_id', 'file_path', 'problem_pool_id' ] } ] };
 	# currently, don't have any restrictions on the params.
-	return {};
+	return { '_ALL_' => [ 'weight', { '_AT_LEAST_ONE_OF_' => [ 'library_id', 'file_path', 'problem_pool_id' ] } ] };
 }
 
 # This is the table that stores problems for a given Problem Set.

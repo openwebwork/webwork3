@@ -90,11 +90,22 @@ sub _check_for_one_of ($self, $field_name, $value = undef) {
 	return 1;
 }
 
+sub _check_for_at_least_one_of ($self, $field_name, $value = undef) {
+	croak "The value of the _AT_LEAST_ONE_OF_ required type needs to be an array ref." unless reftype($value) eq "ARRAY";
+	my @fields = keys %{ $self->get_inflated_column($field_name) };
+	DB::Exception::ParametersNeeded->throw(
+		message => "Request must include ONE or more of the following parameters: " . join(', ', @$value))
+		unless scalar(intersect(@fields, @$value)) >= 1;
+	return 1;
+}
+
 sub _check_params ($self, $field_name, $type, $value = undef) {
 	if ($type eq "_ALL_") {
 		return $self->_check_for_all($field_name, $value);
 	} elsif ($type eq "_ONE_OF_") {
 		return $self->_check_for_one_of($field_name, $value);
+	} elsif ($type eq '_AT_LEAST_ONE_OF_') {
+		return $self->_check_for_at_least_one_of($field_name, $value);
 	}
 }
 

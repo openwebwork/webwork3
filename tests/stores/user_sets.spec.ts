@@ -8,9 +8,11 @@ import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { Course } from 'src/common/models/courses';
 import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
-import { ProblemSet, HomeworkSet, Quiz, ReviewSet } from 'src/common/models/problem_sets';
-import { MergedUserSet, UserHomeworkSet, parseMergedUserSet, UserSet, UserQuiz,
-	UserReviewSet, mergeUserSet, MergedUserHomeworkSet } from 'src/common/models/user_sets';
+import { ProblemSet, HomeworkSet, Quiz, ReviewSet, ParseableProblemSetDates, ParseableProblemSetParams
+	} from 'src/common/models/problem_sets';
+import { MergedUser } from 'src/common/models/users';
+import { MergedUserSet, UserHomeworkSet, UserSet, UserQuiz,
+	UserReviewSet, mergeUserSet, MergedUserHomeworkSet, parseUserSet } from 'src/common/models/user_sets';
 import { useCourseStore } from 'src/stores/courses';
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useSessionStore } from 'src/stores/session';
@@ -85,6 +87,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 	describe('Fetching UserSets', () => {
 		test('Fetching User sets from a course', async () => {
 			const problem_set_store = useProblemSetStore();
+			const user_store = useUserStore();
 			await problem_set_store.fetchProblemSets(precalc_course.course_id);
 			await problem_set_store.fetchAllUserSets(precalc_course.course_id);
 			expect(problem_set_store.user_sets.length).toBeGreaterThan(0);
@@ -94,6 +97,15 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 				params: ['set_dates', 'set_params'],
 				time_zone_shift: 5 * 3600
 			});
+
+			// Load the users from the CSV file and filter only the Precalc students.
+			const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
+				boolean_fields: ['is_admin'],
+				non_neg_fields: ['user_id']
+			});
+
+			const precalc_merged_users = users_to_parse.filter(user => user.course_name === 'Precalculus')
+				.map(user => new MergedUser(user));
 
 			// Filter only user sets from HW #1
 			const hw1_from_csv = user_sets_to_parse
@@ -106,8 +118,13 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 				.filter(set => set.course_name === 'Precalculus')
 				.map(obj => {
 					const problem_set = problem_sets_from_csv.find(set => set.set_name == obj.set_name);
-					return parseMergedUserSet(Object.assign({}, obj, problem_set?.toObject() ?? {})) ??
-						new MergedUserSet();
+					const merged_user = precalc_merged_users.find(u => u.username === obj.username) ?? new MergedUser();
+					const user_set = parseUserSet({
+						set_type: problem_set?.set_type,
+						set_dates: obj.set_dates as ParseableProblemSetDates,
+						set_params: obj.set_params as ParseableProblemSetParams
+					});
+					return mergeUserSet(problem_set as ProblemSet, user_set, merged_user) ?? new MergedUserSet();
 				});
 		});
 	});
