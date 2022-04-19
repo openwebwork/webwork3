@@ -96,7 +96,6 @@ import HomeworkDatesView from './HomeworkDates.vue';
 import ReviewSetDatesView from './ReviewSetDates.vue';
 import QuizDatesView from './QuizDates.vue';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
-import { parseRouteCourseID, parseRouteSetID } from 'src/router/utils';
 
 type FieldType =
 	((row: MergedUserHomeworkSet) => number) |
@@ -402,18 +401,6 @@ export default defineComponent({
 				}
 			})
 		};
-	},
-	created() {
-		// fetch the user sets for this set
-		const problem_sets = useProblemSetStore();
-		const route = useRoute();
-		if (route.params.set_id) {
-			logger.debug('Loading UserSets');
-			void problem_sets.fetchUserSets({
-				course_id: parseRouteCourseID(route),
-				set_id: parseRouteSetID(route)
-			});
-		}
 	}
 });
 </script>
