@@ -9,7 +9,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { Course } from 'src/common/models/courses';
 import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 import { ProblemSet, HomeworkSet, Quiz, ReviewSet, ParseableProblemSetDates, ParseableProblemSetParams
-	} from 'src/common/models/problem_sets';
+} from 'src/common/models/problem_sets';
 import { MergedUser } from 'src/common/models/users';
 import { MergedUserSet, UserHomeworkSet, UserSet, UserQuiz,
 	UserReviewSet, mergeUserSet, MergedUserHomeworkSet, parseUserSet } from 'src/common/models/user_sets';
@@ -87,7 +87,6 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 	describe('Fetching UserSets', () => {
 		test('Fetching User sets from a course', async () => {
 			const problem_set_store = useProblemSetStore();
-			const user_store = useUserStore();
 			await problem_set_store.fetchProblemSets(precalc_course.course_id);
 			await problem_set_store.fetchAllUserSets(precalc_course.course_id);
 			expect(problem_set_store.user_sets.length).toBeGreaterThan(0);
