@@ -7,7 +7,7 @@ import { useSessionStore } from './session';
 import { useUserStore } from './users';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
-import { MergedUserSet, ParseableUserSet, parseMergedUserSet, parseUserSet, UserSet
+import { MergedUserSet, mergeUserSet, ParseableUserSet, parseMergedUserSet, parseUserSet, UserSet
 } from 'src/common/models/user_sets';
 import { logger } from 'src/boot/logger';
 import { ResponseError } from 'src/common/api-requests/interfaces';
@@ -43,10 +43,9 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		// Returns all user sets merged with a user and a problem set.
 		merged_user_sets: (state) => state.user_sets.map(user_set => {
 			const problem_set = state.problem_sets.find(set => set.set_id == user_set.set_id);
-			const user_store = useUserStore();
-			const course_user = user_store.merged_users.find(u => u.course_user_id === user_set.course_user_id);
-			return parseMergedUserSet(Object.assign(user_set.toObject(),
-				problem_set?.toObject(), course_user?.toObject())) ?? new MergedUserSet();
+			const course_user = useUserStore().merged_users.find(u => u.course_user_id === user_set.course_user_id);
+			return mergeUserSet(problem_set as ProblemSet, user_set as UserSet, course_user as MergedUser)
+				?? new MergedUserSet();
 		}),
 		// Return a Problem Set from a set_id or set_name
 		findProblemSet: (state) => (set_info: SetInfo) =>
@@ -220,8 +219,9 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			const response = await api.put(`courses/${course_id}/sets/${set.set_id ?? 0}/users/${
 				set.course_user_id ?? 0}`, set.toObject());
 			const updated_user_set = parseUserSet(response.data as ParseableUserSet);
+
 			// TODO: check for errors
-			const index = this.user_sets.findIndex(s => s.set_id === updated_user_set.set_id);
+			const index = this.user_sets.findIndex(s => s.user_set_id === updated_user_set.user_set_id);
 			this.user_sets.splice(index, 1, updated_user_set);
 			return updated_user_set;
 		},
@@ -236,7 +236,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			api.delete(`courses/${course_id}/sets/${user_set.set_id}/users/${user_set.course_user_id ?? 0}`);
 			// TODO: check for errors
 			const deleted_user_set = parseUserSet(response.data as ParseableUserSet);
-			const index = this.user_sets.findIndex(s => s.set_id === deleted_user_set.set_id);
+			const index = this.user_sets.findIndex(s => s.user_set_id === deleted_user_set.user_set_id);
 			this.user_sets.splice(index, 1);
 			return deleted_user_set;
 		},

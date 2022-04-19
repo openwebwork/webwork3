@@ -233,7 +233,6 @@ describe('Problem Set store tests', () => {
 			await users_store.fetchCourseUsers(precalc_course.course_id);
 			await users_store.fetchGlobalCourseUsers(precalc_course.course_id);
 			const user = users_store.course_users[0];
-			// console.log(user);
 			const user_set = new UserHomeworkSet({
 				course_user_id: user.course_user_id,
 				set_id: added_hw.set_id
