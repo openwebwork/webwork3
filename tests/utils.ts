@@ -13,7 +13,7 @@ interface CSVConfig {
 	time_zone_shift?: number;
 }
 
-type Output = Dictionary<string | number | boolean | Dictionary<string | number>>
+// type Output = Dictionary<string | number | boolean | Dictionary<string | number>>
 
 /**
  * convert takes data in the form of an array of objects of strings or numbers
@@ -24,7 +24,7 @@ type Output = Dictionary<string | number | boolean | Dictionary<string | number>
  * @param data
  */
 
-function convert(data: Dictionary<string>[], config: CSVConfig): Output[] {
+function convert(data: Dictionary<string>[], config: CSVConfig): Dictionary<generic | Dictionary<generic>>[] {
 	const keys = Object.keys(data[0]);
 	const param_fields = config.params ?? [];
 
@@ -42,7 +42,7 @@ function convert(data: Dictionary<string>[], config: CSVConfig): Output[] {
 	const other_fields = keys.filter(k => known_fields.indexOf(k) < 0);
 
 	return data.map(row => {
-		const d: Output = {};
+		const d: Dictionary<generic | Dictionary<generic>> = {};
 		// All non-param, non-boolean and non-integer fields don't need to be parsed.
 		other_fields.forEach(key => { d[key] = row[key]; });
 		// Parse boolean fields
@@ -79,7 +79,8 @@ function convert(data: Dictionary<string>[], config: CSVConfig): Output[] {
  * @param dates_name
  */
 
-export async function loadCSV(filepath: string, config: CSVConfig): Promise<Output[]> {
+export async function loadCSV(filepath: string, config: CSVConfig):
+	Promise< Dictionary<generic | Dictionary<generic>>[]> {
 	const file = fs.createReadStream(filepath);
 	return new Promise((resolve, reject) => {
 		papa.parse(file, {
