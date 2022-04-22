@@ -6,6 +6,7 @@ import type { ParseableCourseUser, ParseableMergedUser, ParseableUser } from 'sr
 import { User, MergedUser, CourseUser } from 'src/common/models/users';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import { UserCourse } from 'src/common/models/courses';
+import { UserRole } from 'src/common/models/parsers';
 
 export interface UserState {
 	users: Array<User>;
@@ -24,18 +25,29 @@ export const useUserStore = defineStore('user', {
 		user_courses: [],
 		set_users: []
 	}),
+	getters: {
+		getUserByName: (state) => {
+			return (_username: string) => state.users.find((_user) => _user.username === _username);
+		},
+		getCourseUsersByRole: (state) => {
+			return (_role: UserRole) => state.course_users.filter((_user) => _user.role === _role);
+		}
+	},
 	actions: {
 		// no context as first argument, use `this` instead
 		async fetchUsers(): Promise<void | ResponseError> {
+			logger.debug('[UserStore/fetchUsers] fetching users...');
 			const response = await api.get('users');
 			if (response.status === 200) {
 				this.users = response.data as Array<User>;
 			} else {
-				logger.error(response.data);
-				return response.data as ResponseError;
+				const error = response.data as ResponseError;
+				logger.error(`${error.exception}: ${error.message}`);
+				throw new Error(error.message);
 			}
 		},
 		async fetchUserCourses(user_id: number): Promise<void | ResponseError> {
+			logger.debug(`[UserStore/fetchUserCourses] fetching courses for user #${user_id}`);
 			const response = await api.get(`users/${user_id}/courses`);
 			if (response.status === 200) {
 				this.user_courses = response.data as Array<UserCourse>;
@@ -45,6 +57,7 @@ export const useUserStore = defineStore('user', {
 			}
 		},
 		async fetchCourseUsers(course_id: number): Promise<void | ResponseError> {
+			logger.debug(`[UserStore/fetchCourseUsers] fetching users for course #${course_id}`);
 			const response = await api.get(`courses/${course_id}/users`);
 			if (response.status === 200) {
 				const course_users = response.data as Array<ParseableCourseUser>;
@@ -55,6 +68,7 @@ export const useUserStore = defineStore('user', {
 			}
 		},
 		async fetchMergedUsers(course_id: number): Promise<void | ResponseError> {
+			logger.debug(`[UserStore/fetchMergedUsers] fetching courseusers for course #${course_id}`);
 			const response = await api.get(`courses/${course_id}/courseusers`);
 			if (response.status === 200) {
 				const merged_users = response.data as Array<ParseableMergedUser>;
@@ -64,18 +78,20 @@ export const useUserStore = defineStore('user', {
 				return response.data as ResponseError;
 			}
 		},
-		async getUser(username: string): Promise<ParseableUser | void> {
+		async getUser(username: string): Promise<ParseableUser> {
 			const response = await api.get(`users/${username}`);
 			if (response.status === 200) {
 				return response.data as ParseableUser;
-			} else if (response.status === 250) {
+			} else {
 				throw response.data as ResponseError;
 			}
 		},
-		async addUser(user: User): Promise<User | void> {
+		async addUser(user: User): Promise<User | undefined> {
 			const response = await api.post('users', user.toObject());
 			if (response.status === 200) {
-				this.users.push(new User(response.data as ParseableUser));
+				const new_user = new User(response.data as ParseableUser);
+				this.users.push(new_user);
+				return new_user;
 			} else if (response.status === 250) {
 				logger.error(response.data);
 				throw response.data as ResponseError;

@@ -21,12 +21,14 @@ use List::MoreUtils qw/firstval/;
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
 use YAML qw/LoadFile/;
+use DateTime::Format::Strptime;
 
 # Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
 $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
+my $strp   = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
 
 my $users_rs  = $schema->resultset("User");
 my $course_rs = $schema->resultset("Course");
@@ -230,6 +232,13 @@ for my $user_course (@user_courses) {
 }
 
 my @courses = loadCSV("$main::ww3_dir/t/db/sample_data/courses.csv");
+for my $course (@courses) {
+	for my $date (keys %{ $course->{course_dates} }) {
+		my $dt = $strp->parse_datetime($course->{course_dates}->{$date});
+		$course->{course_dates}->{$date} = $dt->epoch;
+	}
+}
+
 @students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
 
 my @user_courses_from_csv = grep { $_->{username} eq "lisa" } @students;

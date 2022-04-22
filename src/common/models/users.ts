@@ -55,7 +55,8 @@ export class User extends Model {
 		this.student_id = params.student_id;
 	}
 
-	get user_id() { return this._user_id; }
+	// otherwise, typescript identifies this as number | string
+	get user_id(): number { return this._user_id; }
 	set user_id(value: number | string) {
 		this._user_id = parseNonNegInt(value);
 	}

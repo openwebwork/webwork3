@@ -3,9 +3,9 @@ import { ParseableSetProblem, ParseableSetProblemParams, ProblemType, SetProblem
 
 const default_render_params = {
 	problemSeed: 1234,
-	permission_level: 0,
+	permissionLevel: 0,
 	outputFormat: 'ww3',
-	answerPrefix: '',
+	answerPrefix: 'SET0_',
 	sourceFilePath: '',
 	showHints: false,
 	showSolutions: true,

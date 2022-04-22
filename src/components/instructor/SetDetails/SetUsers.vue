@@ -54,13 +54,17 @@
 				<q-card-section class="q-pt-none">
 					<homework-dates-view
 						v-if="problem_set.set_type === 'HW'"
-						:dates="(date_edit as unknown as typeof HomeworkSetDates)"
+						:dates="(date_edit as HomeworkSetDates)"
 						:reduced_scoring="reduced_scoring"
 					/>
-					<quiz-dates-view v-if="problem_set.set_type ==='QUIZ'"
-						:dates="(date_edit as unknown as typeof QuizDates)" />
-					<review-set-dates-view v-if="problem_set.set_type ==='REVIEW'"
-						:dates="(date_edit as unknown as typeof ReviewSetDates)" />
+					<quiz-dates-view
+						v-if="problem_set.set_type ==='QUIZ'"
+						:dates="(date_edit as QuizDates)"
+					/>
+					<review-set-dates-view
+						v-if="problem_set.set_type ==='REVIEW'"
+						:dates="(date_edit as ReviewSetDates)"
+					/>
 				</q-card-section>
 
 				<q-card-actions align="right">
@@ -235,10 +239,16 @@ export default defineComponent({
 			if (assigned) {
 				await assignUser(course_user_id);
 			} else {
-				const conf = confirm('Unassigning a user from a set cannot be undone.  Do you want to proceed?');
-				if (conf) {
-					await unassignUser(course_user_id);
-				}
+				$q.dialog({
+					message: 'Unassigning a user from a set cannot be undone.  Do you want to proceed?',
+					cancel: true,
+					persistent: true
+				}).onOk(() => {
+					void unassignUser(course_user_id);
+				}).onCancel(() => {
+					// return the user to the selected rows of the table.
+					updateUserSetInfo();
+				});
 			}
 		};
 
@@ -376,6 +386,9 @@ export default defineComponent({
 		watch([problem_sets.merged_user_sets], updateProblemSet);
 
 		return {
+			HomeworkSetDates,
+			QuizDates,
+			ReviewSetDates,
 			columns,
 			users: computed(() => users.merged_users),
 			// produces the merge between users and user_sets for display

@@ -1,7 +1,7 @@
 // Session store
 
 import { defineStore } from 'pinia';
-import { ParseableUser } from 'src/common/models/users';
+import { User } from 'src/common/models/users';
 import type { SessionInfo } from 'src/common/models/session';
 
 import { useUserStore } from 'src/stores/users';
@@ -13,9 +13,10 @@ interface CourseInfo {
 	course_id: number;
 }
 
+// SessionState should contain a de facto User, already parsed
 export interface SessionState {
 	logged_in: boolean;
-	user: ParseableUser;
+	user: User;
 	course: CourseInfo;
 }
 
@@ -24,14 +25,15 @@ export const useSessionStore = defineStore('session', {
 	persist: true,
 	state: (): SessionState => ({
 		logged_in: false,
-		user: {},
+		user: new User({ username: 'logged_out' }),
 		course: {
 			course_id: 0,
 			course_name: ''
 		}
 	}),
 	getters: {
-		full_name: (state): string => `${state.user?.first_name ?? ''} ${state.user?.last_name ?? ''} `
+		full_name: (state): string => `${state.user?.first_name ?? ''} ${state.user?.last_name ?? ''} `,
+		getUser: (state): User => new User(state.user)
 	},
 	actions: {
 		updateSessionInfo(session_info: SessionInfo): void {
@@ -40,7 +42,7 @@ export const useSessionStore = defineStore('session', {
 				this.user = session_info.user;
 				// state.user.is_admin = _session_info.user.is_admin;
 			} else {
-				this.user = {};
+				this.user = new User({ username: 'logged_out' });
 			}
 		},
 		setCourse(course: CourseInfo): void {
@@ -48,7 +50,7 @@ export const useSessionStore = defineStore('session', {
 		},
 		logout() {
 			this.logged_in = false;
-			this.user = {};
+			this.user = new User({ username: 'logged_out' });
 			this.course =  { course_id: 0, course_name: '' };
 			useProblemSetStore().clearAll();
 			useSettingsStore().clearAll();
