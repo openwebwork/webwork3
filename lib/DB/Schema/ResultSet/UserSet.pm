@@ -83,6 +83,57 @@ sub getAllUserSets ($self, %args) {
 	return @all_user_sets;
 }
 
+=head2 getAllUserSetsForCourse
+
+get all UserSets for a single course
+
+=head3 arguments
+
+=over
+
+=item * C<info>: hash of either C<course_id> or C<course_name>
+
+=item * C<as_result_set>: boolean
+
+If C<as_result_set> is true, then the user sets are returned as a C<ResultSet>.
+See C<DBIx::Class::ResultSet> for more information
+
+=item * C<merged>: boolean
+
+This only pertains to if C<as_result_set> is false.
+
+If C<merged> is false, the result is an array of hashrefs of UserSet fields.
+
+If C<merged> is true, the result is an array of hashrefs of Merged User Sets.
+That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
+
+=back
+
+=cut
+
+sub getAllUserSetsForCourse ($self, %args) {
+	my $course    = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+	my @user_sets = $self->search(
+		{
+			'courses.course_id' => $course->course_id
+		},
+		{
+			join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
+		}
+	);
+
+	return @user_sets if $args{as_result_set};
+
+	my @all_user_sets = ();
+	for my $user_set (@user_sets) {
+		my $params = $args{merged} ? _mergeUserSet($user_set) : _getUserSet($user_set);
+		delete $params->{type};
+		push(@all_user_sets, $params);
+	}
+
+	return @all_user_sets;
+}
+
 =head3 getUserSetForSet
 
 This fetches a collection of user sets for a given Set; that is this is collection
@@ -310,10 +361,7 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 
 =cut
 
-use Data::Dumper;
-
 sub addUserSet ($self, %args) {
-	print Dumper \%args;
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{params}, as_result_set => 1);
 	my $course_user = $self->rs("User")->getCourseUser(info => $args{params}, as_result_set => 1);
 

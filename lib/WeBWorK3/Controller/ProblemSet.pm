@@ -15,7 +15,7 @@ sub getAllProblemSets ($self) {
 
 sub getProblemSets ($self) {
 	my @problem_sets =
-		$self->schema->resultset("ProblemSet")->getProblemSets(info => { course_id => int($self->param("course_id")) });
+		$self->schema->resultset("ProblemSet")->getProblemSets(info => { course_id => int($self->param('course_id')) });
 	# convert booleans
 	for my $set (@problem_sets) {
 		$set->{set_visible} = $set->{set_visible} ? true : false;
@@ -27,8 +27,8 @@ sub getProblemSets ($self) {
 sub getProblemSet ($self) {
 	my $problem_set = $self->schema->resultset("ProblemSet")->getProblemSet(
 		info => {
-			course_id => int($self->param("course_id")),
-			set_id    => int($self->param("set_id"))
+			course_id => int($self->param('course_id')),
+			set_id    => int($self->param('set_id'))
 		}
 	);
 	$self->render(json => $problem_set);
@@ -40,8 +40,8 @@ sub getProblemSet ($self) {
 sub updateProblemSet ($self) {
 	my $problem_set = $self->schema->resultset("ProblemSet")->updateProblemSet(
 		info => {
-			course_id => int($self->param("course_id")),
-			set_id    => int($self->param("set_id"))
+			course_id => int($self->param('course_id')),
+			set_id    => int($self->param('set_id'))
 		},
 		params => $self->req->json
 	);
@@ -53,7 +53,7 @@ sub updateProblemSet ($self) {
 sub addProblemSet ($self) {
 	my $problem_set = $self->schema->resultset("ProblemSet")->addProblemSet(
 		params => {
-			course_id => int($self->param("course_id")),
+			course_id => int($self->param('course_id')),
 			%{ $self->req->json }
 		}
 	);
@@ -64,27 +64,39 @@ sub addProblemSet ($self) {
 sub deleteProblemSet ($self) {
 	my $problem_set = $self->schema->resultset("ProblemSet")->deleteProblemSet(
 		info => {
-			course_id => int($self->param("course_id")),
-			set_id    => int($self->param("set_id"))
+			course_id => int($self->param('course_id')),
+			set_id    => int($self->param('set_id'))
 		}
 	);
 	$self->render(json => $problem_set);
 	return;
 }
 
-# This subroutine gets a collection of UserSets.
-# If a set_id is given, it is a collection of user sets related to a set.
-# if a user_id is given, it is a collection of user sets related to a user.
+# CRUD for user sets
+
+# Get all user sets for a single course.
+
+sub getAllUserSets ($self) {
+	my @user_sets = $self->schema->resultset('UserSet')->getAllUserSetsForCourse(
+		info => {
+			course_id => int($self->param('course_id'))
+		}
+	);
+	$self->render(json => \@user_sets);
+	return;
+}
+
+# Get all user sets in a course for a single user or single set.
 
 sub getUserSets ($self) {
 	my @user_sets;
-	my $info = { course_id => int($self->param("course_id")) };
-	if ($self->param("set_id")) {
-		$info->{set_id} = int($self->param("set_id"));
-		@user_sets = $self->schema->resultset("UserSet")->getUserSetsForSet(info => $info);
-	} elsif ($self->param("user_id")) {
-		$info->{user_id} = int($self->param("user_id"));
-		@user_sets = $self->schema->resultset("UserSet")->getUserSetsForUser(info => $info);
+	my $info = { course_id => int($self->param('course_id')) };
+	if ($self->param('set_id')) {
+		$info->{set_id} = int($self->param('set_id'));
+		@user_sets = $self->schema->resultset('UserSet')->getUserSetsForSet(info => $info);
+	} elsif ($self->param('user_id')) {
+		$info->{user_id} = int($self->param('user_id'));
+		@user_sets = $self->schema->resultset('UserSet')->getUserSetsForUser(info => $info);
 	}
 	# Remove the course_name for each of the user sets.
 	for my $user_set (@user_sets) {
@@ -95,10 +107,10 @@ sub getUserSets ($self) {
 }
 
 sub addUserSet ($self) {
-	my $new_user_set = $self->schema->resultset("UserSet")->addUserSet(
+	my $new_user_set = $self->schema->resultset('UserSet')->addUserSet(
 		params => {
-			course_id => int($self->param("course_id")),
-			set_id    => int($self->param("set_id")),
+			course_id => int($self->param('course_id')),
+			set_id    => int($self->param('set_id')),
 			%{ $self->req->json }
 		}
 	);
@@ -107,10 +119,10 @@ sub addUserSet ($self) {
 }
 
 sub updateUserSet ($self) {
-	my $updated_user_set = $self->schema->resultset("UserSet")->updateUserSet(
+	my $updated_user_set = $self->schema->resultset('UserSet')->updateUserSet(
 		info => {
-			course_id      => int($self->param("course_id")),
-			set_id         => int($self->param("set_id")),
+			course_id      => int($self->param('course_id')),
+			set_id         => int($self->param('set_id')),
 			course_user_id => int($self->param("course_user_id"))
 		},
 		params => $self->req->json
@@ -120,10 +132,10 @@ sub updateUserSet ($self) {
 }
 
 sub deleteUserSet ($self) {
-	my $updated_user_set = $self->schema->resultset("UserSet")->deleteUserSet(
+	my $updated_user_set = $self->schema->resultset('UserSet')->deleteUserSet(
 		info => {
-			course_id      => int($self->param("course_id")),
-			set_id         => int($self->param("set_id")),
+			course_id      => int($self->param('course_id')),
+			set_id         => int($self->param('set_id')),
 			course_user_id => int($self->param("course_user_id"))
 		},
 		params => $self->req->json

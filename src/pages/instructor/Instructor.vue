@@ -40,8 +40,8 @@ export default defineComponent({
 					logger.warn(`Can't find ${course_id} in ${users.user_courses.map((c) => c.course_id).join(', ')}`);
 				}
 			});
-
-		await users.fetchMergedUsers(course_id);
+		await users.fetchGlobalCourseUsers(course_id);
+		await users.fetchCourseUsers(course_id);
 		await problem_sets.fetchProblemSets(course_id);
 		await settings.fetchDefaultSettings()
 			.then(() => settings.fetchCourseSettings(course_id))

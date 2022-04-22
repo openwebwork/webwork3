@@ -38,7 +38,7 @@
 		</div>
 	</header>
 	<div v-if="problems.length > 0" class="col">
-		<div v-for="problem in problems" :key="problem.problem_number">
+		<div v-for="problem in (problems as LibraryProblem[])" :key="problem.problem_number">
 			<problem
 				:problem="problem"
 				class="q-mb-md"
@@ -48,146 +48,128 @@
 	</div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 
-import { defineComponent, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 
 import { useAppStateStore } from 'src/stores/app_state';
-import { useProblemSetStore } from 'src/stores/problem_sets';
 
 import { LibraryProblem } from 'src/common/models/problems';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import Problem from 'components/common/Problem.vue';
-import { fetchDisciplines, fetchChapters, fetchSubjects, fetchSections, fetchLibraryProblems, LibraryCategory }
-	from 'src/common/api-requests/library';
+import { fetchDisciplines, fetchChapters, fetchSubjects, fetchSections, fetchLibraryProblems,
+	LibraryCategory } from 'src/common/api-requests/library';
 import { logger } from 'boot/logger';
+import { useSetProblemStore } from 'src/stores/set_problems';
 
-export default defineComponent({
-	name: 'LibPanelOpl',
-	components: {
-		Problem
-	},
-	setup() {
-		logger.debug('in setup()');
-		const $q = useQuasar();
-		const app_state = useAppStateStore();
-		const problem_sets = useProblemSetStore();
+logger.debug('in setup()');
+const $q = useQuasar();
+const app_state = useAppStateStore();
+const set_problem_store = useSetProblemStore();
 
-		const discipline = ref<LibraryCategory | null>(null); // start with the select field to be empty.
-		const disciplines = ref<Array<LibraryCategory>>([]);
-		const subject = ref<LibraryCategory | null>(null);
-		const subjects = ref<Array<LibraryCategory>>([]);
-		const chapter = ref<LibraryCategory | null>(null);
-		const chapters = ref<Array<LibraryCategory>>([]);
-		const section = ref<LibraryCategory | null>(null);
-		const sections = ref<Array<LibraryCategory>>([]);
-		const problems = ref<Array<LibraryProblem>>([]);
+const discipline = ref<LibraryCategory | null>(null); // start with the select field to be empty.
+const disciplines = ref<Array<LibraryCategory>>([]);
+const subject = ref<LibraryCategory | null>(null);
+const subjects = ref<Array<LibraryCategory>>([]);
+const chapter = ref<LibraryCategory | null>(null);
+const chapters = ref<Array<LibraryCategory>>([]);
+const section = ref<LibraryCategory | null>(null);
+const sections = ref<Array<LibraryCategory>>([]);
+const problems = ref<Array<LibraryProblem>>([]);
 
-		void fetchDisciplines().then(val => {
-			disciplines.value = val;
+void fetchDisciplines().then(val => {
+	disciplines.value = val;
+});
+
+watch([discipline], async () => {
+	subjects.value = [];
+	chapters.value = [];
+	sections.value = [];
+	subject.value = chapter.value = section.value = null;
+
+	if (discipline.value) {
+		await fetchSubjects({ disc_id: discipline.value.id }).then(val => {
+			subjects.value = val;
 		});
-
-		watch([discipline], async () => {
-			subjects.value = [];
-			chapters.value = [];
-			sections.value = [];
-			subject.value = chapter.value = section.value = null;
-
-			if (discipline.value) {
-				await fetchSubjects({ disc_id: discipline.value.id }).then(val => {
-					subjects.value = val;
-				});
-			}
-		});
-
-		watch([subject], async () => {
-			chapters.value = [];
-			sections.value = [];
-
-			if (discipline.value && subject.value) {
-				await fetchChapters({
-					disc_id: discipline.value.id,
-					subj_id: subject.value.id
-				}).then(val => {
-					chapters.value = val;
-					section.value = null;
-				});
-			}
-		});
-
-		watch([chapter], async () => {
-			sections.value = [];
-
-			if (discipline.value && subject.value && chapter.value) {
-				await fetchSections({
-					disc_id: discipline.value.id,
-					subj_id: subject.value.id,
-					chap_id: chapter.value.id
-				}).then(val => {
-					sections.value = val;
-				});
-			}
-		});
-
-		return {
-			discipline,
-			disciplines,
-			subject,
-			subjects,
-			chapter,
-			chapters,
-			section,
-			sections,
-			problems,
-			loadProblems: async () => {
-				logger.debug('[LibPanelOPL/loadProblems] dispatching request to store');
-				if (discipline.value && subject.value && chapter.value && section.value) {
-					await fetchLibraryProblems({
-						disc_id: discipline.value.id,
-						subj_id: subject.value.id,
-						chap_id: chapter.value.id,
-						sect_id: section.value.id
-					}).then(val => {
-						problems.value = val;
-						for (const [index, problem] of problems.value.entries()) {
-							// Problems in the library do not have a problem number, so assign one now.  These only
-							// need to be distinct for each problem to prevent id clashes, and have no other meaning, so
-							// just use the order of display.
-							problem.problem_number = index;
-							// Set the answerPrefix as well:
-							problem.render_params.answerPrefix = `LIBRARY${index}_`;
-						}
-					});
-				}
-			},
-			addProblem: async (prob: LibraryProblem) => {
-				const set_id = app_state.library_state.target_set_id;
-				if (set_id == 0) {
-					$q.dialog({
-						message: 'You must select a target problem set',
-						persistent: true
-					});
-				} else {
-					try {
-						await problem_sets.addSetProblem({
-							set_id,
-							problem: prob
-						});
-						$q.notify({
-							message: 'A problem was added to the target set.',
-							color: 'green'
-						});
-
-					} catch (err) {
-						const error = err as ResponseError;
-						$q.notify({ message: error.message, color: 'red' });
-					}
-					logger.debug(`[LibPanelOPL/addProblem] set_id: ${set_id};` +
-						` added: ${JSON.stringify(prob.toObject())}`);
-				}
-			}
-		};
 	}
 });
+
+watch([subject], async () => {
+	chapters.value = [];
+	sections.value = [];
+
+	if (discipline.value && subject.value) {
+		await fetchChapters({
+			disc_id: discipline.value.id,
+			subj_id: subject.value.id
+		}).then(val => {
+			chapters.value = val;
+			section.value = null;
+		});
+	}
+});
+
+watch([chapter], async () => {
+	sections.value = [];
+
+	if (discipline.value && subject.value && chapter.value) {
+		await fetchSections({
+			disc_id: discipline.value.id,
+			subj_id: subject.value.id,
+			chap_id: chapter.value.id
+		}).then(val => {
+			sections.value = val;
+		});
+	}
+});
+
+const loadProblems = async () => {
+	logger.debug('[LibPanelOPL/loadProblems] dispatching request to store');
+	if (discipline.value && subject.value && chapter.value && section.value) {
+		await fetchLibraryProblems({
+			disc_id: discipline.value.id,
+			subj_id: subject.value.id,
+			chap_id: chapter.value.id,
+			sect_id: section.value.id
+		}).then(val => {
+			problems.value = val;
+			for (const [index, problem] of problems.value.entries()) {
+				// Problems in the library do not have a problem number, so assign one now.  These only
+				// need to be distinct for each problem to prevent id clashes, and have no other meaning, so
+				// just use the order of display.
+				problem.problem_number = index;
+				// Set the answerPrefix as well:
+				problem.render_params.answerPrefix = `LIBRARY${index}_`;
+			}
+		});
+	}
+};
+
+const addProblem = async (prob: LibraryProblem) => {
+	const set_id = app_state.library_state.target_set_id;
+	if (set_id == 0) {
+		$q.dialog({
+			message: 'You must select a target problem set',
+			persistent: true
+		});
+	} else {
+		try {
+			await set_problem_store.addSetProblem({
+				set_id,
+				problem: prob
+			});
+			$q.notify({
+				message: 'A problem was added to the target set.',
+				color: 'green'
+			});
+
+		} catch (err) {
+			const error = err as ResponseError;
+			$q.notify({ message: error.message, color: 'red' });
+		}
+		logger.debug(`[LibPanelOPL/addProblem] set_id: ${set_id};` +
+						` added: ${JSON.stringify(prob.toObject())}`);
+	}
+};
 </script>

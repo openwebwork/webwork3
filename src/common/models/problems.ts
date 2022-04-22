@@ -71,9 +71,9 @@ export interface ParseableLibraryProblem {
 }
 
 class ProblemLocationParams extends Model {
-	private _library_id = 0;
-	private _file_path = '';
-	private _problem_pool_id = 0;
+	private _library_id?: number;
+	private _file_path?: string;
+	private _problem_pool_id?: number;
 
 	get all_field_names(): string[] {
 		return ['library_id', 'file_path', 'problem_pool_id'];
@@ -94,14 +94,20 @@ class ProblemLocationParams extends Model {
 
 	}
 
-	public get library_id() : number { return this._library_id; }
-	public set library_id(val: string | number) { this._library_id = parseNonNegInt(val);}
+	public get library_id() : number | undefined { return this._library_id; }
+	public set library_id(val: string | number | undefined)
+	{
+		if (val != undefined) this._library_id = parseNonNegInt(val);
+	}
 
-	public get file_path() : string { return this._file_path;}
-	public set file_path(value: string) { this._file_path = value;}
+	public get file_path() : string | undefined { return this._file_path;}
+	public set file_path(value: string | undefined) { this._file_path = value;}
 
-	public get problem_pool_id() : number { return this._problem_pool_id; }
-	public set problem_pool_id(val: string | number) { this._problem_pool_id = parseNonNegInt(val);}
+	public get problem_pool_id() : number | undefined { return this._problem_pool_id; }
+	public set problem_pool_id(val: string | number | undefined)
+	{
+		if (val != undefined) this._problem_pool_id = parseNonNegInt(val);
+	}
 
 }
 
@@ -178,11 +184,11 @@ export interface ParseableSetProblemParams {
  * about the location of the problem and the weight of the problem.
  */
 
-class SetProblemParams extends Model {
+export class SetProblemParams extends Model {
 	private _weight = 1;
-	private _library_id = 0;
-	private _file_path = '';
-	private _problem_pool_id = 0;
+	private _library_id?: number;
+	private _file_path?: string;
+	private _problem_pool_id?: number;
 
 	get all_field_names(): string[] {
 		return ['weight', 'library_id', 'file_path', 'problem_pool_id'];
@@ -206,14 +212,18 @@ class SetProblemParams extends Model {
 	public get weight(): number { return this._weight; }
 	public set weight(value: number | string) { this._weight = parseNonNegDecimal(value);}
 
-	public get library_id() : number { return this._library_id; }
-	public set library_id(val: string | number) { this._library_id = parseNonNegInt(val);}
+	public get library_id() : number | undefined { return this._library_id; }
+	public set library_id(val: string | number | undefined) {
+		if (val != undefined) this._library_id = parseNonNegInt(val);
+	}
 
-	public get file_path() : string { return this._file_path;}
-	public set file_path(value: string) { this._file_path = value;}
+	public get file_path() : string | undefined { return this._file_path;}
+	public set file_path(value: string | undefined) { this._file_path = value;}
 
-	public get problem_pool_id() : number { return this._problem_pool_id; }
-	public set problem_pool_id(val: string | number) { this._problem_pool_id = parseNonNegInt(val);}
+	public get problem_pool_id() : number | undefined { return this._problem_pool_id; }
+	public set problem_pool_id(val: string | number | undefined) {
+		if (val != undefined) this._problem_pool_id = parseNonNegInt(val);
+	}
 
 }
 
@@ -356,7 +366,7 @@ export interface ParseableUserProblem {
 	problem_params?: UserProblemParams;
 	problem_id?: number | string;
 	user_problem_id?: number | string;
-	user_id?: number | string;
+	user_set_id?: number | string;
 	seed?: number | string;
 	status?: number | string;
 	problem_version?: number | string;
@@ -369,7 +379,7 @@ export class UserProblem extends Problem {
 	private _problem_params = new UserProblemParams();
 	private _user_problem_id = 0;
 	private _problem_id = 0;
-	private _user_id = 0;
+	private _user_set_id = 0;
 	private _seed = 0;
 	private _status = 0;
 	private _problem_version = 1;
@@ -390,14 +400,14 @@ export class UserProblem extends Problem {
 
 	set(params: ParseableUserProblem) {
 		if (params.problem_id != undefined) this.problem_id = params.problem_id;
-		if (params.user_id != undefined) this.user_id = params.user_id;
+		if (params.user_set_id != undefined) this.user_set_id = params.user_set_id;
 		if (params.user_problem_id != undefined) this.user_problem_id = params.user_problem_id;
 		if (params.seed != undefined) this.seed = params.seed;
 		if (params.status != undefined) this.status = params.status;
 		if (params.problem_version != undefined) this.problem_version = params.problem_version;
 	}
 
-	static ALL_FIELDS = ['user_problem_id', 'problem_id', 'user_id', 'seed', 'status',
+	static ALL_FIELDS = ['user_problem_id', 'problem_id', 'user_set_id', 'seed', 'status',
 		'problem_version', 'render_params', 'problem_params'];
 
 	get problem_params() { return this._problem_params; }
@@ -414,8 +424,8 @@ export class UserProblem extends Problem {
 	public get user_problem_id() : number { return this._user_problem_id; }
 	public set user_problem_id(val: string | number) { this._user_problem_id = parseNonNegInt(val);}
 
-	public get user_id() : number { return this._user_id; }
-	public set user_id(val: string | number) { this._user_id = parseNonNegInt(val);}
+	public get user_set_id() : number { return this._user_set_id; }
+	public set user_set_id(val: string | number) { this._user_set_id = parseNonNegInt(val);}
 
 	public get seed() : number { return this._seed; }
 	public set seed(val: string | number) { this._seed = parseNonNegInt(val);}
@@ -437,6 +447,7 @@ export class UserProblem extends Problem {
 	requestParams(): ParseableRenderParams {
 		const p = super.requestParams();
 		p.sourceFilePath = this.problem_params.file_path ?? '';
+		p.problemSeed = this.seed;
 		return p;
 	}
 }
@@ -450,6 +461,7 @@ export interface ParseableMergedUserProblem {
 	problem_id?: number | string;
 	user_problem_id?: number | string;
 	user_id?: number | string;
+	user_set_id?: number | string;
 	set_id?: number | string;
 	seed?: number | string;
 	status?: number | string;
@@ -468,6 +480,7 @@ export class MergedUserProblem extends Problem {
 	private _user_problem_id = 0;
 	private _problem_id = 0;
 	private _user_id = 0;
+	private _user_set_id = 0;
 	private _set_id = 0;
 	private _seed = 0;
 	private _status = 0;
@@ -496,6 +509,7 @@ export class MergedUserProblem extends Problem {
 		if (params.problem_id != undefined) this.problem_id = params.problem_id;
 		if (params.user_id != undefined) this.user_id = params.user_id;
 		if (params.set_id != undefined) this.set_id = params.set_id;
+		if (params.user_set_id != undefined) this.user_set_id = params.user_set_id;
 		if (params.user_problem_id != undefined) this.user_problem_id = params.user_problem_id;
 		if (params.seed != undefined) this.seed = params.seed;
 		if (params.status != undefined) this.status = params.status;
@@ -511,7 +525,7 @@ export class MergedUserProblem extends Problem {
 	get set_problem_params() { return this._set_problem_params; }
 	get user_problem_params() { return this._user_problem_params; }
 
-	static ALL_FIELDS = ['user_problem_id', 'problem_id', 'user_id', 'seed', 'status',
+	static ALL_FIELDS = ['user_problem_id', 'problem_id', 'user_id', 'user_set_id', 'seed', 'status',
 		'problem_number', 'username', 'set_name', 'problem_version', 'set_problem_params',
 		'user_problem_params', 'render_params'];
 
@@ -529,6 +543,9 @@ export class MergedUserProblem extends Problem {
 
 	public get user_id() : number { return this._user_id; }
 	public set user_id(val: string | number) { this._user_id = parseNonNegInt(val);}
+
+	public get user_set_id() : number { return this._user_set_id; }
+	public set user_set_id(val: string | number) { this._user_set_id = parseNonNegInt(val);}
 
 	public get set_id() : number { return this._set_id; }
 	public set set_id(val: string | number) { this._set_id = parseNonNegInt(val);}

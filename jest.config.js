@@ -7,6 +7,7 @@ const { compilerOptions } = requireJSON5('./node_modules/@quasar/app/tsconfig-pr
 module.exports = {
 	preset: 'ts-jest',
 	testEnvironment: 'node',
+	testURL: 'http://localhost:3000/webwork3/api',
 	globals: {
 		'ts-jest': {
 			'tsconfig': 'tsconfig.json',
@@ -15,4 +16,5 @@ module.exports = {
 	},
 	moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/' }),
 	testRegex: '(/tests/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',
+	verbose: true
 };
