@@ -73,7 +73,6 @@ export const useSettingsStore = defineStore('settings', {
 			return updated_setting;
 		},
 		clearAll() {
-			console.log('in clearAll');
 			this.course_settings = [];
 			this.default_settings = [];
 		}

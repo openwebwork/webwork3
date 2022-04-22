@@ -413,10 +413,7 @@ export default defineComponent({
 				} else {
 					return false;
 				}
-			}),
-			HomeworkSetDates,
-			QuizDates,
-			ReviewSetDates
+			})
 		};
 	},
 	created() {
