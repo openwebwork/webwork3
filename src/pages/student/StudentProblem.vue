@@ -2,6 +2,7 @@
 	<problem v-if="user_problem"
 		:problem="user_problem"
 	/>
+	<div> {{ user_problem }} </div>
 </template>
 
 <script lang="ts">

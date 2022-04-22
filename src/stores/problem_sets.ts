@@ -15,12 +15,16 @@ import { ResponseError } from 'src/common/api-requests/interfaces';
 import { MergedUser } from 'src/common/models/users';
 
 /**
- * This is an object to retrieve set info.
+ * This is an type to retrieve set info.
  */
 type SetInfo =  { set_name: string; set_id?: never } | { set_id: number; set_name?: never};
 
+type UserInfo =
+	{ username: string; user_id?: never } |
+	{ user_id: number; username?: never };
+
 /**
- * This is an object to retrieve user set info.  This ensure either a user_set_id is passed
+ * This is an type to retrieve user set info.  This ensure either a user_set_id is passed
  * in or set info and User Info, but not too much.
  */
 type UserSetInfo =
@@ -42,8 +46,11 @@ export const useProblemSetStore = defineStore('problem_sets', {
 	getters: {
 		// Returns all user sets merged with a user and a problem set.
 		merged_user_sets: (state) => state.user_sets.map(user_set => {
+			console.log(user_set);
 			const problem_set = state.problem_sets.find(set => set.set_id == user_set.set_id);
+			console.log(problem_set);
 			const course_user = useUserStore().merged_users.find(u => u.course_user_id === user_set.course_user_id);
+			console.log(course_user);
 			return mergeUserSet(problem_set as ProblemSet, user_set as UserSet, course_user as MergedUser)
 				?? new MergedUserSet();
 		}),
@@ -191,6 +198,24 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			const response = await api.get(`courses/${params.course_id}/sets/${params.set_id}/users`);
 			const user_sets_to_parse = response.data as ParseableUserSet[];
 			this.user_sets = user_sets_to_parse.map(user_set => parseUserSet(user_set));
+		},
+		/**
+		 * fetches all user sets for a given user in the current course (from the session)
+		 * @param {UserInfo} params - either a username or user_id
+		 * @returns an array of user sets for a given user.
+		 */
+		async fetchUserSetsForUser(params: UserInfo) {
+			const course_id = useSessionStore().course.course_id;
+			const user_store = useUserStore();
+			let user_id: number;
+			if (params.username) {
+				const user = user_store.users.find(u => u.username === params.username);
+				user_id = user?.user_id ?? 0;
+			} else {
+				user_id = params.user_id ?? 0;
+			}
+			const response = await api.get(`courses/${course_id}/users/${user_id}/sets`);
+			this.user_sets = (response.data as ParseableUserSet[]).map(user_set => parseUserSet(user_set));
 		},
 		/**
 		 * adds a User Set to the store and the database.

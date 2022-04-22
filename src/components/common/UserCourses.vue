@@ -8,7 +8,7 @@
 		<p>Select a course below:</p>
 	</div>
 	<div class="q-pa-md row items-start q-gutter-md">
-		<q-card>
+		<q-card v-if="student_courses.length > 0">
 			<q-card-section>
 				<div class="text-h4">Courses as a Student</div>
 			</q-card-section>
@@ -18,7 +18,7 @@
 						<template v-for="course in student_courses" :key="course.course_id">
 							<q-item
 								:to="{
-									name: 'student',
+									name: 'StudentDashboard',
 									params: { course_id: course.course_id, course_name: course.course_name }
 									}"
 								>
@@ -31,7 +31,7 @@
 				</q-card-section>
 			</div>
 		</q-card>
-		<q-card>
+		<q-card v-if="instructor_courses.length > 0">
 			<q-card-section>
 				<div class="text-h4">Courses as an Instructor</div>
 			</q-card-section>

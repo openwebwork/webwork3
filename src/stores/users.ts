@@ -7,6 +7,7 @@ import { User, MergedUser, CourseUser } from 'src/common/models/users';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import { UserCourse } from 'src/common/models/courses';
 import { UserRole } from 'src/common/models/parsers';
+import { useSessionStore } from './session';
 
 export interface UserState {
 	users: Array<User>;
@@ -166,6 +167,18 @@ export const useUserStore = defineStore('user', {
 				logger.error(response.data);
 				throw response.data as ResponseError;
 			}
+		},
+		/**
+		 * This addes the session user to the users field in the store.  This is
+		 * needed for other stores and merged models.
+		 */
+		async setSessionUser() {
+			const session_store = useSessionStore();
+			this.users = [ session_store.user.clone()];
+			// fetch the course user information for this use
+			const response = await api.get(`courses/${session_store.course.course_id}/users/${
+				session_store.user.user_id}`);
+			this.course_users = [ new CourseUser(response.data as ParseableCourseUser)];
 		},
 		// CourseUser actions
 		/**
