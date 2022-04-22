@@ -1,36 +1,27 @@
 <template>
-	<div style="max-width: 300px">
-		<q-input filled v-model="date_string" :rules="rules">
-			<template v-slot:prepend>
-				<q-icon name="event" class="cursor-pointer">
-					<q-popup-proxy transition-show="scale" transition-hide="scale">
-						<q-date v-model="date_string" mask="YYYY-MM-DD HH:mm">
-							<div class="row items-center justify-end">
-								<q-btn v-close-popup label="Close" color="primary" flat />
-							</div>
-						</q-date>
-					</q-popup-proxy>
-				</q-icon>
+	<div class="row q-pa-md">
+		<q-field filled v-model="model_value" :error="!is_valid" :error-message="error_message">
+			<template v-slot:control>
+				<div class="self-center full-width no-outline" tabindex="0">{{model_string}}</div>
 			</template>
-
 			<template v-slot:append>
-				<q-icon name="access_time" class="cursor-pointer">
-					<q-popup-proxy transition-show="scale" transition-hide="scale">
-						<q-time v-model="date_string" mask="YYYY-MM-DD HH:mm" format24h>
-							<div class="row items-center justify-end">
-								<q-btn v-close-popup label="Close" color="primary" flat />
-							</div>
-						</q-time>
+				<q-icon name="today" color="primary" size="sm">
+					<q-popup-proxy transition-show="scale" transition-hide="scale" @hide="updateDateTime">
+						<div class="row items-center">
+							<q-date v-model="model_string" mask="YYYY-MM-DD HH:mm" />
+							<q-time v-model="model_string" mask="YYYY-MM-DD HH:mm" format24h/>
+						</div>
 					</q-popup-proxy>
 				</q-icon>
 			</template>
-		</q-input>
+		</q-field>
 	</div>
 </template>
 
 <script lang="ts">
-import { defineComponent, watch, ref, computed } from 'vue';
+import { defineComponent, ref, computed } from 'vue';
 import { date } from 'quasar';
+import { logger } from 'src/boot/logger';
 
 export default defineComponent({
 	name: 'DateTimeInput',
@@ -39,25 +30,29 @@ export default defineComponent({
 			type: Number,
 			required: true
 		},
-		validation: {
-			type: Array,
+		errorMessage: {
+			type: String,
 			required: true
 		}
 	},
 	emits: ['update:modelValue'],
 	setup (props, { emit }) {
-		const date_string = ref(date.formatDate((props.modelValue || Date.now()) * 1000, 'YYYY-MM-DD HH:mm'));
+		const model_value = computed(() => props.modelValue);
+		const model_string = ref<string>(date.formatDate((props.modelValue || Date.now()) * 1000, 'YYYY-MM-DD HH:mm'));
+		const error_message = computed(() => props.errorMessage);
+		const is_valid = computed(() => error_message.value === '');
 
-		watch(
-			() => date_string.value,
-			(val) => {
-				const d = date.extractDate(val, 'YYYY-MM-DD HH:mm');
-				emit('update:modelValue', d.getTime() / 1000);
-			}
-		);
+		const updateDateTime = () => {
+			logger.debug('[DateTimeInput] model string has changed, telling parent.');
+			emit('update:modelValue', date.extractDate(model_string.value, 'YYYY-MM-DD HH:mm').getTime() / 1000);
+		};
+
 		return {
-			date_string,
-			rules: computed(() => props.validation as Array<(val: string)=>boolean>)
+			model_value,
+			model_string,
+			is_valid,
+			error_message,
+			updateDateTime
 		};
 	}
 });

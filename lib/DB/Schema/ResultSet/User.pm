@@ -21,7 +21,11 @@ use Clone qw/clone/;
 use DB::Utils qw/getCourseInfo getUserInfo removeLoginParams/;
 
 use DB::Exception;
-use Exception::Class ('DB::Exception::UserNotFound', 'DB::Exception::CourseExists', "DB::Exception::UserNotInCourse");
+use Exception::Class (
+	'DB::Exception::UserNotFound',
+	'DB::Exception::CourseAlreadyExists',
+	"DB::Exception::UserNotInCourse"
+);
 
 =head1 getAllGlobalUsers
 
@@ -199,6 +203,34 @@ sub updateGlobalUser ($self, %args) {
 	return removeLoginParams({ $updated_user->get_inflated_columns });
 }
 
+=head1 getGlobalCourseUsers
+
+This gets a list of all global users in a given course
+
+=head3 input
+
+=item * C<info>, a hashref of the form C<{course_id => 1}> or C<{course_name => "coursename"}>.
+
+=head3 output
+
+An array of users as a C<DBIx::Class::ResultSet::User> object.
+
+=cut
+
+sub getGlobalCourseUsers ($self, %args) {
+	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+	my @users  = $self->search(
+		{
+			'course_users.course_id' => $course->course_id
+		},
+		{
+			prefetch => qw/course_users/
+		}
+	);
+	return \@users if $args{as_result_set};
+	return map { removeLoginParams({ $_->get_inflated_columns }); } @users;
+}
+
 # This clearly needs to be fixed to include encryption of the password.
 # We need to decide on what encryption algorithm.
 
@@ -295,16 +327,20 @@ An hashref of the user or merged user or a C<DBIx::Class::ResultSet>
 =cut
 
 sub getCourseUser ($self, %args) {
+	my $course_user;
 
-	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
-	my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
-	my @keys   = keys %{ $args{info} };
-
-	my $course_user = $self->rs("CourseUser")->find({ course_id => $course->course_id, user_id => $user->user_id });
-
-	DB::Exception::UserNotInCourse->throw(
-		message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}")
-		unless defined $course_user || $args{skip_throw};
+	if (defined($args{info}->{course_user_id})) {
+		$course_user = $self->rs("CourseUser")->find({
+			course_user_id => $args{info}->{course_user_id}
+		});
+	} else {
+		my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+		my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
+		$course_user = $self->rs("CourseUser")->find({ course_id => $course->course_id, user_id => $user->user_id });
+		DB::Exception::UserNotInCourse->throw(
+			message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}")
+			unless defined $course_user || $args{skip_throw};
+	}
 
 	return $course_user if $args{as_result_set};
 

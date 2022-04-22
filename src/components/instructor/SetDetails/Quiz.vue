@@ -2,95 +2,120 @@
 	<table id="settable">
 		<tr>
 			<td class="header">Set Name</td>
-			<td><q-input v-model="set.set_name" /></td>
+			<td><input-with-blur v-model="quiz.set_name" /></td>
 		</tr>
 		<tr>
 			<td class="header">Set Type</td>
-			<td><q-select :options="set_options" v-model="set.set_type"
-				emit-value map-options/></td>
+			<td>
+				<q-select
+					map-options
+					:options="set_options"
+					v-model="set_type"
+					@update:model-value="$emit('changeSetType', set_type)"
+				/>
+			</td>
 		</tr>
 		<tr>
 			<td class="header">Visible</td>
-			<td><q-toggle v-model="set.set_visible" /></td>
+			<td><q-toggle v-model="quiz.set_visible" /></td>
 		</tr>
-		<quiz-dates v-if="set"
-			:dates="set.set_dates"
+		<quiz-dates-input v-if="set"
+			:dates="quiz.set_dates"
+			@update-dates="updateDates"
 			/>
 		<tr>
 			<td class="header">Timed</td>
-			<td><q-toggle v-model="set.set_params.timed" /></td>
+			<td><q-toggle v-model="quiz.set_params.timed" /></td>
 		</tr>
-		<tr v-if="set.set_params.timed">
-			<td class="header">Duration of Quiz</td>
-			<td><q-input v-model="set.set_params.quiz_duration" :rules="quizDuration" debounce="500"/> </td>
+		<tr v-if="quiz.set_params.timed">
+			<td class="header">Duration of Quiz (HH:MM:SS)</td>
+			<td><q-input v-model="quiz_duration" mask="##:##:##" debounce="1500"/> </td>
 		</tr>
 	</table>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, toRefs } from 'vue';
-import { useQuasar } from 'quasar';
-import { cloneDeep, pick } from 'lodash-es';
+import { defineComponent, ref, watch } from 'vue';
 
-import QuizDates from './QuizDates.vue';
-import { Quiz } from 'src/store/models/problem_sets';
-import { useStore } from 'src/store';
+import QuizDatesInput from './QuizDates.vue';
+import InputWithBlur from 'src/components/common/InputWithBlur.vue';
+import { Quiz, QuizDates } from 'src/common/models/problem_sets';
+import { problem_set_type_options } from 'src/common/views';
+import { logger } from 'src/boot/logger';
 
 export default defineComponent({
-	components: { QuizDates },
-	name: 'Quiz',
-	props: {
-		set_id: Number
+	components: {
+		QuizDatesInput,
+		InputWithBlur
 	},
-	setup(props) {
-		const store = useStore();
-		const $q = useQuasar();
+	props: {
+		set: {
+			type: Quiz,
+			required: true
+		},
+		reset_set_type: {
+			type: String,
+			required: false
+		}
+	},
+	name: 'Quiz',
+	emits: ['updateSet', 'changeSetType'],
+	setup(props, { emit }) {
+		const quiz = ref<Quiz>(props.set.clone());
+		const set_type = ref<string | undefined>(props.set.set_type);
+		const quiz_duration = ref<string>('');
 
-		const { set_id } = toRefs(props);
+		// If a set type changed is cancelled this resets to the original.
+		watch(() => props.reset_set_type, () => {
+			set_type.value = props.reset_set_type;
+		});
 
-		const set = ref<Quiz>(new Quiz());
+		watch(() => props.set, (new_set, old_set) => {
+			logger.debug(`[Quiz] parent changed homework set from: ${old_set.set_name} to ${new_set.set_name}`);
+			quiz.value = props.set.clone();
+		});
 
-		const updateSet = () => {
-			const s = store.state.problem_sets.problem_sets.find((_set) => _set.set_id == set_id.value) ||
-				new Quiz();
-			set.value = cloneDeep(s as Quiz);
-		};
-
-		watch(() => set_id.value, updateSet);
-		updateSet();
-
-		// see the docs at https://v3.vuejs.org/guide/reactivity-computed-watchers.html#watching-reactive-objects
-		// for why we need to do a cloneDeep here
-		watch(() => cloneDeep(set.value), (new_set, old_set) => {
-			if (new_set.set_id === old_set.set_id) {
-				// cloning above in the watch statement changes that it is a Quiz
-				const _set = new Quiz(pick(new_set, Quiz.ALL_FIELDS));
-				void store.dispatch('problem_sets/updateSet', _set);
-				$q.notify({
-					message: `The problem set '${new_set.set_name ?? ''}' was successfully updated.`,
-					color: 'green'
-				});
-			}
+		watch(() => quiz.value, () => {
+			logger.debug('[Quiz] detected mutation in homework_set...');
+			emit('updateSet', quiz.value);
 		},
 		{ deep: true });
 
+		// parse the set_params.quiz_duration value
+
+		const quizDurationToString = (value: number) => {
+			const secs = value % 60;
+			const hrs = Math.floor(value / 3600);
+			const mins = Math.floor((value - 3600 * hrs) / 60);
+			const hr_str = hrs < 10 ? `0${hrs}` : `${hrs}`;
+			const min_str = mins < 10 ? `0${mins}` : `${mins}`;
+			const sec_str = secs < 10 ? `0${secs}` : `${secs}`;
+			return `${hr_str}:${min_str}:${sec_str}`;
+		};
+		quiz_duration.value = quizDurationToString(quiz.value.set_params.quiz_duration ?? 0);
+
+		watch(() => quiz.value.set_params.quiz_duration, () => {
+			quiz_duration.value = quizDurationToString(quiz.value.set_params.quiz_duration);
+		});
+
+		const quizDurationToValue = (duration: string) => {
+			const vals = /(\d?\d):(\d\d):(\d\d)/.exec(duration);
+			return vals?.length == 4 ? parseInt(vals[1]) * 60 * 60 + parseInt(vals[2]) * 60 + parseInt(vals[3]) : 0;
+		};
+
+		watch(() => quiz_duration.value, () => {
+			quiz.value.set_params.quiz_duration = quizDurationToValue(quiz_duration.value);
+		});
+
 		return {
-			set,
-			set_options: [ // probably should be a course_setting or in common.ts
-				{ value: 'REVIEW', label: 'Review set' },
-				{ value: 'QUIZ', label: 'Quiz' },
-				{ value: 'HW', label: 'Homework set' }
-			],
-			checkDates: [
-				() => {
-					const d = set.value.set_dates;
-					return d.open <= d.due && d.due <= d.answer || 'The dates must be in order';
-				}
-			],
-			quizDuration: [
-				(val: string) => /^\d+\s(secs?|mins?)$/.test(val) || // add this RegExp elsewhere
-				'The duration of the quiz must be a valid length of time'
-			]
+			set_type,
+			set_options: problem_set_type_options,
+			quiz,
+			updateDates: (dates: QuizDates) => {
+				logger.debug('[Quiz/updateDates] setting dates on quiz.');
+				quiz.value.set_dates.set(dates.toObject());
+			},
+			quiz_duration
 		};
 	}
 });

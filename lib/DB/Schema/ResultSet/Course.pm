@@ -11,7 +11,6 @@ use Clone qw/clone/;
 use DB::Utils qw/getCourseInfo getUserInfo/;
 use DB::Exception;
 use Exception::Class ('DB::Exception::CourseNotFound', 'DB::Exception::CourseExists');
-use Data::Dump qw/dump/;
 
 #use DB::TestUtils qw/removeIDs/;
 use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings mergeCourseSettings
@@ -89,9 +88,15 @@ of the fields. See above.
 
 sub getCourse ($self, %args) {
 	my $course = $self->find(getCourseInfo($args{info}));
-	DB::Exception::CourseNotFound->throw(
-		message => "The course: " . dump(getCourseInfo($args{info})) . " does not exist.")
-		unless defined($course);
+	unless (defined($course)) {
+		my $info = getCourseInfo($args{info});
+		DB::Exception::CourseNotFound->throw(message => "The course: $info->{course_name} does not exist.")
+			if defined($info->{course_name});
+		DB::Exception::CourseNotFound->throw(
+			message => "The course with course_id of $info->{course_id} does not exist.")
+			if defined($info->{course_id});
+	}
+
 	return $course if $args{as_result_set};
 
 	return { $course->get_inflated_columns };
@@ -128,7 +133,7 @@ sub addCourse ($self, %args) {
 	# Check if the course exists.  If so throw an error.
 	my $course = $self->find({ course_name => $course_params->{course_name} });
 
-	DB::Exception::CourseExists->throw(course_name => $course_params->{course_name}) if defined($course);
+	DB::Exception::CourseAlreadyExists->throw(course_name => $course_params->{course_name}) if defined($course);
 
 	my $params = {};
 	for my $field (qw/course_name visible course_dates/) {
@@ -227,8 +232,6 @@ An array of courses as a C<DBIx::Class::ResultSet::Course> object
 if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 
 =cut
-
-use Data::Dumper;
 
 sub getUserCourses ($self, %args) {
 	my $user = $self->result_source->schema->resultset("User")

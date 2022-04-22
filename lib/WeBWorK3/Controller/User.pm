@@ -17,8 +17,10 @@ sub getGlobalUser ($self) {
 }
 
 sub updateGlobalUser ($self) {
-	my $user = $self->schema->resultset("User")
-		->updateGlobalUser(info => { user_id => int($self->param("user_id")) }, params => $self->req->json);
+	my $user = $self->schema->resultset("User")->updateGlobalUser(
+		info   => { user_id => int($self->param("user_id")) },
+		params => $self->req->json
+	);
 	$self->render(json => $user);
 	return;
 }
@@ -32,6 +34,17 @@ sub addGlobalUser ($self) {
 sub deleteGlobalUser ($self) {
 	my $user = $self->schema->resultset("User")->deleteGlobalUser(info => { user_id => int($self->param("user_id")) });
 	$self->render(json => $user);
+	return;
+}
+
+# This gets all global users for a given course
+sub getGlobalCourseUsers ($self) {
+	my @users = $self->schema->resultset("User")->getGlobalCourseUsers(
+		info => {
+			course_id => int($self->param('course_id'))
+		}
+	);
+	$self->render(json => \@users);
 	return;
 }
 

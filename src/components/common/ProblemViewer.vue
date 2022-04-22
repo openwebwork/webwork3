@@ -12,7 +12,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import Problem from './Problem.vue';
-import { LibraryProblem } from 'src/store/models/problems';
+import { LibraryProblem } from 'src/common/models/problems';
 
 export default defineComponent({
 	name: 'ProblemViewer',
@@ -41,7 +41,7 @@ export default defineComponent({
 			file,
 			problem,
 			loadProblem: () => {
-				problem.value.problem_params.file_path = srcFile.value;
+				problem.value.setLocationParams({ file_path: srcFile.value });
 			}
 		};
 	}

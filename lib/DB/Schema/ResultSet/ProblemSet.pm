@@ -333,7 +333,9 @@ sub addProblemSet {
 	my $set_params = clone $args{params};
 	$set_params->{type} = $SET_TYPES->{ $set_params->{set_type} || 'HW' };
 	# Delete a few fields that may be passed in but are not in the database
-	for my $key (qw/course_id course_name set_type/) {
+	# Note: on client-side set_id=0 means that the set is new, so delete this
+	#  and it will be determined.
+	for my $key (qw/course_id course_name set_type set_id/) {
 		delete $set_params->{$key} if defined $set_params->{$key};
 	}
 
@@ -429,12 +431,50 @@ sub updateProblemSet ($self, %args) {
 		delete $params->{set_type};
 	}
 
-	my $params2 = updateAllFields($set_params, $params);
+	my $params2;
+
+	# If the problem set type changed, don't update the params, just used the ones passed in.
+	if (!defined($params->{type}) || $problem_set->type == $params->{type}) {
+		$params2 = updateAllFields($set_params, $params);
+	} else {
+		# The set type is changing, so assume that the set_dates and set_params are deleted
+		# unless passed in.
+		$params2 = $params;
+		unless (defined $params2->{set_dates}) {
+			if ($params2->{type} == 1) {    # HomeworkSet
+				$params2->{set_dates} = {
+					open            => 0,
+					reduced_scoring => 0,
+					due             => 0,
+					answer          => 0,
+				};
+			} elsif ($params2->{type} == 2) {    # Quiz
+				$params2->{set_dates} = {
+					open   => 0,
+					due    => 0,
+					answer => 0,
+				};
+			} elsif ($params2->{type} == 3) {    # JITAR
+				$params2->{set_dates} = {
+					open            => 0,
+					reduced_scoring => 0,
+					due             => 0,
+					answer          => 0,
+				};
+			} elsif ($params2->{type} == 4) {    # ReviewSet
+				$params2->{set_dates} = {
+					open   => 0,
+					closed => 0
+				};
+			}
+		}
+	}
+	$params2->{set_params} = {} unless defined($params2->{set_params});
 	my $set_obj = $self->new($params2);
 
-	## check the parameters are valid.
-	$set_obj->validDates('set_dates');
-	$set_obj->validParams('set_params');
+	# Check the parameters are valid.
+	$set_obj->validDates('set_dates')   if $set_obj->set_dates;
+	$set_obj->validParams('set_params') if $set_obj->set_params;
 	my $updated_set = $problem_set->update({ $set_obj->get_inflated_columns });
 	return $updated_set if $args{as_result_set};
 	my $set = { $updated_set->get_inflated_columns, set_type => $updated_set->set_type };

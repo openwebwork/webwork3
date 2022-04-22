@@ -46,15 +46,14 @@
 
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue';
-import { useStore } from 'src/store';
-
-import { Course } from 'src/store/models/courses';
-
+import { date } from 'quasar';
+import { useCourseStore } from 'src/stores/courses';
+import { Course } from 'src/common/models/courses';
 import NewCourseDialog from './AddCourse.vue';
 
 interface CourseDate {
-	start: string;
-	end: string;
+	start: number;
+	end: number;
 }
 
 export default defineComponent({
@@ -63,7 +62,7 @@ export default defineComponent({
 		NewCourseDialog
 	},
 	setup() {
-		const store = useStore();
+		const courses = useCourseStore();
 		const columns = [
 			{
 				name: 'course_id',
@@ -86,14 +85,14 @@ export default defineComponent({
 				name: 'starting_date',
 				label: 'Starting Date',
 				field: 'course_dates',
-				format: (val: CourseDate) => val.start,
+				format: (val: CourseDate) => date.formatDate(val.start * 1000, 'YYYY-MM-DD'),
 				sortable: true
 			},
 			{
 				name: 'end_date',
 				label: 'Ending Date',
 				field: 'course_dates',
-				format: (val: CourseDate) => val.end,
+				format: (val: CourseDate) => date.formatDate(val.end * 1000, 'YYYY-MM-DD'),
 				sortable: true
 			}
 		];
@@ -106,7 +105,7 @@ export default defineComponent({
 			filter,
 			selected,
 			new_course_dialog,
-			courses: computed(() => store.state.courses.courses)
+			courses: computed(() => courses.courses)
 		};
 	}
 });

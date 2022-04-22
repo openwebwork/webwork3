@@ -46,14 +46,18 @@
 
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue';
-import { useStore } from 'src/store';
-import { ProblemSet, QuizDates } from 'src/store/models/problem_sets';
-import { formatDate } from 'src/common';
+import { useProblemSetStore } from 'src/stores/problem_sets';
+import { useSessionStore } from 'src/stores/session';
+import { ProblemSet, QuizDates } from 'src/common/models/problem_sets';
+import { formatDate } from 'src/common/views';
+
+// TODO: Edit set functionality
 
 export default defineComponent({
 	name: 'ProblemSetsManager',
 	setup() {
-		const store = useStore();
+		const problem_sets = useProblemSetStore();
+		const session = useSessionStore();
 		const selected = ref<Array<ProblemSet>>([]);
 		const filter = ref<string>('');
 		const columns = [
@@ -78,11 +82,11 @@ export default defineComponent({
 			filter,
 			selected,
 			columns,
-			problem_sets: computed(() => store.state.problem_sets.problem_sets),
+			problem_sets: computed(() => problem_sets.problem_sets),
 			link_info: (_set_id: number) => ({
 				name: 'ProblemSetDetails',
 				params: {
-					course_id: store.state.session.course.course_id,
+					course_id: session.course.course_id,
 					set_id: _set_id
 				}
 			})

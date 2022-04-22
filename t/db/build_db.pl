@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# This file fills a database with sample data for testing.
+# This file fills a database with sample data from csv files.
 
 use warnings;
 use strict;
@@ -25,13 +25,18 @@ use DB::TestUtils qw/loadCSV/;
 
 my $verbose = 1;
 
-# Load the database
+# Load the configuration for the database settings.
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
 $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
-my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-#$schema->storage->debug(1);  # Print out the SQL commands.
+# Connect to the database.
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
 
 say "restoring the database with dbi: $config->{database_dsn}" if $verbose;
 
@@ -46,6 +51,8 @@ my $problem_pool_rs = $schema->resultset('ProblemPool');
 my $problem_rs      = $schema->resultset('Problem');
 my $user_set_rs     = $schema->resultset('UserSet');
 
+my $strp_date = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
+
 sub addCourses {
 	say "adding courses" if $verbose;
 	my @courses = loadCSV("$main::ww3_dir/t/db/sample_data/courses.csv");
@@ -56,6 +63,10 @@ sub addCourses {
 			$course->{course_settings}->{ $fields[0] } = { $fields[1] => $course->{course_params}->{$key} };
 		}
 		delete $course->{course_params};
+		for my $date (keys %{ $course->{course_dates} }) {
+			my $dt = $strp_date->parse_datetime($course->{course_dates}->{$date});
+			$course->{course_dates}->{$date} = $dt->epoch;
+		}
 		$course_rs->create($course);
 	}
 	return;
@@ -229,7 +240,6 @@ sub addUserProblems {
 	say "adding user problems" if $verbose;
 	my @user_problems = loadCSV("$main::ww3_dir/t/db/sample_data/user_problems.csv");
 	for my $user_problem (@user_problems) {
-		# print Dumper $user_problem;
 		my $user_set = $user_set_rs->find(
 			{
 				'users.username'        => $user_problem->{username},
@@ -255,7 +265,7 @@ sub addUserProblems {
 			problem_id      => $problem->problem_id,
 			seed            => $user_problem->{seed},
 			problem_version => 1,
-			status          => 1
+			status          => $user_problem->{status}
 		});
 	}
 	return;

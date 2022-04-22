@@ -10,7 +10,9 @@
 		</q-drawer>
 
 		<q-page-container>
-			<router-view />
+			<Suspense>
+				<router-view />
+			</Suspense>
 		</q-page-container>
 
 <!-- this only opens the first sidebar in the list
@@ -31,7 +33,7 @@ import { defineComponent, ref, watch } from 'vue';
 import MenuSidebar from './MenuSidebar.vue';
 import MenuBar from './MenuBar.vue';
 
-import { instructor_views, admin_views, ViewInfo, student_views } from 'src/common';
+import { instructor_views, admin_views, ViewInfo, student_views } from 'src/common/views';
 import { useRoute } from 'vue-router';
 import ProblemSetList from 'components/sidebars/ProblemSetList.vue';
 import UserList from 'components/sidebars/UserList.vue';

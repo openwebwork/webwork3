@@ -1,12 +1,15 @@
 <template>
 	<div>
 		<div class="row">
-			<div class="col-2">
-				<div class="q-pl-lg q-pt-sm text-h6"> {{ set_name }} </div>
+			<div class="col-3">
+				<q-select
+					:options="problem_sets_info" v-model="selected_set"
+					label="Select Problem Set" map-options
+				/>
 			</div>
-			<div class="col-10">
+			<div class="col-9">
 				<q-tabs
-					v-if="selected_set_id"
+					v-if="selected_set"
 					v-model="set_details_tab"
 					dense
 					inline-label
@@ -19,13 +22,13 @@
 			</div>
 		</div>
 		<q-tab-panels
-			v-if="selected_set_id"
+			v-if="selected_set"
 			v-model="set_details_tab" animated>
 			<q-tab-panel name="details">
 				<router-view />
 			</q-tab-panel>
 			<q-tab-panel name="problems">
-				<set-detail-problems :set_id="selected_set_id"/>
+				<set-detail-problems/>
 			</q-tab-panel>
 			<q-tab-panel name="users">
 				<set-users/>
@@ -34,60 +37,70 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, computed, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import SetDetailProblems from 'components/instructor/SetDetails/SetDetailProblems.vue';
 import SetUsers from 'components/instructor/SetDetails/SetUsers.vue';
+import { parseRouteCourseID, parseRouteSetID } from 'src/router/utils';
 
-import { useStore } from 'src/store';
+import { useProblemSetStore } from 'src/stores/problem_sets';
+import { useSetProblemStore } from 'src/stores/set_problems';
+import { logger } from 'src/boot/logger';
 
-export default defineComponent({
-	name: 'SetDetailContainer',
-	props: {
-		set_id: String
-	},
-	components: {
-		SetDetailProblems,
-		SetUsers
-	},
-	setup() {
-		const router = useRouter();
-		const route = useRoute();
-		const store = useStore();
-		const selected_set_id = ref<number>(0);
-		const set_details_tab = ref<string>('details');
+interface SetInfo {
+	label: string;
+	value: number;
+}
 
-		const updateSet = (_set_id: number) => {
-			void router.push({ name: 'ProblemSetDetails', params: { set_id: parseInt(`${_set_id}`) } });
-			set_details_tab.value = 'details'; // reset the tabs to the first one.
-		};
+const router = useRouter();
+const route = useRoute();
+const problem_set_store = useProblemSetStore();
+const set_problem_store = useSetProblemStore();
+const selected_set = ref<SetInfo | null>(null);
+const set_details_tab = ref<string>('details');
 
-		const updateSetID = () => {
-			const s = route.params.set_id; // a param is either a string or an array of strings
-			const set_id = Array.isArray(s) ? parseInt(s[0]) : parseInt(s);
-			selected_set_id.value = set_id;
-		};
+const set_id = computed(() => parseRouteSetID(route));
+const course_id = computed(() => parseRouteCourseID(route));
 
-		if (route.params.set_id) {
-			updateSetID();
-		}
-		updateSetID();
+const loadProblemsAndUserSets = async () => {
+	logger.debug('[SetDetailContainer]: loading user sets and set problems.');
+	await problem_set_store.fetchUserSets({
+		course_id: course_id.value,
+		set_id: set_id.value
+	});
+	await set_problem_store.fetchSetProblems(course_id.value);
+};
 
-		watch(() => route.fullPath, updateSetID);
+const problem_sets_info = computed(() => problem_set_store.problem_sets
+	.map(set => ({ label: set.set_name, value: set.set_id })));
 
-		watch(() => selected_set_id.value, updateSet);
+const updateSet = async () => {
+	await loadProblemsAndUserSets();
+	const set_info = problem_sets_info.value.find(s => s.value === set_id.value);
+	if (set_info) {
+		selected_set.value = set_info;
+		set_details_tab.value = 'details';
+		void router.push({ name: 'ProblemSetDetails', params: { set_id: set_id.value } });
+		set_details_tab.value = 'details'; // reset the tabs to the first one.
+	};
+};
 
-		return {
-			set_details_tab,
-			selected_set_id,
-			set_name: computed(() => {
-				const set = store.state.problem_sets.problem_sets.find(_set => _set.set_id === selected_set_id.value);
-				return set ? set.set_name : 'Select a set to the right';
-			})
-		};
-	}
-});
+watch(() => set_id.value, updateSet);
+watch(() => problem_sets_info.value, updateSet);
+
+// On page load if set_id exists, render the problem set.
+if (set_id.value) {
+	await updateSet();
+}
+
+// If the selected set changes.
+watch(() => selected_set.value, () => {
+	void router.push({
+		name: 'ProblemSetDetails',
+		params: { set_id: parseInt(`${selected_set.value?.value ?? 0}`) }
+	});
+}, { deep: true });
 </script>
 
 <style scoped>

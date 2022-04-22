@@ -35,13 +35,15 @@
 <script lang="ts">
 import { defineComponent, ref, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useStore } from 'src/store';
-import { parseNumericRouteParam } from 'src/common';
+import { parseNumericRouteParam } from 'src/common/views';
+import { useProblemSetStore } from 'src/stores/problem_sets';
+import { useSetProblemStore } from 'src/stores/set_problems';
 
 export default defineComponent({
 	name: 'ProblemContainer',
 	setup () {
-		const store = useStore();
+		const problem_sets = useProblemSetStore();
+		const set_problem_store = useSetProblemStore();
 		const router = useRouter();
 		const route = useRoute();
 		const set_label = ref<{label: string, value: number } | null>(null);
@@ -50,7 +52,7 @@ export default defineComponent({
 		const set_id = computed(() => parseNumericRouteParam(route.params.set_id));
 
 		if (route.params.set_id) {
-			const set = store.state.problem_sets.merged_user_sets.find(set => set.set_id === set_id.value);
+			const set = problem_sets.merged_user_sets.find(set => set.set_id === set_id.value);
 			if (set) {
 				set_label.value = { value: set.set_id ?? 0, label: set.set_name ?? '' };
 			}
@@ -64,7 +66,7 @@ export default defineComponent({
 		});
 
 		watch(() => problem_number.value, () => {
-			const user_problems = store.state.problem_sets.merged_user_problems.filter(
+			const user_problems = set_problem_store.merged_user_problems.filter(
 				prob => prob.set_id === set_id.value);
 			void router.push({ name: 'StudentProblem', params: {
 				problem_id: user_problems[problem_number.value - 1].problem_id
@@ -76,10 +78,10 @@ export default defineComponent({
 			problem_number,
 			num_problems: computed(() => {
 				const set_id = set_label.value?.value ?? 0;
-				return store.state.problem_sets.merged_user_problems.filter(
+				return set_problem_store.merged_user_problems.filter(
 					prob => prob.set_id === set_id).length;
 			}),
-			problem_set_labels: computed(() => store.state.problem_sets.merged_user_sets.
+			problem_set_labels: computed(() => problem_sets.merged_user_sets.
 				map(set => ({ label: set.set_name, value: set.set_id })))
 		};
 	}

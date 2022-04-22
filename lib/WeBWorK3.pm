@@ -31,8 +31,10 @@ sub startup ($self) {
 	# Load the database and DBIC plugin
 	$self->plugin(
 		DBIC => {
-			schema =>
-				DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password})
+			schema => DB::Schema->connect(
+				$config->{database_dsn}, $config->{database_user},
+				$config->{database_password}, { quote_names => 1 }
+			)
 		}
 	);
 
@@ -107,6 +109,11 @@ sub userRoutes ($self) {
 	$user_routes->put('/:user_id')->to(action => 'updateGlobalUser');
 	$user_routes->delete('/:user_id')->to(action => 'deleteGlobalUser');
 	$user_routes->get('/:user_id/courses')->to(action => 'getUserCourses');
+	# Get global users for a course.
+	$self->routes->get('/webwork3/api/courses/:course_id/global-users')->to('User#getGlobalCourseUsers');
+	# This is needed to get global users as instructor permission.  Need to have
+	# the parameter course_id.
+	$self->routes->any('/webwork3/api/courses/:course_id/users/:user/exists')->to('User#getGlobalUser');
 	return;
 }
 
@@ -130,6 +137,9 @@ sub problemSetRoutes ($self) {
 	$problem_set_routes->put('/:set_id')->to(action => 'updateProblemSet');
 	$problem_set_routes->post('/')->to(action => 'addProblemSet');
 	$problem_set_routes->delete('/:set_id')->to(action => 'deleteProblemSet');
+
+	# CRUD for User Sets
+	$self->routes->get('/webwork3/api/courses/:course_id/user-sets')->to('ProblemSet#getAllUserSets');
 	$problem_set_routes->get('/:set_id/users')->to(action => 'getUserSets');
 	$problem_set_routes->post('/:set_id/users')->to(action => 'addUserSet');
 	$problem_set_routes->put('/:set_id/users/:course_user_id')->to(action => 'updateUserSet');
@@ -146,13 +156,18 @@ sub problemRoutes ($self) {
 	$problem_routes->put('/sets/:set_id/problems/:problem_id')->to(action => 'updateProblem');
 	$problem_routes->delete('/sets/:set_id/problems/:problem_id')->to(action => 'deleteProblem');
 
-	$problem_routes->get('/users/:user_id/problems')->to(action => 'getUserProblems');
+	# UserProblem routes
+	$problem_routes->get('/sets/:set_id/user-problems')->to(action => 'getUserProblemsForSet');
+	$problem_routes->post('/sets/:set_id/users/:user_id/problems')->to(action => 'addUserProblem');
+	$problem_routes->delete('/sets/:set_id/users/:user_id/problems/:problem_id')->to(action => 'deleteUserProblem');
+
 	return;
 }
 
 sub settingsRoutes ($self) {
 	$self->routes->get('/webwork3/api/default_settings')->to("Settings#getDefaultCourseSettings");
 	$self->routes->get('/webwork3/api/courses/:course_id/settings')->to("Settings#getCourseSettings");
+	$self->routes->put('/webwork3/api/courses/:course_id/setting')->to("Settings#updateCourseSetting");
 	return;
 }
 

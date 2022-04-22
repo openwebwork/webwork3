@@ -112,9 +112,9 @@ sub getUserProblems ($self, %args) {
 	return @user_problems_to_return;
 }
 
-=head1 getCourseUserProblems
+=head1 getUserProblemsForSet
 
-Get all user problems (or merged user problems) for a user in a course.
+Get all user problems (or merged user problems) for one set in one course
 
 =head3 input
 
@@ -122,15 +122,10 @@ A hash of input values.
 
 =over
 
-=item * C<info>, a hash ref with the following:
+=item * C<info>, either a course name or course_id and a set_id or set_name
 
-=over
-=item - either a C<course_name> or C<course_id>.
-=item - either a C<username> or a C<user_id>.
-
-=back
-
-For example, C<{ course_name => 'Precalculus', user_id => 3, set_name => 'HW #1'}>
+For example, C<{ course_name => 'Precalculus', set_name => 'HW #1'}>
+	or C<{course_id => 3, set_id => 4}> or a mix of these.
 
 =item * C<merged>, a boolean on whether to return a merged user or course user
 
@@ -147,15 +142,16 @@ or an arrayref of C<DBIx::Class::ResultSet::UserProblem>
 
 =cut
 
-sub getCourseUserProblems ($self, %args) {
-	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
-
+sub getUserProblemsForSet ($self, %args) {
+	my $course        = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+	my $problem_set   = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
 	my @user_problems = $self->search(
 		{
-			'course_users.course_user_id' => $course_user->course_user_id
+			'courses.course_id'  => $course->course_id,
+			'problem_set.set_id' => $problem_set->set_id
 		},
 		{
-			join => { user_sets => 'course_users' }
+			join => { problems => { problem_set => 'courses' } }
 		}
 	);
 
@@ -171,7 +167,7 @@ sub getCourseUserProblems ($self, %args) {
 
 =head1 getUserProblem
 
-Get a single user problems (or merged user problems).
+Get a single user problem (or merged user problem).
 
 =head3 input
 
@@ -249,7 +245,7 @@ A hash of input values.
 
 =item - either a C<course name> or C<course_id>.
 =item - either a C<username> or C<user_id>
-=item - either a C<set_nam> or C<set_id>
+=item - either a C<set_name> or C<set_id>
 =item - either a C<problem_number> or C<problem_id>
 
 For example, C<{ course_name => 'Precalculus', username=> 'homer', set_id => 3, problem_number => 1}>
@@ -273,7 +269,6 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 =cut
 
 sub addUserProblem ($self, %args) {
-
 	my $user_problem = $self->getUserProblem(
 		info          => $args{params},
 		skip_throw    => 1,
@@ -293,8 +288,12 @@ sub addUserProblem ($self, %args) {
 
 	my $params = clone($args{params} // {});
 
+	# If the user_problem_id field is 0, it is a new problem, so delete the field
+	delete $params->{user_problem_id}
+		if defined($params->{user_problem_id}) && $params->{user_problem_id} == 0;
+
 	# Remove some parameters that are not in the UserProblem database, but may be passed in.
-	for my $key (qw/username user_d course_name set_name set_type set_id problem_number problem_id/) {
+	for my $key (qw/username user_id course_id course_name set_name set_type set_id problem_number problem_id/) {
 		delete $params->{$key} if defined $params->{$key};
 	}
 

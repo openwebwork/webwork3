@@ -52,7 +52,7 @@ __PACKAGE__->add_columns(
 	},
 	problem_params => {
 		data_type          => 'text',
-		size               => 512,
+		size               => 1024,
 		is_nullable        => 0,
 		default_value      => '{}',
 		serializer_class   => 'JSON',

@@ -31,9 +31,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, ref } from 'vue';
-import { useStore } from 'src/store';
-import { CourseSettingInfo, CourseSetting } from 'src/store/models/settings';
+import { defineComponent, computed, ref, watch } from 'vue';
+import { useSettingsStore } from 'src/stores/settings';
+import type { CourseSettingInfo } from 'src/common/models/settings';
 import SingleSetting from 'src/components/instructor/SingleSetting.vue';
 
 export default defineComponent({
@@ -42,22 +42,22 @@ export default defineComponent({
 		SingleSetting
 	},
 	setup() {
-		const store = useStore();
-		const tab = ref('general');
+		const settings = useSettingsStore();
+		const tab = ref('');
+
+		// Needed if you start on this page.
+		watch(() => settings.course_settings, () => {
+			tab.value = 'general';
+		});
 
 		return {
 			tab,
 			categories: computed(() => [
-				...new Set(store.state.settings.default_settings.map((setting: CourseSettingInfo) => setting.category))
+				...new Set(settings.default_settings.map((setting: CourseSettingInfo) => setting.category))
 			]),
 			getSettings: (cat: string) =>
-				store.state.settings.default_settings.filter((setting: CourseSettingInfo) => setting.category === cat),
-			getSettingValue: (var_name: string) => {
-				const settings = store.state.settings.course_settings.filter(
-					(setting: CourseSetting) => setting.var === var_name
-				);
-				return settings[0].value;
-			}
+				settings.default_settings.filter((setting: CourseSettingInfo) => setting.category === cat),
+			getSettingValue: (var_name: string) => settings.getCourseSetting(var_name).value
 		};
 	}
 });

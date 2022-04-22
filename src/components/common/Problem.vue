@@ -1,6 +1,6 @@
 <template>
 	<q-card v-if="problemText" class="bg-grey-3">
-		<q-card-section v-if="problem_type=='LIBRARY'">
+		<q-card-section v-if="problem_type === 'LIBRARY'">
 			<q-btn-group push>
 				<q-btn size="sm" push icon="add" @click="$emit('addProblem')" />
 				<q-btn size="sm" push icon="edit" />
@@ -9,8 +9,8 @@
 			</q-btn-group>
 		</q-card-section>
 
-		<q-card-section v-if="problem_type==='SET'">
-			<span class="div-h6 number-border">{{freeProblem.problem_number}}</span>
+		<q-card-section v-if="problem_type === 'SET'">
+			<span class="div-h6 problem-number">{{freeProblem.problem_number}}</span>
 			<q-btn-group push>
 				<q-btn size="sm" icon="height" class="move-handle" />
 				<q-btn size="sm" push icon="delete" @click="$emit('removeProblem',freeProblem)" />
@@ -24,6 +24,8 @@
 			file path: {{ freeProblem.path() }}
 		</q-card-section>
 
+		<q-separator v-if="problem_type === 'LIBRARY' || problem_type === 'SET'" />
+
 		<q-card-section v-if="answerTemplate" class="q-pa-sm bg-white">
 			<div ref="answerTemplateDiv" v-html="answerTemplate" class="pg-answer-template-container" />
 		</q-card-section>
@@ -33,8 +35,8 @@
 		<q-card-section v-if="problemText===''">
 			<div><q-spinner-ios color="primary" size="2em" /></div>
 		</q-card-section>
-		<q-card-section class="q-pa-sm" v-else>
-			<div ref="problemTextDiv" v-html="problemText" class="pg-problem-container" />
+		<q-card-section class="q-pa-sm pg-problem-container" v-else>
+			<div ref="problemTextDiv" v-html="problemText" />
 		</q-card-section>
 
 		<q-separator v-if="submitButtons.length"/>
@@ -42,8 +44,8 @@
 		<q-card-actions class="q-pa-sm bg-white" v-if="submitButtons.length">
 			<q-btn v-for="button in submitButtons"
 				:key="button.name" :name="button.name"
-				:id="`${freeProblem.answer_prefix}${button.name}`"
-				type="submit" :form="`${freeProblem.answer_prefix}problemMainForm`"
+				:id="`${freeProblem.render_params.answerPrefix}${button.name}`"
+				type="submit" :form="`${freeProblem.render_params.answerPrefix}problemMainForm`"
 				color="primary" @click="submitButton = button" no-caps>
 				{{ button.value }}
 			</q-btn>
@@ -52,17 +54,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, onMounted, nextTick, PropType } from 'vue';
-import type { SubmitButton } from 'src/typings/renderer';
-import { fetchProblem, RendererParams } from 'src/api-requests/renderer';
-import { RENDER_URL } from 'src/constants';
+import type { PropType } from 'vue';
+import { defineComponent, ref, watch, onMounted, nextTick } from 'vue';
+import type { SubmitButton } from 'src/common/api-requests/renderer';
+import { fetchProblem, loadResource } from 'src/common/api-requests/renderer';
+import { RENDER_URL } from 'src/common/constants';
 import * as bootstrap from 'bootstrap';
 import type JQueryStatic from 'jquery';
 import JQuery from 'jquery';
 import { logger } from 'boot/logger';
 
 import typeset from './mathjax-config';
-import { Problem } from 'src/store/models/problems';
+import { Problem } from 'src/common/models/problems';
+import { ParseableRenderParams } from 'src/common/models/renderer';
 
 declare global {
 	interface Window {
@@ -90,55 +94,15 @@ export default defineComponent({
 		const problemText = ref('');
 		const answerTemplate = ref('');
 		const freeProblem = ref<Problem>(props.problem.clone());
-		const problem_type = ref(props.problem.problem_type);
+		const problem_type = ref<string>(props.problem.problem_type);
 		const problemTextDiv = ref<HTMLElement>();
 		const answerTemplateDiv = ref<HTMLElement>();
 		const submitButtons = ref<Array<SubmitButton>>([]);
 		const submitButton = ref<SubmitButton>();
 		const activePopovers: Array<InstanceType<typeof bootstrap.Popover>> = [];
 
-		logger.debug(`[Problem/setup] file: ${freeProblem.value.path()}, type: ${freeProblem.value.problem_type}`);
-		const loadResource = async (src: string, id?: string) => {
-			return new Promise<void>((resolve, reject) => {
-				let shouldAppend = false;
-				let el: HTMLScriptElement | HTMLLinkElement | null;
-				if (/\.js(?:\??[0-9a-zA-Z=]*)$/.exec(src)) {
-					el = document.querySelector(`script[src="${src}"]`);
-					if (!el) {
-						el = document.createElement('script');
-						if (id) el.id = id;
-						el.async = false;
-						el.src = src;
-						shouldAppend = true;
-					}
-				} else if (/\.css(?:\??[0-9a-zA-Z=]*)$/.exec(src)) {
-					el = document.querySelector(`link[href="${src}"]`);
-					if (!el) {
-						el = document.createElement('link');
-						el.rel = 'stylesheet';
-						el.href = src;
-						shouldAppend = true;
-					}
-				} else {
-					reject();
-					return;
-				}
-
-				if (el.dataset.loaded) {
-					resolve();
-					return;
-				}
-
-				el.addEventListener('error', reject);
-				el.addEventListener('abort', reject);
-				el.addEventListener('load', () => {
-					if (el) el.dataset.loaded = 'true';
-					resolve();
-				});
-
-				if (shouldAppend) document.head.appendChild(el);
-			});
-		};
+		logger.debug(`[Problem/setup] file: ${freeProblem.value.path()},` +
+			` type: ${freeProblem.value.problem_type}`);
 
 		const clearUI = () => {
 			logger.debug('[Problem/clearUI]');
@@ -148,10 +112,10 @@ export default defineComponent({
 		};
 
 		watch(() => props.problem, () => {
-			freeProblem.value = props.problem.clone();
+			freeProblem.value = props.problem.clone() as unknown as Problem;
 		}, { deep: true });
 
-		const loadProblem = async (url: string, formData: FormData, overrides: RendererParams) => {
+		const loadProblem = async (url: string, formData: FormData, overrides: ParseableRenderParams) => {
 			// Make sure that any popovers left open from a previous rendering are removed.
 			for (const popover of activePopovers) {
 				popover.dispose();
@@ -171,17 +135,19 @@ export default defineComponent({
 				return;
 			}
 
-			await Promise.all((css).map(
+			// Load all css files needed for the problem.
+			await Promise.all(css.map(
 				async (cssSource) => {
-					await loadResource(cssSource).
-						catch(() => logger.log('error', `Could not load ${cssSource}`));
+					await loadResource(cssSource)
+						.catch(() => logger.log('error', `Could not load ${cssSource}`));
 				}
 			));
 
+			// Load all js files needed for the problem.
 			await Promise.all(js.map(
 				async (jsSource) => {
-					await loadResource(jsSource).
-						catch(() => logger.log('error', `Could not load ${jsSource}`));
+					await loadResource(jsSource)
+						.catch(() => logger.log('error', `Could not load ${jsSource}`));
 				}
 			));
 
@@ -205,7 +171,6 @@ export default defineComponent({
 					Array.from(origScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
 					newScript.appendChild(document.createTextNode(origScript.innerHTML));
 					origScript.parentNode?.replaceChild(newScript, origScript);
-
 				});
 			}
 
@@ -221,7 +186,6 @@ export default defineComponent({
 			window.dispatchEvent(new Event('PGContentLoaded'));
 
 			insertNativeListeners();
-			submitButton.value = undefined; // make sure to reset the submit button -- necessary?
 		};
 
 		const problemForm = ref<HTMLFormElement>();
@@ -234,7 +198,7 @@ export default defineComponent({
 				return;
 			}
 
-			problemForm.value.id = `${freeProblem.value.renderer_params.answerPrefix || ''}problemMainForm`;
+			problemForm.value.id = `${freeProblem.value.render_params.answerPrefix || ''}problemMainForm`;
 
 			// Add a click handler to any submit buttons in the problem form.
 			// Some Geogebra problems add one of these for example.
@@ -251,44 +215,25 @@ export default defineComponent({
 					logger.error('No button was pressed...');
 					return;
 				}
+				const render_params = freeProblem.value.requestParams();
 				void loadProblem(problemForm.value?.action ?? RENDER_URL, new FormData(problemForm.value), {
-					[submitButton.value.name]: submitButton.value.value, ...freeProblem.value.requestParams() });
+					[submitButton.value.name]: submitButton.value.value, ...render_params
+				});
 			});
 		};
 
 		const initialLoad = () => {
 			logger.debug('[Problem/initialLoad] I have been called.');
-			void loadProblem(RENDER_URL, new FormData(), freeProblem.value.requestParams());
+			const render_params = freeProblem.value.requestParams();
+			void loadProblem(RENDER_URL, new FormData(), render_params);
 		};
 
 		watch(freeProblem, initialLoad, { deep: true });
 
 		onMounted(async () => {
-			await Promise.all([
-				'js/MathQuill/mathquill.css',
-				'js/MathQuill/mqeditor.css',
-				'js/ImageView/imageview.css',
-				'js/Knowls/knowl.css'
-			].map(
-				async (cssSource) => {
-					await loadResource(cssSource).
-						catch(() => logger.log('error', `Could not load ${cssSource}`));
-				}
-			));
-
-			await Promise.all(([
-				['mathjax/tex-chtml.js', 'MathJax-script'],
-				['js/MathQuill/mathquill.js'],
-				['js/MathQuill/mqeditor.js'],
-				['js/ImageView/imageview.js'],
-				['js/Knowls/knowl.js'],
-				['js/InputColor/color.js']
-			] as Array<[string, string?]>).map(
-				async (jsSource) => {
-					await loadResource(...jsSource).
-						catch(() => logger.log('error', `Could not load ${jsSource[0]}`));
-				}
-			));
+			// Load MathJax
+			await loadResource('mathjax/tex-chtml.js', 'MathJax-script')
+				.catch(() => logger.log('error', 'Could not load mathjax/tex-chtml.js'));
 
 			await nextTick();
 
@@ -319,9 +264,33 @@ export default defineComponent({
 </style>
 
 <style lang="scss" scoped>
-@use "src/css/pg.scss";
+.pg-problem-container {
+	background-color: #f5f5f5;
 
-.number-border {
+	// Override a few of the styles from the dynamically loaded problem.css
+
+	:deep(.problem-main-form) {
+		margin: 0;
+	}
+
+	:deep(.problem-content) {
+		border: none;
+		box-shadow: unset;
+		margin: 0;
+	}
+}
+
+// Answer template
+
+:deep(.pg-answer-template-container) {
+	// We don't have the bootstrap mb-2 class, so add its style.
+
+	.mb-2 {
+		margin-bottom: 0.5rem !important;
+	}
+}
+
+.problem-number {
 	border: 1px black solid;
 	padding: 3px;
 }

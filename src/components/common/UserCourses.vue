@@ -18,9 +18,9 @@
 						<template v-for="course in student_courses" :key="course.course_id">
 							<q-item
 								:to="{
-									 name: 'student',
-									 params: { course_id: course.course_id, course_name: course.course_name }
-									 }"
+									name: 'student',
+									params: { course_id: course.course_id, course_name: course.course_name }
+									}"
 								>
 								<q-item-section>
 									<q-item-label>{{ course.course_name }}</q-item-label>
@@ -41,10 +41,9 @@
 						<template v-for="course in instructor_courses" :key="course.course_id">
 							<q-item
 								:to="{
-									 name: 'instructor',
-									 params: { course_id: course.course_id, course_name: course.course_name }
-									 }"
-								>
+									name: 'instructor',
+									params: { course_id: course.course_id }
+								}">
 								<q-item-section>
 									<q-item-label>{{ course.course_name }}</q-item-label>
 								</q-item-section>
@@ -60,30 +59,31 @@
 
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
-// import { useRoute } from 'vue-router';
-import { useStore } from 'src/store';
-
-import { UserCourse } from 'src/store/models/courses';
+import { useUserStore } from 'src/stores/users';
+import { useSessionStore } from 'src/stores/session';
+import { parseNonNegInt, parseUserRole } from 'src/common/models/parsers';
 
 export default defineComponent({
 	name: 'UserCourses',
 	setup() {
-		const store = useStore();
+		const users = useUserStore();
+		const session = useSessionStore();
 		return {
 			student_courses: computed(() =>
-				store.state.users.user_courses.filter((user: UserCourse) => user.role === 'student')
+				users.user_courses.filter(user_course => parseUserRole(user_course.role) === 'STUDENT')
 			),
 			instructor_courses: computed(() =>
-				store.state.users.user_courses.filter((user: UserCourse) => user.role === 'instructor')
+				users.user_courses.filter(user_course => parseUserRole(user_course.role) === 'INSTRUCTOR')
 			),
-			user: computed(() => store.state.session.user)
+			user: computed(() => session.user)
 		};
 	},
-	async created() {
+	created() {
 		// fetch the data when the view is created and the data is
 		// already being observed
-		const store = useStore();
-		await store.dispatch('users/fetchUserCourses', store.state.session.user.user_id);
+		const users = useUserStore();
+		const session = useSessionStore();
+		void users.fetchUserCourses(parseNonNegInt(session.user.user_id ?? 0));
 	}
 });
 </script>
