@@ -264,9 +264,6 @@ my $user_problem2 = $user_problem_rs->addUserProblem(
 	merged => 1
 );
 
-use Data::Dumper;
-print Dumper $user_problem2;
-
 removeIDs($user_problem2);
 
 my $problem2 = clone firstval {
@@ -663,13 +660,13 @@ qr/problem_pool_id is not valid/, "updateUserProblem: attempt to update a user p
 
 # Get an array of user problems for a single user in a course.
 
-my @course_user_problems = $user_problem_rs->getCourseUserProblems(
+my @user_problems = $user_problem_rs->getUserProblemsForUser(
 	info => {
 		course_name => "Precalculus",
 		username    => "homer"
 	}
 );
-for my $user_problem (@course_user_problems) {
+for my $user_problem (@user_problems) {
 	removeIDs($user_problem);
 }
 
@@ -677,7 +674,7 @@ my @course_user_problems_from_csv =
 	grep { $_->{course_name} eq "Precalculus" && $_->{username} eq "homer" } @user_problems_from_csv;
 
 is_deeply(\@course_user_problems_from_csv,
-	\@course_user_problems, "getCourseUserProblems: get all user problems for a single user in a course");
+	\@user_problems, "getCourseUserProblems: get all user problems for a single user in a course");
 
 # Delete a User Problem
 

@@ -165,6 +165,66 @@ sub getUserProblemsForSet ($self, %args) {
 	return @user_problems_to_return;
 }
 
+=head1 getUserProblemsForUser
+
+Get all user problems (or merged user problems) for one user in one course
+
+=head3 input
+
+A hash of input values.
+
+=over
+
+=item * C<info>, either a course name or course_id and a user_id or username
+
+For example, C<{ course_name => 'Precalculus', username => 'homer'}>
+	or C<{user_id => 3, set_id => 4}> or a mix of these.
+
+=item * C<merged>, a boolean on whether to return a merged user or course user
+
+=item * C<as_result_set>, a boolean.  If true this an object of type
+C<DBIx::Class::ResultSet::UserProblem>
+if false, a hashrefs of a User Problem or merged User Problem with a Problem.
+
+=back
+
+=head3 output
+
+An array of a hashref of a user problem or merged user problem
+or an arrayref of C<DBIx::Class::ResultSet::UserProblem>
+
+=cut
+
+sub getUserProblemsForUser ($self, %args) {
+	my $course        = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+	my $user          = $self->rs("User")->getGlobalUser(info => $args{info}, as_result_set => 1);
+	my @user_problems = $self->search(
+		{
+			'courses.course_id' => $course->course_id,
+			'users.user_id'     => $user->user_id
+		},
+		{
+			join => [
+				{
+					problems => { problem_set => 'courses' }
+				},
+				{
+					user_sets => { course_users => 'users' }
+				}
+			]
+		}
+	);
+
+	return @user_problems if $args{as_result_set};
+
+	my @user_problems_to_return = ();
+	for my $user_problem (@user_problems) {
+		my $params = $args{merged} ? _mergeUserProblem($user_problem) : _getUserProblem($user_problem);
+		push(@user_problems_to_return, $params);
+	}
+	return @user_problems_to_return;
+}
+
 =head1 getUserProblem
 
 Get a single user problem (or merged user problem).

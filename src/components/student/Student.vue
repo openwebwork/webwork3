@@ -2,40 +2,31 @@
 	<router-view />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
 import { useSessionStore } from 'src/stores/session';
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useUserStore } from 'src/stores/users';
 import { useRoute } from 'vue-router';
+import { logger } from 'boot/logger';
 import { parseRouteCourseID } from 'src/router/utils';
-import { useSetProblemStore } from 'src/stores/set_problems';
 
-export default defineComponent({
-	name: 'Student',
-	setup() {
-		const session = useSessionStore();
-		const users = useUserStore();
-		const route = useRoute();
-
-		const course_id = parseRouteCourseID(route);
+const session = useSessionStore();
+const users = useUserStore();
+const problem_set_store = useProblemSetStore();
+const route = useRoute();
+const course_id = parseRouteCourseID(route);
+if (session.user.user_id) await users.fetchUserCourses(session.user.user_id)
+	.then(() => {
 		const course = users.user_courses.find(c => c.course_id === course_id);
 		if (course) {
-			void session.setCourse({
+			session.setCourse({
 				course_id,
 				course_name: course.course_name
 			});
+		} else {
+			logger.warn(`Can't find ${course_id} in ${users.user_courses.map((c) => c.course_id).join(', ')}`);
 		}
-	},
-	created() {
-		const problem_sets = useProblemSetStore();
-		// const session = useSessionStore();
-		const route = useRoute();
-		const set_problem_store = useSetProblemStore();
-		void problem_sets.fetchProblemSets(parseRouteCourseID(route));
-		// void problem_sets.fetchUserSets(parseNonNegInt(session.user.user_id ?? 0));
-		// void problem_sets.fetchMergedUserProblems(parseNonNegInt(session.user.user_id ?? 0));
-		void set_problem_store.fetchSetProblems(parseRouteCourseID(route));
-	}
-});
+	});
+
+await problem_set_store.fetchProblemSets(parseRouteCourseID(route));
 </script>
