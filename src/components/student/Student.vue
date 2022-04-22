@@ -9,7 +9,6 @@ import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useUserStore } from 'src/stores/users';
 import { useRoute } from 'vue-router';
 import { parseRouteCourseID } from 'src/router/utils';
-import { parseNonNegInt } from 'src/common/models/parsers';
 import { useSetProblemStore } from 'src/stores/set_problems';
 
 export default defineComponent({
@@ -30,7 +29,7 @@ export default defineComponent({
 	},
 	created() {
 		const problem_sets = useProblemSetStore();
-		const session = useSessionStore();
+		// const session = useSessionStore();
 		const route = useRoute();
 		const set_problem_store = useSetProblemStore();
 		void problem_sets.fetchProblemSets(parseRouteCourseID(route));

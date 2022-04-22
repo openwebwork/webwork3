@@ -7,9 +7,6 @@ import { useSessionStore } from './session';
 import { useUserStore } from './users';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
-import { LibraryProblem, SetProblem, ParseableProblem, parseProblem,
-	ParseableSetProblem, UserProblem, MergedUserProblem, ParseableUserProblem,
-	ParseableMergedUserProblem } from 'src/common/models/problems';
 import { MergedUserSet, mergeUserSet, ParseableUserSet, parseMergedUserSet, parseUserSet, UserSet
 } from 'src/common/models/user_sets';
 import { logger } from 'src/boot/logger';

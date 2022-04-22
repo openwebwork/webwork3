@@ -42,11 +42,7 @@ export const fetchLibraryProblems = async(lib_id: LibraryID) => {
 	const response = await axios.get(`/opl/api/problems/sections/${lib_id.sect_id || 0}`);
 	const _problems_to_parse = response.data as Array<{ id: number; file_path: string }>;
 	return _problems_to_parse.map(p => parseProblem({
-<<<<<<< HEAD:src/api-requests/library.ts
-		problem_params: {
-=======
 		location_params: {
->>>>>>> student-view-new-model:src/common/api-requests/library.ts
 			library_id: p.id,
 			file_path: p.file_path,
 			problem_pool_id: 0

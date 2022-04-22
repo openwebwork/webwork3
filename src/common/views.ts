@@ -34,11 +34,7 @@ export const student_views: Array<ViewInfo> = [
 	},
 	{
 		name: 'Problem Sets',
-<<<<<<< HEAD:src/common.ts
 		component_name: 'ProblemSetsContainer',
-=======
-		component_name: 'ProblemSets',
->>>>>>> student-view-new-model:src/common/views.ts
 		icon: 'preview',
 		route: 'sets',
 		sidebars: []
@@ -136,8 +132,6 @@ export const parseNumericRouteParam = (route_param: string | string []): number 
 		parseInt(route_param[0]) :
 		parseInt(route_param);
 };
-<<<<<<< HEAD:src/common.ts
-=======
 import { ProblemSetType } from 'src/common/models/problem_sets';
 
 // Used in multiple views
@@ -146,4 +140,3 @@ export const problem_set_type_options = [
 	{ value: ProblemSetType.QUIZ, label: 'Quiz' },
 	{ value: ProblemSetType.HW, label: 'Homework set' }
 ];
->>>>>>> student-view-new-model:src/common/views.ts
