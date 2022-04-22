@@ -240,9 +240,7 @@ export const useUserStore = defineStore('user', {
 		clearAll() {
 			this.users = [];
 			this.course_users = [];
-			this.merged_users = [];
 			this.user_courses = [];
-			this.set_users = [];
 		}
 	}
 });

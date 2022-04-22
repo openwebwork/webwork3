@@ -243,5 +243,9 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			this.user_sets.splice(index, 1);
 			return deleted_user_set;
 		},
+		clearAll() {
+			this.user_sets = [];
+			this.problem_sets = [];
+		}
 	}
 });
