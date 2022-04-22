@@ -248,7 +248,7 @@ export class MergedUser extends Model {
 		this._course_id = parseNonNegInt(value);
 	}
 
-	get user_id() { return this._user_id; }
+	get user_id(): number { return this._user_id; }
 	set user_id(value: number | string) {
 		this._user_id = parseNonNegInt(value);
 	}

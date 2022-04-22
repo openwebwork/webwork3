@@ -65,6 +65,18 @@ sub getUserProblemsForSet ($self) {
 	return;
 }
 
+
+sub getUserProblemsForUser ($self) {
+	my @user_problems = $self->schema->resultset("UserProblem")->getUserProblemsForUser(
+		info => {
+			course_id => int($self->param('course_id')),
+			user_id    => int($self->param('user_id'))
+		}
+	);
+	$self->render(json => \@user_problems);
+	return;
+}
+
 sub addUserProblem ($self) {
 	my $problem_params = $self->req->json;
 	$problem_params->{course_id} = int($self->param('course_id'))

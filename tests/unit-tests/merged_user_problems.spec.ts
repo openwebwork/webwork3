@@ -20,10 +20,9 @@ describe('Testing Merged User Problems', () => {
 
 	const default_merged_user_problem = {
 		render_params: { ...default_render_params },
-		set_problem_params: {
+		problem_params: {
 			weight: 1,
 		},
-		user_problem_params: {},
 		user_problem_id: 0,
 		problem_id: 0,
 		user_id: 0,
@@ -48,13 +47,12 @@ describe('Testing Merged User Problems', () => {
 
 		test('Check that calling all_fields() and params() is correct', () => {
 			const prob = new MergedUserProblem();
-			const user_problem_fields = ['render_params', 'set_problem_params', 'user_problem_params',
-				'user_problem_id', 'problem_id', 'user_id', 'user_set_id', 'seed', 'status', 'problem_version',
+			const user_problem_fields = ['render_params', 'problem_params', 'user_problem_id',
+			'problem_id', 'user_id', 'user_set_id', 'seed', 'status', 'problem_version',
 				'problem_number', 'username', 'set_name'];
 
 			expect(prob.all_field_names.sort()).toStrictEqual(user_problem_fields.sort());
-			expect(prob.param_fields.sort()).toStrictEqual(['render_params', 'set_problem_params',
-				'user_problem_params']);
+			expect(prob.param_fields.sort()).toStrictEqual(['problem_params', 'render_params']);
 
 			expect(MergedUserProblem.ALL_FIELDS.sort()).toStrictEqual(user_problem_fields.sort());
 
@@ -70,45 +68,45 @@ describe('Testing Merged User Problems', () => {
 	describe('Updating Merged User Problems', () => {
 		test('Check the changing problem params directly works', () => {
 			const prob = new MergedUserProblem();
-			prob.set_problem_params.weight = 2;
-			expect(prob.set_problem_params.weight).toBe(2);
-			prob.set_problem_params.weight = '3.5';
-			expect(prob.set_problem_params.weight).toBe(3.5);
+			prob.problem_params.weight = 2;
+			expect(prob.problem_params.weight).toBe(2);
+			prob.problem_params.weight = '3.5';
+			expect(prob.problem_params.weight).toBe(3.5);
 
-			prob.set_problem_params.library_id = 10;
-			expect(prob.set_problem_params.library_id).toBe(10);
-			prob.set_problem_params.library_id = '12';
-			expect(prob.set_problem_params.library_id).toBe(12);
+			prob.problem_params.library_id = 10;
+			expect(prob.problem_params.library_id).toBe(10);
+			prob.problem_params.library_id = '12';
+			expect(prob.problem_params.library_id).toBe(12);
 
-			prob.set_problem_params.file_path = 'path/to/file';
-			expect(prob.set_problem_params.file_path).toBe('path/to/file');
+			prob.problem_params.file_path = 'path/to/file';
+			expect(prob.problem_params.file_path).toBe('path/to/file');
 
-			prob.set_problem_params.problem_pool_id = 15;
-			expect(prob.set_problem_params.problem_pool_id).toBe(15);
-			prob.set_problem_params.problem_pool_id = '25';
-			expect(prob.set_problem_params.problem_pool_id).toBe(25);
+			prob.problem_params.problem_pool_id = 15;
+			expect(prob.problem_params.problem_pool_id).toBe(15);
+			prob.problem_params.problem_pool_id = '25';
+			expect(prob.problem_params.problem_pool_id).toBe(25);
 
 		});
 
 		test('Check the changing problem params using set() works', () => {
 			const prob = new MergedUserProblem();
-			prob.set_problem_params.set({ weight: 2 });
-			expect(prob.set_problem_params.weight).toBe(2);
-			prob.set_problem_params.set({ weight: '3.5' });
-			expect(prob.set_problem_params.weight).toBe(3.5);
+			prob.problem_params.set({ weight: 2 });
+			expect(prob.problem_params.weight).toBe(2);
+			prob.problem_params.set({ weight: '3.5' });
+			expect(prob.problem_params.weight).toBe(3.5);
 
-			prob.set_problem_params.set({ library_id: 10 });
-			expect(prob.set_problem_params.library_id).toBe(10);
-			prob.set_problem_params.set({ library_id: '12' });
-			expect(prob.set_problem_params.library_id).toBe(12);
+			prob.problem_params.set({ library_id: 10 });
+			expect(prob.problem_params.library_id).toBe(10);
+			prob.problem_params.set({ library_id: '12' });
+			expect(prob.problem_params.library_id).toBe(12);
 
-			prob.set_problem_params.set({ file_path: 'path/to/file' });
-			expect(prob.set_problem_params.file_path).toBe('path/to/file');
+			prob.problem_params.set({ file_path: 'path/to/file' });
+			expect(prob.problem_params.file_path).toBe('path/to/file');
 
-			prob.set_problem_params.set({ problem_pool_id: 15 });
-			expect(prob.set_problem_params.problem_pool_id).toBe(15);
-			prob.set_problem_params.set({ problem_pool_id: '25' });
-			expect(prob.set_problem_params.problem_pool_id).toBe(25);
+			prob.problem_params.set({ problem_pool_id: 15 });
+			expect(prob.problem_params.problem_pool_id).toBe(15);
+			prob.problem_params.set({ problem_pool_id: '25' });
+			expect(prob.problem_params.problem_pool_id).toBe(25);
 
 		});
 

@@ -83,8 +83,6 @@ describe('Problem Set store tests', () => {
 		precalc_problems_from_csv = problems_to_parse
 			.filter(prob => prob.course_name === 'Precalculus');
 
-		// console.log(precalc_problems_from_csv);
-
 		// Load the User Problem information from the csv file:
 		const user_problems_from_csv = await loadCSV('t/db/sample_data/user_problems.csv', {
 			params: [],
@@ -259,7 +257,7 @@ describe('Problem Set store tests', () => {
 		});
 	});
 
-	describe('Testing Merged User Problems', () => {
+	describe('Testing Merged User Problems for a set in a course.', () => {
 		test('Testing merged user problems', () => {
 			const set_problem_store = useSetProblemStore();
 			const hw1_user_problems = precalc_merged_problems.filter(prob => prob.set_name === 'HW #1');
@@ -267,4 +265,19 @@ describe('Problem Set store tests', () => {
 				.toStrictEqual(cleanIDs(set_problem_store.merged_user_problems));
 		});
 	});
+
+	describe('Testing Merged User Problems for a user in a course.', () => {
+		test('Testing merged user problems', async () => {
+			const set_problem_store = useSetProblemStore();
+			const single_user_problems = precalc_merged_problems
+				.filter(prob => prob.username === 'homer');
+			const user_store = useUserStore();
+			// user_store.fetchGlobalCourseUsers(precalc_course.course_id);
+			const homer = await user_store.findMergedUser({ username: 'homer' });
+			await set_problem_store.fetchUserProblemsForUser(homer.user_id);
+			expect(cleanIDs(single_user_problems))
+				.toStrictEqual(cleanIDs(set_problem_store.merged_user_problems));
+		});
+	});
+
 });

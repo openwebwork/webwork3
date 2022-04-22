@@ -4,7 +4,7 @@
 
 import { Dictionary } from 'express-serve-static-core';
 import { generic, Model } from '.';
-import { parseBoolean, parseNonNegInt, parseUsername } from './parsers';
+import { MergeError, parseBoolean, parseNonNegInt, parseUsername } from './parsers';
 import { ProblemSetDates, ProblemSetParams, HomeworkSetParams, HomeworkSetDates,
 	ParseableHomeworkSetParams, ParseableHomeworkSetDates, QuizParams, QuizDates,
 	ParseableQuizDates, ParseableQuizParams, ParseableReviewSetDates,
@@ -462,12 +462,6 @@ export function parseMergedUserSet(user_set: ParseableMergedUserSet) {
 	}
 }
 
-class MergingError extends Error {
-	constructor(str: string) {
-		super(str);
-	}
-};
-
 /**
  * merge a ProblemSet and a UserSet in that the result is a MergedUserSet with overrides
  * taken from the UserSet.  Additional info is taken from the MergedUser instance.
@@ -479,11 +473,11 @@ class MergingError extends Error {
 export function mergeUserSet(set: ProblemSet, user_set: UserSet, user: MergedUser) {
 	// Check if the user_set is related to the Problem Set
 	if (set.set_id !== user_set.set_id) {
-		throw new MergingError('The User set is not related to the Problem set');
+		throw new MergeError('The User set is not related to the Problem set');
 	}
 	// Check if the user is related to the user set.
 	if (user_set.course_user_id !== user.course_user_id) {
-		throw new MergingError('The Merged user is not related to the user set.');
+		throw new MergeError('The Merged user is not related to the user set.');
 	}
 	const merged_user_set: ParseableMergedUserSet = {
 		user_id: user.user_id,

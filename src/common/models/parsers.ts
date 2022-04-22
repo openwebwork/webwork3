@@ -19,6 +19,16 @@ export class ParseError extends Error {
 }
 
 /**
+ * A MergeError class is a general error class for handling merge errors.
+ */
+
+export class MergeError extends Error {
+	constructor(str: string) {
+		super(str);
+	}
+};
+
+/**
  * NonNegIntException is thrown when the input is not an nonnegative integer.
  */
 

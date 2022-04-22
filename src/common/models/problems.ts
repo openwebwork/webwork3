@@ -1,6 +1,7 @@
-import { parseNonNegDecimal, parseNonNegInt, parseUsername } from './parsers';
+import { MergeError, parseNonNegDecimal, parseNonNegInt, parseUsername } from './parsers';
 import { Model, Dictionary, generic } from '.';
 import { RenderParams, ParseableRenderParams } from './renderer';
+import { MergedUserSet } from './user_sets';
 
 export enum ProblemType {
 	LIBRARY = 'LIBRARY',
@@ -11,7 +12,7 @@ export enum ProblemType {
 }
 
 /**
- * This is a super class of all Problems.
+ * This is a super class of all Problems (Library, Set and User varieties).
  */
 export class Problem extends Model {
 	private _render_params = new RenderParams();
@@ -104,11 +105,9 @@ class ProblemLocationParams extends Model {
 	public set file_path(value: string | undefined) { this._file_path = value;}
 
 	public get problem_pool_id() : number | undefined { return this._problem_pool_id; }
-	public set problem_pool_id(val: string | number | undefined)
-	{
+	public set problem_pool_id(val: string | number | undefined) {
 		if (val != undefined) this._problem_pool_id = parseNonNegInt(val);
 	}
-
 }
 
 /**
@@ -299,69 +298,10 @@ export class SetProblem extends Problem {
 		return p;
 	}
 }
-interface ParseableUserProblemParams {
-	weight?: number | string;
-	library_id?: number | string;
-	file_path?: string;
-	problem_pool_id?: number | string;
-}
-
-/**
- * This class is the problem params for a UserProblem for use in overriding any
- * SetProblem parameters.   This includes informatio about the problem location and
- * the weight.
- */
-
-class UserProblemParams extends Model {
-	private _weight?: number;
-	private _library_id?: number;
-	private _file_path?: string;
-	private _problem_pool_id?: number;
-
-	get all_field_names(): string[] {
-		return ['weight', 'library_id', 'file_path', 'problem_pool_id'];
-	}
-
-	get param_fields() { return [];}
-
-	constructor(params: ParseableUserProblemParams = {}) {
-		super();
-		this.set(params);
-	}
-
-	set(params: ParseableUserProblemParams) {
-		if (params.weight != undefined) this.weight = params.weight;
-		if (params.library_id != undefined) this.library_id = params.library_id;
-		if (params.file_path != undefined) this.file_path = params.file_path;
-		if (params.problem_pool_id != undefined) this.problem_pool_id = params.problem_pool_id;
-
-	}
-
-	public get weight(): number | undefined { return this._weight; }
-	public set weight(val: number | string | undefined) {
-		if (val != undefined) this._weight = parseNonNegDecimal(val);
-	}
-
-	public get library_id() : number | undefined { return this._library_id; }
-	public set library_id(val: string | number | undefined) {
-		if (val != undefined) this._library_id = parseNonNegInt(val);
-	}
-
-	public get file_path() : string | undefined { return this._file_path;}
-	public set file_path(val: string | undefined) {
-		if (val != undefined) this._file_path = val;
-	}
-
-	public get problem_pool_id() : number | undefined { return this._problem_pool_id; }
-	public set problem_pool_id(val: string | number | undefined) {
-		if (val != undefined) this._problem_pool_id = parseNonNegInt(val);
-	}
-
-}
 
 export interface ParseableUserProblem {
 	render_params?: RenderParams;
-	problem_params?: UserProblemParams;
+	problem_params?: SetProblemParams;
 	problem_id?: number | string;
 	user_problem_id?: number | string;
 	user_set_id?: number | string;
@@ -374,7 +314,7 @@ export interface ParseableUserProblem {
  * The class UserProblem is used for problems assigned to Users
  */
 export class UserProblem extends Problem {
-	private _problem_params = new UserProblemParams();
+	private _problem_params = new SetProblemParams();
 	private _user_problem_id = 0;
 	private _problem_id = 0;
 	private _user_set_id = 0;
@@ -453,9 +393,8 @@ export class UserProblem extends Problem {
 // This next section is related to MergedUserProblems
 
 export interface ParseableMergedUserProblem {
-	render_params?: RenderParams;
-	user_problem_params?: UserProblemParams;
-	set_problem_params?: SetProblemParams;
+	render_params?: ParseableRenderParams;
+	problem_params?: ParseableSetProblemParams;
 	problem_id?: number | string;
 	user_problem_id?: number | string;
 	user_id?: number | string;
@@ -473,8 +412,7 @@ export interface ParseableMergedUserProblem {
  * The class MergedUserProblem is used for merging User and set problems
  */
 export class MergedUserProblem extends Problem {
-	private _set_problem_params = new SetProblemParams();
-	private _user_problem_params = new UserProblemParams();
+	private _problem_params = new SetProblemParams();
 	private _user_problem_id = 0;
 	private _problem_id = 0;
 	private _user_id = 0;
@@ -491,8 +429,8 @@ export class MergedUserProblem extends Problem {
 		super(params);
 		this.set(params);
 		this._problem_type = ProblemType.MERGED_USER;
-		if (params.set_problem_params) this.set_problem_params.set(params.set_problem_params);
-		if (params.user_problem_params) this.user_problem_params.set(params.user_problem_params);
+		if (params.problem_params) this._problem_params.set(params.problem_params);
+
 		// For merged user problems, preview and check answer are on my default.
 		this.setRenderParams({
 			showSolutions: false,
@@ -513,25 +451,20 @@ export class MergedUserProblem extends Problem {
 		if (params.status != undefined) this.status = params.status;
 		if (params.problem_version != undefined) this.problem_version = params.problem_version;
 		if (params.problem_number != undefined) this.problem_number = params.problem_number;
-		if (params.username != undefined) this.username = params.username;
-		if (params.set_name != undefined) this.set_name = params.set_name;
+		if (params.username) this.username = params.username;
+		if (params.set_name) this.set_name = params.set_name;
 	}
 
-	// Need to determine a good way to do overrides. That is if
-	// user_problem_params.file_path is defined use it if not use set_problem_params.file_path
-
-	get set_problem_params() { return this._set_problem_params; }
-	get user_problem_params() { return this._user_problem_params; }
-
 	static ALL_FIELDS = ['user_problem_id', 'problem_id', 'user_id', 'user_set_id', 'seed', 'status',
-		'problem_number', 'username', 'set_name', 'problem_version', 'set_problem_params',
-		'user_problem_params', 'render_params'];
+		'problem_number', 'username', 'set_name', 'problem_version', 'problem_params', 'render_params'];
 
 	get all_field_names() {
 		return MergedUserProblem.ALL_FIELDS;
 	}
 
-	get param_fields() { return ['set_problem_params', 'user_problem_params', 'render_params']; }
+	get param_fields() { return ['problem_params', 'render_params']; }
+
+	public get problem_params() { return this._problem_params; }
 
 	public get problem_id() : number { return this._problem_id; }
 	public set problem_id(val: string | number) { this._problem_id = parseNonNegInt(val);}
@@ -571,7 +504,7 @@ export class MergedUserProblem extends Problem {
 	}
 
 	path(): string {
-		return this.user_problem_params.file_path ?? this.set_problem_params.file_path ?? '';
+		return this._problem_params.file_path ?? '';
 	}
 
 	requestParams(): ParseableRenderParams {
@@ -589,4 +522,48 @@ export function parseProblem(problem: ParseableProblem, type: 'Library' | 'Set' 
 	case 'Set': return new SetProblem(problem as ParseableSetProblem);
 	case 'User': return new UserProblem(problem as ParseableUserProblem);
 	}
+}
+
+/**
+ * merge a ProblemSet and a UserSet in that the result is a MergedUserSet with overrides
+ * taken from the UserSet.  Additional info is taken from the MergedUser instance.
+ * @param {SetProblem} set_problem - a set problem
+ * @param {UserProblem} user_problem - a user problem that will override the problem parameters.
+ * @param {MergedUser} user - the user associated with the problem.
+ * @param {MergedUserSet} user_set - the merged user set that the problem is in.
+ * @returns a MergedUserProblem with the appropriate overrides.
+ */
+export function mergeUserProblem(set_problem: SetProblem, user_problem: UserProblem,
+	user_set: MergedUserSet) {
+	// Check if the User Problem is related to the Set Problem
+	if (set_problem.problem_id !== user_problem.problem_id) {
+		throw new MergeError('The User set is not related to the Problem set');
+	}
+	// Check if the user problem is related to the user set.
+	if (user_set.user_set_id !== user_problem.user_set_id) {
+		throw new MergeError('The Merged user is not related to the user set.');
+	}
+	const merged_user_problem: ParseableMergedUserProblem = {
+		problem_id: user_problem.problem_id,
+		user_problem_id: user_problem.user_problem_id,
+		user_id: user_set.user_id,
+		set_id: user_set.set_id,
+		user_set_id: user_set.user_set_id,
+		username: user_set.username,
+		set_name: user_set.set_name,
+		problem_version: user_problem.problem_version,
+		problem_number: set_problem.problem_number,
+		status: user_problem.status,
+		seed: user_problem.seed
+	};
+
+	// override set params
+	const params = set_problem.problem_params.toObject() as Dictionary<generic>;
+	const user_params = user_problem.problem_params.toObject() as Dictionary<generic>;
+	Object.keys(user_params).forEach(key => {
+		if (user_params[key] !== undefined) params[key] = user_params[key];
+	});
+	merged_user_problem.problem_params = params;
+
+	return new MergedUserProblem(merged_user_problem);
 }

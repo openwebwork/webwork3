@@ -4,10 +4,9 @@ import { api } from 'boot/axios';
 import { defineStore } from 'pinia';
 
 import { ParseableProblem, parseProblem, SetProblem, ParseableSetProblem,
-	UserProblem, ParseableUserProblem, MergedUserProblem } from 'src/common/models/problems';
+	UserProblem, ParseableUserProblem, mergeUserProblem } from 'src/common/models/problems';
 import { useSessionStore } from 'src/stores/session';
 import { useProblemSetStore } from './problem_sets';
-import { useUserStore } from './users';
 
 export interface SetProblemsState {
 	set_problems: SetProblem[];
@@ -66,17 +65,12 @@ export const useSetProblemStore = defineStore('set_problems', {
 		 */
 		merged_user_problems: (state) => {
 			const problem_set_store = useProblemSetStore();
-			const user_store = useUserStore();
-			return state.user_problems.map(user_prob => {
-				const user_set = problem_set_store.findMergedUserSet({ user_set_id: user_prob.user_set_id });
-				const user = user_store.findMergedUser({ course_user_id: user_set.course_user_id });
-				const set_prob = state.set_problems.find(prob => prob.problem_id === user_prob.problem_id);
-				return new MergedUserProblem(Object.assign(
-					set_prob?.toObject() ?? {},
-					user_prob.toObject(),
-					user.toObject(),
-					user_set.toObject()
-				));
+			return state.user_problems.map(user_problem => {
+				const user_set = problem_set_store.findMergedUserSet({ user_set_id: user_problem.user_set_id });
+				const set_problem = state.set_problems.find(prob => prob.problem_id === user_problem.problem_id)
+					?? new SetProblem();
+				// Not sure why the first two arguments need to be cast.
+				return mergeUserProblem(set_problem as SetProblem, user_problem as UserProblem, user_set);
 			});
 		}
 	},
@@ -150,6 +144,15 @@ export const useSetProblemStore = defineStore('set_problems', {
 		async fetchUserProblems(set_id: number) {
 			const course_id = useSessionStore().course.course_id;
 			const response = await api.get(`courses/${course_id}/sets/${set_id}/user-problems`);
+			this.user_problems = (response.data as ParseableUserProblem[]).map(prob => new UserProblem(prob));
+		},
+		/**
+		 * Fetch all user problems for a user in a course (stored in the session)
+		 * @param {number} user_id - the database id of the user.
+		 */
+		 async fetchUserProblemsForUser(user_id: number) {
+			const course_id = useSessionStore().course.course_id;
+			const response = await api.get(`courses/${course_id}/users/${user_id}/problems`);
 			this.user_problems = (response.data as ParseableUserProblem[]).map(prob => new UserProblem(prob));
 		},
 		/**
