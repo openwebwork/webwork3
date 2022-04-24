@@ -497,16 +497,16 @@ export function mergeUserSet(set: ProblemSet, user_set: UserSet, user: MergedUse
 	};
 
 	// override set params
-	const params = set.set_params.toObject() as Dictionary<generic>;
-	const user_params = user_set.set_params.toObject() as Dictionary<generic>;
+	const params = set.set_params.toObject();
+	const user_params = user_set.set_params.toObject();
 	Object.keys(user_params).forEach(key => {
 		if (user_params[key] !== undefined) params[key] = user_params[key];
 	});
 	merged_user_set.set_params = params;
 
 	// override set dates
-	const dates = set.set_dates.toObject() as Dictionary<generic>;
-	const user_dates = user_set.set_dates.toObject() as Dictionary<generic>;
+	const dates = set.set_dates.toObject();
+	const user_dates = user_set.set_dates.toObject();
 	Object.keys(user_dates).forEach(key => {
 		if (user_dates[key] != undefined) dates[key] = user_dates[key];
 	});
