@@ -2,8 +2,7 @@
  * This defines UserSets and MergedUserSets
  */
 
-import { Dictionary } from 'express-serve-static-core';
-import { generic, Model } from '.';
+import { Model } from '.';
 import { parseBoolean, parseNonNegInt, parseUsername } from './parsers';
 import { ProblemSetDates, ProblemSetParams, HomeworkSetParams, HomeworkSetDates,
 	ParseableHomeworkSetParams, ParseableHomeworkSetDates, QuizParams, QuizDates,
