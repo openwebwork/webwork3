@@ -273,11 +273,10 @@ describe('Problem Set store tests', () => {
 				.filter(prob => prob.username === 'homer');
 			const user_store = useUserStore();
 			// user_store.fetchGlobalCourseUsers(precalc_course.course_id);
-			const homer = await user_store.findMergedUser({ username: 'homer' });
+			const homer = user_store.findMergedUser({ username: 'homer' });
 			await set_problem_store.fetchUserProblemsForUser(homer.user_id);
 			expect(cleanIDs(single_user_problems))
 				.toStrictEqual(cleanIDs(set_problem_store.merged_user_problems));
 		});
 	});
-
 });

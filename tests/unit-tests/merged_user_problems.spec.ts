@@ -48,7 +48,7 @@ describe('Testing Merged User Problems', () => {
 		test('Check that calling all_fields() and params() is correct', () => {
 			const prob = new MergedUserProblem();
 			const user_problem_fields = ['render_params', 'problem_params', 'user_problem_id',
-			'problem_id', 'user_id', 'user_set_id', 'seed', 'status', 'problem_version',
+				'problem_id', 'user_id', 'user_set_id', 'seed', 'status', 'problem_version',
 				'problem_number', 'username', 'set_name'];
 
 			expect(prob.all_field_names.sort()).toStrictEqual(user_problem_fields.sort());
