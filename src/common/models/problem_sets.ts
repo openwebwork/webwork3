@@ -427,9 +427,8 @@ export class ReviewSetDates extends Model {
 	}
 
 	public isValid(): boolean {
-		let valid = true;
-		if (this.open && this.closed && this.open > this.closed) valid = false;
-		return valid;
+		if (this.open && this.closed && this.open > this.closed) return false;
+		return true;
 	}
 
 	public clone(): ReviewSetDates {
