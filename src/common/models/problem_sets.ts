@@ -154,10 +154,9 @@ export class QuizDates extends Model {
 	}
 
 	public isValid() {
-		let valid = true;
-		if (this.open && this.due && this.open > this. due) valid = false;
-		if (this.due && this.answer && this.due > this.answer) valid = false;
-		return valid;
+		if (this.open && this.due && this.open > this. due) return false;
+		if (this.due && this.answer && this.due > this.answer) return false;
+		return true;
 	}
 
 	public clone() {
