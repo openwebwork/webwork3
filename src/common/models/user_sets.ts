@@ -3,45 +3,65 @@
  */
 
 import { Model } from '.';
-import { parseBoolean, parseNonNegInt, parseUsername } from './parsers';
+import { MergeError, parseBoolean, parseNonNegInt, parseUsername } from './parsers';
 import { ProblemSetDates, ProblemSetParams, HomeworkSetParams, HomeworkSetDates,
 	ParseableHomeworkSetParams, ParseableHomeworkSetDates, QuizParams, QuizDates,
 	ParseableQuizDates, ParseableQuizParams, ParseableReviewSetDates,
 	ParseableReviewSetParams, ReviewSetDates, ReviewSetParams, ProblemSetType,
-	ProblemSet, ParseableProblemSetParams, ParseableProblemSetDates } from './problem_sets';
+	ProblemSet, ParseableProblemSetParams, ParseableProblemSetDates, HWSetDatesBase,
+	QuizDatesBase, ReviewSetDatesBase } from './problem_sets';
 import { MergedUser } from './users';
 
-export interface ParseableUserSet {
+// The ParseableUserSet type is the same as the ParseableProblemSet type
+// with additional fields.
+
+export type ParseableUserSet = {
 	user_set_id?: number | string;
-	set_id?: number | string;
-	course_user_id?: number | string;
-	set_type?: string;
 	set_version?: number | string;
-	set_visible?: number | string | boolean;
+	course_user_id?: number | string;
+	set_id?: number | string;
+	set_type?: string;
+	set_visible?: string | number | boolean;
 	set_params?: ParseableProblemSetParams;
 	set_dates?: ParseableProblemSetDates;
 }
 
+export class UserHomeworkSetDates extends HWSetDatesBase {
+	clone(): UserHomeworkSetDates {
+		return new UserHomeworkSetDates(this.toObject());
+	}
+}
+
+export class UserQuizDates extends QuizDatesBase {
+	clone(): UserQuizDates {
+		return new UserQuizDates(this.toObject());
+	}
+}
+
+export class UserReviewSetDates extends ReviewSetDatesBase {
+	public clone(): UserReviewSetDates {
+		return new UserReviewSetDates(this.toObject());
+	}
+}
+
+// The UserSet is used for overrides for a ProblemSet.  Note: this has changed recently
+// to reflect that the UserSet should be independent of a ProblemSet (not override it).
 export class UserSet extends Model {
 	private _user_set_id = 0;
-	private _set_id = 0;
 	private _course_user_id = 0;
+	private _set_id = 0;
+	protected _set_type = ProblemSetType.UNKNOWN;
 	private _set_version = 1;
-	private _set_visible?: boolean;
-	protected _set_type: ProblemSetType = ProblemSetType.UNKNOWN;
+	private _set_visible = false;
 
 	get set_dates(): ProblemSetDates { throw 'The subclass must override set_dates()'; }
 	get set_params(): ProblemSetParams { throw 'The subclass must override set_dates()'; }
 
 	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_visible'];
 
-	get all_field_names(): string[] {
-		return UserSet.ALL_FIELDS;
-	}
+	get all_field_names(): string[] { return UserSet.ALL_FIELDS; }
 
-	get param_fields(): string[] {
-		return [];
-	}
+	get param_fields(): string [] { return []; }
 
 	// This should only be readable.  There is no setter.
 	get set_type() { return this._set_type; }
@@ -52,11 +72,11 @@ export class UserSet extends Model {
 	}
 
 	set(params: ParseableUserSet) {
-		if (params.user_set_id) this.user_set_id = params.user_set_id;
-		if (params.set_id) this.set_id = params.set_id;
-		if (params.course_user_id) this.course_user_id = params.course_user_id;
-		if (params.set_version) this.set_version = params.set_version;
-		if (params.set_visible) this._set_visible = parseBoolean(params.set_visible);
+		if (params.user_set_id != undefined) this.user_set_id = params.user_set_id;
+		if (params.course_user_id != undefined) this.course_user_id = params.course_user_id;
+		if (params.set_version != undefined) this.set_version = params.set_version;
+		if (params.set_id != undefined) this.set_id = params.set_id;
+		if (params.set_visible != undefined) this.set_visible = params.set_visible;
 	}
 
 	public get user_set_id(): number { return this._user_set_id;}
@@ -71,10 +91,8 @@ export class UserSet extends Model {
 	public get set_version(): number { return this._set_version;}
 	public set set_version(value: number | string) { this._set_version = parseNonNegInt(value);}
 
-	public get set_visible(): boolean | undefined { return this._set_visible;}
-	public set set_visible(value: number | string | boolean | undefined) {
-		if (value) this._set_visible = parseBoolean(value);
-	}
+	public get set_visible(): boolean { return this._set_visible; }
+	public set set_visible(value: number | string | boolean) { this._set_visible = parseBoolean(value);}
 
 	public hasValidDates(): boolean {
 		throw 'The subclass must override the hasValidDates() method.';
@@ -89,36 +107,28 @@ export class UserSet extends Model {
  * UserHomeworkSet is a HomeworkSet for a User
  */
 
-export interface ParseableUserHomeworkSet {
-	user_set_id?: number | string;
-	set_id?: number | string;
-	course_user_id?: number | string;
-	set_version?: number | string;
-	set_visible?: number | string | boolean;
-	set_params?: ParseableHomeworkSetParams;
-	set_dates?: ParseableHomeworkSetDates;
-}
+export type ParseableUserHomeworkSet = ParseableUserSet &
+ {
+	 set_params?: ParseableHomeworkSetParams;
+	 set_dates?: ParseableHomeworkSetDates;
+ }
 
 export class UserHomeworkSet extends UserSet {
 	private _set_params = new HomeworkSetParams();
-	private _set_dates = new HomeworkSetDates();
+	private _set_dates = new UserHomeworkSetDates();
 
-	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
-		'set_visible', 'set_params', 'set_dates'];
+	static ALL_FIELDS = [ ...UserSet.ALL_FIELDS, ...['set_params', 'set_dates']];
 
-	get all_field_names(): string[] {
-		return UserHomeworkSet.ALL_FIELDS;
-	}
-	get param_fields(): string[] {
-		return ['set_params', 'set_dates'];
-	}
+	get all_field_names(): string[] { return UserHomeworkSet.ALL_FIELDS; }
+	get param_fields(): string[] { return ['set_params', 'set_dates']; }
+
 	get set_params() { return this._set_params;}
 	get set_dates() { return this._set_dates;}
 
 	constructor(params: ParseableUserHomeworkSet = {}) {
 		super(params as ParseableUserSet);
 		this._set_type = ProblemSetType.HW;
-		if (params.set_params) this._set_params.set(params.set_params);
+		if (params.set_params) this._set_params.set(params.set_params as ParseableHomeworkSetParams);
 		if (params.set_dates) this._set_dates.set(params.set_dates);
 	}
 
@@ -135,37 +145,28 @@ export class UserHomeworkSet extends UserSet {
  * UserQuiz is a Quiz for a User
  */
 
-export interface ParseableUserQuiz {
-	user_set_id?: number | string;
-	set_id?: number | string;
-	course_user_id?: number | string;
-	set_version?: number | string;
-	set_visible?: number | string | boolean;
+export type ParseableUserQuiz  = ParseableUserSet &
+{
 	set_params?: ParseableQuizParams;
 	set_dates?: ParseableQuizDates;
 }
 
 export class UserQuiz extends UserSet {
 	private _set_params = new QuizParams();
-	private _set_dates = new QuizDates();
+	private _set_dates = new UserQuizDates();
 
-	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
-		'set_visible', 'set_params', 'set_dates'];
+	static ALL_FIELDS = [ ...UserSet.ALL_FIELDS, ...['set_params', 'set_dates']];
 
-	get all_field_names(): string[] {
-		return UserQuiz.ALL_FIELDS;
-	}
+	get all_field_names(): string[] { return UserQuiz.ALL_FIELDS; }
 
 	get set_params() { return this._set_params;}
 	get set_dates() { return this._set_dates;}
-	get param_fields(): string[] {
-		return ['set_params', 'set_dates'];
-	}
+	get param_fields(): string[] { return ['set_params', 'set_dates']; }
 
 	constructor(params: ParseableUserQuiz = {}) {
 		super(params as ParseableUserSet);
 		this._set_type = ProblemSetType.QUIZ;
-		if (params.set_params) this._set_params.set(params.set_params);
+		if (params.set_params) this._set_params.set(params.set_params as ParseableQuizParams);
 		if (params.set_dates) this._set_dates.set(params.set_dates);
 	}
 
@@ -182,32 +183,23 @@ export class UserQuiz extends UserSet {
  * UserReviewSet is a ReviewSet for a User
  */
 
-export interface ParseableUserReviewSet {
-	user_set_id?: number | string;
-	set_id?: number | string;
-	course_user_id?: number | string;
-	set_version?: number | string;
-	set_visible?: number | string | boolean;
+export type ParseableUserReviewSet = ParseableUserSet &
+{
 	set_params?: ParseableReviewSetParams;
 	set_dates?: ParseableReviewSetDates;
 }
 
 export class UserReviewSet extends UserSet {
 	private _set_params = new ReviewSetParams();
-	private _set_dates = new ReviewSetDates({ open: 0, closed: 0 });
+	private _set_dates = new UserReviewSetDates();
 
-	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
-		'set_visible', 'set_params', 'set_dates'];
+	static ALL_FIELDS = [ ...UserSet.ALL_FIELDS, ...['set_params', 'set_dates']];
 
-	get all_field_names(): string[] {
-		return UserReviewSet.ALL_FIELDS;
-	}
+	get param_fields(): string[] { return ['set_params', 'set_dates']; }
+	get all_field_names(): string[] { return UserReviewSet.ALL_FIELDS; }
 
 	get set_params() { return this._set_params;}
 	get set_dates() { return this._set_dates;}
-	get param_fields(): string[] {
-		return ['set_params', 'set_dates'];
-	}
 
 	constructor(params: ParseableUserReviewSet = {}) {
 		super(params as ParseableUserSet);

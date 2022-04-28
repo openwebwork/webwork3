@@ -16,15 +16,16 @@ describe('Test User Quizzes', () => {
 			set_id: 0,
 			course_user_id: 0,
 			set_version: 1,
+			set_visible: false,
 			set_params: { timed: false, quiz_duration: 0 },
 			set_dates: {}
 		};
 
 		test('Create a UserQuiz', () => {
 			const user_quiz = new UserQuiz();
-			expect(user_quiz instanceof UserHomeworkSet).toBeFalsy();
-			expect(user_quiz instanceof UserQuiz).toBeTruthy();
-			expect(user_quiz instanceof UserSet).toBeTruthy();
+			expect(user_quiz).not.toBeInstanceOf(UserHomeworkSet);
+			expect(user_quiz).toBeInstanceOf(UserQuiz);
+			expect(user_quiz).toBeInstanceOf(UserSet);
 			expect(user_quiz.toObject()).toStrictEqual(default_user_quiz);
 		});
 
@@ -103,7 +104,7 @@ describe('Test User Quizzes', () => {
 				set_name: '',
 				username: '',
 				set_params: { timed: false, quiz_duration: 0 },
-				set_dates: {}
+				set_dates: { open:0, due: 0, answer: 0 }
 			};
 			expect(user_quiz.toObject()).toStrictEqual(defaults);
 		});

@@ -20,7 +20,7 @@ describe('Testing User Problems', () => {
 
 	const default_user_problem = {
 		render_params: { ...default_render_params },
-		problem_params: {},
+		problem_params: { weight: 1 },
 		user_problem_id: 0,
 		problem_id: 0,
 		user_set_id: 0,

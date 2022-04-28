@@ -13,6 +13,7 @@ describe('Test Generic User sets and Merged User sets', () => {
 		user_set_id: 0,
 		set_id: 0,
 		course_user_id: 0,
+		set_visible: false,
 		set_version: 1
 	};
 

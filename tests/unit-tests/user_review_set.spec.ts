@@ -15,13 +15,14 @@ describe('Testing user Review Sets and Merged Review Sets', () => {
 			set_id: 0,
 			course_user_id: 0,
 			set_version: 1,
+			set_visible: false,
 			set_params: { test_param: false },
-			set_dates: { open: 0, closed: 0 }
+			set_dates: {}
 		};
 
 		test('Create a default UserReviewSet', () => {
 			const user_review_set = new UserReviewSet();
-			expect(user_review_set instanceof UserHomeworkSet).toBeFalsy();
+			expect(user_review_set).not.toBeInstanceOf(UserHomeworkSet);
 			expect(user_review_set).toBeInstanceOf(UserReviewSet);
 			expect(user_review_set).toBeInstanceOf(UserSet);
 			expect(user_review_set.toObject()).toStrictEqual(default_user_review_set);
@@ -85,7 +86,7 @@ describe('Testing user Review Sets and Merged Review Sets', () => {
 					set_name: '',
 					username: '',
 					set_params: { test_param: false },
-					set_dates: {}
+					set_dates: { open: 0, closed: 0 }
 				};
 				expect(user_review_set.toObject()).toStrictEqual(defaults);
 			});

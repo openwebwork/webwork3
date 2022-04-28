@@ -159,7 +159,7 @@ export default defineComponent({
 					first_name: user.first_name ?? '',
 					last_name: user.last_name ?? '',
 					assigned: user_set != undefined,
-					set_dates: user_set == undefined ? new HomeworkSetDates() : user_set?.set_dates
+					set_dates: user_set == undefined ? (new HomeworkSetDates() as ProblemSetDates) : user_set?.set_dates
 				};
 			});
 		};

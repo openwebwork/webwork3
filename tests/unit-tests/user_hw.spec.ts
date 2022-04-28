@@ -17,6 +17,7 @@ describe('Test user Homework sets', () => {
 			set_id: 0,
 			course_user_id: 0,
 			set_version: 1,
+			set_visible: false,
 			set_params: { enable_reduced_scoring: false },
 			set_dates: {}
 		};
@@ -99,7 +100,7 @@ describe('Test user Homework sets', () => {
 			set_name: '',
 			username: '',
 			set_params: { enable_reduced_scoring: false },
-			set_dates: {}
+			set_dates: { open: 0, due: 0, answer: 0 }
 		};
 
 		test('Create a MergedUserHomeworkSet', () => {
@@ -257,6 +258,7 @@ describe('Test user Homework sets', () => {
 		test('create a merged user homework set with complete set of user set dates', () => {
 			user_set.set_dates.set({
 				open: 150,
+				due: 200,
 				answer: 500
 			});
 			const expected_user_hw = new MergedUserHomeworkSet({

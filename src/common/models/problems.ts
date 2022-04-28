@@ -89,20 +89,19 @@ class ProblemLocationParams extends Model {
 	}
 
 	set(params: ParseableLocationParams) {
-		if (params.library_id != undefined) this.library_id = params.library_id;
-		if (params.file_path != undefined) this.file_path = params.file_path;
-		if (params.problem_pool_id != undefined) this.problem_pool_id = params.problem_pool_id;
-
+		this.library_id = params.library_id;
+		this.file_path = params.file_path;
+		this.problem_pool_id = params.problem_pool_id;
 	}
 
 	public get library_id() : number | undefined { return this._library_id; }
-	public set library_id(val: string | number | undefined)
-	{
+	public set library_id(val: string | number | undefined) {
 		if (val != undefined) this._library_id = parseNonNegInt(val);
 	}
 
 	public get file_path() : string | undefined { return this._file_path;}
-	public set file_path(value: string | undefined) { this._file_path = value;}
+	public set file_path(value: string | undefined) {
+		if (value != undefined) this._file_path = value;}
 
 	public get problem_pool_id() : number | undefined { return this._problem_pool_id; }
 	public set problem_pool_id(val: string | number | undefined) {
@@ -202,10 +201,9 @@ export class SetProblemParams extends Model {
 
 	set(params: ParseableSetProblemParams) {
 		if (params.weight != undefined) this.weight = params.weight;
-		if (params.library_id != undefined) this.library_id = params.library_id;
-		if (params.file_path != undefined) this.file_path = params.file_path;
-		if (params.problem_pool_id != undefined) this.problem_pool_id = params.problem_pool_id;
-
+		this.library_id = params.library_id;
+		this.file_path = params.file_path;
+		this.problem_pool_id = params.problem_pool_id;
 	}
 
 	public get weight(): number { return this._weight; }
@@ -217,7 +215,9 @@ export class SetProblemParams extends Model {
 	}
 
 	public get file_path() : string | undefined { return this._file_path;}
-	public set file_path(value: string | undefined) { this._file_path = value;}
+	public set file_path(value: string | undefined) {
+		if (value != undefined) this._file_path = value;
+	}
 
 	public get problem_pool_id() : number | undefined { return this._problem_pool_id; }
 	public set problem_pool_id(val: string | number | undefined) {
