@@ -150,7 +150,7 @@ export const useSetProblemStore = defineStore('set_problems', {
 		 * Fetch all user problems for a user in a course (stored in the session)
 		 * @param {number} user_id - the database id of the user.
 		 */
-		 async fetchUserProblemsForUser(user_id: number) {
+		async fetchUserProblemsForUser(user_id: number) {
 			const course_id = useSessionStore().course.course_id;
 			const response = await api.get(`courses/${course_id}/users/${user_id}/problems`);
 			this.user_problems = (response.data as ParseableUserProblem[]).map(prob => new UserProblem(prob));
