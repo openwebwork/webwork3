@@ -165,7 +165,6 @@ sub getUserProblemsForSet ($self, %args) {
 	return @user_problems_to_return;
 }
 
-
 =head1 getUserProblemsForUser
 Get all user problems (or merged user problems) for one user in one course
 =head3 input

@@ -161,7 +161,7 @@ export default defineComponent({
 					assigned: user_set != undefined,
 					set_dates: user_set == undefined ? (new HomeworkSetDates() as ProblemSetDates) : user_set?.set_dates
 				};
-			});
+			}) as UserInfo[];
 		};
 
 		/**
@@ -359,7 +359,7 @@ export default defineComponent({
 						},
 					);
 				}
-				date_edit.value = problem_set.value.set_dates.clone();
+				date_edit.value = problem_set.value.set_dates.clone() as ProblemSetDates;
 			}
 		};
 
