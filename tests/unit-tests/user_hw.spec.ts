@@ -193,6 +193,12 @@ describe('Test user Homework sets', () => {
 			user_hw.set_dates.open = 100;
 			expect(user_hw.set_dates.open).toBe(100);
 
+			user_hw.set_dates.due = 800;
+			expect(user_hw.set_dates.due).toBe(800);
+
+			user_hw.set_dates.answer = 1000;
+			expect(user_hw.set_dates.answer).toBe(1000);
+
 			user_hw.set_dates.set({
 				open: 600,
 				due: 700,
@@ -211,6 +217,7 @@ describe('Test user Homework sets', () => {
 			expect(user_hw.hasValidDates()).toBeFalsy();
 
 			user_hw.set_dates.reduced_scoring = 650;
+			expect(user_hw.set_dates.reduced_scoring).toBe(650);
 			expect(user_hw.hasValidDates()).toBeTruthy();
 		});
 	});
@@ -238,13 +245,14 @@ describe('Test user Homework sets', () => {
 			course_user_id: 299
 		});
 
-		test('created a merged user homework set with empty user set dates', () => {
+		test('created a merged user homework set by merging homework and user sets.', () => {
 			const expected_user_hw = new MergedUserHomeworkSet({
 				user_id: 99,
 				course_user_id: 299,
 				username: 'homer',
 				set_name: 'HW #1',
 				set_id: 99,
+				set_visible: false,
 				set_dates: {
 					open: 100,
 					due: 200,
@@ -267,6 +275,7 @@ describe('Test user Homework sets', () => {
 				username: 'homer',
 				set_name: 'HW #1',
 				set_id: 99,
+				set_visible: false,
 				set_dates: {
 					open: 150,
 					due: 200,
@@ -286,6 +295,7 @@ describe('Test user Homework sets', () => {
 				username: 'homer',
 				set_name: 'HW #1',
 				set_id: 99,
+				set_visible: false,
 				set_dates: {
 					open: 150,
 					reduced_scoring: 175,

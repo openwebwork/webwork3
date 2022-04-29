@@ -179,6 +179,7 @@ describe('Test User Quizzes', () => {
 				course_user_id: 299,
 				username: 'homer',
 				set_name: 'Quiz #1',
+				set_visible: false,
 				set_id: 99,
 				set_dates: {
 					open: 100,
@@ -195,11 +196,12 @@ describe('Test User Quizzes', () => {
 				open: 150,
 				answer: 500
 			});
-			const expected_user_hw = new MergedUserQuiz({
+			const expected_user_quiz = new MergedUserQuiz({
 				user_id: 99,
 				course_user_id: 299,
 				username: 'homer',
 				set_name: 'Quiz #1',
+				set_visible: false,
 				set_id: 99,
 				set_dates: {
 					open: 150,
@@ -208,7 +210,7 @@ describe('Test User Quizzes', () => {
 				}
 			});
 			const merged_set = mergeUserSet(hw, user_set, user);
-			expect(expected_user_hw).toStrictEqual(merged_set);
+			expect(expected_user_quiz).toStrictEqual(merged_set);
 		});
 	});
 });

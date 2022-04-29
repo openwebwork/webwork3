@@ -8,9 +8,10 @@ import { ProblemSetDates, ProblemSetParams, HomeworkSetParams, HomeworkSetDates,
 	ParseableHomeworkSetParams, ParseableHomeworkSetDates, QuizParams, QuizDates,
 	ParseableQuizDates, ParseableQuizParams, ParseableReviewSetDates,
 	ParseableReviewSetParams, ReviewSetDates, ReviewSetParams, ProblemSetType,
-	ProblemSet, ParseableProblemSetParams, ParseableProblemSetDates, HWSetDatesBase,
-	QuizDatesBase, ReviewSetDatesBase } from './problem_sets';
+	ProblemSet, ParseableProblemSetParams, ParseableProblemSetDates } from './problem_sets';
 import { MergedUser } from './users';
+
+type UserSetDates = UserHomeworkSetDates | UserQuizDates | UserReviewSetDates;
 
 // The ParseableUserSet type is the same as the ParseableProblemSet type
 // with additional fields.
@@ -26,24 +27,6 @@ export type ParseableUserSet = {
 	set_dates?: ParseableProblemSetDates;
 }
 
-export class UserHomeworkSetDates extends HWSetDatesBase {
-	clone(): UserHomeworkSetDates {
-		return new UserHomeworkSetDates(this.toObject());
-	}
-}
-
-export class UserQuizDates extends QuizDatesBase {
-	clone(): UserQuizDates {
-		return new UserQuizDates(this.toObject());
-	}
-}
-
-export class UserReviewSetDates extends ReviewSetDatesBase {
-	public clone(): UserReviewSetDates {
-		return new UserReviewSetDates(this.toObject());
-	}
-}
-
 // The UserSet is used for overrides for a ProblemSet.  Note: this has changed recently
 // to reflect that the UserSet should be independent of a ProblemSet (not override it).
 export class UserSet extends Model {
@@ -54,7 +37,7 @@ export class UserSet extends Model {
 	private _set_version = 1;
 	private _set_visible = false;
 
-	get set_dates(): ProblemSetDates { throw 'The subclass must override set_dates()'; }
+	get set_dates(): UserSetDates { throw 'The subclass must override set_dates()'; }
 	get set_params(): ProblemSetParams { throw 'The subclass must override set_dates()'; }
 
 	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_visible'];
@@ -108,10 +91,67 @@ export class UserSet extends Model {
  */
 
 export type ParseableUserHomeworkSet = ParseableUserSet &
- {
-	 set_params?: ParseableHomeworkSetParams;
-	 set_dates?: ParseableHomeworkSetDates;
- }
+	{
+		set_params?: ParseableHomeworkSetParams;
+		set_dates?: ParseableHomeworkSetDates;
+	}
+
+export class UserHomeworkSetDates extends Model {
+	protected _open?: number;
+	protected _reduced_scoring?: number;
+	protected _due?: number;
+	protected _answer?: number;
+
+	get all_field_names(): string[] {
+		return ['open', 'reduced_scoring', 'due', 'answer'];
+	}
+	get param_fields(): string[] { return [];}
+
+	constructor(params: ParseableHomeworkSetDates = {}) {
+		super();
+		this.set(params);
+	}
+
+	set(params: ParseableHomeworkSetDates) {
+		this.open = params.open;
+		this.reduced_scoring = params.reduced_scoring;
+		this.due = params.due;
+		this.answer = params.answer;
+	}
+
+	public get open(): number | undefined { return this._open;}
+	public set open(value: number | string | undefined) {
+		if (value != undefined) this._open = parseNonNegInt(value);}
+
+	public get reduced_scoring(): number | undefined { return this._reduced_scoring;}
+	public set reduced_scoring(value: number | string | undefined) {
+		if (value != undefined) this._reduced_scoring = parseNonNegInt(value);
+	}
+
+	public get due(): number | undefined { return this._due;}
+	public set due(value: number | string | undefined) {
+		if (value != undefined) this._due = parseNonNegInt(value);
+	}
+
+	public get answer() : number | undefined { return this._answer;}
+	public set answer(value: number | string | undefined) {
+		if (value != undefined) this._answer = parseNonNegInt(value);
+	}
+
+	public isValid(params: { enable_reduced_scoring: boolean; }) {
+		if (params.enable_reduced_scoring && this.reduced_scoring == undefined) return false;
+		if (params.enable_reduced_scoring && this.reduced_scoring && this.open
+			&& this.open > this.reduced_scoring) return false;
+		if (params.enable_reduced_scoring && this.reduced_scoring && this.due
+			&& this.reduced_scoring > this.due) return false;
+		if (this.due && this.answer && this.due > this.answer) return false;
+		return true;
+	}
+
+	public clone(): UserHomeworkSetDates {
+		return new UserHomeworkSetDates(this.toObject());
+	}
+}
 
 export class UserHomeworkSet extends UserSet {
 	private _set_params = new HomeworkSetParams();
@@ -151,6 +191,53 @@ export type ParseableUserQuiz  = ParseableUserSet &
 	set_dates?: ParseableQuizDates;
 }
 
+export class UserQuizDates extends Model {
+	protected _open?: number;
+	protected _due?: number;
+	protected _answer?: number;
+
+	constructor(params: ParseableQuizDates = {}) {
+		super();
+		this.set(params);
+	}
+
+	set(params: ParseableQuizDates) {
+		if (params.open != undefined) this.open = params.open;
+		if (params.due != undefined) this.due = params.due;
+		if (params.answer != undefined) this.answer = params.answer;
+	}
+
+	get all_field_names(): string[] {
+		return ['open', 'due', 'answer'];
+	}
+	get param_fields(): string[] { return [];}
+
+	public get open(): number | undefined { return this._open;}
+	public set open(value: number | string | undefined) {
+		if (value != undefined) this._open = parseNonNegInt(value);
+	}
+
+	public get due(): number | undefined { return this._due;}
+	public set due(value: number | string | undefined) {
+		if (value != undefined) this._due = parseNonNegInt(value);
+	}
+
+	public get answer() : number | undefined { return this._answer;}
+	public set answer(value: number | string | undefined) {
+		if (value != undefined) this._answer = parseNonNegInt(value);
+	}
+
+	public isValid() {
+		if (this.open != undefined && this.due != undefined && this.open > this. due) return false;
+		if (this.due != undefined && this.answer != undefined && this.due > this.answer) return false;
+		return true;
+	}
+
+	public clone(): UserQuizDates {
+		return new UserQuizDates(this.toObject());
+	}
+}
+
 export class UserQuiz extends UserSet {
 	private _set_params = new QuizParams();
 	private _set_dates = new UserQuizDates();
@@ -187,6 +274,46 @@ export type ParseableUserReviewSet = ParseableUserSet &
 {
 	set_params?: ParseableReviewSetParams;
 	set_dates?: ParseableReviewSetDates;
+}
+
+export class UserReviewSetDates extends Model {
+	protected _open?: number;
+	protected _closed?: number;
+
+	constructor(params: ParseableReviewSetDates = {}) {
+		super();
+		this.set(params);
+	}
+
+	set(params: ParseableReviewSetDates) {
+		this.open = params.open;
+		this.closed = params.closed;
+	}
+
+	get all_field_names(): string[] {
+		return ['open', 'closed'];
+	}
+	get param_fields(): string[] { return [];}
+
+	public get open(): number | undefined { return this._open;}
+	public set open(value: number | string | undefined) {
+		if (value != undefined) this._open = parseNonNegInt(value);
+	}
+
+	public get closed(): number | undefined { return this._closed;}
+	public set closed(value: number | string | undefined) {
+		if (value != undefined) this._closed = parseNonNegInt(value);
+	}
+
+	public isValid(): boolean {
+		if (this.open != undefined && this.closed != undefined && this.open > this.closed) return false;
+		return true;
+	}
+
+	public clone(): UserReviewSetDates {
+		return new UserReviewSetDates(this.toObject());
+	}
+
 }
 
 export class UserReviewSet extends UserSet {
@@ -262,8 +389,7 @@ export class MergedUserSet extends Model {
 	get set_params(): ProblemSetParams { throw 'The subclass must override set_dates()'; }
 
 	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'user_id', 'set_version',
-		'set_visible', 'set_name', 'username',
-		'set_params', 'set_dates'];
+		'set_visible', 'set_name', 'username', 'set_params', 'set_dates'];
 
 	get all_field_names(): string[] {
 		return MergedUserSet.ALL_FIELDS;
@@ -308,9 +434,7 @@ export class MergedUserSet extends Model {
 
 	public get set_visible(): boolean | undefined { return this._set_visible; }
 	public set set_visible(value: number | string | boolean | undefined) {
-		if (value) {
-			this._set_visible = parseBoolean(value);
-		}
+		if (value != undefined) this._set_visible = parseBoolean(value);
 	}
 
 	public get set_name(): string { return this._set_name; }
@@ -328,19 +452,11 @@ export class MergedUserSet extends Model {
  * MergedUserHomeworkSet is joined HomeworkSet and a UserSet
  */
 
-export interface ParseableMergedUserHomeworkSet {
-	user_id?: number | string;
-	user_set_id?: number | string;
-	set_id?: number | string;
-	course_user_id?: number | string;
-	set_version?: number | string;
-	set_visible?: number | string | boolean;
-	set_name?: string;
-	username?: string;
-	set_type?: string;
-	set_params?: ParseableHomeworkSetParams;
-	set_dates?: ParseableHomeworkSetDates;
-}
+export type ParseableMergedUserHomeworkSet = ParseableMergedUserSet &
+	{
+		set_params?: ParseableHomeworkSetParams;
+		set_dates?: ParseableHomeworkSetDates;
+	}
 
 export class MergedUserHomeworkSet extends MergedUserSet {
 	private _set_params = new HomeworkSetParams();
@@ -369,19 +485,11 @@ export class MergedUserHomeworkSet extends MergedUserSet {
  * MergedUserQuiz is a Quiz merged with a UserSet
  */
 
-export interface ParseableMergedUserQuiz {
-	user_set_id?: number | string;
-	user_id?: number | string;
-	set_id?: number | string;
-	course_user_id?: number | string;
-	set_version?: number | string;
-	set_visible?: number | string | boolean;
-	set_name?: string;
-	username?: string;
-	set_params?: ParseableQuizParams;
-	set_dates?: ParseableQuizDates;
-	set_type?: string;
-}
+export type ParseableMergedUserQuiz = ParseableMergedUserSet &
+	{
+		set_dates?: ParseableQuizDates;
+		set_params?: ParseableQuizParams;
+	}
 
 export class MergedUserQuiz extends MergedUserSet {
 	private _set_params = new QuizParams();
@@ -410,15 +518,11 @@ export class MergedUserQuiz extends MergedUserSet {
  * MergedUserReviewSet is ReviewSet for a User
  */
 
-export interface ParseableMergedUserReviewSet {
-	user_set_id?: number | string;
-	set_id?: number | string;
-	course_user_id?: number | string;
-	set_version?: number | string;
-	set_type?: string;
-	set_params?: ParseableReviewSetParams;
-	set_dates?: ParseableReviewSetDates;
-}
+export type ParseableMergedUserReviewSet = ParseableMergedUserSet &
+	{
+		set_params?: ParseableReviewSetParams;
+		set_dates?: ParseableReviewSetDates;
+	}
 
 export class MergedUserReviewSet extends MergedUserSet {
 	private _set_params = new ReviewSetParams();
