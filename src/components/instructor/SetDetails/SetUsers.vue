@@ -53,7 +53,7 @@
 				<q-card-section class="q-pt-none">
 					<homework-dates-view
 						v-if="problem_set.set_type === 'HW'"
-						:dates="(date_edit as HomeworkSetDates)"
+						:dates="date_edit?.toObject()"
 						:reduced_scoring="reduced_scoring"
 						@update-dates="(val: HomeworkSetDates) => date_edit = val"
 					/>
@@ -388,6 +388,7 @@ export default defineComponent({
 			openOverrides: (course_user_id: number) => {
 				updateMergedUserSet(course_user_id);
 				date_edit.value = merged_user_set.value.set_dates;
+				console.log(date_edit.value);
 				edit_dialog.value = true;
 			},
 			assignToAllUsers,
