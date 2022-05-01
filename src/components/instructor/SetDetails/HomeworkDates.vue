@@ -38,21 +38,13 @@
 <script setup lang="ts">
 import { ref, watch, defineEmits, defineProps } from 'vue';
 import type { PropType } from 'vue';
-import { HomeworkSetDates, ParseableHomeworkSetDates } from 'src/common/models/problem_sets';
+import { HomeworkSetDates } from 'src/common/models/problem_sets';
 import DateTimeInput from 'components/common/DateTimeInput.vue';
 import { logger } from 'src/boot/logger';
-import { parseNonNegInt } from 'src/common/models/parsers';
-
-interface HWDates {
-	open: number;
-	reduced_scoring: number;
-	due: number;
-	answer: number;
-}
 
 const props = defineProps({
 	dates: {
-		type: Object as PropType<ParseableHomeworkSetDates>,
+		type: Object as PropType<HomeworkSetDates>,
 		required: true
 	},
 	reduced_scoring: {
@@ -60,20 +52,8 @@ const props = defineProps({
 	}
 });
 
-const emit = defineEmits(['updateDates']);
-const hw_dates = ref<HWDates>({ open:0, reduced_scoring: 0, due: 0, answer: 0 });
-
-const updateDates = () => {
-	hw_dates.value = {
-		open: parseNonNegInt(props.dates.open ?? 0),
-		reduced_scoring: parseNonNegInt(props.dates.reduced_scoring ?? 0),
-		due: parseNonNegInt(props.dates.due ?? 0),
-		answer: parseNonNegInt(props.dates.answer ?? 0)
-	};
-};
-
-updateDates();
-
+const emit = defineEmits(['updateDates', 'validDates']);
+const hw_dates = ref<HomeworkSetDates>(props.dates.clone());
 const error_message = ref<string>('');
 
 watch(() => props.dates, (new_dates, old_dates) => {
@@ -81,7 +61,7 @@ watch(() => props.dates, (new_dates, old_dates) => {
 	if (JSON.stringify(old_dates) === JSON.stringify(new_dates)) {
 		logger.debug('--- nevermind, this is fallout from the changes we just reported.');
 	} else {
-		updateDates();
+		hw_dates.value = props.dates.clone();
 	}
 });
 
@@ -98,10 +78,12 @@ watch(() => hw_dates.value, () => {
 	if (dates.isValid({ enable_reduced_scoring: props.reduced_scoring })) {
 		logger.debug('[HomeworkDates] dates are valid -> telling parent & clearing error message.');
 		error_message.value = '';
+		emit('validDates', true);
 		emit('updateDates', dates);
 	} else {
 		error_message.value = 'Dates must be in order.';
 		logger.debug(error_message.value);
+		emit('validDates', false);
 	};
 }, { deep: true });
 </script>

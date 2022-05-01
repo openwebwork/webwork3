@@ -90,7 +90,7 @@ export default defineComponent({
 					const updated_set = await problem_sets.updateSet(set);
 					updatePending.value = false;
 					const message = `The problem set with name ${updated_set?.set_name
-						?? 'UNKNOWN'} was created successfully.`;
+						?? 'UNKNOWN'} was updated successfully.`;
 					logger.debug(`[ProblemSetDetails/updateSet]: ${message}`);
 					$q.notify({
 						message,

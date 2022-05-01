@@ -40,7 +40,7 @@ export class UserSet extends Model {
 	get set_dates(): UserSetDates { throw 'The subclass must override set_dates()'; }
 	get set_params(): ProblemSetParams { throw 'The subclass must override set_dates()'; }
 
-	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_visible'];
+	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_visible', 'set_type'];
 
 	get all_field_names(): string[] { return UserSet.ALL_FIELDS; }
 
