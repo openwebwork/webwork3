@@ -389,7 +389,7 @@ export class MergedUserSet extends Model {
 	get set_params(): ProblemSetParams { throw 'The subclass must override set_dates()'; }
 
 	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'user_id', 'set_version',
-		'set_visible', 'set_name', 'username', 'set_params', 'set_dates'];
+		'set_visible', 'set_name', 'username', 'set_type', 'set_params', 'set_dates'];
 
 	get all_field_names(): string[] {
 		return MergedUserSet.ALL_FIELDS;

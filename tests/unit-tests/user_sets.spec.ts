@@ -14,7 +14,8 @@ describe('Test Generic User sets and Merged User sets', () => {
 		set_id: 0,
 		course_user_id: 0,
 		set_visible: false,
-		set_version: 1
+		set_version: 1,
+		set_type: 'UNKNOWN'
 	};
 
 	describe('Create User sets', () => {
@@ -23,15 +24,16 @@ describe('Test Generic User sets and Merged User sets', () => {
 			const user_set = new UserSet();
 			expect(user_set).toBeInstanceOf(UserSet);
 
-			// Since UserSet has 'set_params' and 'set_dates' as placeholds for subclasses,
+			// Since UserSet has 'set_params' and 'set_dates' as placeholders for subclasses,
 			// don't call them in the toObject.
 			// TODO: find a better way to handle this.
-			const fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_visible'];
+			const fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_visible', 'set_type'];
 			expect(user_set.toObject(fields)).toStrictEqual(default_user_set);
 		});
 
 		test('Check that calling all_fields() and params() is correct', () => {
-			const user_set_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_visible'];
+			const user_set_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
+				'set_visible', 'set_type'];
 			const user_set = new UserSet();
 
 			expect(user_set.all_field_names.sort()).toStrictEqual(user_set_fields.sort());

@@ -18,6 +18,7 @@ describe('Test user Homework sets', () => {
 			course_user_id: 0,
 			set_version: 1,
 			set_visible: false,
+			set_type: 'HW',
 			set_params: { enable_reduced_scoring: false },
 			set_dates: {}
 		};
@@ -31,7 +32,7 @@ describe('Test user Homework sets', () => {
 
 		test('Check that calling all_fields() and params() is correct', () => {
 			const hw_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
-				'set_visible', 'set_params', 'set_dates'];
+				'set_type', 'set_visible', 'set_params', 'set_dates'];
 			const hw = new UserHomeworkSet();
 
 			expect(hw.all_field_names.sort()).toStrictEqual(hw_fields.sort());
@@ -99,6 +100,7 @@ describe('Test user Homework sets', () => {
 			set_version: 1,
 			set_name: '',
 			username: '',
+			set_type: 'HW',
 			set_params: { enable_reduced_scoring: false },
 			set_dates: { open: 0, reduced_scoring: 0, due: 0, answer: 0 }
 		};
@@ -113,7 +115,7 @@ describe('Test user Homework sets', () => {
 
 		test('Check that calling all_fields() and params() is correct', () => {
 			const merged_user_hw_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
-				'user_id', 'set_visible', 'set_name', 'username', 'set_params', 'set_dates'];
+				'user_id', 'set_visible', 'set_name', 'set_type', 'username', 'set_params', 'set_dates'];
 			const hw = new MergedUserHomeworkSet();
 
 			expect(hw.all_field_names.sort()).toStrictEqual(merged_user_hw_fields.sort());
