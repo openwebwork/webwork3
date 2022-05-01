@@ -104,7 +104,6 @@ describe('Test User Quizzes', () => {
 			set_dates: { open:0, due: 0, answer: 0 }
 		};
 
-
 		test('Create a MergedUserQuiz', () => {
 			const user_quiz = new MergedUserQuiz();
 			expect(user_quiz).not.toBeInstanceOf(MergedUserHomeworkSet);
@@ -113,7 +112,6 @@ describe('Test User Quizzes', () => {
 
 			expect(user_quiz.toObject()).toStrictEqual(default_merged_quiz_params);
 		});
-
 
 		test('Check that calling all_fields() and params() is correct', () => {
 			const merged_user_quiz_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
@@ -133,7 +131,6 @@ describe('Test User Quizzes', () => {
 			expect(quiz.clone()).toBeInstanceOf(MergedUserQuiz);
 		});
 	});
-
 
 	describe('Update Merged user quizzes', () => {
 		test('Set params of a MergedUserQuiz', () => {
