@@ -160,8 +160,8 @@ is_deeply(
 my $user_set_v2_to_delete = $user_set_rs->deleteUserSet(
 	info => {
 		course_name => $user_set1_v2_params->{course_name},
-		set_name => $user_set1_v2_params->{set_name},
-		username => $user_set1_v2_params->{username},
+		set_name    => $user_set1_v2_params->{set_name},
+		username    => $user_set1_v2_params->{username},
 		set_version => $user_set1_v2_params->{set_version}
 	}
 );
@@ -173,8 +173,8 @@ is_deeply($user_set_v2_to_delete, $user_set1_v2, 'deleteUserSet: delete a versio
 my $user_set_v3_to_delete = $user_set_rs->deleteUserSet(
 	info => {
 		course_name => $user_set1_v3_params->{course_name},
-		set_name => $user_set1_v3_params->{set_name},
-		username => $user_set1_v3_params->{username},
+		set_name    => $user_set1_v3_params->{set_name},
+		username    => $user_set1_v3_params->{username},
 		set_version => $user_set1_v3_params->{set_version}
 	}
 );
@@ -182,10 +182,5 @@ my $user_set_v3_to_delete = $user_set_rs->deleteUserSet(
 removeIDs($user_set_v3_to_delete);
 delete $user_set_v3_to_delete->{set_visible} unless defined($user_set_v3_to_delete->{set_visible});
 is_deeply($user_set_v3_to_delete, $user_set1_v3, 'deleteUserSet: delete a versioned user set');
-
-
-
-
-
 
 done_testing;

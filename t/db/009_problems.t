@@ -352,8 +352,8 @@ is_deeply($updated_problem, $deleted_problem, "deleteSetProblem: delete one prob
 
 my $deleted_problem2 = $problem_rs->deleteSetProblem(
 	info => {
-		course_name => 'Precalculus',
-		set_name => 'HW #1',
+		course_name    => 'Precalculus',
+		set_name       => 'HW #1',
 		problem_number => $set_problem_to_delete->{problem_number},
 	}
 );
