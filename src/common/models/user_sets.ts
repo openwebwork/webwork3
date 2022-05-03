@@ -10,7 +10,7 @@ import { ProblemSetDates, ProblemSetParams, HomeworkSetParams, HomeworkSetDates,
 	ParseableQuizDates, ParseableQuizParams, ParseableReviewSetDates,
 	ParseableReviewSetParams, ReviewSetDates, ReviewSetParams, ProblemSetType,
 	ProblemSet, ParseableProblemSetParams, ParseableProblemSetDates } from './problem_sets';
-import { MergedUser } from './users';
+import { CourseUser } from './users';
 
 type UserSetDates = UserHomeworkSetDates | UserQuizDates | UserReviewSetDates;
 
@@ -28,9 +28,11 @@ export type ParseableDBUserSet = {
 	set_dates?: ParseableProblemSetDates;
 }
 
-// The DBUserSet is used for overrides for a ProblemSet and in the client-side model
-// of the UserSet on the database.  Note: this has changed recently
-// to reflect that the UserSet should be independent of a ProblemSet (not inherit from it).
+/**
+ * The DBUserSet is used for overrides for a ProblemSet and in the client-side model
+ * of the UserSet on the database.  Note: this has changed recently
+* to reflect that the UserSet should be independent of a ProblemSet (not inherit from it).
+*/
 export class DBUserSet extends Model {
 	private _user_set_id = 0;
 	private _course_user_id = 0;
@@ -42,10 +44,9 @@ export class DBUserSet extends Model {
 	get set_dates(): UserSetDates { throw 'The subclass must override set_dates()'; }
 	get set_params(): ProblemSetParams { throw 'The subclass must override set_dates()'; }
 
-	static ALL_FIELDS = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_visible'];
+	static ALL_FIELDS = ['user_set_id', 'set_id', 'set_type', 'course_user_id', 'set_version', 'set_visible'];
 
 	get all_field_names(): string[] { return DBUserSet.ALL_FIELDS; }
-
 	get param_fields(): string [] { return []; }
 
 	// This should only be readable.  There is no setter.
@@ -104,9 +105,7 @@ export class UserHomeworkSetDates extends Model {
 	protected _due?: number;
 	protected _answer?: number;
 
-	get all_field_names(): string[] {
-		return ['open', 'reduced_scoring', 'due', 'answer'];
-	}
+	get all_field_names(): string[] { return ['open', 'reduced_scoring', 'due', 'answer']; }
 	get param_fields(): string[] { return [];}
 
 	constructor(params: ParseableHomeworkSetDates = {}) {
@@ -184,10 +183,11 @@ export class DBUserHomeworkSet extends DBUserSet {
 }
 
 /**
- * UserQuiz is a Quiz for a User
+ * DBUserQuiz stores a user quiz that mimics that on the database. This is used
+ * in the store as a transition to the database.
  */
 
-export type ParseableUserQuiz  = ParseableDBUserSet &
+export type ParseableDBUserQuiz  = ParseableDBUserSet &
 {
 	set_params?: ParseableQuizParams;
 	set_dates?: ParseableQuizDates;
@@ -240,13 +240,13 @@ export class UserQuizDates extends Model {
 	}
 }
 
-export class UserQuiz extends DBUserSet {
+export class DBUserQuiz extends DBUserSet {
 	private _set_params = new QuizParams();
 	private _set_dates = new UserQuizDates();
 
 	static ALL_FIELDS = [ ...DBUserSet.ALL_FIELDS, ...['set_params', 'set_dates']];
 
-	get all_field_names(): string[] { return UserQuiz.ALL_FIELDS; }
+	get all_field_names(): string[] { return DBUserQuiz.ALL_FIELDS; }
 
 	get set_params() { return this._set_params;}
 	get set_dates() { return this._set_dates;}
@@ -264,15 +264,16 @@ export class UserQuiz extends DBUserSet {
 	}
 
 	public clone() {
-		return new UserQuiz(this.toObject());
+		return new DBUserQuiz(this.toObject());
 	}
 }
 
 /**
- * UserReviewSet is a ReviewSet for a User
+ * DBUserReviewSet stores a user review set that mimics that on the database. This is used
+ * in the store as a transition to the database.
  */
 
-export type ParseableUserReviewSet = ParseableDBUserSet &
+export type ParseableDBUserReviewSet = ParseableDBUserSet &
 {
 	set_params?: ParseableReviewSetParams;
 	set_dates?: ParseableReviewSetDates;
@@ -318,19 +319,19 @@ export class UserReviewSetDates extends Model {
 
 }
 
-export class UserReviewSet extends DBUserSet {
+export class DBUserReviewSet extends DBUserSet {
 	private _set_params = new ReviewSetParams();
 	private _set_dates = new UserReviewSetDates();
 
 	static ALL_FIELDS = [ ...DBUserSet.ALL_FIELDS, ...['set_params', 'set_dates']];
 
 	get param_fields(): string[] { return ['set_params', 'set_dates']; }
-	get all_field_names(): string[] { return UserReviewSet.ALL_FIELDS; }
+	get all_field_names(): string[] { return DBUserReviewSet.ALL_FIELDS; }
 
 	get set_params() { return this._set_params;}
 	get set_dates() { return this._set_dates;}
 
-	constructor(params: ParseableUserReviewSet = {}) {
+	constructor(params: ParseableDBUserReviewSet = {}) {
 		super(params as ParseableDBUserSet);
 		this._set_type = ProblemSetType.REVIEW_SET;
 		if (params.set_params) this._set_params.set(params.set_params);
@@ -342,7 +343,7 @@ export class UserReviewSet extends DBUserSet {
 	}
 
 	public clone() {
-		return new UserReviewSet(this.toObject());
+		return new DBUserReviewSet(this.toObject());
 	}
 }
 
@@ -350,16 +351,16 @@ export function parseDBUserSet(user_set: ParseableDBUserSet) {
 	if (user_set.set_type === 'HW') {
 		return new DBUserHomeworkSet(user_set as ParseableDBUserHomeworkSet);
 	} else if (user_set.set_type === 'QUIZ') {
-		return new UserQuiz(user_set as ParseableUserQuiz);
+		return new DBUserQuiz(user_set as ParseableDBUserQuiz);
 	} else if (user_set.set_type === 'REVIEW') {
-		return new UserReviewSet(user_set as ParseableUserReviewSet);
+		return new DBUserReviewSet(user_set as ParseableDBUserReviewSet);
 	} else {
 		return new DBUserSet(user_set);
 	}
 }
 
 /**
- * MergedUserSet is a structure that is a joined version of a UserSet and a ProblemSet
+ * UserSet is a structure that is a joined version of a DBUserSet and a ProblemSet
  */
 
 export interface ParseableUserSet {
@@ -376,7 +377,7 @@ export interface ParseableUserSet {
 	set_dates?: ParseableProblemSetDates;
 }
 
-export class MergedUserSet extends Model {
+export class UserSet extends Model {
 	private _user_set_id = 0;
 	private _set_id = 0;
 	private _course_user_id = 0;
@@ -394,7 +395,7 @@ export class MergedUserSet extends Model {
 		'set_visible', 'set_name', 'username', 'set_params', 'set_dates'];
 
 	get all_field_names(): string[] {
-		return MergedUserSet.ALL_FIELDS;
+		return UserSet.ALL_FIELDS;
 	}
 
 	get param_fields(): string[] {
@@ -445,7 +446,7 @@ export class MergedUserSet extends Model {
 	public get username(): string { return this._username; }
 	public set username(value: string) { this._username = parseUsername(value);}
 
-	clone(): MergedUserSet {
+	clone(): UserSet {
 		throw 'the clone() method should be overridden in a subclass of MergedUserSet';
 	}
 }
@@ -454,20 +455,20 @@ export class MergedUserSet extends Model {
  * MergedUserHomeworkSet is joined HomeworkSet and a UserSet
  */
 
-export type ParseableMergedUserHomeworkSet = ParseableUserSet &
+export type ParseableUserHomeworkSet = ParseableUserSet &
 	{
 		set_params?: ParseableHomeworkSetParams;
 		set_dates?: ParseableHomeworkSetDates;
 	}
 
-export class MergedUserHomeworkSet extends MergedUserSet {
+export class UserHomeworkSet extends UserSet {
 	private _set_params = new HomeworkSetParams();
 	private _set_dates = new HomeworkSetDates();
 
 	get set_params() { return this._set_params;}
 	get set_dates() { return this._set_dates;}
 
-	constructor(params: ParseableMergedUserHomeworkSet = {}) {
+	constructor(params: ParseableUserHomeworkSet = {}) {
 		super(params as ParseableUserSet);
 		this._set_type = 'HW';
 		if (params.set_params) this.set_params.set(params.set_params);
@@ -478,8 +479,8 @@ export class MergedUserHomeworkSet extends MergedUserSet {
 		return this.set_dates.isValid({ enable_reduced_scoring: this.set_params.enable_reduced_scoring });
 	}
 
-	public clone(): MergedUserHomeworkSet {
-		return new MergedUserHomeworkSet(this.toObject());
+	public clone(): UserHomeworkSet {
+		return new UserHomeworkSet(this.toObject());
 	}
 }
 
@@ -487,20 +488,20 @@ export class MergedUserHomeworkSet extends MergedUserSet {
  * MergedUserQuiz is a Quiz merged with a UserSet
  */
 
-export type ParseableMergedUserQuiz = ParseableUserSet &
+export type ParseableUserQuiz = ParseableUserSet &
 	{
 		set_dates?: ParseableQuizDates;
 		set_params?: ParseableQuizParams;
 	}
 
-export class MergedUserQuiz extends MergedUserSet {
+export class UserQuiz extends UserSet {
 	private _set_params = new QuizParams();
 	private _set_dates = new QuizDates();
 
 	get set_params() { return this._set_params;}
 	get set_dates() { return this._set_dates;}
 
-	constructor(params: ParseableMergedUserQuiz = {}) {
+	constructor(params: ParseableUserQuiz = {}) {
 		super(params as ParseableUserSet);
 		this._set_type = 'QUIZ';
 		if (params.set_params) this._set_params.set(params.set_params);
@@ -512,28 +513,28 @@ export class MergedUserQuiz extends MergedUserSet {
 	}
 
 	public clone() {
-		return new MergedUserQuiz(this.toObject());
+		return new UserQuiz(this.toObject());
 	}
 }
 
 /**
- * MergedUserReviewSet is ReviewSet for a User
+ * UserReviewSet is a join between a DBUserReviewSet and a ReviewSet
  */
 
-export type ParseableMergedUserReviewSet = ParseableUserSet &
+export type ParseableUserReviewSet = ParseableUserSet &
 	{
 		set_params?: ParseableReviewSetParams;
 		set_dates?: ParseableReviewSetDates;
 	}
 
-export class MergedUserReviewSet extends MergedUserSet {
+export class UserReviewSet extends UserSet {
 	private _set_params = new ReviewSetParams();
 	private _set_dates = new ReviewSetDates();
 
 	get set_params() { return this._set_params;}
 	get set_dates() { return this._set_dates;}
 
-	constructor(params: ParseableMergedUserReviewSet = {}) {
+	constructor(params: ParseableUserReviewSet = {}) {
 		super(params as ParseableUserSet);
 		this._set_type = 'REVIEW';
 		if (params.set_params) this._set_params.set(params.set_params);
@@ -545,17 +546,17 @@ export class MergedUserReviewSet extends MergedUserSet {
 	}
 
 	public clone() {
-		return new MergedUserReviewSet(this.toObject());
+		return new UserReviewSet(this.toObject());
 	}
 }
 
 export function parseUserSet(user_set: ParseableUserSet) {
 	if (user_set.set_type === 'HW') {
-		return new MergedUserHomeworkSet(user_set as ParseableMergedUserHomeworkSet);
+		return new UserHomeworkSet(user_set as ParseableUserHomeworkSet);
 	} else if (user_set.set_type === 'QUIZ') {
-		return new MergedUserQuiz(user_set as ParseableMergedUserQuiz);
+		return new UserQuiz(user_set as ParseableUserQuiz);
 	} else if (user_set.set_type === 'REVIEW') {
-		return new MergedUserReviewSet(user_set as ParseableMergedUserReviewSet);
+		return new UserReviewSet(user_set as ParseableUserReviewSet);
 	}
 }
 
@@ -567,7 +568,7 @@ export function parseUserSet(user_set: ParseableUserSet) {
  * @param {MergedUser} user - the user associated with the set.
  * @returns a MergedUserSet with the appropriate overrides.
  */
-export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: MergedUser) {
+export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: CourseUser) {
 	// Check if the user_set is related to the Problem Set
 	if (set.set_id !== db_user_set.set_id) {
 		throw new MergeError('The User set is not related to the Problem set');

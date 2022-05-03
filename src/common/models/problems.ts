@@ -1,13 +1,13 @@
 import { MergeError, parseNonNegDecimal, parseNonNegInt, parseUsername } from './parsers';
 import { Model, Dictionary, generic } from '.';
 import { RenderParams, ParseableRenderParams } from './renderer';
-import { MergedUserSet } from './user_sets';
+import { UserSet } from './user_sets';
 
 export enum ProblemType {
 	LIBRARY = 'LIBRARY',
 	SET = 'SET',
+	DB_USER = 'DB_USER',
 	USER = 'USER',
-	MERGED_USER = 'MERGED_USER',
 	UNKNOWN = 'UNKNOWN'
 }
 
@@ -76,12 +76,8 @@ class ProblemLocationParams extends Model {
 	private _file_path?: string;
 	private _problem_pool_id?: number;
 
-	get all_field_names(): string[] {
-		return ['library_id', 'file_path', 'problem_pool_id'];
-	}
-	get param_fields(): string[] {
-		return [];
-	}
+	get all_field_names(): string[] { return ['library_id', 'file_path', 'problem_pool_id']; }
+	get param_fields(): string[] { return []; }
 
 	constructor(params: ParseableLocationParams = {}) {
 		super();
@@ -299,7 +295,7 @@ export class SetProblem extends Problem {
 	}
 }
 
-export interface ParseableUserProblem {
+export interface ParseableDBUserProblem {
 	render_params?: RenderParams;
 	problem_params?: SetProblemParams;
 	problem_id?: number | string;
@@ -311,9 +307,10 @@ export interface ParseableUserProblem {
 }
 
 /**
- * The class UserProblem is used for problems assigned to Users
+ * The class DBUserProblem is used for problems assigned to Users and
+ * to be used to store in the database.  This is used only in the store.
  */
-export class UserProblem extends Problem {
+export class DBUserProblem extends Problem {
 	private _problem_params = new SetProblemParams();
 	private _user_problem_id = 0;
 	private _problem_id = 0;
@@ -322,7 +319,7 @@ export class UserProblem extends Problem {
 	private _status = 0;
 	private _problem_version = 1;
 
-	constructor(params: ParseableUserProblem = {}) {
+	constructor(params: ParseableDBUserProblem = {}) {
 		super(params);
 		this.set(params);
 		this._problem_type = ProblemType.USER;
@@ -336,7 +333,7 @@ export class UserProblem extends Problem {
 		});
 	}
 
-	set(params: ParseableUserProblem) {
+	set(params: ParseableDBUserProblem) {
 		if (params.problem_id != undefined) this.problem_id = params.problem_id;
 		if (params.user_set_id != undefined) this.user_set_id = params.user_set_id;
 		if (params.user_problem_id != undefined) this.user_problem_id = params.user_problem_id;
@@ -349,10 +346,7 @@ export class UserProblem extends Problem {
 		'problem_version', 'render_params', 'problem_params'];
 
 	get problem_params() { return this._problem_params; }
-
-	get all_field_names() {
-		return UserProblem.ALL_FIELDS;
-	}
+	get all_field_names() { return DBUserProblem.ALL_FIELDS; }
 
 	get param_fields() { return ['problem_params', 'render_params']; }
 
@@ -375,7 +369,7 @@ export class UserProblem extends Problem {
 	public set problem_version(val: string | number) { this._problem_version = parseNonNegInt(val);}
 
 	public clone() {
-		return new UserProblem(this.toObject() as unknown as ParseableUserProblem);
+		return new DBUserProblem(this.toObject() as unknown as ParseableDBUserProblem);
 	}
 
 	path(): string {
@@ -390,9 +384,10 @@ export class UserProblem extends Problem {
 	}
 }
 
-// This next section is related to MergedUserProblems
+// This next section is related to UserProblems which is a merge between
+// a DBUserProblem, SetProblem and a CourseUser.
 
-export interface ParseableMergedUserProblem {
+export interface ParseableUserProblem {
 	render_params?: ParseableRenderParams;
 	problem_params?: ParseableSetProblemParams;
 	problem_id?: number | string;
@@ -409,9 +404,9 @@ export interface ParseableMergedUserProblem {
 }
 
 /**
- * The class MergedUserProblem is used for merging User and set problems
+ * The class UserProblem is used for merging User and set problems
  */
-export class MergedUserProblem extends Problem {
+export class UserProblem extends Problem {
 	private _problem_params = new SetProblemParams();
 	private _user_problem_id = 0;
 	private _problem_id = 0;
@@ -425,10 +420,10 @@ export class MergedUserProblem extends Problem {
 	private _username = '';
 	private _set_name = '';
 
-	constructor(params: ParseableMergedUserProblem = {}) {
+	constructor(params: ParseableUserProblem = {}) {
 		super(params);
 		this.set(params);
-		this._problem_type = ProblemType.MERGED_USER;
+		this._problem_type = ProblemType.USER;
 		if (params.problem_params) this._problem_params.set(params.problem_params);
 
 		// For merged user problems, preview and check answer are on my default.
@@ -441,7 +436,7 @@ export class MergedUserProblem extends Problem {
 		});
 	}
 
-	set(params: ParseableMergedUserProblem) {
+	set(params: ParseableUserProblem) {
 		if (params.problem_id != undefined) this.problem_id = params.problem_id;
 		if (params.user_id != undefined) this.user_id = params.user_id;
 		if (params.set_id != undefined) this.set_id = params.set_id;
@@ -459,7 +454,7 @@ export class MergedUserProblem extends Problem {
 		'problem_number', 'username', 'set_name', 'problem_version', 'problem_params', 'render_params'];
 
 	get all_field_names() {
-		return MergedUserProblem.ALL_FIELDS;
+		return UserProblem.ALL_FIELDS;
 	}
 
 	get param_fields() { return ['problem_params', 'render_params']; }
@@ -500,7 +495,7 @@ export class MergedUserProblem extends Problem {
 	public set set_name(val: string) { this._set_name = val;}
 
 	public clone() {
-		return new MergedUserProblem(this.toObject() as unknown as ParseableMergedUserProblem);
+		return new UserProblem(this.toObject() as unknown as ParseableUserProblem);
 	}
 
 	path(): string {
@@ -529,41 +524,41 @@ export function parseProblem(problem: ParseableProblem, type: 'Library' | 'Set' 
  * taken from the UserSet.  Additional info is taken from the MergedUser instance.
  * @param {SetProblem} set_problem - a set problem
  * @param {UserProblem} user_problem - a user problem that will override the problem parameters.
- * @param {MergedUser} user - the user associated with the problem.
- * @param {MergedUserSet} user_set - the merged user set that the problem is in.
- * @returns a MergedUserProblem with the appropriate overrides.
+ * @param {CourseUser} user - the user associated with the problem.
+ * @param {UserSet} user_set - the merged user set that the problem is in.
+ * @returns a UserProblem with the appropriate overrides.
  */
-export function mergeUserProblem(set_problem: SetProblem, user_problem: UserProblem,
-	user_set: MergedUserSet) {
+export function mergeUserProblem(set_problem: SetProblem, db_user_problem: DBUserProblem,
+	user_set: UserSet) {
 	// Check if the User Problem is related to the Set Problem
-	if (set_problem.problem_id !== user_problem.problem_id) {
+	if (set_problem.problem_id !== db_user_problem.problem_id) {
 		throw new MergeError('The User set is not related to the Problem set');
 	}
 	// Check if the user problem is related to the user set.
-	if (user_set.user_set_id !== user_problem.user_set_id) {
+	if (user_set.user_set_id !== db_user_problem.user_set_id) {
 		throw new MergeError('The Merged user is not related to the user set.');
 	}
-	const merged_user_problem: ParseableMergedUserProblem = {
-		problem_id: user_problem.problem_id,
-		user_problem_id: user_problem.user_problem_id,
+	const user_problem: ParseableUserProblem = {
+		problem_id: db_user_problem.problem_id,
+		user_problem_id: db_user_problem.user_problem_id,
 		user_id: user_set.user_id,
 		set_id: user_set.set_id,
 		user_set_id: user_set.user_set_id,
 		username: user_set.username,
 		set_name: user_set.set_name,
-		problem_version: user_problem.problem_version,
+		problem_version: db_user_problem.problem_version,
 		problem_number: set_problem.problem_number,
-		status: user_problem.status,
-		seed: user_problem.seed
+		status: db_user_problem.status,
+		seed: db_user_problem.seed
 	};
 
 	// override set params
 	const params = set_problem.problem_params.toObject() as Dictionary<generic>;
-	const user_params = user_problem.problem_params.toObject() as Dictionary<generic>;
+	const user_params = db_user_problem.problem_params.toObject() as Dictionary<generic>;
 	Object.keys(user_params).forEach(key => {
 		if (user_params[key] !== undefined) params[key] = user_params[key];
 	});
-	merged_user_problem.problem_params = params;
+	user_problem.problem_params = params;
 
-	return new MergedUserProblem(merged_user_problem);
+	return new UserProblem(user_problem);
 }

@@ -1,112 +1,253 @@
-// tests parsing and handling of users
+/**
+ * @jest-environment jsdom
+ */
+// The above is needed because the logger uses the window object, which is only present
+// when using the jsdom environment.
 
-import { CourseUser, ParseableCourseUser } from 'src/common/models/users';
-import { NonNegIntException, UserRole, UserRoleException } from 'src/common/models/parsers';
+// tests parsing and handling of merged users
 
-const default_course_user: ParseableCourseUser = {
-	course_user_id: 0,
-	user_id: 0,
-	course_id: 0,
-	role: UserRole.unknown
-};
+import { EmailParseException, NonNegIntException, UsernameParseException,
+	UserRoleException } from 'src/common/models/parsers';
+import { CourseUser, DBCourseUser, ParseableDBCourseUser } from 'src/common/models/users';
 
-test('Create a CourseUser', () => {
-	const course_user = new CourseUser();
-	expect(course_user instanceof CourseUser).toBe(true);
+describe('Testing Database and client-side Course Users', () => {
 
-	expect(course_user.toObject()).toStrictEqual(default_course_user);
-});
+	const default_db_course_user: ParseableDBCourseUser = {
+		course_user_id: 0,
+		user_id: 0,
+		course_id: 0,
+		role: 'UNKNOWN'
+	};
 
-test('Check that calling all_fields() and params() is correct', () => {
-	const course_user_fields = ['course_user_id', 'course_id', 'user_id', 'role',
-		'section', 'recitation'];
-	const course_user = new CourseUser();
+	describe('Testing Database course users', () => {
 
-	expect(course_user.all_field_names.sort()).toStrictEqual(course_user_fields.sort());
-	expect(course_user.param_fields.sort()).toStrictEqual([]);
+		test('Create a new database course user', () => {
+			const db_course_user = new DBCourseUser();
+			expect(db_course_user).toBeInstanceOf(DBCourseUser);
+			expect(db_course_user.toObject()).toStrictEqual(default_db_course_user);
+		});
 
-	expect(CourseUser.ALL_FIELDS.sort()).toStrictEqual(course_user_fields.sort());
+		test('Check that calling all_fields() and params() is correct', () => {
+			const course_user_fields = ['course_user_id', 'course_id', 'user_id', 'role',
+				'section', 'recitation'];
+			const course_user = new DBCourseUser();
 
-});
+			expect(course_user.all_field_names.sort()).toStrictEqual(course_user_fields.sort());
+			expect(course_user.param_fields.sort()).toStrictEqual([]);
 
-test('Check that cloning a CourseUser works', () => {
-	const course_user = new CourseUser({ role: 'student' });
-	const course_user2 = { ...default_course_user };
-	course_user2.role = 'STUDENT';
-	expect(course_user.clone().toObject()).toStrictEqual(course_user2);
-	expect(course_user.clone() instanceof CourseUser).toBe(true);
-});
+			expect(DBCourseUser.ALL_FIELDS.sort()).toStrictEqual(course_user_fields.sort());
 
-test('create CourseUser with invalid role', () => {
-	expect(() => {
-		new CourseUser({ role: 'superhero' });
-	}).toThrow(UserRoleException);
-});
+		});
 
-test('set fields of CourseUser', () => {
-	const course_user = new CourseUser();
+		test('Check that cloning a DBCourseUser works', () => {
+			const course_user = new DBCourseUser({ role: 'student' });
+			const course_user2: ParseableDBCourseUser = { ...default_db_course_user };
+			course_user2.role = 'STUDENT';
+			expect(course_user.clone().toObject()).toStrictEqual(course_user2);
+			expect(course_user.clone() instanceof DBCourseUser).toBe(true);
+		});
 
-	course_user.role = 'student';
-	expect(course_user.role).toBe('STUDENT');
+		test('create DBCourseUser with invalid role', () => {
+			expect(() => {
+				new DBCourseUser({ role: 'superhero' });
+			}).toThrow(UserRoleException);
+		});
 
-	course_user.course_id = 34;
-	expect(course_user.course_id).toBe(34);
+		test('set fields of DBCourseUser', () => {
+			const course_user = new DBCourseUser();
 
-	course_user.user_id = 3;
-	expect(course_user.user_id).toBe(3);
+			course_user.role = 'student';
+			expect(course_user.role).toBe('STUDENT');
 
-	course_user.user_id = '5';
-	expect(course_user.user_id).toBe(5);
+			course_user.course_id = 34;
+			expect(course_user.course_id).toBe(34);
 
-	course_user.section = 2;
-	expect(course_user.section).toBe('2');
+			course_user.user_id = 3;
+			expect(course_user.user_id).toBe(3);
 
-	course_user.section = '12';
-	expect(course_user.section).toBe('12');
+			course_user.user_id = '5';
+			expect(course_user.user_id).toBe(5);
 
-});
+			course_user.section = 2;
+			expect(course_user.section).toBe('2');
 
-test('set fields of CourseUser using set()', () => {
-	const course_user = new CourseUser();
-	course_user.set({ role: 'student' });
-	expect(course_user.role).toBe('STUDENT');
+			course_user.section = '12';
+			expect(course_user.section).toBe('12');
 
-	course_user.set({ course_id: 34 });
-	expect(course_user.course_id).toBe(34);
+		});
 
-	course_user.set({ user_id: 3 });
-	expect(course_user.user_id).toBe(3);
+		test('set fields of DBCourseUser using set()', () => {
+			const course_user = new DBCourseUser();
+			course_user.set({ role: 'student' });
+			expect(course_user.role).toBe('STUDENT');
 
-	course_user.set({ user_id: '5' });
-	expect(course_user.user_id).toBe(5);
+			course_user.set({ course_id: 34 });
+			expect(course_user.course_id).toBe(34);
 
-	course_user.set({ section: 2 });
-	expect(course_user.section).toBe('2');
+			course_user.set({ user_id: 3 });
+			expect(course_user.user_id).toBe(3);
 
-	course_user.set({ section: '12' });
-	expect(course_user.section).toBe('12');
+			course_user.set({ user_id: '5' });
+			expect(course_user.user_id).toBe(5);
 
-});
+			course_user.set({ section: 2 });
+			expect(course_user.section).toBe('2');
 
-test('set invalid role', () => {
-	const course_user = new CourseUser({ role: 'student' });
-	expect(() => { course_user.role = 'superhero';}).toThrow(UserRoleException);
-});
+			course_user.set({ section: '12' });
+			expect(course_user.section).toBe('12');
 
-test('set invalid user_id', () => {
-	const course_user = new CourseUser();
-	expect(() => { course_user.user_id = -1; }).toThrow(NonNegIntException);
-	expect(() => { course_user.user_id = '-1'; }).toThrow(NonNegIntException);
-});
+		});
 
-test('set invalid course_id', () => {
-	const course_user = new CourseUser();
-	expect(() => { course_user.course_id = -1;}).toThrow(NonNegIntException);
-	expect(() => { course_user.course_id = '-1'; }).toThrow(NonNegIntException);
-});
+		test('set invalid role', () => {
+			const course_user = new DBCourseUser({ role: 'student' });
+			expect(() => { course_user.role = 'superhero';}).toThrow(UserRoleException);
+		});
 
-test('set invalid course_user_id', () => {
-	const course_user = new CourseUser();
-	expect(() => { course_user.course_user_id =  -1; }).toThrow(NonNegIntException);
-	expect(() => { course_user.course_user_id = '-1'; }).toThrow(NonNegIntException);
+		test('set invalid user_id', () => {
+			const course_user = new DBCourseUser();
+			expect(() => { course_user.user_id = -1; }).toThrow(NonNegIntException);
+			expect(() => { course_user.user_id = '-1'; }).toThrow(NonNegIntException);
+		});
+
+		test('set invalid course_id', () => {
+			const course_user = new DBCourseUser();
+			expect(() => { course_user.course_id = -1;}).toThrow(NonNegIntException);
+			expect(() => { course_user.course_id = '-1'; }).toThrow(NonNegIntException);
+		});
+
+		test('set invalid course_user_id', () => {
+			const course_user = new DBCourseUser();
+			expect(() => { course_user.course_user_id =  -1; }).toThrow(NonNegIntException);
+			expect(() => { course_user.course_user_id = '-1'; }).toThrow(NonNegIntException);
+		});
+	});
+
+	describe('Testing course users', () => {
+
+		const default_course_user = {
+			course_user_id: 0,
+			user_id: 0,
+			course_id: 0,
+			is_admin: false
+		};
+
+		test('Create a Valid CourseUser', () => {
+			const course_user1 = new CourseUser();
+
+			expect(course_user1).toBeInstanceOf(CourseUser);
+			expect(course_user1.toObject()).toStrictEqual(default_course_user);
+
+		});
+
+		test('Check that calling all_fields() and params() is correct', () => {
+			const course_user_fields = ['course_user_id', 'user_id', 'course_id', 'username',
+				'is_admin', 'email', 'first_name', 'last_name', 'student_id', 'role',
+				'section', 'recitation'];
+			const course_user = new CourseUser();
+
+			expect(course_user.all_field_names.sort()).toStrictEqual(course_user_fields.sort());
+			expect(course_user.param_fields.sort()).toStrictEqual([]);
+			expect(CourseUser.ALL_FIELDS.sort()).toStrictEqual(course_user_fields.sort());
+		});
+
+		test('Check that cloning a merged user works', () => {
+			const course_user = new CourseUser();
+			expect(course_user.clone().toObject()).toStrictEqual(default_course_user);
+			expect(course_user.clone() instanceof CourseUser).toBe(true);
+		});
+
+		test('Invalid user_id', () => {
+			expect(() => {
+				new CourseUser({ username: 'test', user_id: -1 });
+			}).toThrow(NonNegIntException);
+			expect(() => {
+				new CourseUser({ username: 'test', user_id: '-1' });
+			}).toThrow(NonNegIntException);
+			expect(() => {
+				new CourseUser({ username: 'test', user_id: 'one' });
+			}).toThrow(NonNegIntException);
+		});
+
+		test('Invalid username', () => {
+			expect(() => {
+				new CourseUser({ username: '@test' });
+			}).toThrow(UsernameParseException);
+			expect(() => {
+				new CourseUser({ username: '123test' });
+			}).toThrow(UsernameParseException);
+			expect(() => {
+				new CourseUser({ username: 'user name' });
+			}).toThrow(UsernameParseException);
+		});
+
+		test('Invalid email', () => {
+			expect(() => {
+				new CourseUser({ username: 'test', email: 'bad email' });
+			}).toThrow(EmailParseException);
+			expect(() => {
+				new CourseUser({ username: 'test', email: 'user@info@site.com' });
+			}).toThrow(EmailParseException);
+		});
+
+		test('set invalid role', () => {
+			const course_user = new CourseUser({ username: 'test', role: 'student' });
+			expect(() => {
+				course_user.set({ role: 'superhero' });
+			}).toThrow(UserRoleException);
+		});
+
+		test('set fields of CourseUser', () => {
+			const course_user = new CourseUser({ username: 'test' });
+			course_user.set({ role: 'student' });
+			expect(course_user.role).toBe('STUDENT');
+
+			course_user.set({ course_id: 34 });
+			expect(course_user.course_id).toBe(34);
+
+			course_user.set({ user_id: 3 });
+			expect(course_user.user_id).toBe(3);
+
+			course_user.set({ user_id: '5' });
+			expect(course_user.user_id).toBe(5);
+
+			course_user.set({ section: 2 });
+			expect(course_user.section).toBe('2');
+
+			course_user.set({ section: '12' });
+			expect(course_user.section).toBe('12');
+
+		});
+
+		test('set invalid user_id', () => {
+			const course_user = new CourseUser({ username: 'test' });
+			expect(() => {
+				course_user.set({ user_id: -1 });
+			}).toThrow(NonNegIntException);
+
+			expect(() => {
+				course_user.set({ user_id: '-1' });
+			}).toThrow(NonNegIntException);
+
+		});
+
+		test('set invalid course_id', () => {
+			const course_user = new CourseUser({ username: 'test' });
+			expect(() => {
+				course_user.set({ course_id: -1 });
+			}).toThrow(NonNegIntException);
+			expect(() => {
+				course_user.set({ course_id: '-1' });
+			}).toThrow(NonNegIntException);
+		});
+
+		test('set invalid course_user_id', () => {
+			const course_user = new CourseUser({ username: 'test' });
+			expect(() => {
+				course_user.set({ course_user_id: -1 });
+			}).toThrow(NonNegIntException);
+			expect(() => {
+				course_user.set({ course_user_id: '-1' });
+			}).toThrow(NonNegIntException);
+		});
+	});
 });
