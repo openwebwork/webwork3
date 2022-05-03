@@ -103,10 +103,6 @@ describe('Test User Quizzes', () => {
 			set_dates: { open:0, due: 0, answer: 0 }
 		};
 
-	describe('Create Merged User quizzes', () => {
-
-
-
 		test('Create a MergedUserQuiz', () => {
 			const user_quiz = new UserQuiz();
 			expect(user_quiz).not.toBeInstanceOf(UserHomeworkSet);

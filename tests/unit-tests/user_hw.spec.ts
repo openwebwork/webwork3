@@ -111,15 +111,13 @@ describe('Test user Homework sets', () => {
 		});
 
 		test('Check that calling all_fields() and params() is correct', () => {
-			const user_hw_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
+			const user_hw_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version', 'set_type',
 				'user_id', 'set_visible', 'set_name', 'username', 'set_params', 'set_dates'];
 			const hw = new UserHomeworkSet();
 
 			expect(hw.all_field_names.sort()).toStrictEqual(user_hw_fields.sort());
 			expect(hw.param_fields.sort()).toStrictEqual(['set_dates', 'set_params']);
-
 			expect(UserHomeworkSet.ALL_FIELDS.sort()).toStrictEqual(user_hw_fields.sort());
-
 		});
 
 		test('Check that cloning a UserHomeworkSet works', () => {
