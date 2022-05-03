@@ -238,7 +238,9 @@ export class Quiz extends ProblemSet {
 
 export class HomeworkSetDates extends Model {
 	protected _open =  0;
-	protected _reduced_scoring?: number;
+	// the reduced_scoring field will always have a value. The HomeworkSetParam field
+	// enable_reduced_scoring will dictate if it is used.
+	protected _reduced_scoring = 0;
 	protected _due = 0;
 	protected _answer = 0;
 
@@ -254,7 +256,7 @@ export class HomeworkSetDates extends Model {
 
 	set(params: ParseableHomeworkSetDates) {
 		if (params.open != undefined) this.open = params.open;
-		this.reduced_scoring = params.reduced_scoring;
+		if (params.reduced_scoring) this.reduced_scoring = params.reduced_scoring;
 		if (params.due != undefined) this.due = params.due;
 		if (params.answer != undefined) this.answer = params.answer;
 	}
@@ -262,9 +264,9 @@ export class HomeworkSetDates extends Model {
 	public get open(): number { return this._open; }
 	public set open(value: number | string) { this._open = parseNonNegInt(value); }
 
-	public get reduced_scoring(): number | undefined { return this._reduced_scoring; }
-	public set reduced_scoring(value: number | string | undefined) {
-		if (value != undefined) this._reduced_scoring = parseNonNegInt(value);
+	public get reduced_scoring(): number { return this._reduced_scoring; }
+	public set reduced_scoring(value: number | string) {
+		this._reduced_scoring = parseNonNegInt(value);
 	}
 
 	public get due(): number { return this._due; }
@@ -278,11 +280,8 @@ export class HomeworkSetDates extends Model {
 	}
 
 	public isValid(params: { enable_reduced_scoring: boolean; }) {
-		if (params.enable_reduced_scoring && this.reduced_scoring == undefined) return false;
-		if (params.enable_reduced_scoring && this.reduced_scoring && this.open
-			&& this.open > this.reduced_scoring) return false;
-		if (params.enable_reduced_scoring && this.reduced_scoring && this.due
-			&& this.reduced_scoring > this.due) return false;
+		if (params.enable_reduced_scoring && this.open > this.reduced_scoring) return false;
+		if (params.enable_reduced_scoring && this.reduced_scoring > this.due) return false;
 		if (this.due && this.answer && this.due > this.answer) return false;
 		return true;
 	}

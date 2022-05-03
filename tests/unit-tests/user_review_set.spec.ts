@@ -4,7 +4,9 @@
 // The above is needed because the logger uses the window object, which is only present
 // when using the jsdom environment.
 
-import { DBUserHomeworkSet, DBUserReviewSet, DBUserSet, UserHomeworkSet, UserReviewSet, UserSet } from 'src/common/models/user_sets';
+import { ReviewSet } from 'src/common/models/problem_sets';
+import { CourseUser } from 'src/common/models/users';
+import { DBUserHomeworkSet, DBUserReviewSet, DBUserSet, mergeUserSet, UserHomeworkSet, UserReviewSet, UserSet } from 'src/common/models/user_sets';
 
 describe('Testing db user Review Sets and User Review Sets', () => {
 
@@ -85,6 +87,7 @@ describe('Testing db user Review Sets and User Review Sets', () => {
 					set_version: 1,
 					set_name: '',
 					username: '',
+					set_type: 'REVIEW',
 					set_params: { test_param: false },
 					set_dates: { open: 0, closed: 0 }
 				};
@@ -114,6 +117,67 @@ describe('Testing db user Review Sets and User Review Sets', () => {
 				expect(user_quiz.hasValidDates()).toBeFalsy();
 
 			});
+		});
+	});
+
+	describe('Merging a Review Set, user review set and user', () => {
+		const user = new CourseUser({
+			user_id: 99,
+			course_user_id: 299,
+			username: 'homer',
+			first_name: 'Homer',
+			last_name: 'Simpson',
+			email: 'homer@msn.com'
+		});
+		const set = new ReviewSet({
+			set_name: 'Review #1',
+			set_id: 99,
+			set_dates: {
+				open: 100,
+				closed: 300
+			}
+		});
+		const user_set = new DBUserReviewSet({
+			set_id: 99,
+			course_user_id: 299
+		});
+
+		test('created a user review set with empty user set dates', () => {
+			const expected_user_set = new UserReviewSet({
+				user_id: 99,
+				course_user_id: 299,
+				username: 'homer',
+				set_name: 'Review #1',
+				set_visible: false,
+				set_id: 99,
+				set_dates: {
+					open: 100,
+					closed: 300
+				}
+			});
+			const merged_set = mergeUserSet(set, user_set, user);
+			expect(expected_user_set).toStrictEqual(merged_set);
+		});
+
+		test('create a merged user review set with complete set of user set dates', () => {
+			user_set.set_dates.set({
+				open: 150,
+				closed: 500
+			});
+			const expected_user_review_set = new UserReviewSet({
+				user_id: 99,
+				course_user_id: 299,
+				username: 'homer',
+				set_name: 'Review #1',
+				set_visible: false,
+				set_id: 99,
+				set_dates: {
+					open: 150,
+					closed: 500
+				}
+			});
+			const merged_set = mergeUserSet(set, user_set, user);
+			expect(expected_user_review_set).toStrictEqual(merged_set);
 		});
 	});
 });

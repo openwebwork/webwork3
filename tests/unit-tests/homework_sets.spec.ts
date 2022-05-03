@@ -12,6 +12,7 @@ describe('Tests for Homework Sets', () => {
 
 	const default_set_dates: ParseableHomeworkSetDates = {
 		answer: 0,
+		reduced_scoring: 0,
 		due: 0,
 		open: 0
 	};
@@ -170,10 +171,10 @@ describe('Tests for Homework Sets', () => {
 			expect(set.set_params.enable_reduced_scoring).toBeFalsy();
 
 			set.set_dates.set({
-				open: 0,
-				reduced_scoring: undefined,
-				due: 10,
-				answer: 15
+				open: 30,
+				reduced_scoring: 0,
+				due: 40,
+				answer: 50
 			});
 			expect(set.hasValidDates()).toBeTruthy();
 		});

@@ -53,25 +53,30 @@
 				<q-card-section class="q-pt-none">
 					<homework-dates-view
 						v-if="problem_set.set_type === 'HW'"
-						:dates="date_edit?.toObject()"
+						:dates="(date_edit as HomeworkSetDates)"
 						:reduced_scoring="reduced_scoring"
 						@update-dates="(val: HomeworkSetDates) => date_edit = val"
+						@valid-dates="(val: boolean) => valid_dates = val"
 					/>
 					<quiz-dates-view
 						v-if="problem_set.set_type ==='QUIZ'"
 						:dates="(date_edit as QuizDates)"
 						@update-dates="(val: QuizDates) => date_edit = val"
+						@valid-dates="(val: boolean) => valid_dates = val"
 					/>
 					<review-set-dates-view
 						v-if="problem_set.set_type ==='REVIEW'"
 						:dates="(date_edit as ReviewSetDates)"
 						@update-dates="(val: ReviewSetDates) => date_edit = val"
+						@valid-dates="(val: boolean) => valid_dates = val"
 					/>
 				</q-card-section>
 
 				<q-card-actions align="right">
 					<q-btn flat label="Cancel" color="accent" v-close-popup />
-					<q-btn flat label="Save Problem Set Overrides" color="primary"
+					<q-btn flat label="Save Date Overrides"
+						color="primary"
+						:disable="!valid_dates"
 						@click="saveOverrides" />
 				</q-card-actions>
 			</q-card>
@@ -146,6 +151,9 @@ export default defineComponent({
 		const user_set_info = ref<Array<UserInfo>>([]);
 
 		const formatTheDate = (val: number): string => val === 0 ? '' : formatDate(val);
+
+		// checks to see if the dates are valid for the UI popup.
+		const valid_dates = ref<boolean>(true);
 
 		// An array of User info for the table including if the set is assigned and any
 		// overridden dates.
@@ -250,6 +258,7 @@ export default defineComponent({
 			const set_params = merged_user_set.value.toObject(UserSet.ALL_FIELDS);
 			const updated_user_set = parseUserSet(set_params);
 			updated_user_set.set_dates.set(date_edit.value?.toObject() ?? {});
+
 			if (updated_user_set.hasValidDates()) {
 				try {
 					await problem_sets.updateUserSet(updated_user_set);
@@ -383,12 +392,12 @@ export default defineComponent({
 			edit_dialog,
 			date_edit,
 			filter: ref(''),
+			valid_dates,
 			formatDate,
 			saveOverrides,
 			openOverrides: (course_user_id: number) => {
 				updateMergedUserSet(course_user_id);
 				date_edit.value = merged_user_set.value.set_dates;
-				console.log(date_edit.value);
 				edit_dialog.value = true;
 			},
 			assignToAllUsers,

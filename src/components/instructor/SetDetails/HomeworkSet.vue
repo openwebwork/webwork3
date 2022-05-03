@@ -24,7 +24,7 @@
 			<td><q-toggle v-model="homework_set.set_params.enable_reduced_scoring" /></td>
 		</tr>
 		<homework-dates v-if="homework_set"
-			:dates="hw_dates"
+			:dates="(homework_set.set_dates as HomeworkSetDates)"
 			@update-dates="updateDates"
 			:reduced_scoring="homework_set.set_params.enable_reduced_scoring"
 		/>

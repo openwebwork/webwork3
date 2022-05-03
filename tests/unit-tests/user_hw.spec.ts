@@ -98,8 +98,9 @@ describe('Test user Homework sets', () => {
 			set_version: 1,
 			set_name: '',
 			username: '',
+			set_type: 'HW',
 			set_params: { enable_reduced_scoring: false },
-			set_dates: { open: 0, due: 0, answer: 0 }
+			set_dates: { open: 0, reduced_scoring: 0, due: 0, answer: 0 }
 		};
 
 		test('Create a UserHomeworkSet', () => {
@@ -205,6 +206,7 @@ describe('Test user Homework sets', () => {
 
 			expect(user_hw.set_dates.toObject()).toStrictEqual({
 				open: 600,
+				reduced_scoring: 0,
 				due: 700,
 				answer: 800
 			});
@@ -280,8 +282,18 @@ describe('Test user Homework sets', () => {
 					answer: 500
 				}
 			});
-			const hw_set = mergeUserSet(hw, db_user_set, user);
-			expect(expected_user_hw).toStrictEqual(hw_set);
+			const user_set = mergeUserSet(hw, db_user_set, user) as UserHomeworkSet;
+			expect(expected_user_hw).toStrictEqual(user_set);
+
+			// check that if the enable_reduced_scoring is flipped on, then the dates are
+			// no longer valid
+			user_set.set_params.enable_reduced_scoring = true;
+			expect(user_set.hasValidDates()).toBeFalsy();
+
+			// but then if the reduced_scoring date is set to the due date it will be
+			user_set.set_dates.reduced_scoring = user_set.set_dates.due;
+			expect(user_set.hasValidDates()).toBeTruthy();
+
 		});
 
 		test('created a user homework set with reduced scoring dates', () => {

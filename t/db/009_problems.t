@@ -231,8 +231,11 @@ my $set_prob_params2 = {
 };
 
 my $set_problem2 = $problem_rs->addSetProblem(params => $set_prob_params2);
+# Make a copy to delete later.
+my $set_problem_to_delete = clone $set_problem2;
 delete $set_prob_params2->{course_name};
 delete $set_prob_params2->{set_name};
+
 removeIDs($set_problem2);
 delete $set_problem2->{problem_number};
 
@@ -343,8 +346,18 @@ my $deleted_problem = $problem_rs->deleteSetProblem(
 	}
 );
 removeIDs($deleted_problem);
-$new_problem->{problem_version} = 1 unless defined($new_problem->{problem_version});
+#$new_problem->{problem_version} = 1 unless defined($new_problem->{problem_version});
 
 is_deeply($updated_problem, $deleted_problem, "deleteSetProblem: delete one problem in an existing set.");
+
+my $deleted_problem2 = $problem_rs->deleteSetProblem(
+	info => {
+		course_name    => 'Precalculus',
+		set_name       => 'HW #1',
+		problem_number => $set_problem_to_delete->{problem_number},
+	}
+);
+# removeIDs($deleted_problem2);
+is_deeply($deleted_problem2, $set_problem_to_delete, "deleteSetProblem: delete another problem.");
 
 done_testing;

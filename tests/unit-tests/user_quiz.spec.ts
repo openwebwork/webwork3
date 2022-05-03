@@ -90,24 +90,48 @@ describe('Test User Quizzes', () => {
 	});
 
 	describe('Create User quizzes', () => {
-		test('Create a UserQuiz', () => {
+		const default_quiz_params = {
+			user_set_id: 0,
+			user_id: 0,
+			set_id: 0,
+			course_user_id: 0,
+			set_version: 1,
+			set_name: '',
+			username: '',
+			set_type: 'QUIZ',
+			set_params: { timed: false, quiz_duration: 0 },
+			set_dates: { open:0, due: 0, answer: 0 }
+		};
+
+	describe('Create Merged User quizzes', () => {
+
+
+
+		test('Create a MergedUserQuiz', () => {
 			const user_quiz = new UserQuiz();
-			expect(user_quiz instanceof UserHomeworkSet).toBeFalsy();
+			expect(user_quiz).not.toBeInstanceOf(UserHomeworkSet);
 			expect(user_quiz).toBeInstanceOf(UserQuiz);
 			expect(user_quiz).toBeInstanceOf(UserSet);
 
-			const defaults = {
-				user_set_id: 0,
-				user_id: 0,
-				set_id: 0,
-				course_user_id: 0,
-				set_version: 1,
-				set_name: '',
-				username: '',
-				set_params: { timed: false, quiz_duration: 0 },
-				set_dates: { open:0, due: 0, answer: 0 }
-			};
-			expect(user_quiz.toObject()).toStrictEqual(defaults);
+			expect(user_quiz.toObject()).toStrictEqual(default_quiz_params);
+		});
+
+		test('Check that calling all_fields() and params() is correct', () => {
+			const merged_user_quiz_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_version',
+				'user_id', 'set_visible', 'set_name', 'set_type', 'username', 'set_params', 'set_dates'];
+			const hw = new UserHomeworkSet();
+
+			expect(hw.all_field_names.sort()).toStrictEqual(merged_user_quiz_fields.sort());
+			expect(hw.param_fields.sort()).toStrictEqual(['set_dates', 'set_params']);
+
+			expect(UserHomeworkSet.ALL_FIELDS.sort()).toStrictEqual(merged_user_quiz_fields.sort());
+
+		});
+
+		test('Check that cloning a MergedUserHomeworkSet works', () => {
+			const quiz = new UserQuiz();
+			expect(quiz.clone().toObject()).toStrictEqual(default_quiz_params);
+			expect(quiz.clone()).toBeInstanceOf(UserQuiz);
 		});
 	});
 
