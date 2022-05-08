@@ -7,7 +7,7 @@
 import { HomeworkSet } from 'src/common/models/problem_sets';
 import { CourseUser } from 'src/common/models/users';
 import { DBUserHomeworkSet, UserSet, mergeUserSet, ParseableDBUserHomeworkSet,
-	ParseableUserHomeworkSet, UserHomeworkSet, DBUserSet} from 'src/common/models/user_sets';
+	ParseableUserHomeworkSet, UserHomeworkSet, DBUserSet } from 'src/common/models/user_sets';
 
 describe('Test user Homework sets', () => {
 

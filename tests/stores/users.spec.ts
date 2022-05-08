@@ -14,7 +14,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { cleanIDs, loadCSV } from '../utils';
 import { useCourseStore } from 'src/stores/courses';
 import { Course } from 'src/common/models/courses';
-import { CourseUser, DBCourseUser, User } from 'src/common/models/users';
+import { CourseUser, User } from 'src/common/models/users';
 import { useUserStore } from 'src/stores/users';
 
 const app = createApp({});

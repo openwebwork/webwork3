@@ -565,7 +565,7 @@ export function parseUserSet(user_set: ParseableUserSet) {
  * taken from the UserSet.  Additional info is taken from the MergedUser instance.
  * @param {ProblemSet} set - a problem set
  * @param {UserSet} user_set - a user set that will override the problem set dates and parameters.
- * @param {MergedUser} user - the user associated with the set.
+ * @param {CourseUser} user - the user associated with the set.
  * @returns a MergedUserSet with the appropriate overrides.
  */
 export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: CourseUser) {
@@ -573,9 +573,10 @@ export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: Cour
 	if (set.set_id !== db_user_set.set_id) {
 		throw new MergeError('The User set is not related to the Problem set');
 	}
+
 	// Check if the user is related to the user set.
 	if (db_user_set.course_user_id !== user.course_user_id) {
-		throw new MergeError('The Merged user is not related to the user set.');
+		throw new MergeError('The Course user is not related to the user set.');
 	}
 	const user_set: ParseableUserSet = {
 		user_id: user.user_id,

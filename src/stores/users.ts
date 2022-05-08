@@ -5,12 +5,10 @@ import { logger } from 'boot/logger';
 import { DBCourseUser, ParseableCourseUser, ParseableDBCourseUser, ParseableUser } from 'src/common/models/users';
 import { User, CourseUser } from 'src/common/models/users';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
-import { UserCourse } from 'src/common/models/courses';
 import { UserRole } from 'src/common/models/parsers';
 
 export interface UserState {
 	users: User[];
-	user_courses: UserCourse[];
 	db_course_users: DBCourseUser[];
 }
 
@@ -28,8 +26,7 @@ export const useUserStore = defineStore('user', {
 	// state of the Store as a function:
 	state: (): UserState => ({
 		users: [],
-		db_course_users: [],
-		user_courses: []
+		db_course_users: []
 	}),
 	getters: {
 		/**
@@ -52,15 +49,18 @@ export const useUserStore = defineStore('user', {
 			return (user_info: CourseUserInfo) => {
 				let user: User;
 				let db_course_user: DBCourseUser;
+
 				if (user_info.course_user_id) {
 					db_course_user = (state.db_course_users
 						.find(user => user.course_user_id === user_info.course_user_id) as DBCourseUser)
 							?? new CourseUser();
-					user = (state.users.find(user => user.user_id === db_course_user.user_id) as User) ?? new User();
+					user = (state.users.find(user => user.user_id === db_course_user.user_id) as User)
+						?? new User({ username: '__NEW__' });
 				} else {
 					user = ((user_info.user_id ?
 						state.users.find(user => user.user_id === user_info.user_id) :
-						state.users.find(user => user.username === user_info.username)) as User) ?? new User();
+						state.users.find(user => user.username === user_info.username)) as User)
+							?? new User({ username: '__NEW__' });
 					db_course_user = (this.db_course_users
 						.find(course_user => user.user_id === course_user.user_id) as DBCourseUser) ?? new CourseUser();
 				}
@@ -100,21 +100,6 @@ export const useUserStore = defineStore('user', {
 				const users = response.data as ParseableUser[];
 				this.users = users.map(user => new User(user));
 			} else if (response.status == 250) {
-				logger.error(response.data);
-				throw response.data as ResponseError;
-			}
-		},
-		/**
-		 * fetch all User Courses for a given user.
-		 * @param {number} user_id
-		 */
-		// perhaps this should be in the session store?
-		async fetchUserCourses(user_id: number): Promise<void> {
-			logger.debug(`[UserStore/fetchUserCourses] fetching courses for user #${user_id}`);
-			const response = await api.get(`users/${user_id}/courses`);
-			if (response.status === 200) {
-				this.user_courses = response.data as Array<UserCourse>;
-			} else if (response.status === 250) {
 				logger.error(response.data);
 				throw response.data as ResponseError;
 			}
@@ -194,7 +179,7 @@ export const useUserStore = defineStore('user', {
 			if (response.status === 200) {
 				const new_course_user = new DBCourseUser(response.data as ParseableDBCourseUser);
 				this.db_course_users.push(new_course_user);
-				return this.findCourseUser({course_user_id: new_course_user.course_user_id });
+				return this.findCourseUser({ course_user_id: new_course_user.course_user_id });
 			} else if (response.status === 250) {
 				logger.error(response.data);
 				throw response.data as ResponseError;
@@ -215,7 +200,7 @@ export const useUserStore = defineStore('user', {
 				const index = this.course_users.findIndex((u) => u.course_user_id === course_user.course_user_id);
 				// splice is used so vue3 reacts to changes.
 				this.db_course_users.splice(index, 1, course_user_to_update);
-				return this.findCourseUser({course_user_id: course_user_to_update.course_user_id });
+				return this.findCourseUser({ course_user_id: course_user_to_update.course_user_id });
 			} else if (response.status === 250) {
 				logger.error(response.data);
 				throw response.data as ResponseError;

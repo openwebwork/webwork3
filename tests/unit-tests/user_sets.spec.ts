@@ -27,7 +27,8 @@ describe('Test Generic User sets and Merged User sets', () => {
 		});
 
 		test('Check that calling all_fields() and params() is correct', () => {
-			const user_set_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_type', 'set_version', 'set_visible'];
+			const user_set_fields = ['user_set_id', 'set_id', 'course_user_id', 'set_type',
+				'set_version', 'set_visible'];
 			const user_set = new DBUserSet();
 
 			expect(user_set.all_field_names.sort()).toStrictEqual(user_set_fields.sort());

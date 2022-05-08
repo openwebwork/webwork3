@@ -6,7 +6,8 @@
 
 import { ReviewSet } from 'src/common/models/problem_sets';
 import { CourseUser } from 'src/common/models/users';
-import { DBUserHomeworkSet, DBUserReviewSet, DBUserSet, mergeUserSet, UserHomeworkSet, UserReviewSet, UserSet } from 'src/common/models/user_sets';
+import { DBUserHomeworkSet, DBUserReviewSet, DBUserSet, mergeUserSet, UserHomeworkSet,
+	UserReviewSet, UserSet } from 'src/common/models/user_sets';
 
 describe('Testing db user Review Sets and User Review Sets', () => {
 

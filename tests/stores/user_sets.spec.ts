@@ -6,13 +6,14 @@
 
 import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import { Dictionary } from 'src/common/models';
 import { Course } from 'src/common/models/courses';
 import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 import { ProblemSet, HomeworkSet, Quiz, ReviewSet, ParseableProblemSetDates, ParseableProblemSetParams
-} from 'src/common/models/problem_sets';
-import { MergedUser } from 'src/common/models/users';
-import { MergedUserSet, UserHomeworkSet, UserSet, UserQuiz,
-	UserReviewSet, mergeUserSet, MergedUserHomeworkSet, parseUserSet } from 'src/common/models/user_sets';
+	} from 'src/common/models/problem_sets';
+import { CourseUser } from 'src/common/models/users';
+import { UserSet, UserHomeworkSet, UserQuiz, UserReviewSet, mergeUserSet, parseUserSet, parseDBUserSet, DBUserHomeworkSet
+	} from 'src/common/models/user_sets';
 import { useCourseStore } from 'src/stores/courses';
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useSessionStore } from 'src/stores/session';
@@ -24,7 +25,7 @@ const app = createApp({});
 
 describe('Tests user sets and merged user sets in the problem set store', () => {
 	let problem_sets_from_csv: ProblemSet[];
-	let precalc_user_sets: MergedUserSet[];
+	let precalc_user_sets: UserSet[];
 
 	let precalc_course: Course;
 	beforeAll(async () => {
@@ -84,8 +85,8 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 	});
 
-	describe('Fetching UserSets', () => {
-		test('Fetching User sets from a course', async () => {
+	describe('Fetching DBUserSets', () => {
+		test('Fetching DBUser sets from a course', async () => {
 			const problem_set_store = useProblemSetStore();
 			await problem_set_store.fetchProblemSets(precalc_course.course_id);
 			await problem_set_store.fetchAllUserSets(precalc_course.course_id);
@@ -104,26 +105,29 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 			});
 
 			const precalc_merged_users = users_to_parse.filter(user => user.course_name === 'Precalculus')
-				.map(user => new MergedUser(user));
+				.map(user => new CourseUser(user));
 
 			// Filter only user sets from HW #1
 			const hw1_from_csv = user_sets_to_parse
 				.filter(set => set.course_name === 'Precalculus' && set.set_name === 'HW #1')
-				.map(set => new UserHomeworkSet(set));
-			const user_sets_from_store = problem_set_store.findUserSets({ set_name: 'HW #1' });
-			expect(cleanIDs(user_sets_from_store)).toStrictEqual(cleanIDs(hw1_from_csv));
+				.map(set => new DBUserHomeworkSet(set));
+
+			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
+			const db_user_sets_from_store = problem_set_store.db_user_sets
+				.filter(set => set.set_id === hw1?.set_id);
+			expect(cleanIDs(db_user_sets_from_store)).toStrictEqual(cleanIDs(hw1_from_csv));
 
 			precalc_user_sets = user_sets_to_parse
 				.filter(set => set.course_name === 'Precalculus')
 				.map(obj => {
 					const problem_set = problem_sets_from_csv.find(set => set.set_name == obj.set_name);
-					const merged_user = precalc_merged_users.find(u => u.username === obj.username) ?? new MergedUser();
-					const user_set = parseUserSet({
+					const merged_user = precalc_merged_users.find(u => u.username === obj.username) ?? new CourseUser();
+					const user_set = parseDBUserSet({
 						set_type: problem_set?.set_type,
 						set_dates: obj.set_dates as ParseableProblemSetDates,
 						set_params: obj.set_params as ParseableProblemSetParams
 					});
-					return mergeUserSet(problem_set as ProblemSet, user_set, merged_user) ?? new MergedUserSet();
+					return mergeUserSet(problem_set as ProblemSet, user_set, merged_user) ?? new UserSet();
 				});
 		});
 	});
@@ -140,7 +144,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 			}));
 
 			const user_store = useUserStore();
-			const user = user_store.merged_users[0];
+			const user = user_store.course_users[0];
 
 			const user_set = new UserHomeworkSet({
 				set_id: new_hw_set.set_id,
@@ -160,11 +164,16 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 			expect(cleanIDs(updated_user_set)).toStrictEqual(cleanIDs(user_set_to_update));
 		});
 
-		test('Delete a User Set', async () => {
+		test('Delete a User HW Set', async () => {
 			const problem_set_store = useProblemSetStore();
 			const user_set_to_delete = await problem_set_store.deleteUserSet(added_user_set);
-			expect(cleanIDs(user_set_to_delete)).toStrictEqual(cleanIDs(user_set_to_update));
-
+			if (user_set_to_delete) {
+				expect(cleanIDs(user_set_to_delete)).toStrictEqual(cleanIDs(added_user_set));
+			} else {
+				test('Object was undefined', done => {
+					done.fail(new Error('Object was undefined'));
+				});
+			}
 		});
 	});
 
@@ -181,7 +190,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 			// Fetch the users from the course
 			const user_store = useUserStore();
-			const user = user_store.merged_users[0];
+			const user = user_store.course_users[0];
 
 			const user_set = new UserQuiz({
 				set_id: new_quiz.set_id,
@@ -204,7 +213,13 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		test('Delete a User Quiz', async () => {
 			const problem_set_store = useProblemSetStore();
 			const user_set_to_delete = await problem_set_store.deleteUserSet(user_set_to_update);
-			expect(cleanIDs(user_set_to_delete)).toStrictEqual(cleanIDs(user_set_to_update));
+			if (user_set_to_delete) {
+				expect(cleanIDs(user_set_to_delete)).toStrictEqual(cleanIDs(user_set_to_update));
+			} else {
+				test('Object was undefined', done => {
+					done.fail(new Error('Object was undefined'));
+				});
+			}
 		});
 	});
 
@@ -221,7 +236,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 			// Fetch the users from the course
 			const user_store = useUserStore();
-			const user = user_store.merged_users[0];
+			const user = user_store.course_users[0];
 
 			const user_set = new UserReviewSet({
 				set_id: new_review_set.set_id,
@@ -233,7 +248,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		});
 
 		let user_review_set_to_update: UserSet;
-		test('Update a User Set', async () => {
+		test('Update a User Review Set', async () => {
 			const problem_set_store = useProblemSetStore();
 			user_review_set_to_update = added_user_review_set.clone();
 			user_review_set_to_update.set_visible = false;
@@ -241,12 +256,20 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 			expect(cleanIDs(updated_user_set)).toStrictEqual(cleanIDs(user_review_set_to_update));
 		});
 
-		test('Delete a User Set', async () => {
+		test('Delete a User Review Set', async () => {
 			const problem_set_store = useProblemSetStore();
 			const num_user_sets = problem_set_store.user_sets.length;
 			const user_set_to_delete = await problem_set_store.deleteUserSet(user_review_set_to_update);
-			expect(cleanIDs(user_set_to_delete)).toStrictEqual(cleanIDs(user_review_set_to_update));
-			expect(problem_set_store.user_sets.length).toBe(num_user_sets - 1);
+
+			if (user_set_to_delete) {
+				expect(cleanIDs(user_set_to_delete)).toStrictEqual(cleanIDs(user_review_set_to_update));
+			} else {
+				test('Object was undefined', done => {
+					done.fail(new Error('Object was undefined'));
+				});
+			}
+
+			expect(problem_set_store.user_sets).toHaveLength(num_user_sets - 1);
 		});
 
 		afterAll(async () => {
@@ -262,13 +285,13 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 	describe('Test merged user sets', () => {
 		test('Test all merged user sets', () => {
 			const problem_set_store = useProblemSetStore();
-			expect(cleanIDs(precalc_user_sets)).toStrictEqual(cleanIDs(problem_set_store.merged_user_sets));
+			expect(cleanIDs(precalc_user_sets)).toStrictEqual(cleanIDs(problem_set_store.user_sets));
 		});
 
 		test('Add a user set and test that the overrides work.', async () => {
 			const problem_set_store = useProblemSetStore();
 			const user_store = useUserStore();
-			const user_to_assign = user_store.merged_users[0];
+			const user_to_assign = user_store.course_users[0];
 
 			// Make a new Problem Set
 			new_hw_set = await problem_set_store.addProblemSet(new HomeworkSet({
@@ -301,7 +324,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 			});
 
 			const new_user_set = await problem_set_store.addUserSet(new_user_hw) ?? new UserSet();
-			const merged_hw = new MergedUserHomeworkSet({
+			const merged_hw = new UserHomeworkSet({
 				user_id: user_to_assign.user_id,
 				user_set_id: new_user_hw.user_set_id,
 				set_id: new_hw_set.set_id,
@@ -317,7 +340,8 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 			expect(cleanIDs(new_user_hw)).toStrictEqual(cleanIDs(new_user_set));
 
-			const merged_user_set = mergeUserSet(new_hw_set, new_user_set, user_to_assign);
+			const merged_user_set = mergeUserSet(new_hw_set,
+				new DBUserHomeworkSet(new_user_set.toObject()), user_to_assign);
 
 			// Copy over the user_set_id from the database object to one in merged_hw.
 			// Not sure why directly setting the user_set_id results in a type error.

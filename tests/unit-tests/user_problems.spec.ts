@@ -236,7 +236,6 @@ describe('Testing DB User Problems and User problems', () => {
 		});
 	});
 
-
 	describe('Testing User Problems', () => {
 
 		const default_render_params = {
