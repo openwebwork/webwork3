@@ -1,10 +1,20 @@
+/**
+ * @jest-environment jsdom
+ */
+// The above is needed because the logger uses the window object, which is only present
+// when using the jsdom environment.
+
 // session.spec.ts
 // Test the Session Store
 
 import { setActivePinia, createPinia } from 'pinia';
+import { getUser } from 'src/common/api-requests/user';
+import { Course, UserCourse } from 'src/common/models/courses';
 import { SessionInfo } from 'src/common/models/session';
-import { User } from 'src/common/models/users';
+import { CourseUser, User } from 'src/common/models/users';
 import { useSessionStore } from 'src/stores/session';
+import { useUserStore } from 'src/stores/users';
+import { cleanIDs, loadCSV } from '../utils';
 
 // Some common objects.
 
@@ -28,11 +38,47 @@ const session_info: SessionInfo = {
 };
 
 describe('Session Store', () => {
-	beforeEach(() => {
+	let lisa_courses: UserCourse[];
+	let lisa: User;
+	beforeAll(async () => {
 		// creates a fresh pinia and make it active so it's automatically picked
 		// up by any useStore() call without having to pass it to it:
 		// `useStore(pinia)`
 		setActivePinia(createPinia());
+
+		// Load the user course information for testing later.
+
+		const parsed_courses = await loadCSV('t/db/sample_data/courses.csv', {
+			boolean_fields: ['visible'],
+			non_neg_fields: ['course_id'],
+			params: ['course_dates', 'course_params']
+		});
+
+		const courses_from_csv = parsed_courses.map(course => {
+			delete course.course_params;
+			return new Course(course);
+		});
+
+		const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
+			boolean_fields: ['is_admin'],
+			non_neg_fields: ['user_id']
+		});
+		const all_users_from_csv = users_to_parse.map(user => new User(user));
+		lisa_courses = users_to_parse.filter(user => user.username === 'lisa')
+			.map(user_course => {
+				const course = courses_from_csv.find(c => c.course_name == user_course.course_name)
+					?? new Course();
+				return new UserCourse({
+					course_name: course.course_name,
+					username: user_course.username as string,
+					visible: course.visible,
+					role: user_course.role as string,
+					course_dates: course.course_dates
+				});
+			});
+
+		// Fetch the user lisa.  This is used below.
+		lisa = new User(await getUser('lisa'));
 	});
 
 	test('default session', () => {
@@ -76,5 +122,11 @@ describe('Session Store', () => {
 		expect(session.user).toStrictEqual(logged_out);
 
 	});
+
+	test('check user courses', async () => {
+		const session_store = useSessionStore();
+		await session_store.fetchUserCourses(lisa.user_id);
+		expect(cleanIDs(session_store.user_courses)).toStrictEqual(cleanIDs(lisa_courses));
+	})
 
 });
