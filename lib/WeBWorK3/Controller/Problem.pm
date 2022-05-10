@@ -102,14 +102,15 @@ sub addUserProblem ($self) {
 
 sub updateUserProblem ($self) {
 	my $problem_params = $self->req->json;
-	my $user_problem = $self->schema->resultset("UserProblem")->updateUserProblem(
+	my $user_problem   = $self->schema->resultset("UserProblem")->updateUserProblem(
 		info => {
 			course_id  => int($self->param('course_id')),
 			set_id     => int($self->param('set_id')),
 			user_id    => int($self->param('user_id')),
 			problem_id => int($self->param('problem_id'))
 		},
-		params => $problem_params);
+		params => $problem_params
+	);
 	$self->render(json => $user_problem);
 	return;
 }

@@ -2,12 +2,11 @@
 
 import { defineStore } from 'pinia';
 import { api } from 'boot/axios';
-import { User } from 'src/common/models/users';
+import { ParseableUser, User } from 'src/common/models/users';
 import type { SessionInfo } from 'src/common/models/session';
 import { ParseableUserCourse, UserCourse } from 'src/common/models/courses';
 import { logger } from 'boot/logger';
 import { ResponseError } from 'src/common/api-requests/interfaces';
-import { getUser } from 'src/common/api-requests/user';
 
 interface CourseInfo {
 	course_name: string;
@@ -55,15 +54,14 @@ export const useSessionStore = defineStore('session', {
 		 * fetch all User Courses for a given user.
 		 * @param {number} user_id
 		 */
-		// perhaps this should be in the session store?
 		async fetchUserCourses(user_id: number): Promise<void> {
 			logger.debug(`[UserStore/fetchUserCourses] fetching courses for user #${user_id}`);
-			const user = await api.get(`users/${user_id}`);
+			const user_response = await api.get(`users/${user_id}`);
 			const response = await api.get(`users/${user_id}/courses`);
 			if (response.status === 200) {
 				this.user_courses = (response.data as ParseableUserCourse[])
 					.map(user_course => new UserCourse({
-						username: user.data.username,
+						username: (user_response.data as ParseableUser).username,
 						course_id: user_course.course_id,
 						user_id: user_course.user_id,
 						visible: user_course.visible,

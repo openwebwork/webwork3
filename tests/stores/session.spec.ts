@@ -11,9 +11,8 @@ import { setActivePinia, createPinia } from 'pinia';
 import { getUser } from 'src/common/api-requests/user';
 import { Course, UserCourse } from 'src/common/models/courses';
 import { SessionInfo } from 'src/common/models/session';
-import { CourseUser, User } from 'src/common/models/users';
+import { User } from 'src/common/models/users';
 import { useSessionStore } from 'src/stores/session';
-import { useUserStore } from 'src/stores/users';
 import { cleanIDs, loadCSV } from '../utils';
 
 // Some common objects.
@@ -63,7 +62,7 @@ describe('Session Store', () => {
 			boolean_fields: ['is_admin'],
 			non_neg_fields: ['user_id']
 		});
-		const all_users_from_csv = users_to_parse.map(user => new User(user));
+
 		lisa_courses = users_to_parse.filter(user => user.username === 'lisa')
 			.map(user_course => {
 				const course = courses_from_csv.find(c => c.course_name == user_course.course_name)
@@ -127,6 +126,6 @@ describe('Session Store', () => {
 		const session_store = useSessionStore();
 		await session_store.fetchUserCourses(lisa.user_id);
 		expect(cleanIDs(session_store.user_courses)).toStrictEqual(cleanIDs(lisa_courses));
-	})
+	});
 
 });

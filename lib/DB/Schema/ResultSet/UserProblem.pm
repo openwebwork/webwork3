@@ -476,8 +476,8 @@ sub deleteUserProblem ($self, %args) {
 	DB::Exception::UserProblemNotFound->throw(message => "The user "
 			. getUserInfo($args{info})->{username} // getUserInfo($args{info})->{user_id}
 			. " already has problem number "
-			. getProblemInfo($args{info})->{problem_number} //
-			("(problem_id): " . getProblemInfo($args{info})->{problem_id})
+			. getProblemInfo($args{info})->{problem_number}
+			// ("(problem_id): " . getProblemInfo($args{info})->{problem_id})
 			. " in set with name"
 			. getSetInfo($args{info})->{set_name} // ("(set_id): " . getSetInfo($args{info})->{set_id}))
 		unless $user_problem;

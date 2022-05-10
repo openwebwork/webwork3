@@ -23,8 +23,8 @@ import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useSetProblemStore } from 'src/stores/set_problems';
 import { UserProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemParams,
 	DBUserProblem,
-mergeUserProblem} from 'src/common/models/problems';
-import { DBUserHomeworkSet, mergeUserSet, UserHomeworkSet, UserSet } from 'src/common/models/user_sets';
+	mergeUserProblem } from 'src/common/models/problems';
+import { DBUserHomeworkSet, mergeUserSet, UserSet } from 'src/common/models/user_sets';
 import { Dictionary, generic } from 'src/common/models';
 
 const app = createApp({});

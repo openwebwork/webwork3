@@ -7,7 +7,7 @@ import { useSessionStore } from './session';
 import { useUserStore } from './users';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
-import { UserSet, mergeUserSet, ParseableUserSet, parseUserSet, DBUserSet, ParseableDBUserSet, parseDBUserSet,
+import { UserSet, mergeUserSet, DBUserSet, ParseableDBUserSet, parseDBUserSet,
 } from 'src/common/models/user_sets';
 import { logger } from 'src/boot/logger';
 import { ResponseError } from 'src/common/api-requests/interfaces';
@@ -84,14 +84,14 @@ export const useProblemSetStore = defineStore('problem_sets', {
 				} else if (set_info.set_name) {
 					const set = state.problem_sets.find(set => set.set_name === set_info.set_name);
 					if (set) {
-						return this.user_sets.filter(user_set => user_set.set_id === set.set_id) as UserSet[];
+						return this.user_sets.filter(user_set => user_set.set_id === set.set_id) ;
 					} else {
 						return [];
 					}
 				} else {
 					return [];
 				}
-			}
+			};
 		},
 		/**
 		 * findUserSet returns a user set for a given set id or set name
@@ -106,8 +106,8 @@ export const useProblemSetStore = defineStore('problem_sets', {
 				let user: CourseUser;
 
 				if (user_set_info.user_set_id) {
-					db_user_set = (state.db_user_sets.find(set => set.user_set_id == user_set_info.user_set_id) as DBUserSet)
-						?? new DBUserSet();
+					db_user_set = (state.db_user_sets
+						.find(set => set.user_set_id == user_set_info.user_set_id) as DBUserSet) ?? new DBUserSet();
 					problem_set = state.problem_sets.find(set => set.set_id === db_user_set.set_id) as ProblemSet;
 					user = user_store.findCourseUser({ course_user_id: db_user_set.course_user_id });
 				} else if (user_set_info.username) {

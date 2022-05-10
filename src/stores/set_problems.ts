@@ -3,8 +3,8 @@
 import { api } from 'boot/axios';
 import { defineStore } from 'pinia';
 
-import { ParseableProblem, parseProblem, SetProblem, ParseableSetProblem,
-	UserProblem, ParseableUserProblem, mergeUserProblem, DBUserProblem, ParseableDBUserProblem } from 'src/common/models/problems';
+import { ParseableProblem, parseProblem, SetProblem, ParseableSetProblem, UserProblem,
+	mergeUserProblem, DBUserProblem, ParseableDBUserProblem } from 'src/common/models/problems';
 import { UserSet } from 'src/common/models/user_sets';
 import { useSessionStore } from 'src/stores/session';
 import { useProblemSetStore } from './problem_sets';
@@ -53,12 +53,13 @@ export const useSetProblemStore = defineStore('set_problems', {
 		findUserProblems(state) {
 			return (set_info: SetInfo) => {
 				const problem_set_store = useProblemSetStore();
-			// get a list of the desired problem_ids
+				// get a list of the desired problem_ids
 				const problem_ids = this.findSetProblems(set_info).map(prob => prob.problem_id);
 				return state.db_user_problems
 					.filter(user_prob => problem_ids.findIndex(prob_id => user_prob.problem_id === prob_id) >= 0)
 					.map(user_prob => {
-						const user_set = problem_set_store.findUserSet({ user_set_id: user_prob.user_set_id }) ?? new UserSet();
+						const user_set = problem_set_store.findUserSet({ user_set_id: user_prob.user_set_id })
+							?? new UserSet();
 						const set_problem = state.set_problems.find(prob => prob.problem_id === user_prob.problem_id)
 							?? new SetProblem();
 						// Not sure why the first two arguments need to be cast.
@@ -206,6 +207,7 @@ export const useSetProblemStore = defineStore('set_problems', {
 			const updated_db_user_problem = new DBUserProblem(response.data as ParseableDBUserProblem);
 			const index = this.db_user_problems
 				.findIndex(user_problem => user_problem.user_problem_id === updated_db_user_problem.user_problem_id);
+			this.db_user_problems.splice(index, 1, updated_db_user_problem);
 
 			// Create a UserProblem to return from the current user problem and the saved
 			// db_user_problem.
@@ -224,7 +226,7 @@ export const useSetProblemStore = defineStore('set_problems', {
 			const problem_set_store = useProblemSetStore();
 			const user_set = problem_set_store.findUserSet({ user_set_id: user_problem.user_set_id,  });
 			if (user_set == undefined) {
-				throw "deleteUserProblem: returned undefined user set";
+				throw 'deleteUserProblem: returned undefined user set';
 			}
 			const response = await api.delete(`courses/${course_id}/sets/${set_problem?.set_id ?? 0
 			}/users/${user_set.user_id}/problems/${user_problem.problem_id}`);
