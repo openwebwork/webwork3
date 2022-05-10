@@ -61,7 +61,7 @@ import { useUserStore } from 'src/stores/users';
 import { api } from 'boot/axios';
 import { logger } from 'src/boot/logger';
 
-import { User, MergedUser, CourseUser } from 'src/common/models/users';
+import { User, CourseUser } from 'src/common/models/users';
 import { UserCourse } from 'src/common/models/courses';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import AddUsersManually from 'src/components/instructor/ClasslistManagerComponents/AddUsersManually.vue';
@@ -70,7 +70,7 @@ import EditUsers from 'src/components/instructor/ClasslistManagerComponents/Edit
 
 const $q = useQuasar();
 const users = useUserStore();
-const selected = ref<Array<MergedUser>>([]);
+const selected = ref<Array<CourseUser>>([]);
 const filter = ref<string>('');
 const open_users_manually = ref<boolean>(false);
 const open_users_from_file = ref<boolean>(false);
@@ -136,7 +136,7 @@ watch(() => open_edit_dialog.value, () => {
 	if (!open_edit_dialog.value) selected.value = [];
 });
 
-const merged_users = computed(() => users.merged_users);
+const merged_users = computed(() => users.course_users);
 
 const deleteCourseUsers = () => {
 	const users_to_delete = selected.value.map((u) => u.username).join(', ');

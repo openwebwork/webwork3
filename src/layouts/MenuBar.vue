@@ -68,7 +68,6 @@ import { endSession } from 'src/common/api-requests/session';
 import { useI18n } from 'vue-i18n';
 import { setI18nLanguage } from 'boot/i18n';
 import { useSessionStore } from 'src/stores/session';
-import { useUserStore } from 'src/stores/users';
 import type { CourseSettingInfo } from 'src/common/models/settings';
 import { useSettingsStore } from 'src/stores/settings';
 
@@ -77,7 +76,6 @@ export default defineComponent({
 	emits: ['toggle-menu', 'toggle-sidebar'],
 	setup() {
 		const session = useSessionStore();
-		const users = useUserStore();
 		const settings = useSettingsStore();
 		const router = useRouter();
 		const route = useRoute();
@@ -92,12 +90,12 @@ export default defineComponent({
 			current_course_name,
 			full_name: computed(() => session.full_name),
 			user_courses: computed(() =>
-				users.user_courses.filter(course => course.course_name !== current_course_name.value)),
+				session.user_courses.filter(course => course.course_name !== current_course_name.value)),
 			changeCourse: (course_id: number, course_name: string) => {
-				const current_course = users.user_courses
+				const current_course = session.user_courses
 					.find(course => course.course_name === current_course_name.value);
 
-				const new_course = users.user_courses.find(course => course.course_name === course_name);
+				const new_course = session.user_courses.find(course => course.course_name === course_name);
 				if (current_course && new_course && current_course.role !== new_course.role) {
 					void router.push({ name: new_course.role, params: { course_id: course_id } });
 				}
