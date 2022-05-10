@@ -159,7 +159,9 @@ export const useUserStore = defineStore('user', {
 		 */
 		async setSessionUser() {
 			const session_store = useSessionStore();
-			this.users = [ session_store.user.clone()];
+			// Get the global user.
+			const user_response = await api.get(`users/${session_store.user.user_id}`);
+			this.users = [ new User(user_response.data as ParseableUser)];
 			// fetch the course user information for this use
 			const response = await api.get(`courses/${session_store.course.course_id}/users/${
 				session_store.user.user_id}`);

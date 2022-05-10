@@ -20,42 +20,36 @@
 	</div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { defineComponent, ref } from 'vue';
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { checkPassword } from 'src/common/api-requests/session';
 import { useSessionStore } from 'src/stores/session';
 
-export default defineComponent({
-	name: 'Login',
-	setup() {
-		const router = useRouter();
-		const username = ref('');
-		const password = ref('');
-		const message = ref('');
-		const i18n = useI18n({ useScope: 'global' });
+const router = useRouter();
+const username = ref('');
+const password = ref('');
+const message = ref('');
+const i18n = useI18n({ useScope: 'global' });
 
-		const session = useSessionStore();
-		const login = async () => {
-			const username_info = {
-				username: username.value,
-				password: password.value
-			};
-			const session_info = await checkPassword(username_info);
-			if (!session_info.logged_in) {
-				message.value = i18n.t('authentication.failure');
-			} else {
-				// success
-				void session.updateSessionInfo(session_info);
-				if (session_info?.user?.is_admin) {
-					void router.push('/admin');
-				} else if (session && session.user && session.user.user_id) {
-					void router.push(`/users/${session.user.user_id}/courses`);
-				}
-			}
-		};
-		return { username, password, message, login };
+const session_store = useSessionStore();
+const login = async () => {
+	const username_info = {
+		username: username.value,
+		password: password.value
+	};
+	const session_info = await checkPassword(username_info);
+	if (!session_info.logged_in) {
+		message.value = i18n.t('authentication.failure');
+	} else {
+		// success
+		void session_store.updateSessionInfo(session_info);
+		if (session_info?.user?.is_admin) {
+			void router.push('/admin');
+		} else if (session_store && session_store.user && session_store.user.user_id) {
+			void router.push(`/users/${session_store.user.user_id}/courses`);
+		}
 	}
-});
+};
 </script>
