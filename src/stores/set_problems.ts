@@ -193,7 +193,7 @@ export const useSetProblemStore = defineStore('set_problems', {
 		 * @param {UserProblem} user_problem
 		 * @returns the UserProblem that was updated.
 		 */
-		 async updateUserProblem(user_problem: UserProblem): Promise<UserProblem> {
+		async updateUserProblem(user_problem: UserProblem): Promise<UserProblem> {
 			const course_id = useSessionStore().course.course_id;
 			const set_problem = this.set_problems.find(prob => prob.problem_id === user_problem.problem_id);
 			const user_set = useProblemSetStore().findUserSet({ user_set_id: user_problem.user_set_id });
