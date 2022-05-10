@@ -127,4 +127,52 @@ is_deeply(
 	"getUserProblemVersions: get all versions of a user problem"
 );
 
+# clean up the created versioned user sets.
+
+use Data::Dumper;
+print Dumper $user_problem1_v3_params;
+
+my $user_problem_v2_to_delete = $user_problem_rs->deleteUserProblem(
+	info => {
+		course_name     => $user_problem1_v2_params->{course_name},
+		set_name        => $user_problem1_v2_params->{set_name},
+		username        => $user_problem1_v2_params->{username},
+		problem_number  => $user_problem1_v2_params->{problem_number},
+		problem_version => $user_problem1_v2_params->{problem_version}
+	}
+);
+removeIDs($user_problem_v2_to_delete);
+
+is_deeply($user_problem_v2_to_delete, $user_problem1_v2, 'deleteUserProblem: delete a versioned user problem');
+
+my $user_problem_v3_to_delete = $user_problem_rs->deleteUserProblem(
+	info => {
+		course_name     => $user_problem1_v3_params->{course_name},
+		set_name        => $user_problem1_v3_params->{set_name},
+		username        => $user_problem1_v3_params->{username},
+		problem_number  => $user_problem1_v3_params->{problem_number},
+		problem_version => $user_problem1_v3_params->{problem_version}
+	}
+);
+removeIDs($user_problem_v3_to_delete);
+
+is_deeply($user_problem_v3_to_delete, $user_problem1_v3, 'deleteUserProblem: delete another versioned user problem');
+
+# removeIDs($user_set_v2_to_delete);
+# delete $user_set_v2_to_delete->{set_visible} unless defined($user_set_v2_to_delete->{set_visible});
+# is_deeply($user_set_v2_to_delete, $user_set1_v2, 'deleteUserSet: delete a versioned user set');
+
+# my $user_set_v3_to_delete = $user_set_rs->deleteUserSet(
+# 	info => {
+# 		course_name => $user_set1_v3_params->{course_name},
+# 		set_name => $user_set1_v3_params->{set_name},
+# 		username => $user_set1_v3_params->{username},
+# 		set_version => $user_set1_v3_params->{set_version}
+# 	}
+# );
+
+# removeIDs($user_set_v3_to_delete);
+# delete $user_set_v3_to_delete->{set_visible} unless defined($user_set_v3_to_delete->{set_visible});
+# is_deeply($user_set_v3_to_delete, $user_set1_v3, 'deleteUserSet: delete a versioned user set');
+
 done_testing;

@@ -439,7 +439,7 @@ sub updateUserSet ($self, %args) {
 	my $params = clone $args{params};
 	# Remove some parameters that are not in the UserSet database, but may
 	# be passed in.
-	for my $key (qw/username course_name set_name set_type/) {
+	for my $key (qw/username course_name set_name set_type user_id/) {
 		delete $params->{$key} if defined $params->{$key};
 	}
 

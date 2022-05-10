@@ -21,9 +21,10 @@ import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 import { useSessionStore } from 'src/stores/session';
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useSetProblemStore } from 'src/stores/set_problems';
-import { MergedUserProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemParams,
-	UserProblem } from 'src/common/models/problems';
-import { UserHomeworkSet, UserSet } from 'src/common/models/user_sets';
+import { UserProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemParams,
+	DBUserProblem,
+	mergeUserProblem } from 'src/common/models/problems';
+import { DBUserHomeworkSet, mergeUserSet, UserSet } from 'src/common/models/user_sets';
 import { Dictionary, generic } from 'src/common/models';
 
 const app = createApp({});
@@ -31,7 +32,7 @@ const app = createApp({});
 describe('Problem Set store tests', () => {
 	let precalc_course: Course;
 	// These are needed for multiple tests.
-	let precalc_merged_problems: MergedUserProblem[];
+	let precalc_merged_problems: UserProblem[];
 	let precalc_hw1_user_problems: UserProblem[];
 	let precalc_problems_from_csv: Dictionary<generic | Dictionary<generic>>[];
 
@@ -83,17 +84,11 @@ describe('Problem Set store tests', () => {
 		precalc_problems_from_csv = problems_to_parse
 			.filter(prob => prob.course_name === 'Precalculus');
 
-		// console.log(precalc_problems_from_csv);
-
 		// Load the User Problem information from the csv file:
 		const user_problems_from_csv = await loadCSV('t/db/sample_data/user_problems.csv', {
 			params: [],
 			non_neg_fields: ['problem_number', 'seed']
 		});
-
-		precalc_hw1_user_problems = user_problems_from_csv
-			.filter(prob => prob.course_name === 'Precalculus' && prob.set_name === 'HW #1')
-			.map(prob => new UserProblem(prob));
 
 		// load all user problems in Precalc from CSV files and merge them with set problems.
 		// Load the users from the csv file.
@@ -109,8 +104,10 @@ describe('Problem Set store tests', () => {
 				const set_problem = precalc_problems_from_csv.find(prob =>
 					prob.set_name === problem_set?.set_name && prob.problem_number === user_problem.problem_number);
 				const user = users_to_parse.find(user => user.username === user_problem.username);
-				return new MergedUserProblem(Object.assign(problem_set, set_problem, user_problem, user));
+				return new UserProblem(Object.assign(problem_set, set_problem, user_problem, user));
 			});
+
+		precalc_hw1_user_problems = precalc_merged_problems.filter(prob => prob.set_name === 'HW #1');
 
 		// We'll need the courses as well.
 		const courses_store = useCourseStore();
@@ -189,11 +186,14 @@ describe('Problem Set store tests', () => {
 
 	describe('Fetch user problems', () => {
 		test('Fetch all User Problems for a set in a course', async () => {
+			const user_store = useUserStore();
+			await user_store.fetchGlobalCourseUsers(precalc_course.course_id);
+			await user_store.fetchCourseUsers(precalc_course.course_id);
 			const problem_set_store = useProblemSetStore();
+			await problem_set_store.fetchProblemSets(precalc_course.course_id);
 			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' }) ?? new ProblemSet();
 			const set_problems_store = useSetProblemStore();
 			await set_problems_store.fetchUserProblems(hw1.set_id);
-			// const hw1_problems = set_problems_store.findSetProblems({ set_name: 'HW #1' });
 			const hw1_user_problems = set_problems_store.findUserProblems({ set_name: 'HW #1' });
 			expect(cleanIDs(precalc_hw1_user_problems)).toStrictEqual(cleanIDs(hw1_user_problems));
 		});
@@ -203,11 +203,12 @@ describe('Problem Set store tests', () => {
 		let added_hw: HomeworkSet;
 		let added_user_set: UserSet;
 		let added_user_problem: UserProblem;
+		let updated_user_problem: UserProblem;
 		let new_problem: SetProblem;
-		test('Add a new ProblemSet, UserSet, SetProblem and UserProblem ', async () => {
+		test('Add a new ProblemSet, UserSet, SetProblem and DBUserProblem ', async () => {
 			// Note: adding a Problem Set, UserSet and SetProblem are done elsewhere,
 			// so no need to test that these are working.  Just add them to make testing
-			// UserProblems easier.
+			// DBUserProblems easier.
 			const problem_set_store = useProblemSetStore();
 			const set_problem_store = useSetProblemStore();
 			const hw = new HomeworkSet({
@@ -228,25 +229,40 @@ describe('Problem Set store tests', () => {
 			await users_store.fetchCourseUsers(precalc_course.course_id);
 			await users_store.fetchGlobalCourseUsers(precalc_course.course_id);
 			const user = users_store.course_users[0];
-			const user_set = new UserHomeworkSet({
+
+			const db_user_set = new DBUserHomeworkSet({
 				course_user_id: user.course_user_id,
 				set_id: added_hw.set_id
 			});
+			const user_set = mergeUserSet(added_hw, db_user_set, user) ?? new UserSet();
 			added_user_set = await problem_set_store.addUserSet(user_set) ?? new UserSet();
 
-			const user_problem = new UserProblem({
-				user_set_id: added_user_set.user_set_id,
-				problem_id: new_problem.problem_id,
-				seed: 4321
-			});
+			const user_problem = mergeUserProblem(new_set_problem,
+				new DBUserProblem({
+					user_set_id: added_user_set.user_set_id,
+					problem_id: new_problem.problem_id,
+					seed: 4321
+				}),
+				user_set);
+
 			added_user_problem = await set_problem_store.addUserProblem(user_problem);
 			expect(cleanIDs(user_problem)).toStrictEqual(cleanIDs(added_user_problem));
 		});
 
+		test('Update a user problem', async () => {
+			const set_problem_store = useSetProblemStore();
+			added_user_problem.problem_version = 2;
+			added_user_problem.problem_params.set({
+				file_path: 'a/different/file.pg'
+			});
+			updated_user_problem = await set_problem_store.updateUserProblem(added_user_problem);
+			expect(cleanIDs(updated_user_problem)).toStrictEqual(cleanIDs(added_user_problem));
+		});
+
 		test('Delete a user problem', async () => {
 			const set_problem_store = useSetProblemStore();
-			const deleted_problem = await set_problem_store.deleteUserProblem(added_user_problem);
-			expect(cleanIDs(deleted_problem)).toStrictEqual(cleanIDs(added_user_problem));
+			const deleted_problem = await set_problem_store.deleteUserProblem(updated_user_problem);
+			expect(cleanIDs(deleted_problem)).toStrictEqual(cleanIDs(updated_user_problem));
 		});
 
 		// clean up some created sets.
@@ -259,12 +275,35 @@ describe('Problem Set store tests', () => {
 		});
 	});
 
-	describe('Testing Merged User Problems', () => {
-		test('Testing merged user problems', () => {
+	describe('Testing Merged User Problems for a set in a course.', () => {
+		test('Testing merged user problems', async () => {
+			// Reload all of the data from the database.
+			// Not sure why this is needed, but maybe something isn't rest from previous tests.
 			const set_problem_store = useSetProblemStore();
-			const hw1_user_problems = precalc_merged_problems.filter(prob => prob.set_name === 'HW #1');
-			expect(cleanIDs(hw1_user_problems))
-				.toStrictEqual(cleanIDs(set_problem_store.merged_user_problems));
+			await set_problem_store.fetchSetProblems(precalc_course.course_id);
+			await set_problem_store.fetchUserProblems(precalc_course.course_id);
+			const problem_set_store = useProblemSetStore();
+			await problem_set_store.fetchProblemSets(precalc_course.course_id);
+			await problem_set_store.fetchAllUserSets(precalc_course.course_id);
+			const users_store = useUserStore();
+			await users_store.fetchGlobalCourseUsers(precalc_course.course_id);
+			await users_store.fetchCourseUsers(precalc_course.course_id);
+			expect(cleanIDs(precalc_hw1_user_problems))
+				.toStrictEqual(cleanIDs(set_problem_store.user_problems));
+		});
+	});
+
+	describe('Testing Merged User Problems for a user in a course.', () => {
+		test('Testing merged user problems', async () => {
+			const set_problem_store = useSetProblemStore();
+			const single_user_problems = precalc_merged_problems
+				.filter(prob => prob.username === 'homer');
+			const user_store = useUserStore();
+			// user_store.fetchGlobalCourseUsers(precalc_course.course_id);
+			const homer = user_store.findCourseUser({ username: 'homer' });
+			await set_problem_store.fetchUserProblemsForUser(homer.user_id);
+			expect(cleanIDs(single_user_problems))
+				.toStrictEqual(cleanIDs(set_problem_store.user_problems));
 		});
 	});
 });

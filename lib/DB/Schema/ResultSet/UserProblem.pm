@@ -430,6 +430,10 @@ sub updateUserProblem ($self, %args) {
 		unless $user_problem;
 
 	my $params = clone($args{params} // {});
+	# delete some fields that are not in the database, but may be passed in:
+	for my $key (qw/problem_number set_name username user_id/) {
+		delete $params->{$key} if defined($params->{$key});
+	}
 	$self->checkParams($params) if defined($args{params});
 
 	my $problem_to_return = $user_problem->update($params);

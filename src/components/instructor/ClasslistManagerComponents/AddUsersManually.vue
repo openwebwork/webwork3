@@ -72,7 +72,7 @@ import { useUserStore } from 'src/stores/users';
 import { useSessionStore } from 'src/stores/session';
 import { useSettingsStore } from 'src/stores/settings';
 
-import { CourseUser, ParseableMergedUser, User } from 'src/common/models/users';
+import { CourseUser, ParseableCourseUser, User } from 'src/common/models/users';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import { AxiosError } from 'axios';
 import { parseNonNegInt, parseUsername } from 'src/common/models/parsers';
@@ -85,7 +85,7 @@ interface QRef {
 const emit = defineEmits(['closeDialog']);
 
 const $q = useQuasar();
-const merged_user = ref<ParseableMergedUser>({});
+const merged_user = ref<ParseableCourseUser>({});
 const user_exists = ref<boolean>(true);
 const username_ref = ref<QRef | null>(null);
 const role_ref = ref<QRef | null>(null);
@@ -148,7 +148,7 @@ const addUser = async (close: boolean) => {
 
 		merged_user.value.course_id = session.course.course_id;
 		const user = await users.addCourseUser(new CourseUser(merged_user.value));
-		const u = users.findMergedUser({ user_id: parseNonNegInt(user.user_id ?? 0) });
+		const u = users.findCourseUser({ user_id: parseNonNegInt(user.user_id ?? 0) });
 		$q.notify({
 			message: `The user with username '${u.username ?? ''}' was added successfully.`,
 			color: 'green'
@@ -179,7 +179,7 @@ const validateRole = (val: string | null) => {
 const validateUsername = (val: string) => {
 	try {
 		const username = parseUsername(val);
-		if (users.merged_users.findIndex(u => u.username === username) >= 0) {
+		if (users.course_users.findIndex(u => u.username === username) >= 0) {
 			return 'This user is already in the course.';
 		}
 		return true;
