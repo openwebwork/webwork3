@@ -163,7 +163,7 @@ export const useUserStore = defineStore('user', {
 			// fetch the course user information for this use
 			const response = await api.get(`courses/${session_store.course.course_id}/users/${
 				session_store.user.user_id}`);
-			this.course_users = [ new CourseUser(response.data as ParseableCourseUser)];
+			this.db_course_users = [ new DBCourseUser(response.data as ParseableDBCourseUser)];
 		},
 		// CourseUser actions
 		/**
@@ -240,8 +240,7 @@ export const useUserStore = defineStore('user', {
 		},
 		clearAll() {
 			this.users = [];
-			this.course_users = [];
-			this.user_courses = [];
+			this.db_course_users = [];
 		}
 	}
 });

@@ -25,10 +25,6 @@ type UserInfo =
 	{ username: string; user_id?: never } |
 	{ user_id: number; username?: never };
 
-type UserInfo =
-	{ username: string; user_id?: never } |
-	{ user_id: number; username?: never };
-
 /**
  * This is an type to retrieve user set info.  This ensure either a user_set_id is passed
  * in or set info and User Info, but not too much.

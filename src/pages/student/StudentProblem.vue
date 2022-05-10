@@ -32,10 +32,10 @@ export default defineComponent({
 			set_id,
 			problem_id,
 			user_set: computed(
-				() => problem_sets.merged_user_sets.find(set => set.set_id === set_id.value)
+				() => problem_sets.user_sets.find(set => set.set_id === set_id.value)
 			),
 			user_problem: computed(
-				() => set_problem_store.merged_user_problems.find(
+				() => set_problem_store.user_problems.find(
 					prob => prob.set_id === set_id.value && prob.problem_id === problem_id.value)
 			)
 		};

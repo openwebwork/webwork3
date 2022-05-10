@@ -17,9 +17,9 @@ const problem_set_store = useProblemSetStore();
 const set_problem_store = useSetProblemStore();
 const route = useRoute();
 const course_id = parseRouteCourseID(route);
-if (session.user.user_id) await user_store.fetchUserCourses(session.user.user_id)
+if (session.user.user_id) await session.fetchUserCourses(session.user.user_id)
 	.then(async () => {
-		const course = user_store.user_courses.find(c => c.course_id === course_id);
+		const course = session.user_courses.find(c => c.course_id === course_id);
 		if (course) {
 			session.setCourse({
 				course_id,
@@ -36,7 +36,7 @@ if (session.user.user_id) await user_store.fetchUserCourses(session.user.user_id
 			void set_problem_store.fetchSetProblems(course_id);
 			void set_problem_store.fetchUserProblemsForUser(session.user.user_id);
 		} else {
-			logger.warn(`Can't find ${course_id} in ${user_store.user_courses.map((c) => c.course_id).join(', ')}`);
+			logger.warn(`Can't find ${course_id} in ${session.user_courses.map((c) => c.course_id).join(', ')}`);
 		}
 	});
 </script>

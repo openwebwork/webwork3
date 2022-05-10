@@ -37,7 +37,7 @@ export default defineComponent({
 	setup() {
 		const problem_sets = useProblemSetStore();
 		return {
-			open_sets: computed(() => problem_sets.merged_user_sets)
+			open_sets: computed(() => problem_sets.user_sets)
 		};
 	}
 });
