@@ -569,6 +569,9 @@ export function parseUserSet(user_set: ParseableUserSet) {
  * @returns a MergedUserSet with the appropriate overrides.
  */
 export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: CourseUser) {
+	// Perhaps we need to handle this better, but this situation happens when reacting
+	// to changes between ProblemSets and UserSets in the store.
+	if (set == undefined || db_user_set == undefined || user == undefined) return;
 	// Check if the user_set is related to the Problem Set
 	if (set.set_id !== db_user_set.set_id) {
 		throw new MergeError('The User set is not related to the Problem set');

@@ -57,30 +57,23 @@
 </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, computed } from 'vue';
+<script setup lang="ts">
+import { computed } from 'vue';
 import { useSessionStore } from 'src/stores/session';
 import { parseNonNegInt, parseUserRole } from 'src/common/models/parsers';
 
-export default defineComponent({
-	name: 'UserCourses',
-	setup() {
-		const session = useSessionStore();
-		return {
-			student_courses: computed(() =>
-				session.user_courses.filter(user_course => parseUserRole(user_course.role) === 'STUDENT')
-			),
-			instructor_courses: computed(() =>
-				session.user_courses.filter(user_course => parseUserRole(user_course.role) === 'INSTRUCTOR')
-			),
-			user: computed(() => session.user)
-		};
-	},
-	created() {
-		// fetch the data when the view is created and the data is
-		// already being observed
-		const session = useSessionStore();
-		void session.fetchUserCourses(parseNonNegInt(session.user.user_id ?? 0));
-	}
-});
+const session = useSessionStore();
+const student_courses = computed(() =>
+	// for some reason on load the user_course.role is undefined.
+	session.user_courses.filter(user_course =>
+		user_course.role && parseUserRole(user_course.role) === 'STUDENT'));
+
+const instructor_courses = computed(() =>
+	// For some reason on load the user_course.role is undefined.
+	session.user_courses.filter(user_course => user_course.role && parseUserRole(user_course.role) === 'INSTRUCTOR')
+);
+const user = computed(() => session.user);
+
+// fetch the data when the view is created and the data is already being observed
+if (session) void session.fetchUserCourses(parseNonNegInt(session.user.user_id));
 </script>
