@@ -4,6 +4,7 @@
 
 use warnings;
 use strict;
+use feature 'say';
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -22,6 +23,8 @@ use YAML::XS qw/LoadFile/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
+
+use Data::Dumper;
 
 # Load the configuration files
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
@@ -49,11 +52,6 @@ my @usersets_that_may_exist = $user_set_rs->search(
 					'users.username' => 'otto',
 					'users.username' => 'frink',
 				]
-			],
-			-and => [
-				'courses.course_name'   => 'Arithmetic',
-				'users.username'        => 'ralph',
-				'problem_sets.set_name' => 'HW #2'
 			],
 			-and => [
 				'courses.course_name'   => 'Precalculus',
@@ -136,6 +134,8 @@ for my $user_set (@merged_user_sets) {
 # Get all user sets for a given user in a course.
 my @all_user_sets_from_db = $user_set_rs->getAllUserSets();
 
+print Dumper scalar(@all_user_sets_from_db);
+
 for my $set (@all_user_sets_from_db) {
 	removeIDs($set);
 	for my $key (keys %{$set}) {
@@ -143,7 +143,16 @@ for my $set (@all_user_sets_from_db) {
 	}
 }
 
-is_deeply(\@all_user_sets_from_db, \@all_user_sets, "getAllUserSets: get all merged sets for all courses");
+# print Dumper \@all_user_sets;
+# for my $set (@all_user_sets) {
+# 	say "$set->{course_name} $set->{username} $set->{set_name}";
+# }
+# for my $set (@all_user_sets_from_db) {
+# 	say "$set->{course_name} $set->{username} $set->{set_name}";
+# }
+# print Dumper \@all_user_sets_from_db;
+
+is_deeply(\@all_user_sets_from_db, \@all_user_sets, "getAllUserSets: get all user sets for all courses");
 
 my @merged_sets_from_db = $user_set_rs->getAllUserSets(merged => 1);
 
@@ -151,7 +160,7 @@ for my $merged_set (@merged_sets_from_db) {
 	removeIDs($merged_set);
 }
 
-is_deeply(\@merged_sets_from_db, \@merged_user_sets, "getAllUserSets: get all merged sets for a user in a course");
+is_deeply(\@merged_sets_from_db, \@merged_user_sets, "getAllUserSets: get all merged sets for all courses");
 
 # Get all user set for a given user in a course.
 
@@ -362,11 +371,19 @@ is_deeply($new_merged_set, $hw_set1, "addUserSet: add a new user set and check t
 my $new_user_params2 = {
 	username    => "ralph",
 	course_name => "Arithmetic",
-	set_name    => "HW #2",
+	set_name    => "HW #3",
 	set_dates   => {}
 };
 
 my $new_user_set2 = $user_set_rs->addUserSet(params => $new_user_params2);
+removeIDs($new_user_set2);
+
+# add some fields to the params that are added when writing to the DB.
+$new_user_params2->{set_type}    = 'HW';
+$new_user_params2->{set_version} = 1;
+$new_user_params2->{set_params}  = {};
+
+is_deeply($new_user_set2, $new_user_params2, 'addUserSet: add a new user set with empty dates.');
 
 # Try to add a user set to a course that doesn't exist.
 throws_ok {
@@ -739,6 +756,34 @@ my $deleted_user_set = $user_set_rs->deleteUserSet(info => $otto_set_info2);
 removeIDs($deleted_user_set);
 
 is_deeply($deleted_user_set, $otto_set2, "deleteUserSet: successfully delete a user set");
+
+# Delete another user set.
+my $deleted_user_set2 = $user_set_rs->deleteUserSet(
+	info => {
+		username    => $ralph_set_info->{username},
+		course_name => $ralph_set_info->{course_name},
+		set_name    => $ralph_set_info->{set_name}
+	}
+);
+removeIDs($deleted_user_set2);
+# remove the set_visible field to compare to the above user_set
+delete $deleted_user_set2->{set_visible};
+
+is_deeply($deleted_user_set2, $ralph_set_info, 'deleteUserSet: successfully delete another user set.');
+
+# Delete another added user set
+my $deleted_user_set3 = $user_set_rs->deleteUserSet(
+	info => {
+		username    => $new_user_params2->{username},
+		course_name => $new_user_params2->{course_name},
+		set_name    => $new_user_params2->{set_name}
+	}
+);
+removeIDs($deleted_user_set3);
+# remove the set_visible field to compare to the above user_set
+delete $deleted_user_set3->{set_visible};
+
+is_deeply($deleted_user_set3, $new_user_params2, 'deleteUserSet: successfully delete another user set.');
 
 # Try to delete a user_set that doesn't exist.
 throws_ok {
