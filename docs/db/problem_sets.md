@@ -33,14 +33,16 @@ fields of a `UserSet` are
 - `user_set_id`: (PK, auto_increment)
 - `set_id`: (foreign key), the problem set that is associated with this user set
 - `course_user_id`: (foreign key), the `CourseUser` that this is associated with. That
-is who is assigned to this set.
-- `set_version`: the version of the set.  Used for Gateway quizzes or other problem sets.
-- `set_type`: the type of the set.  This must be the same as the set type of the `ProblemSet`.
+  is who is assigned to this set.
+- `set_version`: the version of the set.  Used for Gateway quizzes or other problem
+  sets.
+- `set_type`: the type of the set.  This must be the same as the set type of the
+  `ProblemSet`.
 - `set_visible`: a boolean. If true, have the set visible.
-- `set_params`: a hash (object) of parameters for the set.  These will override the `set_params`
-  field in the corresponding problem set.
-- `set_dates`: a hash (object) of dates for the set.  These will override the `set_dates` field
-  in the corresponding problem set.
+- `set_params`: a hash (object) of parameters for the set.  These will override the
+  `set_params` field in the corresponding problem set.
+- `set_dates`: a hash (object) of dates for the set.  These will override the
+  `set_dates` field in the corresponding problem set.
 
 ## Questions
 
