@@ -56,11 +56,13 @@ export const useSetProblemStore = defineStore('set_problems', {
 				// get a list of the desired set_problem_ids
 				const set_problem_ids = this.findSetProblems(set_info).map(prob => prob.set_problem_id);
 				return state.db_user_problems
-					.filter(user_prob => set_problem_ids.findIndex(prob_id => user_prob.set_problem_id === prob_id) >= 0)
+					.filter(user_prob => set_problem_ids
+						.findIndex(prob_id => user_prob.set_problem_id === prob_id) >= 0)
 					.map(user_prob => {
 						const user_set = problem_set_store.findUserSet({ user_set_id: user_prob.user_set_id })
 							?? new UserSet();
-						const set_problem = state.set_problems.find(prob => prob.set_problem_id === user_prob.set_problem_id)
+						const set_problem = state
+							.set_problems.find(prob => prob.set_problem_id === user_prob.set_problem_id)
 							?? new SetProblem();
 						// Not sure why the first two arguments need to be cast.
 						return mergeUserProblem(set_problem as SetProblem, user_prob as DBUserProblem, user_set);

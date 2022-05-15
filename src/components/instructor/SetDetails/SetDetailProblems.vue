@@ -67,7 +67,7 @@ const reorderProblems = async () => {
 		if (prob.problem_number !== i + 1) {
 			promises.push(set_problem_store.updateSetProblem({
 				set_id: prob.set_id,
-				problem_id: prob.problem_id,
+				set_problem_id: prob.set_problem_id,
 				props: { problem_number: i + 1 }
 			}));
 		}
