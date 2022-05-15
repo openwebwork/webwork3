@@ -32,8 +32,8 @@ sub updateProblem ($self) {
 	delete $params->{render_params} if defined($params->{render_params});
 	my $updated_problem = $self->schema->resultset("SetProblem")->updateSetProblem(
 		info => {
-			course_id  => int($self->param("course_id")),
-			set_id     => int($self->param("set_id")),
+			course_id      => int($self->param("course_id")),
+			set_id         => int($self->param("set_id")),
 			set_problem_id => int($self->param("set_problem_id"))
 		},
 		params => $params
@@ -45,8 +45,8 @@ sub updateProblem ($self) {
 sub deleteProblem ($self) {
 	my $deleted_problem = $self->schema->resultset("SetProblem")->deleteSetProblem(
 		info => {
-			course_id  => int($self->param("course_id")),
-			set_id     => int($self->param("set_id")),
+			course_id      => int($self->param("course_id")),
+			set_id         => int($self->param("set_id")),
 			set_problem_id => int($self->param("set_problem_id"))
 		}
 	);
@@ -104,9 +104,9 @@ sub updateUserProblem ($self) {
 	my $problem_params = $self->req->json;
 	my $user_problem   = $self->schema->resultset("UserProblem")->updateUserProblem(
 		info => {
-			course_id  => int($self->param('course_id')),
-			set_id     => int($self->param('set_id')),
-			user_id    => int($self->param('user_id')),
+			course_id      => int($self->param('course_id')),
+			set_id         => int($self->param('set_id')),
+			user_id        => int($self->param('user_id')),
 			set_problem_id => int($self->param('set_problem_id'))
 		},
 		params => $problem_params
@@ -118,9 +118,9 @@ sub updateUserProblem ($self) {
 sub deleteUserProblem ($self) {
 	my $deleted_problem = $self->schema->resultset("UserProblem")->deleteUserProblem(
 		info => {
-			course_id  => int($self->param('course_id')),
-			set_id     => int($self->param('set_id')),
-			user_id    => int($self->param('user_id')),
+			course_id      => int($self->param('course_id')),
+			set_id         => int($self->param('set_id')),
+			user_id        => int($self->param('user_id')),
 			set_problem_id => int($self->param('set_problem_id'))
 		}
 	);

@@ -353,8 +353,8 @@ sub addUserProblem ($self, %args) {
 	$params->{problem_version} = 1                   unless defined $params->{problem_version};
 
 	my $problem_to_return = $problem->add_to_user_problems({
-		set_problem_id  => $problem->set_problem_id,
-		user_set_id => $user_set->user_set_id,
+		set_problem_id => $problem->set_problem_id,
+		user_set_id    => $user_set->user_set_id,
 		%$params
 	});
 
@@ -498,8 +498,8 @@ sub getUserProblemVersions ($self, %args) {
 	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{info}, as_result_set => 1);
 
 	my @user_problems = $self->search({
-		set_problem_id  => $problem->set_problem_id,
-		user_set_id => $user_set->user_set_id,
+		set_problem_id => $problem->set_problem_id,
+		user_set_id    => $user_set->user_set_id,
 	});
 
 	return @user_problems if $args{as_result_set};
