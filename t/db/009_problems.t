@@ -252,9 +252,9 @@ my $updated_params = {
 my $all_params      = updateAllFields($new_problem, $updated_params);
 my $updated_problem = $problem_rs->updateSetProblem(
 	info => {
-		course_name => "Precalculus",
-		set_name    => "HW #1",
-		set_problem_id  => $prob_id
+		course_name    => "Precalculus",
+		set_name       => "HW #1",
+		set_problem_id => $prob_id
 	},
 	params => $updated_params
 );

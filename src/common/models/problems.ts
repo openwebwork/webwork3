@@ -351,7 +351,7 @@ export class DBUserProblem extends Problem {
 	get param_fields() { return ['problem_params', 'render_params']; }
 
 	public get set_problem_id() : number { return this._set_problem_id; }
-	public set set_problem_id(val: string | number) { this._problem_id = parseNonNegInt(val);}
+	public set set_problem_id(val: string | number) { this._set_problem_id = parseNonNegInt(val);}
 
 	public get user_problem_id() : number { return this._user_problem_id; }
 	public set user_problem_id(val: string | number) { this._user_problem_id = parseNonNegInt(val);}
