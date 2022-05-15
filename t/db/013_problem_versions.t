@@ -28,7 +28,7 @@ $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-my $problem_rs      = $schema->resultset("Problem");
+my $problem_rs      = $schema->resultset("SetProblem");
 my $user_problem_rs = $schema->resultset("UserProblem");
 
 # remove any problem versions greater than 2.

@@ -220,7 +220,7 @@ throws_ok {
 		}
 	);
 }
-"DB::Exception::ProblemNotFound", "getUserProblem: attempt to get a user problem from a nonexistent problem";
+"DB::Exception::SetProblemNotFound", "getUserProblem: attempt to get a user problem from a nonexistent problem";
 
 # Add a UserProblem to the database.
 
@@ -334,7 +334,7 @@ throws_ok {
 		}
 	);
 }
-"DB::Exception::ProblemNotFound", "addUserProblem: attempt to add a user problem for a non-existent problem";
+"DB::Exception::SetProblemNotFound", "addUserProblem: attempt to add a user problem for a non-existent problem";
 
 # Attempt to add a UserProblem that already exists
 
@@ -546,7 +546,7 @@ throws_ok {
 		params => {}
 	);
 }
-"DB::Exception::ProblemNotFound", "updateUserProblem: attempt to update a user problem for a non-existent problem";
+"DB::Exception::SetProblemNotFound", "updateUserProblem: attempt to update a user problem for a non-existent problem";
 
 # Try to update a UserProblem with a bad seed :) .
 
@@ -731,6 +731,6 @@ throws_ok {
 		params => {}
 	);
 }
-"DB::Exception::ProblemNotFound", "deleteUserProblem: attempt to delete a user problem for a non-existent problem";
+"DB::Exception::SetProblemNotFound", "deleteUserProblem: attempt to delete a user problem for a non-existent problem";
 
 done_testing;

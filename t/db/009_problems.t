@@ -28,7 +28,7 @@ $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-my $problem_rs     = $schema->resultset("Problem");
+my $problem_rs     = $schema->resultset("SetProblem");
 my $problem_set_rs = $schema->resultset("ProblemSet");
 
 # Load all problems from the CVS files.
@@ -141,7 +141,7 @@ my $prob1 = $problem_rs->addSetProblem(
 	}
 );
 
-my $prob_id = $prob1->{problem_id};
+my $prob_id = $prob1->{set_problem_id};
 removeIDs($prob1);
 
 is_deeply($new_problem, $prob1, "addSetProblem: add a valid problem to a set");
@@ -254,7 +254,7 @@ my $updated_problem = $problem_rs->updateSetProblem(
 	info => {
 		course_name => "Precalculus",
 		set_name    => "HW #1",
-		problem_id  => $prob_id
+		set_problem_id  => $prob_id
 	},
 	params => $updated_params
 );

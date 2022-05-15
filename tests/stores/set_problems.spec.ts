@@ -240,7 +240,7 @@ describe('Problem Set store tests', () => {
 			const user_problem = mergeUserProblem(new_set_problem,
 				new DBUserProblem({
 					user_set_id: added_user_set.user_set_id,
-					problem_id: new_problem.problem_id,
+					set_problem_id: new_problem.set_problem_id,
 					seed: 4321
 				}),
 				user_set);

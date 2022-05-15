@@ -1,4 +1,4 @@
-package DB::Schema::ResultSet::Problem;
+package DB::Schema::ResultSet::SetProblem;
 
 use strict;
 use warnings;
@@ -140,7 +140,7 @@ This gets a single problem from a given course and problem
 =over
 =item - C<course_name> or C<course_id>
 =item - C<set_name> or C<set_id>
-=item - C<problem_number> or C<problem_id>
+=item - C<problem_number> or C<set_"SetProblem">
 
 =back
 
@@ -166,12 +166,12 @@ sub getSetProblem ($self, %args) {
 
 	my $problem = $problem_set->problems->find(getProblemInfo($args{info}));
 
-	DB::Exception::ProblemNotFound->throw(
+	DB::Exception::SetProblemNotFound->throw(
 		message => "the problem with "
 			. (
 			$args{info}->{problem_number}
 			? "problem number " . $args{info}->{problem_number}
-			: "problem id: " . $args{info}->{problem_id}
+			: "set_problem id: " . $args{info}->{set_problem_id}
 			)
 			. " is not found for set: "
 			. $problem_set->set_name
@@ -334,7 +334,7 @@ delete a single problem to an existing problem set within a course
 =over
 =item - C<course_name> or C<course_id>
 =item - C<set_name> or C<set_id>
-=item - C<problem_number> or C<problem_id>
+=item - C<problem_number> or C<set_problem_id>
 
 =back
 
