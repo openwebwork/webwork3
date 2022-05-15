@@ -67,6 +67,14 @@ __PACKAGE__->add_columns(
 	}
 );
 
+__PACKAGE__->inflate_column(
+	'visible',
+	{
+		inflate => sub { return shift ? Mojo::JSON->true : Mojo::JSON->false; },
+		deflate => sub { return shift; }
+	}
+);
+
 __PACKAGE__->set_primary_key('course_id');
 
 # set up the many-to-many relationship to users

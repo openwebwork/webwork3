@@ -125,7 +125,7 @@ sub addGlobalUser ($self, %args) {
 
 	my $new_user = $self->create($params);
 	return $new_user if $args{as_result_set};
-	return removeLoginParams({ $new_user->get_columns });
+	return removeLoginParams({ $new_user->get_inflated_columns });
 }
 
 =head1 deleteGlobalUser
