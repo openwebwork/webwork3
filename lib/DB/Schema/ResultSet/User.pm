@@ -389,7 +389,6 @@ An hashref of the user or merged user or a C<DB::Schema::ResultSet::CourseUser>
 =cut
 
 sub addCourseUser ($self, %args) {
-
 	my $course_user = $self->getCourseUser(info => $args{info}, as_result_set => 1, skip_throw => 1);
 	DB::Exception::UserAlreadyInCourse->throw(
 		message => "The user with " . $args{info}->{username} ? ("username: " . $args{info}->{username})
