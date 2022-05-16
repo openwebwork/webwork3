@@ -127,8 +127,8 @@ __PACKAGE__->add_columns(
 		is_nullable        => 0,
 		default_value      => '{}',
 		serializer_class   => 'Boolean::JSON',
-		serializer_options => { boolean_fields => ['useMathQuill', 'showOldAnswers'] }
-		# serializer_options => { utf8 => 1, allow_blessed => 1, convert_blessed => 1 }
+		serializer_options => { boolean_fields => [ 'useMathQuill', 'showOldAnswers' ] }
+			# serializer_options => { utf8 => 1, allow_blessed => 1, convert_blessed => 1 }
 	}
 );
 

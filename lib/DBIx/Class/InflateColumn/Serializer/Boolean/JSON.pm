@@ -1,6 +1,5 @@
 package DBIx::Class::InflateColumn::Serializer::Boolean::JSON;
 
-
 =head1 NAME
 
 This is based on the DBIx::Class::InflateColumn::Serializer::JSON - JSON Inflator
@@ -57,20 +56,20 @@ the data passed to it. Returns a coderef.
 
 =cut
 
-sub get_freezer{
-  my ($class, $column, $info, $args) = @_;
+sub get_freezer {
+	my ($class, $column, $info, $args) = @_;
 
-  my $opts = $info->{serializer_options};
-  if (defined $info->{'size'}){
-      my $size = $info->{'size'};
-      return sub {
-        my $s = encode_json(shift);
-        croak "serialization too big" if (length($s) > $size);
-        return $s;
-      };
-  } else {
+	my $opts = $info->{serializer_options};
+	if (defined $info->{'size'}) {
+		my $size = $info->{'size'};
+		return sub {
+			my $s = encode_json(shift);
+			croak "serialization too big" if (length($s) > $size);
+			return $s;
+		};
+	} else {
 		return sub { encode_json(shift); };
-  }
+	}
 }
 
 =item get_unfreezer
@@ -85,11 +84,11 @@ the data stored in the column. Returns a coderef.
 use Data::Dumper;
 
 sub get_unfreezer {
-  my ($class, $column, $info, $args) = @_;
+	my ($class, $column, $info, $args) = @_;
 
-  my $opts = $info->{serializer_options};
+	my $opts           = $info->{serializer_options};
 	my $boolean_fields = $opts->{boolean_fields};
-  return sub {
+	return sub {
 		print Dumper 'decoding';
 		my $obj = decode_json(shift);
 		for my $key (@$boolean_fields) {
@@ -101,6 +100,5 @@ sub get_unfreezer {
 		return $obj;
 	};
 }
-
 
 1;
