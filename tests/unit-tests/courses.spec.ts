@@ -6,13 +6,11 @@ import { InvalidFieldsException } from 'src/common/models';
 
 describe('Test Course Models', () => {
 
-	const default_course_dates = { start: 0, end: 0 };
-
 	const default_course = {
 		course_id: 0,
 		course_name: 'Arithmetic',
 		visible: true,
-		course_dates: { ...default_course_dates }
+		course_dates: { start: 0, end: 0 }
 	};
 
 	describe('Creation of a Course', () => {
@@ -22,6 +20,8 @@ describe('Test Course Models', () => {
 			expect(course).toBeInstanceOf(Course);
 
 			expect(course.toObject()).toStrictEqual(default_course);
+
+			expect(course.isValid()).toBe(true);
 
 		});
 
@@ -44,6 +44,46 @@ describe('Test Course Models', () => {
 
 	});
 
+	describe('Updating a course', () => {
+		test('set fields of a course', () => {
+			const course = new Course({ course_name: 'Arithmetic' });
+			course.course_id = 5;
+			expect(course.course_id).toBe(5);
+
+			course.course_name = 'Geometry';
+			expect(course.course_name).toBe('Geometry');
+
+			course.visible = false;
+			expect(course.visible).toBe(false);
+			expect(course.isValid()).toBe(true);
+
+		});
+
+		test('set fields of a course using the set method', () => {
+			const course = new Course({ course_name: 'Arithmetic' });
+			course.set({
+				course_id: 5,
+				course_name: 'Geometry',
+				visible: false
+			});
+			expect(course.course_id).toBe(5);
+			expect(course.course_name).toBe('Geometry');
+			expect(course.visible).toBe(false);
+			expect(course.isValid()).toBe(true);
+		});
+	});
+
+	describe('Checking the course dates', () => {
+		test('checking for valid course dates', () => {
+			const course = new Course({
+				course_name: 'Arithemetic',
+				course_dates: {start: 100, end: 100}
+			});
+			expect(course.course_dates.isValid()).toBe(true);
+			expect(course.isValid()).toBe(true);
+		});
+	});
+
 	describe('Checking valid and invalid creation parameters.', () => {
 
 		test('Parsing of undefined and null values', () => {
@@ -57,63 +97,23 @@ describe('Test Course Models', () => {
 			expect(course1).toStrictEqual(course3);
 		});
 
-		test('Create a course with invalid params', () => {
-			// make a generic object and cast it as a Course
-			const p = { course_name: 'Arithmetic', CourseNumber: -1 } as unknown as ParseableCourse;
-			expect(() => { new Course(p);})
-				.toThrow(InvalidFieldsException);
+		test('Create a course with invalid fields', () => {
+			const c1 = new Course({ course_name: 'Arithmetic', course_id: -1 });
+			expect(c1.isValid()).toBe(false);
+
+			const c2 = new Course({ course_name: '', course_id: 0 });
+			expect(c2.isValid()).toBe(false);
 		});
 
-		test('Course with invalid course_id', () => {
-			expect(() => {
-				new Course({ course_name: 'Arithmetic', course_id: -1 });
-			}).toThrow(NonNegIntException);
-		});
-	});
+		test('Create a course with invalid dates', () => {
+			const c1 = new Course({
+				course_name: 'Arithmetic',
+				course_dates: { start: 100, end: 0}
+			});
+			expect(c1.isValid()).toBe(false);
 
-	describe('Updating a course', () => {
-
-		test('set fields of a course', () => {
-			const course = new Course({ course_name: 'Arithmetic' });
-			course.course_id = 5;
-			expect(course.course_id).toBe(5);
-
-			course.course_name = 'Geometry';
-			expect(course.course_name).toBe('Geometry');
-
-			course.visible = true;
-			expect(course.visible).toBeTruthy();
-
-			course.visible = 0;
-			expect(course.visible).toBeFalsy();
-
-			course.visible = 'true';
-			expect(course.visible).toBeTruthy();
-
-			course.visible = 'false';
-			expect(course.visible).toBeFalsy();
-
-		});
-
-		test('set fields of a course using the set method', () => {
-			const course = new Course({ course_name: 'Arithmetic' });
-			course.set({ course_id: 5 });
-			expect(course.course_id).toBe(5);
-
-			course.set({ course_name: 'Geometry' });
-			expect(course.course_name).toBe('Geometry');
-
-			course.set({ visible: true });
-			expect(course.visible).toBeTruthy();
-
-			course.set({ visible: 'true' });
-			expect(course.visible).toBeTruthy();
-
-			course.set({ visible: 'false' });
-			expect(course.visible).toBeFalsy();
-
-			course.set({ visible: 0 });
-			expect(course.visible).toBeFalsy();
 		});
 	});
+
+
 });
