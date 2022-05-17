@@ -64,7 +64,6 @@ $t->get_ok('/webwork3/api/courses/2/sets')->status_is(200)->content_type_is('app
 # Extract the id from the response.
 my $set_id = $t->tx->res->json('/2/set_id');
 
-# Disabled for now until this is fixed.
 $t->get_ok("/webwork3/api/courses/2/sets/$set_id")->status_is(200)->content_type_is('application/json;charset=UTF-8')
 	->json_is('/set_name'       => $hw_sets[2]->{set_name})->json_is('/set_type' => $hw_sets[2]->{set_type})
 	->json_is('/set_dates/open' => $hw_sets[2]->{set_dates}->{open});
@@ -102,6 +101,30 @@ my $another_new_set = { name => "this is the wrong field" };
 
 $t->post_ok("/webwork3/api/courses/2/sets" => json => $another_new_set)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/exception' => 'DB::Exception::ParametersNeeded');
+
+# Test that booleans are returned correctly.
+$t->get_ok('/webwork3/api/courses/1/sets/1');
+
+my $hw1     = $t->tx->res->json;
+my $enabled = $hw1->{set_params}->{enable_reduced_scoring};
+ok($enabled, 'testing that enabled_reduced_scoring compares to 1.');
+is($enabled, Mojo::JSON::true, 'testing that enabled_reduced_scoring compares to Mojo::JSON::true');
+ok(JSON::PP::is_bool($enabled), 'testing that enabled_reduced_scoring is a Mojo::JSON::true or Mojo::JSON::false');
+ok(JSON::PP::is_bool($enabled) && $enabled, 'testing that enabled_reduced_scoring is a Mojo::JSON::true');
+
+# Check that updating a boolean parameter is working:
+$t->put_ok(
+	"/webwork3/api/courses/2/sets/$new_set_id" => json => {
+		set_params => { hide_hint => Mojo::JSON::false }
+	}
+)->content_type_is('application/json;charset=UTF-8');
+
+my $hw2       = $t->tx->res->json;
+my $hide_hint = $hw2->{set_params}->{hide_hint};
+ok(!$hide_hint, 'testing that hide_hint is falsy.');
+is($hide_hint, Mojo::JSON::false, 'testing that hide_hint compares to Mojo::JSON::false');
+ok(JSON::PP::is_bool($hide_hint),                'testing that hide_hint is a Mojo::JSON::true or Mojo::JSON::false');
+ok(JSON::PP::is_bool($hide_hint) && !$hide_hint, 'testing that hide_hint is a Mojo::JSON::false');
 
 # Delete an existing set.
 $t->delete_ok("/webwork3/api/courses/2/sets/$new_set_id")->content_type_is('application/json;charset=UTF-8')

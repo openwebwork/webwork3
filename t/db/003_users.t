@@ -213,6 +213,12 @@ my $user_to_delete = $users_rs->deleteGlobalUser(info => { username => $user->{u
 delete $user_to_delete->{user_id};
 is_deeply($updated_user, $user_to_delete, "deleteUser: delete a user");
 
+# Delete another user
+my $user_to_delete2 = $users_rs->deleteGlobalUser(info => { username => $user2->{username} });
+
+delete $user_to_delete2->{user_id};
+is_deeply($user2, $user_to_delete2, "deleteUser: delete a user");
+
 # Delete a user that doesn't exist.
 throws_ok {
 	$user = $users_rs->deleteGlobalUser(info => { username => "undefined_username" });

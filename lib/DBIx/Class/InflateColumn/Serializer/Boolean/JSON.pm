@@ -16,7 +16,7 @@ This includes the ability to pass boolean's back as a Mojo::JSON.
     'data_column' => {
       'data_type' => 'VARCHAR',
       'size'      => 255,
-      'serializer_class'   => 'JSON',
+      'serializer_class'   => 'Boolean::JSON',
       'serializer_options' => { allow_blessed => 1, convert_blessed => 1, pretty => 1 },    # optional
     }
   );
@@ -44,8 +44,6 @@ use warnings;
 use Mojo::JSON qw(decode_json encode_json);
 use Carp;
 use namespace::clean;
-
-use Data::Dumper;
 
 =over 4
 
@@ -81,22 +79,18 @@ the data stored in the column. Returns a coderef.
 
 =cut
 
-use Data::Dumper;
-
 sub get_unfreezer {
 	my ($class, $column, $info, $args) = @_;
 
 	my $opts           = $info->{serializer_options};
 	my $boolean_fields = $opts->{boolean_fields};
 	return sub {
-		print Dumper 'decoding';
 		my $obj = decode_json(shift);
 		for my $key (@$boolean_fields) {
 			if (defined($obj->{$key})) {
 				$obj->{$key} = $obj->{$key} ? Mojo::JSON::true : Mojo::JSON::false;
 			}
 		}
-		print Dumper $obj;
 		return $obj;
 	};
 }

@@ -127,8 +127,13 @@ $t->delete_ok("/webwork3/api/courses/1/users/99")->status_is(250, "status for ex
 $t->delete_ok("/webwork3/api/courses/1/users/$new_user_id")->status_is(250, "status for exception")
 	->content_type_is('application/json;charset=UTF-8')->json_is('/exception' => 'DB::Exception::UserNotInCourse');
 
+# Delete the added course user
 $t->delete_ok("/webwork3/api/courses/2/users/$new_user_id")->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/user_id' => $new_user_id);
+
+# Delete the added global user
+$t->delete_ok("/webwork3/api/users/$new_user_id")->status_is(200)->content_type_is('application/json;charset=UTF-8')
+	->json_is('/username' => $new_user->{username});
 
 if ($TEST_PERMISSIONS) {
 	print "HERE!!!\n";
