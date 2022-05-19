@@ -1,6 +1,5 @@
 /* These are Problem Set interfaces */
 
-import { logger } from 'src/boot/logger';
 import { Model } from '.';
 import { parseBoolean, ParseError, parseNonNegInt } from './parsers';
 
@@ -10,6 +9,10 @@ export enum ProblemSetType {
 	REVIEW_SET = 'REVIEW',
 	UNKNOWN = 'UNKNOWN'
 }
+
+const set_types = ['hw','quiz','review','unknown']
+
+export const isValidProblemSetType = (value: string) => set_types.includes(value);
 
 /**
  * This takes in a general problem set and returns the specific subclassed ProblemSet
@@ -36,11 +39,11 @@ export type ProblemSetDates = HomeworkSetDates | QuizDates | ReviewSetDates;
 
 /* Problem Set (HomeworkSet, Quiz, ReviewSet ) classes */
 export interface ParseableProblemSet {
-	set_id?: string | number;
+	set_id?: number;
 	set_name?: string;
-	course_id?: string | number;
+	course_id?: number;
 	set_type?: string;
-	set_visible?: string | number | boolean;
+	set_visible?: boolean;
 	set_params?: ParseableProblemSetParams;
 	set_dates?: ParseableProblemSetDates;
 }
@@ -49,7 +52,7 @@ export class ProblemSet extends Model {
 	private _set_id = 0;
 	private _set_visible = false;
 	private _course_id = 0;
-	protected _set_type: ProblemSetType = ProblemSetType.UNKNOWN;
+	protected _set_type = 'UNKNOWN';
 	private _set_name = '';
 
 	constructor(params: ParseableProblemSet = {}) {
@@ -68,7 +71,7 @@ export class ProblemSet extends Model {
 	}
 
 	set(params: ParseableProblemSet) {
-		if (params.set_id) this.set_id = params.set_id;
+		if (params.set_id !== undefined) this.set_id = params.set_id;
 		if (params.set_visible !== undefined) this.set_visible = params.set_visible;
 		if (params.course_id != undefined) this.course_id = params.course_id;
 		if (params.set_type) this.set_type = params.set_type;
@@ -76,35 +79,34 @@ export class ProblemSet extends Model {
 	}
 
 	public get set_id(): number { return this._set_id;}
-	public set set_id(value: number | string) { this._set_id = parseNonNegInt(value);}
+	public set set_id(value: number) { this._set_id = value; }
 
 	public get course_id(): number { return this._course_id;}
-	public set course_id(value: number | string) { this._course_id = parseNonNegInt(value);}
+	public set course_id(value: number) { this._course_id = value;}
 
 	public get set_visible() : boolean { return this._set_visible;}
-	public set set_visible(value: number | string | boolean) { this._set_visible = parseBoolean(value);}
+	public set set_visible(value: boolean) { this._set_visible = value;}
 
-	public get set_type(): ProblemSetType { return this._set_type; }
-	public set set_type(value: string) {
-		if (value === 'HW') { this._set_type = ProblemSetType.HW;}
-		else if (value === 'QUIZ') { this._set_type = ProblemSetType.QUIZ;}
-		else if (value === 'REVIEW') { this._set_type = ProblemSetType.REVIEW_SET;}
-		else { this._set_type = ProblemSetType.UNKNOWN; }
-	}
+	public get set_type(): string { return this._set_type; }
+	public set set_type(value: string) { this._set_type = value; }
 
 	public get set_name() : string { return this._set_name;}
 	public set set_name(value: string) { this._set_name = value;}
 
 	public get set_params(): ProblemSetParams {
-		throw 'The subclass must override set_params();';
+		throw 'The subclass must override set_params()';
 	}
 
 	public get set_dates(): ProblemSetDates {
-		throw 'The subclass must override set_dates();';
+		throw 'The subclass must override set_dates()';
 	}
 
 	hasValidDates() {
 		throw 'The hasValidDates() method must be overridden.';
+	}
+
+	isValid() {
+		throw 'The isValid() method must be overridden.';
 	}
 }
 
@@ -525,6 +527,6 @@ export function convertSet(old_set: ProblemSet, new_set_type: ProblemSetType) {
 		throw new ParseError('ProblemSetType', `convertSet does not support conversion to ${new_set_type || 'EMPTY'}`);
 	}
 
-	if (!new_set.hasValidDates()) logger.error('[problem_sets/convertSet] corrupt dates in conversion of set, TSNH?');
+	// if (!new_set.hasValidDates()) logger.error('[problem_sets/convertSet] corrupt dates in conversion of set, TSNH?');
 	return new_set;
 }

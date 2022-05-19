@@ -1,5 +1,5 @@
 import { RequiredFieldsException, Model, Dictionary, generic  } from 'src/common/models';
-import { parseUserRole } from './parsers';
+import { isNonNegInt, parseUserRole, isValidUserRole, isValidUsername } from './parsers';
 
 export interface ParseableCourse {
 	course_id?: number;
@@ -97,7 +97,7 @@ export class Course extends Model {
 	}
 
 	isValid(): boolean {
-		return this.course_name.length > 0 && this.course_id >= 0 && this.course_dates.isValid();
+		return this.course_name.length > 0 && isNonNegInt(this.course_id) && this.course_dates.isValid();
 	}
 }
 
@@ -169,13 +169,14 @@ export class UserCourse extends Model {
 	set visible(value: boolean) { this._visible = value; }
 
 	get role() { return this._role; }
-	set role(value: string) { this._role = value; }
+	set role(value: string) { this._role = value.toUpperCase(); }
+
+	clone(): UserCourse {
+		return new UserCourse(this.toObject());
+	}
 
 	isValid(): boolean {
-		if (this.course_id < 0) return false;
-		if (this.user_id < 0) return false;
-		if (!parseUserRole(this.role)) return false;
-		if (this.course_name.length === 0) return false;
-		return true;
+		return isNonNegInt(this.course_id) && isNonNegInt(this.user_id) && isValidUsername(this.username)
+			&& isValidUserRole(this.role) && this.course_name.length > 0 && this.course_dates.isValid();
 	}
 }
