@@ -214,9 +214,11 @@ delete $user_to_delete->{user_id};
 is_deeply($updated_user, $user_to_delete, "deleteUser: delete a user");
 
 # Delete another user
-my $user_to_delete2 = $users_rs->deleteGlobalUser(info => {
-	username => $added_user2->{username}
-});
+my $user_to_delete2 = $users_rs->deleteGlobalUser(
+	info => {
+		username => $added_user2->{username}
+	}
+);
 delete $user_to_delete2->{user_id};
 is_deeply($added_user2, $user_to_delete2, 'deleteUser: delete another user.');
 
