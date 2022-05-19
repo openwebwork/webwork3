@@ -8,29 +8,29 @@ This includes the ability to pass boolean's back as a Mojo::JSON.
 
 =head1 SYNOPSIS
 
-  package MySchema::Table;
-  use base 'DBIx::Class';
+	package MySchema::Table;
+	use base 'DBIx::Class';
 
-  __PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
-  __PACKAGE__->add_columns(
-    'data_column' => {
-      'data_type' => 'VARCHAR',
-      'size'      => 255,
-      'serializer_class'   => 'Boolean::JSON',
-      'serializer_options' => { allow_blessed => 1, convert_blessed => 1, pretty => 1 },    # optional
-    }
-  );
+	__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
+	__PACKAGE__->add_columns(
+		'data_column' => {
+			'data_type' => 'VARCHAR',
+			'size'      => 255,
+			'serializer_class'   => 'Boolean::JSON',
+			'serializer_options' => { allow_blessed => 1, convert_blessed => 1, pretty => 1 },    # optional
+		}
+	);
 
 Then in your code...
 
-  my $struct = { 'I' => { 'am' => 'a struct' };
-  $obj->data_column($struct);
-  $obj->update;
+	my $struct = { 'I' => { 'am' => 'a struct' };
+	$obj->data_column($struct);
+$obj->update;
 
 And you can recover your data structure with:
 
-  my $obj = ...->find(...);
-  my $struct = $obj->data_column;
+	my $obj = ...->find(...);
+	my $struct = $obj->data_column;
 
 The data structures you assign to "data_column" will be saved in the database in JSON format.
 
