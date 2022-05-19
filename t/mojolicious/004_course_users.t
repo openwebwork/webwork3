@@ -46,14 +46,6 @@ if ($TEST_PERMISSIONS) {
 	$t = Test::Mojo->new(WeBWorK3 => $config);
 }
 
-# Remove the user "maggie" if it exists in the database.
-my $maggie = $schema->resultset("User")->find({ username => "maggie" });
-if (defined($maggie)) {
-	my $maggie_cu = $schema->resultset("CourseUser")->search({ user_id => $maggie->user_id });
-	$maggie_cu->delete_all if defined($maggie_cu);
-	$maggie->delete        if defined($maggie);
-}
-
 $t->get_ok('/webwork3/api/courses/4/users')->status_is(200)->content_type_is('application/json;charset=UTF-8')
 	->json_is('/0/role' => "instructor")->json_is('/1/role' => 'student');
 
@@ -142,6 +134,14 @@ if ($TEST_PERMISSIONS) {
 	)->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1);
 
 	$t->get_ok('/webwork3/api/courses/1/users')->status_is(200)->content_type_is('application/json;charset=UTF-8');
+}
+
+# Remove the user "maggie" that was added.
+my $maggie = $schema->resultset("User")->find({ username => "maggie" });
+if (defined($maggie)) {
+	my $maggie_cu = $schema->resultset("CourseUser")->search({ user_id => $maggie->user_id });
+	$maggie_cu->delete_all if defined($maggie_cu);
+	$maggie->delete        if defined($maggie);
 }
 
 done_testing;

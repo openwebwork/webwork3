@@ -34,12 +34,12 @@ my $users_rs  = $schema->resultset("User");
 my $course_rs = $schema->resultset("Course");
 
 # Remove a few users if they exists in the database
-my $users_to_remove = $users_rs->search({
-	username => {
-		'-in' => [ 'maggie', 'wiggam', 'selma', 'selma@google.com' ]
-	}
-});
-$users_to_remove->delete_all if defined($users_to_remove);
+# my $users_to_remove = $users_rs->search({
+# 	username => {
+# 		'-in' => [ 'maggie', 'wiggam', 'selma', 'selma@google.com' ]
+# 	}
+# });
+# $users_to_remove->delete_all if defined($users_to_remove);
 
 # Get a list of users from the CSV file
 my @students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
@@ -212,6 +212,13 @@ my $user_to_delete = $users_rs->deleteGlobalUser(info => { username => $user->{u
 
 delete $user_to_delete->{user_id};
 is_deeply($updated_user, $user_to_delete, "deleteUser: delete a user");
+
+# Delete another user
+my $user_to_delete2 = $users_rs->deleteGlobalUser(info => {
+	username => $added_user2->{username}
+});
+delete $user_to_delete2->{user_id};
+is_deeply($added_user2, $user_to_delete2, 'deleteUser: delete another user.');
 
 # Delete a user that doesn't exist.
 throws_ok {

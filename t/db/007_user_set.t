@@ -40,36 +40,36 @@ my $course         = $course_rs->find({ course_id => 1 });
 
 # Delete all user sets from the db for user otto, frink, in the Precalc course
 # and two sets for ralph in the Arithmetic course
-my @usersets_that_may_exist = $user_set_rs->search(
-	{
-		-or => [
-			-and => [
-				'courses.course_name' => 'Precalculus',
-				-or                   => [
-					'users.username' => 'otto',
-					'users.username' => 'frink',
-				]
-			],
-			-and => [
-				'courses.course_name'   => 'Arithmetic',
-				'users.username'        => 'ralph',
-				'problem_sets.set_name' => 'HW #2'
-			],
-			-and => [
-				'courses.course_name'   => 'Precalculus',
-				'users.username'        => 'ralph',
-				'problem_sets.set_name' => 'HW #4'
-			]
-		]
-	},
-	{
-		join => [ { problem_sets => 'courses' }, { course_users => 'users' } ]
-	}
-);
+# my @usersets_that_may_exist = $user_set_rs->search(
+# 	{
+# 		-or => [
+# 			-and => [
+# 				'courses.course_name' => 'Precalculus',
+# 				-or                   => [
+# 					'users.username' => 'otto',
+# 					'users.username' => 'frink',
+# 				]
+# 			],
+# 			-and => [
+# 				'courses.course_name'   => 'Arithmetic',
+# 				'users.username'        => 'ralph',
+# 				'problem_sets.set_name' => 'HW #2'
+# 			],
+# 			-and => [
+# 				'courses.course_name'   => 'Precalculus',
+# 				'users.username'        => 'ralph',
+# 				'problem_sets.set_name' => 'HW #4'
+# 			]
+# 		]
+# 	},
+# 	{
+# 		join => [ { problem_sets => 'courses' }, { course_users => 'users' } ]
+# 	}
+# );
 
-for my $u (@usersets_that_may_exist) {
-	$u->delete;
-}
+# for my $u (@usersets_that_may_exist) {
+# 	$u->delete;
+# }
 
 # Load info from CSV files
 my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
@@ -745,5 +745,31 @@ throws_ok {
 	$user_set_rs->deleteUserSet(info => $otto_set_info3);
 }
 "DB::Exception::UserSetNotInCourse", "deleteUserSet: try to delete a user set not the in the course";
+
+# delete a created user sets
+
+$user_set_rs->deleteUserSet(
+	info => {
+		course_name => "Arithmetic",
+		set_name    => "HW #2",
+		username    => "ralph"
+	}
+);
+
+my $test = $user_set_rs->deleteUserSet(
+	info => {
+		course_name => "Precalculus",
+		set_name    => "HW #4",
+		username    => "ralph"
+	}
+);
+
+$user_set_rs->deleteUserSet(
+	info => {
+		course_name => "Precalculus",
+		set_name    => "HW #1",
+		username    => "frink"
+	}
+);
 
 done_testing;

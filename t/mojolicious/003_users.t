@@ -32,8 +32,8 @@ my $config = clone(LoadFile($config_file));
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
 # Remove the user "maggie" if it exists in the database.
-my $maggie = $schema->resultset("User")->find({ username => "maggie" });
-$maggie->delete if defined($maggie);
+# my $maggie = $schema->resultset("User")->find({ username => "maggie" });
+# $maggie->delete if defined($maggie);
 
 my $t;
 
