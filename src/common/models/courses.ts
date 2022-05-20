@@ -1,5 +1,5 @@
 import { RequiredFieldsException, Model, Dictionary, generic  } from 'src/common/models';
-import { isNonNegInt, parseUserRole, isValidUserRole, isValidUsername } from './parsers';
+import { isNonNegInt, isValidUserRole, isValidUsername } from './parsers';
 
 export interface ParseableCourse {
 	course_id?: number;

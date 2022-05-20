@@ -1,17 +1,9 @@
 import { ProblemSet } from 'src/common/models/problem_sets';
 
 describe('Test generic ProblemSets', () => {
-	const default_problem_set = {
-		set_id: 0,
-		set_name: 'set #1',
-		course_id: 0,
-		set_type: 'UNKNOWN',
-		set_params: {},
-		set_dates: {}
-	}
 
 	describe('Creation of a ProblemSet', () => {
-		test('Create a valid ProblemSet', () => {
+		test('Test the class of a ProblemSet', () => {
 			const set = new ProblemSet();
 			expect(set).toBeInstanceOf(ProblemSet);
 		});
@@ -25,7 +17,6 @@ describe('Test generic ProblemSets', () => {
 			expect(() => {set.clone(); }).toThrowError('The clone method must be overridden in a subclass.');
 		});
 	});
-
 
 	describe('Check setting generic fields', () => {
 		test('Check that all fields can be set directly', () => {
@@ -54,19 +45,18 @@ describe('Test generic ProblemSets', () => {
 
 		});
 
-
 		test('Check that all fields can be set using the set() method', () => {
 			const set = new ProblemSet();
-			set.set({set_id: 5});
+			set.set({ set_id: 5 });
 			expect(set.set_id).toBe(5);
 
-			set.set({course_id: 10});
+			set.set({ course_id: 10 });
 			expect(set.course_id).toBe(10);
 
-			set.set({set_visible: true});
+			set.set({ set_visible: true });
 			expect(set.set_visible).toBe(true);
 
-			set.set({set_name: 'Set #1'});
+			set.set({ set_name: 'Set #1' });
 			expect(set.set_name).toBe('Set #1');
 		});
 	});

@@ -14,11 +14,8 @@ describe('Test Course Models', () => {
 		test('Create a Valid Course', () => {
 			const course = new Course({ course_name: 'Arithmetic' });
 			expect(course).toBeInstanceOf(Course);
-
 			expect(course.toObject()).toStrictEqual(default_course);
-
 			expect(course.isValid()).toBe(true);
-
 		});
 
 		test('Check that calling all_fields() and params() is correct', () => {
@@ -27,9 +24,7 @@ describe('Test Course Models', () => {
 
 			expect(course.all_field_names.sort()).toStrictEqual(course_fields.sort());
 			expect(course.param_fields.sort()).toStrictEqual(['course_dates']);
-
 			expect(Course.ALL_FIELDS.sort()).toStrictEqual(course_fields.sort());
-
 		});
 
 		test('Check that cloning works', () => {
@@ -73,7 +68,7 @@ describe('Test Course Models', () => {
 		test('checking for valid course dates', () => {
 			const course = new Course({
 				course_name: 'Arithemetic',
-				course_dates: {start: 100, end: 100}
+				course_dates: { start: 100, end: 100 }
 			});
 			expect(course.course_dates.isValid()).toBe(true);
 			expect(course.isValid()).toBe(true);
@@ -104,7 +99,7 @@ describe('Test Course Models', () => {
 		test('Create a course with invalid dates', () => {
 			const c1 = new Course({
 				course_name: 'Arithmetic',
-				course_dates: { start: 100, end: 0}
+				course_dates: { start: 100, end: 0 }
 			});
 			expect(c1.isValid()).toBe(false);
 		});
@@ -191,19 +186,19 @@ describe('Test Course Models', () => {
 				c1.course_name = '';
 				expect(c1.isValid()).toBe(false);
 
-				c1.set({course_name: 'Arithmetic', user_id: -1});
+				c1.set({ course_name: 'Arithmetic', user_id: -1 });
 				expect(c1.isValid()).toBe(false);
 
-				c1.set({user_id: 10, course_id: -1});
+				c1.set({ user_id: 10, course_id: -1 });
 				expect(c1.isValid()).toBe(false);
 
 				c1.course_id = 10;
 				expect(c1.isValid()).toBe(true);
 
-				c1.role ='wizard';
+				c1.role = 'wizard';
 				expect(c1.isValid()).toBe(false);
 
-				c1.role ='ta';
+				c1.role = 'ta';
 				expect(c1.isValid()).toBe(true);
 
 				c1.username = '';
@@ -221,11 +216,11 @@ describe('Test Course Models', () => {
 				const c1 = new UserCourse({
 					course_name: 'Arithmetic',
 					username: 'homer',
-					course_dates: { start: 100, end: 200}
+					course_dates: { start: 100, end: 200 }
 				});
 				expect(c1.isValid()).toBe(true);
 
-				c1.setDates({start: 100, end: 0});
+				c1.setDates({ start: 100, end: 0 });
 				expect(c1.isValid()).toBe(false);
 			});
 

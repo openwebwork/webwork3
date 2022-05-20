@@ -10,7 +10,7 @@ export enum ProblemSetType {
 	UNKNOWN = 'UNKNOWN'
 }
 
-const set_types = ['hw','quiz','review','unknown']
+const set_types = ['hw', 'quiz', 'review', 'unknown'];
 
 export const isValidProblemSetType = (value: string) => set_types.includes(value);
 
@@ -527,6 +527,7 @@ export function convertSet(old_set: ProblemSet, new_set_type: ProblemSetType) {
 		throw new ParseError('ProblemSetType', `convertSet does not support conversion to ${new_set_type || 'EMPTY'}`);
 	}
 
-	// if (!new_set.hasValidDates()) logger.error('[problem_sets/convertSet] corrupt dates in conversion of set, TSNH?');
+	// if (!new_set.hasValidDates())
+	// logger.error('[problem_sets/convertSet] corrupt dates in conversion of set, TSNH?');
 	return new_set;
 }

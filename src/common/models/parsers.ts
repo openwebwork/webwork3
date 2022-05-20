@@ -3,8 +3,6 @@
  * for all of webwork3.
  */
 
-import { isValid } from 'ipaddr.js';
-
 /**
  * ParseError is a general Error class for any parsing errors.
  */
@@ -178,7 +176,7 @@ export enum UserRole {
 	unknown = 'UNKNOWN'
 }
 
-const user_roles = ['admin', 'instructor','ta','student','unknown'];
+const user_roles = ['admin', 'instructor', 'ta', 'student', 'unknown'];
 export const isValidUserRole = (v: string) => user_roles.includes(v.toLowerCase());
 
 export function parseUserRole(role: string): UserRole {
@@ -186,7 +184,7 @@ export function parseUserRole(role: string): UserRole {
 	if (role.toLocaleLowerCase() === 'instructor') return UserRole.instructor;
 	if (role.toLocaleLowerCase() === 'ta') return UserRole.ta;
 	if (role.toLocaleLowerCase() === 'student') return UserRole.student;
-	throw new UserRoleException(`The value '${role}' is not a valid role.`);
+	return UserRole.unknown;
 }
 
 export function parseString(_value: string | number | boolean) {

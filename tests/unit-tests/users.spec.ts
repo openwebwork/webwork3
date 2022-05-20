@@ -1,152 +1,119 @@
 // tests parsing and handling of users
 
-import { BooleanParseException, EmailParseException, NonNegIntException,
-	UsernameParseException } from 'src/common/models/parsers';
-import { RequiredFieldsException } from 'src/common/models';
 import { User } from 'src/common/models/users';
 
-const default_user = {
-	user_id: 0,
-	username: 'test',
-	is_admin: false,
-};
+describe('Testing User and CourseUsers', () => {
+	const default_user = {
+		user_id: 0,
+		username: '',
+		is_admin: false,
+		email: '',
+		first_name: '',
+		last_name: '',
+		student_id: ''
+	};
 
-test('Create a default User', () => {
-	const user = new User({ username: 'test' });
-	expect(user instanceof User).toBe(true);
-	expect(user.toObject()).toStrictEqual(default_user);
+	describe('Create a new User', () => {
+		test('Create a default User', () => {
+			const user = new User();
+			expect(user instanceof User).toBe(true);
+			expect(user.toObject()).toStrictEqual(default_user);
+		});
 
-});
+		test('Check that calling all_fields() and params() is correct', () => {
+			const user_fields = ['user_id', 'username', 'is_admin', 'email', 'first_name',
+				'last_name', 'student_id'];
+			const user = new User();
 
-test('Missing Username', () => {
-	// missing username
-	expect(() => { new User();}).toThrow(RequiredFieldsException);
-});
+			expect(user.all_field_names.sort()).toStrictEqual(user_fields.sort());
+			expect(user.param_fields.sort()).toStrictEqual([]);
+			expect(User.ALL_FIELDS.sort()).toStrictEqual(user_fields.sort());
+		});
 
-test('Check that calling all_fields() and params() is correct', () => {
-	const user_fields = ['user_id', 'username', 'is_admin', 'email', 'first_name',
-		'last_name', 'student_id'];
-	const user = new User({ username: 'test' });
+		test('Check that cloning a User works', () => {
+			const user = new User();
+			expect(user.clone().toObject()).toStrictEqual(default_user);
+			expect(user.clone()).toBeInstanceOf(User);
 
-	expect(user.all_field_names.sort()).toStrictEqual(user_fields.sort());
-	expect(user.param_fields.sort()).toStrictEqual([]);
+			// The default user is not valid.  The username cannot be the empty string.
+			expect(user.isValid()).toBe(false);
+		});
 
-	expect(User.ALL_FIELDS.sort()).toStrictEqual(user_fields.sort());
+	});
 
-});
+	describe('Setting fields of a User', () => {
+		test('Set User field directly', () => {
+			const user = new User();
 
-test('Check that cloning a User works', () => {
-	const user = new User({ username: 'test' });
-	expect(user.clone().toObject()).toStrictEqual(default_user);
-	expect(user.clone() instanceof User).toBe(true);
-});
+			user.username = 'test2';
+			expect(user.username).toBe('test2');
 
-test('Invalid user_id', () => {
-	expect(() => {
-		new User({ username: 'test', user_id: -1 });
-	}).toThrow(NonNegIntException);
-	expect(() => {
-		new User({ username: 'test', user_id: '-1' });
-	}).toThrow(NonNegIntException);
-	expect(() => {
-		new User({ username: 'test', user_id: 'one' });
-	}).toThrow(NonNegIntException);
-	expect(() => {
-		new User({ username: 'test', user_id: 'false' });
-	}).toThrow(NonNegIntException);
-});
+			user.email = 'test@site.com';
+			expect(user.email).toBe('test@site.com');
 
-test('Invalid username', () => {
-	expect(() => {
-		new User({ username: '@test' });
-	}).toThrow(UsernameParseException);
-	expect(() => {
-		new User({ username: '123test' });
-	}).toThrow(UsernameParseException);
-	expect(() => {
-		new User({ username: 'user name' });
-	}).toThrow(UsernameParseException);
-});
+			user.user_id = 15;
+			expect(user.user_id).toBe(15);
 
-test('Invalid email', () => {
-	expect(() => {
-		new User({ username: 'test', email: 'bad email' });
-	}).toThrow(EmailParseException);
-	expect(() => {
-		new User({ username: 'test', email: 'user@info@site.com' });
-	}).toThrow(EmailParseException);
-});
+			user.first_name = 'Homer';
+			expect(user.first_name).toBe('Homer');
 
-test('setting user fields', () => {
-	const user = new User({ username: 'test' });
+			user.last_name = 'Simpson';
+			expect(user.last_name).toBe('Simpson');
 
-	user.username = 'test2';
-	expect(user.username).toBe('test2');
+			user.is_admin = true;
+			expect(user.is_admin).toBe(true);
 
-	user.email = 'test@site.com';
-	expect(user.email).toBe('test@site.com');
+			user.student_id = '1234';
+			expect(user.student_id).toBe('1234');
 
-	user.user_id = 15;
-	expect(user.user_id).toBe(15);
+		});
 
-	user.first_name = 'Homer';
-	expect(user.first_name).toBe('Homer');
+		test('set fields using set() method', () => {
+			const user = new User({ username: 'test' });
 
-	user.last_name = 'Simpson';
-	expect(user.last_name).toBe('Simpson');
+			user.set({ username: 'test2' });
+			expect(user.username).toBe('test2');
+			user.set({ email: 'test@site.com' });
+			expect(user.email).toBe('test@site.com');
 
-	user.is_admin = true;
-	expect(user.is_admin).toBe(true);
+			user.set({ user_id: 15 });
+			expect(user.user_id).toBe(15);
 
-	user.is_admin = 1;
-	expect(user.is_admin).toBe(true);
+			user.set({ first_name: 'Homer' });
+			expect(user.first_name).toBe('Homer');
 
-	user.is_admin = '0';
-	expect(user.is_admin).toBe(false);
+			user.set({ last_name: 'Simpson' });
+			expect(user.last_name).toBe('Simpson');
 
-});
+			user.set({ is_admin: true });
+			expect(user.is_admin).toBe(true);
 
-test('set fields using set() method', () => {
-	const user = new User({ username: 'test' });
+			user.set({ student_id: '1234' });
+			expect(user.student_id).toBe('1234');
+		});
+	});
 
-	user.set({ username: 'test2' });
-	expect(user.username).toBe('test2');
-	user.set({ email: 'test@site.com' });
-	expect(user.email).toBe('test@site.com');
+	describe('Testing for valid and invalid users.', () => {
 
-	user.set({ user_id: 15 });
-	expect(user.user_id).toBe(15);
+		test('setting invalid email', () => {
+			const user = new User({ username: 'test' });
+			expect(user.isValid()).toBe(true);
 
-	user.set({ first_name: 'Homer' });
-	expect(user.first_name).toBe('Homer');
+			user.email = 'bad@email@address.com';
+			expect(user.isValid()).toBe(false);
+		});
 
-	user.set({ last_name: 'Simpson' });
-	expect(user.last_name).toBe('Simpson');
+		test('setting invalid user_id', () => {
+			const user = new User({ username: 'test' });
+			expect(user.isValid()).toBe(true);
 
-	user.set({ is_admin: true });
-	expect(user.is_admin).toBe(true);
+			user.user_id = -15;
+			expect(user.isValid()).toBe(false);
+		});
 
-	user.set({ is_admin: 1 });
-	expect(user.is_admin).toBe(true);
-
-	user.set({ is_admin: '0' });
-	expect(user.is_admin).toBe(false);
-});
-
-test('setting invalid email', () => {
-	const user = new User({ username: 'test' });
-	expect(() => { user.email = 'bad@email@address.com'; })
-		.toThrow(EmailParseException);
-});
-
-test('setting invalid user_id', () => {
-	const user = new User({ username: 'test' });
-	expect(() => { user.user_id = -15; })
-		.toThrow(NonNegIntException);
-});
-
-test('setting invalid admin', () => {
-	const user = new User({ username: 'test' });
-	expect(() => { user.is_admin = 'FALSE'; })
-		.toThrow(BooleanParseException);
+		test('setting invalid username', () => {
+			const user = new User({ username: 'my username' });
+			expect(user.isValid()).toBe(false);
+		});
+	});
 });
