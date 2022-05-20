@@ -164,134 +164,167 @@ describe('Testing Database and client-side Course Users', () => {
 			// The default user is not valid (The username is the empty string.)
 			expect(course_user.isValid()).toBe(false);
 		});
+	});
 
-		describe('Setting fields of a CourseUser', () => {
-			test('Set CourseUser fields directly', () => {
-				const course_user = new CourseUser();
+	describe('Setting fields of a CourseUser', () => {
+		test('Set CourseUser fields directly', () => {
+			const course_user = new CourseUser();
 
-				course_user.username = 'test2';
-				expect(course_user.username).toBe('test2');
+			course_user.username = 'test2';
+			expect(course_user.username).toBe('test2');
 
-				course_user.email = 'test@site.com';
-				expect(course_user.email).toBe('test@site.com');
+			course_user.email = 'test@site.com';
+			expect(course_user.email).toBe('test@site.com');
 
-				course_user.user_id = 15;
-				expect(course_user.user_id).toBe(15);
+			course_user.user_id = 15;
+			expect(course_user.user_id).toBe(15);
 
-				course_user.first_name = 'Homer';
-				expect(course_user.first_name).toBe('Homer');
+			course_user.first_name = 'Homer';
+			expect(course_user.first_name).toBe('Homer');
 
-				course_user.last_name = 'Simpson';
-				expect(course_user.last_name).toBe('Simpson');
+			course_user.last_name = 'Simpson';
+			expect(course_user.last_name).toBe('Simpson');
 
-				course_user.is_admin = true;
-				expect(course_user.is_admin).toBe(true);
+			course_user.is_admin = true;
+			expect(course_user.is_admin).toBe(true);
 
-				course_user.student_id = '1234';
-				expect(course_user.student_id).toBe('1234');
+			course_user.student_id = '1234';
+			expect(course_user.student_id).toBe('1234');
 
-				course_user.course_user_id = 10;
-				expect(course_user.course_user_id).toBe(10);
+			course_user.course_user_id = 10;
+			expect(course_user.course_user_id).toBe(10);
 
-				course_user.course_id = 5;
-				expect(course_user.course_id).toBe(5);
+			course_user.course_id = 5;
+			expect(course_user.course_id).toBe(5);
 
-				course_user.role = UserRole.admin;
-				expect(course_user.role).toBe(UserRole.admin);
+			course_user.role = UserRole.admin;
+			expect(course_user.role).toBe(UserRole.admin);
 
-				course_user.role = 'student';
-				expect(course_user.role).toBe(UserRole.student);
-			});
-
-			test('Update CourseUser using the set method', () => {
-				const course_user = new CourseUser({ username: 'homer' });
-				expect(course_user.isValid()).toBe(true);
-
-				course_user.set({ course_user_id: 10 });
-				expect(course_user.course_user_id).toBe(10);
-
-				course_user.set({ user_id: 20 });
-				expect(course_user.user_id).toBe(20);
-
-				course_user.set({ course_id: 5 });
-				expect(course_user.course_id).toBe(5);
-
-				course_user.set({ role: UserRole.admin });
-				expect(course_user.role).toBe(UserRole.admin);
-
-				course_user.set({ role: 'student' });
-				expect(course_user.role).toBe(UserRole.student);
-
-				course_user.set({ username: 'test2' });
-				expect(course_user.username).toBe('test2');
-
-				course_user.set({ email: 'test@site.com' });
-				expect(course_user.email).toBe('test@site.com');
-
-				course_user.set({ first_name: 'Homer' });
-				expect(course_user.first_name).toBe('Homer');
-
-				course_user.set({ last_name: 'Simpson' });
-				expect(course_user.last_name).toBe('Simpson');
-
-				course_user.set({ is_admin: true });
-				expect(course_user.is_admin).toBe(true);
-
-				course_user.set({ student_id: '1234' });
-				expect(course_user.student_id).toBe('1234');
-			});
+			course_user.role = 'student';
+			expect(course_user.role).toBe(UserRole.student);
 		});
 
-		describe('Testing for valid and invalid users.', () => {
-			test('setting invalid user_id', () => {
-				const user = new CourseUser({ username: 'homer' });
-				expect(user.isValid()).toBe(true);
+		test('Update CourseUser using the set method', () => {
+			const course_user = new CourseUser({ username: 'homer' });
+			expect(course_user.isValid()).toBe(true);
 
-				user.user_id = -15;
-				expect(user.isValid()).toBe(false);
+			course_user.set({ course_user_id: 10 });
+			expect(course_user.course_user_id).toBe(10);
 
-				user.user_id = 1.23;
-				expect(user.isValid()).toBe(false);
-			});
+			course_user.set({ user_id: 20 });
+			expect(course_user.user_id).toBe(20);
 
-			test('setting invalid course_user_id', () => {
-				const course_user = new CourseUser({ username: 'homer' });
-				expect(course_user.isValid()).toBe(true);
+			course_user.set({ course_id: 5 });
+			expect(course_user.course_id).toBe(5);
 
-				course_user.course_user_id = -3;
-				expect(course_user.isValid()).toBe(false);
+			course_user.set({ role: UserRole.admin });
+			expect(course_user.role).toBe(UserRole.admin);
 
-				course_user.course_user_id = 3.14;
-				expect(course_user.isValid()).toBe(false);
+			course_user.set({ role: 'student' });
+			expect(course_user.role).toBe(UserRole.student);
 
-				course_user.course_user_id = 7;
-				expect(course_user.isValid()).toBe(true);
-			});
+			course_user.set({ username: 'test2' });
+			expect(course_user.username).toBe('test2');
 
-			test('setting invalid course_id', () => {
-				const course_user = new CourseUser({ username: 'homer' });
-				course_user.course_id = -9;
-				expect(course_user.isValid()).toBe(false);
+			course_user.set({ email: 'test@site.com' });
+			expect(course_user.email).toBe('test@site.com');
 
-				course_user.course_id = 1.39;
-				expect(course_user.isValid()).toBe(false);
+			course_user.set({ first_name: 'Homer' });
+			expect(course_user.first_name).toBe('Homer');
 
-				course_user.course_id = 9;
-				expect(course_user.isValid()).toBe(true);
-			});
+			course_user.set({ last_name: 'Simpson' });
+			expect(course_user.last_name).toBe('Simpson');
 
-			test('setting invalid email', () => {
-				const user = new CourseUser({ username: 'test' });
-				expect(user.isValid()).toBe(true);
+			course_user.set({ is_admin: true });
+			expect(course_user.is_admin).toBe(true);
 
-				user.email = 'bad@email@address.com';
-				expect(user.isValid()).toBe(false);
-			});
-
-			test('setting invalid username', () => {
-				const user = new CourseUser({ username: 'my username' });
-				expect(user.isValid()).toBe(false);
-			});
+			course_user.set({ student_id: '1234' });
+			expect(course_user.student_id).toBe('1234');
 		});
+	});
+
+	describe('Testing for valid and invalid users.', () => {
+		test('setting invalid user_id', () => {
+			const user = new CourseUser({ username: 'homer' });
+			expect(user.isValid()).toBe(true);
+
+			user.user_id = -15;
+			expect(user.isValid()).toBe(false);
+
+			user.user_id = 1.23;
+			expect(user.isValid()).toBe(false);
+		});
+
+		test('setting invalid course_user_id', () => {
+			const course_user = new CourseUser({ username: 'homer' });
+			expect(course_user.isValid()).toBe(true);
+
+			course_user.course_user_id = -3;
+			expect(course_user.isValid()).toBe(false);
+
+			course_user.course_user_id = 3.14;
+			expect(course_user.isValid()).toBe(false);
+
+			course_user.course_user_id = 7;
+			expect(course_user.isValid()).toBe(true);
+		});
+
+		test('setting invalid course_id', () => {
+			const course_user = new CourseUser({ username: 'homer' });
+			course_user.course_id = -9;
+			expect(course_user.isValid()).toBe(false);
+
+			course_user.course_id = 1.39;
+			expect(course_user.isValid()).toBe(false);
+
+			course_user.course_id = 9;
+			expect(course_user.isValid()).toBe(true);
+		});
+
+		test('setting invalid email', () => {
+			const user = new CourseUser({ username: 'test' });
+			expect(user.isValid()).toBe(true);
+
+			user.email = 'bad@email@address.com';
+			expect(user.isValid()).toBe(false);
+		});
+
+		test('setting invalid username', () => {
+			const user = new CourseUser({ username: 'my username' });
+			expect(user.isValid()).toBe(false);
+		});
+	});
+
+	describe('Test validation of CourseUsers', () => {
+		test('Test the validation of the user role', () => {
+			const user = new CourseUser({ username: 'homer' });
+			const validate = user.validate();
+			expect(validate.role).toBe('The role is not valid.');
+		});
+
+		test('Test the validation of the course_id', () => {
+			const user = new CourseUser({ username: 'homer', course_id: -1 });
+			const validate = user.validate();
+			expect(validate.course_id).toBe('The course_id must be a non negative integer.');
+		});
+
+		test('Test the validation of the user_id', () => {
+			const user = new CourseUser({ username: 'homer', user_id: 23.5 });
+			const validate = user.validate();
+			expect(validate.user_id).toBe('The user_id must be a non negative integer.');
+		});
+
+		test('Test the validation of the course_user_id', () => {
+			const user = new CourseUser({ username: 'homer', course_user_id: -10 });
+			const validate = user.validate();
+			expect(validate.course_user_id).toBe('The course_user_id must be a non negative integer.');
+		});
+
+		test('Test the validation of the user role', () => {
+			const user = new CourseUser({ username: 'homer', role: 'programmer' });
+			const validate = user.validate();
+			expect(validate.role).toBe('The role is not valid.');
+		});
+
 	});
 });

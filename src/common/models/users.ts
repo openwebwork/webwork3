@@ -3,7 +3,7 @@
 
 import { isNonNegInt, isValidUsername, isValidEmail, parseUserRole, UserRole }
 	from 'src/common/models/parsers';
-import { Model } from 'src/common/models';
+import { Dictionary, Model } from 'src/common/models';
 
 export interface ParseableUser {
 	user_id?: number;
@@ -265,6 +265,17 @@ export class CourseUser extends Model {
 	isValid(): boolean {
 		return isNonNegInt(this.user_id) && isNonNegInt(this.course_user_id) &&
 			isNonNegInt(this.course_id) && isValidUsername(this.username) &&
-			(this.email === '' || isValidEmail(this.email));
+			this.role !== UserRole.unknown && (this.email === '' || isValidEmail(this.email));
+	}
+
+	validate(): Dictionary<string | boolean> {
+		return {
+			course_id: isNonNegInt(this.course_id) || 'The course_id must be a non negative integer.',
+			course_user_id: isNonNegInt(this.course_user_id) || 'The course_user_id must be a non negative integer.',
+			user_id: isNonNegInt(this.user_id) || 'The user_id must be a non negative integer.',
+			username: isValidUsername(this.username) || 'The username must be valid.',
+			email: (this.email === '' || isValidEmail(this.email)) || 'The email must be valid',
+			role: this.role !== UserRole.unknown || 'The role is not valid.',
+		};
 	}
 }

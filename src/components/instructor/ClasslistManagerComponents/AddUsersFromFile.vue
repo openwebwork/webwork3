@@ -15,7 +15,7 @@
         </div>
       </q-card-section>
       <q-card-section class="q-pt-none">
-        <div class="row" v-if="merged_users.length !== 0">
+        <div class="row" v-if="course_users.length !== 0">
           <div class="col-3">
             <q-toggle v-model="first_row_header" />
             First row is Header
@@ -50,13 +50,13 @@
       </q-card-section>
       <q-card-section class="q-pt-none">
         <div class="row">
-          <div class="col-12 q-pa-md" v-if="merged_users.length > 0">
+          <div class="col-12 q-pa-md" v-if="course_users.length > 0">
             <q-table
               class="loaded-users-table"
-              :rows="merged_users"
+              :rows="course_users"
               row-key="_row"
               :columns="columns"
-              v-model:selected="selected"
+              v-model:selected="selected_users"
               selection="multiple"
               :pagination="{ rowsPerPage: 0 }"
               :loading="loading"
@@ -95,7 +95,7 @@
         <q-btn flat label="Cancel" v-close-popup />
         <q-btn
           flat
-          :label="`Add ${merged_users_to_add.length} Users and Close`"
+          :label="`Add ${course_users_to_add.length} Users and Close`"
           @click="addMergedUsers"
         />
       </q-card-actions>
@@ -140,9 +140,9 @@ const settings = useSettingsStore();
 const $q = useQuasar();
 const file = ref<File>(new File([], ''));
 // Stores all users from the file as well as parsing errors.
-const merged_users = ref<Array<UserFromFile>>([]);
+const course_users = ref<Array<UserFromFile>>([]);
 // Stores the selected users.
-const selected = ref<Array<UserFromFile>>([]);
+const selected_users = ref<Array<UserFromFile>>([]);
 const column_headers = ref<Dictionary<string>>({});
 // Provides a map from column number to field name. It doesn't need to be reactive.
 const user_param_map: Dictionary<string> = {};
@@ -152,7 +152,7 @@ const loading = ref<boolean>(false); // used to indicate parsing is occurring
 
 const first_row_header = ref<boolean>(false);
 const header_row = ref<UserFromFile>({});
-const merged_users_to_add = ref<Array<CourseUser>>([]);
+const course_users_to_add = ref<Array<CourseUser>>([]);
 const selected_user_error = ref<boolean>(false);
 const users_already_in_course = ref<boolean>(false);
 
@@ -186,28 +186,28 @@ const fillHeaders = () => {
 	});
 };
 
-// This converts converts each selected row to a ParseableMerged User
+// This converts converts each selected row to a ParseableCourseUser
 // based on the column headers.
-const getMergedUser = (row: UserFromFile) => {
+const getCourseUser = (row: UserFromFile) => {
 	// The following pulls the keys out from the user_param_map and the the values out of row
 	// to get the merged user.
-	const merged_user = Object.entries(user_param_map).reduce(
+	const course_user = Object.entries(user_param_map).reduce(
 		(acc, [k, v]) => ({ ...acc, [v]: row[k as keyof UserFromFile] }),
 		{}
 	) as ParseableCourseUser;
-	// Set the role if a common role for all users is selected.
-	merged_user.role = use_single_role.value ? common_role.value ?? 'UNKOWN' : 'UNKNOWN';
-	return merged_user;
+	// Set the role if a common role for all users is selected_users.
+	course_user.role = use_single_role.value ? common_role.value ?? 'UNKOWN' : 'UNKNOWN';
+	return course_user;
 };
 
 // Parse the selected users from the file.
 const parseUsers = () => {
 	// Clear Errors and reset reactive variables.
 	loading.value = true;
-	merged_users_to_add.value = [];
+	course_users_to_add.value = [];
 	selected_user_error.value = false;
 	users_already_in_course.value = false;
-	merged_users.value
+	course_users.value
 		.filter((u: UserFromFile) => u._error?.type !== 'none')
 		.forEach((u) => {
 			// reset the error for each selected row
@@ -220,59 +220,76 @@ const parseUsers = () => {
 	// This is needed for parsing errors.
 	const inverse_param_map = invert(user_param_map) as Dictionary<string>;
 
-	selected.value.forEach((params: UserFromFile) => {
+	selected_users.value.forEach((params: UserFromFile) => {
 		let parse_error: ParseError | null = null;
 		const row = parseInt(`${params?._row || -1}`);
-		try {
-			const merged_user = getMergedUser(params);
-			// If the user is already in the course, show a warning
-			const u = users.course_users.find((_u) => _u.username === merged_user.username);
-			if (u) {
-				users_already_in_course.value = true;
-				parse_error = {
-					type: 'warn',
-					message:
-            `The user with username '${merged_user.username ?? ''}'` +
-            ' is already enrolled in the course.',
-					entire_row: true,
-				};
-			} else {
-				merged_users_to_add.value.push(new CourseUser(merged_user));
-			}
-		} catch (error) {
-			const err = error as ParseError;
-			selected_user_error.value = true;
-
+		const course_user_params = getCourseUser(params);
+		// If the user is already in the course, show a warning
+		const u = users.course_users.find((_u) => _u.username === course_user_params.username);
+		if (u) {
+			users_already_in_course.value = true;
 			parse_error = {
-				type: 'error',
-				message: err.message,
+				type: 'warn',
+				message:
+					`The user with username '${course_user_params.username ?? ''}'` +
+					' is already enrolled in the course.',
+				entire_row: true,
 			};
+		} else {
+			const course_user = new CourseUser(course_user_params);
+			console.log(course_user.toObject());
+			console.log(course_user.validate());
+			if (course_user.isValid()) {
+				course_users_to_add.value.push(course_user);
+			} else {
+				const validate = course_user.validate();
+				// Find the field which didn't validate.
+				try {
+					Object.entries(validate).forEach(([k, v]) => {
+						if (typeof v === 'string') {
+							throw {
+								message: v,
+								field: k,
+							};
+						}
+					});
+				} catch (error) {
+					const err = error as ParseError;
+					console.log(err);
+					selected_user_error.value = true;
 
-			if (err.field === '_all') {
-				Object.assign(parse_error, { entire_row: true });
-			} else if (
-				err.field &&
-        (User.ALL_FIELDS.indexOf(err.field) >= 0 ||
-          CourseUser.ALL_FIELDS.indexOf(err.field) >= 0)
-			) {
-				if (inverse_param_map[err.field]) {
-					parse_error.col = inverse_param_map[err.field];
-				} else {
-					parse_error.entire_row = true;
+					parse_error = {
+						type: 'error',
+						message: err.message,
+					};
+
+					if (err.field === '_all') {
+						Object.assign(parse_error, { entire_row: true });
+					} else if (
+						err.field &&
+						(User.ALL_FIELDS.indexOf(err.field) >= 0 ||
+							CourseUser.ALL_FIELDS.indexOf(err.field) >= 0)
+					) {
+						if (inverse_param_map[err.field]) {
+							parse_error.col = inverse_param_map[err.field];
+						} else {
+							parse_error.entire_row = true;
+						}
+					} else if (err.field != undefined) {
+						// missing field
+						parse_error.entire_row = true;
+					}
 				}
-			} else if (err.field != undefined) {
-				// missing field
-				parse_error.entire_row = true;
 			}
 		}
 
 		if (parse_error) {
-			const row_index = merged_users.value.findIndex((u: UserFromFile) => u._row === row);
+			const row_index = course_users.value.findIndex((u: UserFromFile) => u._row === row);
 			if (row_index >= 0) {
 				// Copy the user, update and splice in.  This is needed to make the load file table reactive.
-				const user = { ...merged_users.value[row_index] };
+				const user = { ...course_users.value[row_index] };
 				user._error = parse_error;
-				merged_users.value.splice(row_index, 1, user);
+				course_users.value.splice(row_index, 1, user);
 			}
 		}
 	});
@@ -314,7 +331,7 @@ const loadFile = () => {
 					});
 					users.push(d);
 				});
-				merged_users.value = users;
+				course_users.value = users;
 			}
 		}
 	};
@@ -322,12 +339,12 @@ const loadFile = () => {
 
 // Add the Merged Users to the course.
 const addMergedUsers = async () => {
-	for await (const user of merged_users_to_add.value) {
+	for await (const user of course_users_to_add.value) {
 		user.course_id = session.course.course_id;
 		let global_user: User | undefined;
 		try {
 			// Skip if username is undefined?
-			global_user = (await getUser(user.username ?? '')) as User;
+			global_user = await getUser(user.username);
 		} catch (err) {
 			const error = err as ResponseError;
 			// this will occur is the user is not a global user
@@ -370,7 +387,7 @@ const addMergedUsers = async () => {
 	}
 };
 
-watch([selected, common_role], parseUsers, { deep: true });
+watch([selected_users, common_role], parseUsers, { deep: true });
 
 watch(
 	() => column_headers,
@@ -391,22 +408,22 @@ watch(
 );
 
 watch([first_row_header], () => {
-	selected.value = [];
+	selected_users.value = [];
 	if (first_row_header.value) {
-		const first_row = merged_users.value.shift();
+		const first_row = course_users.value.shift();
 		if (first_row) {
 			header_row.value = first_row;
 			fillHeaders();
 		}
 	} else {
-		merged_users.value.unshift(header_row.value);
+		course_users.value.unshift(header_row.value);
 	}
 });
 
 const columns = computed(() => {
-	return merged_users.value.length === 0
+	return course_users.value.length === 0
 		? []
-		: Object.keys(merged_users.value[0])
+		: Object.keys(course_users.value[0])
 			.filter((v: string) => v !== '_row' && v !== '_error')
 			.map((v) => ({ name: v, label: v, field: v }));
 });
