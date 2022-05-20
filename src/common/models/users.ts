@@ -1,5 +1,8 @@
-import { isNonNegInt, isValidUsername, isValidEmail, parseNonNegInt, parseUsername,
-	parseBoolean, parseEmail, parseUserRole, UserRole } from 'src/common/models/parsers';
+/* This file contains the definitions of a User, DBCourseUser and Course User
+	in terms of a model. */
+
+import { isNonNegInt, isValidUsername, isValidEmail, parseUserRole, UserRole }
+	from 'src/common/models/parsers';
 import { Model } from 'src/common/models';
 
 export interface ParseableUser {

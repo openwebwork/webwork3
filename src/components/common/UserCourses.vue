@@ -66,12 +66,14 @@ export default defineComponent({
 	name: 'UserCourses',
 	setup() {
 		const session = useSessionStore();
+		// If this is the first page on load, then user_course is undefined.  the ?? '' prevents
+		// an error.
 		return {
 			student_courses: computed(() =>
-				session.user_courses.filter(user_course => parseUserRole(user_course.role) === 'STUDENT')
+				session.user_courses.filter(user_course => parseUserRole(user_course.role ?? '') === 'STUDENT')
 			),
 			instructor_courses: computed(() =>
-				session.user_courses.filter(user_course => parseUserRole(user_course.role) === 'INSTRUCTOR')
+				session.user_courses.filter(user_course => parseUserRole(user_course.role ?? '') === 'INSTRUCTOR')
 			),
 			user: computed(() => session.user)
 		};

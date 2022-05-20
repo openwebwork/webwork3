@@ -110,14 +110,11 @@ describe('Testing for Review Sets', () => {
 
 		test('Test valid review_set params', () => {
 			const review_set2 =  new ReviewSet();
-			review_set2.set({ set_visible: 1 });
+			review_set2.set({ set_visible: true });
 			expect(review_set2.set_visible).toBeTruthy();
 
 			review_set2.set({ set_visible: false });
 			expect(review_set2.set_visible).toBeFalsy();
-
-			review_set2.set({ set_visible: 'true' });
-			expect(review_set2.set_visible).toBeTruthy();
 
 			review_set2.set({ set_name: 'HW #9' });
 			expect(review_set2.set_name).toBe('HW #9');

@@ -122,7 +122,7 @@ describe('User store tests', () => {
 			const course_user_to_update = user_store.course_users
 				.find(user => user.user_id === user_not_in_precalc.user_id)?.clone();
 			if (course_user_to_update) {
-				course_user_to_update.recitation = 3;
+				course_user_to_update.recitation = '3';
 				const updated_user = await user_store.updateCourseUser(course_user_to_update);
 				expect(updated_user).toStrictEqual(course_user_to_update);
 			}

@@ -6,9 +6,8 @@
 
 // tests parsing and handling of merged users
 
-import { EmailParseException, NonNegIntException, UsernameParseException,
-	UserRoleException, UserRole } from 'src/common/models/parsers';
-import { CourseUser, DBCourseUser, ParseableDBCourseUser } from 'src/common/models/users';
+import { UserRole } from 'src/common/models/parsers';
+import { CourseUser, DBCourseUser } from 'src/common/models/users';
 
 describe('Testing Database and client-side Course Users', () => {
 	describe('Creating a DBCourseUser', () => {

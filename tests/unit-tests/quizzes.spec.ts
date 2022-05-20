@@ -126,14 +126,11 @@ describe('Testing for Quizzes', () => {
 
 		test('Test valid Quiz params', () => {
 			const quiz2 =  new Quiz();
-			quiz2.set({ set_visible: 1 });
+			quiz2.set({ set_visible: true });
 			expect(quiz2.set_visible).toBeTruthy();
 
 			quiz2.set({ set_visible: false });
 			expect(quiz2.set_visible).toBeFalsy();
-
-			quiz2.set({ set_visible: 'true' });
-			expect(quiz2.set_visible).toBeTruthy();
 
 			quiz2.set({ set_name: 'HW #9' });
 			expect(quiz2.set_name).toBe('HW #9');

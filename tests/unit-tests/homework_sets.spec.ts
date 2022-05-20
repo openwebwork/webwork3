@@ -123,14 +123,11 @@ describe('Tests for Homework Sets', () => {
 
 		test('Test valid Homework Set params', () => {
 			const set2 =  new HomeworkSet();
-			set2.set({ set_visible: 1 });
+			set2.set({ set_visible: true });
 			expect(set2.set_visible).toBeTruthy();
 
 			set2.set({ set_visible: false });
 			expect(set2.set_visible).toBeFalsy();
-
-			set2.set({ set_visible: 'true' });
-			expect(set2.set_visible).toBeTruthy();
 
 			set2.set({ set_name: 'HW #9' });
 			expect(set2.set_name).toBe('HW #9');
