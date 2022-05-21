@@ -39,37 +39,39 @@ my $problem_set_rs = $schema->resultset("ProblemSet");
 my $course         = $course_rs->find({ course_id => 1 });
 
 # Delete all user sets from the db for user otto, frink, in the Precalc course
-# and two sets for ralph in the Arithmetic course
-my @usersets_that_may_exist = $user_set_rs->search(
-	{
-		-or => [
-			-and => [
-				'courses.course_name' => 'Precalculus',
-				-or                   => [
-					'users.username' => 'otto',
-					'users.username' => 'frink',
-				]
-			],
-			-and => [
-				'courses.course_name'   => 'Arithmetic',
-				'users.username'        => 'ralph',
-				'problem_sets.set_name' => 'HW #2'
-			],
-			-and => [
-				'courses.course_name'   => 'Precalculus',
-				'users.username'        => 'ralph',
-				'problem_sets.set_name' => 'HW #4'
-			]
-		]
-	},
-	{
-		join => [ { problem_sets => 'courses' }, { course_users => 'users' } ]
-	}
-);
+# and two sets for ralph in the Arithmetic course.
 
-for my $u (@usersets_that_may_exist) {
-	$u->delete;
-}
+# Note: this is only needed because these weren't deleted.
+# my @usersets_that_may_exist = $user_set_rs->search(
+# 	{
+# 		-or => [
+# 			-and => [
+# 				'courses.course_name' => 'Precalculus',
+# 				-or                   => [
+# 					'users.username' => 'otto',
+# 					'users.username' => 'frink',
+# 				]
+# 			],
+# 			-and => [
+# 				'courses.course_name'   => 'Arithmetic',
+# 				'users.username'        => 'ralph',
+# 				'problem_sets.set_name' => 'HW #2'
+# 			],
+# 			-and => [
+# 				'courses.course_name'   => 'Precalculus',
+# 				'users.username'        => 'ralph',
+# 				'problem_sets.set_name' => 'HW #4'
+# 			]
+# 		]
+# 	},
+# 	{
+# 		join => [ { problem_sets => 'courses' }, { course_users => 'users' } ]
+# 	}
+# );
+
+# for my $u (@usersets_that_may_exist) {
+# 	$u->delete;
+# }
 
 # Load info from CSV files
 my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
@@ -734,16 +736,46 @@ throws_ok {
 }
 "DB::Exception::UserSetNotInCourse", "updateUserSet: try to update a user set not the in the course";
 
-# Delete a user set.
-my $deleted_user_set = $user_set_rs->deleteUserSet(info => $otto_set_info2);
-removeIDs($deleted_user_set);
-
-is_deeply($deleted_user_set, $otto_set2, "deleteUserSet: successfully delete a user set");
-
 # Try to delete a user_set that doesn't exist.
 throws_ok {
 	$user_set_rs->deleteUserSet(info => $otto_set_info3);
 }
 "DB::Exception::UserSetNotInCourse", "deleteUserSet: try to delete a user set not the in the course";
+
+# Delete some user sets that were created.
+
+use Data::Dumper;
+# print Dumper $new_info;
+
+my $deleted_user_set = $user_set_rs->deleteUserSet(
+	info => {
+		username    => $new_user_set2->{username},
+		course_name => $new_user_set2->{course_name},
+		set_name    => $new_user_set2->{set_name}
+	}
+);
+removeIDs($deleted_user_set);
+removeIDs($new_user_set2);
+# remove set_visible to handle comparison
+delete $deleted_user_set->{set_visible};
+is_deeply($deleted_user_set, $new_user_set2, "deleteUserSet: successfully delete a user set");
+
+my $deleted_user_set2 = $user_set_rs->deleteUserSet(
+	info => {
+		username    => $ralph_user_set->{username},
+		course_name => $ralph_user_set->{course_name},
+		set_name    => $ralph_user_set->{set_name}
+	}
+);
+removeIDs($deleted_user_set2);
+# remove set_visible to handle comparison
+delete $deleted_user_set2->{set_visible};
+is_deeply($deleted_user_set2, $ralph_user_set, "deleteUserSet: successfully delete another user set");
+
+my $deleted_user_set3 = $user_set_rs->deleteUserSet(info => $otto_set_info2);
+removeIDs($deleted_user_set3);
+is_deeply($deleted_user_set3, $otto_set2, "deleteUserSet: successfully delete yet another user set");
+
+my $deleted_user_set4 = $user_set_rs->deleteUserSet(info => $new_merged_set);
 
 done_testing;

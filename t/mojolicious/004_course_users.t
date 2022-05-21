@@ -4,6 +4,7 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
+use Mojo::JSON;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -81,13 +82,16 @@ my $course_user_params = {
 	user_id            => $new_user_id,
 	role               => "student",
 	course_user_params => {
-		comment => "I love my big sister"
+		comment      => "I love my big sister",
+		useMathQuill => Mojo::JSON::true
 	}
 };
 
 $t->post_ok("/webwork3/api/courses/2/users" => json => $course_user_params)->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/role' => $course_user_params->{role})
 	->json_is('/course_user_params/comment' => $course_user_params->{course_user_params}->{comment});
+
+my $added_user = $t->tx->res->json;
 
 # Update the new user.
 $new_user->{recitation} = 2;
@@ -123,8 +127,13 @@ $t->delete_ok("/webwork3/api/courses/1/users/99")->status_is(250, "status for ex
 $t->delete_ok("/webwork3/api/courses/1/users/$new_user_id")->status_is(250, "status for exception")
 	->content_type_is('application/json;charset=UTF-8')->json_is('/exception' => 'DB::Exception::UserNotInCourse');
 
+# Delete the added course user
 $t->delete_ok("/webwork3/api/courses/2/users/$new_user_id")->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/user_id' => $new_user_id);
+
+# Delete the added global user
+$t->delete_ok("/webwork3/api/users/$new_user_id")->status_is(200)->content_type_is('application/json;charset=UTF-8')
+	->json_is('/username' => $new_user->{username});
 
 if ($TEST_PERMISSIONS) {
 	print "HERE!!!\n";
@@ -143,5 +152,20 @@ if ($TEST_PERMISSIONS) {
 
 	$t->get_ok('/webwork3/api/courses/1/users')->status_is(200)->content_type_is('application/json;charset=UTF-8');
 }
+
+# Test that boolean fields inside of course_user_params are JSON true/false.
+
+ok($added_user->{course_user_params}->{useMathQuill}, 'Testing that useMathQuill param is truthy.');
+is($added_user->{course_user_params}->{useMathQuill},
+	Mojo::JSON::true, 'Testing that the useMathQuill param compares to JSON::true');
+ok(
+	JSON::PP::is_bool($added_user->{course_user_params}->{useMathQuill}),
+	'Testing that the useMathQuill param is a JSON boolean'
+);
+ok(
+	JSON::PP::is_bool($added_user->{course_user_params}->{useMathQuill})
+		&& $added_user->{course_user_params}->{useMathQuill},
+	'testing that the useMathQuill param is a JSON::true'
+);
 
 done_testing;

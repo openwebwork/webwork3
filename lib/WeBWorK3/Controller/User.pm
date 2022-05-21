@@ -77,7 +77,6 @@ sub getCourseUser ($self) {
 }
 
 sub addCourseUser ($self) {
-
 	my $info = { course_id => int($self->param("course_id")) };
 	$info->{username} = $self->req->json->{username}     if $self->req->json->{username};
 	$info->{user_id}  = int($self->req->json->{user_id}) if $self->req->json->{user_id};

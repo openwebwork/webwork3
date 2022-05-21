@@ -19,8 +19,12 @@ sub getCourse ($self) {
 # Update the course given by course_id with given params.
 
 sub updateCourse ($self) {
-	my $course = $self->schema->resultset("Course")
-		->updateCourse(info => { course_id => int($self->param("course_id")) }, params => $self->req->json);
+	my $course = $self->schema->resultset("Course")->updateCourse(
+		info => {
+			course_id => int($self->param("course_id"))
+		},
+		params => $self->req->json
+	);
 	$self->render(json => $course);
 	return;
 }

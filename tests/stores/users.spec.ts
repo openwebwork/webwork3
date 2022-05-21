@@ -4,8 +4,8 @@
 // The above is needed because the logger uses the window object, which is only present
 // when using the jsdom environment.
 
-// problem_sets.spec.ts
-// Test the problem sets Store
+// users.spec.ts
+// Test the user Store
 
 import { setActivePinia, createPinia } from 'pinia';
 import { createApp } from 'vue';
