@@ -51,7 +51,7 @@ for my $student (@students) {
 	for my $key (qw/course_name recitation section params role/) {
 		delete $student->{$key};
 	}
-	$student->{is_admin} = 0;
+	$student->{is_admin} = Mojo::JSON::false;
 }
 
 # Add the admin user
@@ -60,7 +60,7 @@ push(
 	{
 		username   => "admin",
 		email      => 'admin@google.com',
-		is_admin   => 1,
+		is_admin   => Mojo::JSON::true,
 		first_name => "Andrea",
 		last_name  => "Administrator",
 		student_id => undef
@@ -112,7 +112,7 @@ $user = {
 	first_name => "Clancy",
 	email      => 'wiggam@springfieldpd.gov',
 	student_id => '',
-	is_admin   => 0,
+	is_admin   => Mojo::JSON::false,
 };
 
 my $new_user = $users_rs->addGlobalUser(params => $user);
@@ -160,7 +160,7 @@ my $user2 = {
 	first_name => "Selma",
 	email      => 'selma@google.com',
 	student_id => '',
-	is_admin   => 0,
+	is_admin   => Mojo::JSON::false,
 };
 
 my $added_user2 = $users_rs->addGlobalUser(params => $user2);
