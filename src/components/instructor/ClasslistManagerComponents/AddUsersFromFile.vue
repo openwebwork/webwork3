@@ -1,106 +1,106 @@
 <template>
-  <div>
-    <q-card>
-      <q-card-section class="q-pt-none">
-        <div class="row">
-          <div class="col-3">
-            <div class="text-h6">Adding Users From a File</div>
-          </div>
-          <div class="col-3">
-            <q-file v-model="file" label="Select a classlist file (as CSV)" />
-          </div>
-          <div class="col-3">
-            <q-btn @click="loadFile" :disable="file.name === ''">Load File</q-btn>
-          </div>
-        </div>
-      </q-card-section>
-      <q-card-section class="q-pt-none">
-        <div class="row" v-if="course_users.length !== 0">
-          <div class="col-3">
-            <q-toggle v-model="first_row_header" />
-            First row is Header
-          </div>
-          <div class="col-3">
-            <q-toggle v-model="use_single_role" /> Import All users as
-          </div>
-          <div class="col-3">
-            <q-select
-              :disable="!use_single_role"
-              :options="roles"
-              v-model="common_role"
-              label="Select Role"
-              :options-dense="true"
-            />
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-5 q-pa q-ma-lg" v-show="selected_user_error">
-            <q-banner dense inline-actions class="text-white bg-red rounded-borders">
-              There are validation errors with the loaded data. Any data row with an error
-              will not be added.
-            </q-banner>
-          </div>
-          <div class="col-5 q-pa q-ma-lg" v-show="users_already_in_course">
-            <q-banner dense inline-actions class="bg-yellow-3 rounded-borders">
-              The highlighted users below are already present in the course and will not
-              be added.
-            </q-banner>
-          </div>
-        </div>
-      </q-card-section>
-      <q-card-section class="q-pt-none">
-        <div class="row">
-          <div class="col-12 q-pa-md" v-if="course_users.length > 0">
-            <q-table
-              class="loaded-users-table"
-              :rows="course_users"
-              row-key="_row"
-              :columns="columns"
-              v-model:selected="selected_users"
-              selection="multiple"
-              :pagination="{ rowsPerPage: 0 }"
-              :loading="loading"
-            >
-              <template v-slot:header-cell="props">
-                <q-th :props="props">
-                  <q-select
-                    :options="user_fields.map((f) => f.label)"
-                    v-model="column_headers[props.col.name]"
-                  />
-                </q-th>
-              </template>
+	<div>
+		<q-card>
+			<q-card-section class="q-pt-none">
+				<div class="row">
+					<div class="col-3">
+						<div class="text-h6">Adding Users From a File</div>
+					</div>
+					<div class="col-3">
+						<q-file v-model="file" label="Select a classlist file (as CSV)" />
+					</div>
+					<div class="col-3">
+						<q-btn @click="loadFile" :disable="file.name === ''">Load File</q-btn>
+					</div>
+				</div>
+			</q-card-section>
+			<q-card-section class="q-pt-none">
+				<div class="row" v-if="course_users.length !== 0">
+					<div class="col-3">
+						<q-toggle v-model="first_row_header" />
+						First row is Header
+					</div>
+					<div class="col-3">
+						<q-toggle v-model="use_single_role" /> Import All users as
+					</div>
+					<div class="col-3">
+						<q-select
+							:disable="!use_single_role"
+							:options="roles"
+							v-model="common_role"
+							label="Select Role"
+							:options-dense="true"
+						/>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-5 q-pa q-ma-lg" v-show="selected_user_error">
+						<q-banner dense inline-actions class="text-white bg-red rounded-borders">
+							There are validation errors with the loaded data. Any data row with an error
+							will not be added.
+						</q-banner>
+					</div>
+					<div class="col-5 q-pa q-ma-lg" v-show="users_already_in_course">
+						<q-banner dense inline-actions class="bg-yellow-3 rounded-borders">
+							The highlighted users below are already present in the course and will not
+							be added.
+						</q-banner>
+					</div>
+				</div>
+			</q-card-section>
+			<q-card-section class="q-pt-none">
+				<div class="row">
+					<div class="col-12 q-pa-md" v-if="course_users.length > 0">
+						<q-table
+							class="loaded-users-table"
+							:rows="course_users"
+							row-key="_row"
+							:columns="columns"
+							v-model:selected="selected_users"
+							selection="multiple"
+							:pagination="{ rowsPerPage: 0 }"
+							:loading="loading"
+						>
+							<template v-slot:header-cell="props">
+								<q-th :props="props">
+									<q-select
+										:options="user_fields.map((f) => f.label)"
+										v-model="column_headers[props.col.name]"
+									/>
+								</q-th>
+							</template>
 
-              <template v-slot:body-cell="props">
-                <q-td :class="getErrorClass(props.col.name, props.row._error)">
-                  <span v-if="hasError(props)">
-                    {{ props.value }}
-                    <q-badge color="black" v-if="props.row._error.type === 'error'"
-                      >?
-                      <q-tooltip>
-                        {{ props.row._error.message }}
-                      </q-tooltip>
-                    </q-badge>
-                  </span>
-                  <span v-else>
-                    {{ props.value }}
-                  </span>
-                </q-td>
-              </template>
-            </q-table>
-          </div>
-        </div>
-      </q-card-section>
+							<template v-slot:body-cell="props">
+								<q-td :class="getErrorClass(props.col.name, props.row._error)">
+									<span v-if="hasError(props)">
+										{{ props.value }}
+										<q-badge color="black" v-if="props.row._error.type === 'error'"
+											>?
+											<q-tooltip>
+												{{ props.row._error.message }}
+											</q-tooltip>
+										</q-badge>
+									</span>
+									<span v-else>
+										{{ props.value }}
+									</span>
+								</q-td>
+							</template>
+						</q-table>
+					</div>
+				</div>
+			</q-card-section>
 
-      <q-card-actions align="right" class="bg-white text-teal">
-        <q-btn flat label="Cancel" v-close-popup />
-        <q-btn
-          flat
-          :label="`Add ${course_users_to_add.length} Users and Close`"
-          @click="addMergedUsers"
-        />
-      </q-card-actions>
-    </q-card>
-  </div>
+			<q-card-actions align="right" class="bg-white text-teal">
+				<q-btn flat label="Cancel" v-close-popup />
+				<q-btn
+					flat
+					:label="`Add ${course_users_to_add.length} Users and Close`"
+					@click="addMergedUsers"
+				/>
+			</q-card-actions>
+		</q-card>
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -237,8 +237,6 @@ const parseUsers = () => {
 			};
 		} else {
 			const course_user = new CourseUser(course_user_params);
-			console.log(course_user.toObject());
-			console.log(course_user.validate());
 			if (course_user.isValid()) {
 				course_users_to_add.value.push(course_user);
 			} else {
@@ -255,7 +253,6 @@ const parseUsers = () => {
 					});
 				} catch (error) {
 					const err = error as ParseError;
-					console.log(err);
 					selected_user_error.value = true;
 
 					parse_error = {

@@ -1,7 +1,7 @@
 import { NonNegDecimalException, NonNegIntException } from 'src/common/models/parsers';
 import { ParseableSetProblem, ParseableSetProblemParams, ProblemType, SetProblem } from 'src/common/models/problems';
 
-describe('Test the SetProblem store', () => {
+describe('Test the SetProblems', () => {
 
 	const default_render_params = {
 		problemSeed: 1234,
@@ -64,6 +64,8 @@ describe('Test the SetProblem store', () => {
 		expect(prob.problem_params.file_path).toBe('path');
 		prob.problem_params.set({ library_id: 1234 });
 		expect(prob.problem_params.library_id).toBe(1234);
+
+		// TODO: check the validity of the location params.
 	});
 
 	test('Check that changing the render params works', () => {

@@ -1,4 +1,6 @@
-import { MergeError, parseNonNegDecimal, parseNonNegInt, parseUsername } from './parsers';
+// Definition of Problems (SetProblems, LibraryProblems and UserProblems)
+
+import { isNonNegInt, MergeError, parseNonNegDecimal, parseNonNegInt, parseUsername } from './parsers';
 import { Model, Dictionary, generic } from '.';
 import { RenderParams, ParseableRenderParams } from './renderer';
 import { UserSet } from './user_sets';
@@ -60,9 +62,9 @@ export class Problem extends Model {
  * ParseableLocationParams stores information about a library problem.
  */
 export interface ParseableLocationParams extends Partial<Dictionary<generic>> {
-	library_id?: string | number;
+	library_id?: number;
 	file_path?: string;
-	problem_pool_id?: string | number;
+	problem_pool_id?: number;
 }
 
 export interface ParseableLibraryProblem {
@@ -91,8 +93,8 @@ class ProblemLocationParams extends Model {
 	}
 
 	public get library_id() : number | undefined { return this._library_id; }
-	public set library_id(val: string | number | undefined) {
-		if (val != undefined) this._library_id = parseNonNegInt(val);
+	public set library_id(val: number | undefined) {
+		if (val != undefined) this._library_id = val;
 	}
 
 	public get file_path() : string | undefined { return this._file_path;}
@@ -100,8 +102,20 @@ class ProblemLocationParams extends Model {
 		if (value != undefined) this._file_path = value;}
 
 	public get problem_pool_id() : number | undefined { return this._problem_pool_id; }
-	public set problem_pool_id(val: string | number | undefined) {
-		if (val != undefined) this._problem_pool_id = parseNonNegInt(val);
+	public set problem_pool_id(val: number | undefined) {
+		if (val != undefined) this._problem_pool_id = val;
+	}
+
+	clone(): ProblemLocationParams {
+		return new ProblemLocationParams(this.toObject() as ParseableLocationParams);
+	}
+
+	// Ensure that the _id fields are non-negative integers and that at least one
+	// of the three fields are defined.
+	isValid() {
+		if (this.library_id != undefined && !isNonNegInt(this.library_id)) return false;
+		if (this.problem_pool_id != undefined && !isNonNegInt(this.problem_pool_id)) return false;
+		return this.problem_pool_id != undefined && this.library_id != undefined && this.file_path != undefined;
 	}
 }
 

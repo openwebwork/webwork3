@@ -104,19 +104,7 @@ const checkUser = async () => {
 	// If the user doesn't exist, the catch statement will handle this.
 	try {
 		const existing_user = await getUser(course_user.value.username);
-		console.log(existing_user);
 		course_user.value.set(existing_user.toObject() as ParseableCourseUser);
-
-		// const course_id = session.course.course_id;
-		// const user_params = await checkIfUserExists(course_id, course_user.value.username);
-		// const user = new User(user_params);
-
-		// user_exists.value = true;
-		// course_user.value.user_id = user.user_id;
-		// course_user.value.username = user.username;
-		// course_user.value.first_name = user.first_name;
-		// course_user.value.last_name = user.last_name;
-		// course_user.value.email = user.email;
 	} catch (err) {
 		const error = err as ResponseError;
 		// this will occur is the user is not a global user
