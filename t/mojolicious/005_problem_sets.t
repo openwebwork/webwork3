@@ -87,19 +87,21 @@ my $new_set_id = $t->tx->res->json('/set_id');
 my $set_visible = $t->tx->res->json('/set_visible');
 ok(!$set_visible, 'testing that set_visible is falsy');
 is($set_visible, Mojo::JSON::false, 'Test that set_visible compares to Mojo::JSON::false');
-ok(JSON::PP::is_bool($set_visible), 'Test that set_visible is a JSON boolean');
+ok(JSON::PP::is_bool($set_visible),                  'Test that set_visible is a JSON boolean');
 ok(JSON::PP::is_bool($set_visible) && !$set_visible, 'Test that set_visible is a JSON::false');
 
 # Update the HW set.
-$t->put_ok("/webwork3/api/courses/2/sets/$new_set_id" => json => {
-	set_name => 'HW #11',
-	set_visible => Mojo::JSON::true
-})->content_type_is('application/json;charset=UTF-8')->json_is('/set_name' => 'HW #11');
+$t->put_ok(
+	"/webwork3/api/courses/2/sets/$new_set_id" => json => {
+		set_name    => 'HW #11',
+		set_visible => Mojo::JSON::true
+	}
+)->content_type_is('application/json;charset=UTF-8')->json_is('/set_name' => 'HW #11');
 
 $set_visible = $t->tx->res->json('/set_visible');
 ok($set_visible, 'testing that set_visible is truthy');
 is($set_visible, Mojo::JSON::true, 'Test that set_visible compares to Mojo::JSON::true');
-ok(JSON::PP::is_bool($set_visible), 'Test that set_visible is a JSON boolean');
+ok(JSON::PP::is_bool($set_visible),                 'Test that set_visible is a JSON boolean');
 ok(JSON::PP::is_bool($set_visible) && $set_visible, 'Test that set_visible is a JSON:: true');
 
 # Test for exceptions

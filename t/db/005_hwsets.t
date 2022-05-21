@@ -18,6 +18,7 @@ use Test::Exception;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
 use DateTime::Format::Strptime;
+use Mojo::JSON qw/true false/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs filterBySetType/;
@@ -152,6 +153,8 @@ my $new_set = $problem_set_rs->addProblemSet(
 my $new_set_id = $new_set->{set_id};
 removeIDs($new_set);
 delete $new_set->{type};
+# add the default set_visible
+$new_set_params->{set_visible} = false;
 is_deeply($new_set_params, $new_set, "addProblemSet: add one homework");
 
 # Try to add a homework without set_name
@@ -287,13 +290,14 @@ my $updated_set = $problem_set_rs->updateProblemSet(
 	}
 );
 removeIDs($updated_set);
-delete $updated_set->{set_visible};
 delete $new_set_params->{type};
+use Data::Dumper;
 is_deeply($new_set_params, $updated_set, "updateSet: change the set parameters");
 
 # Update the set where the set_type is sent, but the type is not:
-$new_set_params->{set_name} = "HW #88";
-$new_set_params->{set_type} = "HW";
+$new_set_params->{set_name}    = "HW #88";
+$new_set_params->{set_type}    = "HW";
+$new_set_params->{set_visible} = true;
 delete $new_set_params->{type};
 $updated_set = $problem_set_rs->updateProblemSet(
 	info   => { course_name => "Precalculus", set_id => $new_set_id },
@@ -301,7 +305,6 @@ $updated_set = $problem_set_rs->updateProblemSet(
 );
 
 removeIDs($updated_set);
-delete $updated_set->{set_visible};
 is_deeply($new_set_params, $updated_set, "updateSet: update a set with set_type defined.");
 
 # Change the type of a problem set from a Homework Set to a Quiz.
@@ -316,8 +319,6 @@ my $set_with_new_type = $problem_set_rs->updateProblemSet(
 	params => { set_type    => "QUIZ" }
 );
 removeIDs($set_with_new_type);
-# PS: Look into this.  Why are we deleting this throughout this test?
-delete $set_with_new_type->{set_visible};
 
 is_deeply($set_with_new_type, $set_with_new_type_params, "updateSet: change the type of the problem set");
 
@@ -356,7 +357,6 @@ throws_ok {
 # Delete a set
 my $deleted_set = $problem_set_rs->deleteProblemSet(info => { course_name => "Precalculus", set_name => "HW #88" });
 removeIDs($deleted_set);
-delete $deleted_set->{set_visible};
 is_deeply($set_with_new_type_params, $deleted_set, "deleteProblemSet: delete a set");
 
 # Try deleting a set with invalid course_name
