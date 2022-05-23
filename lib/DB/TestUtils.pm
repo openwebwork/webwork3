@@ -39,8 +39,11 @@ sub buildHash ($input) {
 	# parse dates
 	if ($output->{set_dates}) {
 		for my $date (keys %{ $output->{set_dates} }) {
-			my $dt = $strp->parse_datetime($output->{set_dates}->{$date});
-			$output->{set_dates}->{$date} = $dt->epoch;
+			# This needs to be more in general perhaps?
+			if ($date ne 'enable_reduced_scoring') {
+				my $dt = $strp->parse_datetime($output->{set_dates}->{$date});
+				$output->{set_dates}->{$date} = $dt->epoch;
+			}
 		}
 	}
 

@@ -1,4 +1,4 @@
-course_name,set_name,set_visible,SET_DATES:open,SET_DATES:reduced_scoring,SET_DATES:due,SET_DATES:answer,SET_PARAMS:enable_reduced_scoring
+course_name,set_name,set_visible,SET_DATES:open,SET_DATES:reduced_scoring,SET_DATES:due,SET_DATES:answer,SET_DATES:enable_reduced_scoring
 Precalculus,"HW #1",1,2021-01-01T23:59:00-05:00,2021-01-10T23:59:00-05:00,2021-01-31T23:59:00-05:00,2021-02-21T23:59:00-05:00,1
 Precalculus,"HW #2",1,2021-01-01T23:59:00-05:00,2021-01-10T23:59:00-05:00,2021-01-31T23:59:00-05:00,2021-02-21T23:59:00-05:00,1
 Precalculus,"HW #3",1,2021-01-01T23:59:00-05:00,2021-01-10T23:59:00-05:00,2021-01-31T23:59:00-05:00,2021-02-21T23:59:00-05:00,1

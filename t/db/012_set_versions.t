@@ -42,19 +42,22 @@ $user_sets_to_delete->delete_all;
 my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
 for my $hw_set (@hw_sets) {
 	$hw_set->{set_type}    = "HW";
-	$hw_set->{set_version} = 1 unless defined($hw_set->{set_version});
+	$hw_set->{set_version} = 1  unless defined($hw_set->{set_version});
+	$hw_set->{set_params}  = {} unless defined($hw_set->{set_params});
 }
 
 my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
-for my $set (@quizzes) {
-	$set->{set_type}    = "QUIZ";
-	$set->{set_version} = 1 unless defined($set->{set_version});
+for my $quiz (@quizzes) {
+	$quiz->{set_type}    = "QUIZ";
+	$quiz->{set_version} = 1  unless defined($quiz->{set_version});
+	$quiz->{set_params}  = {} unless defined($quiz->{set_params});
 }
 
 my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv");
 for my $set (@review_sets) {
 	$set->{set_type}    = "REVIEW";
-	$set->{set_version} = 1 unless defined($set->{set_version});
+	$set->{set_version} = 1  unless defined($set->{set_version});
+	$set->{set_params}  = {} unless defined($set->{set_params});
 }
 
 my @all_problem_sets = (@hw_sets, @quizzes, @review_sets);
@@ -68,7 +71,8 @@ for my $set (@all_user_sets) {
 		$_->{course_name} eq $set->{course_name} && $_->{set_name} eq $set->{set_name}
 	}
 	@all_problem_sets;
-	$set->{set_type} = $s->{set_type};
+	$set->{set_type}   = $s->{set_type};
+	$set->{set_params} = {} unless defined $set->{set_params};
 }
 
 my @merged_user_sets = @{ clone(\@all_user_sets) };

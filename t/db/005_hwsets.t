@@ -18,6 +18,7 @@ use Test::Exception;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
 use DateTime::Format::Strptime;
+use Mojo::JSON qw/true false/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs filterBySetType/;
@@ -139,7 +140,13 @@ throws_ok {
 # Add a new problem set
 my $new_set_params = {
 	set_name  => "HW #9",
-	set_dates => { open => 100, reduced_scoring => 120, due => 140, answer => 200 },
+	set_dates => {
+		open => 100,
+		reduced_scoring => 120,
+		due => 140,
+		answer => 200,
+		enable_reduced_scoring => true
+	},
 	set_type  => "HW"
 };
 
@@ -152,6 +159,9 @@ my $new_set = $problem_set_rs->addProblemSet(
 my $new_set_id = $new_set->{set_id};
 removeIDs($new_set);
 delete $new_set->{type};
+# add set_visible (the default value)
+$new_set_params->{set_visible} = false;
+
 is_deeply($new_set_params, $new_set, "addProblemSet: add one homework");
 
 # Try to add a homework without set_name
@@ -240,7 +250,7 @@ my $new_set7 = {
 	set_name   => "HW #11",
 	set_dates  => { open => 100, due => 140, answer => 200 },
 	set_type   => "HW",
-	set_params => { enable_reduced_scoring => 0, not_a_valid_field => 5 }
+	set_params => { not_a_valid_field => 5 }
 };
 throws_ok {
 	$problem_set_rs->addProblemSet(
@@ -255,9 +265,9 @@ throws_ok {
 # Check for invalid parameter fields
 my $new_set8 = {
 	set_name   => "HW #11",
-	set_dates  => { open => 100, due => 140, answer => 200 },
+	set_dates  => { open => 100, due => 140, answer => 200, enable_reduced_scoring => false },
 	set_type   => "HW",
-	set_params => { enable_reduced_scoring => 0, hide_hint => "yes" }
+	set_params => { hide_hint => "yes" }
 };
 throws_ok {
 	$problem_set_rs->addProblemSet(
@@ -271,7 +281,7 @@ throws_ok {
 
 # Update a set
 $new_set_params->{set_name}   = "HW #8";
-$new_set_params->{set_params} = { enable_reduced_scoring => 1 };
+$new_set_params->{set_params} = { hide_hint => true };
 $new_set_params->{type}       = 1;
 
 my $updated_set = $problem_set_rs->updateProblemSet(
@@ -282,12 +292,11 @@ my $updated_set = $problem_set_rs->updateProblemSet(
 	params => {
 		set_name   => $new_set_params->{set_name},
 		set_params => {
-			enable_reduced_scoring => 1
+			hide_hint => true
 		}
 	}
 );
 removeIDs($updated_set);
-delete $updated_set->{set_visible};
 delete $new_set_params->{type};
 is_deeply($new_set_params, $updated_set, "updateSet: change the set parameters");
 
@@ -301,7 +310,6 @@ $updated_set = $problem_set_rs->updateProblemSet(
 );
 
 removeIDs($updated_set);
-delete $updated_set->{set_visible};
 is_deeply($new_set_params, $updated_set, "updateSet: update a set with set_type defined.");
 
 # Change the type of a problem set from a Homework Set to a Quiz.
@@ -316,8 +324,6 @@ my $set_with_new_type = $problem_set_rs->updateProblemSet(
 	params => { set_type    => "QUIZ" }
 );
 removeIDs($set_with_new_type);
-# PS: Look into this.  Why are we deleting this throughout this test?
-delete $set_with_new_type->{set_visible};
 
 is_deeply($set_with_new_type, $set_with_new_type_params, "updateSet: change the type of the problem set");
 
@@ -356,7 +362,6 @@ throws_ok {
 # Delete a set
 my $deleted_set = $problem_set_rs->deleteProblemSet(info => { course_name => "Precalculus", set_name => "HW #88" });
 removeIDs($deleted_set);
-delete $deleted_set->{set_visible};
 is_deeply($set_with_new_type_params, $deleted_set, "deleteProblemSet: delete a set");
 
 # Try deleting a set with invalid course_name

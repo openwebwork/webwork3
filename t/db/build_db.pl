@@ -127,7 +127,7 @@ sub addSets {
 		if (!defined($course)) {
 			croak "The course " . $set->{course_name} . " does not exist";
 		}
-
+		$set->{set_params} = {} unless defined $set->{set_params};
 		delete $set->{course_name};
 		$course->add_to_problem_sets($set);
 	}
@@ -144,6 +144,7 @@ sub addSets {
 
 		$quiz->{type} = 2;
 		delete $quiz->{course_name};
+		$quiz->{set_params} = {} unless defined $quiz->{set_params};
 		$course->add_to_problem_sets($quiz);
 	}
 
@@ -156,6 +157,7 @@ sub addSets {
 
 		$set->{type} = 4;
 		delete $set->{course_name};
+		$set->{set_params} = {} unless defined $set->{set_params};
 		$course->add_to_problem_sets($set);
 	}
 
@@ -214,6 +216,7 @@ sub addUserSets {
 			}
 			$user_set->{course_user_id} = $course_user->course_user_id;
 			$user_set->{set_id}         = $problem_set->set_id;
+			$user_set->{set_params}     = {} unless defined $user_set->{set_params};
 			$problem_set->add_to_user_sets($user_set);
 		}
 	}

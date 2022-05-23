@@ -26,6 +26,8 @@ sub valid_dates ($=) {
 	return [ 'open', 'closed' ];
 }
 
+sub optional_fields_in_dates ($=) { return []; }
+
 =head2 C<required_dates>
 
 subroutine that returns the array for the required dates: C<['open', 'closed']>

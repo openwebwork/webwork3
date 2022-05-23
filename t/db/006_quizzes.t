@@ -18,6 +18,7 @@ use Test::Exception;
 use YAML::XS qw/LoadFile/;
 use Clone qw/clone/;
 use DateTime::Format::Strptime;
+use Mojo::JSON qw/true false/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs filterBySetType/;
@@ -95,6 +96,8 @@ my $new_quiz = $problem_set_rs->addProblemSet(
 );
 
 removeIDs($new_quiz);
+# add the default set_visible to the params:
+$new_quiz_params->{set_visible} = false;
 is_deeply($new_quiz, $new_quiz_params, "addQuiz: add a new quiz");
 
 # Try to add a quiz to a non existent course.

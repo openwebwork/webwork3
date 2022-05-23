@@ -10,12 +10,14 @@ use DB::Schema::Result::ProblemSet::HWSet;
 
 use DB::Exception;
 
-our $valid_dates;       # Arrayref of allowed/valid dates
-our $required_dates;    # Arrayref of required dates
+my $valid_dates;                 # Arrayref of allowed/valid dates
+my $required_dates;              # Arrayref of required dates
+my $optional_fields_in_dates;    # Arrayref of other non-date fields in the hash.
 
 sub validDates ($self, $field_name) {
-	$valid_dates    = ref($self)->valid_dates;
-	$required_dates = ref($self)->required_dates;
+	$valid_dates              = ref($self)->valid_dates;
+	$required_dates           = ref($self)->required_dates;
+	$optional_fields_in_dates = ref($self)->optional_fields_in_dates;
 
 	$self->validDateFields($field_name);
 	$self->hasRequiredDateFields($field_name);
@@ -25,9 +27,11 @@ sub validDates ($self, $field_name) {
 }
 
 sub validDateFields ($self, $field_name) {
-	my @fields = keys %{ $self->get_inflated_column($field_name) };
+	my @fields     = keys %{ $self->get_inflated_column($field_name) };
+	my @all_fields = (@$valid_dates, @$optional_fields_in_dates);
+
 	# If this is not empty, there are illegal fields.
-	my @bad_fields = array_minus(@fields, @$valid_dates);
+	my @bad_fields = array_minus(@fields, @all_fields);
 	DB::Exception::InvalidDateField->throw(field_names => join(", ", @bad_fields))
 		if (scalar(@bad_fields) != 0);
 

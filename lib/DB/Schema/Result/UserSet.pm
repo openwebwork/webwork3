@@ -122,8 +122,8 @@ __PACKAGE__->add_columns(
 		size               => 256,
 		is_nullable        => 0,
 		default_value      => '{}',
-		serializer_class   => 'JSON',
-		serializer_options => { utf8 => 1 }
+		serializer_class   => 'Boolean::JSON',
+		serializer_options => { boolean_fields => ['enable_reduced_scoring'] }
 	},
 	# Store params as a JSON object.
 	set_params => {
@@ -155,7 +155,7 @@ __PACKAGE__->typecast_map(
 	}
 );
 
-my $set_type = {
+our $set_type = {
 	1 => 'DB::Schema::Result::UserSet::HWSet',
 	2 => 'DB::Schema::Result::UserSet::Quiz',
 	3 => 'DB::Schema::Result::UserSet::JITAR',

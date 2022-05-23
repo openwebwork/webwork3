@@ -16,6 +16,10 @@ sub required_dates ($=) {
 	return DB::Schema::Result::ProblemSet::Quiz::required_dates();
 }
 
+sub optional_fields_in_dates ($=) {
+	return DB::Schema::Result::ProblemSet::Quiz::optional_fields_in_dates();
+}
+
 sub valid_params ($=) {
 	return DB::Schema::Result::ProblemSet::Quiz::valid_params();
 }

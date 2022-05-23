@@ -19,6 +19,7 @@ use Clone qw/clone/;
 use Test::Exception;
 use List::MoreUtils qw/firstval/;
 use YAML::XS qw/LoadFile/;
+use Mojo::JSON qw/true false/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
@@ -77,19 +78,22 @@ my $course         = $course_rs->find({ course_id => 1 });
 my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
 for my $hw_set (@hw_sets) {
 	$hw_set->{set_type}    = "HW";
-	$hw_set->{set_version} = 1 unless defined($hw_set->{set_version});
+	$hw_set->{set_version} = 1  unless defined($hw_set->{set_version});
+	$hw_set->{set_params}  = {} unless defined $hw_set->{set_params};
 }
 
 my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
 for my $set (@quizzes) {
 	$set->{set_type}    = "QUIZ";
-	$set->{set_version} = 1 unless defined($set->{set_version});
+	$set->{set_version} = 1  unless defined($set->{set_version});
+	$set->{set_params}  = {} unless defined $set->{set_params};
 }
 
 my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv");
 for my $set (@review_sets) {
 	$set->{set_type}    = "REVIEW";
-	$set->{set_version} = 1 unless defined($set->{set_version});
+	$set->{set_version} = 1  unless defined($set->{set_version});
+	$set->{set_params}  = {} unless defined $set->{set_params};
 }
 
 my @all_problem_sets = (@hw_sets, @quizzes, @review_sets);
@@ -103,7 +107,8 @@ for my $set (@all_user_sets) {
 		$_->{course_name} eq $set->{course_name} && $_->{set_name} eq $set->{set_name}
 	}
 	@all_problem_sets;
-	$set->{set_type} = $s->{set_type};
+	$set->{set_params} = {} unless defined $set->{set_params};
+	$set->{set_type}   = $s->{set_type};
 }
 
 my @merged_user_sets = @{ clone(\@all_user_sets) };
@@ -519,11 +524,12 @@ my $ralph_set_info = {
 	course_name => "Precalculus",
 	set_name    => "HW #4",
 	set_dates   => {
-		open   => $hw4->{set_dates}->{open} - 100,
-		answer => $hw4->{set_dates}->{answer} + 100,
+		open                   => $hw4->{set_dates}->{open} - 100,
+		answer                 => $hw4->{set_dates}->{answer} + 100,
+		enable_reduced_scoring => false,
 	},
 	set_params => {
-		enable_reduced_scoring => 0
+		hide_hint => false
 	}
 };
 
@@ -743,9 +749,6 @@ throws_ok {
 "DB::Exception::UserSetNotInCourse", "deleteUserSet: try to delete a user set not the in the course";
 
 # Delete some user sets that were created.
-
-use Data::Dumper;
-# print Dumper $new_info;
 
 my $deleted_user_set = $user_set_rs->deleteUserSet(
 	info => {
