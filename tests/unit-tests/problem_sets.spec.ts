@@ -12,8 +12,6 @@ describe('Test generic ProblemSets', () => {
 			const set = new ProblemSet();
 			expect(() => {set.set_params;}).toThrowError('The subclass must override set_params()');
 			expect(() => {set.set_dates; }).toThrowError('The subclass must override set_dates()');
-			expect(() => {set.hasValidDates(); }).toThrowError('The hasValidDates() method must be overridden.');
-			expect(() => {set.isValid(); }).toThrowError('The isValid() method must be overridden.');
 			expect(() => {set.clone(); }).toThrowError('The clone method must be overridden in a subclass.');
 		});
 	});

@@ -1,6 +1,3 @@
-/**
- * @jest-environment jsdom
- */
 // The above is needed because the logger uses the window object, which is only present
 // when using the jsdom environment.
 
@@ -16,9 +13,8 @@ describe('Test User Quizzes', () => {
 			set_id: 0,
 			course_user_id: 0,
 			set_version: 1,
-			set_visible: false,
 			set_type: 'QUIZ',
-			set_params: { timed: false, quiz_duration: 0 },
+			set_params: {},
 			set_dates: {}
 		};
 
@@ -54,13 +50,7 @@ describe('Test User Quizzes', () => {
 			const user_quiz = new DBUserQuiz();
 
 			user_quiz.set_params.timed = true;
-			expect(user_quiz.set_params.timed).toBeTruthy();
-
-			user_quiz.set_params.timed = '0';
-			expect(user_quiz.set_params.timed).toBeFalsy();
-
-			user_quiz.set_params.timed = 'true';
-			expect(user_quiz.set_params.timed).toBeTruthy();
+			expect(user_quiz.set_params.timed).toBe(true);
 
 		});
 
@@ -81,10 +71,10 @@ describe('Test User Quizzes', () => {
 				answer: 800
 			});
 
-			expect(user_quiz.hasValidDates()).toBeTruthy();
+			expect(user_quiz.set_dates.isValid()).toBeTruthy();
 
 			user_quiz.set_dates.due = 1000;
-			expect(user_quiz.hasValidDates()).toBeFalsy();
+			expect(user_quiz.set_dates.isValid()).toBeFalsy();
 
 		});
 	});
@@ -136,14 +126,7 @@ describe('Test User Quizzes', () => {
 			const user_quiz = new UserQuiz();
 
 			user_quiz.set_params.timed = true;
-			expect(user_quiz.set_params.timed).toBeTruthy();
-
-			user_quiz.set_params.timed = '0';
-			expect(user_quiz.set_params.timed).toBeFalsy();
-
-			user_quiz.set_params.timed = 'true';
-			expect(user_quiz.set_params.timed).toBeTruthy();
-
+			expect(user_quiz.set_params.timed).toBe(true);
 		});
 
 		test('Set dates of a UserQuiz', () => {
@@ -163,10 +146,10 @@ describe('Test User Quizzes', () => {
 				answer: 800
 			});
 
-			expect(user_quiz.hasValidDates()).toBeTruthy();
+			expect(user_quiz.set_dates.isValid()).toBeTruthy();
 
 			user_quiz.set_dates.due = 1000;
-			expect(user_quiz.hasValidDates()).toBeFalsy();
+			expect(user_quiz.set_dates.isValid()).toBeFalsy();
 
 		});
 	});

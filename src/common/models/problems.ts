@@ -1,6 +1,6 @@
 // Definition of Problems (SetProblems, LibraryProblems and UserProblems)
 
-import { isNonNegInt, MergeError, parseNonNegDecimal, parseNonNegInt, parseUsername } from './parsers';
+import { isNonNegDecimal, isNonNegInt, isValidUsername, MergeError } from './parsers';
 import { Model, Dictionary, generic } from '.';
 import { RenderParams, ParseableRenderParams } from './renderer';
 import { UserSet } from './user_sets';
@@ -133,7 +133,7 @@ export class LibraryProblem extends Problem {
 		super(params);
 		this._problem_type = ProblemType.LIBRARY;
 		if (params.location_params) {
-			this.setLocationParams(params.location_params);
+			this.location_params.set(params.location_params);
 		}
 		// For these problems, all buttons are shown by default.
 		this.setRenderParams({
@@ -151,15 +151,9 @@ export class LibraryProblem extends Problem {
 	}
 
 	get problem_number(): number { return this._problem_number; }
-	set problem_number(value: string | number) { this._problem_number = parseNonNegInt(value); }
+	set problem_number(value: number) { this._problem_number = value; }
 
 	get param_fields() { return [...super.param_fields, ...['location_params'] ]; }
-
-	// Maybe get rid of this and just assign location_params directly.
-
-	setLocationParams(params: ParseableLocationParams) {
-		this._location_params.set(params);
-	}
 
 	clone(): LibraryProblem {
 		return new LibraryProblem(this.toObject() as unknown as ParseableLibraryProblem);
@@ -167,6 +161,10 @@ export class LibraryProblem extends Problem {
 
 	path(): string {
 		return this.location_params.file_path ?? '';
+	}
+
+	isValid() {
+		return isNonNegInt(this.problem_number) && this.location_params.isValid();
 	}
 
 	requestParams(): ParseableRenderParams {
@@ -181,10 +179,10 @@ export class LibraryProblem extends Problem {
 // This next set of interfaces and classes are related to SetProblems
 
 export interface ParseableSetProblemParams {
-	weight?: number | string;
-	library_id?: number | string;
+	weight?: number;
+	library_id?: number;
 	file_path?: string;
-	problem_pool_id?: number | string;
+	problem_pool_id?: number;
 }
 
 /**
@@ -217,31 +215,39 @@ export class SetProblemParams extends Model {
 	}
 
 	public get weight(): number { return this._weight; }
-	public set weight(value: number | string) { this._weight = parseNonNegDecimal(value);}
+	public set weight(value: number) { this._weight = value; }
 
 	public get library_id() : number | undefined { return this._library_id; }
-	public set library_id(val: string | number | undefined) {
-		if (val != undefined) this._library_id = parseNonNegInt(val);
+	public set library_id(val: number | undefined) {
+		if (val != undefined) this._library_id = val;
 	}
 
 	public get file_path() : string | undefined { return this._file_path;}
 	public set file_path(value: string | undefined) {
-		if (value != undefined) this._file_path = value;
+		if (value) this._file_path = value;
 	}
 
 	public get problem_pool_id() : number | undefined { return this._problem_pool_id; }
-	public set problem_pool_id(val: string | number | undefined) {
-		if (val != undefined) this._problem_pool_id = parseNonNegInt(val);
+	public set problem_pool_id(val: number | undefined) {
+		if (val != undefined) this._problem_pool_id = val;
 	}
 
+	// Ensure that weight is not negative, the _id fields are non-negative integers and
+	// that at least one of the three location fields is defined.
+	isValid() {
+		if (!isNonNegDecimal(this.weight)) return false;
+		if (this.library_id != undefined && !isNonNegInt(this.library_id)) return false;
+		if (this.problem_pool_id != undefined && !isNonNegInt(this.problem_pool_id)) return false;
+		return Object.keys(this.toObject(['problem_pool_id', 'library_id', 'file_path'])).length > 0;
+	}
 }
 
 export interface ParseableSetProblem {
 	render_params?: ParseableRenderParams;
 	problem_params?: ParseableSetProblemParams;
-	problem_number?: number | string ;
-	problem_id?: number | string;
-	set_id?: number | string;
+	problem_number?: number ;
+	problem_id?: number;
+	set_id?: number;
 }
 
 /**
@@ -286,16 +292,16 @@ export class SetProblem extends Problem {
 	get param_fields() { return [...super.param_fields, ...['problem_params'] ]; }
 
 	public get problem_id() : number { return this._problem_id; }
-	public set problem_id(val: string | number) { this._problem_id = parseNonNegInt(val);}
+	public set problem_id(val: number) { this._problem_id = val; }
 
 	public get set_id() : number { return this._set_id; }
-	public set set_id(val: string | number) { this._set_id = parseNonNegInt(val);}
+	public set set_id(val: number) { this._set_id = val;}
 
 	get problem_number(): number { return this._problem_number; }
-	set problem_number(value: string | number) { this._problem_number = parseNonNegInt(value); }
+	set problem_number(value: number) { this._problem_number = value; }
 
 	clone(): SetProblem {
-		return new SetProblem(this.toObject() as unknown as ParseableSetProblem);
+		return new SetProblem(this.toObject());
 	}
 
 	path(): string {
@@ -307,17 +313,22 @@ export class SetProblem extends Problem {
 		p.sourceFilePath = this.problem_params.file_path ?? '';
 		return p;
 	}
+
+	isValid() {
+		return isNonNegInt(this.problem_id) && isNonNegDecimal(this.set_id) &&
+			isNonNegInt(this.problem_number) && this.problem_params.isValid();
+	}
 }
 
 export interface ParseableDBUserProblem {
 	render_params?: RenderParams;
-	problem_params?: SetProblemParams;
-	problem_id?: number | string;
-	user_problem_id?: number | string;
-	user_set_id?: number | string;
-	seed?: number | string;
-	status?: number | string;
-	problem_version?: number | string;
+	problem_params?: ParseableSetProblemParams;
+	problem_id?: number;
+	user_problem_id?: number;
+	user_set_id?: number;
+	seed?: number;
+	status?: number;
+	problem_version?: number;
 }
 
 /**
@@ -365,25 +376,25 @@ export class DBUserProblem extends Problem {
 	get param_fields() { return ['problem_params', 'render_params']; }
 
 	public get problem_id() : number { return this._problem_id; }
-	public set problem_id(val: string | number) { this._problem_id = parseNonNegInt(val);}
+	public set problem_id(val: number) { this._problem_id = val;}
 
 	public get user_problem_id() : number { return this._user_problem_id; }
-	public set user_problem_id(val: string | number) { this._user_problem_id = parseNonNegInt(val);}
+	public set user_problem_id(val: number) { this._user_problem_id = val;}
 
 	public get user_set_id() : number { return this._user_set_id; }
-	public set user_set_id(val: string | number) { this._user_set_id = parseNonNegInt(val);}
+	public set user_set_id(val: number) { this._user_set_id = val;}
 
 	public get seed() : number { return this._seed; }
-	public set seed(val: string | number) { this._seed = parseNonNegInt(val);}
+	public set seed(val: number) { this._seed = val;}
 
 	public get status() : number { return this._status; }
-	public set status(val: string | number) { this._status = parseNonNegDecimal(val);}
+	public set status(val: number) { this._status = val;}
 
 	public get problem_version() : number { return this._problem_version; }
-	public set problem_version(val: string | number) { this._problem_version = parseNonNegInt(val);}
+	public set problem_version(val: number) { this._problem_version = val;}
 
 	public clone() {
-		return new DBUserProblem(this.toObject() as unknown as ParseableDBUserProblem);
+		return new DBUserProblem(this.toObject());
 	}
 
 	path(): string {
@@ -396,6 +407,12 @@ export class DBUserProblem extends Problem {
 		p.problemSeed = this.seed;
 		return p;
 	}
+
+	isValid(): boolean {
+		return isNonNegInt(this.problem_id) && isNonNegInt(this._user_problem_id) &&
+			isNonNegInt(this.user_set_id) && isNonNegInt(this.seed) && isNonNegDecimal(this.status) &&
+			isNonNegInt(this.problem_version) && this.problem_params.isValid();
+	}
 }
 
 // This next section is related to UserProblems which is a merge between
@@ -404,15 +421,15 @@ export class DBUserProblem extends Problem {
 export interface ParseableUserProblem {
 	render_params?: ParseableRenderParams;
 	problem_params?: ParseableSetProblemParams;
-	problem_id?: number | string;
-	user_problem_id?: number | string;
-	user_id?: number | string;
-	user_set_id?: number | string;
-	set_id?: number | string;
-	seed?: number | string;
-	status?: number | string;
-	problem_version?: number | string;
-	problem_number?: number | string;
+	problem_id?: number;
+	user_problem_id?: number;
+	user_id?: number;
+	user_set_id?: number;
+	set_id?: number;
+	seed?: number;
+	status?: number;
+	problem_version?: number;
+	problem_number?: number;
 	username?: string;
 	set_name?: string;
 }
@@ -476,34 +493,34 @@ export class UserProblem extends Problem {
 	public get problem_params() { return this._problem_params; }
 
 	public get problem_id() : number { return this._problem_id; }
-	public set problem_id(val: string | number) { this._problem_id = parseNonNegInt(val);}
+	public set problem_id(val: number) { this._problem_id = val;}
 
 	public get user_problem_id() : number { return this._user_problem_id; }
-	public set user_problem_id(val: string | number) { this._user_problem_id = parseNonNegInt(val);}
+	public set user_problem_id(val: number) { this._user_problem_id = val;}
 
 	public get user_id() : number { return this._user_id; }
-	public set user_id(val: string | number) { this._user_id = parseNonNegInt(val);}
+	public set user_id(val: number) { this._user_id = val;}
 
 	public get user_set_id() : number { return this._user_set_id; }
-	public set user_set_id(val: string | number) { this._user_set_id = parseNonNegInt(val);}
+	public set user_set_id(val: number) { this._user_set_id = val;}
 
 	public get set_id() : number { return this._set_id; }
-	public set set_id(val: string | number) { this._set_id = parseNonNegInt(val);}
+	public set set_id(val: number) { this._set_id = val;}
 
 	public get seed() : number { return this._seed; }
-	public set seed(val: string | number) { this._seed = parseNonNegInt(val);}
+	public set seed(val: number) { this._seed = val;}
 
 	public get status() : number { return this._status; }
-	public set status(val: string | number) { this._status = parseNonNegDecimal(val);}
+	public set status(val: number) { this._status = val;}
 
 	public get problem_version() : number { return this._problem_version; }
-	public set problem_version(val: string | number) { this._problem_version = parseNonNegInt(val);}
+	public set problem_version(val: number) { this._problem_version = val;}
 
 	public get problem_number() : number { return this._problem_number; }
-	public set problem_number(val: string | number) { this._problem_number = parseNonNegInt(val);}
+	public set problem_number(val: number) { this._problem_number = val;}
 
 	public get username() : string { return this._username; }
-	public set username(val: string) { this._username = parseUsername(val);}
+	public set username(val: string) { this._username = val; }
 
 	public get set_name() : string { return this._set_name; }
 	public set set_name(val: string) { this._set_name = val;}
@@ -520,6 +537,14 @@ export class UserProblem extends Problem {
 		const p = super.requestParams();
 		p.sourceFilePath = this.path();
 		return p;
+	}
+
+	isValid() {
+		return isNonNegInt(this.problem_id) && isNonNegInt(this._user_problem_id) &&
+			isNonNegInt(this.user_id) && isNonNegInt(this.user_set_id) && isNonNegInt(this.set_id) &&
+			isNonNegInt(this.seed) && isNonNegDecimal(this.status) && isNonNegInt(this.problem_number) &&
+			isNonNegInt(this.problem_version) && this.problem_params.isValid() &&
+			isValidUsername(this.username) && this.set_name.length > 0;
 	}
 }
 

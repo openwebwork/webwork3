@@ -205,7 +205,7 @@ describe('Testing Database and client-side Course Users', () => {
 		});
 
 		test('Update CourseUser using the set method', () => {
-			const course_user = new CourseUser({ username: 'homer' });
+			const course_user = new CourseUser({ username: 'homer', role: UserRole.student });
 			expect(course_user.isValid()).toBe(true);
 
 			course_user.set({ course_user_id: 10 });
@@ -245,48 +245,54 @@ describe('Testing Database and client-side Course Users', () => {
 
 	describe('Testing for valid and invalid users.', () => {
 		test('setting invalid user_id', () => {
-			const user = new CourseUser({ username: 'homer' });
+			let user = new CourseUser({ username: 'homer', role: UserRole.student });
 			expect(user.isValid()).toBe(true);
 
-			user.user_id = -15;
+			user = new CourseUser({ username: 'homer', role: UserRole.student, user_id: -15 });
 			expect(user.isValid()).toBe(false);
 
-			user.user_id = 1.23;
+			user = new CourseUser({ username: 'homer', role: UserRole.student, user_id: 1.23 });
 			expect(user.isValid()).toBe(false);
 		});
 
 		test('setting invalid course_user_id', () => {
-			const course_user = new CourseUser({ username: 'homer' });
+			let course_user = new CourseUser({ username: 'homer', role: UserRole.student });
 			expect(course_user.isValid()).toBe(true);
 
+			course_user = new CourseUser({ username: 'homer', role: UserRole.student });
 			course_user.course_user_id = -3;
 			expect(course_user.isValid()).toBe(false);
 
+			course_user = new CourseUser({ username: 'homer', role: UserRole.student });
 			course_user.course_user_id = 3.14;
 			expect(course_user.isValid()).toBe(false);
 
+			course_user = new CourseUser({ username: 'homer', role: UserRole.student });
 			course_user.course_user_id = 7;
 			expect(course_user.isValid()).toBe(true);
 		});
 
 		test('setting invalid course_id', () => {
-			const course_user = new CourseUser({ username: 'homer' });
+			let course_user = new CourseUser({ username: 'homer', role: UserRole.student });
 			course_user.course_id = -9;
 			expect(course_user.isValid()).toBe(false);
 
+			course_user = new CourseUser({ username: 'homer', role: UserRole.student });
 			course_user.course_id = 1.39;
 			expect(course_user.isValid()).toBe(false);
 
+			course_user = new CourseUser({ username: 'homer', role: UserRole.student });
 			course_user.course_id = 9;
 			expect(course_user.isValid()).toBe(true);
 		});
 
 		test('setting invalid email', () => {
-			const user = new CourseUser({ username: 'test' });
-			expect(user.isValid()).toBe(true);
+			let course_user = new CourseUser({ username: 'homer', role: UserRole.student });
+			expect(course_user.isValid()).toBe(true);
 
-			user.email = 'bad@email@address.com';
-			expect(user.isValid()).toBe(false);
+			course_user = new CourseUser({ username: 'homer', role: UserRole.student });
+			course_user.email = 'bad@email@address.com';
+			expect(course_user.isValid()).toBe(false);
 		});
 
 		test('setting invalid username', () => {

@@ -39,9 +39,9 @@ describe('Problem Set store tests', () => {
 		// Do some parsing cleanup.
 		const hw_sets_from_csv = hw_sets_to_parse.filter(set => set.course_name === 'Precalculus')
 			.map(set => new HomeworkSet(set));
-		hw_sets_from_csv.forEach(set => {
-			set.set_params.enable_reduced_scoring = parseBoolean(set.set_params.enable_reduced_scoring);
-		});
+		// hw_sets_from_csv.forEach(set => {
+		//    set.set_params.enable_reduced_scoring = parseBoolean(set.set_params.enable_reduced_scoring);
+		// });
 
 		const quizzes_to_parse = await loadCSV('t/db/sample_data/quizzes.csv', problem_set_config);
 		const quizzes_from_csv = quizzes_to_parse.filter(set => set.course_name === 'Precalculus')

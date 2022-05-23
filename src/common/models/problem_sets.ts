@@ -1,7 +1,7 @@
 /* These are Problem Set interfaces */
 
 import { Model } from '.';
-import { isNonNegInt, parseBoolean, ParseError, parseNonNegInt } from './parsers';
+import { isNonNegInt, ParseError } from './parsers';
 
 export enum ProblemSetType {
 	HW = 'HW',
@@ -104,7 +104,7 @@ export class ProblemSet extends Model {
 	}
 
 	isValid() {
-		return isNonNegInt(this.set_id) && isNonNegInt(this.course_id) && this.set_name.length>0;
+		return isNonNegInt(this.set_id) && isNonNegInt(this.course_id) && this.set_name.length > 0;
 	}
 }
 
@@ -133,9 +133,8 @@ export class QuizDates extends Model {
 		if (params.answer != undefined) this.answer = params.answer;
 	}
 
-	get all_field_names(): string[] {
-		return ['open', 'due', 'answer'];
-	}
+	static ALL_FIELDS =  ['open', 'due', 'answer'];
+	get all_field_names(): string[] { return QuizDates.ALL_FIELDS; }
 	get param_fields(): string[] { return [];}
 
 	public get open(): number { return this._open;}
@@ -185,9 +184,8 @@ export class QuizParams extends Model {
 		if (params.quiz_duration) this.quiz_duration = params.quiz_duration;
 	}
 
-	get all_field_names(): string[] {
-		return ['timed', 'quiz_duration'];
-	}
+	static ALL_FIELDS = ['timed', 'quiz_duration'];
+	get all_field_names(): string[] { return QuizParams.ALL_FIELDS; }
 	get param_fields(): string[] { return [];}
 
 	public get timed() : boolean { return this._timed;}
@@ -195,6 +193,10 @@ export class QuizParams extends Model {
 
 	public get quiz_duration(): number { return this._quiz_duration;}
 	public set quiz_duration(value: number) { this._quiz_duration = value;}
+
+	clone(): QuizParams {
+		return new QuizParams(this.toObject());
+	}
 
 	isValid(): boolean {
 		return isNonNegInt(this.quiz_duration);
@@ -232,14 +234,13 @@ export class Quiz extends ProblemSet {
  * HomeworkSet
  */
 
- export interface ParseableHomeworkSetDates {
+export interface ParseableHomeworkSetDates {
 	open?: number;
 	due?: number;
 	reduced_scoring?: number;
 	answer?: number;
 	enable_reduced_scoring?: boolean;
 }
-
 
 export class HomeworkSetDates extends Model {
 	private _open =  0;
@@ -249,7 +250,6 @@ export class HomeworkSetDates extends Model {
 	private _due = 0;
 	private _answer = 0;
 	private _enable_reduced_scoring = false;
-
 
 	get all_field_names(): string[] { return HomeworkSetDates.ALL_FIELDS; }
 	get param_fields(): string[] { return [];}
@@ -303,11 +303,24 @@ export class HomeworkSetDates extends Model {
 }
 
 export interface ParseableHomeworkSetParams {
-	enable_reduced_scoring?: boolean;
+	hide_hint?: boolean;
+	hardcopy_header?: string;
+	set_header?: string;
+	description?: string;
 }
 
 export class HomeworkSetParams extends Model {
-	private _enable_reduced_scoring = false;
+	private _hide_hint = false;
+	private _hardcopy_header = '';
+	private _set_header = '';
+	private _description = '';
+
+	static ALL_FIELDS = ['hide_hint', 'hardcopy_header', 'set_header', 'description'];
+
+	get all_field_names(): string[] {
+		return HomeworkSetParams.ALL_FIELDS;
+	}
+	get param_fields(): string[] { return [];}
 
 	constructor(params: ParseableHomeworkSetParams = {}) {
 		super();
@@ -315,22 +328,32 @@ export class HomeworkSetParams extends Model {
 	}
 
 	set(params: ParseableHomeworkSetParams) {
-		if (params.enable_reduced_scoring != undefined) this.enable_reduced_scoring = params.enable_reduced_scoring;
+		if (params.hide_hint != undefined) this.hide_hint = params.hide_hint;
+		if (params.hardcopy_header) this.hardcopy_header = params.hardcopy_header;
+		if (params.set_header) this.set_header = params.set_header;
+		if (params.description) this.description = params.description;
 	}
 
-	get all_field_names(): string[] {
-		return ['enable_reduced_scoring'];
-	}
-	get param_fields(): string[] { return [];}
+	public get hide_hint() : boolean { return this._hide_hint;}
+	public set hide_hint(value: boolean) { this._hide_hint = value; }
 
-	public get enable_reduced_scoring() : boolean { return this._enable_reduced_scoring;}
-	public set enable_reduced_scoring(value: boolean) { this._enable_reduced_scoring = value; }
+	public get hardcopy_header() : string { return this._hardcopy_header;}
+	public set hardcopy_header(value: string) { this._hardcopy_header = value; }
+
+	public get set_header() : string { return this._set_header;}
+	public set set_header(value: string) { this._set_header = value; }
+
+	public get description() : string { return this._description;}
+	public set description(value: string) { this._description = value; }
 
 	isValid(): boolean {
 		return true;
 	}
-}
 
+	clone(): HomeworkSetParams {
+		return new HomeworkSetParams(this.toObject());
+	}
+}
 
 export type ParseableHomeworkSet = ParseableSetParams & {
 	set_params?: ParseableHomeworkSetParams;
@@ -381,13 +404,19 @@ export class ReviewSetParams extends Model {
 		if (params.test_param != undefined) this.test_param = params.test_param;
 	}
 
-	get all_field_names(): string[] {
-		return ['test_param'];
-	}
+	static ALL_FIELDS = ['test_param'];
+	get all_field_names(): string[] { return ReviewSetParams.ALL_FIELDS; }
 	get param_fields(): string[] { return [];}
 
 	public get test_param() : boolean { return this._test_param;}
 	public set test_param(value: boolean) { this._test_param = value; }
+
+	// This should be updated when the model is updated.
+	isValid() { return true; }
+
+	clone(): ReviewSetParams {
+		return new ReviewSetParams(this.toObject());
+	}
 }
 
 export interface ParseableReviewSetDates {
@@ -416,9 +445,8 @@ export class ReviewSetDates extends Model {
 		if (params.closed != undefined) this.closed = params.closed;
 	}
 
-	get all_field_names(): string[] {
-		return ['open', 'closed'];
-	}
+	static ALL_FIELDS = [ 'open', 'closed'];
+	get all_field_names(): string[] { return ReviewSetDates.ALL_FIELDS; }
 	get param_fields(): string[] { return [];}
 
 	public get open(): number { return this._open;}
@@ -449,10 +477,6 @@ export class ReviewSet extends ProblemSet {
 		this._set_type = ProblemSetType.REVIEW_SET;
 		if (params.set_params) this.set_params.set(params.set_params);
 		if (params.set_dates) this.set_dates.set(params.set_dates);
-	}
-
-	hasValidDates(): boolean {
-		return this.set_dates.isValid();
 	}
 
 	public get set_dates() { return this._set_dates; }
@@ -520,7 +544,7 @@ export function convertSet(old_set: ProblemSet, new_set_type: ProblemSetType) {
 		throw new ParseError('ProblemSetType', `convertSet does not support conversion to ${new_set_type || 'EMPTY'}`);
 	}
 
-	// if (!new_set.hasValidDates())
+	// if (!new_set.set_dates.isValid())
 	// logger.error('[problem_sets/convertSet] corrupt dates in conversion of set, TSNH?');
 	return new_set;
 }

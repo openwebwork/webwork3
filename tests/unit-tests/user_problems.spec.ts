@@ -1,6 +1,5 @@
 // Testing UserProblems
 
-import { NonNegDecimalException, NonNegIntException, UsernameParseException } from 'src/common/models/parsers';
 import { DBUserProblem, ProblemType, UserProblem } from 'src/common/models/problems';
 
 describe('Testing DB User Problems and User problems', () => {
@@ -63,21 +62,15 @@ describe('Testing DB User Problems and User problems', () => {
 				const prob = new DBUserProblem();
 				prob.problem_params.weight = 2;
 				expect(prob.problem_params.weight).toBe(2);
-				prob.problem_params.weight = '3.5';
-				expect(prob.problem_params.weight).toBe(3.5);
 
 				prob.problem_params.library_id = 10;
 				expect(prob.problem_params.library_id).toBe(10);
-				prob.problem_params.library_id = '12';
-				expect(prob.problem_params.library_id).toBe(12);
 
 				prob.problem_params.file_path = 'path/to/file';
 				expect(prob.problem_params.file_path).toBe('path/to/file');
 
 				prob.problem_params.problem_pool_id = 15;
 				expect(prob.problem_params.problem_pool_id).toBe(15);
-				prob.problem_params.problem_pool_id = '25';
-				expect(prob.problem_params.problem_pool_id).toBe(25);
 
 			});
 
@@ -85,153 +78,105 @@ describe('Testing DB User Problems and User problems', () => {
 				const prob = new DBUserProblem();
 				prob.problem_params.set({ weight: 2 });
 				expect(prob.problem_params.weight).toBe(2);
-				prob.problem_params.set({ weight: '3.5' });
-				expect(prob.problem_params.weight).toBe(3.5);
 
 				prob.problem_params.set({ library_id: 10 });
 				expect(prob.problem_params.library_id).toBe(10);
-				prob.problem_params.set({ library_id: '12' });
-				expect(prob.problem_params.library_id).toBe(12);
 
 				prob.problem_params.set({ file_path: 'path/to/file' });
 				expect(prob.problem_params.file_path).toBe('path/to/file');
 
 				prob.problem_params.set({ problem_pool_id: 15 });
 				expect(prob.problem_params.problem_pool_id).toBe(15);
-				prob.problem_params.set({ problem_pool_id: '25' });
-				expect(prob.problem_params.problem_pool_id).toBe(25);
-
 			});
 
 			test('Check changes in fields set directly', () => {
 				const prob = new DBUserProblem();
 				prob.problem_id = 5;
 				expect(prob.problem_id).toBe(5);
-				prob.problem_id = '7';
-				expect(prob.problem_id).toBe(7);
 
 				prob.user_problem_id = 15;
 				expect(prob.user_problem_id).toBe(15);
-				prob.user_problem_id = '27';
-				expect(prob.user_problem_id).toBe(27);
 
 				prob.user_set_id = 8;
 				expect(prob.user_set_id).toBe(8);
-				prob.user_set_id = '34';
-				expect(prob.user_set_id).toBe(34);
 
 				prob.seed = 12345;
 				expect(prob.seed).toBe(12345);
-				prob.seed = '7654';
-				expect(prob.seed).toBe(7654);
 
 				prob.status = 2;
 				expect(prob.status).toBe(2);
-				prob.status = '2.5';
-				expect(prob.status).toBe(2.5);
 
 				prob.problem_version = 3;
 				expect(prob.problem_version).toBe(3);
-				prob.problem_version = '4';
-				expect(prob.problem_version).toBe(4);
-
 			});
 
 			test('Check changes in fields using set()', () => {
 				const prob = new DBUserProblem();
 				prob.set({ problem_id: 5 });
 				expect(prob.problem_id).toBe(5);
-				prob.set({ problem_id: '7' });
-				expect(prob.problem_id).toBe(7);
 
 				prob.set({ user_problem_id: 15 });
 				expect(prob.user_problem_id).toBe(15);
-				prob.set({ user_problem_id: '27' });
-				expect(prob.user_problem_id).toBe(27);
 
 				prob.set({ user_set_id: 8 });
 				expect(prob.user_set_id).toBe(8);
-				prob.set({ user_set_id: '34' });
-				expect(prob.user_set_id).toBe(34);
 
 				prob.set({ seed: 12345 });
 				expect(prob.seed).toBe(12345);
-				prob.set({ seed: '7654' });
-				expect(prob.seed).toBe(7654);
 
 				prob.set({ status: 2 });
 				expect(prob.status).toBe(2);
-				prob.set({ status: '2.5' });
-				expect(prob.status).toBe(2.5);
 
 				prob.set({ problem_version: 3 });
 				expect(prob.problem_version).toBe(3);
-				prob.set({ problem_version: '4' });
-				expect(prob.problem_version).toBe(4);
 
 			});
 
-			test('Check that exceptions are thrown for invalid direct settings', () => {
-				const prob = new DBUserProblem();
-				expect(() => {prob.problem_id = -1; }).toThrow(NonNegIntException);
-				expect(() => {prob.problem_id = '-5'; }).toThrow(NonNegIntException);
-				expect(() => {prob.problem_id = 1.5; }).toThrow(NonNegIntException);
-				expect(() => {prob.problem_id = '4.3'; }).toThrow(NonNegIntException);
+			test('Check for valid db user problem fields.', () => {
+				const prob = new DBUserProblem({ problem_params: { file_path: '/this/is/the/path' } });
+				expect(prob.isValid()).toBe(true);
 
-				expect(() => {prob.user_set_id = -1; }).toThrow(NonNegIntException);
-				expect(() => {prob.user_set_id = '-5'; }).toThrow(NonNegIntException);
-				expect(() => {prob.user_set_id = 1.5; }).toThrow(NonNegIntException);
-				expect(() => {prob.user_set_id = '4.3'; }).toThrow(NonNegIntException);
+				prob.user_problem_id = -1;
+				expect(prob.isValid()).toBe(false);
+				prob.user_problem_id = 23.34;
+				expect(prob.isValid()).toBe(false);
+				prob.user_problem_id = 11;
+				expect(prob.isValid()).toBe(true);
 
-				expect(() => {prob.user_problem_id = -10; }).toThrow(NonNegIntException);
-				expect(() => {prob.user_problem_id = '-15'; }).toThrow(NonNegIntException);
-				expect(() => {prob.user_problem_id = 2.5; }).toThrow(NonNegIntException);
-				expect(() => {prob.user_problem_id = '7.4'; }).toThrow(NonNegIntException);
+				prob.problem_id = -1;
+				expect(prob.isValid()).toBe(false);
+				prob.problem_id = 8.32;
+				expect(prob.isValid()).toBe(false);
+				prob.problem_id = 11;
+				expect(prob.isValid()).toBe(true);
 
-				expect(() => {prob.seed = -5; }).toThrow(NonNegIntException);
-				expect(() => {prob.seed = '-3'; }).toThrow(NonNegIntException);
-				expect(() => {prob.seed = 1.25; }).toThrow(NonNegIntException);
-				expect(() => {prob.seed = '17.3'; }).toThrow(NonNegIntException);
+				prob.user_set_id = -1;
+				expect(prob.isValid()).toBe(false);
+				prob.user_set_id = 2.3;
+				expect(prob.isValid()).toBe(false);
+				prob.user_set_id = 11;
+				expect(prob.isValid()).toBe(true);
 
-				expect(() => {prob.status = -1; }).toThrow(NonNegDecimalException);
-				expect(() => {prob.status = '-5'; }).toThrow(NonNegDecimalException);
+				prob.seed = -1;
+				expect(prob.isValid()).toBe(false);
+				prob.seed = 4.3;
+				expect(prob.isValid()).toBe(false);
+				prob.seed = 1324;
+				expect(prob.isValid()).toBe(true);
 
-				expect(() => {prob.problem_version = -21; }).toThrow(NonNegIntException);
-				expect(() => {prob.problem_version = '-35'; }).toThrow(NonNegIntException);
-				expect(() => {prob.problem_version = 1.65; }).toThrow(NonNegIntException);
-				expect(() => {prob.problem_version = '4.33'; }).toThrow(NonNegIntException);
+				prob.status = -1;
+				expect(prob.isValid()).toBe(false);
+				prob.status = 2;
+				expect(prob.isValid()).toBe(true);
+				prob.status = 2.5;
+				expect(prob.isValid()).toBe(true);
 
-			});
-
-			test('Check that exceptions are thrown for invalid field using set()', () => {
-				const prob = new DBUserProblem();
-				expect(() => {prob.set({ problem_id: -1 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ problem_id: '-5' }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ problem_id: 1.5 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ problem_id: '4.3' }); }).toThrow(NonNegIntException);
-
-				expect(() => {prob.set({ user_set_id: -1 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ user_set_id: '-5' }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ user_set_id: 1.5 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ user_set_id: '4.3' }); }).toThrow(NonNegIntException);
-
-				expect(() => {prob.set({ user_problem_id: -10 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ user_problem_id: '-15' }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ user_problem_id: 2.5 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ user_problem_id: '7.4' }); }).toThrow(NonNegIntException);
-
-				expect(() => {prob.set({ seed: -5 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ seed: '-3' }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ seed: 1.25 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ seed: '17.3' }); }).toThrow(NonNegIntException);
-
-				expect(() => {prob.set({ status: -1 }); }).toThrow(NonNegDecimalException);
-				expect(() => {prob.set({ status: '-5' }); }).toThrow(NonNegDecimalException);
-
-				expect(() => {prob.set({ problem_version: -21 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ problem_version: '-35' }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ problem_version: 1.65 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ problem_version: '4.33' }); }).toThrow(NonNegIntException);
+				prob.problem_version = -1;
+				expect(prob.isValid()).toBe(false);
+				prob.problem_version = 8.32;
+				expect(prob.isValid()).toBe(false);
+				prob.problem_version = 11;
+				expect(prob.isValid()).toBe(true);
 			});
 		});
 	});
@@ -303,82 +248,54 @@ describe('Testing DB User Problems and User problems', () => {
 				const prob = new UserProblem();
 				prob.problem_params.weight = 2;
 				expect(prob.problem_params.weight).toBe(2);
-				prob.problem_params.weight = '3.5';
-				expect(prob.problem_params.weight).toBe(3.5);
 
 				prob.problem_params.library_id = 10;
 				expect(prob.problem_params.library_id).toBe(10);
-				prob.problem_params.library_id = '12';
-				expect(prob.problem_params.library_id).toBe(12);
 
 				prob.problem_params.file_path = 'path/to/file';
 				expect(prob.problem_params.file_path).toBe('path/to/file');
 
 				prob.problem_params.problem_pool_id = 15;
 				expect(prob.problem_params.problem_pool_id).toBe(15);
-				prob.problem_params.problem_pool_id = '25';
-				expect(prob.problem_params.problem_pool_id).toBe(25);
-
 			});
 
 			test('Check the changing problem params using set() works', () => {
 				const prob = new UserProblem();
 				prob.problem_params.set({ weight: 2 });
 				expect(prob.problem_params.weight).toBe(2);
-				prob.problem_params.set({ weight: '3.5' });
-				expect(prob.problem_params.weight).toBe(3.5);
 
 				prob.problem_params.set({ library_id: 10 });
 				expect(prob.problem_params.library_id).toBe(10);
-				prob.problem_params.set({ library_id: '12' });
-				expect(prob.problem_params.library_id).toBe(12);
 
 				prob.problem_params.set({ file_path: 'path/to/file' });
 				expect(prob.problem_params.file_path).toBe('path/to/file');
 
 				prob.problem_params.set({ problem_pool_id: 15 });
 				expect(prob.problem_params.problem_pool_id).toBe(15);
-				prob.problem_params.set({ problem_pool_id: '25' });
-				expect(prob.problem_params.problem_pool_id).toBe(25);
-
 			});
 
 			test('Check changes in fields set directly', () => {
 				const prob = new UserProblem();
 				prob.problem_id = 5;
 				expect(prob.problem_id).toBe(5);
-				prob.problem_id = '7';
-				expect(prob.problem_id).toBe(7);
 
 				prob.user_problem_id = 15;
 				expect(prob.user_problem_id).toBe(15);
-				prob.user_problem_id = '27';
-				expect(prob.user_problem_id).toBe(27);
 
 				prob.user_id = 8;
 				expect(prob.user_id).toBe(8);
-				prob.user_id = '34';
-				expect(prob.user_id).toBe(34);
 
 				prob.seed = 12345;
 				expect(prob.seed).toBe(12345);
-				prob.seed = '7654';
-				expect(prob.seed).toBe(7654);
 
 				prob.status = 2;
 				expect(prob.status).toBe(2);
-				prob.status = '2.5';
-				expect(prob.status).toBe(2.5);
 
 				prob.problem_version = 3;
 				expect(prob.problem_version).toBe(3);
-				prob.problem_version = '4';
-				expect(prob.problem_version).toBe(4);
 
 				prob.problem_number = 12;
 				expect(prob.problem_number).toBe(12);
-				prob.problem_number = '7';
-				expect(prob.problem_number).toBe(7);
 
 				prob.username = 'user';
 				expect(prob.username).toBe('user');
@@ -387,45 +304,30 @@ describe('Testing DB User Problems and User problems', () => {
 
 				prob.set_name = 'HW #1';
 				expect(prob.set_name).toBe('HW #1');
-
 			});
 
 			test('Check changes in fields using set()', () => {
 				const prob = new UserProblem();
 				prob.set({ problem_id: 5 });
 				expect(prob.problem_id).toBe(5);
-				prob.set({ problem_id: '7' });
-				expect(prob.problem_id).toBe(7);
 
 				prob.set({ user_problem_id: 15 });
 				expect(prob.user_problem_id).toBe(15);
-				prob.set({ user_problem_id: '27' });
-				expect(prob.user_problem_id).toBe(27);
 
 				prob.set({ user_id: 8 });
 				expect(prob.user_id).toBe(8);
-				prob.set({ user_id: '34' });
-				expect(prob.user_id).toBe(34);
 
 				prob.set({ seed: 12345 });
 				expect(prob.seed).toBe(12345);
-				prob.set({ seed: '7654' });
-				expect(prob.seed).toBe(7654);
 
 				prob.set({ status: 2 });
 				expect(prob.status).toBe(2);
-				prob.set({ status: '2.5' });
-				expect(prob.status).toBe(2.5);
 
 				prob.set({ problem_version: 3 });
 				expect(prob.problem_version).toBe(3);
-				prob.set({ problem_version: '4' });
-				expect(prob.problem_version).toBe(4);
 
 				prob.set({ problem_number: 12 });
 				expect(prob.problem_number).toBe(12);
-				prob.set({ problem_number: '7' });
-				expect(prob.problem_number).toBe(7);
 
 				prob.set({ username: 'user' });
 				expect(prob.username).toBe('user');
@@ -437,80 +339,79 @@ describe('Testing DB User Problems and User problems', () => {
 
 			});
 
-			test('Check that exceptions are thrown for invalid direct settings', () => {
-				const prob = new UserProblem();
-				expect(() => {prob.problem_id = -1; }).toThrow(NonNegIntException);
-				expect(() => {prob.problem_id = '-5'; }).toThrow(NonNegIntException);
-				expect(() => {prob.problem_id = 1.5; }).toThrow(NonNegIntException);
-				expect(() => {prob.problem_id = '4.3'; }).toThrow(NonNegIntException);
+			test('Check for valid user problem fields.', () => {
+				const prob = new UserProblem({ problem_params: { file_path: '/this/is/the/path' } });
+				// The username must be valid and the set_name cannot be the empty string.
+				expect(prob.isValid()).toBe(false);
+				prob.set({ username: 'homer', set_name: 'HW #1' });
 
-				expect(() => {prob.user_id = -1; }).toThrow(NonNegIntException);
-				expect(() => {prob.user_id = '-5'; }).toThrow(NonNegIntException);
-				expect(() => {prob.user_id = 1.5; }).toThrow(NonNegIntException);
-				expect(() => {prob.user_id = '4.3'; }).toThrow(NonNegIntException);
+				prob.user_problem_id = -1;
+				expect(prob.isValid()).toBe(false);
+				prob.user_problem_id = 23.34;
+				expect(prob.isValid()).toBe(false);
+				prob.user_problem_id = 11;
+				expect(prob.isValid()).toBe(true);
 
-				expect(() => {prob.user_problem_id = -10; }).toThrow(NonNegIntException);
-				expect(() => {prob.user_problem_id = '-15'; }).toThrow(NonNegIntException);
-				expect(() => {prob.user_problem_id = 2.5; }).toThrow(NonNegIntException);
-				expect(() => {prob.user_problem_id = '7.4'; }).toThrow(NonNegIntException);
+				prob.problem_id = -1;
+				expect(prob.isValid()).toBe(false);
+				prob.problem_id = 8.32;
+				expect(prob.isValid()).toBe(false);
+				prob.problem_id = 11;
+				expect(prob.isValid()).toBe(true);
 
-				expect(() => {prob.seed = -5; }).toThrow(NonNegIntException);
-				expect(() => {prob.seed = '-3'; }).toThrow(NonNegIntException);
-				expect(() => {prob.seed = 1.25; }).toThrow(NonNegIntException);
-				expect(() => {prob.seed = '17.3'; }).toThrow(NonNegIntException);
+				prob.user_id = -1;
+				expect(prob.isValid()).toBe(false);
+				prob.user_id = 8.32;
+				expect(prob.isValid()).toBe(false);
+				prob.user_id = 11;
+				expect(prob.isValid()).toBe(true);
 
-				expect(() => {prob.status = -1; }).toThrow(NonNegDecimalException);
-				expect(() => {prob.status = '-5'; }).toThrow(NonNegDecimalException);
+				prob.user_set_id = -1;
+				expect(prob.isValid()).toBe(false);
+				prob.user_set_id = 2.3;
+				expect(prob.isValid()).toBe(false);
+				prob.user_set_id = 11;
+				expect(prob.isValid()).toBe(true);
 
-				expect(() => {prob.problem_version = -21; }).toThrow(NonNegIntException);
-				expect(() => {prob.problem_version = '-35'; }).toThrow(NonNegIntException);
-				expect(() => {prob.problem_version = 1.65; }).toThrow(NonNegIntException);
-				expect(() => {prob.problem_version = '4.33'; }).toThrow(NonNegIntException);
+				prob.set_id = -1;
+				expect(prob.isValid()).toBe(false);
+				prob.set_id = 2.3;
+				expect(prob.isValid()).toBe(false);
+				prob.set_id = 11;
+				expect(prob.isValid()).toBe(true);
 
-				expect(() => {prob.problem_number = -5; }).toThrow(NonNegIntException);
-				expect(() => {prob.problem_number = '-3'; }).toThrow(NonNegIntException);
-				expect(() => {prob.problem_number = 1.25; }).toThrow(NonNegIntException);
-				expect(() => {prob.problem_number = '17.3'; }).toThrow(NonNegIntException);
+				prob.seed = -1;
+				expect(prob.isValid()).toBe(false);
+				prob.seed = 4.3;
+				expect(prob.isValid()).toBe(false);
+				prob.seed = 1324;
+				expect(prob.isValid()).toBe(true);
 
-				expect(() => {prob.username = 'not a username';}).toThrow(UsernameParseException);
-			});
+				prob.status = -1;
+				expect(prob.isValid()).toBe(false);
+				prob.status = 2;
+				expect(prob.isValid()).toBe(true);
+				prob.status = 2.5;
+				expect(prob.isValid()).toBe(true);
 
-			test('Check that exceptions are thrown for invalid field using set()', () => {
-				const prob = new UserProblem();
-				expect(() => {prob.set({ problem_id: -1 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ problem_id: '-5' }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ problem_id: 1.5 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ problem_id: '4.3' }); }).toThrow(NonNegIntException);
+				prob.problem_version = -1;
+				expect(prob.isValid()).toBe(false);
+				prob.problem_version = 8.32;
+				expect(prob.isValid()).toBe(false);
+				prob.problem_version = 11;
+				expect(prob.isValid()).toBe(true);
 
-				expect(() => {prob.set({ user_id: -1 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ user_id: '-5' }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ user_id: 1.5 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ user_id: '4.3' }); }).toThrow(NonNegIntException);
+				prob.problem_number = -1;
+				expect(prob.isValid()).toBe(false);
+				prob.problem_number = 8.32;
+				expect(prob.isValid()).toBe(false);
+				prob.problem_number = 11;
+				expect(prob.isValid()).toBe(true);
 
-				expect(() => {prob.set({ user_problem_id: -10 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ user_problem_id: '-15' }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ user_problem_id: 2.5 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ user_problem_id: '7.4' }); }).toThrow(NonNegIntException);
-
-				expect(() => {prob.set({ seed: -5 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ seed: '-3' }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ seed: 1.25 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ seed: '17.3' }); }).toThrow(NonNegIntException);
-
-				expect(() => {prob.set({ status: -1 }); }).toThrow(NonNegDecimalException);
-				expect(() => {prob.set({ status: '-5' }); }).toThrow(NonNegDecimalException);
-
-				expect(() => {prob.set({ problem_version: -21 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ problem_version: '-35' }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ problem_version: 1.65 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ problem_version: '4.33' }); }).toThrow(NonNegIntException);
-
-				expect(() => {prob.set({ problem_number: -5 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ problem_number: '-3' }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ problem_number: 1.25 }); }).toThrow(NonNegIntException);
-				expect(() => {prob.set({ problem_number: '17.3' }); }).toThrow(NonNegIntException);
-
-				expect(() => {prob.set({ username: 'not a username' });}).toThrow(UsernameParseException);
+				prob.username = 'homer the great!';
+				expect(prob.isValid()).toBe(false);
+				prob.username = 'homer@msn.com';
+				expect(prob.isValid()).toBe(true);
 			});
 		});
 	});

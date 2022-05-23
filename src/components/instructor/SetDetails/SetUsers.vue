@@ -258,7 +258,7 @@ const saveOverrides = async () => {
 	}
 	updated_user_set.set_dates.set(date_edit.value?.toObject() ?? {});
 
-	if (updated_user_set.hasValidDates()) {
+	if (updated_user_set.set_dates.isValid()) {
 		try {
 			await problem_sets.updateUserSet(updated_user_set);
 			const msg = `The problem set '${merged_user_set.value.set_name ?? ''}' ` +
@@ -319,7 +319,7 @@ const updateProblemSet = () => {
 				field: (row: UserHomeworkSet) => row.set_dates.answer ?? 0
 			});
 		}
-		if ((problem_set.value as unknown as UserHomeworkSet).set_params.enable_reduced_scoring) {
+		if ((problem_set.value as unknown as UserHomeworkSet).set_dates.enable_reduced_scoring) {
 			columns.splice(columns.length - 1, 0,
 				{
 					name: 'reduced_scoring_date',
@@ -382,7 +382,7 @@ watch(() => problem_sets.user_sets, updateProblemSet);
 const reduced_scoring = computed(() => {
 	if (problem_set.value.set_type === 'HW') {
 		const hw_set = problem_set.value as HomeworkSet;
-		return hw_set.set_params.enable_reduced_scoring;
+		return hw_set.set_dates.enable_reduced_scoring;
 	} else {
 		return false;
 	}

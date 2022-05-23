@@ -42,9 +42,9 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		// Do some parsing cleanup.
 		const hw_sets_from_csv = hw_sets_to_parse.filter(set => set.course_name === 'Precalculus')
 			.map(set => new HomeworkSet(set));
-		hw_sets_from_csv.forEach(set => {
-			set.set_params.enable_reduced_scoring = parseBoolean(set.set_params.enable_reduced_scoring);
-		});
+		// hw_sets_from_csv.forEach(set => {
+		//   set.set_params.enable_reduced_scoring = parseBoolean(set.set_params.enable_reduced_scoring);
+		// });
 
 		const quizzes_to_parse = await loadCSV('t/db/sample_data/quizzes.csv', problem_set_config);
 		const quizzes_from_csv = quizzes_to_parse.filter(set => set.course_name === 'Precalculus')
@@ -300,9 +300,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 					open: 1000,
 					reduced_scoring: 1100,
 					due: 1500,
-					answer: 2000
-				},
-				set_params: {
+					answer: 2000,
 					enable_reduced_scoring: true
 				}
 			}));
@@ -315,9 +313,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 					open: 1200,
 					reduced_scoring: 1500,
 					due: 2000,
-					answer: 2200
-				},
-				set_params: {
+					answer: 2200,
 					enable_reduced_scoring: true
 				}
 			});
