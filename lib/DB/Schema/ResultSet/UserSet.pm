@@ -310,10 +310,7 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 
 =cut
 
-use Data::Dumper;
-
 sub addUserSet ($self, %args) {
-	print Dumper \%args;
 	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{params}, as_result_set => 1);
 	my $course_user = $self->rs("User")->getCourseUser(info => $args{params}, as_result_set => 1);
 
