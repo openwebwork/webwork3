@@ -1,8 +1,9 @@
 /**
  * @jest-environment jsdom
  */
-// The above is needed because the logger uses the window object, which is only present
-// when using the jsdom environment.
+// The above is needed because  1) the logger uses the window object, which is only present
+// when using the jsdom environment and 2) because the pinia store is used is being
+// tested with persistance.
 
 // courses.spec.ts
 // Test the Course Store
@@ -13,18 +14,21 @@ import { createApp } from 'vue';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { Course } from 'src/common/models/courses';
 import { cleanIDs, loadCSV } from '../utils';
+import { useSessionStore } from 'src/stores/session';
+import { api } from 'src/boot/axios';
 describe('Test the course store', () => {
 
 	const app = createApp({});
 
 	describe('Set up the Course Store', () => {
 		let courses_from_csv: Course[];
-		beforeEach(async () => {
-		// Since we have the piniaPluginPersistedState as a plugin, duplicate for the test.
+		beforeAll(async () => {
+			// Since we have the piniaPluginPersistedState as a plugin, duplicate for the test.
 			const pinia = createPinia().use(piniaPluginPersistedstate);
 			app.use(pinia);
 			setActivePinia(pinia);
 
+			const session_store = useSessionStore();
 			const parsed_courses = await loadCSV('t/db/sample_data/courses.csv', {
 				boolean_fields: ['visible'],
 				non_neg_fields: ['course_id'],
@@ -34,6 +38,9 @@ describe('Test the course store', () => {
 				delete course.course_params;
 				return new Course(course);
 			});
+			// Login to the course as the admin in order to be authenticated for the
+			// rest of the test.
+			await api.post('login', { username: 'admin', password: 'admin' });
 		});
 
 		test('Fetch the courses', async () => {

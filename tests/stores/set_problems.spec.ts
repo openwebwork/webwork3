@@ -1,9 +1,9 @@
-
 /**
  * @jest-environment jsdom
  */
-// The above is needed because the logger uses the window object, which is only present
-// when using the jsdom environment.
+// The above is needed because  1) the logger uses the window object, which is only present
+// when using the jsdom environment and 2) because the pinia store is used is being
+// tested with persistance.
 
 // set_problems.spec.ts
 // Test the set problems store
@@ -25,6 +25,7 @@ import { MergedUserProblem, ParseableSetProblem, parseProblem, SetProblem, SetPr
 	UserProblem } from 'src/common/models/problems';
 import { UserHomeworkSet, UserSet } from 'src/common/models/user_sets';
 import { Dictionary, generic } from 'src/common/models';
+import { api } from 'src/boot/axios';
 
 const app = createApp({});
 
@@ -40,6 +41,10 @@ describe('Problem Set store tests', () => {
 		const pinia = createPinia().use(piniaPluginPersistedstate);
 		app.use(pinia);
 		setActivePinia(pinia);
+
+		// Login to the course as the admin in order to be authenticated for the
+		// rest of the test.
+		await api.post('login', { username: 'admin', password: 'admin' });
 
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
