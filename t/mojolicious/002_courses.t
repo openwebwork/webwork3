@@ -13,10 +13,6 @@ BEGIN {
 
 use lib "$main::ww3_dir/lib";
 
-use Getopt::Long;
-my $TEST_PERMISSIONS;
-GetOptions("perm" => \$TEST_PERMISSIONS);
-
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
 
@@ -27,20 +23,12 @@ my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
 $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = clone(LoadFile($config_file));
 
-my $t;
+my $t = Test::Mojo->new(WeBWorK3 => $config);
 
-if ($TEST_PERMISSIONS) {
-	$config->{ignore_permissions} = 0;
-	$t = Test::Mojo->new(WeBWorK3 => $config);
-
-	$t->post_ok('/api/login' => json => { email => 'admin@google.com', password => 'admin' })
-		->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/user_id' => 1)
-		->json_is('/user/is_admin' => 1);
-
-} else {
-	$config->{ignore_permissions} = 1;
-	$t = Test::Mojo->new(WeBWorK3 => $config);
-}
+# Authenticate with the admin user.
+$t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/user_id' => 1)
+	->json_is('/user/is_admin' => 1);
 
 $t->get_ok('/webwork3/api/courses')->content_type_is('application/json;charset=UTF-8')
 	->json_is('/0/course_name' => "Precalculus")->json_is('/0/visible' => 1);
@@ -94,26 +82,27 @@ $t->delete_ok("/webwork3/api/courses/9999999")->status_is(250, 'error status')
 $t->delete_ok("/webwork3/api/courses/$new_course_id")->status_is(200)
 	->json_is('/course_name' => $new_course->{course_name});
 
-if ($TEST_PERMISSIONS) {
-	# Login a non admin user
-	$t->post_ok('/webwork3/api/login' => json => { email => 'lisa@google.com', password => 'lisa' })
-		->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
-		->json_is('/user/login' => "lisa")->json_is('/user/is_admin' => 0);
+# Logout of the admin user account.
+$t->post_ok("/webwork3/api/logout")->status_is(200)->json_is('/logged_in' => 0);
 
-	$t->get_ok('/webwork3/api/courses')->content_type_is('application/json;charset=UTF-8')
-		->json_is('/0/course_name' => "Precalculus")->json_is('/0/course_params/institution' => "Springfield CC");
+# Login as a non admin user
+$t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
+	->json_is('/user/username' => "lisa")->json_is('/user/is_admin' => 0);
 
-	$t->get_ok('/webwork3/api/courses/1')->content_type_is('application/json;charset=UTF-8')
-		->json_is('/course_name' => "Precalculus")->json_is('/course_params/institution' => "Springfield CC");
+$t->get_ok('/webwork3/api/courses')->content_type_is('application/json;charset=UTF-8')
+	->json_is('/0/course_name' => "Precalculus");
 
-	# The following shouldn't have permissions for these routes.
+$t->get_ok('/webwork3/api/courses/2')->content_type_is('application/json;charset=UTF-8')
+	->json_is('/course_name' => "Abstract Algebra");
 
-	$t->post_ok('/webwork3/api/courses' => json => $new_course)->status_is(200)->json_is('/has_permission' => 0);
+# The user should not have permissions for the following routes.
 
-	$t->put_ok("/webwork3/api/courses/1" => json => { course_name => "XXX" })->status_is(200)
-		->json_is('/has_permission' => 0);
+$t->post_ok('/webwork3/api/courses' => json => $new_course)->status_is(200)->json_is('/has_permission' => 0);
 
-	$t->delete_ok("/webwork3/api/courses/1")->status_is(200)->json_is('/has_permission' => 0);
-}
+$t->put_ok("/webwork3/api/courses/1" => json => { course_name => "XXX" })->status_is(200)
+	->json_is('/has_permission' => 0);
+
+$t->delete_ok("/webwork3/api/courses/1")->status_is(200)->json_is('/has_permission' => 0);
 
 done_testing;
