@@ -14,6 +14,7 @@ export enum ProblemType {
 /**
  * This is a super class of all Problems (Library, Set and User varieties).
  */
+
 export class Problem extends Model {
 	private _render_params = new RenderParams();
 	protected _problem_type = ProblemType.UNKNOWN;
@@ -59,6 +60,7 @@ export class Problem extends Model {
 /**
  * ParseableLocationParams stores information about a library problem.
  */
+
 export interface ParseableLocationParams extends Partial<Dictionary<generic>> {
 	library_id?: string | number;
 	file_path?: string;
@@ -235,6 +237,7 @@ export interface ParseableSetProblem {
 /**
  * The class SetProblem is used for problems in Problem Sets (Homework, Quiz, Review)
  */
+
 export class SetProblem extends Problem {
 	private _problem_params = new SetProblemParams();
 	private _problem_id = 0;
@@ -311,6 +314,7 @@ export interface ParseableUserProblem {
 /**
  * The class UserProblem is used for problems assigned to Users
  */
+
 export class UserProblem extends Problem {
 	private _problem_params = new SetProblemParams();
 	private _user_problem_id = 0;
@@ -409,6 +413,7 @@ export interface ParseableMergedUserProblem {
 /**
  * The class MergedUserProblem is used for merging User and set problems
  */
+
 export class MergedUserProblem extends Problem {
 	private _problem_params = new SetProblemParams();
 	private _user_problem_id = 0;
@@ -523,14 +528,11 @@ export function parseProblem(problem: ParseableProblem, type: 'Library' | 'Set' 
 }
 
 /**
- * merge a ProblemSet and a UserSet in that the result is a MergedUserSet with overrides
- * taken from the UserSet.  Additional info is taken from the MergedUser instance.
- * @param {SetProblem} set_problem - a set problem
- * @param {UserProblem} user_problem - a user problem that will override the problem parameters.
- * @param {MergedUser} user_set - the user associated with the problem.
- * @param {MergedUserSet} user_set - the merged user set that the problem is in.
- * @returns a MergedUserProblem with the appropriate overrides.
+ * Merges a SetProblem, UserProblem and MergedUserSet returning a MergedUserProblem.
+ * Note: if the arguments are not related in the database (based on primary and foreign keys)
+ * A MergeError is thrown.
  */
+
 export function mergeUserProblem(set_problem: SetProblem, user_problem: UserProblem,
 	user_set: MergedUserSet) {
 	// Check if the User Problem is related to the Set Problem

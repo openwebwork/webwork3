@@ -1,26 +1,29 @@
 // utils.ts
+// Utility functions for testing
 
-import { Dictionary, generic, Model } from 'src/common/models';
-import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 import papa from 'papaparse';
 import fs from 'fs';
+import { Dictionary, generic, Model } from 'src/common/models';
+import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 
-// Utility functions for testing
+/**
+ * Used for parsing a csv file.  The params field is an array of strings that are in stored as
+ * a JSON file in the database (typically a params field or dates field.). The boolean_fields is
+ * an array of strings that are boolean fields and the non_neg_fields is an array of strings with
+ * fields that are non-nonegative integers (often database ids).
+ */
+
 interface CSVConfig {
 	params?: string[];
 	boolean_fields?: string[];
 	non_neg_fields?: string[];
 }
 
-// type Output = Dictionary<string | number | boolean | Dictionary<string | number>>
-
 /**
- * convert takes data in the form of an array of objects of strings or numbers
- * and converts to the proper form.  These typically come from a CSV file where
- * The dates and params are located in separate columns in the CSV file and are converted
- * to a nested object.  In addition, booleans and integers are parsed.
- *
- * @param data
+ * Convert the data in the form of an array of objects of strings or numbersand converts to the proper
+ * form to pass to a desired model.  These typically come from a CSV file where the dates and params
+ * are located in separate columns in the CSV file and are converted to a nested object.  In addition,
+ * booleans and integers are parsed.
  */
 
 function convert(data: Dictionary<string>[], config: CSVConfig): Dictionary<generic | Dictionary<generic>>[] {
@@ -70,10 +73,7 @@ function convert(data: Dictionary<string>[], config: CSVConfig): Dictionary<gene
 };
 
 /**
- * load and parse a CSV file for testing.
- * @param filename
- * @param params_name
- * @param dates_name
+ * Load and parse a CSV file with given filepath and config file.
  */
 
 export async function loadCSV(filepath: string, config: CSVConfig):
@@ -93,11 +93,8 @@ export async function loadCSV(filepath: string, config: CSVConfig):
 }
 
 /**
- * cleanIDs removes all fields ending in _id.  This is useful for comparing data from
- * the database where the internal _id are not important.
- *
- * @param {Model|Model[]} m - a model or array of models.
- * @returns a JS object or array of objects.
+ * Removes all fields ending in _id.  This is useful for comparing data from the database where the
+ * internal _id are not important. This returns an array of objects without the _id fields.
  */
 
 export const cleanIDs = (m: Model | Model[]): Dictionary<generic> | Dictionary<generic>[] => {

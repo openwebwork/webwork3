@@ -25,10 +25,9 @@ export const useSetProblemStore = defineStore('set_problems', {
 	}),
 
 	getters: {
+
 		/**
-		 * returns all set problems related to a given set.
-		 * @param set_info either a set_id or set_name.
-		 * @return an array of SetProblems from the given set or empty array if the set is not found.
+		 * Returns all set problems with given set_id or set_name.
 		 */
 		findSetProblems: (state) => (set_info: SetInfo): SetProblem[] => {
 			if (set_info.set_id) {
@@ -45,12 +44,11 @@ export const useSetProblemStore = defineStore('set_problems', {
 				return [];
 			}
 		},
-		// Note: using standard function notation (not arrow) due to using this.
+
 		/**
-		 * Return the user problems with a given set_id, set_name
-		 * @param set_info either a set_id or set_name.
-		 * @returns an array of UserProblems for a given set or empty array if the set is not found.
+		 * Return the user problems with a given set_id or set_name
 		 */
+		// Note: using standard function notation (not arrow) due to using this.
 		findUserProblems(state) {
 			return (set_info: SetInfo) => {
 			// get a list of the desired problem_ids
@@ -59,9 +57,9 @@ export const useSetProblemStore = defineStore('set_problems', {
 					.filter(user_prob => problem_ids.findIndex(prob_id => user_prob.problem_id === prob_id) >= 0);
 			};
 		},
+
 		/**
-		 * returns all user problems merged with their corresponding set problems
-		 * @returns an array of MergedUserProblems
+		 * Returns all user problems merged with their corresponding set problems.
 		 */
 		merged_user_problems: (state) => {
 			const problem_set_store = useProblemSetStore();
@@ -75,19 +73,18 @@ export const useSetProblemStore = defineStore('set_problems', {
 		}
 	},
 	actions: {
+
 		/**
-		 * fetch all set problems for a given course
-		 * @param course_id
+		 * Fetch all set problems with given course_id.
 		 */
 		async fetchSetProblems(course_id: number): Promise<void> {
 			const response = await api.get(`courses/${course_id}/problems`);
 			const all_problems = response.data as Array<ParseableProblem>;
 			this.set_problems = all_problems.map((prob) => parseProblem(prob, 'Set') as SetProblem);
 		},
+
 		/**
-		 * adds a set problem to both the database and the store.
-		 * @param {SetProblem} problem
-		 * @returns the SetProblem that was added.
+		 * Adds the given set problem to both the database and the store.
 		 */
 		async addSetProblem(problem: SetProblem): Promise<SetProblem> {
 			const course_id = useSessionStore().course.course_id;
@@ -101,10 +98,9 @@ export const useSetProblemStore = defineStore('set_problems', {
 			this.set_problems.push(new_problem);
 			return new_problem;
 		},
+
 		/**
-		 * update a SetProblem in both the database and the store.
-		 * @param {SetProblem} problem
-		 * @returns the updated SetProblem
+		 * Update the given SetProblem in both the database and the store.
 		 */
 		async updateSetProblem(problem: SetProblem): Promise<SetProblem> {
 			const course_id = useSessionStore().course.course_id;
@@ -120,10 +116,9 @@ export const useSetProblemStore = defineStore('set_problems', {
 			this.set_problems.splice(index, 1, updated_problem);
 			return updated_problem;
 		},
+
 		/**
-		 * delete the SetProblem in both the store and the database.
-		 * @param {SetProblem} problem
-		 * @returns the deleted SetProblem
+		 * Delete the given SetProblem in both the store and the database.
 		 */
 		async deleteSetProblem(problem: SetProblem): Promise<SetProblem> {
 			const course_id = useSessionStore().course.course_id;
@@ -137,28 +132,27 @@ export const useSetProblemStore = defineStore('set_problems', {
 			return deleted_problem;
 		},
 		// UserProblem actions
+
 		/**
-		 * Fetch all user problems for a set in a course.
-		 * @param {number} set_id the database id of the set.
+		 * Fetch all user problems for given set via set_id in the current course (from the session).
 		 */
 		async fetchUserProblems(set_id: number) {
 			const course_id = useSessionStore().course.course_id;
 			const response = await api.get(`courses/${course_id}/sets/${set_id}/user-problems`);
 			this.user_problems = (response.data as ParseableUserProblem[]).map(prob => new UserProblem(prob));
 		},
+
 		/**
-		 * Fetch all user problems for a user in a course (stored in the session)
-		 * @param {number} user_id - the database id of the user.
+		 * Fetch all user problems for a user given by user_id in a course (stored in the session)
 		 */
 		async fetchUserProblemsForUser(user_id: number) {
 			const course_id = useSessionStore().course.course_id;
 			const response = await api.get(`courses/${course_id}/users/${user_id}/problems`);
 			this.user_problems = (response.data as ParseableUserProblem[]).map(prob => new UserProblem(prob));
 		},
+
 		/**
-		 * add a UserProblem to the database and the store.
-		 * @param {UserProblem} user_problem
-		 * @returns the UserProblem that was added.
+		 * Add a given UserProblem to the database and the store.
 		 */
 		async addUserProblem(user_problem: UserProblem): Promise<UserProblem> {
 			const course_id = useSessionStore().course.course_id;
@@ -175,10 +169,9 @@ export const useSetProblemStore = defineStore('set_problems', {
 			this.user_problems.push(added_user_problem);
 			return added_user_problem;
 		},
+
 		/**
-		 * delete a UserProblem from the database and the store.
-		 * @param {UserProblem} user_problem
-		 * @returns the deleted UserProblem.
+		 * Delete the given UserProblem from the database and the store.
 		 */
 		async deleteUserProblem(user_problem: UserProblem): Promise<UserProblem> {
 			const course_id = useSessionStore().course.course_id;

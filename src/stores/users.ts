@@ -24,16 +24,17 @@ type CourseUserInfo =
 /**
  * Creates the user store, which stores both global users and course users.
  */
+
 export const useUserStore = defineStore('user', {
-	// state of the Store as a function:
 	state: (): UserState => ({
 		users: [],
 		course_users: [],
 		user_courses: []
 	}),
 	getters: {
+
 		/**
-		 * returns all course users merged with the global users.
+		 * Returns all course users merged with the global users.
 		 */
 		merged_users: (state) => state.course_users.map(course_user =>
 			new MergedUser(
@@ -43,10 +44,10 @@ export const useUserStore = defineStore('user', {
 				)
 			)
 		),
+
 		/**
-		 * returns a merged user from the store if the user exists.
-		 * @param user_info {UserInfo} - either a course_user_id or combination of set and user info.
-		 * @returns {MergedUser} -- the requested merged user.
+		 * Returns a merged user from the store with given course_name or course_id and username or
+		 * user_id.
 		 */
 		findMergedUser(state) {
 			return (user_info: CourseUserInfo) => {
@@ -67,14 +68,23 @@ export const useUserStore = defineStore('user', {
 				return new MergedUser(Object.assign(user.toObject(), course_user.toObject()));
 			};
 		},
+
+		/**
+		 * Returns a user given a username.
+		 */
 		getUserByName: (state) =>
 			(_username: string) => state.users.find((_user) => _user.username === _username),
+
+		/**
+		 * Returns all course users in the store with a given role.
+		 */
 		getCourseUsersByRole: (state) =>
 			(_role: UserRole) => state.course_users.filter((_user) => _user.role === _role)
 	},
 	actions: {
+
 		/**
-		 * fetch all global users in all courses.
+		 * Fetch all global users in all courses and store the results.
 		 */
 		async fetchUsers(): Promise<void> {
 			logger.debug('[UserStore/fetchUsers] fetching users...');
@@ -88,13 +98,13 @@ export const useUserStore = defineStore('user', {
 				throw new Error(error.message);
 			}
 		},
+
 		/**
-		 * fetch the global users for a given course.
-		 * @param {number} course_id: the database course id
+		 * Fetch the global users for a given course and store the results.
 		 */
 		// the users are stored in the same users field as the all global users
 		// Perhaps this is a problem.
-		async fetchGlobalCourseUsers(course_id: number) {
+		async fetchGlobalCourseUsers(course_id: number): Promise<void> {
 			const response = await api.get(`courses/${course_id}/global-users`);
 			if (response.status === 200) {
 				const users = response.data as ParseableUser[];
@@ -104,11 +114,11 @@ export const useUserStore = defineStore('user', {
 				throw response.data as ResponseError;
 			}
 		},
+
 		/**
-		 * fetch all User Courses for a given user.
-		 * @param {number} user_id
+		 * Fetch all User Courses for a user with given user_id.
 		 */
-		// perhaps this should be in the session store?
+		// perhaps this should be in the session store?  We do in the next PR.
 		async fetchUserCourses(user_id: number): Promise<void> {
 			logger.debug(`[UserStore/fetchUserCourses] fetching courses for user #${user_id}`);
 			const response = await api.get(`users/${user_id}/courses`);
@@ -119,10 +129,9 @@ export const useUserStore = defineStore('user', {
 				throw response.data as ResponseError;
 			}
 		},
+
 		/**
-		 * updates the user in the database and in the store.
-		 * @param {User} user -- the user to be updated.
-		 * @returns {User} -- the updated user.
+		 * Updates the given user in the database and in the store.
 		 */
 		async updateUser(user: User): Promise<User | undefined> {
 			const response = await api.put(`users/${user.user_id}`, user.toObject());
@@ -137,10 +146,9 @@ export const useUserStore = defineStore('user', {
 				throw response.data as ResponseError;
 			}
 		},
+
 		/**
-		 * deletes the user in the database and in the store.
-		 * @param {User} user -- the user to be deleted.
-		 * @returns {User} the added user
+		 * Deletes the given User in the database and in the store.
 		 */
 		async deleteUser(user: User): Promise<User | undefined> {
 			const response = await api.delete(`/users/${user.user_id ?? 0}`);
@@ -151,10 +159,9 @@ export const useUserStore = defineStore('user', {
 				return new User(response.data as ParseableUser);
 			}
 		},
+
 		/**
-		 * adds the user to the database and to the store.
-		 * @param {User} user -- the user to be added.
-		 * @returns {User} the added user
+		 * Adds the given User to the database and to the store.
 		 */
 		async addUser(user: User): Promise<User | undefined> {
 			const response = await api.post('users', user.toObject());
@@ -168,9 +175,9 @@ export const useUserStore = defineStore('user', {
 			}
 		},
 		// CourseUser actions
+
 		/**
 		 * fetches course users from the database for a given course.
-		 * @param {number} course_id - the id of the course in the database.
 		 */
 		async fetchCourseUsers(course_id: number): Promise<void | ResponseError> {
 			const response = await api.get(`courses/${course_id}/users`);
@@ -182,10 +189,9 @@ export const useUserStore = defineStore('user', {
 				return response.data as ResponseError;
 			}
 		},
+
 		/**
-		 * adds a Course User to the store and the database.
-		 * @param {CourseUser} course_user - the course user to add
-		 * @returns the added course user.
+		 * Adds the given Course User to the store and the database.
 		 */
 		async addCourseUser(course_user: CourseUser): Promise<CourseUser> {
 			const response = await api.post(`courses/${course_user.course_id ?? 0}/users`,
@@ -200,10 +206,9 @@ export const useUserStore = defineStore('user', {
 			}
 			return new CourseUser();
 		},
+
 		/**
-		 * updates a Course User to the store and the database.
-		 * @param {CourseUser} course_user - the course user to update
-		 * @returns the updated course user.
+		 * Updates the given Course User to the store and the database.
 		 */
 		async updateCourseUser(course_user: CourseUser): Promise<CourseUser | undefined> {
 			const url = `courses/${course_user.course_id || 0}/users/${course_user.user_id ?? 0}`;
@@ -219,10 +224,9 @@ export const useUserStore = defineStore('user', {
 				throw response.data as ResponseError;
 			}
 		},
+
 		/**
-		 * deletes a Course User from the store and the database.
-		 * @param {CourseUser} course_user - the course user to delete
-		 * @returns the deleted course user.
+		 * Deletes a Course User from the store and the database.
 		 */
 		async deleteCourseUser(course_user: CourseUser): Promise<CourseUser | undefined> {
 			const course_id = course_user.course_id ?? 0;
