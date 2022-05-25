@@ -1,17 +1,16 @@
 // This store is for problem sets, user sets, merged user sets and set problems.
 
-import { api } from 'boot/axios';
 import { defineStore } from 'pinia';
+import { api } from 'boot/axios';
+import { logger } from 'boot/logger';
 
 import { useSessionStore } from './session';
 import { useUserStore } from './users';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
-import { MergedUserSet, mergeUserSet, ParseableUserSet, parseMergedUserSet, parseUserSet, UserSet
-} from 'src/common/models/user_sets';
-import { logger } from 'src/boot/logger';
+import { MergedUserSet, mergeUserSet, ParseableUserSet, parseMergedUserSet, parseUserSet, UserSet }
+	from 'src/common/models/user_sets';
 import { ResponseError } from 'src/common/api-requests/interfaces';
-
 import { MergedUser } from 'src/common/models/users';
 
 /**
@@ -33,6 +32,7 @@ type UserSetInfo =
 	{ set_id: number; username: string; user_set_id?: never; set_name?: never; user_id?: never; } |
 	{ set_name: string; user_id: number; user_set_id?: never; set_id?: never; username?: never; } |
 	{ set_name: string; username: string; user_set_id?: never; set_id?: never; user_id?: never; };
+
 export interface ProblemSetState {
 	problem_sets: ProblemSet[];
 	user_sets: UserSet[];
@@ -182,7 +182,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		 * fetchAllUserSets fetches all user sets for a given course.
 		 * @param course_id: number
 		 */
-		async fetchAllUserSets(course_id: number) {
+		async fetchAllUserSets(course_id: number): Promise<void> {
 			const response = await api.get(`courses/${course_id}/user-sets`);
 			const user_sets_to_parse = response.data as ParseableUserSet[];
 			this.user_sets = user_sets_to_parse.map(user_set => parseUserSet(user_set));
@@ -231,7 +231,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		},
 		/**
 		 * updates a User Set to the store and the database.
-		 * @param {UserSet} user_set - the user set to be updated.
+		 * @param {UserSet} set - the user set to be updated.
 		 * @returns the updated user set.
 		 */
 		async updateUserSet(set: UserSet): Promise<UserSet> {

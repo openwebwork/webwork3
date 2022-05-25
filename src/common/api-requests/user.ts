@@ -10,6 +10,7 @@ export async function checkIfUserExists(course_id: number, username: string) {
 	}
 	return response.data as ParseableCourseUser;
 }
+
 /**
  * queries the database to determine the user.
  * @param {string} username -- the username of the user.

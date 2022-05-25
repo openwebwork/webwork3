@@ -8,16 +8,16 @@
 // users.spec.ts
 // Test the users Store
 
-import { setActivePinia, createPinia } from 'pinia';
 import { createApp } from 'vue';
+import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import { api } from 'boot/axios';
 
 import { cleanIDs, loadCSV } from '../utils';
 import { useCourseStore } from 'src/stores/courses';
 import { Course } from 'src/common/models/courses';
 import { CourseUser, MergedUser, User } from 'src/common/models/users';
 import { useUserStore } from 'src/stores/users';
-import { api } from 'src/boot/axios';
 
 const app = createApp({});
 
@@ -32,8 +32,7 @@ describe('User store tests', () => {
 		app.use(pinia);
 		setActivePinia(pinia);
 
-		// Login to the course as the admin in order to be authenticated for the
-		// rest of the test.
+		// Login to the course as the admin in order to be authenticated for the rest of the test.
 		await api.post('login', { username: 'admin', password: 'admin' });
 
 		const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {

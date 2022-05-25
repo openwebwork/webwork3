@@ -1,6 +1,6 @@
 /* These are Problem Set interfaces */
 
-import { logger } from 'src/boot/logger';
+import { logger } from 'boot/logger';
 import { Model } from '.';
 import { parseBoolean, ParseError, parseNonNegInt } from './parsers';
 
@@ -13,10 +13,9 @@ export enum ProblemSetType {
 
 /**
  * This takes in a general problem set and returns the specific subclassed ProblemSet
- * @param problem ParseableProblemSet
+ * @param set ParseableProblemSet
  * @returns HomeworkSet, Quiz or ReviewSet
  */
-
 export function parseProblemSet(set: ParseableProblemSet) {
 	const set_type = set.set_type ?? '';
 	if (/hw/i.test(set_type) || set_type === '') {
@@ -29,6 +28,7 @@ export function parseProblemSet(set: ParseableProblemSet) {
 
 	throw new ParseError('ProblemSetType', `The problem set type '${set_type}' is not valid.`);
 }
+
 export type ParseableProblemSetParams = ParseableHomeworkSetParams | ParseableQuizParams | ParseableReviewSetParams;
 export type ParseableProblemSetDates = ParseableHomeworkSetDates | ParseableQuizDates | ParseableReviewSetDates;
 export type ProblemSetParams = HomeworkSetParams | QuizParams | ReviewSetParams;
@@ -232,9 +232,7 @@ export class Quiz extends ProblemSet {
 
 }
 
-/**
- * HomeworkSet
- */
+// HomeworkSet
 
 export class HomeworkSetDates extends Model {
 	protected _open =  0;
@@ -357,9 +355,7 @@ export class HomeworkSet extends ProblemSet {
 
 }
 
-/**
- * ReviewSet
- */
+// ReviewSet
 
 export interface ParseableReviewSetParams {
 	test_param?: boolean | string | number;
@@ -472,11 +468,10 @@ export class ReviewSet extends ProblemSet {
 /**
  * This function takes in a ProblemSet and a ProblemSetType,
  * returning a new ProblemSet of the requested type
- * @param set ProblemSet
- * @param set_type ProblemSetType
+ * @param old_set ProblemSet
+ * @param new_set_type ProblemSetType
  * @returns HomeworkSet | Quiz | ReviewSet
  */
-
 export function convertSet(old_set: ProblemSet, new_set_type: ProblemSetType) {
 	if (old_set.set_type === new_set_type) return old_set;
 

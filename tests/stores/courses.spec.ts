@@ -8,19 +8,22 @@
 // courses.spec.ts
 // Test the Course Store
 
-import { setActivePinia, createPinia } from 'pinia';
-import { useCourseStore } from 'src/stores/courses';
 import { createApp } from 'vue';
+import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import { api } from 'boot/axios';
+
+import { useCourseStore } from 'src/stores/courses';
 import { Course } from 'src/common/models/courses';
 import { cleanIDs, loadCSV } from '../utils';
-import { api } from 'src/boot/axios';
+
 describe('Test the course store', () => {
 
 	const app = createApp({});
 
 	describe('Set up the Course Store', () => {
 		let courses_from_csv: Course[];
+
 		beforeAll(async () => {
 			// Since we have the piniaPluginPersistedState as a plugin, duplicate for the test.
 			const pinia = createPinia().use(piniaPluginPersistedstate);
@@ -36,8 +39,8 @@ describe('Test the course store', () => {
 				delete course.course_params;
 				return new Course(course);
 			});
-			// Login to the course as the admin in order to be authenticated for the
-			// rest of the test.
+
+			// Login to the course as the admin in order to be authenticated for the rest of the test.
 			await api.post('login', { username: 'admin', password: 'admin' });
 		});
 

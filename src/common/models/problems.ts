@@ -113,7 +113,6 @@ class ProblemLocationParams extends Model {
  * The class LibraryProblem is used to handle problems in the LibraryBrowser and
  * other places where Library Problems are used.
  */
-
 export class LibraryProblem extends Problem {
 	private _location_params = new ProblemLocationParams();
 	private _problem_number = 0; // used for display in library browser.
@@ -181,7 +180,6 @@ export interface ParseableSetProblemParams {
  * SetProblemParams stores the parameters for a SetProblem including information
  * about the location of the problem and the weight of the problem.
  */
-
 export class SetProblemParams extends Model {
 	private _weight = 1;
 	private _library_id?: number;
@@ -529,7 +527,7 @@ export function parseProblem(problem: ParseableProblem, type: 'Library' | 'Set' 
  * taken from the UserSet.  Additional info is taken from the MergedUser instance.
  * @param {SetProblem} set_problem - a set problem
  * @param {UserProblem} user_problem - a user problem that will override the problem parameters.
- * @param {MergedUser} user - the user associated with the problem.
+ * @param {MergedUser} user_set - the user associated with the problem.
  * @param {MergedUserSet} user_set - the merged user set that the problem is in.
  * @returns a MergedUserProblem with the appropriate overrides.
  */
