@@ -14,7 +14,6 @@ import { createApp } from 'vue';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { Course } from 'src/common/models/courses';
 import { cleanIDs, loadCSV } from '../utils';
-import { useSessionStore } from 'src/stores/session';
 import { api } from 'src/boot/axios';
 describe('Test the course store', () => {
 
@@ -28,7 +27,6 @@ describe('Test the course store', () => {
 			app.use(pinia);
 			setActivePinia(pinia);
 
-			const session_store = useSessionStore();
 			const parsed_courses = await loadCSV('t/db/sample_data/courses.csv', {
 				boolean_fields: ['visible'],
 				non_neg_fields: ['course_id'],

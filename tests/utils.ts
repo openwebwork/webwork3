@@ -10,7 +10,6 @@ interface CSVConfig {
 	params?: string[];
 	boolean_fields?: string[];
 	non_neg_fields?: string[];
-	time_zone_shift?: number;
 }
 
 // type Output = Dictionary<string | number | boolean | Dictionary<string | number>>
@@ -60,9 +59,7 @@ function convert(data: Dictionary<string>[], config: CSVConfig): Dictionary<gene
 				// Parse any date field as date.
 				if (row[val]) {
 					prev[field] = /DATES:/.test(val) ?
-						// and shift due to timezone. THIS NEEDS TO BE FIXED. I don't know
-						// why it is needed.
-						Date.parse(row[val]) / 1000 - (config.time_zone_shift ?? 0) :
+						Date.parse(row[val]) / 1000 :
 						row[val];
 				}
 				return prev;

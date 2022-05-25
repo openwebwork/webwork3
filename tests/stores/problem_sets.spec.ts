@@ -37,8 +37,7 @@ describe('Problem Set store tests', () => {
 
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
-			boolean_fields: ['set_visible'],
-			time_zone_shift: 5 * 3600, // compensating for some strangeness with Dates.
+			boolean_fields: ['set_visible']
 		};
 
 		const hw_sets_to_parse = await loadCSV('t/db/sample_data/hw_sets.csv', problem_set_config);

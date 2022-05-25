@@ -8,11 +8,9 @@
 // problem_sets.spec.ts
 // Test the user sets Store
 
-
 import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { api } from 'src/boot/axios';
-import { checkPassword } from 'src/common/api-requests/session';
 import { Course } from 'src/common/models/courses';
 import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 import { ProblemSet, HomeworkSet, Quiz, ReviewSet, ParseableProblemSetDates, ParseableProblemSetParams
@@ -45,8 +43,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		await api.post('login', { username: 'admin', password: 'admin' });
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
-			boolean_fields: ['set_visible'],
-			time_zone_shift: 5 * 3600, // compensating for some strangeness with Dates.
+			boolean_fields: ['set_visible']
 		};
 
 		const hw_sets_to_parse = await loadCSV('t/db/sample_data/hw_sets.csv', problem_set_config);
@@ -104,8 +101,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 			// Setup and load the user sets data from a csv file.
 			const user_sets_to_parse = await loadCSV('t/db/sample_data/user_sets.csv', {
-				params: ['set_dates', 'set_params'],
-				time_zone_shift: 5 * 3600
+				params: ['set_dates', 'set_params']
 			});
 
 			// Load the users from the CSV file and filter only the Precalc students.
