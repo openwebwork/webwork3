@@ -8,21 +8,24 @@
 // problem_sets.spec.ts
 // Test the user sets Store
 
+import { createApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
-import { api } from 'src/boot/axios';
+import { api } from 'boot/axios';
+
 import { Course } from 'src/common/models/courses';
 import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
-import { ProblemSet, HomeworkSet, Quiz, ReviewSet, ParseableProblemSetDates, ParseableProblemSetParams
+import {
+	ProblemSet, HomeworkSet, Quiz, ReviewSet, ParseableProblemSetDates, ParseableProblemSetParams
 } from 'src/common/models/problem_sets';
 import { MergedUser } from 'src/common/models/users';
-import { MergedUserSet, UserHomeworkSet, UserSet, UserQuiz,
-	UserReviewSet, mergeUserSet, MergedUserHomeworkSet, parseUserSet } from 'src/common/models/user_sets';
+import {
+	MergedUserSet, UserHomeworkSet, UserSet, UserQuiz, UserReviewSet, mergeUserSet, MergedUserHomeworkSet, parseUserSet
+} from 'src/common/models/user_sets';
 import { useCourseStore } from 'src/stores/courses';
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useSessionStore } from 'src/stores/session';
 import { useUserStore } from 'src/stores/users';
-import { createApp } from 'vue';
 import { loadCSV, cleanIDs } from '../utils';
 
 const app = createApp({});
@@ -38,9 +41,9 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		app.use(pinia);
 		setActivePinia(pinia);
 
-		// Login to the course as the admin in order to be authenticated for the
-		// rest of the test.
+		// Login to the course as the admin in order to be authenticated for the rest of the test.
 		await api.post('login', { username: 'admin', password: 'admin' });
+
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
 			boolean_fields: ['set_visible']

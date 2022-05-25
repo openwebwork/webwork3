@@ -8,9 +8,10 @@
 // session.spec.ts
 // Test the Session Store
 
-import { setActivePinia, createPinia } from 'pinia';
 import { createApp } from 'vue';
+import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+
 import { SessionInfo } from 'src/common/models/session';
 import { User } from 'src/common/models/users';
 import { useSessionStore } from 'src/stores/session';

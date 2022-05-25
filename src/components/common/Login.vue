@@ -37,12 +37,13 @@ export default defineComponent({
 		const i18n = useI18n({ useScope: 'global' });
 
 		const session = useSessionStore();
+
 		const login = async () => {
-			const username_info = {
+			const session_info = await checkPassword({
 				username: username.value,
 				password: password.value
-			};
-			const session_info = await checkPassword(username_info);
+			});
+
 			if (!session_info.logged_in) {
 				message.value = i18n.t('authentication.failure');
 			} else {
@@ -55,6 +56,7 @@ export default defineComponent({
 				}
 			}
 		};
+
 		return { username, password, message, login };
 	}
 });

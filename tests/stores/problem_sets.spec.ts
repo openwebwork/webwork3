@@ -31,8 +31,7 @@ describe('Problem Set store tests', () => {
 		app.use(pinia);
 		setActivePinia(pinia);
 
-		// Login to the course as the admin in order to be authenticated for the
-		// rest of the test.
+		// Login to the course as the admin in order to be authenticated for the rest of the test.
 		await api.post('login', { username: 'admin', password: 'admin' });
 
 		const problem_set_config = {
