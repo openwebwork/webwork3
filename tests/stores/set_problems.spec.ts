@@ -1,31 +1,33 @@
-
 /**
  * @jest-environment jsdom
  */
-// The above is needed because the logger uses the window object, which is only present
-// when using the jsdom environment.
+// The above is needed because  1) the logger uses the window object, which is only present
+// when using the jsdom environment and 2) because the pinia store is used is being
+// tested with persistance.
 
 // set_problems.spec.ts
 // Test the set problems store
 
-import { setActivePinia, createPinia } from 'pinia';
 import { createApp } from 'vue';
+import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import { api } from 'boot/axios';
 
 import { cleanIDs, loadCSV } from '../utils';
 import { useCourseStore } from 'src/stores/courses';
-import { Course } from 'src/common/models/courses';
 import { useUserStore } from 'src/stores/users';
-import { HomeworkSet, ProblemSet, Quiz, ReviewSet } from 'src/common/models/problem_sets';
-import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 import { useSessionStore } from 'src/stores/session';
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useSetProblemStore } from 'src/stores/set_problems';
-import { UserProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemParams,
-	DBUserProblem,
+
+import { Course } from 'src/common/models/courses';
+import { HomeworkSet, ProblemSet, Quiz, ReviewSet } from 'src/common/models/problem_sets';
+import { UserProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemParams, DBUserProblem,
 	mergeUserProblem } from 'src/common/models/problems';
 import { DBUserHomeworkSet, mergeUserSet, UserSet } from 'src/common/models/user_sets';
 import { Dictionary, generic } from 'src/common/models';
+
+import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 
 const app = createApp({});
 
@@ -41,6 +43,9 @@ describe('Problem Set store tests', () => {
 		const pinia = createPinia().use(piniaPluginPersistedstate);
 		app.use(pinia);
 		setActivePinia(pinia);
+
+		// Login to the course as the admin in order to be authenticated for the rest of the test.
+		await api.post('login', { username: 'admin', password: 'admin' });
 
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],

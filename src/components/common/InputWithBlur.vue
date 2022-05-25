@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { logger } from 'src/boot/logger';
+import { logger } from 'boot/logger';
 import { defineComponent, ref, watch } from 'vue';
 
 export default defineComponent({
