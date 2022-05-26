@@ -11,6 +11,7 @@
 import { createApp } from 'vue';
 import { setActivePinia, createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import { api } from 'src/boot/axios';
 
 import { useSessionStore } from 'src/stores/session';
 import { getUser } from 'src/common/api-requests/user';
@@ -19,7 +20,6 @@ import { SessionInfo } from 'src/common/models/session';
 import { User } from 'src/common/models/users';
 
 import { cleanIDs, loadCSV } from '../utils';
-
 
 const app = createApp({});
 
@@ -47,10 +47,13 @@ describe('Session Store', () => {
 	};
 
 	beforeAll(async () => {
-		// creates a fresh pinia and make it active so it's automatically picked
-		// up by any useStore() call without having to pass it to it:
-		// `useStore(pinia)`
-		setActivePinia(createPinia());
+		// Since we have the piniaPluginPersistedState as a plugin, duplicate for the test.
+		const pinia = createPinia().use(piniaPluginPersistedstate);
+		app.use(pinia);
+		setActivePinia(pinia);
+
+		// Login to the course as the admin in order to be authenticated for the rest of the test.
+		await api.post('login', { username: 'admin', password: 'admin' });
 
 		// Load the user course information for testing later.
 
