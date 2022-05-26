@@ -17,16 +17,16 @@ use YAML::XS qw/LoadFile/;
 # This reads the default settings from a file.
 
 sub getDefaultCourseSettings ($self) {
-	my $settings = LoadFile(path($self->config->{webwork3_home}, "conf", "course_defaults.yml"));
+	my $settings = LoadFile(path($self->config->{webwork3_home}, 'conf', 'course_defaults.yml'));
 	# Check if the file exists.
 	$self->render(json => $settings);
 	return;
 }
 
 sub getCourseSettings ($self) {
-	my $course_settings = $self->schema->resultset("Course")->getCourseSettings(
+	my $course_settings = $self->schema->resultset('Course')->getCourseSettings(
 		info => {
-			course_id => int($self->param("course_id")),
+			course_id => int($self->param('course_id')),
 		}
 	);
 	# Flatten to a single array.
@@ -41,8 +41,8 @@ sub getCourseSettings ($self) {
 }
 
 sub updateCourseSetting ($self) {
-	my $course_setting = $self->schema->resultset("Course")
-		->updateCourseSettings({ course_id => $self->param("course_id") }, $self->req->json);
+	my $course_setting = $self->schema->resultset('Course')
+		->updateCourseSettings({ course_id => $self->param('course_id') }, $self->req->json);
 	$self->render(json => $course_setting);
 	return;
 }
