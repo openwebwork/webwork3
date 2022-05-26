@@ -7,7 +7,8 @@
 	"private": true,
 	"scripts": {
 		"lint": "eslint --ext .js,.ts,.vue . --fix && stylelint \"./src/**/*.vue\" \"./src/**/*.scss\" --fix",
-		"test": "jest",
+		"test": "jest --testPathPattern='tests/unit-tests'",
+		"test-stores": "jest --runInBand --testPathPattern='tests/stores'",
 		"serve": "morbo bin/webwork3 & quasar dev",
 		"build": "quasar build",
 		"perltidy": "bash perltidy --pro=./.perltidyrc -b -bext='/' ./**/*.{t,pl,pm}"

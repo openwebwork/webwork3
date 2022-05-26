@@ -1,6 +1,6 @@
 /* These are Problem Set interfaces */
 
-import { logger } from 'src/boot/logger';
+import { logger } from 'boot/logger';
 import { Model } from '.';
 import { parseBoolean, ParseError, parseNonNegInt } from './parsers';
 
@@ -12,27 +12,28 @@ export enum ProblemSetType {
 }
 
 /**
- * This takes in a general problem set and returns the specific subclassed ProblemSet
- * @param problem ParseableProblemSet
- * @returns HomeworkSet, Quiz or ReviewSet
+ * This takes in a general problem set and returns the specific subclassed ProblemSet.
+ * The returned object is one of HomeworkSet, Quiz or ReviewSet or a ParseError is thrown.
  */
-
 export function parseProblemSet(set: ParseableProblemSet) {
-	if (/hw/i.test(set.set_type ?? '')) {
+	const set_type = set.set_type ?? '';
+	if (/hw/i.test(set_type) || set_type === '') {
 		return new HomeworkSet(set as ParseableHomeworkSet);
-	} else if (/quiz/i.test(set.set_type ?? '')) {
+	} else if (/quiz/i.test(set_type)) {
 		return new Quiz(set as ParseableQuiz);
-	} else if (/review/i.test(set.set_type ?? '')) {
+	} else if (/review/i.test(set_type)) {
 		return new ReviewSet(set as ParseableReviewSet);
 	}
 
-	throw new ParseError('ProblemSetType', `The problem set type '${set.set_type ?? ''}' is not valid.`);
+	throw new ParseError('ProblemSetType', `The problem set type '${set_type}' is not valid.`);
 }
 
+export type ParseableProblemSetParams = ParseableHomeworkSetParams | ParseableQuizParams | ParseableReviewSetParams;
+export type ParseableProblemSetDates = ParseableHomeworkSetDates | ParseableQuizDates | ParseableReviewSetDates;
 export type ProblemSetParams = HomeworkSetParams | QuizParams | ReviewSetParams;
 export type ProblemSetDates = HomeworkSetDates | QuizDates | ReviewSetDates;
 
-/* Problem Set (HomeworkSet, Quiz, ReviewSet ) classes */
+// Problem Set (HomeworkSet, Quiz, ReviewSet ) classes and interfaces for parsing.
 
 export interface ParseableProblemSet {
 	set_id?: string | number;
@@ -40,9 +41,13 @@ export interface ParseableProblemSet {
 	course_id?: string | number;
 	set_type?: string;
 	set_visible?: string | number | boolean;
-	set_params?: ProblemSetParams;
-	set_dates?: ProblemSetDates;
+	set_params?: ParseableProblemSetParams;
+	set_dates?: ParseableProblemSetDates;
 }
+
+/**
+ * This is the superclass for Homework Sets, quizzes and review sets.
+ */
 
 export class ProblemSet extends Model {
 	private _set_id = 0;
@@ -67,11 +72,11 @@ export class ProblemSet extends Model {
 	}
 
 	set(params: ParseableProblemSet) {
-		if (params.set_id != undefined) this.set_id = params.set_id;
-		if (params.set_visible != undefined) this.set_visible = params.set_visible;
+		if (params.set_id) this.set_id = params.set_id;
+		if (params.set_visible !== undefined) this.set_visible = params.set_visible;
 		if (params.course_id != undefined) this.course_id = params.course_id;
-		if (params.set_type != undefined) this.set_type = params.set_type;
-		if (params.set_name != undefined) this.set_name = params.set_name;
+		if (params.set_type) this.set_type = params.set_type;
+		if (params.set_name) this.set_name = params.set_name;
 	}
 
 	public get set_id(): number { return this._set_id;}
@@ -107,7 +112,7 @@ export class ProblemSet extends Model {
 	}
 }
 
-// Quiz interfaces
+// Quiz models and interfaces.
 
 export interface ParseableQuizDates {
 	open?: number | string;
@@ -116,9 +121,9 @@ export interface ParseableQuizDates {
 }
 
 export class QuizDates extends Model {
-	private _open = 0;
-	private _due = 0;
-	private _answer = 0;
+	protected _open = 0;
+	protected _due = 0;
+	protected _answer = 0;
 
 	constructor(params: ParseableQuizDates = {}) {
 		super();
@@ -137,22 +142,29 @@ export class QuizDates extends Model {
 	get param_fields(): string[] { return [];}
 
 	public get open(): number { return this._open;}
-	public set open(value: number | string) { this._open = parseNonNegInt(value);}
+	public set open(value: number | string) {
+		if (value != undefined) this._open = parseNonNegInt(value);
+	}
 
 	public get due(): number { return this._due;}
-	public set due(value: number | string) { this._due = parseNonNegInt(value);}
+	public set due(value: number | string) {
+		if (value != undefined) this._due = parseNonNegInt(value);
+	}
 
 	public get answer() : number { return this._answer;}
-	public set answer(value: number | string) { this._answer = parseNonNegInt(value);}
+	public set answer(value: number | string) {
+		if (value != undefined) this._answer = parseNonNegInt(value);
+	}
 
 	public isValid() {
-		return this.open <= this.due && this.due <= this.answer;
+		if (this.open != undefined && this.due != undefined && this.open > this. due) return false;
+		if (this.due != undefined && this.answer != undefined && this.due > this.answer) return false;
+		return true;
 	}
 
-	public clone() {
+	public clone(): QuizDates {
 		return new QuizDates(this.toObject());
 	}
-
 }
 
 export interface ParseableQuizParams {
@@ -171,7 +183,7 @@ export class QuizParams extends Model {
 
 	set(params: ParseableQuizParams) {
 		if (params.timed != undefined) this.timed = params.timed;
-		if (params.quiz_duration != undefined) this.quiz_duration = params.quiz_duration;
+		if (params.quiz_duration) this.quiz_duration = params.quiz_duration;
 	}
 
 	get all_field_names(): string[] {
@@ -221,9 +233,58 @@ export class Quiz extends ProblemSet {
 
 }
 
-/**
- * HomeworkSet
- */
+// HomeworkSet model and interfaces.
+
+export class HomeworkSetDates extends Model {
+	protected _open =  0;
+	// the reduced_scoring field will always have a value. The HomeworkSetParam field
+	// enable_reduced_scoring will dictate if it is used.
+	protected _reduced_scoring = 0;
+	protected _due = 0;
+	protected _answer = 0;
+
+	get all_field_names(): string[] { return HomeworkSetDates.ALL_FIELDS; }
+	get param_fields(): string[] { return [];}
+
+	static ALL_FIELDS = ['open', 'reduced_scoring', 'due', 'answer'];
+
+	constructor(params: ParseableHomeworkSetDates = {}) {
+		super();
+		this.set(params);
+	}
+
+	set(params: ParseableHomeworkSetDates) {
+		if (params.open != undefined) this.open = params.open;
+		if (params.reduced_scoring) this.reduced_scoring = params.reduced_scoring;
+		if (params.due != undefined) this.due = params.due;
+		if (params.answer != undefined) this.answer = params.answer;
+	}
+
+	public get open(): number { return this._open; }
+	public set open(value: number | string) { this._open = parseNonNegInt(value); }
+
+	public get reduced_scoring(): number { return this._reduced_scoring; }
+	public set reduced_scoring(value: number | string) {
+		this._reduced_scoring = parseNonNegInt(value);
+	}
+
+	public get due(): number { return this._due; }
+	public set due(value: number | string) { this._due = parseNonNegInt(value); }
+
+	public get answer(): number { return this._answer; }
+	public set answer(value: number | string) { this._answer = parseNonNegInt(value); }
+
+	clone(): HomeworkSetDates {
+		return new HomeworkSetDates(this.toObject());
+	}
+
+	public isValid(params: { enable_reduced_scoring: boolean; }) {
+		if (params.enable_reduced_scoring && this.open > this.reduced_scoring) return false;
+		if (params.enable_reduced_scoring && this.reduced_scoring > this.due) return false;
+		if (this.due && this.answer && this.due > this.answer) return false;
+		return true;
+	}
+}
 
 export interface ParseableHomeworkSetParams {
 	enable_reduced_scoring?: boolean | string | number;
@@ -260,52 +321,6 @@ export interface ParseableHomeworkSetDates {
 	answer?: number | string;
 }
 
-export class HomeworkSetDates extends Model {
-	private _open = 0;
-	private _due = 0;
-	private _reduced_scoring = 0;
-	private _answer = 0;
-
-	constructor(params: ParseableHomeworkSetDates = {}) {
-		super();
-		this.set(params);
-	}
-
-	set(params: ParseableHomeworkSetDates) {
-		if (params.open != undefined) this.open = params.open;
-		if (params.due != undefined) this.due = params.due;
-		if (params.reduced_scoring != undefined) this.reduced_scoring = params.reduced_scoring;
-		if (params.answer != undefined) this.answer = params.answer;
-	}
-
-	get all_field_names(): string[] {
-		return ['open', 'due', 'reduced_scoring', 'answer'];
-	}
-	get param_fields(): string[] { return [];}
-
-	public get open(): number { return this._open;}
-	public set open(value: number | string) { this._open = parseNonNegInt(value);}
-
-	public get reduced_scoring(): number { return this._reduced_scoring;}
-	public set reduced_scoring(value: number | string) { this._reduced_scoring = parseNonNegInt(value);}
-
-	public get due(): number { return this._due;}
-	public set due(value: number | string) { this._due = parseNonNegInt(value);}
-
-	public get answer() : number { return this._answer;}
-	public set answer(value: number | string) { this._answer = parseNonNegInt(value);}
-
-	public isValid(params: { enable_reduced_scoring: boolean; }) {
-		return params.enable_reduced_scoring ?
-			this.open <= this.reduced_scoring && this.reduced_scoring <= this.due && this.due <= this.answer :
-			this.open <= this.due && this.due <= this.answer;
-	}
-
-	public clone() {
-		return new HomeworkSetDates(this.toObject());
-	}
-}
-
 export interface ParseableHomeworkSet {
 	set_id?: string | number;
 	set_name?: string;
@@ -320,6 +335,7 @@ export interface ParseableHomeworkSet {
 export class HomeworkSet extends ProblemSet {
 	private _set_params = new HomeworkSetParams();
 	private _set_dates = new HomeworkSetDates();
+
 	constructor(params: ParseableHomeworkSet = {}) {
 		super(params as ParseableProblemSet);
 		this._set_type = ProblemSetType.HW;
@@ -340,9 +356,7 @@ export class HomeworkSet extends ProblemSet {
 
 }
 
-/**
- * ReviewSet
- */
+// Review Set model and interfaces.
 
 export interface ParseableReviewSetParams {
 	test_param?: boolean | string | number;
@@ -377,9 +391,22 @@ export interface ParseableReviewSetDates {
 	closed?: number | string;
 }
 
+export interface ParseableReviewSet {
+	set_id?: string | number;
+	set_name?: string;
+	course_id?: string | number;
+	set_type?: string;
+	set_visible?: string | number | boolean;
+	set_version?: string | number;
+	set_params?: ParseableReviewSetParams;
+	set_dates?: ParseableReviewSetDates;
+}
+
+// Review Sets information
+
 export class ReviewSetDates extends Model {
-	private _open = 0;
-	private _closed = 0;
+	protected _open = 0;
+	protected _closed = 0;
 
 	constructor(params: ParseableReviewSetDates = {}) {
 		super();
@@ -397,34 +424,28 @@ export class ReviewSetDates extends Model {
 	get param_fields(): string[] { return [];}
 
 	public get open(): number { return this._open;}
-	public set open(value: number | string) { this._open = parseNonNegInt(value);}
-
-	public get closed(): number { return this._closed;}
-	public set closed(value: number | string) { this._closed = parseNonNegInt(value);}
-
-	public isValid() {
-		return this.open <= this.closed;
+	public set open(value: number | string) {
+		if (value != undefined) this._open = parseNonNegInt(value);
 	}
 
-	public clone() {
+	public get closed(): number { return this._closed;}
+	public set closed(value: number | string) {
+		if (value != undefined) this._closed = parseNonNegInt(value);
+	}
+
+	public isValid(): boolean {
+		if (this.open != undefined && this.closed != undefined && this.open > this.closed) return false;
+		return true;
+	}
+
+	public clone(): ReviewSetDates {
 		return new ReviewSetDates(this.toObject());
 	}
 }
 
-export interface ParseableReviewSet {
-	set_id?: string | number;
-	set_name?: string;
-	course_id?: string | number;
-	set_type?: string;
-	set_visible?: string | number | boolean;
-	set_version?: string | number;
-	set_params?: ParseableReviewSetParams;
-	set_dates?: ParseableReviewSetDates;
-}
-
 export class ReviewSet extends ProblemSet {
 	private _set_params = new ReviewSetParams();
-	private _set_dates = new ReviewSetDates();
+	private _set_dates = new ReviewSetDates({ open: 0, closed: 0 });
 	constructor(params: ParseableReviewSet = {}) {
 		super(params as ParseableProblemSet);
 		this._set_type = ProblemSetType.REVIEW_SET;
@@ -446,13 +467,8 @@ export class ReviewSet extends ProblemSet {
 }
 
 /**
- * This function takes in a ProblemSet and a ProblemSetType,
- * returning a new ProblemSet of the requested type
- * @param set ProblemSet
- * @param set_type ProblemSetType
- * @returns HomeworkSet | Quiz | ReviewSet
+ * This function takes in a ProblemSet and a ProblemSetType, returning a new ProblemSet of the requested type.
  */
-
 export function convertSet(old_set: ProblemSet, new_set_type: ProblemSetType) {
 	if (old_set.set_type === new_set_type) return old_set;
 
@@ -461,19 +477,21 @@ export function convertSet(old_set: ProblemSet, new_set_type: ProblemSetType) {
 	delete new_set_params.set_dates;
 
 	// pull dates from old_set
-	const open = old_set.set_dates.open;
-	let reduced = 0, due = 0, answer = 0;
+	let open: number | undefined, reduced: number | undefined, due: number | undefined, answer: number | undefined;
 	switch (old_set.set_type) {
 	case 'HW':
+		open = (old_set as HomeworkSet).set_dates.open;
 		reduced = (old_set as HomeworkSet).set_dates.reduced_scoring;
 		due = (old_set as HomeworkSet).set_dates.due;
 		answer = (old_set as HomeworkSet).set_dates.answer;
 		break;
 	case 'QUIZ':
+		open = (old_set as Quiz).set_dates.open;
 		reduced = due = (old_set as Quiz).set_dates.due;
 		answer = (old_set as Quiz).set_dates.answer;
 		break;
 	case 'REVIEW':
+		open = (old_set as ReviewSet).set_dates.open;
 		reduced = due = answer = (old_set as ReviewSet).set_dates.closed;
 		break;
 	default:

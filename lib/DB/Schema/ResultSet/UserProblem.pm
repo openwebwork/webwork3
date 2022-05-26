@@ -112,9 +112,110 @@ sub getUserProblems ($self, %args) {
 	return @user_problems_to_return;
 }
 
+=head1 getUserProblemsForSet
+
+Get all user problems (or merged user problems) for one set in one course
+
+=head3 input
+
+A hash of input values.
+
+=over
+
+=item * C<info>, either a course name or course_id and a set_id or set_name
+
+For example, C<{ course_name => 'Precalculus', set_name => 'HW #1'}>
+	or C<{course_id => 3, set_id => 4}> or a mix of these.
+
+=item * C<merged>, a boolean on whether to return a merged user or course user
+
+=item * C<as_result_set>, a boolean.  If true this an object of type
+C<DBIx::Class::ResultSet::UserProblem>
+if false, a hashrefs of a User Problem or merged User Problem with a Problem.
+
+=back
+
+=head3 output
+
+An array of a hashref of a user problem or merged user problem
+or an arrayref of C<DBIx::Class::ResultSet::UserProblem>
+
+=cut
+
+sub getUserProblemsForSet ($self, %args) {
+	my $course        = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+	my $problem_set   = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
+	my @user_problems = $self->search(
+		{
+			'courses.course_id'  => $course->course_id,
+			'problem_set.set_id' => $problem_set->set_id
+		},
+		{
+			join => { problems => { problem_set => 'courses' } }
+		}
+	);
+
+	return @user_problems if $args{as_result_set};
+
+	my @user_problems_to_return = ();
+	for my $user_problem (@user_problems) {
+		my $params = $args{merged} ? _mergeUserProblem($user_problem) : _getUserProblem($user_problem);
+		push(@user_problems_to_return, $params);
+	}
+	return @user_problems_to_return;
+}
+
+=head1 getUserProblemsForUser
+Get all user problems (or merged user problems) for one user in one course
+=head3 input
+A hash of input values.
+=over
+=item * C<info>, either a course name or course_id and a user_id or username
+For example, C<{ course_name => 'Precalculus', username => 'homer'}>
+	or C<{user_id => 3, set_id => 4}> or a mix of these.
+=item * C<merged>, a boolean on whether to return a merged user or course user
+=item * C<as_result_set>, a boolean.  If true this an object of type
+C<DBIx::Class::ResultSet::UserProblem>
+if false, a hashrefs of a User Problem or merged User Problem with a Problem.
+=back
+=head3 output
+An array of a hashref of a user problem or merged user problem
+or an arrayref of C<DBIx::Class::ResultSet::UserProblem>
+=cut
+
+sub getUserProblemsForUser ($self, %args) {
+	my $course        = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+	my $user          = $self->rs("User")->getGlobalUser(info => $args{info}, as_result_set => 1);
+	my @user_problems = $self->search(
+		{
+			'courses.course_id' => $course->course_id,
+			'users.user_id'     => $user->user_id
+		},
+		{
+			join => [
+				{
+					problems => { problem_set => 'courses' }
+				},
+				{
+					user_sets => { course_users => 'users' }
+				}
+			]
+		}
+	);
+
+	return @user_problems if $args{as_result_set};
+
+	my @user_problems_to_return = ();
+	for my $user_problem (@user_problems) {
+		my $params = $args{merged} ? _mergeUserProblem($user_problem) : _getUserProblem($user_problem);
+		push(@user_problems_to_return, $params);
+	}
+	return @user_problems_to_return;
+}
+
 =head1 getUserProblem
 
-Get a single user problems (or merged user problems).
+Get a single user problem (or merged user problem).
 
 =head3 input
 
@@ -192,7 +293,7 @@ A hash of input values.
 
 =item - either a C<course name> or C<course_id>.
 =item - either a C<username> or C<user_id>
-=item - either a C<set_nam> or C<set_id>
+=item - either a C<set_name> or C<set_id>
 =item - either a C<problem_number> or C<problem_id>
 
 For example, C<{ course_name => 'Precalculus', username=> 'homer', set_id => 3, problem_number => 1}>
@@ -216,7 +317,6 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 =cut
 
 sub addUserProblem ($self, %args) {
-
 	my $user_problem = $self->getUserProblem(
 		info          => $args{params},
 		skip_throw    => 1,
@@ -236,8 +336,12 @@ sub addUserProblem ($self, %args) {
 
 	my $params = clone($args{params} // {});
 
+	# If the user_problem_id field is 0, it is a new problem, so delete the field
+	delete $params->{user_problem_id}
+		if defined($params->{user_problem_id}) && $params->{user_problem_id} == 0;
+
 	# Remove some parameters that are not in the UserProblem database, but may be passed in.
-	for my $key (qw/username user_d course_name set_name set_type set_id problem_number problem_id/) {
+	for my $key (qw/username user_id course_id course_name set_name set_type set_id problem_number problem_id/) {
 		delete $params->{$key} if defined $params->{$key};
 	}
 

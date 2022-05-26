@@ -1,6 +1,6 @@
 course_name,set_name,set_visible,SET_DATES:open,SET_DATES:closed
-Precalculus,"Review #1",1,2021-01-01T23:59:00,2021-01-10T23:59:00
-Precalculus,"Review #2",1,2021-01-01T23:59:00,2021-01-10T23:59:00
-Precalculus,"Review #3",1,2021-01-01T23:59:00,2021-01-10T23:59:00
-Arithmetic,"Review #1",1,2021-01-01T23:59:00,2021-01-10T23:59:00
-Arithmetic,"Review #2",1,2021-01-01T23:59:00,2021-01-10T23:59:00
+Precalculus,"Review #1",1,2021-01-01T23:59:00Z,2021-01-10T23:59:00Z
+Precalculus,"Review #2",1,2021-01-01T23:59:00Z,2021-01-10T23:59:00Z
+Precalculus,"Review #3",1,2021-01-01T23:59:00Z,2021-01-10T23:59:00Z
+Arithmetic,"Review #1",1,2021-01-01T23:59:00Z,2021-01-10T23:59:00Z
+Arithmetic,"Review #2",1,2021-01-01T23:59:00Z,2021-01-10T23:59:00Z

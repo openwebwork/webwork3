@@ -2,20 +2,20 @@
 	<q-page class="q-ma-p-lg">
 		<!-- The key attribute needs to be unique on the component so prefix it. -->
 		<homework-set-view
-			:set="problem_set"
+			:set="(problem_set as HomeworkSet)"
 			:key="'HW' + set_id"
 			:reset_set_type="reset_set_type"
 			@update-set="updateSet"
 			@change-set-type="requestChangeSetType"
 			v-if="problem_set?.set_type==='HW'" />
 		<quiz-view
-			:set="problem_set"
+			:set="(problem_set as Quiz)"
 			:key="'QUIZ' + set_id"
 			@update-set="updateSet"
 			@change-set-type="requestChangeSetType"
 			v-else-if="problem_set?.set_type==='QUIZ'" />
 		<review-set-view
-			:set="problem_set"
+			:set="(problem_set as ReviewSet)"
 			:key="'REVIEW_SET' + set_id"
 			@update-set="updateSet"
 			@change-set-type="requestChangeSetType"
@@ -47,10 +47,12 @@ import { logger } from 'boot/logger';
 
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { parseRouteSetID } from 'src/router/utils';
-import { ProblemSet, ProblemSetType, convertSet } from 'src/common/models/problem_sets';
+import { ProblemSet, ProblemSetType, convertSet, HomeworkSet, ReviewSet, Quiz
+} from 'src/common/models/problem_sets';
 import HomeworkSetView from 'src/components/instructor/SetDetails/HomeworkSet.vue';
 import QuizView from 'src/components/instructor/SetDetails/Quiz.vue';
 import ReviewSetView from 'src/components/instructor/SetDetails/ReviewSet.vue';
+import { ResponseError } from 'src/common/api-requests/interfaces';
 
 export default defineComponent({
 	name: 'ProblemSetDetails',
@@ -84,13 +86,23 @@ export default defineComponent({
 			// if the entire set just changed, don't update.
 			if (problem_set.value && problem_set.value.set_id === set.set_id) {
 				updatePending.value = true;
-				const { error, message } = await problem_sets.updateSet(set);
-				updatePending.value = false;
-				logger.debug(`[ProblemSetDetails/updateSet]: ${message}`);
-				$q.notify({
-					message: message,
-					color: error ? 'red' : 'green'
-				});
+				try {
+					const updated_set = await problem_sets.updateSet(set);
+					updatePending.value = false;
+					const message = `The problem set with name ${updated_set?.set_name
+						?? 'UNKNOWN'} was updated successfully.`;
+					logger.debug(`[ProblemSetDetails/updateSet]: ${message}`);
+					$q.notify({
+						message,
+						color: 'green'
+					});
+				} catch (err) {
+					const error = err as ResponseError;
+					$q.notify({
+						message: error.message,
+						color: 'red'
+					});
+				}
 			}
 		};
 
@@ -126,7 +138,10 @@ export default defineComponent({
 			updateSet,
 			requestChangeSetType,
 			cancelChangeSetType,
-			changeSetType
+			changeSetType,
+			HomeworkSet,
+			Quiz,
+			ReviewSet
 		};
 	}
 });

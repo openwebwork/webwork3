@@ -21,7 +21,6 @@
 
 		<template v-slot:body-cell-edit_dates="props">
 			<q-td :props="props">
-				<!-- <q-icon v-if="props.row.assigned" name="edit" /> -->
 				<q-btn round color="primary"
 					v-if="props.row.assigned"
 					icon="edit" size="xs"
@@ -56,20 +55,28 @@
 						v-if="problem_set.set_type === 'HW'"
 						:dates="(date_edit as HomeworkSetDates)"
 						:reduced_scoring="reduced_scoring"
+						@update-dates="(val: HomeworkSetDates) => date_edit = val"
+						@valid-dates="(val: boolean) => valid_dates = val"
 					/>
 					<quiz-dates-view
 						v-if="problem_set.set_type ==='QUIZ'"
 						:dates="(date_edit as QuizDates)"
+						@update-dates="(val: QuizDates) => date_edit = val"
+						@valid-dates="(val: boolean) => valid_dates = val"
 					/>
 					<review-set-dates-view
 						v-if="problem_set.set_type ==='REVIEW'"
 						:dates="(date_edit as ReviewSetDates)"
+						@update-dates="(val: ReviewSetDates) => date_edit = val"
+						@valid-dates="(val: boolean) => valid_dates = val"
 					/>
 				</q-card-section>
 
 				<q-card-actions align="right">
 					<q-btn flat label="Cancel" color="accent" v-close-popup />
-					<q-btn flat label="Save Problem Set Overrides" color="primary"
+					<q-btn flat label="Save Date Overrides"
+						color="primary"
+						:disable="!valid_dates"
 						@click="saveOverrides" />
 				</q-card-actions>
 			</q-card>
@@ -85,19 +92,18 @@ import { useProblemSetStore } from 'src/stores/problem_sets';
 
 import { logger } from 'boot/logger';
 import { MergedUserSet, UserSet, MergedUserHomeworkSet, MergedUserQuiz,
-	MergedUserReviewSet, UserQuiz, UserHomeworkSet, UserReviewSet } from 'src/common/models/user_sets';
+	MergedUserReviewSet, parseUserSet } from 'src/common/models/user_sets';
 import { ProblemSet, HomeworkSet, HomeworkSetDates, QuizDates,
-	ReviewSetDates } from 'src/common/models/problem_sets';
-import { Dictionary } from 'src/common/models';
+	ReviewSetDates, ProblemSetDates } from 'src/common/models/problem_sets';
 import { parseNonNegInt } from 'src/common/models/parsers';
 import { formatDate } from 'src/common/views';
 import HomeworkDatesView from './HomeworkDates.vue';
 import ReviewSetDatesView from './ReviewSetDates.vue';
 import QuizDatesView from './QuizDates.vue';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
-import { parseRouteCourseID, parseRouteSetID } from 'src/router/utils';
 
-type Field_type = ((row: MergedUserHomeworkSet) => number) |
+type FieldType =
+	((row: MergedUserHomeworkSet) => number) |
 	((row: MergedUserQuiz) => number) |
 	((row: MergedUserReviewSet) => number);
 
@@ -113,8 +119,8 @@ interface Column {
 	name: string;
 	label: string;
 	align?: string;
-	field?: string | Field_type;
-	format?: (val: number) => string;
+	field?: string | FieldType;
+	format?: string | ((num: number) => string) | FieldType;
 }
 
 export default defineComponent({
@@ -141,30 +147,33 @@ export default defineComponent({
 			{ name: 'edit_dates', label: 'Edit Dates', align: 'center' }
 		];
 		const edit_dialog = ref<boolean>(false);
-		const date_edit = ref<Dictionary<number>>({});
+		const date_edit = ref<ProblemSetDates | null>(null);
 		const user_set_info = ref<Array<UserInfo>>([]);
 
 		const formatTheDate = (val: number): string => val === 0 ? '' : formatDate(val);
 
+		// checks to see if the dates are valid for the UI popup.
+		const valid_dates = ref<boolean>(true);
+
 		// An array of User info for the table including if the set is assigned and any
 		// overridden dates.
 		const updateUserSetInfo = () => {
+			const merged_user_sets = problem_sets.merged_user_sets;
 			user_set_info.value = users.merged_users.map(user => {
 				// This matches the user_set for the given user.
-				const user_set = problem_sets.merged_user_sets
-					.find(merged_user => merged_user.course_user_id === user.course_user_id);
+				const user_set = merged_user_sets.find(s => s?.course_user_id === user.course_user_id);
 				return {
 					course_user_id: user.course_user_id,
 					first_name: user.first_name ?? '',
 					last_name: user.last_name ?? '',
 					assigned: user_set != undefined,
-					set_dates: user_set == undefined ? new HomeworkSetDates() : user_set?.set_dates
+					set_dates: user_set == undefined ? (new HomeworkSetDates() as ProblemSetDates) : user_set?.set_dates
 				};
-			});
+			}) as UserInfo[];
 		};
 
 		/**
-		 * assign the user with given course_user_id to the problem in problem_set.
+		 * Assign the user with given course_user_id to the problem in problem_set.
 		 * This also makes an api-request.
 		 */
 
@@ -175,15 +184,10 @@ export default defineComponent({
 				set_id: problem_set.value.set_id,
 				course_user_id,
 				// TODO: handle set versioning.
-				set_version: 1
+				set_version: 1,
+				set_type: problem_set.value.set_type
 			};
-			const user_set: UserSet = problem_set.value.set_type === 'HW' ?
-				new UserHomeworkSet(set_params) :
-				problem_set.value.set_type === 'QUIZ' ?
-					new UserQuiz(set_params) :
-					problem_set.value.set_type === 'REVIEW' ?
-						new UserReviewSet(set_params) :
-						new UserSet(set_params);
+			const user_set = parseUserSet(set_params);
 			try {
 				await problem_sets.addUserSet(user_set);
 				$q.notify({
@@ -202,22 +206,19 @@ export default defineComponent({
 
 		const unassignUser = async (course_user_id: number) => {
 			const user = users.merged_users.find(u => u.course_user_id === course_user_id);
-			const merged_user_set = problem_sets.merged_user_sets
-				.find(u => u.course_user_id === course_user_id);
+			const merged_user_set = problem_sets.merged_user_sets.find(u => u.course_user_id === course_user_id);
 			if (merged_user_set) {
 				const user_set = new UserSet(merged_user_set.toObject(UserSet.ALL_FIELDS));
 				try {
 					await problem_sets.deleteUserSet(user_set);
 					const msg =  `The user ${user?.username ?? ''} has been unassigned from the set `
 						+ `${problem_set.value.set_name ?? ''}`;
-					$q.notify({
-						message: msg,
-						color: 'green'
-					});
+					$q.notify({ message: msg, color: 'green' });
 					logger.debug(msg);
 				} catch (err) {
 					const error = err as ResponseError;
 					$q.notify({ message: error.message, color: 'red' });
+					logger.error(error.message);
 				}
 			} else {
 				logger.error(`The user_set for set '${problem_set.value.set_name}' ` +
@@ -255,14 +256,9 @@ export default defineComponent({
 		const saveOverrides = async () => {
 			logger.debug('closing the overrides dialog');
 			const set_params = merged_user_set.value.toObject(UserSet.ALL_FIELDS);
-			const updated_user_set: UserSet = problem_set.value.set_type === 'HW' ?
-				new UserHomeworkSet(set_params) :
-				problem_set.value.set_type === 'QUIZ' ?
-					new UserQuiz(set_params) :
-					problem_set.value.set_type === 'REVIEW' ?
-						new UserReviewSet(set_params) :
-						new UserSet(set_params);
-			updated_user_set.set_dates.set(date_edit.value);
+			const updated_user_set = parseUserSet(set_params);
+			updated_user_set.set_dates.set(date_edit.value?.toObject() ?? {});
+
 			if (updated_user_set.hasValidDates()) {
 				try {
 					await problem_sets.updateUserSet(updated_user_set);
@@ -309,19 +305,19 @@ export default defineComponent({
 						name: 'open_date',
 						label: 'Open Date',
 						format: formatTheDate,
-						field: (row: MergedUserHomeworkSet) => row.set_dates.open
+						field: (row: MergedUserHomeworkSet) => row.set_dates.open ?? 0
 					},
 					{
 						name: 'due_date',
 						label: 'Due Date',
 						format: formatTheDate,
-						field: (row: MergedUserHomeworkSet) => row.set_dates.due
+						field: (row: MergedUserHomeworkSet) => row.set_dates.due ?? 0
 					},
 					{
 						name: 'answer_date',
 						label: 'Answer Date',
 						format: formatTheDate,
-						field: (row: MergedUserHomeworkSet) => row.set_dates.answer
+						field: (row: MergedUserHomeworkSet) => row.set_dates.answer ?? 0
 					});
 				}
 				if ((problem_set.value as unknown as MergedUserHomeworkSet).set_params.enable_reduced_scoring) {
@@ -341,19 +337,19 @@ export default defineComponent({
 							name: 'open_date',
 							label: 'Open Date',
 							format: formatTheDate,
-							field: (row: MergedUserQuiz) => row.set_dates ? row.set_dates.open : 0
+							field: (row: MergedUserQuiz) => row.set_dates ? (row.set_dates.open ?? 0) : 0
 						},
 						{
 							name: 'due_date',
 							label: 'Due Date',
 							format: formatTheDate,
-							field: (row: MergedUserQuiz) => row.set_dates ? row.set_dates.due : 0
+							field: (row: MergedUserQuiz) => row.set_dates ? (row.set_dates.due ?? 0) : 0
 						},
 						{
 							name: 'answer_date',
 							label: 'Answer Date',
 							format: formatTheDate,
-							field: (row: MergedUserQuiz) => row.set_dates ? row.set_dates.answer :  0
+							field: (row: MergedUserQuiz) => row.set_dates ? (row.set_dates.answer ?? 0) :  0
 						}
 					);
 				} else if (problem_set.value.set_type === 'REVIEW') {
@@ -362,28 +358,27 @@ export default defineComponent({
 							name: 'open_date',
 							label: 'Open Date',
 							format: formatTheDate,
-							field: (row: MergedUserReviewSet) => row.set_dates ? (row.set_dates).open : 0
+							field: (row: MergedUserReviewSet) => row.set_dates ? (row.set_dates.open ?? 0) : 0
 						},
 						{
 							name: 'closed_date',
 							label: 'Closed Date',
 							format: formatTheDate,
-							field: (row: MergedUserReviewSet) => row.set_dates ? (row.set_dates).closed : 0
+							field: (row: MergedUserReviewSet) => row.set_dates ? (row.set_dates.closed ?? 0) : 0
 						},
 					);
 				}
-				date_edit.value = problem_set.value.set_dates.toObject() as Dictionary<number>;
+				date_edit.value = problem_set.value.set_dates.clone() as ProblemSetDates;
 			}
 		};
 
 		const updateMergedUserSet = (course_user_id: number) => {
 			merged_user_set.value = problem_sets.merged_user_sets
-				.find(_user_set => _user_set.course_user_id === course_user_id) ??
-				new MergedUserSet();
+				.find(set => set.course_user_id === course_user_id) ?? new MergedUserSet();
 		};
 
 		updateProblemSet();
-		watch([problem_sets.merged_user_sets], updateProblemSet);
+		watch(() => problem_sets.merged_user_sets, updateProblemSet);
 
 		return {
 			HomeworkSetDates,
@@ -397,11 +392,12 @@ export default defineComponent({
 			edit_dialog,
 			date_edit,
 			filter: ref(''),
+			valid_dates,
 			formatDate,
 			saveOverrides,
 			openOverrides: (course_user_id: number) => {
 				updateMergedUserSet(course_user_id);
-				date_edit.value = merged_user_set.value.set_dates.toObject() as Dictionary<number>;
+				date_edit.value = merged_user_set.value.set_dates;
 				edit_dialog.value = true;
 			},
 			assignToAllUsers,
@@ -415,18 +411,6 @@ export default defineComponent({
 				}
 			})
 		};
-	},
-	created() {
-		// fetch the user sets for this set
-		const problem_sets = useProblemSetStore();
-		const route = useRoute();
-		if (route.params.set_id) {
-			logger.debug('Loading UserSets');
-			void problem_sets.fetchMergedUserSets({
-				course_id: parseRouteCourseID(route),
-				set_id: parseRouteSetID(route)
-			});
-		}
 	}
 });
 </script>

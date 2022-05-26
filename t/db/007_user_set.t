@@ -35,10 +35,11 @@ my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croa
 my $user_set_rs    = $schema->resultset("UserSet");
 my $course_rs      = $schema->resultset("Course");
 my $course_user_rs = $schema->resultset("CourseUser");
+my $problem_set_rs = $schema->resultset("ProblemSet");
 my $course         = $course_rs->find({ course_id => 1 });
 
-# Delete all user sets from the db for user otto, frink in the Precalc course
-# and one set for ralph in the Arithmetic course
+# Delete all user sets from the db for user otto, frink, in the Precalc course
+# and two sets for ralph in the Arithmetic course
 my @usersets_that_may_exist = $user_set_rs->search(
 	{
 		-or => [
@@ -53,6 +54,11 @@ my @usersets_that_may_exist = $user_set_rs->search(
 				'courses.course_name'   => 'Arithmetic',
 				'users.username'        => 'ralph',
 				'problem_sets.set_name' => 'HW #2'
+			],
+			-and => [
+				'courses.course_name'   => 'Precalculus',
+				'users.username'        => 'ralph',
+				'problem_sets.set_name' => 'HW #4'
 			]
 		]
 	},
@@ -127,7 +133,7 @@ for my $user_set (@merged_user_sets) {
 	$user_set->{set_visible} = $set->{set_visible} unless defined($user_set->{set_visible});
 }
 
-# Get all user set for a given user in a course.
+# Get all user sets for a given user in a course.
 my @all_user_sets_from_db = $user_set_rs->getAllUserSets();
 
 for my $set (@all_user_sets_from_db) {
@@ -391,7 +397,7 @@ throws_ok {
 	$user_set_rs->addUserSet(
 		params => {
 			username    => "ralph",
-			course_name => "Precalculus",
+			course_name => "Abstract Algebra",
 			set_name    => "HW #1"
 		}
 	);
@@ -496,6 +502,37 @@ $set_params3->{set_params}  = {};
 $set_params3->{set_version} = 1;
 
 is_deeply($user_set3, $set_params3, "addUserSet: add a new user set with dates");
+
+# add a user with only override dates set.
+
+my $hw4 = $problem_set_rs->getProblemSet(
+	info => {
+		course_name => 'Precalculus',
+		set_name    => 'HW #4'
+	}
+);
+
+my $ralph_set_info = {
+	username    => "ralph",
+	course_name => "Precalculus",
+	set_name    => "HW #4",
+	set_dates   => {
+		open   => $hw4->{set_dates}->{open} - 100,
+		answer => $hw4->{set_dates}->{answer} + 100,
+	},
+	set_params => {
+		enable_reduced_scoring => 0
+	}
+};
+
+my $ralph_user_set = $user_set_rs->addUserSet(params => $ralph_set_info);
+removeIDs($ralph_user_set);
+
+# set some fields that are created from defaults when written to the DB.
+$ralph_set_info->{set_type}    = 'HW';
+$ralph_set_info->{set_version} = 1;
+
+is_deeply($ralph_user_set, $ralph_set_info, 'addUserSet: add a new user with dates (some are missing).');
 
 # Try to add a bad date.
 throws_ok {

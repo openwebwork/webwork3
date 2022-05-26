@@ -217,20 +217,29 @@ throws_ok {
 }
 "DB::Exception::ParametersNeeded", "addSetProblem: try to add a problem without information about the file_path, etc.";
 
-# Try to add a problem without information about the file_path, library_id or problem_pool_id
-throws_ok {
-	$problem_rs->addSetProblem(
-		params => {
-			course_name    => "Precalculus",
-			set_name       => "HW #1",
-			problem_params => {
-				file_path  => "this_is_a_path",
-				library_id => 123
-			}
-		}
-	);
-}
-"DB::Exception::ParametersNeeded", "addSetProblem: try to add a problem with too much library info";
+# Note: we may want to not have the following in the future, but currently its okay.
+# Try to add a problem with both information about the file_path, and library_id .
+
+my $set_prob_params2 = {
+	course_name    => "Precalculus",
+	set_name       => "HW #1",
+	problem_params => {
+		file_path  => "this_is_a_path",
+		library_id => 123,
+		weight     => 1
+	}
+};
+
+my $set_problem2 = $problem_rs->addSetProblem(params => $set_prob_params2);
+# Make a copy to delete later.
+my $set_problem_to_delete = clone $set_problem2;
+delete $set_prob_params2->{course_name};
+delete $set_prob_params2->{set_name};
+
+removeIDs($set_problem2);
+delete $set_problem2->{problem_number};
+
+is_deeply($set_problem2, $set_prob_params2, 'addSetProblem: adding a problem with both file_path and library_id');
 
 # Update a problem
 my $updated_params = {
@@ -337,8 +346,18 @@ my $deleted_problem = $problem_rs->deleteSetProblem(
 	}
 );
 removeIDs($deleted_problem);
-$new_problem->{problem_version} = 1 unless defined($new_problem->{problem_version});
+#$new_problem->{problem_version} = 1 unless defined($new_problem->{problem_version});
 
 is_deeply($updated_problem, $deleted_problem, "deleteSetProblem: delete one problem in an existing set.");
+
+my $deleted_problem2 = $problem_rs->deleteSetProblem(
+	info => {
+		course_name    => 'Precalculus',
+		set_name       => 'HW #1',
+		problem_number => $set_problem_to_delete->{problem_number},
+	}
+);
+# removeIDs($deleted_problem2);
+is_deeply($deleted_problem2, $set_problem_to_delete, "deleteSetProblem: delete another problem.");
 
 done_testing;

@@ -19,9 +19,17 @@ export class ParseError extends Error {
 }
 
 /**
+ * A MergeError class is a general error class for handling merge errors.
+ */
+export class MergeError extends Error {
+	constructor(str: string) {
+		super(str);
+	}
+};
+
+/**
  * NonNegIntException is thrown when the input is not an nonnegative integer.
  */
-
 export class NonNegIntException extends ParseError {
 	constructor(message: string) {
 		super('NonNegIntException', message);
@@ -31,7 +39,6 @@ export class NonNegIntException extends ParseError {
 /**
  * UsernameParseException is thrown when the input is not an valid username.
  */
-
 export class UsernameParseException extends ParseError {
 	constructor(message: string) {
 		super('UsernameParseExcpeption', message, 'username');
@@ -41,7 +48,6 @@ export class UsernameParseException extends ParseError {
 /**
  * EmailParseException is thrown when the input is not an valid email address.
  */
-
 export class EmailParseException extends ParseError {
 	constructor(message: string) {
 		super('EmailParseException', message, 'email');
@@ -51,7 +57,6 @@ export class EmailParseException extends ParseError {
 /**
  * NonNegDecimalException is thrown when the input is not an nonnegative decimal.
  */
-
 export class NonNegDecimalException extends ParseError {
 	constructor(message: string) {
 		super('NonNegDecimalException', message);
@@ -62,7 +67,6 @@ export class NonNegDecimalException extends ParseError {
  * BooleanParseException is thrown when the input is not a valid boolean
  * including perl boolean (0, 1) and the strings 'true' and 'false'.
  */
-
 export class BooleanParseException extends ParseError {
 	constructor(message: string) {
 		super('BooleanParseException', message);
@@ -72,7 +76,6 @@ export class BooleanParseException extends ParseError {
 /**
  * NumberParseException is thrown when the input is not a number.
  */
-
 export class NumberParseException extends ParseError {
 	constructor(message: string) {
 		super('NumberParseException', message);
@@ -82,7 +85,6 @@ export class NumberParseException extends ParseError {
 /**
  * StringParseException is thrown when the input is not a string.
  */
-
 export class StringParseException extends ParseError {
 	constructor(message: string) {
 		super('StringParseException', message);
@@ -92,7 +94,6 @@ export class StringParseException extends ParseError {
 /**
  * UserRoleException is thrown when the input is not a valid UserRole
  */
-
 export class UserRoleException extends ParseError {
 	constructor(message: string) {
 		super('UserRoleException', message, 'role');

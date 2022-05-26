@@ -63,8 +63,9 @@ import { useCourseStore } from 'src/stores/courses';
 import { useUserStore } from 'src/stores/users';
 import { Course } from 'src/common/models/courses';
 import { User, CourseUser } from 'src/common/models/users';
-import { logger } from 'src/boot/logger';
+import { logger } from 'boot/logger';
 import InputWithBlur from 'src/components/common/InputWithBlur.vue';
+import { getUser } from 'src/common/api-requests/user';
 
 interface DateRange {
 	to: string;
@@ -101,7 +102,7 @@ export default defineComponent({
 
 		const checkCourse = () => {
 			logger.debug('[AddCourse/checkCourse] The course name changed, checking for uniqueness.');
-			if (courses.getCourseByName(course.value.course_name)) {
+			if (courses.findCourse({ course_name: course.value.course_name })) {
 				logger.debug(`[AddCourse/checkCourse] A course named ${course.value.course_name} already exists.`);
 				$q.notify({
 					message: `A course named ${course.value.course_name} already exists.`,
@@ -197,7 +198,7 @@ export default defineComponent({
 			checkCourse,
 			checkUser: async () => {
 				// lookup the user by username to see if already exists
-				await users.getUser(username.value)
+				await getUser(username.value)
 					.then((_user) => {
 						logger.debug(`[AddCourse/checkUser] Found user: ${username.value}`);
 						user.value = new User(_user);
