@@ -15,10 +15,6 @@ BEGIN {
 
 use lib "$main::ww3_dir/lib";
 
-use Getopt::Long;
-my $TEST_PERMISSIONS;
-GetOptions("perm" => \$TEST_PERMISSIONS);
-
 use DB::Schema;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
@@ -37,20 +33,11 @@ my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croa
 # Connect to the database.
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-my $t;
+my $t = Test::Mojo->new(WeBWorK3 => $config);
 
-if ($TEST_PERMISSIONS) {
-	$config->{ignore_permissions} = 0;
-	$t = Test::Mojo->new(WeBWorK3 => $config);
-
-	$t->post_ok('/webwork3/api/username' => json => { email => 'admin@google.com', password => 'admin' })
-		->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
-		->json_is('/user/user_id' => 1)->json_is('/user/is_admin' => 1);
-
-} else {
-	$config->{ignore_permissions} = 1;
-	$t = Test::Mojo->new(WeBWorK3 => $config);
-}
+$t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/user_id' => 1)
+	->json_is('/user/is_admin' => 1);
 
 # Load the quizzes.
 my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");

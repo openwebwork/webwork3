@@ -39,7 +39,7 @@ import HomeworkDates from './HomeworkDates.vue';
 import InputWithBlur from 'src/components/common/InputWithBlur.vue';
 import { HomeworkSet, HomeworkSetDates } from 'src/common/models/problem_sets';
 import { problem_set_type_options } from 'src/common/views';
-import { logger } from 'src/boot/logger';
+import { logger } from 'boot/logger';
 
 const props = defineProps({
 	set: {

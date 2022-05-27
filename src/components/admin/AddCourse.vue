@@ -63,7 +63,7 @@ import { useCourseStore } from 'src/stores/courses';
 import { useUserStore } from 'src/stores/users';
 import { Course } from 'src/common/models/courses';
 import { User, CourseUser } from 'src/common/models/users';
-import { logger } from 'src/boot/logger';
+import { logger } from 'boot/logger';
 import InputWithBlur from 'src/components/common/InputWithBlur.vue';
 import { getUser } from 'src/common/api-requests/user';
 

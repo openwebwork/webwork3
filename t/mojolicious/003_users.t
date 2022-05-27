@@ -14,10 +14,6 @@ BEGIN {
 
 use lib "$main::ww3_dir/lib";
 
-use Getopt::Long;
-my $TEST_PERMISSIONS;
-GetOptions("perm" => \$TEST_PERMISSIONS);
-
 use DB::Schema;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
@@ -36,19 +32,11 @@ my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_use
 my $maggie = $schema->resultset("User")->find({ username => "maggie" });
 $maggie->delete if defined($maggie);
 
-my $t;
+my $t = Test::Mojo->new(WeBWorK3 => $config);
 
-if ($TEST_PERMISSIONS) {
-	$config->{ignore_permissions} = 0;
-	$t = Test::Mojo->new(WeBWorK3 => $config);
-
-	$t->post_ok('/webwork3/api/username' => json => { email => 'admin@google.com', password => 'admin' })
-		->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/user_id' => 1)
-		->json_is('/user/is_admin' => 1);
-} else {
-	$config->{ignore_permissions} = 1;
-	$t = Test::Mojo->new(WeBWorK3 => $config);
-}
+$t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/user_id' => 1)
+	->json_is('/user/is_admin' => 1);
 
 my @all_users = $schema->resultset("User")->getAllGlobalUsers();
 
@@ -140,28 +128,28 @@ $t->delete_ok("/webwork3/api/users/$new_user_from_db->{user_id}")->status_is(200
 $t->delete_ok("/webwork3/api/users/$another_new_user_id")->status_is(200)
 	->json_is('/username' => $another_user->{username});
 
-if ($TEST_PERMISSIONS) {
-	# Test that a non-admin user cannot access all of the routes
+# Logout of the admin user account.
+$t->post_ok("/webwork3/api/logout")->status_is(200)->json_is('/logged_in' => 0);
 
-	$t->post_ok('/webwork3/api/username' => json => { email => 'lisa@google.com', password => 'lisa' })->status_is(200)
-		->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
-		->json_is('/user/username' => "lisa")->json_is('/user/is_admin' => 0);
+# Test that a non-admin user cannot access all of the routes
+$t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
+	->json_is('/user/username' => "lisa")->json_is('/user/is_admin' => 0);
 
-	$t->get_ok('/webwork3/api/users')->content_type_is('application/json;charset=UTF-8')->status_is(200)
-		->json_is('/has_permission' => 0);
+$t->get_ok('/webwork3/api/users')->content_type_is('application/json;charset=UTF-8')->status_is(200)
+	->json_is('/has_permission' => 0);
 
-	$t->get_ok('/webwork3/api/users/1')->content_type_is('application/json;charset=UTF-8')->status_is(200)
-		->json_is('/has_permission' => 0);
+$t->get_ok('/webwork3/api/users/1')->content_type_is('application/json;charset=UTF-8')->status_is(200)
+	->json_is('/has_permission' => 0);
 
-	$t->post_ok('/webwork3/api/users' => json => $new_user)->content_type_is('application/json;charset=UTF-8')
-		->status_is(200)->json_is('/has_permission' => 0);
+$t->post_ok('/webwork3/api/users' => json => $new_user)->content_type_is('application/json;charset=UTF-8')
+	->status_is(200)->json_is('/has_permission' => 0);
 
-	$t->put_ok('/webwork3/api/users/1' => json => { email => 'lisa@aol.com' })->status_is(200)
-		->content_type_is('application/json;charset=UTF-8')->json_is('/has_permission' => 0);
+$t->put_ok('/webwork3/api/users/1' => json => { email => 'lisa@aol.com' })->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/has_permission' => 0);
 
-	$t->delete_ok('/webwork3/api/users/1')->content_type_is('application/json;charset=UTF-8')->status_is(200)
-		->json_is('/has_permission' => 0);
-}
+$t->delete_ok('/webwork3/api/users/1')->content_type_is('application/json;charset=UTF-8')->status_is(200)
+	->json_is('/has_permission' => 0);
 
 # Testing that booleans returned from the server are JSON booleans.
 # the first user is the admin
