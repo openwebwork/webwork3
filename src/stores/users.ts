@@ -116,21 +116,6 @@ export const useUserStore = defineStore('user', {
 		},
 
 		/**
-		 * Fetch all User Courses for a user with given user_id.
-		 */
-		// perhaps this should be in the session store?  We do in the next PR.
-		async fetchUserCourses(user_id: number): Promise<void> {
-			logger.debug(`[UserStore/fetchUserCourses] fetching courses for user #${user_id}`);
-			const response = await api.get(`users/${user_id}/courses`);
-			if (response.status === 200) {
-				this.user_courses = response.data as Array<UserCourse>;
-			} else if (response.status === 250) {
-				logger.error(response.data);
-				throw response.data as ResponseError;
-			}
-		},
-
-		/**
 		 * Updates the given user in the database and in the store.
 		 */
 		async updateUser(user: User): Promise<User | undefined> {

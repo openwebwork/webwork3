@@ -163,6 +163,32 @@ export const useSetProblemStore = defineStore('set_problems', {
 		},
 
 		/**
+		 * Update a given UserProblem in the database and in the store.
+		 */
+		 async updateUserProblem(user_problem: UserProblem): Promise<UserProblem> {
+			const course_id = useSessionStore().course.course_id;
+			const set_problem = this.set_problems.find(prob => prob.set_problem_id === user_problem.set_problem_id);
+			const user_set = useProblemSetStore().findUserSet({ user_set_id: user_problem.user_set_id });
+			// TODO: handle if either set_problem or user_set undefined.
+
+			const user_problem_params = user_problem.toObject();
+			// The render params are not stored in the DB.
+			delete user_problem_params.render_params;
+			const response = await api.put(`courses/${course_id}/sets/${set_problem?.set_id ?? 0}/users/${
+				user_set?.user_id ?? 0}/problems/${user_problem.user_problem_id}`, user_problem_params);
+			const updated_db_user_problem = new DBUserProblem(response.data as ParseableDBUserProblem);
+			const index = this.db_user_problems
+				.findIndex(user_problem => user_problem.user_problem_id === updated_db_user_problem.user_problem_id);
+			this.db_user_problems.splice(index, 1, updated_db_user_problem);
+
+			// Create a UserProblem to return from the current user problem and the saved
+			// db_user_problem.
+			const updated_user_problem = new UserProblem(Object.assign(updated_db_user_problem.toObject(),
+				user_problem_params));
+			return updated_user_problem;
+		},
+
+		/**
 		 * Add a given UserProblem to the database and the store.
 		 */
 		async addUserProblem(user_problem: UserProblem): Promise<UserProblem> {

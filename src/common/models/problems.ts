@@ -526,7 +526,7 @@ export function parseProblem(problem: ParseableProblem, type: 'Library' | 'Set' 
  * A MergeError is thrown.
  */
 
- export function mergeUserProblem(set_problem: SetProblem, db_user_problem: DBUserProblem,
+export function mergeUserProblem(set_problem: SetProblem, db_user_problem: DBUserProblem,
 	user_set: UserSet) {
 	// Check if the User Problem is related to the Set Problem
 	if (set_problem.set_problem_id !== db_user_problem.set_problem_id) {
