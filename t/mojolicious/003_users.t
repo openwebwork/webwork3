@@ -154,6 +154,10 @@ $t->delete_ok('/webwork3/api/users/1')->content_type_is('application/json;charse
 # Testing that booleans returned from the server are JSON booleans.
 # the first user is the admin
 
+# to check this, relogin as admin
+$t->post_ok('/webwork3/api/logout')->status_is(200);
+$t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200);
+
 $t->get_ok('/webwork3/api/users/1')->json_is('/username', 'admin');
 my $admin_user = $t->tx->res->json;
 

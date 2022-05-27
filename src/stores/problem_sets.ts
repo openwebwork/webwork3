@@ -10,10 +10,10 @@ import { useUserStore } from './users';
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
 import { UserSet, mergeUserSet, DBUserSet, ParseableDBUserSet, parseDBUserSet,
 } from 'src/common/models/user_sets';
-import { logger } from 'src/boot/logger';
+import { CourseUser } from 'src/common/models/users';
 import { ResponseError } from 'src/common/api-requests/interfaces';
 
-import { CourseUser } from 'src/common/models/users';
+
 
 /**
  * This is an type to retrieve set info.
@@ -69,16 +69,23 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			set_info.set_id ?
 				state.problem_sets.find(set => set.set_id === set_info.set_id) :
 				state.problem_sets.find(set => set.set_name === set_info.set_name),
+
 		/**
 		 * Return all user sets with given set_id or set_name.
 		 */
-		findUserSets: (state) => (set_info: SetInfo): UserSet[] => {
-			if (set_info.set_id) {
-				return state.user_sets.filter(user_set => user_set.set_id === set_info.set_id) as UserSet[];
-			} else if (set_info.set_name) {
-				const set = state.problem_sets.find(set => set.set_name === set_info.set_name);
-				if (set) {
-					return state.user_sets.filter(user_set => user_set.set_id === set.set_id) as UserSet[];
+		 findUserSets(state) {
+			// TODO: for performance, maybe don't call this.user_sets, but build up the
+			// user_sets instead.
+			return (set_info: SetInfo): UserSet[] => {
+				if (set_info.set_id) {
+					return this.user_sets.filter(user_set => user_set.set_id === set_info.set_id);
+				} else if (set_info.set_name) {
+					const set = state.problem_sets.find(set => set.set_name === set_info.set_name);
+					if (set) {
+						return this.user_sets.filter(user_set => user_set.set_id === set.set_id) ;
+					} else {
+						return [];
+					}
 				} else {
 					return [];
 				}

@@ -291,7 +291,7 @@ my $updated_set = $problem_set_rs->updateProblemSet(
 );
 removeIDs($updated_set);
 delete $new_set_params->{type};
-use Data::Dumper;
+
 is_deeply($new_set_params, $updated_set, "updateSet: change the set parameters");
 
 # Update the set where the set_type is sent, but the type is not:

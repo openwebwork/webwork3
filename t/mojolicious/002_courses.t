@@ -112,6 +112,10 @@ $t->delete_ok("/webwork3/api/courses/1")->status_is(200)->json_is('/has_permissi
 # Testing that booleans returned from the server are JSON booleans.
 # getting the first course
 
+# to check this, relogin as admin
+$t->post_ok('/webwork3/api/logout')->status_is(200);
+$t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200);
+
 $t->get_ok('/webwork3/api/courses/1')->json_is('/course_name', 'Precalculus');
 my $precalc = $t->tx->res->json;
 

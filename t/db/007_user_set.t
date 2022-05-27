@@ -744,9 +744,6 @@ throws_ok {
 
 # Delete some user sets that were created.
 
-use Data::Dumper;
-# print Dumper $new_info;
-
 my $deleted_user_set = $user_set_rs->deleteUserSet(
 	info => {
 		username    => $new_user_set2->{username},
