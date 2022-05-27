@@ -561,12 +561,9 @@ export function parseUserSet(user_set: ParseableUserSet) {
 }
 
 /**
- * merge a ProblemSet and a UserSet in that the result is a MergedUserSet with overrides
- * taken from the UserSet.  Additional info is taken from the MergedUser instance.
- * @param {ProblemSet} set - a problem set
- * @param {UserSet} user_set - a user set that will override the problem set dates and parameters.
- * @param {CourseUser} user - the user associated with the set.
- * @returns a MergedUserSet with the appropriate overrides.
+ * Merge a ProblemSet, a DBUserSet and a CourseUser and return a UserSet. Note: if the
+ * arguments are not related in the database (based on primary and foreign keys), a MergeError is
+ * thrown.  in that the result is a MergedUserSet with overrides taken from the UserSet.
  */
 export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: CourseUser) {
 	// Check if the user_set is related to the Problem Set

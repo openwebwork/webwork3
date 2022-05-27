@@ -18,10 +18,9 @@ export const useCourseStore = defineStore('courses', {
 		courses: []
 	}),
 	getters: {
+
 		/**
-		 * returns a course in the store.
-		 * @param {CourseInfo} course_info - either a course_id or course_name
-		 * @returns {Course} the requested course
+		 * Returns a course in the store based on passing in either the course_id or course_name.
 		 */
 		findCourse: (state) => (course_info: CourseInfo) => {
 			if (course_info.course_id) {
@@ -32,17 +31,17 @@ export const useCourseStore = defineStore('courses', {
 		}
 	},
 	actions: {
+
 		/**
-		 * fetches all courses from the database with the results stored in the store.
+		 * Fetches all courses from the database with the results stored in the store.
 		 */
 		async fetchCourses() : Promise<void> {
 			const response = await api.get('courses');
 			this.courses = (response.data as ParseableCourse[]).map(course => new Course(course));
 		},
+
 		/**
 		 * Adds a course to the database and the store.
-		 * @param {Course} course - the course to be added.
-		 * @return {Course} the added course.
 		 */
 		async addCourse(course: Course): Promise<Course | undefined> {
 			const response = await api.post('courses', course.toObject());
@@ -55,10 +54,9 @@ export const useCourseStore = defineStore('courses', {
 				throw response.data as ResponseError;
 			}
 		},
+
 		/**
 		 * This updates the course in the database and the store.
-		 * @param {Course} course - the course to be updated.
-		 * @return {Course} the updated course.
 		 */
 		async updateCourse(course: Course): Promise<Course | undefined> {
 			const response = await api.put(`courses/${course.course_id}`, course.toObject());
@@ -71,10 +69,9 @@ export const useCourseStore = defineStore('courses', {
 				throw response.data as ResponseError;
 			}
 		},
+
 		/**
 		 * This deletes the course in the database and the store.
-		 * @param {Course} course - the course to be deleted.
-		 * @return {Course} the deleted course.
 		 */
 		async deleteCourse(course: Course): Promise<Course | undefined> {
 			const response = await api.delete(`courses/${course.course_id}`);

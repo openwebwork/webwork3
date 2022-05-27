@@ -1,7 +1,8 @@
 // This store is for problem sets, user sets, merged user sets and set problems.
 
-import { api } from 'boot/axios';
 import { defineStore } from 'pinia';
+import { api } from 'boot/axios';
+import { logger } from 'boot/logger';
 
 import { useSessionStore } from './session';
 import { useUserStore } from './users';
@@ -9,10 +10,9 @@ import { useUserStore } from './users';
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
 import { UserSet, mergeUserSet, DBUserSet, ParseableDBUserSet, parseDBUserSet,
 } from 'src/common/models/user_sets';
-import { logger } from 'src/boot/logger';
-import { ResponseError } from 'src/common/api-requests/interfaces';
-
 import { CourseUser } from 'src/common/models/users';
+
+import { ResponseError } from 'src/common/api-requests/interfaces';
 
 /**
  * This is an type to retrieve set info.
@@ -71,9 +71,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 				state.problem_sets.find(set => set.set_id === set_info.set_id) :
 				state.problem_sets.find(set => set.set_name === set_info.set_name),
 		/**
-		 * returns all user sets related to a Problem Set (via a set_id or set_name)
-		 * @param{SetInfo} set_info: either a set_id or set_name
-		 * @return array of UserSets
+		 * Return all user sets with given set_id or set_name.
 		 */
 		findUserSets(state) {
 			// TODO: for performance, maybe don't call this.user_sets, but build up the
@@ -93,10 +91,9 @@ export const useProblemSetStore = defineStore('problem_sets', {
 				}
 			};
 		},
+
 		/**
-		 * findUserSet returns a user set for a given set id or set name
-		 * and user_id or user_name
-		 * @param state
+		 * Find a merged user set for a given set_id or set name and user_id or username.
 		 */
 		findUserSet(state) {
 			return (user_set_info: UserSetInfo): UserSet | undefined => {
@@ -126,19 +123,18 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		}
 	},
 	actions: {
+
 		/**
-		 * fetches all problem sets for the given course.
-		 * @param {number} course_id -- the database course id.
+		 * Fetches all problem sets for the given course and stores the results.
 		 */
 		async fetchProblemSets(course_id: number): Promise<void> {
 			const response = await api.get(`courses/${course_id}/sets`);
 			const sets_to_parse = response.data as Array<ParseableProblemSet>;
 			this.problem_sets = sets_to_parse.map((set) => parseProblemSet(set));
 		},
+
 		/**
-		 * adds a problem set to the store and the database.
-		 * @param {ProblemSet} set -- the set to add to the database.
-		 * @returns {Promise<ProblemSet>} the added problem set.
+		 * Adds the given problem set to the store and the database.
 		 */
 		async addProblemSet(set: ProblemSet): Promise<ProblemSet> {
 			const response = await api.post(`courses/${set.course_id}/sets`, set.toObject());
@@ -146,15 +142,12 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			this.problem_sets.push(new_set);
 			return new_set;
 		},
+
 		/**
-		 * updates a set in the store and the database.
-		 * @param {ProblemSet} set -- the problem set to be updated.
+		 * Updates the given set in the store and the database.
 		 */
-		// async updateSet(set: ProblemSet): Promise<{ error: boolean; message: string }> {
 		async updateSet(set: ProblemSet): Promise<ProblemSet | undefined> {
 			const response = await api.put(`courses/${set.course_id}/sets/${set.set_id}`, set.toObject());
-			// let message = '';
-			// let is_error = false;
 			if (response.status === 200) {
 				const updated_set = parseProblemSet(response.data as ParseableProblemSet);
 				// This is being handled in the tests, so we probably don't need to test for each
@@ -162,21 +155,15 @@ export const useProblemSetStore = defineStore('problem_sets', {
 				if (JSON.stringify(updated_set) !== JSON.stringify(set)) {
 					logger.error('[updateSet] response does not match requested update to set');
 				}
-				// message = `${updated_set.set_name} was successfully updated.`;
 				const index = this.problem_sets.findIndex(s => s.set_id === set.set_id);
 				this.problem_sets[index] = updated_set;
 				return updated_set;
 			} else {
 				const error = response.data as ResponseError;
-				// message = error.message;
-				// is_error = true;
 				logger.error(`Error updating set: ${error.message}`);
 				throw new Error(error.message);
 				// TODO: app-level error handling -- should throw here
 			}
-
-			// return { error: is_error, message };
-
 			// The following is not working.  TODO: fix-me
 			// if (JSON.stringify(set) === JSON.stringify(_set)) {
 			// commit('UPDATE_PROBLEM_SET', _set);
@@ -185,6 +172,10 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			// }
 
 		},
+
+		/**
+		 * Delete the given ProblemSet from the database and the store.
+		 */
 		async deleteProblemSet(set: ProblemSet) {
 			const response = await api.delete(`courses/${set.course_id}/sets/${set.set_id}`);
 			const set_to_delete = parseProblemSet(response.data as ParseableProblemSet);
@@ -196,28 +187,28 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			return set_to_delete;
 		},
 		// UserSet actions
+
 		/**
-		 * fetchAllUserSets fetches all user sets for a given course.
-		 * @param course_id: number
+		 * Fetches all user sets for a given course and stores the results.
 		 */
-		async fetchAllUserSets(course_id: number) {
+		async fetchAllUserSets(course_id: number): Promise<void> {
 			const response = await api.get(`courses/${course_id}/user-sets`);
 			const user_sets_to_parse = response.data as ParseableDBUserSet[];
 			this.db_user_sets = user_sets_to_parse.map(user_set => parseDBUserSet(user_set));
 		},
+
 		/**
-		 * fetch all user sets in a given course with a given set_id
-		 * @param params -- the course_id and set_id as database is.
+		 * Fetch all user sets in a given course_id and given set_id.  The results are stored.
 		 */
 		async fetchUserSets(params: { course_id: number; set_id: number}) {
 			const response = await api.get(`courses/${params.course_id}/sets/${params.set_id}/users`);
 			const user_sets_to_parse = response.data as ParseableDBUserSet[];
 			this.db_user_sets = user_sets_to_parse.map(user_set => parseDBUserSet(user_set));
 		},
+
 		/**
-		 * fetches all user sets for a given user in the current course (from the session)
-		 * @param {UserInfo} params - either a username or user_id
-		 * @returns an array of user sets for a given user.
+		 * Fetches all user sets for a given user in the current course (from the session) and store
+		 * the results.
 		 */
 		async fetchUserSetsForUser(params: UserInfo) {
 			const course_id = useSessionStore().course.course_id;
@@ -232,10 +223,9 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			const response = await api.get(`courses/${course_id}/users/${user_id}/sets`);
 			this.db_user_sets = (response.data as ParseableDBUserSet[]).map(user_set => parseDBUserSet(user_set));
 		},
+
 		/**
-		 * adds a User Set to the store and the corresponding DBUserSet to the database.
-		 * @param {UserSet} user_set - the user set to add.
-		 * @returns the added user set.
+		 * Adds a User Set to the store and the database.
 		 */
 		async addUserSet(user_set: UserSet): Promise<UserSet | undefined> {
 			const course_id = useSessionStore().course.course_id;
@@ -249,10 +239,9 @@ export const useProblemSetStore = defineStore('problem_sets', {
 				return user_set;
 			}
 		},
+
 		/**
-		 * updates a User Set to the store and the database.
-		 * @param {UserSet} user_set - the user set to be updated.
-		 * @returns the updated user set.
+		 * Updates the given UserSet to the store and the database.
 		 */
 		async updateUserSet(set: UserSet): Promise<UserSet> {
 			const sessionStore = useSessionStore();
@@ -267,10 +256,9 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			set.set(updated_user_set.toObject());
 			return set;
 		},
+
 		/**
-		 * deletes a User Set from the store and the database.
-		 * @param {UserSet} user_set - the user set to delete.
-		 * @returns the deleted user set.
+		 * Deletes the given UserSet from the store and the database.
 		 */
 		async deleteUserSet(user_set: UserSet) {
 			const course_id = useSessionStore().course.course_id;
@@ -283,6 +271,10 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			user_set.set(deleted_user_set.toObject());
 			return user_set;
 		},
+
+		/**
+		 * Clears all objects from the store.
+		 */
 		clearAll() {
 			this.db_user_sets = [];
 			this.problem_sets = [];

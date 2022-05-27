@@ -1,15 +1,17 @@
 /**
  * @jest-environment jsdom
  */
-// The above is needed because the logger uses the window object, which is only present
-// when using the jsdom environment.
+// The above is needed because  1) the logger uses the window object, which is only present
+// when using the jsdom environment and 2) because the pinia store is used is being
+// tested with persistance.
 
-// problem_sets.spec.ts
-// Test the problem sets Store
+// users.spec.ts
+// Test the users Store
 
-import { setActivePinia, createPinia } from 'pinia';
 import { createApp } from 'vue';
+import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import { api } from 'boot/axios';
 
 import { cleanIDs, loadCSV } from '../utils';
 import { useCourseStore } from 'src/stores/courses';
@@ -29,6 +31,9 @@ describe('User store tests', () => {
 		const pinia = createPinia().use(piniaPluginPersistedstate);
 		app.use(pinia);
 		setActivePinia(pinia);
+
+		// Login to the course as the admin in order to be authenticated for the rest of the test.
+		await api.post('login', { username: 'admin', password: 'admin' });
 
 		const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
 			boolean_fields: ['is_admin'],

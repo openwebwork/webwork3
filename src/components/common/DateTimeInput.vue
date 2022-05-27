@@ -21,7 +21,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
 import { date } from 'quasar';
-import { logger } from 'src/boot/logger';
+import { logger } from 'boot/logger';
 
 export default defineComponent({
 	name: 'DateTimeInput',
