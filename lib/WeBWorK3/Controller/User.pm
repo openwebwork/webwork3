@@ -9,9 +9,9 @@ sub getGlobalUsers ($self) {
 
 sub getGlobalUser ($self) {
 	my $user =
-		$self->param("user") =~ /^\d+$/
-		? $self->schema->resultset('User')->getGlobalUser(info => { user_id  => int($self->param("user")) })
-		: $self->schema->resultset('User')->getGlobalUser(info => { username => $self->param("user") });
+		$self->param('user') =~ /^\d+$/
+		? $self->schema->resultset('User')->getGlobalUser(info => { user_id  => int($self->param('user')) })
+		: $self->schema->resultset('User')->getGlobalUser(info => { username => $self->param('user') });
 	$self->render(json => $user);
 	return;
 }

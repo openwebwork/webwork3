@@ -73,7 +73,7 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 =cut
 
 sub getProblems ($self, %args) {
-	my $course = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+	my $course = $self->rs('Course')->getCourse(info => $args{info}, as_result_set => 1);
 
 	my @problems =
 		$self->search({ 'problem_set.course_id' => $course->course_id }, { join => [qw/problem_set/] });
@@ -118,7 +118,7 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 =cut
 
 sub getSetProblems ($self, %args) {
-	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
+	my $problem_set = $self->rs('ProblemSet')->getProblemSet(info => $args{info}, as_result_set => 1);
 	my @problems    = $self->search({ 'set_id' => $problem_set->set_id });
 
 	return \@problems if $args{as_result_set};
@@ -140,7 +140,7 @@ This gets a single problem from a given course and problem
 =over
 =item - C<course_name> or C<course_id>
 =item - C<set_name> or C<set_id>
-=item - C<problem_number> or C<set_"SetProblem">
+=item - C<problem_number> or C<set_'SetProblem'>
 
 =back
 
@@ -162,7 +162,7 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 =cut
 
 sub getSetProblem ($self, %args) {
-	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
+	my $problem_set = $self->rs('ProblemSet')->getProblemSet(info => $args{info}, as_result_set => 1);
 
 	my $problem = $problem_set->problems->find(getProblemInfo($args{info}));
 
@@ -229,11 +229,12 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 =cut
 
 sub addSetProblem ($self, %args) {
-	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{params}, as_result_set => 1);
+	my $problem_set = $self->rs('ProblemSet')->getProblemSet(info => $args{params}, as_result_set => 1);
 	my $params      = clone $args{params};
 
-	# Remove some parameters that are not in the database, but may be passed in.
-	for my $key (qw/course_name course_id set_name set_id/) {
+	# Remove some parameters that are not in the database, but may be passed in,
+	# including set_problem_id which should not have a value if being added.
+	for my $key (qw/set_problem_id course_name course_id set_name/) {
 		delete $params->{$key} if defined $params->{$key};
 	}
 
@@ -251,14 +252,12 @@ sub addSetProblem ($self, %args) {
 sub checkProblemParams ($self, $params) {
 
 	# Check that the problem_number field is a positive number.
-	DB::Exception::InvalidParameter->throw(message => "The problem_number must be a positive integer")
+	DB::Exception::InvalidParameter->throw(message => 'The problem_number must be a positive integer')
 		unless defined $params->{problem_number} && $params->{problem_number} =~ /^\d+$/;
 
 	my $problem_to_add = $self->new($params);
 	$problem_to_add->validParams('problem_params');
-
 	return 1;
-
 }
 
 =head2 updateSetProblem
@@ -315,6 +314,7 @@ sub updateSetProblem ($self, %args) {
 	my $params  = updateAllFields({ $problem->get_inflated_columns }, $args{params});
 
 	# Check that the new params are valid.
+	my $updated_problem = $self->new($params);
 	$self->checkProblemParams($params);
 
 	my $problem_to_return = $problem->update($params);
@@ -357,7 +357,7 @@ A problem (as hashrefs) or an object of class C<DBIx::Class::ResultSet::Problem>
 
 sub deleteSetProblem ($self, %args) {
 	my $set_problem = $self->getSetProblem(info => $args{info}, as_result_set => 1);
-	my $problem_set = $self->rs("ProblemSet")->getProblemSet(
+	my $problem_set = $self->rs('ProblemSet')->getProblemSet(
 		info => {
 			course_id => $set_problem->problem_set->course_id,
 			set_id    => $set_problem->set_id
@@ -365,7 +365,7 @@ sub deleteSetProblem ($self, %args) {
 		as_result_set => 1
 	);
 
-	my $problem = $problem_set->search_related("problems", getProblemInfo($args{info}))->single;
+	my $problem = $problem_set->search_related('problems', getProblemInfo($args{info}))->single;
 
 	my $deleted_problem = $problem->delete;
 

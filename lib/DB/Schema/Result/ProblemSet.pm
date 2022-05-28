@@ -93,12 +93,12 @@ __PACKAGE__->add_columns(
 		is_nullable => 0,
 	},
 	type => {
-		data_type     => "int",
+		data_type     => 'int',
 		default_value => 1,
 		size          => 8
 	},
 	set_visible => {
-		data_type     => "boolean",
+		data_type     => 'boolean',
 		default_value => 1,
 		is_nullable   => 0
 	},

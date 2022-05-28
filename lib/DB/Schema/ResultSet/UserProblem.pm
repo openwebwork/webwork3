@@ -250,8 +250,8 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 =cut
 
 sub getUserProblem ($self, %args) {
-	my $problem  = $self->rs("SetProblem")->getSetProblem(info => $args{info}, as_result_set => 1);
-	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{info}, as_result_set => 1);
+	my $problem  = $self->rs('SetProblem')->getSetProblem(info => $args{info}, as_result_set => 1);
+	my $user_set = $self->rs('UserSet')->getUserSet(info => $args{info}, as_result_set => 1);
 
 	my $user_problem = $problem->user_problems->find({
 		user_set_id     => $user_set->user_set_id,
@@ -326,8 +326,8 @@ sub addUserProblem ($self, %args) {
 			. $user_problem->user_sets->problem_sets->set_name)
 		if $user_problem;
 
-	my $problem  = $self->rs("SetProblem")->getSetProblem(info => $args{params}, as_result_set => 1);
-	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{params}, as_result_set => 1);
+	my $problem  = $self->rs('SetProblem')->getSetProblem(info => $args{params}, as_result_set => 1);
+	my $user_set = $self->rs('UserSet')->getUserSet(info => $args{params}, as_result_set => 1);
 
 	my $params = clone($args{params} // {});
 
@@ -489,8 +489,8 @@ This method returns all versions of user problems for a given problem for a user
 =cut
 
 sub getUserProblemVersions ($self, %args) {
-	my $problem  = $self->rs("SetProblem")->getSetProblem(info => $args{info}, as_result_set => 1);
-	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{info}, as_result_set => 1);
+	my $problem  = $self->rs('SetProblem')->getSetProblem(info => $args{info}, as_result_set => 1);
+	my $user_set = $self->rs('UserSet')->getUserSet(info => $args{info}, as_result_set => 1);
 
 	my @user_problems = $self->search({
 		set_problem_id => $problem->set_problem_id,
