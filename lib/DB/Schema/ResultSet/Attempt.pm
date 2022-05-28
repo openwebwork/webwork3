@@ -57,7 +57,7 @@ is true, the return is a merged hashref.
 =cut
 
 sub getAttempts ($self, %args) {
-	my $user_problem = $self->rs("UserProblem")->getUserProblem(info => $args{info}, as_result_set => 1);
+	my $user_problem = $self->rs('UserProblem')->getUserProblem(info => $args{info}, as_result_set => 1);
 
 	my @attempts = $self->search({ user_problem_id => $user_problem->user_problem_id });
 
@@ -111,7 +111,7 @@ is true, the return is a merged hashref.
 =cut
 
 sub addAttempt ($self, %args) {
-	my $user_problem = $self->rs("UserProblem")->getUserProblem(info => $args{params}, as_result_set => 1);
+	my $user_problem = $self->rs('UserProblem')->getUserProblem(info => $args{params}, as_result_set => 1);
 
 	my $params = clone $args{params};
 

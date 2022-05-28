@@ -550,6 +550,9 @@ export class UserReviewSet extends UserSet {
 	}
 }
 
+/**
+ * Parse the UserSet, returning a model of the correct subclass.
+ */
 export function parseUserSet(user_set: ParseableUserSet) {
 	if (user_set.set_type === 'HW') {
 		return new UserHomeworkSet(user_set as ParseableUserHomeworkSet);

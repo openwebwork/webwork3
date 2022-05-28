@@ -311,6 +311,7 @@ export interface ParseableDBUserProblem {
  * The class DBUserProblem is used for problems assigned to Users and
  * to be used to store in the database.  This is used only in the store.
  */
+
 export class DBUserProblem extends Problem {
 	private _problem_params = new SetProblemParams();
 	private _user_problem_id = 0;
@@ -407,6 +408,7 @@ export interface ParseableUserProblem {
 /**
  * The class UserProblem is used for merging User and set problems
  */
+
 export class UserProblem extends Problem {
 	private _problem_params = new SetProblemParams();
 	private _user_problem_id = 0;
@@ -521,7 +523,7 @@ export function parseProblem(problem: ParseableProblem, type: 'Library' | 'Set' 
 }
 
 /**
- * Merges a SetProblem, UserProblem and MergedUserSet returning a MergedUserProblem.
+ * * Merges a SetProblem, a DBUserProblem and a UserSet returning a UserProblem.
  * Note: if the arguments are not related in the database (based on primary and foreign keys)
  * A MergeError is thrown.
  */

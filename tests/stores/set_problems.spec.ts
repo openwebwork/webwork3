@@ -21,14 +21,12 @@ import { useSetProblemStore } from 'src/stores/set_problems';
 
 import { Course } from 'src/common/models/courses';
 import { HomeworkSet, ProblemSet, Quiz, ReviewSet } from 'src/common/models/problem_sets';
-import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
-import { UserProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemParams,
-	DBUserProblem,
+import { UserProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemParams, DBUserProblem,
 	mergeUserProblem } from 'src/common/models/problems';
 import { DBUserHomeworkSet, mergeUserSet, UserSet } from 'src/common/models/user_sets';
 import { Dictionary, generic } from 'src/common/models';
 
-import { cleanIDs, loadCSV } from '../utils';
+import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 
 const app = createApp({});
 

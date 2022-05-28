@@ -56,11 +56,11 @@ use Exception::Class (
 		description => 'The set already exists in the course'
 	},
 	'DB::Exception::UserSetExists' => {
-		fields      => [ 'set_name', 'course_name', "username" ],
+		fields      => [ 'set_name', 'course_name', 'username' ],
 		description => 'The user set already exists in the course'
 	},
 	'DB::Exception::UserSetNotInCourse' => {
-		fields      => [ 'set_name', 'course_name', "username" ],
+		fields      => [ 'set_name', 'course_name', 'username' ],
 		description => 'The user set does not exist in the course'
 	},
 	'DB::Exception::ParametersNeeded' => {

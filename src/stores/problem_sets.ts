@@ -8,10 +8,10 @@ import { useSessionStore } from './session';
 import { useUserStore } from './users';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
-import { UserSet, mergeUserSet, DBUserSet, ParseableDBUserSet, parseDBUserSet,
+import {
+	UserSet, mergeUserSet, DBUserSet, ParseableDBUserSet, parseDBUserSet
 } from 'src/common/models/user_sets';
 import { CourseUser } from 'src/common/models/users';
-
 import { ResponseError } from 'src/common/api-requests/interfaces';
 
 /**
@@ -50,9 +50,9 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		db_user_sets: [],
 	}),
 	getters: {
+
 		/**
-		 * returns all User Sets (merge between Problem Set and a DBUserSet)
-		 * @returns all User Sets (merge between Problem Set and a DBUserSet)
+		 * Returns all User Sets (merge between Problem Set and a DBUserSet)
 		 */
 		user_sets: (state) => state.db_user_sets.map(db_user_set => {
 			const problem_set = state.problem_sets.find(set => set.set_id == db_user_set.set_id);
@@ -60,18 +60,17 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			return mergeUserSet(problem_set as ProblemSet, db_user_set as DBUserSet, course_user as CourseUser)
 				?? new UserSet();
 		}),
-		// Return a Problem Set from a set_id or set_name
+
 		/**
-		 * Returns a Problem Set given information about the set
-		 * @param{SetInfo} either the set_id or set_name
-		 * @returns a problem set with the given information.
+		 * Returns a ProblemSet given either the set_id or set_name.
 		 */
 		findProblemSet: (state) => (set_info: SetInfo) =>
 			set_info.set_id ?
 				state.problem_sets.find(set => set.set_id === set_info.set_id) :
 				state.problem_sets.find(set => set.set_name === set_info.set_name),
+
 		/**
-		 * Return all user sets with given set_id or set_name.
+		 * Returns all user sets with given a set_id or set_name.
 		 */
 		findUserSets(state) {
 			// TODO: for performance, maybe don't call this.user_sets, but build up the

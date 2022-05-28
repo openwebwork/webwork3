@@ -9,8 +9,9 @@
 // Test the Session Store
 
 import { createApp } from 'vue';
-import { createPinia, setActivePinia } from 'pinia';
+import { setActivePinia, createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import { api } from 'src/boot/axios';
 
 import { useSessionStore } from 'src/stores/session';
 import { getUser } from 'src/common/api-requests/user';
@@ -90,8 +91,9 @@ describe('Session Store', () => {
 		lisa = new User(await getUser('lisa'));
 	});
 
-	test('default session', () => {
-		const session = useSessionStore();
+	describe('Testing the Session Store.', () => {
+		test('default session', () => {
+			const session = useSessionStore();
 
 		expect(session.logged_in).toBe(false);
 		expect(session.user).toStrictEqual(logged_out);
@@ -101,10 +103,9 @@ describe('Session Store', () => {
 		});
 	});
 
-	test('update the session', () => {
-		const session = useSessionStore();
-
-		session.updateSessionInfo(session_info);
+		test('update the session', () => {
+			const session = useSessionStore();
+			session.updateSessionInfo(session_info);
 
 		expect(session.logged_in).toBe(true);
 		expect(session.user).toStrictEqual(user);
@@ -114,11 +115,9 @@ describe('Session Store', () => {
 			course_id: 1
 		};
 
-		session.setCourse(course);
-
-		expect(session.course).toStrictEqual(course);
-
-	});
+			session.setCourse(course);
+			expect(session.course).toStrictEqual(course);
+		});
 
 	test('logging out should clear the session', () => {
 		const session = useSessionStore();
@@ -137,5 +136,4 @@ describe('Session Store', () => {
 		await session_store.fetchUserCourses(lisa.user_id);
 		expect(cleanIDs(session_store.user_courses)).toStrictEqual(cleanIDs(lisa_courses));
 	});
-
 });

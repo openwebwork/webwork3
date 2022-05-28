@@ -53,7 +53,7 @@ Get all problem pools for a given course
 =cut
 
 sub getProblemPools ($self, %args) {
-	my $course = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+	my $course = $self->rs('Course')->getCourse(info => $args{info}, as_result_set => 1);
 
 	my @pools = $self->search(
 		{
@@ -79,7 +79,7 @@ Get a single problem pool for a given course
 =cut
 
 sub getProblemPool ($self, %args) {
-	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+	my $course = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 
 	my $search_info = getPoolInfo($args{info});
 	$search_info->{'courses.course_id'} = $course->course_id;
@@ -103,9 +103,9 @@ Add a problem pool for a given course
 =cut
 
 sub addProblemPool ($self, %args) {
-	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{params}), as_result_set => 1);
+	my $course = $self->rs('Course')->getCourse(info => getCourseInfo($args{params}), as_result_set => 1);
 
-	DB::Exception::ParametersNeeded->throw(message => "The pool_name is missing from the parameters")
+	DB::Exception::ParametersNeeded->throw(message => 'The pool_name is missing from the parameters')
 		unless defined($args{params}->{pool_name});
 
 	my $existing_pool = $self->find(
@@ -117,14 +117,13 @@ sub addProblemPool ($self, %args) {
 	);
 
 	DB::Exception::PoolAlreadyInCourse->throw(
-		message => "The problem pool "
+		message => 'The problem pool '
 			. (
 			$args{info}->{pool_name} || $args{params}->{pool_name}
-			? " with name " . ($args{info}->{pool_name} // $args{params}->{pool_name})
-			: " with id " . $args{info}->{problem_pool_id}
+			? ' with name ' . ($args{info}->{pool_name} // $args{params}->{pool_name})
+			: ' with id ' . $args{info}->{problem_pool_id}
 			)
-			. " is already defined in the course "
-			. $course->course_name
+			. " is already defined in the course $course->course_name"
 	) if defined($existing_pool);
 
 	my $params = clone $args{params};
@@ -153,16 +152,12 @@ sub updateProblemPool ($self, %args) {
 	my $pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
 
 	DB::Excpetion::PoolNotInCourse->throw(
-		message => "The problem pool "
+		message => 'The problem pool '
 			. (
-			$args{info}->{pool_name}
-			? " named " . $args{info}->{pool_name}
-			: " with id " . $args{info}->{problem_pool_id}
+			$args{info}->{pool_name} ? " named $args{info}->{pool_name}" : " with id $args{info}->{problem_pool_id}"
 			)
 			. " is not in the course "
-			. (
-			$args{info}->{course_name} ? " named " . $args{info}->{course_name} : " with id " . $args{info}->{course_id}
-			)
+			. $args{info}->{course_name} ? " named $args{info}->{course_name}" : " with id $args{info}->{course_id}"
 	) unless defined($pool);
 
 	# create a new problem pool to check for valid fields
@@ -183,7 +178,7 @@ updates the parameters of an existing problem pool
 sub deleteProblemPool ($self, %args) {
 	my $pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
 
-	DB::Exception::PoolNotInCourse->throws(error => "The problem pool does not exist")
+	DB::Exception::PoolNotInCourse->throws(error => 'The problem pool does not exist')
 		unless defined($pool);
 
 	my $deleted_pool = $pool->delete();
@@ -233,7 +228,7 @@ sub getPoolProblem ($self, %args) {
 		$pool_problem_info = {};
 	};
 
-	my @pool_problems = $problem_pool->search_related("pool_problems", $pool_problem_info)->all;
+	my @pool_problems = $problem_pool->search_related('pool_problems', $pool_problem_info)->all;
 
 	if (scalar(@pool_problems) == 1) {
 		return $args{as_result_set} ? $pool_problems[0] : { $pool_problems[0]->get_inflated_columns };
@@ -253,10 +248,10 @@ sub addProblemToPool ($self, %args) {
 
 	my $pool   = $self->getProblemPool(info => $args{params}, as_result_set => 1);
 	my $params = clone $args{params};
-	DB::Excpetion::PoolNotInCourse->throw(message => "The problem pool "
-			. ($params->{pool_name} ? " named " . $params->{pool_name} : " with id " . $params->{problem_pool_id})
-			. " is not in the course "
-			. ($params->{course_name} ? " named " . $params->{course_name} : " with id " . $params->{course_id}))
+	DB::Excpetion::PoolNotInCourse->throw(message => 'The problem pool '
+			. ($params->{pool_name} ? " named $params->{pool_name}" : " with id $params->{problem_pool_id}")
+			. ' is not in the course '
+			. ($params->{course_name} ? " named $params->{course_name}" : " with id $params->{course_id}"))
 		unless defined($pool);
 
 	# Remove some parameters that are not in the UserSet database, but may be passed in.
@@ -264,10 +259,10 @@ sub addProblemToPool ($self, %args) {
 		delete $params->{$key} if defined $params->{$key};
 	}
 
-	my $course = $self->rs("Course")->find({ course_id => $pool->course_id });
+	my $course = $self->rs('Course')->find({ course_id => $pool->course_id });
 
 	$params->{problem_pool_id} = $pool->problem_pool_id;
-	my $pool_problem = $self->rs("PoolProblem")->new($params);
+	my $pool_problem = $self->rs('PoolProblem')->new($params);
 
 	my $added_problem = $pool->add_to_pool_problems($params);
 
@@ -305,7 +300,7 @@ sub updatePoolProblem ($self, %args) {
 	my $prob = $self->getPoolProblem(info => $args{info}, as_result_set => 1);
 	DB::Exception::PoolProblemNotInPool->throw(info => $args{info}) unless defined($prob);
 
-	my $prob_to_update = $self->rs("PoolProblem")->new($args{params});
+	my $prob_to_update = $self->rs('PoolProblem')->new($args{params});
 
 	my $prob2 = $prob->update({ $prob_to_update->get_columns });
 	return $prob2 if $args{as_result_set};

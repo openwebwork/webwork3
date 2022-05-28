@@ -7,8 +7,8 @@ use Mojo::Base 'Mojolicious::Controller', -signatures;
 sub addProblem ($self) {
 	my $problem = $self->schema->resultset("SetProblem")->addSetProblem(
 		params => {
-			course_id => int($self->param("course_id")),
-			set_id    => int($self->param("set_id")),
+			course_id => int($self->param('course_id')),
+			set_id    => int($self->param('set_id')),
 			%{ $self->req->json }
 		}
 	);
@@ -19,7 +19,7 @@ sub addProblem ($self) {
 sub getAllProblems ($self) {
 	my @problems = $self->schema->resultset("SetProblem")->getProblems(
 		info => {
-			course_id => int($self->param("course_id"))
+			course_id => int($self->param('course_id'))
 		}
 	);
 	$self->render(json => \@problems);
@@ -32,9 +32,9 @@ sub updateProblem ($self) {
 	delete $params->{render_params} if defined($params->{render_params});
 	my $updated_problem = $self->schema->resultset("SetProblem")->updateSetProblem(
 		info => {
-			course_id      => int($self->param("course_id")),
-			set_id         => int($self->param("set_id")),
-			set_problem_id => int($self->param("set_problem_id"))
+			course_id  => int($self->param('course_id')),
+			set_id     => int($self->param('set_id')),
+			problem_id => int($self->param('problem_id'))
 		},
 		params => $params
 	);
@@ -45,9 +45,9 @@ sub updateProblem ($self) {
 sub deleteProblem ($self) {
 	my $deleted_problem = $self->schema->resultset("SetProblem")->deleteSetProblem(
 		info => {
-			course_id      => int($self->param("course_id")),
-			set_id         => int($self->param("set_id")),
-			set_problem_id => int($self->param("set_problem_id"))
+			course_id  => int($self->param('course_id')),
+			set_id     => int($self->param('set_id')),
+			problem_id => int($self->param('problem_id'))
 		}
 	);
 	$self->render(json => $deleted_problem);
@@ -55,7 +55,7 @@ sub deleteProblem ($self) {
 }
 
 sub getUserProblemsForSet ($self) {
-	my @user_problems = $self->schema->resultset("UserProblem")->getUserProblemsForSet(
+	my @user_problems = $self->schema->resultset('UserProblem')->getUserProblemsForSet(
 		info => {
 			course_id => int($self->param('course_id')),
 			set_id    => int($self->param('set_id'))
@@ -66,7 +66,7 @@ sub getUserProblemsForSet ($self) {
 }
 
 sub getUserProblemsForUser ($self) {
-	my @user_problems = $self->schema->resultset("UserProblem")->getUserProblemsForUser(
+	my @user_problems = $self->schema->resultset('UserProblem')->getUserProblemsForUser(
 		info => {
 			course_id => int($self->param('course_id')),
 			user_id   => int($self->param('user_id'))
@@ -95,14 +95,14 @@ sub addUserProblem ($self) {
 	# Only pass in problem_number or problem_id
 	delete $problem_params->{set_problem_id} if ($problem_params->{set_problem_id} == 0);
 
-	my $user_problem = $self->schema->resultset("UserProblem")->addUserProblem(params => $problem_params);
+	my $user_problem = $self->schema->resultset('UserProblem')->addUserProblem(params => $problem_params);
 	$self->render(json => $user_problem);
 	return;
 }
 
 sub updateUserProblem ($self) {
 	my $problem_params = $self->req->json;
-	my $user_problem   = $self->schema->resultset("UserProblem")->updateUserProblem(
+	my $user_problem   = $self->schema->resultset('UserProblem')->updateUserProblem(
 		info => {
 			course_id      => int($self->param('course_id')),
 			set_id         => int($self->param('set_id')),
@@ -116,7 +116,7 @@ sub updateUserProblem ($self) {
 }
 
 sub deleteUserProblem ($self) {
-	my $deleted_problem = $self->schema->resultset("UserProblem")->deleteUserProblem(
+	my $deleted_problem = $self->schema->resultset('UserProblem')->deleteUserProblem(
 		info => {
 			course_id      => int($self->param('course_id')),
 			set_id         => int($self->param('set_id')),
