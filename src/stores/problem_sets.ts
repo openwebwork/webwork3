@@ -13,8 +13,6 @@ import { UserSet, mergeUserSet, DBUserSet, ParseableDBUserSet, parseDBUserSet,
 import { CourseUser } from 'src/common/models/users';
 import { ResponseError } from 'src/common/api-requests/interfaces';
 
-
-
 /**
  * This is an type to retrieve set info.
  */

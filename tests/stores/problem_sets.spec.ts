@@ -23,9 +23,6 @@ import { Course } from 'src/common/models/courses';
 import { cleanIDs, loadCSV } from '../utils';
 import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 
-
-
-
 const app = createApp({});
 
 describe('Problem Set store tests', () => {

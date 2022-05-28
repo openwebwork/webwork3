@@ -3,21 +3,21 @@
  * between a DBUserSet and a ProblemSt))
  */
 
- import { Model } from '.';
- import { MergeError, parseBoolean, parseNonNegInt, parseUsername } from './parsers';
- import { ProblemSetDates, ProblemSetParams, HomeworkSetParams, HomeworkSetDates,
+import { Model } from '.';
+import { MergeError, parseBoolean, parseNonNegInt, parseUsername } from './parsers';
+import { ProblemSetDates, ProblemSetParams, HomeworkSetParams, HomeworkSetDates,
 	 ParseableHomeworkSetParams, ParseableHomeworkSetDates, QuizParams, QuizDates,
 	 ParseableQuizDates, ParseableQuizParams, ParseableReviewSetDates,
 	 ParseableReviewSetParams, ReviewSetDates, ReviewSetParams, ProblemSetType,
 	 ProblemSet, ParseableProblemSetParams, ParseableProblemSetDates } from './problem_sets';
- import { CourseUser } from './users';
+import { CourseUser } from './users';
 
  type UserSetDates = UserHomeworkSetDates | UserQuizDates | UserReviewSetDates;
 
- // The ParseableDBUserSet type is the same as the ParseableProblemSet type
- // with additional fields. This mimics the UserSet fields on the database.
+// The ParseableDBUserSet type is the same as the ParseableProblemSet type
+// with additional fields. This mimics the UserSet fields on the database.
 
- export type ParseableDBUserSet = {
+export type ParseableDBUserSet = {
 	 user_set_id?: number | string;
 	 set_version?: number | string;
 	 course_user_id?: number | string;
@@ -28,12 +28,12 @@
 	 set_dates?: ParseableProblemSetDates;
  }
 
- /**
+/**
 	* The DBUserSet is used for overrides for a ProblemSet and in the client-side model
 	* of the UserSet on the database.  Note: this has changed recently
  * to reflect that the UserSet should be independent of a ProblemSet (not inherit from it).
  */
- export class DBUserSet extends Model {
+export class DBUserSet extends Model {
 	 private _user_set_id = 0;
 	 private _course_user_id = 0;
 	 private _set_id = 0;
@@ -87,19 +87,19 @@
 	 public clone() {
 		 return new DBUserSet(this.toObject());
 	 }
- }
+}
 
- /**
+/**
 	* UserHomeworkSet is a HomeworkSet for a User
 	*/
 
- export type ParseableDBUserHomeworkSet = ParseableDBUserSet &
+export type ParseableDBUserHomeworkSet = ParseableDBUserSet &
 	 {
 		 set_params?: ParseableHomeworkSetParams;
 		 set_dates?: ParseableHomeworkSetDates;
 	 }
 
- export class UserHomeworkSetDates extends Model {
+export class UserHomeworkSetDates extends Model {
 	 protected _open?: number;
 	 protected _reduced_scoring?: number;
 	 protected _due?: number;
@@ -152,9 +152,9 @@
 	 public clone(): UserHomeworkSetDates {
 		 return new UserHomeworkSetDates(this.toObject());
 	 }
- }
+}
 
- export class DBUserHomeworkSet extends DBUserSet {
+export class DBUserHomeworkSet extends DBUserSet {
 	 private _set_params = new HomeworkSetParams();
 	 private _set_dates = new UserHomeworkSetDates();
 
@@ -180,20 +180,20 @@
 	 public clone() {
 		 return new DBUserHomeworkSet(this.toObject());
 	 }
- }
+}
 
- /**
+/**
 	* DBUserQuiz stores a user quiz that mimics that on the database. This is used
 	* in the store as a transition to the database.
 	*/
 
- export type ParseableDBUserQuiz  = ParseableDBUserSet &
+export type ParseableDBUserQuiz  = ParseableDBUserSet &
  {
 	 set_params?: ParseableQuizParams;
 	 set_dates?: ParseableQuizDates;
  }
 
- export class UserQuizDates extends Model {
+export class UserQuizDates extends Model {
 	 protected _open?: number;
 	 protected _due?: number;
 	 protected _answer?: number;
@@ -238,9 +238,9 @@
 	 public clone(): UserQuizDates {
 		 return new UserQuizDates(this.toObject());
 	 }
- }
+}
 
- export class DBUserQuiz extends DBUserSet {
+export class DBUserQuiz extends DBUserSet {
 	 private _set_params = new QuizParams();
 	 private _set_dates = new UserQuizDates();
 
@@ -266,20 +266,20 @@
 	 public clone() {
 		 return new DBUserQuiz(this.toObject());
 	 }
- }
+}
 
- /**
+/**
 	* DBUserReviewSet stores a user review set that mimics that on the database. This is used
 	* in the store as a transition to the database.
 	*/
 
- export type ParseableDBUserReviewSet = ParseableDBUserSet &
+export type ParseableDBUserReviewSet = ParseableDBUserSet &
  {
 	 set_params?: ParseableReviewSetParams;
 	 set_dates?: ParseableReviewSetDates;
  }
 
- export class UserReviewSetDates extends Model {
+export class UserReviewSetDates extends Model {
 	 protected _open?: number;
 	 protected _closed?: number;
 
@@ -317,9 +317,9 @@
 		 return new UserReviewSetDates(this.toObject());
 	 }
 
- }
+}
 
- export class DBUserReviewSet extends DBUserSet {
+export class DBUserReviewSet extends DBUserSet {
 	 private _set_params = new ReviewSetParams();
 	 private _set_dates = new UserReviewSetDates();
 
@@ -345,9 +345,9 @@
 	 public clone() {
 		 return new DBUserReviewSet(this.toObject());
 	 }
- }
+}
 
- export function parseDBUserSet(user_set: ParseableDBUserSet) {
+export function parseDBUserSet(user_set: ParseableDBUserSet) {
 	 if (user_set.set_type === 'HW') {
 		 return new DBUserHomeworkSet(user_set as ParseableDBUserHomeworkSet);
 	 } else if (user_set.set_type === 'QUIZ') {
@@ -357,13 +357,13 @@
 	 } else {
 		 return new DBUserSet(user_set);
 	 }
- }
+}
 
- /**
+/**
 	* UserSet is a structure that is a joined version of a DBUserSet and a ProblemSet
 	*/
 
- export interface ParseableUserSet {
+export interface ParseableUserSet {
 	 user_set_id?: number | string;
 	 set_id?: number | string;
 	 course_user_id?: number | string;
@@ -377,7 +377,7 @@
 	 set_dates?: ParseableProblemSetDates;
  }
 
- export class UserSet extends Model {
+export class UserSet extends Model {
 	 private _user_set_id = 0;
 	 private _set_id = 0;
 	 private _course_user_id = 0;
@@ -449,19 +449,19 @@
 	 clone(): UserSet {
 		 throw 'the clone() method should be overridden in a subclass of MergedUserSet';
 	 }
- }
+}
 
- /**
+/**
 	* MergedUserHomeworkSet is joined HomeworkSet and a UserSet
 	*/
 
- export type ParseableUserHomeworkSet = ParseableUserSet &
+export type ParseableUserHomeworkSet = ParseableUserSet &
 	 {
 		 set_params?: ParseableHomeworkSetParams;
 		 set_dates?: ParseableHomeworkSetDates;
 	 }
 
- export class UserHomeworkSet extends UserSet {
+export class UserHomeworkSet extends UserSet {
 	 private _set_params = new HomeworkSetParams();
 	 private _set_dates = new HomeworkSetDates();
 
@@ -482,19 +482,19 @@
 	 public clone(): UserHomeworkSet {
 		 return new UserHomeworkSet(this.toObject());
 	 }
- }
+}
 
- /**
+/**
 	* MergedUserQuiz is a Quiz merged with a UserSet
 	*/
 
- export type ParseableUserQuiz = ParseableUserSet &
+export type ParseableUserQuiz = ParseableUserSet &
 	 {
 		 set_dates?: ParseableQuizDates;
 		 set_params?: ParseableQuizParams;
 	 }
 
- export class UserQuiz extends UserSet {
+export class UserQuiz extends UserSet {
 	 private _set_params = new QuizParams();
 	 private _set_dates = new QuizDates();
 
@@ -515,19 +515,19 @@
 	 public clone() {
 		 return new UserQuiz(this.toObject());
 	 }
- }
+}
 
- /**
+/**
 	* UserReviewSet is a join between a DBUserReviewSet and a ReviewSet
 	*/
 
- export type ParseableUserReviewSet = ParseableUserSet &
+export type ParseableUserReviewSet = ParseableUserSet &
 	 {
 		 set_params?: ParseableReviewSetParams;
 		 set_dates?: ParseableReviewSetDates;
 	 }
 
- export class UserReviewSet extends UserSet {
+export class UserReviewSet extends UserSet {
 	 private _set_params = new ReviewSetParams();
 	 private _set_dates = new ReviewSetDates();
 
@@ -548,12 +548,12 @@
 	 public clone() {
 		 return new UserReviewSet(this.toObject());
 	 }
- }
+}
 
- /**
+/**
 	* Parse a UserSet, returning a model of the correct subclass.
 	*/
- export function parseUserSet(user_set: ParseableUserSet) {
+export function parseUserSet(user_set: ParseableUserSet) {
 	 if (user_set.set_type === 'HW') {
 		 return new UserHomeworkSet(user_set as ParseableUserHomeworkSet);
 	 } else if (user_set.set_type === 'QUIZ') {
@@ -561,14 +561,14 @@
 	 } else if (user_set.set_type === 'REVIEW') {
 		 return new UserReviewSet(user_set as ParseableUserReviewSet);
 	 }
- }
+}
 
- /**
+/**
 	* Merge a ProblemSet, a UserSet and a MergedUser and return a MergedUserSet. Note: if the
 	* arguments are not related in the database (based on primary and foreign keys), a MergeError is
 	* thrown.  in that the result is a MergedUserSet with overrides taken from the UserSet.
 	*/
- export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: CourseUser) {
+export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: CourseUser) {
 	 // Check if the user_set is related to the Problem Set
 	 if (set.set_id !== db_user_set.set_id) {
 		 throw new MergeError('The User set is not related to the Problem set');
@@ -606,4 +606,4 @@
 	 });
 	 user_set.set_dates = dates;
 	 return parseUserSet(user_set);
- }
+}
