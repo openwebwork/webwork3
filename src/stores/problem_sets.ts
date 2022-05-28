@@ -71,7 +71,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		/**
 		 * Return all user sets with given set_id or set_name.
 		 */
-		 findUserSets(state) {
+		findUserSets(state) {
 			// TODO: for performance, maybe don't call this.user_sets, but build up the
 			// user_sets instead.
 			return (set_info: SetInfo): UserSet[] => {
