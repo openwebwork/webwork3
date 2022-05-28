@@ -1,52 +1,64 @@
 /**
  * @jest-environment jsdom
  */
-// The above is needed because the logger uses the window object, which is only present
-// when using the jsdom environment.
+// The above is needed because  1) the logger uses the window object, which is only present
+// when using the jsdom environment and 2) because the pinia store is used is being
+// tested with persistance.
 
 // session.spec.ts
 // Test the Session Store
 
-import { setActivePinia, createPinia } from 'pinia';
+import { createApp } from 'vue';
+import { createPinia, setActivePinia } from 'pinia';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+
+import { api } from 'src/boot/axios';
 import { getUser } from 'src/common/api-requests/user';
+import { useSessionStore } from 'src/stores/session';
+
 import { Course, UserCourse } from 'src/common/models/courses';
 import { SessionInfo } from 'src/common/models/session';
 import { User } from 'src/common/models/users';
-import { useSessionStore } from 'src/stores/session';
+
 import { cleanIDs, loadCSV } from '../utils';
 
-// Some common objects.
-
-const user: User = new User({
-	first_name: 'Homer',
-	last_name: 'Simpson',
-	user_id: 1234,
-	email: 'homer@msn.com',
-	username: 'homer',
-	is_admin: false
-});
-
-const logged_out: User = new User({
-	username: 'logged_out'
-});
-
-const session_info: SessionInfo = {
-	logged_in: true,
-	user,
-	message: 'hi there'
-};
+const app = createApp({});
 
 describe('Session Store', () => {
 	let lisa_courses: UserCourse[];
 	let lisa: User;
+
+	const user: User = new User({
+		first_name: 'Homer',
+		last_name: 'Simpson',
+		user_id: 1234,
+		email: 'homer@msn.com',
+		username: 'homer',
+		is_admin: false
+	});
+
+	const logged_out: User = new User({
+		username: 'logged_out'
+	});
+
+	const session_info: SessionInfo = {
+		logged_in: true,
+		user,
+		message: 'hi there'
+	};
+
 	beforeAll(async () => {
-		// creates a fresh pinia and make it active so it's automatically picked
-		// up by any useStore() call without having to pass it to it:
-		// `useStore(pinia)`
-		setActivePinia(createPinia());
+		// Since we have the piniaPluginPersistedState as a plugin, duplicate for the test.
+		const pinia = createPinia().use(piniaPluginPersistedstate);
+		app.use(pinia);
+		setActivePinia(pinia);
+
+		// Login to the course as the admin in order to be authenticated for the rest of the test.
+		await api.post('login', { username: 'admin', password: 'admin' });
 
 		// Load the user course information for testing later.
 
+		// Load the user course information for testing later.
 		const parsed_courses = await loadCSV('t/db/sample_data/courses.csv', {
 			boolean_fields: ['visible'],
 			non_neg_fields: ['course_id'],

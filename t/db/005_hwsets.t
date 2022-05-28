@@ -159,9 +159,8 @@ my $new_set = $problem_set_rs->addProblemSet(
 my $new_set_id = $new_set->{set_id};
 removeIDs($new_set);
 delete $new_set->{type};
-# add set_visible (the default value)
+# add the default set_visible
 $new_set_params->{set_visible} = false;
-
 is_deeply($new_set_params, $new_set, "addProblemSet: add one homework");
 
 # Try to add a homework without set_name
@@ -298,11 +297,13 @@ my $updated_set = $problem_set_rs->updateProblemSet(
 );
 removeIDs($updated_set);
 delete $new_set_params->{type};
+
 is_deeply($new_set_params, $updated_set, "updateSet: change the set parameters");
 
 # Update the set where the set_type is sent, but the type is not:
-$new_set_params->{set_name} = "HW #88";
-$new_set_params->{set_type} = "HW";
+$new_set_params->{set_name}    = "HW #88";
+$new_set_params->{set_type}    = "HW";
+$new_set_params->{set_visible} = true;
 delete $new_set_params->{type};
 $updated_set = $problem_set_rs->updateProblemSet(
 	info   => { course_name => "Precalculus", set_id => $new_set_id },

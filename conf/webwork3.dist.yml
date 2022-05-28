@@ -21,8 +21,8 @@ database_password: password
 opl_url: http:/localhost:3030
 
 # Cookie control settings
-cookie_samesite: "None"
-cookie_secure: true
+cookie_samesite: None
+cookie_secure: 1
 cookie_lifetime: 3600
 
 # Production server configuration

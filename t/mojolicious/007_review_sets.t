@@ -4,8 +4,7 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
-
-use DateTime::Format::Strptime;
+use Mojo::JSON qw/true false/;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -15,44 +14,31 @@ BEGIN {
 
 use lib "$main::ww3_dir/lib";
 
-use Getopt::Long;
-my $TEST_PERMISSIONS;
-GetOptions("perm" => \$TEST_PERMISSIONS);
-
 use DB::Schema;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
-use DB::TestUtils qw/loadCSV/;
+use DateTime::Format::Strptime;
 use List::MoreUtils qw/firstval/;
+use DB::TestUtils qw/loadCSV/;
 
-# Test the api with common "courses/sets" routes for quizzes.
+my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
+# Test the api with common "users" routes.
 
 # Load the config file.
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
 $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = clone(LoadFile($config_file));
 
-my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
-
 # Connect to the database.
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-my $t;
+my $t = Test::Mojo->new(WeBWorK3 => $config);
 
-if ($TEST_PERMISSIONS) {
-	$config->{ignore_permissions} = 0;
-	$t = Test::Mojo->new(WeBWorK3 => $config);
+$t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/user_id' => 1)
+	->json_is('/user/is_admin' => 1);
 
-	$t->post_ok('/webwork3/api/username' => json => { email => 'admin@google.com', password => 'admin' })
-		->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
-		->json_is('/user/user_id' => 1)->json_is('/user/is_admin' => 1);
-
-} else {
-	$config->{ignore_permissions} = 1;
-	$t = Test::Mojo->new(WeBWorK3 => $config);
-}
-
-# Load the review sets.
+# Load the review sets from the CSV file
 my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv");
 for my $review_set (@review_sets) {
 	$review_set->{set_type} = "REVIEW";
@@ -79,7 +65,7 @@ $t->get_ok("/webwork3/api/courses/1/sets/$review_set1->{set_id}")->content_type_
 $review_set1 = $t->tx->res->json;
 my $test_param = $review_set1->{set_params}->{test_param};
 ok($test_param, 'testing that test_param compares to 1.');
-is($test_param, Mojo::JSON::true, 'testing that test_param compares to Mojo::JSON::true');
+is($test_param, true, 'testing that test_param compares to Mojo::JSON::true');
 ok(JSON::PP::is_bool($test_param),                'testing that test_param is a Mojo::JSON::true or Mojo::JSON::false');
 ok(JSON::PP::is_bool($test_param) && $test_param, 'testing that test_param is a Mojo::JSON::true');
 
@@ -89,7 +75,7 @@ my $new_review_set_params = {
 	set_name   => 'Review #20',
 	set_type   => 'REVIEW',
 	set_params => {
-		test_param => Mojo::JSON::true,
+		test_param => true,
 	},
 	set_dates => {
 		open   => 100,
@@ -113,7 +99,7 @@ ok(JSON::PP::is_bool($test_param) && $test_param, 'testing that test_param is a 
 $t->put_ok(
 	"/webwork3/api/courses/2/sets/$review_set1->{set_id}" => json => {
 		set_params => {
-			test_param => Mojo::JSON::false
+			test_param => false
 		}
 	}
 )->content_type_is('application/json;charset=UTF-8');
@@ -121,7 +107,7 @@ $t->put_ok(
 my $updated_set = $t->tx->res->json;
 $test_param = $updated_set->{set_params}->{test_param};
 ok(!$test_param, 'testing that test_param is falsy.');
-is($test_param, Mojo::JSON::false, 'testing that test_param compares to Mojo::JSON::false');
+is($test_param, false, 'testing that test_param compares to Mojo::JSON::false');
 ok(JSON::PP::is_bool($test_param), 'testing that test_param is a Mojo::JSON::true or Mojo::JSON::false');
 ok(JSON::PP::is_bool($test_param) && !$test_param, 'testing that test_param is a Mojo::JSON::false');
 

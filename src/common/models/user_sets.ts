@@ -1,7 +1,7 @@
 /**
- * This defines UserSets for the database (DBUserSet) and a UserSet (merged version
- * between a DBUserSet and a ProblemSt))
- */
+* This defines UserSets for the database (DBUserSet) and a UserSet (merged version
+* between a DBUserSet and a ProblemSt))
+*/
 
 import { Model } from '.';
 import { isNonNegInt, isValidUsername, MergeError } from './parsers';
@@ -30,8 +30,8 @@ export type ParseableDBUserSet = {
 }
 
 /**
- * The DBUserSet is used for overrides for a ProblemSet and in the client-side model
- * of the UserSet on the database.  Note: this has changed recently
+* The DBUserSet is used for overrides for a ProblemSet and in the client-side model
+* of the UserSet on the database.  Note: this has changed recently
 * to reflect that the UserSet should be independent of a ProblemSet (not inherit from it).
 */
 export class DBUserSet extends Model {
@@ -92,8 +92,8 @@ export class DBUserSet extends Model {
 }
 
 /**
- * UserHomeworkSet is a HomeworkSet for a User.
- */
+* UserHomeworkSet is a HomeworkSet for a User
+*/
 
 export type ParseableDBUserHomeworkSet = ParseableDBUserSet &
 	{
@@ -237,15 +237,15 @@ export class DBUserHomeworkSet extends DBUserSet {
 }
 
 /**
- * DBUserQuiz stores a user quiz that mimics that on the database. This is used
- * in the store as a transition to the database.
- */
+	* DBUserQuiz stores a user quiz that mimics that on the database. This is used
+	* in the store as a transition to the database.
+	*/
 
 export type ParseableDBUserQuiz  = ParseableDBUserSet &
-{
+	{
 	set_params?: ParseableQuizParams;
 	set_dates?: ParseableQuizDates;
-}
+	}
 
 export class UserQuizDates extends Model {
 	protected _open?: number;
@@ -356,15 +356,15 @@ export class DBUserQuiz extends DBUserSet {
 }
 
 /**
- * DBUserReviewSet stores a user review set that mimics that on the database. This is used
- * in the store as a transition to the database.
- */
+* DBUserReviewSet stores a user review set that mimics that on the database. This is used
+* in the store as a transition to the database.
+*/
 
 export type ParseableDBUserReviewSet = ParseableDBUserSet &
-{
-	set_params?: ParseableReviewSetParams;
-	set_dates?: ParseableReviewSetDates;
-}
+	{
+		set_params?: ParseableReviewSetParams;
+		set_dates?: ParseableReviewSetDates;
+	}
 
 export class UserReviewSetDates extends Model {
 	protected _open?: number;
@@ -403,7 +403,6 @@ export class UserReviewSetDates extends Model {
 	public clone(): UserReviewSetDates {
 		return new UserReviewSetDates(this.toObject());
 	}
-
 }
 
 /**
@@ -467,8 +466,8 @@ export function parseDBUserSet(user_set: ParseableDBUserSet) {
 }
 
 /**
- * UserSet is a structure that is a joined version of a DBUserSet and a ProblemSet
- */
+* UserSet is a structure that is a joined version of a DBUserSet and a ProblemSet
+*/
 
 export interface ParseableUserSet {
 	user_set_id?: number;
@@ -566,8 +565,8 @@ export class UserSet extends Model {
 }
 
 /**
- * MergedUserHomeworkSet is joined HomeworkSet and a UserSet
- */
+* MergedUserHomeworkSet is joined HomeworkSet and a UserSet
+*/
 
 export type ParseableUserHomeworkSet = ParseableUserSet &
 	{
@@ -595,8 +594,8 @@ export class UserHomeworkSet extends UserSet {
 }
 
 /**
- * MergedUserQuiz is a Quiz merged with a UserSet
- */
+* MergedUserQuiz is a Quiz merged with a UserSet
+*/
 
 export type ParseableUserQuiz = ParseableUserSet &
 	{
@@ -624,8 +623,8 @@ export class UserQuiz extends UserSet {
 }
 
 /**
- * UserReviewSet is a join between a DBUserReviewSet and a ReviewSet
- */
+* UserReviewSet is a join between a DBUserReviewSet and a ReviewSet
+*/
 
 export type ParseableUserReviewSet = ParseableUserSet &
 	{
@@ -652,6 +651,9 @@ export class UserReviewSet extends UserSet {
 	}
 }
 
+/**
+* Parse a UserSet, returning a model of the correct subclass.
+*/
 export function parseUserSet(user_set: ParseableUserSet) {
 	if (user_set.set_type === 'HW') {
 		return new UserHomeworkSet(user_set as ParseableUserHomeworkSet);
@@ -663,15 +665,12 @@ export function parseUserSet(user_set: ParseableUserSet) {
 }
 
 /**
- * merge a ProblemSet and a UserSet in that the result is a MergedUserSet with overrides
- * taken from the UserSet.  Additional info is taken from the MergedUser instance.
- * @param {ProblemSet} set - a problem set
- * @param {UserSet} user_set - a user set that will override the problem set dates and parameters.
- * @param {CourseUser} user - the user associated with the set.
- * @returns a MergedUserSet with the appropriate overrides.
- */
+* Merge a ProblemSet, a UserSet and a MergedUser and return a MergedUserSet. Note: if the
+* arguments are not related in the database (based on primary and foreign keys), a MergeError is
+* thrown.  in that the result is a MergedUserSet with overrides taken from the UserSet.
+*/
 export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: CourseUser) {
-	// Check if the user_set is related to the Problem Set
+// Check if the user_set is related to the Problem Set
 	if (set.set_id !== db_user_set.set_id) {
 		throw new MergeError('The User set is not related to the Problem set');
 	}

@@ -96,7 +96,7 @@ my $new_quiz = $problem_set_rs->addProblemSet(
 );
 
 removeIDs($new_quiz);
-# add the default set_visible to the params:
+## add the default set_visible field
 $new_quiz_params->{set_visible} = false;
 is_deeply($new_quiz, $new_quiz_params, "addQuiz: add a new quiz");
 
@@ -130,7 +130,7 @@ throws_ok {
 		params => {
 			course_name => "Precalculus",
 			set_type    => 'QUIZ',
-			set_visible => 1,
+			set_visible => true,
 		}
 	);
 }
@@ -143,7 +143,7 @@ throws_ok {
 			course_name => "Precalculus",
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
-			set_visible => 1,
+			set_visible => true,
 			set_params  => {
 				param1 => 0
 			},
@@ -164,7 +164,7 @@ throws_ok {
 			course_name => "Precalculus",
 			set_type    => 'QUIZ',
 			set_name    => "Quiz #99",
-			set_visible => 1,
+			set_visible => true,
 			set_params  => {
 				timed => 'yes'
 			},

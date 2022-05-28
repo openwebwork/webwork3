@@ -15,11 +15,9 @@ const set_types = ['hw', 'quiz', 'review', 'unknown'];
 export const isValidProblemSetType = (value: string) => set_types.includes(value);
 
 /**
- * This takes in a general problem set and returns the specific subclassed ProblemSet
- * @param problem ParseableProblemSet
- * @returns HomeworkSet, Quiz or ReviewSet
+ * This takes in a general problem set and returns the specific subclassed ProblemSet.
+ * The returned object is one of HomeworkSet, Quiz or ReviewSet or a ParseError is thrown.
  */
-
 export function parseProblemSet(set: ParseableProblemSet) {
 	const set_type = set.set_type ?? '';
 	if (/hw/i.test(set_type) || set_type === '') {
@@ -32,15 +30,16 @@ export function parseProblemSet(set: ParseableProblemSet) {
 
 	throw new ParseError('ProblemSetType', `The problem set type '${set_type}' is not valid.`);
 }
+
 export type ParseableProblemSetParams = ParseableHomeworkSetParams | ParseableQuizParams | ParseableReviewSetParams;
 export type ParseableProblemSetDates = ParseableHomeworkSetDates | ParseableQuizDates | ParseableReviewSetDates;
 export type ProblemSetParams = HomeworkSetParams | QuizParams | ReviewSetParams;
 export type ProblemSetDates = HomeworkSetDates | QuizDates | ReviewSetDates;
 
-/* Problem Set (HomeworkSet, Quiz, ReviewSet ) classes */
+// Problem Set (HomeworkSet, Quiz, ReviewSet ) classes and interfaces for parsing.
 
-interface ParseableSetParams {
-	set_id?: number;
+export interface ParseableProblemSet {
+	set_id?: string | number;
 	set_name?: string;
 	course_id?: number;
 	set_type?: string;
@@ -51,6 +50,10 @@ export type ParseableProblemSet = ParseableSetParams & {
 	set_params?: ParseableProblemSetParams;
 	set_dates?: ParseableProblemSetDates;
 }
+
+/**
+ * This is the superclass for Homework Sets, quizzes and review sets.
+ */
 
 export class ProblemSet extends Model {
 	private _set_id = 0;
@@ -108,15 +111,14 @@ export class ProblemSet extends Model {
 	}
 }
 
+// Quiz models and interfaces.
+
 export interface ParseableQuizDates {
 	open?: number;
 	due?: number;
 	answer?: number;
 }
 
-/**
- * This is the base class for quiz dates.
- */
 export class QuizDates extends Model {
 	protected _open = 0;
 	protected _due = 0;
@@ -162,8 +164,6 @@ export class QuizDates extends Model {
 		return new QuizDates(this.toObject());
 	}
 }
-
-// Quiz interfaces
 
 export interface ParseableQuizParams {
 	timed?: boolean;
@@ -230,9 +230,7 @@ export class Quiz extends ProblemSet {
 	}
 }
 
-/**
- * HomeworkSet
- */
+// HomeworkSet model and interfaces.
 
 export interface ParseableHomeworkSetDates {
 	open?: number;
@@ -384,9 +382,7 @@ export class HomeworkSet extends ProblemSet {
 
 }
 
-/**
- * ReviewSet
- */
+// Review Set model and interfaces.
 
 export interface ParseableReviewSetParams {
 	test_param?: boolean;
@@ -489,13 +485,8 @@ export class ReviewSet extends ProblemSet {
 }
 
 /**
- * This function takes in a ProblemSet and a ProblemSetType,
- * returning a new ProblemSet of the requested type
- * @param set ProblemSet
- * @param set_type ProblemSetType
- * @returns HomeworkSet | Quiz | ReviewSet
+ * This function takes in a ProblemSet and a ProblemSetType, returning a new ProblemSet of the requested type.
  */
-
 export function convertSet(old_set: ProblemSet, new_set_type: ProblemSetType) {
 	if (old_set.set_type === new_set_type) return old_set;
 

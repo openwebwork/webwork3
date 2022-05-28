@@ -4,10 +4,8 @@ import { ParseableUser, User } from 'src/common/models/users';
 import { ResponseError } from 'src/common/api-requests/interfaces';
 
 /**
- * queries the database to determine if the user exists.
- * @param {string} username -- the username of the user.
- * @return {User} the user if they exist.
- * @throws {ResponseError} if the user doesen't exist, this is thrown.
+ * Gets the global user in the database given by username. This returns a user or throws a
+ * ResponseError if the user is not found.
  */
 export async function getUser(username: string): Promise<User> {
 	const response = await api.get(`users/${username}`);
