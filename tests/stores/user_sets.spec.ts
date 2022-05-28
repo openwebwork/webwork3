@@ -1,23 +1,33 @@
 /**
  * @jest-environment jsdom
  */
-// The above is needed because the logger uses the window object, which is only present
-// when using the jsdom environment.
+// The above is needed because  1) the logger uses the window object, which is only present
+// when using the jsdom environment and 2) because the pinia store is used is being
+// tested with persistance.
 
+// problem_sets.spec.ts
+// Test the user sets Store
+
+import { createApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
-import { Course } from 'src/common/models/courses';
-import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
-import { ProblemSet, HomeworkSet, Quiz, ReviewSet, ParseableProblemSetDates, ParseableProblemSetParams
-} from 'src/common/models/problem_sets';
-import { CourseUser } from 'src/common/models/users';
-import { UserSet, UserHomeworkSet, UserQuiz, UserReviewSet, mergeUserSet, parseDBUserSet, DBUserHomeworkSet
-} from 'src/common/models/user_sets';
+import { api } from 'boot/axios';
+
 import { useCourseStore } from 'src/stores/courses';
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useSessionStore } from 'src/stores/session';
 import { useUserStore } from 'src/stores/users';
-import { createApp } from 'vue';
+
+import { Course } from 'src/common/models/courses';
+import {
+	ProblemSet, HomeworkSet, Quiz, ReviewSet, ParseableProblemSetDates, ParseableProblemSetParams
+} from 'src/common/models/problem_sets';
+import { CourseUser } from 'src/common/models/users';
+import {
+	UserSet, UserHomeworkSet, UserQuiz, UserReviewSet, mergeUserSet, parseDBUserSet, DBUserHomeworkSet
+} from 'src/common/models/user_sets';
+
+import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 import { loadCSV, cleanIDs } from '../utils';
 
 const app = createApp({});
@@ -32,10 +42,13 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		const pinia = createPinia().use(piniaPluginPersistedstate);
 		app.use(pinia);
 		setActivePinia(pinia);
+
+		// Login to the course as the admin in order to be authenticated for the rest of the test.
+		await api.post('login', { username: 'admin', password: 'admin' });
+
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
-			boolean_fields: ['set_visible'],
-			time_zone_shift: 5 * 3600, // compensating for some strangeness with Dates.
+			boolean_fields: ['set_visible']
 		};
 
 		const hw_sets_to_parse = await loadCSV('t/db/sample_data/hw_sets.csv', problem_set_config);
@@ -93,8 +106,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 			// Setup and load the user sets data from a csv file.
 			const user_sets_to_parse = await loadCSV('t/db/sample_data/user_sets.csv', {
-				params: ['set_dates', 'set_params'],
-				time_zone_shift: 5 * 3600
+				params: ['set_dates', 'set_params']
 			});
 
 			// Load the users from the CSV file and filter only the Precalc students.

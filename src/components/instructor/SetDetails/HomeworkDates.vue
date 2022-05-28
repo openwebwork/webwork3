@@ -40,7 +40,7 @@ import { ref, watch, defineEmits, defineProps } from 'vue';
 import type { PropType } from 'vue';
 import { HomeworkSetDates } from 'src/common/models/problem_sets';
 import DateTimeInput from 'components/common/DateTimeInput.vue';
-import { logger } from 'src/boot/logger';
+import { logger } from 'boot/logger';
 
 const props = defineProps({
 	dates: {

@@ -28,7 +28,7 @@ sub validDateFields ($self, $field_name) {
 	my @fields = keys %{ $self->get_inflated_column($field_name) };
 	# If this is not empty, there are illegal fields.
 	my @bad_fields = array_minus(@fields, @$valid_dates);
-	DB::Exception::InvalidDateField->throw(field_names => join(", ", @bad_fields))
+	DB::Exception::InvalidDateField->throw(field_names => join(', ', @bad_fields))
 		if (scalar(@bad_fields) != 0);
 
 	return 1;
@@ -50,7 +50,7 @@ sub validDateFormat ($self, $field_name) {
 sub hasRequiredDateFields ($self, $field_name) {
 	my @fields     = keys %{ $self->get_inflated_column($field_name) };
 	my @bad_fields = array_minus(@$required_dates, @fields);
-	DB::Exception::RequiredDateFields->throw(message => "The field(s) " . join(", ", @bad_fields) . " must be present")
+	DB::Exception::RequiredDateFields->throw(message => 'The field(s) ' . join(', ', @bad_fields) . ' must be present')
 		if (scalar(@bad_fields) != 0);
 	return 1;
 }

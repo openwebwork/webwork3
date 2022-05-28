@@ -10,7 +10,7 @@ use Try::Tiny;
 our $VERSION = '2.99';
 
 our $exception_handler = sub ($next, $c) {
-	# Only test requests that start with "/api".
+	# Only test requests that start with '/api'.
 	if ($c->req->url->to_string =~ /\/api/x) {
 		try {
 			$next->();
@@ -29,7 +29,7 @@ our $exception_handler = sub ($next, $c) {
 
 sub has_permission ($user, $perm) {
 	if ($perm->{allowed_users}) {
-		return "" unless $user->{role};
+		return '' unless $user->{role};
 		return grep { $_ eq $user->{role} } @{ $perm->{allowed_users} };
 	}
 	return 1 unless ($perm->{check_permission} || $perm->{admin_required});
@@ -40,26 +40,39 @@ sub has_permission ($user, $perm) {
 
 # Check permission for /api routes
 our $check_permission = sub ($next, $c, $action, $) {
-	return $next->() if ($c->ignore_permissions || $c->req->url->to_string =~ /\/api\/login/x);
-	my $user = $c->current_user;
-	if ($c->stash('course_id')) {
-		my $user_obj = $c->schema->resultset('User')
-			->getGlobalUser(info => { user_id => $c->current_user->{user_id} }, as_result_set => 1);
-		my $course_user = $user_obj->course_users->find({ course_id => $c->param('course_id') });
-		$user = { %{$user}, $course_user->get_inflated_columns };
+	return $next->() if $c->req->url->to_string =~ /\/api\/login/x;
+
+	if (!$c->is_user_authenticated) {
+		$c->render(json => { has_permission => 0, msg => 'permission error' });
+		return;
 	}
 
-	my $controller_name = $c->{stash}->{controller};
-	my $action_name     = $c->{stash}->{action};
+	my $user = $c->current_user;
+
+	if (!$user->{is_admin} && $c->stash('course_id')) {
+		my $user_obj =
+			$c->schema->resultset('User')->getGlobalUser(info => { user_id => $user->{user_id} }, as_result_set => 1);
+		my $course_user = $user_obj->course_users->find({ course_id => $c->param('course_id') });
+
+		if (!$course_user) {
+			$c->render(json => { has_permission => 0, msg => 'permission error' });
+			return;
+		}
+
+		$user = { %$user, $course_user->get_inflated_columns };
+	}
+
 	if ($c->req->url->to_string =~ /\/api/x) {
-		if (has_permission($user, $c->perm_table->{$controller_name}->{$action_name})) {
+		if (has_permission($user, $c->perm_table->{ $c->{stash}{controller} }{ $c->{stash}{action} })) {
 			return $next->();
 		} else {
-			$c->render(json => { has_permission => 0, msg => "permission error" });
+			$c->render(json => { has_permission => 0, msg => 'permission error' });
 		}
 	} else {
 		$next->();
 	}
+
+	return;
 };
 
 1;

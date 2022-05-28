@@ -15,10 +15,6 @@ BEGIN {
 
 use lib "$main::ww3_dir/lib";
 
-use Getopt::Long;
-my $TEST_PERMISSIONS;
-GetOptions("perm" => \$TEST_PERMISSIONS);
-
 use DB::Schema;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
@@ -37,19 +33,11 @@ my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croa
 my $schema =
 	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-my $t;
+my $t = Test::Mojo->new(WeBWorK3 => $config);
 
-if ($TEST_PERMISSIONS) {
-	$config->{ignore_permissions} = 0;
-	$t = Test::Mojo->new(WeBWorK3 => $config);
-
-	$t->post_ok('/webwork3/api/username' => json => { email => 'admin@google.com', password => 'admin' })
-		->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
-		->json_is('/user/user_id' => 1)->json_is('/user/is_admin' => 1);
-} else {
-	$config->{ignore_permissions} = 1;
-	$t = Test::Mojo->new(WeBWorK3 => $config);
-}
+$t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/user_id' => 1)
+	->json_is('/user/is_admin' => 1);
 
 # Load the homework sets.
 my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
@@ -111,21 +99,18 @@ $t->delete_ok("/webwork3/api/courses/2/sets/$new_set_id")->content_type_is('appl
 $t->delete_ok("/webwork3/api/courses/1/sets/6")->content_type_is('application/json;charset=UTF-8')
 	->json_is('/exception' => 'DB::Exception::SetNotInCourse');
 
-if ($TEST_PERMISSIONS) {
-	$t->post_ok("/webwork3/api/logout")->status_is(200)->json_is('/logged_in' => 0);
+# Logout of the admin user account.
+$t->post_ok("/webwork3/api/logout")->status_is(200)->json_is('/logged_in' => 0);
 
-	# Check that a non-admin user has proper access.
-	my @all_users   = $schema->resultset("User")->getCourseUsers(info => { course_id => 1 });
-	my @instructors = grep { $_->{role} eq 'instructor' } @all_users;
+# Check that a non-admin user has proper access.
+my @instructors =
+	grep { $_->{role} eq 'instructor' } $schema->resultset("User")->getCourseUsers(info => { course_id => 1 });
+my $instructor = $schema->resultset("User")->getGlobalUser(info => { user_id => $instructors[0]{user_id} });
 
-	$t->post_ok(
-		"/webwork3/api/username" => json => {
-			email    => $instructors[0]->{email},
-			password => $instructors[0]->{username}
-		}
-	)->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1);
+$t->post_ok(
+	"/webwork3/api/login" => json => { username => $instructor->{username}, password => $instructor->{username} })
+	->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1);
 
-	$t->get_ok('/webwork3/api/courses/1/sets')->status_is(200)->content_type_is('application/json;charset=UTF-8');
-}
+$t->get_ok('/webwork3/api/courses/1/sets')->status_is(200)->content_type_is('application/json;charset=UTF-8');
 
 done_testing;

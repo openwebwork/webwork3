@@ -1,11 +1,11 @@
 course_name,username,set_name,SET_DATES:open,SET_DATES:reduced_scoring,SET_DATES:due,SET_DATES:answer,SET_PARAMS:enable_reduced_scoring
-Precalculus,homer,"HW #1",2021-01-08T23:59:00,,2021-02-15T23:59:00,2021-02-22T23:59:00,1
+Precalculus,homer,"HW #1",2021-01-08T23:59:00Z,,2021-02-15T23:59:00Z,2021-02-22T23:59:00Z,1
 Precalculus,bart,"HW #1",,,,
 Precalculus,ned,"HW #1",,,,
-Precalculus,homer,"HW #2",2021-01-15T23:59:00,,2021-02-22T23:59:00,2021-02-24T23:59:00,0
+Precalculus,homer,"HW #2",2021-01-15T23:59:00Z,,2021-02-22T23:59:00Z,2021-02-24T23:59:00Z,0
 Precalculus,bart,"HW #2",,,,
 Precalculus,ned,"HW #2",,,,
-Precalculus,homer,"HW #3",2021-01-15T23:59:00,2021-02-20T23:59:00,,2021-03-13T23:59:00,0
+Precalculus,homer,"HW #3",2021-01-15T23:59:00Z,2021-02-20T23:59:00Z,,2021-03-13T23:59:00Z,0
 Precalculus,bart,"HW #3",,,,
 Precalculus,ned,"HW #3",,,,
 Precalculus,ned,"HW #4",,,,

@@ -73,7 +73,7 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 =cut
 
 sub getProblems ($self, %args) {
-	my $course = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+	my $course = $self->rs('Course')->getCourse(info => $args{info}, as_result_set => 1);
 
 	my @problems =
 		$self->search({ 'problem_set.course_id' => $course->course_id }, { join => [qw/problem_set/] });
@@ -118,7 +118,7 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 =cut
 
 sub getSetProblems ($self, %args) {
-	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
+	my $problem_set = $self->rs('ProblemSet')->getProblemSet(info => $args{info}, as_result_set => 1);
 	my @problems    = $self->search({ 'set_id' => $problem_set->set_id });
 
 	return \@problems if $args{as_result_set};
@@ -162,20 +162,20 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 =cut
 
 sub getSetProblem ($self, %args) {
-	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
+	my $problem_set = $self->rs('ProblemSet')->getProblemSet(info => $args{info}, as_result_set => 1);
 
 	my $problem = $problem_set->problems->find(getProblemInfo($args{info}));
 
 	DB::Exception::ProblemNotFound->throw(
-		message => "the problem with "
+		message => 'the problem with '
 			. (
 			$args{info}->{problem_number}
-			? "problem number " . $args{info}->{problem_number}
-			: "problem id: " . $args{info}->{problem_id}
+			? 'problem number ' . $args{info}->{problem_number}
+			: 'problem id: ' . $args{info}->{problem_id}
 			)
-			. " is not found for set: "
+			. ' is not found for set: '
 			. $problem_set->set_name
-			. " is the course: "
+			. ' is the course: '
 			. $problem_set->courses->course_name
 	) unless $problem;
 
@@ -229,7 +229,7 @@ An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Prob
 =cut
 
 sub addSetProblem ($self, %args) {
-	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{params}, as_result_set => 1);
+	my $problem_set = $self->rs('ProblemSet')->getProblemSet(info => $args{params}, as_result_set => 1);
 	my $params      = clone $args{params};
 
 	# Remove some parameters that are not in the database, but may be passed in.
@@ -357,7 +357,7 @@ A problem (as hashrefs) or an object of class C<DBIx::Class::ResultSet::Problem>
 
 sub deleteSetProblem ($self, %args) {
 	my $set_problem = $self->getSetProblem(info => $args{info}, as_result_set => 1);
-	my $problem_set = $self->rs("ProblemSet")->getProblemSet(
+	my $problem_set = $self->rs('ProblemSet')->getProblemSet(
 		info => {
 			course_id => $set_problem->problem_set->course_id,
 			set_id    => $set_problem->set_id
@@ -365,7 +365,7 @@ sub deleteSetProblem ($self, %args) {
 		as_result_set => 1
 	);
 
-	my $problem = $problem_set->search_related("problems", getProblemInfo($args{info}))->single;
+	my $problem = $problem_set->search_related('problems', getProblemInfo($args{info}))->single;
 
 	my $deleted_problem = $problem->delete;
 

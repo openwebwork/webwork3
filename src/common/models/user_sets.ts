@@ -550,6 +550,9 @@ export class UserReviewSet extends UserSet {
 	}
 }
 
+/**
+ * Parse the UserSet, returning a model of the correct subclass.
+ */
 export function parseUserSet(user_set: ParseableUserSet) {
 	if (user_set.set_type === 'HW') {
 		return new UserHomeworkSet(user_set as ParseableUserHomeworkSet);
@@ -561,12 +564,9 @@ export function parseUserSet(user_set: ParseableUserSet) {
 }
 
 /**
- * merge a ProblemSet and a UserSet in that the result is a MergedUserSet with overrides
- * taken from the UserSet.  Additional info is taken from the MergedUser instance.
- * @param {ProblemSet} set - a problem set
- * @param {UserSet} user_set - a user set that will override the problem set dates and parameters.
- * @param {CourseUser} user - the user associated with the set.
- * @returns a MergedUserSet with the appropriate overrides.
+ * Merge a ProblemSet, a UserSet and a MergedUser and return a MergedUserSet. Note: if the
+ * arguments are not related in the database (based on primary and foreign keys), a MergeError is
+ * thrown.  in that the result is a MergedUserSet with overrides taken from the UserSet.
  */
 export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: CourseUser) {
 	// Perhaps we need to handle this better, but this situation happens when reacting

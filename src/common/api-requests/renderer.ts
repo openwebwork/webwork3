@@ -87,9 +87,6 @@ function requestString(value: number | string | boolean | undefined): string {
  *
  * Loads CSS or JS files present in a problem.
  *
- * @param src: the URL of the CSS/JS
- * @param id: The element id of html where the script will be place.
- * @returns
  */
 
 export const loadResource = async (src: string, id?: string) => {

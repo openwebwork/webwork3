@@ -1,55 +1,27 @@
 package DB::Schema::Result::UserSet::ReviewSet;
-use DB::WithParams;
-use DB::WithDates;
-
+use base qw/DB::Schema::Result::UserSet/;
 use strict;
 use warnings;
-use base qw(DB::Schema::Result::UserSet DB::WithParams DB::WithDates);
 
-use DB::Schema::Result::ProblemSet::HWSet;
+use feature 'signatures';
+no warnings qw(experimental::signatures);
 
-=head1 DESCRIPTION
+use DB::Schema::Result::ProblemSet::ReviewSet;
 
-This is the database schema for a UserSet version ReviewSet, a subclass of a C<DB::Schema::Result::UserSet>
-
-In particular, this contains the methods C<valid_dates>, C<required_dates>,
-C<valid_params> and C<required_params>.  See C<DB::Schema::Result::ProblemSet>
-for details on these.
-
-=cut
-
-=head2 C<valid_dates>
-
-subroutine that returns the array for the valid dates: C<['open', 'reduced_scoring', 'due' ,'answer']>
-
-=cut
-
-sub valid_dates {
-	return [ 'open', 'closed' ];
+sub valid_dates ($=) {
+	return DB::Schema::Result::ProblemSet::ReviewSet::valid_dates();
 }
 
-=head2 C<required_dates>
-
-subroutine that returns the array for the required dates: C<['open', 'due' ,'answer']>
-
-=cut
-
-sub required_dates {
-	return [];
+sub required_dates ($=) {
+	return DB::Schema::Result::ProblemSet::ReviewSet::required_dates();
 }
 
-sub valid_params {
-	return { test_param => q{[01]}, };
+sub valid_params ($=) {
+	return DB::Schema::Result::ProblemSet::ReviewSet::valid_params();
 }
 
-=head2 C<required_params>
-
-No parameters are required for the homework set.
-
-=cut
-
-sub required_params {
-	return {};
+sub required_params ($=) {
+	return DB::Schema::Result::ProblemSet::ReviewSet::required_params();
 }
 
 1;
