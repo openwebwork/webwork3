@@ -165,7 +165,7 @@ export const useSetProblemStore = defineStore('set_problems', {
 		/**
 		 * Update a given UserProblem in the database and in the store.
 		 */
-		 async updateUserProblem(user_problem: UserProblem): Promise<UserProblem> {
+		async updateUserProblem(user_problem: UserProblem): Promise<UserProblem> {
 			const course_id = useSessionStore().course.course_id;
 			const set_problem = this.set_problems.find(prob => prob.set_problem_id === user_problem.set_problem_id);
 			const user_set = useProblemSetStore().findUserSet({ user_set_id: user_problem.user_set_id });
