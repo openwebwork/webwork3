@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+
+morbo -v -m test -l http://[::]:3333 bin/webwork3 &
+# Grab the process number.
+P1=$!
+
+jest --runInBand --testPathPattern='tests/stores'
+
+kill $P1
