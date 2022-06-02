@@ -4,7 +4,7 @@
 import papa from 'papaparse';
 import fs from 'fs';
 import { Dictionary, generic, Model } from 'src/common/models';
-import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
+import { parseBoolean, parseNonNegDecimal, parseNonNegInt } from 'src/common/models/parsers';
 
 /**
  * Used for parsing a csv file.  The params field is an array of strings that are in stored as
@@ -16,11 +16,15 @@ import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 interface CSVConfig {
 	params?: string[];
 	boolean_fields?: string[];
-	non_neg_fields?: string[];
+	non_neg_int_fields?: string[];
+	non_neg_float_fields?: string[];
+	param_boolean_fields?: string[];
+	param_non_neg_int_fields?: string[];
+	param_non_neg_float_fields?: string[];
 }
 
 /**
- * Convert the data in the form of an array of objects of strings or numbersand converts to the proper
+ * Convert the data in the form of an array of objects of strings or numbers and converts to the proper
  * form to pass to a desired model.  These typically come from a CSV file where the dates and params
  * are located in separate columns in the CSV file and are converted to a nested object.  In addition,
  * booleans and integers are parsed.
@@ -29,6 +33,9 @@ interface CSVConfig {
 function convert(data: Dictionary<string>[], config: CSVConfig): Dictionary<generic | Dictionary<generic>>[] {
 	const keys = Object.keys(data[0]);
 	const param_fields = config.params ?? [];
+	const param_boolean_fields = config.param_boolean_fields ?? [];
+	const param_non_neg_int_fields = config.param_non_neg_int_fields ?? [];
+	const param_non_neg_float_fields = config.param_non_neg_float_fields ?? [];
 
 	// Store the param fields and the matching regular expressions
 	const p_fields: Dictionary<string[]> = {};
@@ -40,7 +47,7 @@ function convert(data: Dictionary<string>[], config: CSVConfig): Dictionary<gene
 	const all_param_fields = Object.entries(p_fields)
 		.reduce((prev, [, value]) => prev = [...prev, ...value], [] as string[]);
 	const known_fields = [...all_param_fields, ...(config.boolean_fields ?? []),
-		...(config.non_neg_fields ?? [])];
+		...(config.non_neg_int_fields ?? []), ...(config.non_neg_float_fields ?? [])];
 	const other_fields = keys.filter(k => known_fields.indexOf(k) < 0);
 
 	return data.map(row => {
@@ -52,18 +59,28 @@ function convert(data: Dictionary<string>[], config: CSVConfig): Dictionary<gene
 			if (row[key] != undefined) d[key] = parseBoolean(row[key]);
 		});
 		// Parse int fields
-		(config.non_neg_fields ?? []).forEach(key => {
+		(config.non_neg_int_fields ?? []).forEach(key => {
 			if (row[key] != undefined) d[key] = parseNonNegInt(row[key]);
+		});
+		// Parse float fields
+		(config.non_neg_float_fields ?? []).forEach(key => {
+			if (row[key] != undefined) d[key] = parseNonNegDecimal(row[key]);
 		});
 		// Parse parameter fields
 		Object.entries(p_fields).forEach(([key, ]) => {
-			d[key] = p_fields[key].reduce((prev: Dictionary<string | number>, val) => {
+			d[key] = p_fields[key].reduce((prev: Dictionary<generic>, val) => {
 				const field = val.split(':')[1];
 				// Parse any date field as date.
+
 				if (row[val]) {
-					prev[field] = /DATES:/.test(val) ?
-						Date.parse(row[val]) / 1000 :
-						row[val];
+					// parse booleans, floats and integers
+					prev[field] =
+						param_boolean_fields.includes(field) ? (parseInt(row[val]) === 1 ? true : false) :
+							param_non_neg_int_fields.includes(field) ? parseInt(row[val]) :
+								param_non_neg_float_fields.includes(field) ? parseFloat(row[val]) :
+									/DATES:/.test(val) ?
+									Date.parse(row[val]) / 1000 :
+									row[val];
 				}
 				return prev;
 			}, {});

@@ -37,7 +37,7 @@ describe('User store tests', () => {
 
 		const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
 			boolean_fields: ['is_admin'],
-			non_neg_fields: ['user_id']
+			non_neg_int_fields: ['user_id']
 		});
 
 		// Do some parsing and cleanup.

@@ -32,7 +32,7 @@ describe('Test the course store', () => {
 
 			const parsed_courses = await loadCSV('t/db/sample_data/courses.csv', {
 				boolean_fields: ['visible'],
-				non_neg_fields: ['course_id'],
+				non_neg_int_fields: ['course_id'],
 				params: ['course_dates', 'course_params']
 			});
 			courses_from_csv = parsed_courses.map(course => {

@@ -61,7 +61,7 @@ describe('Session Store', () => {
 		// Load the user course information for testing later.
 		const parsed_courses = await loadCSV('t/db/sample_data/courses.csv', {
 			boolean_fields: ['visible'],
-			non_neg_fields: ['course_id'],
+			non_neg_int_fields: ['course_id'],
 			params: ['course_dates', 'course_params']
 		});
 
@@ -72,7 +72,7 @@ describe('Session Store', () => {
 
 		const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
 			boolean_fields: ['is_admin'],
-			non_neg_fields: ['user_id']
+			non_neg_int_fields: ['user_id']
 		});
 
 		lisa_courses = users_to_parse.filter(user => user.username === 'lisa')

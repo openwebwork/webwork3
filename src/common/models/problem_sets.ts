@@ -38,8 +38,8 @@ export type ProblemSetDates = HomeworkSetDates | QuizDates | ReviewSetDates;
 
 // Problem Set (HomeworkSet, Quiz, ReviewSet ) classes and interfaces for parsing.
 
-export interface ParseableProblemSet {
-	set_id?: string | number;
+export interface ParseableSetParams {
+	set_id?: number;
 	set_name?: string;
 	course_id?: number;
 	set_type?: string;

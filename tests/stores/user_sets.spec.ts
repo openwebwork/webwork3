@@ -45,33 +45,23 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
-			boolean_fields: ['set_visible']
+			boolean_fields: ['set_visible'],
+			param_boolean_fields: ['timed', 'enable_reduced_scoring', 'test_param'],
+			param_non_neg_int_fields: ['quiz_duration']
 		};
 
 		const hw_sets_to_parse = await loadCSV('t/db/sample_data/hw_sets.csv', problem_set_config);
-		// Do some parsing cleanup.
 		const hw_sets_from_csv = hw_sets_to_parse.filter(set => set.course_name === 'Precalculus')
 			.map(set => new HomeworkSet(set));
-		// hw_sets_from_csv.forEach(set => {
-		//   set.set_params.enable_reduced_scoring = parseBoolean(set.set_params.enable_reduced_scoring);
-		// });
 
 		const quizzes_to_parse = await loadCSV('t/db/sample_data/quizzes.csv', problem_set_config);
 		const quizzes_from_csv = quizzes_to_parse.filter(set => set.course_name === 'Precalculus')
 			.map(q => new Quiz(q));
-		// Do some parsing cleanup.
-		quizzes_from_csv.forEach(q => {
-			q.set_params.timed = parseBoolean(q.set_params.timed);
-			q.set_params.quiz_duration = parseNonNegInt(q.set_params.quiz_duration);
-		});
 
 		const review_sets_to_parse = await loadCSV('t/db/sample_data/review_sets.csv', problem_set_config);
 		const review_sets_from_csv = review_sets_to_parse.filter(set => set.course_name === 'Precalculus')
 			.map(set => new ReviewSet(set));
-		// Do some parsing cleanup.
-		review_sets_from_csv.forEach(set => {
-			set.set_params.test_param = parseBoolean(set.set_params.test_param);
-		});
+
 		// combine quizzes, review sets and homework sets
 		problem_sets_from_csv = [...hw_sets_from_csv, ...quizzes_from_csv, ...review_sets_from_csv];
 
@@ -103,13 +93,16 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 			// Setup and load the user sets data from a csv file.
 			const user_sets_to_parse = await loadCSV('t/db/sample_data/user_sets.csv', {
-				params: ['set_dates', 'set_params']
+				params: ['set_dates', 'set_params'],
+				boolean_fields: ['set_visible'],
+				param_boolean_fields: ['timed', 'enable_reduced_scoring', 'test_param'],
+				param_non_neg_int_fields: ['quiz_duration']
 			});
 
 			// Load the users from the CSV file and filter only the Precalc students.
 			const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
 				boolean_fields: ['is_admin'],
-				non_neg_fields: ['user_id']
+				non_neg_int_fields: ['user_id']
 			});
 
 			const precalc_merged_users = users_to_parse.filter(user => user.course_name === 'Precalculus')
@@ -289,7 +282,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		});
 	});
 
-	let new_user_hw: UserSet;
+	let new_user_hw: UserHomeworkSet;
 	describe('Test merged user sets', () => {
 		test('Test all merged user sets', () => {
 			const problem_set_store = useProblemSetStore();
@@ -318,6 +311,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 			new_user_hw = new UserHomeworkSet({
 				set_id: new_hw_set.set_id,
 				course_user_id: user_to_assign.course_user_id,
+				set_visible: false,
 				set_dates: {
 					open: 1200,
 					reduced_scoring: 1500,
@@ -326,30 +320,28 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 					enable_reduced_scoring: true
 				}
 			});
-
 			const new_user_set = await problem_set_store.addUserSet(new_user_hw) ?? new UserSet();
 			const merged_hw = new UserHomeworkSet({
 				user_id: user_to_assign.user_id,
-				user_set_id: new_user_hw.user_set_id,
-				set_id: new_hw_set.set_id,
+				user_set_id: new_user_set.user_set_id,
+				set_id: new_user_set.set_id,
 				course_user_id: user_to_assign.course_user_id,
-				set_version: new_user_hw.set_version,
+				set_version: new_user_set.set_version,
 				set_visible: new_user_hw.set_visible,
 				set_name: new_hw_set.set_name,
 				username: user_to_assign.username,
-				set_type: new_hw_set.set_type,
+				set_type: new_user_set.set_type,
 				set_params: new_user_hw.set_params.toObject(),
 				set_dates: new_user_hw.set_dates.toObject()
 			});
 
-			expect(cleanIDs(new_user_hw)).toStrictEqual(cleanIDs(new_user_set));
+			expect(new_user_hw).toStrictEqual(new_user_set);
 
 			const merged_user_set = mergeUserSet(new_hw_set,
 				new DBUserHomeworkSet(new_user_set.toObject()), user_to_assign);
 
 			// Copy over the user_set_id from the database object to one in merged_hw.
-			// Not sure why directly setting the user_set_id results in a type error.
-			merged_hw.set({ user_set_id: merged_user_set?.user_set_id });
+			merged_hw.user_set_id = merged_user_set?.user_set_id ?? 0;
 			expect(merged_user_set).toStrictEqual(merged_hw);
 		});
 	});

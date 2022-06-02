@@ -48,40 +48,32 @@ describe('Problem Set store tests', () => {
 
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
-			boolean_fields: ['set_visible']
+			boolean_fields: ['set_visible'],
+			param_boolean_fields: ['timed', 'enable_reduced_scoring', 'test_param'],
+			param_non_neg_int_fields: ['quiz_duration']
 		};
 
 		const hw_sets_to_parse = await loadCSV('t/db/sample_data/hw_sets.csv', problem_set_config);
-		// Do some parsing cleanup.
 		const hw_sets_from_csv = hw_sets_to_parse.filter(set => set.course_name === 'Precalculus')
 			.map(set => new HomeworkSet(set));
-		// hw_sets_from_csv.forEach(set => {
-		//    set.set_params.enable_reduced_scoring = parseBoolean(set.set_params.enable_reduced_scoring);
-		// });
 
 		const quizzes_to_parse = await loadCSV('t/db/sample_data/quizzes.csv', problem_set_config);
 		const quizzes_from_csv = quizzes_to_parse.filter(set => set.course_name === 'Precalculus')
 			.map(q => new Quiz(q));
-		// Do some parsing cleanup.
-		quizzes_from_csv.forEach(q => {
-			q.set_params.timed = parseBoolean(q.set_params.timed);
-			q.set_params.quiz_duration = parseNonNegInt(q.set_params.quiz_duration);
-		});
 
 		const review_sets_to_parse = await loadCSV('t/db/sample_data/review_sets.csv', problem_set_config);
 		const review_sets_from_csv = review_sets_to_parse.filter(set => set.course_name === 'Precalculus')
 			.map(set => new ReviewSet(set));
-		// Do some parsing cleanup.
-		review_sets_from_csv.forEach(set => {
-			set.set_params.test_param = parseBoolean(set.set_params.test_param);
-		});
+
 		// combine quizzes, review sets and homework sets
 		const problem_sets_from_csv = [...hw_sets_from_csv, ...quizzes_from_csv, ...review_sets_from_csv];
 
 		// Load all problems from CSV files
 		const problems_to_parse = await loadCSV('t/db/sample_data/problems.csv', {
 			params: ['problem_params'],
-			non_neg_fields: ['problem_number']
+			non_neg_int_fields: ['problem_number'],
+			param_non_neg_float_fields: ['weight'],
+			param_non_neg_int_fields: ['library_id', 'problem_pool_id']
 		});
 
 		// Filter only Precalc problems and remove any undefined library_ids
@@ -91,14 +83,15 @@ describe('Problem Set store tests', () => {
 		// Load the User Problem information from the csv file:
 		const user_problems_from_csv = await loadCSV('t/db/sample_data/user_problems.csv', {
 			params: [],
-			non_neg_fields: ['problem_number', 'seed']
+			non_neg_int_fields: ['problem_number', 'seed'],
+			non_neg_float_fields: ['status']
 		});
 
 		// load all user problems in Precalc from CSV files and merge them with set problems.
 		// Load the users from the csv file.
 		const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
 			boolean_fields: ['is_admin'],
-			non_neg_fields: ['user_id']
+			non_neg_int_fields: ['user_id']
 		});
 
 		precalc_merged_problems = user_problems_from_csv
