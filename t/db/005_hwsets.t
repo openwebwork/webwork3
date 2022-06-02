@@ -38,25 +38,41 @@ my $course_rs      = $schema->resultset("Course");
 my $user_rs        = $schema->resultset("User");
 
 # Load HW sets from CSV file
-my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
+my @hw_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/hw_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => [ 'enable_reduced_scoring', 'hide_hint' ]
+	}
+);
 for my $hw_set (@hw_sets) {
 	$hw_set->{set_type}   = "HW";
-	$hw_set->{set_params} = {} unless defined $hw_set->{set_params};
-
+	$hw_set->{set_params} = {} unless defined($hw_set->{set_params});
 }
 
-my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
-for my $set (@quizzes) {
-	$set->{set_type}   = "QUIZ";
-	$set->{set_params} = {} unless defined $set->{set_params};
-
+my @quizzes = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/quizzes.csv",
+	{
+		boolean_fields           => ['set_visible'],
+		param_boolean_fields     => ['timed'],
+		param_non_neg_int_fields => ['quiz_duration']
+	}
+);
+for my $quiz (@quizzes) {
+	$quiz->{set_type}   = "QUIZ";
+	$quiz->{set_params} = {} unless defined($quiz->{set_params});
 }
 
-my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv");
+my @review_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/review_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => ['test_param']
+	}
+);
 for my $set (@review_sets) {
 	$set->{set_type}   = "REVIEW";
-	$set->{set_params} = {} unless defined $set->{set_params};
-
+	$set->{set_params} = {} unless defined($set->{set_params});
 }
 
 # Test getting all problem sets
@@ -141,13 +157,13 @@ throws_ok {
 my $new_set_params = {
 	set_name  => "HW #9",
 	set_dates => {
-		open => 100,
-		reduced_scoring => 120,
-		due => 140,
-		answer => 200,
+		open                   => 100,
+		reduced_scoring        => 120,
+		due                    => 140,
+		answer                 => 200,
 		enable_reduced_scoring => true
 	},
-	set_type  => "HW"
+	set_type => "HW"
 };
 
 my $new_set = $problem_set_rs->addProblemSet(

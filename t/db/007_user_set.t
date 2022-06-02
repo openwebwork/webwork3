@@ -39,57 +39,42 @@ my $course_user_rs = $schema->resultset("CourseUser");
 my $problem_set_rs = $schema->resultset("ProblemSet");
 my $course         = $course_rs->find({ course_id => 1 });
 
-# Delete all user sets from the db for user otto, frink, in the Precalc course
-# and two sets for ralph in the Arithmetic course.
-
-# Note: this is only needed because these weren't deleted.
-# my @usersets_that_may_exist = $user_set_rs->search(
-# 	{
-# 		-or => [
-# 			-and => [
-# 				'courses.course_name' => 'Precalculus',
-# 				-or                   => [
-# 					'users.username' => 'otto',
-# 					'users.username' => 'frink',
-# 				]
-# 			],
-# 			-and => [
-# 				'courses.course_name'   => 'Arithmetic',
-# 				'users.username'        => 'ralph',
-# 				'problem_sets.set_name' => 'HW #2'
-# 			],
-# 			-and => [
-# 				'courses.course_name'   => 'Precalculus',
-# 				'users.username'        => 'ralph',
-# 				'problem_sets.set_name' => 'HW #4'
-# 			]
-# 		]
-# 	},
-# 	{
-# 		join => [ { problem_sets => 'courses' }, { course_users => 'users' } ]
-# 	}
-# );
-
-# for my $u (@usersets_that_may_exist) {
-# 	$u->delete;
-# }
-
 # Load info from CSV files
-my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
+my @hw_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/hw_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => [ 'enable_reduced_scoring', 'hide_hint' ]
+	}
+);
 for my $hw_set (@hw_sets) {
 	$hw_set->{set_type}    = "HW";
 	$hw_set->{set_version} = 1  unless defined($hw_set->{set_version});
 	$hw_set->{set_params}  = {} unless defined $hw_set->{set_params};
 }
 
-my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
+my @quizzes = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/quizzes.csv",
+	{
+		boolean_fields           => ['set_visible'],
+		param_boolean_fields     => ['timed'],
+		param_non_neg_int_fields => ['quiz_duration']
+	}
+);
 for my $set (@quizzes) {
 	$set->{set_type}    = "QUIZ";
 	$set->{set_version} = 1  unless defined($set->{set_version});
 	$set->{set_params}  = {} unless defined $set->{set_params};
 }
 
-my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv");
+my @review_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/review_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => ['test_param']
+	}
+);
+
 for my $set (@review_sets) {
 	$set->{set_type}    = "REVIEW";
 	$set->{set_version} = 1  unless defined($set->{set_version});
@@ -98,7 +83,13 @@ for my $set (@review_sets) {
 
 my @all_problem_sets = (@hw_sets, @quizzes, @review_sets);
 
-my @all_user_sets = loadCSV("$main::ww3_dir/t/db/sample_data/user_sets.csv");
+my @all_user_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/user_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => [ 'enable_reduced_scoring', 'hide_hint' ]
+	}
+);
 
 for my $set (@all_user_sets) {
 	$set->{set_version} = 1 unless defined($set->{set_version});

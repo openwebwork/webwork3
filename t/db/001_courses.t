@@ -36,13 +36,14 @@ my $strp   = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak
 my $course_rs = $schema->resultset("Course");
 
 # Get a list of courses from the CSV file.
-my @courses = loadCSV("$main::ww3_dir/t/db/sample_data/courses.csv");
+my @courses = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/courses.csv",
+	{
+		boolean_fields => ['visible']
+	}
+);
 @courses = sortByCourseName(\@courses);
 for my $course (@courses) {
-	for my $date (keys %{ $course->{course_dates} }) {
-		my $dt = $strp->parse_datetime($course->{course_dates}->{$date});
-		$course->{course_dates}->{$date} = $dt->epoch;
-	}
 	delete $course->{course_params};
 }
 

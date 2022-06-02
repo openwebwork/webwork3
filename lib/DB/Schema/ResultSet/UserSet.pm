@@ -394,13 +394,14 @@ sub addUserSet ($self, %args) {
 	# If any of the dates are 0, then remove them.
 	# Only check if the date_fields are 0.  There is the option to store non-dates in the
 	# set_dates field.
-	my $valid_date_str = $DB::Schema::Result::UserSet::set_type->{$params->{type}} . '::valid_dates()';
-	my $date_fields = eval($valid_date_str);
+	my $valid_date_str = $DB::Schema::Result::UserSet::set_type->{ $params->{type} } . '::valid_dates()';
+	my $date_fields    = eval($valid_date_str);
 
 	if ($args{params}->{set_dates}) {
 		for my $key (@$date_fields) {
-			delete $args{params}->{set_dates}->{$key} if defined ($args{params}->{set_dates}->{$key}) &&
-				$args{params}->{set_dates}->{$key} == 0;
+			delete $args{params}->{set_dates}->{$key}
+				if defined($args{params}->{set_dates}->{$key})
+				&& $args{params}->{set_dates}->{$key} == 0;
 		}
 	}
 

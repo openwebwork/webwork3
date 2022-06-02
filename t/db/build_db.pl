@@ -19,6 +19,7 @@ use feature "say";
 use Clone qw/clone/;
 use DateTime::Format::Strptime;
 use YAML::XS qw/LoadFile/;
+use Mojo::JSON qw/true false/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV/;
@@ -52,13 +53,15 @@ my $problem_rs      = $schema->resultset('Problem');
 my $user_set_rs     = $schema->resultset('UserSet');
 
 my $strp_date = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
-use Data::Dumper;
 
 sub addCourses {
 	say "adding courses" if $verbose;
-	my @courses = loadCSV("$main::ww3_dir/t/db/sample_data/courses.csv",{
-		boolean_fields => ['visible']
-	});
+	my @courses = loadCSV(
+		"$main::ww3_dir/t/db/sample_data/courses.csv",
+		{
+			boolean_fields => ['visible']
+		}
+	);
 	for my $course (@courses) {
 		# currently course_params is not in the database.
 		delete $course->{course_params};
@@ -71,7 +74,12 @@ sub addUsers {
 	# Add some users
 	say "adding users" if $verbose;
 
-	my @all_students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
+	my @all_students = loadCSV(
+		"$main::ww3_dir/t/db/sample_data/students.csv",
+		{
+			boolean_fields => ['is_admin']
+		}
+	);
 
 	# Add an admin user
 	my $admin = {
@@ -79,7 +87,7 @@ sub addUsers {
 		email        => 'admin@google.com',
 		first_name   => "Andrea",
 		last_name    => "Administrator",
-		is_admin     => 1,
+		is_admin     => true,
 		login_params => { password => "admin" }
 	};
 	$user_rs->create($admin);
@@ -114,10 +122,13 @@ sub addSets {
 	# Add some problem sets
 	say "adding problem sets" if $verbose;
 
-	my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv", {
-		boolean_fields => ['set_visible'],
-		param_boolean_fields => ['enable_reduced_scoring', 'hide_hint']
-	});
+	my @hw_sets = loadCSV(
+		"$main::ww3_dir/t/db/sample_data/hw_sets.csv",
+		{
+			boolean_fields       => ['set_visible'],
+			param_boolean_fields => [ 'enable_reduced_scoring', 'hide_hint' ]
+		}
+	);
 	for my $set (@hw_sets) {
 		my $course = $course_rs->find({ course_name => $set->{course_name} });
 		if (!defined($course)) {
@@ -131,11 +142,14 @@ sub addSets {
 	# Add quizzes
 	say "adding quizzes" if $verbose;
 
-	my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv", {
-		boolean_fields => ['set_visible'],
-		param_boolean_fields => ['timed'],
-		param_non_neg_int_fields => ['quiz_duration']
-	});
+	my @quizzes = loadCSV(
+		"$main::ww3_dir/t/db/sample_data/quizzes.csv",
+		{
+			boolean_fields           => ['set_visible'],
+			param_boolean_fields     => ['timed'],
+			param_non_neg_int_fields => ['quiz_duration']
+		}
+	);
 	for my $quiz (@quizzes) {
 		my $course = $course_rs->search({ course_name => $quiz->{course_name} })->single;
 		if (!defined($course)) {
@@ -150,10 +164,13 @@ sub addSets {
 
 	say "adding review sets" if $verbose;
 
-	my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv", {
-		boolean_fields => ['set_visible'],
-		param_boolean_fields => ['test_param']
-	});
+	my @review_sets = loadCSV(
+		"$main::ww3_dir/t/db/sample_data/review_sets.csv",
+		{
+			boolean_fields       => ['set_visible'],
+			param_boolean_fields => ['test_param']
+		}
+	);
 	for my $set (@review_sets) {
 		my $course = $course_rs->find({ course_name => $set->{course_name} });
 		croak "The course |$set->{course_name}| does not exist" unless defined($course);
@@ -167,19 +184,19 @@ sub addSets {
 	return;
 }
 
-use Data::Dumper;
-
 sub addProblems {
 	# Add some problems
 	say "adding problems" if $verbose;
-	my @problems = loadCSV("$main::ww3_dir/t/db/sample_data/problems.csv",{
-		non_neg_float_fields => ['status'],
-		non_neg_int_fields => ['seed', 'problem_number'],
-		param_non_neg_int_fields => ['library_id'],
-		param_non_neg_float_fields => ['weight']
-	});
+	my @problems = loadCSV(
+		"$main::ww3_dir/t/db/sample_data/problems.csv",
+		{
+			non_neg_float_fields       => ['status'],
+			non_neg_int_fields         => [ 'seed', 'problem_number' ],
+			param_non_neg_int_fields   => ['library_id'],
+			param_non_neg_float_fields => ['weight']
+		}
+	);
 	for my $prob (@problems) {
-		print Dumper $prob;
 		# Check if the course_name/set_name exists
 		my $set = $problem_set_rs->find(
 			{
@@ -207,10 +224,13 @@ sub addProblems {
 sub addUserSets {
 	# Add some users to problem sets
 	say "adding user sets" if $verbose;
-	my @user_sets = loadCSV("$main::ww3_dir/t/db/sample_data/user_sets.csv",{
-		boolean_fields => ['set_visible'],
-		param_boolean_fields => ['enable_reduced_scoring', 'hide_hint']
-	});
+	my @user_sets = loadCSV(
+		"$main::ww3_dir/t/db/sample_data/user_sets.csv",
+		{
+			boolean_fields       => ['set_visible'],
+			param_boolean_fields => [ 'enable_reduced_scoring', 'hide_hint' ]
+		}
+	);
 	for my $user_set (@user_sets) {
 		# Check if the course_name/set_name/user_name exists
 		my $course         = $course_rs->find({ course_name => $user_set->{course_name} });
@@ -255,12 +275,15 @@ sub addProblemPools {
 
 sub addUserProblems {
 	say "adding user problems" if $verbose;
-	my @user_problems = loadCSV("$main::ww3_dir/t/db/sample_data/user_problems.csv",{
-		non_neg_float_fields => ['status'],
-		non_neg_int_fields => ['seed', 'problem_number'],
-		param_non_neg_int_fields => ['library_id'],
-		param_non_neg_float_fields => ['weight']
-	});
+	my @user_problems = loadCSV(
+		"$main::ww3_dir/t/db/sample_data/user_problems.csv",
+		{
+			non_neg_float_fields       => ['status'],
+			non_neg_int_fields         => [ 'seed', 'problem_number' ],
+			param_non_neg_int_fields   => ['library_id'],
+			param_non_neg_float_fields => ['weight']
+		}
+	);
 	for my $user_problem (@user_problems) {
 		my $user_set = $user_set_rs->find(
 			{
