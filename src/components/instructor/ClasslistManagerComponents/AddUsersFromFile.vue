@@ -120,16 +120,16 @@ import { getUser } from 'src/common/api-requests/user';
 import { useSettingsStore } from 'src/stores/settings';
 
 interface ParseError {
-  type: string;
-  col?: string;
-  message: string;
-  field?: string;
-  entire_row?: boolean;
+	type: string;
+	col?: string;
+	message: string;
+	field?: string;
+	entire_row?: boolean;
 }
 
 type UserFromFile = {
-  _row?: number;
-  _error?: ParseError;
+	_row?: number;
+	_error?: ParseError;
 } & Dictionary<string>;
 
 const emit = defineEmits(['closeDialog']);
