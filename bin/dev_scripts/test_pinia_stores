@@ -12,10 +12,10 @@ fi
 
 while getopts ':p:' OPTION; do
 	case "$OPTION" in
-		p)
-			port="$OPTARG"
-			echo "The port has been set to $port via a command line argument"
-			;;
+	p)
+		port="$OPTARG"
+		echo "The port has been set to $port via a command line argument"
+		;;
 	esac
 done
 
