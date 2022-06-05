@@ -137,8 +137,8 @@ export class UserCourse extends Model {
 		if (params.course_name == undefined) {
 			throw new RequiredFieldsException('course_name');
 		}
-		if (params.username == undefined) {
-			throw new RequiredFieldsException('username');
+		if (params.user_id == undefined) {
+			throw new RequiredFieldsException('user_id');
 		}
 		this.set(params);
 	}
