@@ -11,7 +11,6 @@ BEGIN {
 
 use DB::Schema;
 use WeBWorK3::Hooks;
-use Data::Dumper;
 
 my $perm_table;
 
@@ -31,7 +30,7 @@ sub startup ($self) {
 		$self->log->level('trace');
 		my $test_config_file = "$ENV{WW3_ROOT}/conf/ww3-dev.yml";
 		$test_config_file = "$ENV{WW3_ROOT}/conf/ww3-dev.dist.yml" unless (-e $test_config_file);
-		$config           = LoadFile($test_config_file);
+		$config           = $self->plugin(NotYAMLConfig => { file => $test_config_file });
 	} else {
 		# Load configuration from config file
 		$config = $self->plugin('NotYAMLConfig');
