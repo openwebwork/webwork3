@@ -33,7 +33,16 @@ const password = ref('');
 const message = ref('');
 const i18n = useI18n({ useScope: 'global' });
 
-const session_store = useSessionStore();
+const session = useSessionStore();
+
+if (session && session.logged_in && session.user) {
+	if (session.user.is_admin) {
+		void router.push('/admin');
+	} else if (session.user.user_id) {
+		void router.push(`/users/${session.user.user_id}/courses`);
+	}
+}
+
 const login = async () => {
 	const username_info = {
 		username: username.value,
@@ -44,11 +53,11 @@ const login = async () => {
 		message.value = i18n.t('authentication.failure');
 	} else {
 		// success
-		void session_store.updateSessionInfo(session_info);
+		void session.updateSessionInfo(session_info);
 		if (session_info?.user?.is_admin) {
 			void router.push('/admin');
-		} else if (session_store && session_store.user && session_store.user.user_id) {
-			void router.push(`/users/${session_store.user.user_id}/courses`);
+		} else if (session && session.user && session.user.user_id) {
+			void router.push(`/users/${session.user.user_id}/courses`);
 		}
 	}
 };
