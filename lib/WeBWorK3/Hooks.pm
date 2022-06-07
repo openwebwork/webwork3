@@ -43,7 +43,7 @@ our $check_permission = sub ($next, $c, $action, $) {
 	return $next->() if $c->req->url->to_string =~ /\/api\/login/x;
 
 	if (!$c->is_user_authenticated) {
-		$c->render(json => { has_permission => 0, msg => 'permission error' });
+		$c->render(json => { has_permission => 0, msg => 'permission error' }, status => 401);
 		return;
 	}
 
@@ -55,7 +55,7 @@ our $check_permission = sub ($next, $c, $action, $) {
 		my $course_user = $user_obj->course_users->find({ course_id => $c->param('course_id') });
 
 		if (!$course_user) {
-			$c->render(json => { has_permission => 0, msg => 'permission error' });
+			$c->render(json => { has_permission => 0, msg => 'permission error' }, status => 406);
 			return;
 		}
 
@@ -66,7 +66,7 @@ our $check_permission = sub ($next, $c, $action, $) {
 		if (has_permission($user, $c->perm_table->{ $c->{stash}{controller} }{ $c->{stash}{action} })) {
 			return $next->();
 		} else {
-			$c->render(json => { has_permission => 0, msg => 'permission error' });
+			$c->render(json => { has_permission => 0, msg => 'permission error' }, status => 403);
 		}
 	} else {
 		$next->();

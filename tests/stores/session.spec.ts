@@ -73,21 +73,22 @@ describe('Session Store', () => {
 			non_neg_fields: ['user_id']
 		});
 
+		// Fetch the user lisa.  This is used below.
+		lisa = new User(await getUser('lisa'));
+
 		lisa_courses = users_to_parse.filter(user => user.username === 'lisa')
 			.map(user_course => {
 				const course = courses_from_csv.find(c => c.course_name == user_course.course_name)
 					?? new Course();
 				return new UserCourse({
 					course_name: course.course_name,
-					username: user_course.username as string,
+					user_id: lisa.user_id,
 					visible: course.visible,
 					role: user_course.role as string,
 					course_dates: course.course_dates
 				});
 			});
 
-		// Fetch the user lisa.  This is used below.
-		lisa = new User(await getUser('lisa'));
 	});
 
 	describe('Testing the Session Store.', () => {
