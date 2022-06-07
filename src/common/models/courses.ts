@@ -182,7 +182,7 @@ export class UserCourse extends Model {
 		this._visible = parseBoolean(value);
 	}
 
-	get role() { return this._role; }
+	get role(): UserRole { return this._role; }
 	set role(value: string) { this._role = parseUserRole(value); }
 
 }
