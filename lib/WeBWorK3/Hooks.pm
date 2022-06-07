@@ -40,7 +40,7 @@ sub has_permission ($user, $perm) {
 
 # Check permission for /api routes
 our $check_permission = sub ($next, $c, $action, $) {
-	return $next->() if $c->req->url->to_string =~ /\/api\/login/x;
+	return $next->() if $c->req->url->to_string =~ m!/api/log(?:in|out)$!;
 
 	if (!$c->is_user_authenticated) {
 		$c->render(json => { has_permission => 0, msg => 'permission error' }, status => 401);
