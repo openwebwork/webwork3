@@ -64,11 +64,12 @@ our $check_permission = sub ($next, $c, $action, $) {
 	}
 
 	if ($c->req->url->to_string =~ /\/api/x) {
-		# don't consult the permission table if a user is requesting their own information 
-        my $userRequestingOwnInfo = ( $c->stash('user_id') && $user->{user_id} == $c->stash('user_id') ) ? 1 : 0;
+		# don't consult the permission table if a user is requesting their own information
+		my $userRequestingOwnInfo = ( $c->stash('user_id') && $user->{user_id} == $c->stash('user_id') ) ? 1 : 0;
 
-		if ($userRequestingOwnInfo || 
-			has_permission($user, $c->perm_table->{ $c->{stash}{controller} }{ $c->{stash}{action} })) {
+		if ($userRequestingOwnInfo
+			|| has_permission($user, $c->perm_table->{ $c->{stash}{controller} }{ $c->{stash}{action} }))
+		{
 			return $next->();
 		} else {
 			$c->render(json => { has_permission => 0, msg => 'permission error' }, status => 403);
