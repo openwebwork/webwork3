@@ -20,7 +20,7 @@ our $exception_handler = sub ($next, $c) {
 				if (ref($_) && (ref($_) eq 'Mojo::Exception' || ref($_) =~ /^DB::Exception/x));
 			$output->{message} = $_ if ($_ && ref($_) eq 'DBIx::Class::Exception');
 			$c->log->error($output->{message});
-			$c->render(json => $output, status => 250);
+			$c->render(json => $output, status => 500);
 		};
 	} else {
 		$next->();
@@ -65,7 +65,7 @@ our $check_permission = sub ($next, $c, $action, $) {
 
 	if ($c->req->url->to_string =~ /\/api/x) {
 		# don't consult the permission table if a user is requesting their own information
-		my $userRequestingOwnInfo = ( $c->stash('user_id') && $user->{user_id} == $c->stash('user_id') ) ? 1 : 0;
+		my $userRequestingOwnInfo = ($c->stash('user_id') && $user->{user_id} == $c->stash('user_id')) ? 1 : 0;
 
 		if ($userRequestingOwnInfo
 			|| has_permission($user, $c->perm_table->{ $c->{stash}{controller} }{ $c->{stash}{action} }))
