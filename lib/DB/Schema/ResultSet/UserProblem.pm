@@ -166,21 +166,33 @@ sub getUserProblemsForSet ($self, %args) {
 }
 
 =head1 getUserProblemsForUser
+
 Get all user problems (or merged user problems) for one user in one course
+
 =head3 input
+
 A hash of input values.
+
 =over
+
 =item * C<info>, either a course name or course_id and a user_id or username
+
 For example, C<{ course_name => 'Precalculus', username => 'homer'}>
 	or C<{user_id => 3, set_id => 4}> or a mix of these.
+
 =item * C<merged>, a boolean on whether to return a merged user or course user
+
 =item * C<as_result_set>, a boolean.  If true this an object of type
 C<DBIx::Class::ResultSet::UserProblem>
 if false, a hashrefs of a User Problem or merged User Problem with a Problem.
+
 =back
+
 =head3 output
+
 An array of a hashref of a user problem or merged user problem
 or an arrayref of C<DBIx::Class::ResultSet::UserProblem>
+
 =cut
 
 sub getUserProblemsForUser ($self, %args) {

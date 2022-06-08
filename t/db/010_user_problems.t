@@ -263,6 +263,7 @@ my $user_problem2 = $user_problem_rs->addUserProblem(
 	},
 	merged => 1
 );
+
 removeIDs($user_problem2);
 
 my $problem2 = clone firstval {
@@ -657,6 +658,24 @@ throws_ok {
 }
 qr/problem_pool_id is not valid/, "updateUserProblem: attempt to update a user problem with a bad problem_pool_id";
 
+# Get an array of user problems for a single user in a course.
+
+my @user_problems = $user_problem_rs->getUserProblemsForUser(
+	info => {
+		course_name => "Precalculus",
+		username    => "homer"
+	}
+);
+for my $user_problem (@user_problems) {
+	removeIDs($user_problem);
+}
+
+my @course_user_problems_from_csv =
+	grep { $_->{course_name} eq "Precalculus" && $_->{username} eq "homer" } @user_problems_from_csv;
+
+is_deeply(\@course_user_problems_from_csv,
+	\@user_problems, "getCourseUserProblems: get all user problems for a single user in a course");
+
 # Delete a User Problem
 
 my $user_problem_to_delete = $user_problem_rs->deleteUserProblem(info => $problem_info1);
@@ -703,7 +722,7 @@ throws_ok {
 }
 "DB::Exception::SetNotInCourse", "deleteUserProblem: attempt to delete a user problem for a non-existent problem set";
 
-# Attempt to add a UserProblem for a non-existent user.
+# Attempt to delete a UserProblem for a non-existent user.
 
 throws_ok {
 	$user_problem_rs->deleteUserProblem(

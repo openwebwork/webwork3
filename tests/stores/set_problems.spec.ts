@@ -22,7 +22,7 @@ import { useSetProblemStore } from 'src/stores/set_problems';
 import { Course } from 'src/common/models/courses';
 import { HomeworkSet, ProblemSet, Quiz, ReviewSet } from 'src/common/models/problem_sets';
 import { UserProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemParams, DBUserProblem,
-	mergeUserProblem } from 'src/common/models/problems';
+	mergeUserProblem, LibraryProblem } from 'src/common/models/problems';
 import { DBUserHomeworkSet, mergeUserSet, UserSet } from 'src/common/models/user_sets';
 import { Dictionary, generic } from 'src/common/models';
 
@@ -165,7 +165,8 @@ describe('Problem Set store tests', () => {
 					file_path: 'path/to/the/problem.pg'
 				})
 			});
-			added_set_problem = await set_problem_store.addSetProblem(new_set_problem);
+			const library_problem = new LibraryProblem({ location_params: { file_path: 'path/to/the/problem.pg' } });
+			added_set_problem = await set_problem_store.addSetProblem(library_problem, hw1?.set_id || 0);
 			expect(cleanIDs(added_set_problem)).toStrictEqual(cleanIDs(new_set_problem));
 		});
 
@@ -227,7 +228,8 @@ describe('Problem Set store tests', () => {
 					file_path: 'path/to/the/problem.pg'
 				}
 			});
-			added_set_problem = await set_problem_store.addSetProblem(new_set_problem);
+			const library_problem = new LibraryProblem({ location_params: { file_path: 'path/to/the/problem.pg' } });
+			added_set_problem = await set_problem_store.addSetProblem(library_problem, added_hw.set_id);
 
 			const users_store = useUserStore();
 			await users_store.fetchCourseUsers(precalc_course.course_id);

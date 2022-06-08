@@ -104,7 +104,7 @@ sub userRoutes ($self) {
 	my $user_routes = $self->routes->any('/webwork3/api/users')->requires(authenticated => 1)->to(controller => 'User');
 	$user_routes->get('/')->to(action => 'getGlobalUsers');
 	$user_routes->post('/')->to(action => 'addGlobalUser');
-	$user_routes->get('/:user')->to(action => 'getGlobalUser');
+	$user_routes->get('/:user_id')->to(action => 'getGlobalUser');
 	$user_routes->put('/:user_id')->to(action => 'updateGlobalUser');
 	$user_routes->delete('/:user_id')->to(action => 'deleteGlobalUser');
 	$user_routes->get('/:user_id/courses')->to(action => 'getUserCourses');
@@ -147,6 +147,8 @@ sub problemSetRoutes ($self) {
 	$problem_set_routes->post('/:set_id/users')->to(action => 'addUserSet');
 	$problem_set_routes->put('/:set_id/users/:course_user_id')->to(action => 'updateUserSet');
 	$problem_set_routes->delete('/:set_id/users/:course_user_id')->to(action => 'deleteUserSet');
+
+	$self->routes->get('/webwork3/api/courses/:course_id/users/:user_id/sets')->to('ProblemSet#getUserSets');
 	return;
 }
 

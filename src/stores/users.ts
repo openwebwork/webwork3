@@ -6,6 +6,7 @@ import { DBCourseUser, ParseableCourseUser, ParseableDBCourseUser, ParseableUser
 import { User, CourseUser } from 'src/common/models/users';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import { UserRole } from 'src/common/models/parsers';
+import { useSessionStore } from './session';
 
 export interface UserState {
 	users: User[];
@@ -159,6 +160,22 @@ export const useUserStore = defineStore('user', {
 				throw response.data as ResponseError;
 			}
 		},
+		/**
+		 * This addes the session user to the users field in the store.  This is
+		 * needed for other stores and merged models.
+		 */
+		async setSessionUser() {
+			const session_store = useSessionStore();
+			// if there is no user in the session don't fetch the user.
+			if (session_store.user.user_id === 0) return;
+			// Get the global user.
+			const user_response = await api.get(`users/${session_store.user.user_id}`);
+			this.users = [ new User(user_response.data as ParseableUser)];
+			// fetch the course user information for this use
+			const response = await api.get(`courses/${session_store.course.course_id}/users/${
+				session_store.user.user_id}`);
+			this.db_course_users = [ new DBCourseUser(response.data as ParseableDBCourseUser)];
+		},
 		// CourseUser actions
 
 		/**
@@ -228,6 +245,10 @@ export const useUserStore = defineStore('user', {
 				logger.error(response.data);
 				throw response.data as ResponseError;
 			}
+		},
+		clearAll() {
+			this.users = [];
+			this.db_course_users = [];
 		}
 	}
 });
