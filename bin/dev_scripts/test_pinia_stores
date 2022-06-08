@@ -5,8 +5,7 @@
 # or the command line option -p (which overrides WEBWORK3_TEST_PORT)
 
 port=3333
-if [[ ! -z ${WEBWORK3_TEST_PORT+x} ]];
-then
+if [[ -n ${WEBWORK3_TEST_PORT+x} ]]; then
 	port=$WEBWORK3_TEST_PORT
 fi
 
@@ -16,6 +15,9 @@ while getopts ':p:' OPTION; do
 		port="$OPTARG"
 		echo "The port has been set to $port via a command line argument"
 		;;
+	*)
+		exit "the option $OPTARG is not defined"
+		exit 0
 	esac
 done
 
@@ -27,6 +29,6 @@ P1=$!
 
 echo "http://localhost:$port/webwork3/api"
 
-jest --verbose --runInBand --testURL "http://localhost:$port/webwork3/api" 'tests/stores'
+npx jest --verbose --runInBand --testURL "http://localhost:$port/webwork3/api" 'tests/stores'
 
 kill $P1
