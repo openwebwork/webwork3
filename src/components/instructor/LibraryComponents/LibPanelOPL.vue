@@ -63,7 +63,6 @@ import { fetchDisciplines, fetchChapters, fetchSubjects, fetchSections, fetchLib
 import { logger } from 'boot/logger';
 import { useSetProblemStore } from 'src/stores/set_problems';
 
-logger.debug('in setup()');
 const $q = useQuasar();
 const app_state = useAppStateStore();
 const set_problem_store = useSetProblemStore();
@@ -147,29 +146,25 @@ const loadProblems = async () => {
 };
 
 const addProblem = async (prob: LibraryProblem) => {
-	const set_id = app_state.library_state.target_set_id;
-	if (set_id == 0) {
+	const set_id = app_state.target_set_id;
+	if (!set_id) {
 		$q.dialog({
 			message: 'You must select a target problem set',
 			persistent: true
 		});
 	} else {
-		try {
-			await set_problem_store.addSetProblem({
-				set_id,
-				problem: prob
+		await set_problem_store.addSetProblem(prob, set_id).
+			then(() => {
+				$q.notify({
+					message: 'A problem was added to the target set.',
+					color: 'green'
+				});
+			}).
+			catch((e: ResponseError) => {
+				$q.notify({ message: e.message, color: 'red' });
 			});
-			$q.notify({
-				message: 'A problem was added to the target set.',
-				color: 'green'
-			});
-
-		} catch (err) {
-			const error = err as ResponseError;
-			$q.notify({ message: error.message, color: 'red' });
-		}
 		logger.debug(`[LibPanelOPL/addProblem] set_id: ${set_id};` +
-						` added: ${JSON.stringify(prob.toObject())}`);
+						` problem: ${JSON.stringify(prob.toObject())}`);
 	}
 };
 </script>
