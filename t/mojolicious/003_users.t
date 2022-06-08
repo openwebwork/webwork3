@@ -79,21 +79,21 @@ $t->post_ok("/webwork3/api/courses/4/users" => json => $added_user_to_course)->s
 
 # Try to get a non-existent user.
 $t->get_ok("/webwork3/api/users/99999")->content_type_is('application/json;charset=UTF-8')
-	->status_is(250, "exception status")->status_is(250, 'internal exception')
+	->status_is(500, "exception status")->status_is(500, 'internal exception')
 	->json_is('/exception' => 'DB::Exception::UserNotFound');
 
 # Try to update a user not in a course.
-$t->put_ok("/webwork3/api/users/99999" => json => { email => 'fred@happy.com' })->status_is(250, "exception status")
+$t->put_ok("/webwork3/api/users/99999" => json => { email => 'fred@happy.com' })->status_is(500, "exception status")
 	->content_type_is('application/json;charset=UTF-8')->json_is('/exception' => 'DB::Exception::UserNotFound');
 
 # Try to add a user without a username.
 my $another_new_user = { username_name => "this is the wrong field" };
 $t->post_ok("/webwork3/api/users" => json => $another_new_user)->content_type_is('application/json;charset=UTF-8')
-	->status_is(250, "exception status")->json_is('/exception' => 'DB::Exception::ParametersNeeded');
+	->status_is(500, "exception status")->json_is('/exception' => 'DB::Exception::ParametersNeeded');
 
 # Try to delete a user not in a course.
 $t->delete_ok("/webwork3/api/users/99999")->content_type_is('application/json;charset=UTF-8')
-	->status_is(250, "exception status")->json_is('/exception' => 'DB::Exception::UserNotFound');
+	->status_is(500, "exception status")->json_is('/exception' => 'DB::Exception::UserNotFound');
 
 # Add another user to a course that is not a global user.
 my $another_user = {

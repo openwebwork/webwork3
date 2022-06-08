@@ -60,22 +60,22 @@ is_deeply($new_course, $t->tx->res->json, "updateCourse: courses match");
 # Test for exceptions
 
 # A set that is not in a course.
-$t->get_ok("/webwork3/api/courses/99999")->status_is(250, 'error status')
+$t->get_ok("/webwork3/api/courses/99999")->status_is(500, 'error status')
 	->content_type_is('application/json;charset=UTF-8')->json_is('/exception' => 'DB::Exception::CourseNotFound');
 
 # Try to update a non-existent course
 $t->put_ok("/webwork3/api/courses/999999" => json => { course_name => 'new course name' })
-	->status_is(250, 'error status')->content_type_is('application/json;charset=UTF-8')
+	->status_is(500, 'error status')->content_type_is('application/json;charset=UTF-8')
 	->json_is('/exception' => 'DB::Exception::CourseNotFound');
 
 # Try to add a course without a course_name.
 my $another_new_course = { name => "this is the wrong field" };
 
-$t->post_ok("/webwork3/api/courses/" => json => $another_new_course)->status_is(250, 'error status')
+$t->post_ok("/webwork3/api/courses/" => json => $another_new_course)->status_is(500, 'error status')
 	->content_type_is('application/json;charset=UTF-8')->json_is('/exception' => 'DB::Exception::ParametersNeeded');
 
 # Try to delete a non-existent course.
-$t->delete_ok("/webwork3/api/courses/9999999")->status_is(250, 'error status')
+$t->delete_ok("/webwork3/api/courses/9999999")->status_is(500, 'error status')
 	->content_type_is('application/json;charset=UTF-8')->json_is('/exception' => 'DB::Exception::CourseNotFound');
 
 # Delete the added course.
