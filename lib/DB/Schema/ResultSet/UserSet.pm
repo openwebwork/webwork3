@@ -310,8 +310,11 @@ sub getUserSet ($self, %args) {
 		set_version    => $args{info}->{set_version} // 1
 	});
 
-	DB::Exception::UserSetNotInCourse->throw(message => 'The set ' . $problem_set->set_name
-			. ' is not assigned to ' . $course_user->users->username . ' in the course.')
+	DB::Exception::UserSetNotInCourse->throw(message => 'The set '
+			. $problem_set->set_name
+			. ' is not assigned to '
+			. $course_user->users->username
+			. ' in the course.')
 		unless defined($user_set) || $args{skip_throw};
 
 	return $user_set if $args{as_result_set};
