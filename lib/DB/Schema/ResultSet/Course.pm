@@ -237,7 +237,7 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 =cut
 
 sub getUserCourses ($self, %args) {
-	my $user = $self->result_source->schema->resultset("User")
+	my $user = $self->result_source->schema->resultset('User')
 		->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
 
 	# my @user_courses = $user->courses->search({});

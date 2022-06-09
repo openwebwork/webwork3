@@ -136,19 +136,19 @@ $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => '
 	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
 	->json_is('/user/username' => "lisa")->json_is('/user/is_admin' => 0);
 
-$t->get_ok('/webwork3/api/users')->content_type_is('application/json;charset=UTF-8')->status_is(200)
+$t->get_ok('/webwork3/api/users')->content_type_is('application/json;charset=UTF-8')->status_is(403)
 	->json_is('/has_permission' => 0);
 
-$t->get_ok('/webwork3/api/users/1')->content_type_is('application/json;charset=UTF-8')->status_is(200)
+$t->get_ok('/webwork3/api/users/1')->content_type_is('application/json;charset=UTF-8')->status_is(403)
 	->json_is('/has_permission' => 0);
 
 $t->post_ok('/webwork3/api/users' => json => $new_user)->content_type_is('application/json;charset=UTF-8')
-	->status_is(200)->json_is('/has_permission' => 0);
+	->status_is(403)->json_is('/has_permission' => 0);
 
-$t->put_ok('/webwork3/api/users/1' => json => { email => 'lisa@aol.com' })->status_is(200)
+$t->put_ok('/webwork3/api/users/1' => json => { email => 'lisa@aol.com' })->status_is(403)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/has_permission' => 0);
 
-$t->delete_ok('/webwork3/api/users/1')->content_type_is('application/json;charset=UTF-8')->status_is(200)
+$t->delete_ok('/webwork3/api/users/1')->content_type_is('application/json;charset=UTF-8')->status_is(403)
 	->json_is('/has_permission' => 0);
 
 # Testing that booleans returned from the server are JSON booleans.

@@ -64,10 +64,11 @@ import { parseNonNegInt, parseUserRole } from 'src/common/models/parsers';
 
 export default defineComponent({
 	name: 'UserCourses',
-	setup() {
+	async setup() {
 		const session = useSessionStore();
 		// If this is the first page on load, then user_course is undefined.  the ?? '' prevents
 		// an error.
+		await session.fetchUserCourses(parseNonNegInt(session.user.user_id));
 		return {
 			student_courses: computed(() =>
 				session.user_courses.filter(user_course => parseUserRole(user_course.role ?? '') === 'STUDENT')
@@ -78,11 +79,5 @@ export default defineComponent({
 			user: computed(() => session.user)
 		};
 	},
-	created() {
-		// fetch the data when the view is created and the data is
-		// already being observed
-		const session = useSessionStore();
-		void session.fetchUserCourses(parseNonNegInt(session.user.user_id ?? 0));
-	}
 });
 </script>

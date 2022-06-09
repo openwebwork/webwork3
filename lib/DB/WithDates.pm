@@ -54,7 +54,7 @@ sub validDateFormat ($self, $field_name) {
 sub hasRequiredDateFields ($self, $field_name) {
 	my @fields     = keys %{ $self->get_inflated_column($field_name) };
 	my @bad_fields = array_minus(@$required_dates, @fields);
-	DB::Exception::RequiredDateFields->throw(message => "The field(s) " . join(", ", @bad_fields) . " must be present")
+	DB::Exception::RequiredDateFields->throw(message => 'The field(s) ' . join(', ', @bad_fields) . ' must be present')
 		if (scalar(@bad_fields) != 0);
 	return 1;
 }

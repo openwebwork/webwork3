@@ -9,8 +9,9 @@
 // Test the Session Store
 
 import { createApp } from 'vue';
-import { createPinia, setActivePinia } from 'pinia';
+import { setActivePinia, createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import { api } from 'src/boot/axios';
 
 import { api } from 'src/boot/axios';
 import { getUser } from 'src/common/api-requests/user';
@@ -75,25 +76,27 @@ describe('Session Store', () => {
 			non_neg_int_fields: ['user_id']
 		});
 
+		// Fetch the user lisa.  This is used below.
+		lisa = new User(await getUser('lisa'));
+
 		lisa_courses = users_to_parse.filter(user => user.username === 'lisa')
 			.map(user_course => {
 				const course = courses_from_csv.find(c => c.course_name == user_course.course_name)
 					?? new Course();
 				return new UserCourse({
 					course_name: course.course_name,
-					username: user_course.username as string,
+					user_id: lisa.user_id,
 					visible: course.visible,
 					role: user_course.role as string,
 					course_dates: course.course_dates
 				});
 			});
 
-		// Fetch the user lisa.  This is used below.
-		lisa = new User(await getUser('lisa'));
 	});
 
-	test('default session', () => {
-		const session = useSessionStore();
+	describe('Testing the Session Store.', () => {
+		test('default session', () => {
+			const session = useSessionStore();
 
 		expect(session.logged_in).toBe(false);
 		expect(session.user).toStrictEqual(logged_out);
@@ -103,10 +106,9 @@ describe('Session Store', () => {
 		});
 	});
 
-	test('update the session', () => {
-		const session = useSessionStore();
-
-		session.updateSessionInfo(session_info);
+		test('update the session', () => {
+			const session = useSessionStore();
+			session.updateSessionInfo(session_info);
 
 		expect(session.logged_in).toBe(true);
 		expect(session.user).toStrictEqual(user);
@@ -116,11 +118,9 @@ describe('Session Store', () => {
 			course_id: 1
 		};
 
-		session.setCourse(course);
-
-		expect(session.course).toStrictEqual(course);
-
-	});
+			session.setCourse(course);
+			expect(session.course).toStrictEqual(course);
+		});
 
 	test('logging out should clear the session', () => {
 		const session = useSessionStore();
@@ -139,5 +139,4 @@ describe('Session Store', () => {
 		await session_store.fetchUserCourses(lisa.user_id);
 		expect(cleanIDs(session_store.user_courses)).toStrictEqual(cleanIDs(lisa_courses));
 	});
-
 });

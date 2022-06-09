@@ -565,7 +565,7 @@ export class UserSet extends Model {
 }
 
 /**
-* MergedUserHomeworkSet is joined HomeworkSet and a UserSet
+* UserHomeworkSet is joined HomeworkSet and a DBUserSet
 */
 
 export type ParseableUserHomeworkSet = ParseableUserSet &
@@ -594,7 +594,7 @@ export class UserHomeworkSet extends UserSet {
 }
 
 /**
-* MergedUserQuiz is a Quiz merged with a UserSet
+* UserQuiz is a Quiz merged with a DBUserSet
 */
 
 export type ParseableUserQuiz = ParseableUserSet &
@@ -665,9 +665,9 @@ export function parseUserSet(user_set: ParseableUserSet) {
 }
 
 /**
-* Merge a ProblemSet, a UserSet and a MergedUser and return a MergedUserSet. Note: if the
+* Merge a ProblemSet, a DBUserSet and a User and return a UserSet. Note: if the
 * arguments are not related in the database (based on primary and foreign keys), a MergeError is
-* thrown.  in that the result is a MergedUserSet with overrides taken from the UserSet.
+* thrown.  in that the result is a UserSet with overrides taken from the DBUserSet.
 */
 export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: CourseUser) {
 // Check if the user_set is related to the Problem Set

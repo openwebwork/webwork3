@@ -185,10 +185,7 @@ export const useSetProblemStore = defineStore('set_problems', {
 
 		/**
 		 * update a UserProblem in the database and the store.
-		 * @param {UserProblem} user_problem
-		 * @returns the UserProblem that was updated.
 		 */
-		// Adding this line for a demo.
 		async updateUserProblem(user_problem: UserProblem): Promise<UserProblem> {
 			const course_id = useSessionStore().course.course_id;
 			const set_problem = this.set_problems.find(prob => prob.problem_id === user_problem.problem_id);
@@ -211,10 +208,9 @@ export const useSetProblemStore = defineStore('set_problems', {
 				user_problem_params));
 			return updated_user_problem;
 		},
+
 		/**
-		 * delete a UserProblem from the database and the store.
-		 * @param {UserProblem} user_problem
-		 * @returns the deleted UserProblem.
+		 * Delete the given UserProblem from the database and the store.
 		 */
 		async deleteUserProblem(user_problem: UserProblem): Promise<UserProblem> {
 			const course_id = useSessionStore().course.course_id;

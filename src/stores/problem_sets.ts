@@ -8,7 +8,8 @@ import { useSessionStore } from './session';
 import { useUserStore } from './users';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
-import { UserSet, mergeUserSet, DBUserSet, ParseableDBUserSet, parseDBUserSet,
+import {
+	UserSet, mergeUserSet, DBUserSet, ParseableDBUserSet, parseDBUserSet
 } from 'src/common/models/user_sets';
 import { CourseUser } from 'src/common/models/users';
 import { ResponseError } from 'src/common/api-requests/interfaces';
@@ -50,8 +51,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 	}),
 	getters: {
 		/**
-		 * returns all User Sets (merge between Problem Set and a DBUserSet)
-		 * @returns all User Sets (merge between Problem Set and a DBUserSet)
+		 * Returns all User Sets (merge between Problem Set and a DBUserSet)
 		 */
 		user_sets: (state) => state.db_user_sets.map(db_user_set => {
 			const problem_set = state.problem_sets.find(set => set.set_id == db_user_set.set_id);
