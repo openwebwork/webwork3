@@ -806,14 +806,6 @@ $user_set_rs->deleteUserSet(
 	}
 );
 
-my $test = $user_set_rs->deleteUserSet(
-	info => {
-		course_name => "Precalculus",
-		set_name    => "HW #4",
-		username    => "ralph"
-	}
-);
-
 $user_set_rs->deleteUserSet(
 	info => {
 		course_name => "Precalculus",
