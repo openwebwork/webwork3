@@ -92,7 +92,7 @@ or an arrayref of C<DBIx::Class::ResultSet::UserProblem>
 =cut
 
 sub getUserProblems ($self, %args) {
-	my $course        = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+	my $course        = $self->rs('Course')->getCourse(info => $args{info}, as_result_set => 1);
 	my @user_problems = $self->search(
 		{
 			'courses.course_id' => $course->course_id
@@ -143,8 +143,8 @@ or an arrayref of C<DBIx::Class::ResultSet::UserProblem>
 =cut
 
 sub getUserProblemsForSet ($self, %args) {
-	my $course        = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
-	my $problem_set   = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
+	my $course        = $self->rs('Course')->getCourse(info => $args{info}, as_result_set => 1);
+	my $problem_set   = $self->rs('ProblemSet')->getProblemSet(info => $args{info}, as_result_set => 1);
 	my @user_problems = $self->search(
 		{
 			'courses.course_id'  => $course->course_id,
@@ -184,8 +184,8 @@ or an arrayref of C<DBIx::Class::ResultSet::UserProblem>
 =cut
 
 sub getUserProblemsForUser ($self, %args) {
-	my $course        = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
-	my $user          = $self->rs("User")->getGlobalUser(info => $args{info}, as_result_set => 1);
+	my $course        = $self->rs('Course')->getCourse(info => $args{info}, as_result_set => 1);
+	my $user          = $self->rs('User')->getGlobalUser(info => $args{info}, as_result_set => 1);
 	my @user_problems = $self->search(
 		{
 			'courses.course_id' => $course->course_id,
@@ -250,8 +250,8 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 =cut
 
 sub getUserProblem ($self, %args) {
-	my $problem  = $self->rs("Problem")->getSetProblem(info => $args{info}, as_result_set => 1);
-	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{info}, as_result_set => 1);
+	my $problem  = $self->rs('Problem')->getSetProblem(info => $args{info}, as_result_set => 1);
+	my $user_set = $self->rs('UserSet')->getUserSet(info => $args{info}, as_result_set => 1);
 
 	my $user_problem = $problem->user_problems->find({
 		user_set_id     => $user_set->user_set_id,
@@ -262,14 +262,9 @@ sub getUserProblem ($self, %args) {
 	# for checking in addUserProblem.
 
 	DB::Exception::UserProblemNotFound->throw(message => "The user problem for the course "
-			. $user_set->problem_sets->courses->course_name
-			. ", problem set "
-			. $user_set->problem_sets->set_name
-			. " for user "
-			. $user_set->course_users->users->username
-			. " and problem number "
-			. $problem->problem_number
-			. " is not found")
+			. "$user_set->problem_sets->courses->course_name, problem set $user_set->problem_sets->set_name"
+			. " for user $user_set->course_users->users->username and problem number "
+			. "$problem->problem_number is not found")
 		unless $user_problem || $args{skip_throw};
 
 	return $user_problem if $args{as_result_set};
@@ -331,8 +326,8 @@ sub addUserProblem ($self, %args) {
 			. $user_problem->user_sets->problem_sets->set_name)
 		if $user_problem;
 
-	my $problem  = $self->rs("Problem")->getSetProblem(info => $args{params}, as_result_set => 1);
-	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{params}, as_result_set => 1);
+	my $problem  = $self->rs('Problem')->getSetProblem(info => $args{params}, as_result_set => 1);
+	my $user_set = $self->rs('UserSet')->getUserSet(info => $args{params}, as_result_set => 1);
 
 	my $params = clone($args{params} // {});
 
@@ -418,6 +413,10 @@ sub updateUserProblem ($self, %args) {
 		unless $user_problem;
 
 	my $params = clone($args{params} // {});
+	# delete some fields that are not in the database, but may be passed in:
+	for my $key (qw/problem_number set_name username user_id/) {
+		delete $params->{$key} if defined($params->{$key});
+	}
 	$self->checkParams($params) if defined($args{params});
 
 	my $problem_to_return = $user_problem->update($params);
@@ -490,8 +489,8 @@ This method returns all versions of user problems for a given problem for a user
 =cut
 
 sub getUserProblemVersions ($self, %args) {
-	my $problem  = $self->rs("Problem")->getSetProblem(info => $args{info}, as_result_set => 1);
-	my $user_set = $self->rs("UserSet")->getUserSet(info => $args{info}, as_result_set => 1);
+	my $problem  = $self->rs('Problem')->getSetProblem(info => $args{info}, as_result_set => 1);
+	my $user_set = $self->rs('UserSet')->getUserSet(info => $args{info}, as_result_set => 1);
 
 	my @user_problems = $self->search({
 		problem_id  => $problem->problem_id,
@@ -524,7 +523,7 @@ sub checkParams ($self, $params) {
 
 	# Check that other fields/params are correct.
 	my $prob_to_check = $self->new($params);
-	return $prob_to_check->validParams("problem_params");
+	return $prob_to_check->validParams('problem_params');
 }
 
 sub _mergeUserProblem ($user_problem) {

@@ -129,9 +129,6 @@ is_deeply(
 
 # clean up the created versioned user sets.
 
-use Data::Dumper;
-print Dumper $user_problem1_v3_params;
-
 my $user_problem_v2_to_delete = $user_problem_rs->deleteUserProblem(
 	info => {
 		course_name     => $user_problem1_v2_params->{course_name},

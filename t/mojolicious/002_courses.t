@@ -98,11 +98,11 @@ $t->get_ok('/webwork3/api/courses/2')->content_type_is('application/json;charset
 
 # The user should not have permissions for the following routes.
 
-$t->post_ok('/webwork3/api/courses' => json => $new_course)->status_is(200)->json_is('/has_permission' => 0);
+$t->post_ok('/webwork3/api/courses' => json => $new_course)->status_is(403)->json_is('/has_permission' => 0);
 
-$t->put_ok("/webwork3/api/courses/1" => json => { course_name => "XXX" })->status_is(200)
+$t->put_ok("/webwork3/api/courses/1" => json => { course_name => "XXX" })->status_is(406)
 	->json_is('/has_permission' => 0);
 
-$t->delete_ok("/webwork3/api/courses/1")->status_is(200)->json_is('/has_permission' => 0);
+$t->delete_ok("/webwork3/api/courses/1")->status_is(406)->json_is('/has_permission' => 0);
 
 done_testing;

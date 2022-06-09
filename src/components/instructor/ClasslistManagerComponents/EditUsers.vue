@@ -45,7 +45,7 @@
 import { defineComponent, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 
-import { MergedUser, CourseUser } from 'src/common/models/users';
+import { CourseUser } from 'src/common/models/users';
 import { useUserStore } from 'src/stores/users';
 import { logger } from 'boot/logger';
 import { useSettingsStore } from 'src/stores/settings';
@@ -61,9 +61,9 @@ export default defineComponent({
 	setup(props, context) {
 		const $q = useQuasar();
 
-		const users = (props.users_to_edit as MergedUser[]).map(u => u.clone());
+		const users = (props.users_to_edit as CourseUser[]).map(u => u.clone());
 
-		const merged_users = ref<Array<MergedUser>>(users);
+		const merged_users = ref<Array<CourseUser>>(users);
 		const store_users = useUserStore();
 		const settings = useSettingsStore();
 

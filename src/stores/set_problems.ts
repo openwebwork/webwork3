@@ -3,14 +3,15 @@
 import { api } from 'boot/axios';
 import { defineStore } from 'pinia';
 
-import { ParseableProblem, parseProblem, SetProblem, ParseableSetProblem,
-	UserProblem, ParseableUserProblem, mergeUserProblem } from 'src/common/models/problems';
+import { ParseableProblem, parseProblem, SetProblem, ParseableSetProblem, UserProblem,
+	mergeUserProblem, DBUserProblem, ParseableDBUserProblem } from 'src/common/models/problems';
+import { UserSet } from 'src/common/models/user_sets';
 import { useSessionStore } from 'src/stores/session';
 import { useProblemSetStore } from './problem_sets';
 
 export interface SetProblemsState {
 	set_problems: SetProblem[];
-	user_problems: UserProblem[];
+	db_user_problems: DBUserProblem[];
 }
 
 type SetInfo =
@@ -18,12 +19,10 @@ type SetInfo =
 	{ set_name?: string; set_id?: never };
 
 export const useSetProblemStore = defineStore('set_problems', {
-
 	state: (): SetProblemsState => ({
 		set_problems: [],
-		user_problems: []
+		db_user_problems: []
 	}),
-
 	getters: {
 
 		/**
@@ -51,24 +50,34 @@ export const useSetProblemStore = defineStore('set_problems', {
 		// Note: using standard function notation (not arrow) due to using this.
 		findUserProblems(state) {
 			return (set_info: SetInfo) => {
-			// get a list of the desired problem_ids
+				const problem_set_store = useProblemSetStore();
+				// get a list of the desired problem_ids
 				const problem_ids = this.findSetProblems(set_info).map(prob => prob.problem_id);
-				return state.user_problems
-					.filter(user_prob => problem_ids.findIndex(prob_id => user_prob.problem_id === prob_id) >= 0);
+				return state.db_user_problems
+					.filter(user_prob => problem_ids.findIndex(prob_id => user_prob.problem_id === prob_id) >= 0)
+					.map(user_prob => {
+						const user_set = problem_set_store.findUserSet({ user_set_id: user_prob.user_set_id })
+							?? new UserSet();
+						const set_problem = state.set_problems.find(prob => prob.problem_id === user_prob.problem_id)
+							?? new SetProblem();
+						// Not sure why the first two arguments need to be cast.
+						return mergeUserProblem(set_problem as SetProblem, user_prob as DBUserProblem, user_set);
+					});
 			};
 		},
 
 		/**
 		 * Returns all user problems merged with their corresponding set problems.
 		 */
-		merged_user_problems: (state) => {
+		user_problems: (state) => {
 			const problem_set_store = useProblemSetStore();
-			return state.user_problems.map(user_problem => {
-				const user_set = problem_set_store.findMergedUserSet({ user_set_id: user_problem.user_set_id });
+			return state.db_user_problems.map(user_problem => {
+				const user_set = problem_set_store.findUserSet({ user_set_id: user_problem.user_set_id })
+					?? new UserSet();
 				const set_problem = state.set_problems.find(prob => prob.problem_id === user_problem.problem_id)
 					?? new SetProblem();
 				// Not sure why the first two arguments need to be cast.
-				return mergeUserProblem(set_problem as SetProblem, user_problem as UserProblem, user_set);
+				return mergeUserProblem(set_problem as SetProblem, user_problem as DBUserProblem, user_set);
 			});
 		}
 	},
@@ -139,7 +148,7 @@ export const useSetProblemStore = defineStore('set_problems', {
 		async fetchUserProblems(set_id: number) {
 			const course_id = useSessionStore().course.course_id;
 			const response = await api.get(`courses/${course_id}/sets/${set_id}/user-problems`);
-			this.user_problems = (response.data as ParseableUserProblem[]).map(prob => new UserProblem(prob));
+			this.db_user_problems = (response.data as ParseableDBUserProblem[]).map(prob => new DBUserProblem(prob));
 		},
 
 		/**
@@ -148,7 +157,7 @@ export const useSetProblemStore = defineStore('set_problems', {
 		async fetchUserProblemsForUser(user_id: number) {
 			const course_id = useSessionStore().course.course_id;
 			const response = await api.get(`courses/${course_id}/users/${user_id}/problems`);
-			this.user_problems = (response.data as ParseableUserProblem[]).map(prob => new UserProblem(prob));
+			this.db_user_problems = (response.data as ParseableDBUserProblem[]).map(prob => new DBUserProblem(prob));
 		},
 
 		/**
@@ -157,7 +166,7 @@ export const useSetProblemStore = defineStore('set_problems', {
 		async addUserProblem(user_problem: UserProblem): Promise<UserProblem> {
 			const course_id = useSessionStore().course.course_id;
 			const set_problem = this.set_problems.find(prob => prob.problem_id === user_problem.problem_id);
-			const user_set = useProblemSetStore().findMergedUserSet({ user_set_id: user_problem.user_set_id });
+			const user_set = useProblemSetStore().findUserSet({ user_set_id: user_problem.user_set_id });
 			// TODO: handle if either set_problem or user_set undefined.
 
 			const user_problem_params = user_problem.toObject();
@@ -165,9 +174,39 @@ export const useSetProblemStore = defineStore('set_problems', {
 			delete user_problem_params.render_params;
 			const response = await api.post(`courses/${course_id}/sets/${set_problem?.set_id ?? 0}/users/${
 				user_set?.user_id ?? 0}/problems`, user_problem_params);
-			const added_user_problem = new UserProblem(response.data as ParseableUserProblem);
-			this.user_problems.push(added_user_problem);
+			const added_db_user_problem = new DBUserProblem(response.data as ParseableDBUserProblem);
+			this.db_user_problems.push(added_db_user_problem);
+			// Create a UserProblem to return from the current user problem and the saved
+			// db_user_problem.
+			const added_user_problem = new UserProblem(Object.assign(added_db_user_problem.toObject(),
+				user_problem_params));
 			return added_user_problem;
+		},
+
+		/**
+		 * update a UserProblem in the database and the store.
+		 */
+		async updateUserProblem(user_problem: UserProblem): Promise<UserProblem> {
+			const course_id = useSessionStore().course.course_id;
+			const set_problem = this.set_problems.find(prob => prob.problem_id === user_problem.problem_id);
+			const user_set = useProblemSetStore().findUserSet({ user_set_id: user_problem.user_set_id });
+			// TODO: handle if either set_problem or user_set undefined.
+
+			const user_problem_params = user_problem.toObject();
+			// The render params are not stored in the DB.
+			delete user_problem_params.render_params;
+			const response = await api.put(`courses/${course_id}/sets/${set_problem?.set_id ?? 0}/users/${
+				user_set?.user_id ?? 0}/problems/${user_problem.user_problem_id}`, user_problem_params);
+			const updated_db_user_problem = new DBUserProblem(response.data as ParseableDBUserProblem);
+			const index = this.db_user_problems
+				.findIndex(user_problem => user_problem.user_problem_id === updated_db_user_problem.user_problem_id);
+			this.db_user_problems.splice(index, 1, updated_db_user_problem);
+
+			// Create a UserProblem to return from the current user problem and the saved
+			// db_user_problem.
+			const updated_user_problem = new UserProblem(Object.assign(updated_db_user_problem.toObject(),
+				user_problem_params));
+			return updated_user_problem;
 		},
 
 		/**
@@ -177,18 +216,22 @@ export const useSetProblemStore = defineStore('set_problems', {
 			const course_id = useSessionStore().course.course_id;
 			const set_problem = this.set_problems.find(prob => prob.problem_id === user_problem.problem_id);
 			const problem_set_store = useProblemSetStore();
-			const user_set = problem_set_store.findMergedUserSet({ user_set_id: user_problem.user_set_id,  });
-
-			// handle if undefined.
+			const user_set = problem_set_store.findUserSet({ user_set_id: user_problem.user_set_id,  });
+			if (user_set == undefined) {
+				throw 'deleteUserProblem: returned undefined user set';
+			}
 			const response = await api.delete(`courses/${course_id}/sets/${set_problem?.set_id ?? 0
 			}/users/${user_set.user_id}/problems/${user_problem.problem_id}`);
-			const deleted_problem = new UserProblem(response.data as ParseableUserProblem);
-			const index = this.user_problems
-				.findIndex(user_problem => user_problem.user_problem_id === deleted_problem.user_problem_id);
+			const db_deleted_problem = new DBUserProblem(response.data as ParseableDBUserProblem);
+			const index = this.db_user_problems
+				.findIndex(user_problem => user_problem.user_problem_id === db_deleted_problem.user_problem_id);
 			if (index >= 0) {
-				this.user_problems.splice(index, 1);
+				this.db_user_problems.splice(index, 1);
 			}
-			return deleted_problem;
+			// Create a new UserProblem to return as
+			const deleted_user_problem = new UserProblem(Object.assign(db_deleted_problem.toObject(),
+				user_problem.toObject()));
+			return deleted_user_problem;
 		}
 	}
 });

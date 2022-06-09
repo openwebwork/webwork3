@@ -108,7 +108,7 @@ import { useUserStore } from 'src/stores/users';
 import { useSessionStore } from 'src/stores/session';
 import type { Dictionary } from 'src/common/models';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
-import { MergedUser, CourseUser, User, ParseableMergedUser } from 'src/common/models/users';
+import { CourseUser, User, ParseableCourseUser } from 'src/common/models/users';
 import { invert } from 'src/common/utils';
 import { getUser } from 'src/common/api-requests/user';
 import { useSettingsStore } from 'src/stores/settings';
@@ -146,7 +146,7 @@ const loading = ref<boolean>(false); // used to indicate parsing is occurring
 
 const first_row_header = ref<boolean>(false);
 const header_row = ref<UserFromFile>({});
-const merged_users_to_add = ref<Array<MergedUser>>([]);
+const merged_users_to_add = ref<Array<CourseUser>>([]);
 const selected_user_error = ref<boolean>(false);
 const users_already_in_course = ref<boolean>(false);
 
@@ -184,7 +184,7 @@ const getMergedUser = (row: UserFromFile) => {
 	// The following pulls the keys out from the user_param_map and the the values out of row
 	// to get the merged user.
 	const merged_user = Object.entries(user_param_map).reduce((acc, [k, v]) =>
-		({ ...acc, [v]: row[k as keyof UserFromFile] }), {}) as ParseableMergedUser;
+		({ ...acc, [v]: row[k as keyof UserFromFile] }), {}) as ParseableCourseUser;
 	// Set the role if a common role for all users is selected.
 	merged_user.role = use_single_role.value ?
 		common_role.value ?? 'UNKOWN' :
@@ -216,7 +216,7 @@ const parseUsers = () => {
 		try {
 			const merged_user = getMergedUser(params);
 			// If the user is already in the course, show a warning
-			const u = users.merged_users.find(_u => _u.username === merged_user.username);
+			const u = users.course_users.find(_u => _u.username === merged_user.username);
 			if (u) {
 				users_already_in_course.value = true;
 				parse_error = {
@@ -226,7 +226,7 @@ const parseUsers = () => {
 					entire_row: true
 				};
 			} else {
-				merged_users_to_add.value.push(new MergedUser(merged_user));
+				merged_users_to_add.value.push(new CourseUser(merged_user));
 			}
 		} catch (error) {
 			const err = error as ParseError;

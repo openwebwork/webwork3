@@ -1,5 +1,5 @@
 import { RequiredFieldsException, Model, Dictionary, generic  } from 'src/common/models';
-import { parseNonNegInt, parseBoolean, parseUsername, parseUserRole } from './parsers';
+import { parseNonNegInt, parseBoolean, parseUsername, parseUserRole, UserRole } from './parsers';
 
 export interface ParseableCourse {
 	course_id?: number | string;
@@ -118,7 +118,7 @@ export class UserCourse extends Model {
 	private _course_name = '';
 	private _username = '';
 	private _visible = true;
-	private _role = '';
+	private _role = UserRole.unknown;
 	private course_dates = new CourseDates();
 
 	static ALL_FIELDS = ['course_id', 'course_name', 'visible', 'course_dates',
@@ -137,8 +137,8 @@ export class UserCourse extends Model {
 		if (params.course_name == undefined) {
 			throw new RequiredFieldsException('course_name');
 		}
-		if (params.username == undefined) {
-			throw new RequiredFieldsException('username');
+		if (params.user_id == undefined) {
+			throw new RequiredFieldsException('user_id');
 		}
 		this.set(params);
 	}

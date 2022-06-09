@@ -28,13 +28,8 @@ export class User extends Model {
 	static ALL_FIELDS = ['user_id', 'username', 'is_admin', 'email', 'first_name',
 		'last_name', 'student_id'];
 
-	get all_field_names(): string[] {
-		return User.ALL_FIELDS;
-	}
-
-	get param_fields(): string[] {
-		return [];
-	}
+	get all_field_names(): string[] { return User.ALL_FIELDS; }
+	get param_fields(): string[] { return []; }
 
 	constructor(params: ParseableUser = {}) {
 		super();
@@ -95,7 +90,7 @@ export class User extends Model {
 	}
 }
 
-export interface ParseableCourseUser {
+export interface ParseableDBCourseUser {
 	course_user_id?: number | string;
 	user_id?: number | string;
 	course_id?: number | string;
@@ -105,9 +100,11 @@ export interface ParseableCourseUser {
 }
 
 /**
- * @class CourseUser
+ * @class DBCourseUser
+ *
+ * This is a client-side version of the model of a course user from the database.
  */
-export class CourseUser extends Model {
+export class DBCourseUser extends Model {
 	private _course_user_id = 0;
 	private _course_id = 0;
 	private _user_id = 0;
@@ -117,23 +114,18 @@ export class CourseUser extends Model {
 
 	static ALL_FIELDS = ['course_user_id', 'course_id', 'user_id', 'role', 'section', 'recitation'];
 
-	get all_field_names(): string[] {
-		return CourseUser.ALL_FIELDS;
-	}
+	get all_field_names(): string[] { return DBCourseUser.ALL_FIELDS; }
+	get param_fields(): string[] { return []; }
 
-	get param_fields(): string[] {
-		return [];
-	}
-
-	constructor(params: ParseableCourseUser = {}) {
+	constructor(params: ParseableDBCourseUser = {}) {
 		super();
 		this.set(params);
 	}
-	set(params: ParseableCourseUser) {
-		if (params.course_user_id) this.course_user_id = params.course_user_id;
-		if (params.user_id) this.user_id = params.user_id;
-		if (params.course_id) this.course_id = params.course_id;
-		if (params.role) this.role = params.role;
+	set(params: ParseableDBCourseUser) {
+		if (params.course_user_id != undefined) this.course_user_id = params.course_user_id;
+		if (params.user_id != undefined) this.user_id = params.user_id;
+		if (params.course_id != undefined) this.course_id = params.course_id;
+		if (params.role != undefined) this.role = params.role;
 		if (params.section) this.section = params.section;
 		if (params.recitation) this.recitation = params.recitation;
 	}
@@ -169,11 +161,11 @@ export class CourseUser extends Model {
 	}
 
 	clone() {
-		return new CourseUser(this.toObject() as ParseableCourseUser);
+		return new DBCourseUser(this.toObject() as ParseableDBCourseUser);
 	}
 }
 
-export interface ParseableMergedUser {
+export interface ParseableCourseUser {
 	course_user_id?: number | string;
 	user_id?: number | string;
 	course_id?: number | string;
@@ -189,12 +181,12 @@ export interface ParseableMergedUser {
 }
 
 /**
- * @class MergedUser
+ * @class CourseUser
  *
- * This is a join between a User and a CourseUser, which
- * is much more appropriate for the client side in the instructor
+ * This is a join between a User and a DBCourseUser. This is more useful on the client
+ * side of webwork.
  */
-export class MergedUser extends Model {
+export class CourseUser extends Model {
 	private _course_user_id = 0;
 	private _course_id = 0;
 	private _user_id = 0;
@@ -211,19 +203,14 @@ export class MergedUser extends Model {
 	static ALL_FIELDS = ['course_user_id', 'course_id', 'user_id', 'is_admin', 'username', 'email',
 		'first_name', 'last_name', 'student_id', 'role', 'section', 'recitation'];
 
-	get all_field_names(): string[] {
-		return MergedUser.ALL_FIELDS;
-	}
+	get all_field_names(): string[] { return CourseUser.ALL_FIELDS; }
+	get param_fields(): string[] { return []; }
 
-	get param_fields(): string[] {
-		return [];
-	}
-
-	constructor(params: ParseableMergedUser = {}) {
+	constructor(params: ParseableCourseUser = {}) {
 		super();
 		this.set(params);
 	}
-	set(params: ParseableMergedUser) {
+	set(params: ParseableCourseUser) {
 		if (params.course_user_id) this.course_user_id = params.course_user_id;
 		if (params.course_id) this.course_id = params.course_id;
 		if (params.user_id) this.user_id = params.user_id;
@@ -299,6 +286,6 @@ export class MergedUser extends Model {
 	}
 
 	clone() {
-		return new MergedUser(this.toObject() as ParseableMergedUser);
+		return new CourseUser(this.toObject() as ParseableCourseUser);
 	}
 }

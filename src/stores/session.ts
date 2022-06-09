@@ -1,8 +1,12 @@
 // Session store
 
 import { defineStore } from 'pinia';
+import { api } from 'boot/axios';
 import { User } from 'src/common/models/users';
 import type { SessionInfo } from 'src/common/models/session';
+import { ParseableUserCourse, UserCourse } from 'src/common/models/courses';
+import { logger } from 'boot/logger';
+import { ResponseError } from 'src/common/api-requests/interfaces';
 
 interface CourseInfo {
 	course_name: string;
@@ -14,6 +18,7 @@ export interface SessionState {
 	logged_in: boolean;
 	user: User;
 	course: CourseInfo;
+	user_courses: UserCourse[];
 }
 
 export const useSessionStore = defineStore('session', {
@@ -25,7 +30,8 @@ export const useSessionStore = defineStore('session', {
 		course: {
 			course_id: 0,
 			course_name: ''
-		}
+		},
+		user_courses: []
 	}),
 	getters: {
 		full_name: (state): string => `${state.user?.first_name ?? ''} ${state.user?.last_name ?? ''} `,
@@ -43,6 +49,27 @@ export const useSessionStore = defineStore('session', {
 		},
 		setCourse(course: CourseInfo): void {
 			this.course = course;
+		},
+		/**
+		 * fetch all User Courses for a given user.
+		 * @param {number} user_id
+		 */
+		async fetchUserCourses(user_id: number): Promise<void> {
+			logger.debug(`[UserStore/fetchUserCourses] fetching courses for user #${user_id}`);
+			const response = await api.get(`users/${user_id}/courses`);
+			if (response.status === 200) {
+				this.user_courses = (response.data as ParseableUserCourse[])
+					.map(user_course => new UserCourse({
+						course_id: user_course.course_id,
+						user_id: user_course.user_id,
+						visible: user_course.visible,
+						role: user_course.role,
+						course_name: user_course.course_name,
+					}));
+			} else if (response.status === 250) {
+				logger.error(response.data);
+				throw response.data as ResponseError;
+			}
 		},
 		logout() {
 			this.logged_in = false;

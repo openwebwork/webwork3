@@ -16,15 +16,15 @@ import { api } from 'boot/axios';
 import { cleanIDs, loadCSV } from '../utils';
 import { useCourseStore } from 'src/stores/courses';
 import { Course } from 'src/common/models/courses';
-import { CourseUser, MergedUser, User } from 'src/common/models/users';
+import { CourseUser, User } from 'src/common/models/users';
 import { useUserStore } from 'src/stores/users';
 
 const app = createApp({});
 
 describe('User store tests', () => {
 	let global_users: User[];
-	let all_precalc_users: User[];
-	let precalc_merged_users: MergedUser[];
+	let precalc_global_users: User[];
+	let precalc_users: CourseUser[];
 	let precalc_course: Course;
 	beforeAll(async () => {
 		// Since we have the piniaPluginPersistedState as a plugin, duplicate for the test.
@@ -42,10 +42,10 @@ describe('User store tests', () => {
 
 		// Do some parsing and cleanup.
 		const all_users_from_csv = users_to_parse.map(user => new User(user));
-		all_precalc_users = users_to_parse.filter(user => user.course_name === 'Precalculus')
+		precalc_global_users = users_to_parse.filter(user => user.course_name === 'Precalculus')
 			.map(user => new User(user));
-		precalc_merged_users = users_to_parse.filter(user => user.course_name === 'Precalculus')
-			.map(user => new MergedUser(user));
+		precalc_users = users_to_parse.filter(user => user.course_name === 'Precalculus')
+			.map(user => new CourseUser(user));
 
 		// remove duplicates (for users in multiple courses) for global users
 		const usernames = [... new Set(all_users_from_csv.map(user => user.username))];
@@ -100,7 +100,7 @@ describe('User store tests', () => {
 		test('Fetch all users of a course', async () => {
 			const user_store = useUserStore();
 			await user_store.fetchCourseUsers(precalc_course.course_id);
-			expect(user_store.course_users.length).toBe(all_precalc_users.length);
+			expect(user_store.course_users.length).toBe(precalc_users.length);
 		});
 	});
 
@@ -109,17 +109,17 @@ describe('User store tests', () => {
 		test('Add a new course user', async () => {
 			const user_store = useUserStore();
 			// Find a global user that is not in the Precalculus course
-			user_not_in_precalc = (user_store.users.find(user => all_precalc_users
-				.findIndex(u => u.username === user.username) < 0) as User) ?? new User();
-			const new_course_user_params = {
+			user_not_in_precalc = (user_store.users.filter(u => !u.is_admin)
+				.find(user => precalc_global_users
+					.findIndex(u => u.username === user.username) < 0) as User) ?? new User();
+			const new_course_user = new CourseUser(user_not_in_precalc);
+			new_course_user.set({
 				course_id: precalc_course.course_id,
-				user_id: user_not_in_precalc?.user_id,
 				role: 'STUDENT'
-			};
-			const new_course_user = await user_store.addCourseUser(new CourseUser(new_course_user_params));
-			const new_course_user2 = new_course_user.toObject();
-			delete new_course_user2.course_user_id;
-			expect(new_course_user2).toStrictEqual(new_course_user_params);
+			});
+			const added_course_user = await user_store.addCourseUser(new_course_user);
+			new_course_user.course_user_id = added_course_user.course_user_id;
+			expect(new_course_user).toStrictEqual(new_course_user);
 		});
 
 		test('Update a Course User', async () => {
@@ -142,18 +142,18 @@ describe('User store tests', () => {
 		});
 	});
 
-	describe('Check merged users', () => {
+	describe('Check global and course users', () => {
 
 		test('Fetch global users for a course', async () => {
 			const user_store = useUserStore();
 			await user_store.fetchGlobalCourseUsers(precalc_course.course_id);
 			await user_store.fetchCourseUsers(precalc_course.course_id);
-			expect(cleanIDs(all_precalc_users)).toStrictEqual(cleanIDs(user_store.users));
+			expect(cleanIDs(precalc_global_users)).toStrictEqual(cleanIDs(user_store.users));
 		});
 
-		test('Check merged users', () => {
+		test('Check course users users', () => {
 			const user_store = useUserStore();
-			expect(cleanIDs(user_store.merged_users)).toStrictEqual(cleanIDs(precalc_merged_users));
+			expect(cleanIDs(user_store.course_users)).toStrictEqual(cleanIDs(precalc_users));
 		});
 	});
 });

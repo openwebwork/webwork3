@@ -8,15 +8,18 @@ import { useSessionStore } from './session';
 import { useUserStore } from './users';
 
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
-import { MergedUserSet, mergeUserSet, ParseableUserSet, parseMergedUserSet, parseUserSet, UserSet }
-	from 'src/common/models/user_sets';
+import {
+	UserSet, mergeUserSet, DBUserSet, ParseableDBUserSet, parseDBUserSet
+} from 'src/common/models/user_sets';
+import { CourseUser } from 'src/common/models/users';
 import { ResponseError } from 'src/common/api-requests/interfaces';
-import { MergedUser } from 'src/common/models/users';
 
 /**
  * This is an type to retrieve set info.
  */
-type SetInfo =  { set_name: string; set_id?: never } | { set_id: number; set_name?: never};
+type SetInfo =
+	{ set_name: string; set_id?: never } |
+	{ set_id: number; set_name?: never};
 
 type UserInfo =
 	{ username: string; user_id?: never } |
@@ -33,85 +36,88 @@ type UserSetInfo =
 	{ set_name: string; user_id: number; user_set_id?: never; set_id?: never; username?: never; } |
 	{ set_name: string; username: string; user_set_id?: never; set_id?: never; user_id?: never; };
 
+/* The store stores only the problem_sets and user_set from the database (type DBUserSet).
+ * however user sets are found via getters.
+ */
 export interface ProblemSetState {
 	problem_sets: ProblemSet[];
-	user_sets: UserSet[];
+	db_user_sets: DBUserSet[];
 }
 
 export const useProblemSetStore = defineStore('problem_sets', {
 	state: (): ProblemSetState => ({
 		problem_sets: [],
-		user_sets: [],
+		db_user_sets: [],
 	}),
 	getters: {
 
 		/**
-		 * Returns all user sets merged with a user and a problem set.
+		 * Returns all User Sets (merge between Problem Set and a DBUserSet)
 		 */
-		merged_user_sets: (state) => state.user_sets.map(user_set => {
-			const problem_set = state.problem_sets.find(set => set.set_id == user_set.set_id);
-			const course_user = useUserStore().merged_users.find(u => u.course_user_id === user_set.course_user_id);
-			return mergeUserSet(problem_set as ProblemSet, user_set as UserSet, course_user as MergedUser)
-				?? new MergedUserSet();
+		user_sets: (state) => state.db_user_sets.map(db_user_set => {
+			const problem_set = state.problem_sets.find(set => set.set_id == db_user_set.set_id);
+			const course_user = useUserStore().course_users.find(u => u.course_user_id === db_user_set.course_user_id);
+			return mergeUserSet(problem_set as ProblemSet, db_user_set as DBUserSet, course_user as CourseUser)
+				?? new UserSet();
 		}),
 
 		/**
-		 * Return a single ProblemSet with given set_name or set_id.
+		 * Returns a ProblemSet given either the set_id or set_name.
 		 */
 		findProblemSet: (state) => (set_info: SetInfo) =>
 			set_info.set_id ?
 				state.problem_sets.find(set => set.set_id === set_info.set_id) :
 				state.problem_sets.find(set => set.set_name === set_info.set_name),
+
 		/**
-		 * Return all user sets with given set_id or set_name.
+		 * Returns all user sets with given a set_id or set_name.
 		 */
-		findUserSets: (state) => (set_info: SetInfo): UserSet[] => {
-			if (set_info.set_id) {
-				return state.user_sets.filter(user_set => user_set.set_id === set_info.set_id) as UserSet[];
-			} else if (set_info.set_name) {
-				const set = state.problem_sets.find(set => set.set_name === set_info.set_name);
-				if (set) {
-					return state.user_sets.filter(user_set => user_set.set_id === set.set_id) as UserSet[];
+		findUserSets(state) {
+			// TODO: for performance, maybe don't call this.user_sets, but build up the
+			// user_sets instead.
+			return (set_info: SetInfo): UserSet[] => {
+				if (set_info.set_id) {
+					return this.user_sets.filter(user_set => user_set.set_id === set_info.set_id);
+				} else if (set_info.set_name) {
+					const set = state.problem_sets.find(set => set.set_name === set_info.set_name);
+					if (set) {
+						return this.user_sets.filter(user_set => user_set.set_id === set.set_id) ;
+					} else {
+						return [];
+					}
 				} else {
 					return [];
 				}
-			} else {
-				return [];
-			}
+			};
 		},
 
 		/**
 		 * Find a merged user set for a given set_id or set name and user_id or username.
 		 */
-		findMergedUserSet(state) {
-			return (user_set_info: UserSetInfo): MergedUserSet => {
+		findUserSet(state) {
+			return (user_set_info: UserSetInfo): UserSet | undefined => {
 				const user_store = useUserStore();
-				let user_set: UserSet;
+				let db_user_set: DBUserSet;
 				let problem_set: ProblemSet;
-				let user: MergedUser;
+				let user: CourseUser;
+
 				if (user_set_info.user_set_id) {
-					user_set = (state.user_sets.find(set => set.user_set_id == user_set_info.user_set_id) as UserSet)
-						?? new UserSet();
-					problem_set = state.problem_sets.find(set => set.set_id === user_set.set_id) as ProblemSet;
-					user = user_store.findMergedUser({ course_user_id: user_set.course_user_id });
+					db_user_set = (state.db_user_sets
+						.find(set => set.user_set_id == user_set_info.user_set_id) as DBUserSet) ?? new DBUserSet();
+					problem_set = state.problem_sets.find(set => set.set_id === db_user_set.set_id) as ProblemSet;
+					user = user_store.findCourseUser({ course_user_id: db_user_set.course_user_id });
 				} else if (user_set_info.username) {
 					problem_set = ((user_set_info.set_id ?
 						state.problem_sets.find(set => set.set_id === user_set_info.set_id) :
 						state.problem_sets.find(set => set.set_name === user_set_info.set_name))
 							?? new ProblemSet()) as ProblemSet;
-					user = user_store.findMergedUser({ username: user_set_info.username });
-					user_set = state.user_sets.find(set => set.set_id === problem_set.set_id &&
-						set.course_user_id === user.course_user_id) as UserSet ?? new UserSet();
+					user = user_store.findCourseUser({ username: user_set_info.username });
+					db_user_set = state.db_user_sets.find(set => set.set_id === problem_set.set_id &&
+						set.course_user_id === user.course_user_id) as DBUserSet ?? new DBUserSet();
 				} else {
-					// May be better to throw an error.
-					user_set = new UserSet();
-					problem_set = new ProblemSet();
-					user = new MergedUser();
+					return;
 				}
-
-				// return createMergedUserSet(user_set, problem_set, user);
-				return parseMergedUserSet(Object.assign(user.toObject(), problem_set.toObject(),
-					user_set.toObject())) ?? new MergedUserSet();
+				return mergeUserSet(problem_set, db_user_set, user);
 			};
 		}
 	},
@@ -186,8 +192,8 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		 */
 		async fetchAllUserSets(course_id: number): Promise<void> {
 			const response = await api.get(`courses/${course_id}/user-sets`);
-			const user_sets_to_parse = response.data as ParseableUserSet[];
-			this.user_sets = user_sets_to_parse.map(user_set => parseUserSet(user_set));
+			const user_sets_to_parse = response.data as ParseableDBUserSet[];
+			this.db_user_sets = user_sets_to_parse.map(user_set => parseDBUserSet(user_set));
 		},
 
 		/**
@@ -195,8 +201,8 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		 */
 		async fetchUserSets(params: { course_id: number; set_id: number}) {
 			const response = await api.get(`courses/${params.course_id}/sets/${params.set_id}/users`);
-			const user_sets_to_parse = response.data as ParseableUserSet[];
-			this.user_sets = user_sets_to_parse.map(user_set => parseUserSet(user_set));
+			const user_sets_to_parse = response.data as ParseableDBUserSet[];
+			this.db_user_sets = user_sets_to_parse.map(user_set => parseDBUserSet(user_set));
 		},
 
 		/**
@@ -214,7 +220,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 				user_id = params.user_id ?? 0;
 			}
 			const response = await api.get(`courses/${course_id}/users/${user_id}/sets`);
-			this.user_sets = (response.data as ParseableUserSet[]).map(user_set => parseUserSet(user_set));
+			this.db_user_sets = (response.data as ParseableDBUserSet[]).map(user_set => parseDBUserSet(user_set));
 		},
 
 		/**
@@ -222,12 +228,14 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		 */
 		async addUserSet(user_set: UserSet): Promise<UserSet | undefined> {
 			const course_id = useSessionStore().course.course_id;
-			const response = await api.post(`courses/${course_id}/sets/${user_set.set_id}/users`, user_set.toObject());
+			const response = await api.post(`courses/${course_id}/sets/${user_set.set_id}/users`,
+				user_set.toObject(DBUserSet.ALL_FIELDS));
 			// TODO: check for errors
-			const user_set_to_add = parseUserSet(response.data as ParseableUserSet);
+			const user_set_to_add = parseDBUserSet(response.data as ParseableDBUserSet);
 			if (user_set_to_add) {
-				this.user_sets.push(user_set_to_add);
-				return user_set_to_add;
+				this.db_user_sets.push(user_set_to_add);
+				user_set.set(user_set_to_add.toObject());
+				return user_set;
 			}
 		},
 
@@ -237,15 +245,15 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		async updateUserSet(set: UserSet): Promise<UserSet> {
 			const sessionStore = useSessionStore();
 			const course_id = sessionStore.course.course_id;
-
 			const response = await api.put(`courses/${course_id}/sets/${set.set_id ?? 0}/users/${
-				set.course_user_id ?? 0}`, set.toObject());
-			const updated_user_set = parseUserSet(response.data as ParseableUserSet);
+				set.course_user_id ?? 0}`, set.toObject(UserSet.ALL_FIELDS));
+			const updated_user_set = parseDBUserSet(response.data as ParseableDBUserSet);
 
 			// TODO: check for errors
-			const index = this.user_sets.findIndex(s => s.user_set_id === updated_user_set.user_set_id);
-			this.user_sets.splice(index, 1, updated_user_set);
-			return updated_user_set;
+			const index = this.db_user_sets.findIndex(s => s.user_set_id === updated_user_set.user_set_id);
+			this.db_user_sets.splice(index, 1, updated_user_set);
+			set.set(updated_user_set.toObject());
+			return set;
 		},
 
 		/**
@@ -256,17 +264,18 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			const response = await
 			api.delete(`courses/${course_id}/sets/${user_set.set_id}/users/${user_set.course_user_id ?? 0}`);
 			// TODO: check for errors
-			const deleted_user_set = parseUserSet(response.data as ParseableUserSet);
-			const index = this.user_sets.findIndex(s => s.user_set_id === deleted_user_set.user_set_id);
-			this.user_sets.splice(index, 1);
-			return deleted_user_set;
+			const deleted_user_set = parseDBUserSet(response.data as ParseableDBUserSet);
+			const index = this.db_user_sets.findIndex(s => s.user_set_id === deleted_user_set.user_set_id);
+			this.db_user_sets.splice(index, 1);
+			user_set.set(deleted_user_set.toObject());
+			return user_set;
 		},
 
 		/**
 		 * Clears all objects from the store.
 		 */
 		clearAll() {
-			this.user_sets = [];
+			this.db_user_sets = [];
 			this.problem_sets = [];
 		}
 	}

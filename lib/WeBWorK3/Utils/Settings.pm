@@ -213,21 +213,21 @@ sub validateSetting ($setting) {
 
 	return 0 if !defined $setting->{type};
 
-	if ($setting->{type} eq "list") {
+	if ($setting->{type} eq 'list') {
 		validateList($setting);
-	} elsif ($setting->{type} eq "time") {
+	} elsif ($setting->{type} eq 'time') {
 		DB::Exception::InvalidCourseFieldType->throw(
 			message => qq/The default for variable $setting->{var} which is $value must be a time value/)
 			unless isTimeString($setting->{default});
-	} elsif ($setting->{type} eq "integer") {
+	} elsif ($setting->{type} eq 'integer') {
 		DB::Exception::InvalidCourseFieldType->throw(
 			message => qq/The default for variable $setting->{var} which is $value must be an integer/)
 			unless isInteger($setting->{default});
-	} elsif ($setting->{type} eq "decimal") {
+	} elsif ($setting->{type} eq 'decimal') {
 		DB::Exception::InvalidCourseFieldType->throw(
 			message => qq/The default for variable $setting->{var} which is $value must be a decimal/)
 			unless isDecimal($setting->{default});
-	} elsif ($setting->{type} eq "time_duration") {
+	} elsif ($setting->{type} eq 'time_duration') {
 		DB::Exception::InvalidCourseFieldType->throw(
 			message => qq/The default for variable $setting->{var} which is $value must be a time duration/)
 			unless isTimeDuration($setting->{default});
@@ -236,16 +236,16 @@ sub validateSetting ($setting) {
 }
 
 sub validateList ($setting) {
-	croak "The options field for the type list in " . $setting->{var} . " is missing "
+	croak "The options field for the type list in $setting->{var} is missing "
 		unless defined($setting->{options});
-	croak "The options field for " . $setting->{var} . " is not an ARRAYREF" unless ref($setting->{options}) eq "ARRAY";
+	croak "The options field for $setting->{var} is not an ARRAYREF" unless ref($setting->{options}) eq 'ARRAY';
 
 	# See if the $setting->{options} is an arrayref of strings or hashrefs.
 	my @opt =
-		(ref($setting->{options}->[0]) eq "HASH")
+		(ref($setting->{options}->[0]) eq 'HASH')
 		? grep { $_ eq $setting->{default} } map { $_->{value} } @{ $setting->{options} }
 		: grep { $_ eq $setting->{default} } @{ $setting->{options} };
-	croak "The default for variable " . $setting->{var} . " needs to be one of the given options"
+	croak "The default for variable $setting->{var} needs to be one of the given options"
 		unless scalar(@opt) == 1;
 
 	return 1;

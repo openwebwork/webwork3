@@ -14,6 +14,9 @@ import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useSessionStore } from 'src/stores/session';
 import { parseRouteCourseID } from 'src/router/utils';
 
+// Eventually we'll switch to a script set-up block, but seems to be still
+// experimental/beta https://vuejs.org/api/sfc-script-setup.html#top-level-await
+
 export default defineComponent({
 	name: 'Instructor',
 	props: {
@@ -28,16 +31,17 @@ export default defineComponent({
 		const route = useRoute();
 
 		const course_id = parseRouteCourseID(route);
-		if (session.user.user_id) await users.fetchUserCourses(session.user.user_id)
+		if (session.user.user_id) await session.fetchUserCourses(session.user.user_id)
 			.then(() => {
-				const course = users.user_courses.find(c => c.course_id === course_id);
+				const course = session.user_courses.find(c => c.course_id === course_id);
 				if (course) {
 					session.setCourse({
 						course_id,
 						course_name: course.course_name
 					});
 				} else {
-					logger.warn(`Can't find ${course_id} in ${users.user_courses.map((c) => c.course_id).join(', ')}`);
+					logger.warn(`Can't find ${course_id} in ${session.user_courses
+						.map((c) => c.course_id).join(', ')}`);
 				}
 			});
 		await users.fetchGlobalCourseUsers(course_id);

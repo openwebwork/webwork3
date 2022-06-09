@@ -13,10 +13,10 @@ use Clone qw/clone/;
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 
 our $SET_TYPES = {
-	"HW"     => 1,
-	"QUIZ"   => 2,
-	"JITAR"  => 3,
-	"REVIEW" => 4,
+	'HW'     => 1,
+	'QUIZ'   => 2,
+	'JITAR'  => 3,
+	'REVIEW' => 4,
 };
 
 use DB::Exception;
@@ -94,7 +94,7 @@ An array of Users (as hashrefs) or an array of C<DBIx::Class::ResultSet::Problem
 =cut
 
 sub getProblemSets ($self, %args) {
-	my $course = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+	my $course = $self->rs('Course')->getCourse(info => $args{info}, as_result_set => 1);
 
 	my @problem_sets = $self->search({ 'course_id' => $course->course_id });
 
@@ -261,7 +261,7 @@ An hashref of a problem set or an object of type C<DBIx::Class::ResultSet::Probl
 sub getProblemSet ($self, %args) {
 	my $course_info = getCourseInfo($args{info});
 	my $set_info    = getSetInfo($args{info});
-	my $course      = $self->rs("Course")->getCourse(info => $course_info, as_result_set => 1);
+	my $course      = $self->rs('Course')->getCourse(info => $course_info, as_result_set => 1);
 
 	my $problem_set = $course->problem_sets->find($set_info);
 
@@ -328,7 +328,7 @@ An hashref of a problem set or an object of type C<DBIx::Class::ResultSet::Probl
 
 sub addProblemSet {
 	my ($self, %args) = @_;
-	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{params}), as_result_set => 1);
+	my $course = $self->rs('Course')->getCourse(info => getCourseInfo($args{params}), as_result_set => 1);
 
 	my $set_params = clone $args{params};
 	$set_params->{type} = $SET_TYPES->{ $set_params->{set_type} || 'HW' };
@@ -339,7 +339,7 @@ sub addProblemSet {
 		delete $set_params->{$key} if defined $set_params->{$key};
 	}
 
-	DB::Exception::ParametersNeeded->throw(message => "You must defined the field set_name in the params argument")
+	DB::Exception::ParametersNeeded->throw(message => 'You must defined the field set_name in the params argument')
 		unless defined($set_params->{set_name});
 
 	# Check if the set exists.
@@ -352,10 +352,8 @@ sub addProblemSet {
 		skip_throw    => 1
 	);
 
-	DB::Exception::SetAlreadyExists->throw(message => "The problem set with name "
-			. $set_params->{set_name}
-			. " already exists in the course "
-			. $course->course_name)
+	DB::Exception::SetAlreadyExists->throw(message =>
+			"The problem set with name $set_params->{set_name} already exists in the course $course->course_name")
 		if defined($problem_set);
 
 	# Check that fields/dates/parameters are valid

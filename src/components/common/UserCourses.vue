@@ -59,31 +59,23 @@
 
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
-import { useUserStore } from 'src/stores/users';
 import { useSessionStore } from 'src/stores/session';
 import { parseNonNegInt, parseUserRole } from 'src/common/models/parsers';
 
 export default defineComponent({
 	name: 'UserCourses',
-	setup() {
-		const users = useUserStore();
+	async setup() {
 		const session = useSessionStore();
+		await session.fetchUserCourses(parseNonNegInt(session.user.user_id));
 		return {
 			student_courses: computed(() =>
-				users.user_courses.filter(user_course => parseUserRole(user_course.role) === 'STUDENT')
+				session.user_courses.filter(user_course => parseUserRole(user_course.role) === 'STUDENT')
 			),
 			instructor_courses: computed(() =>
-				users.user_courses.filter(user_course => parseUserRole(user_course.role) === 'INSTRUCTOR')
+				session.user_courses.filter(user_course => parseUserRole(user_course.role) === 'INSTRUCTOR')
 			),
 			user: computed(() => session.user)
 		};
 	},
-	created() {
-		// fetch the data when the view is created and the data is
-		// already being observed
-		const users = useUserStore();
-		const session = useSessionStore();
-		void users.fetchUserCourses(parseNonNegInt(session.user.user_id ?? 0));
-	}
 });
 </script>
