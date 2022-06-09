@@ -13,11 +13,13 @@ import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { api } from 'boot/axios';
 
-import { cleanIDs, loadCSV } from '../utils';
 import { useCourseStore } from 'src/stores/courses';
+import { useUserStore } from 'src/stores/users';
+import { cleanIDs, loadCSV } from '../utils';
+
 import { Course } from 'src/common/models/courses';
 import { CourseUser, User } from 'src/common/models/users';
-import { useUserStore } from 'src/stores/users';
+
 
 const app = createApp({});
 
