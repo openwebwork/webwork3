@@ -273,7 +273,7 @@ sub getUserProblem ($self, %args) {
 	# If the problem doesn't exist throw a exception unless skip_throw (used)
 	# for checking in addUserProblem.
 
-	DB::Exception::UserProblemNotFound->throw(message => "The user problem for the course "
+	DB::Exception::UserProblemNotFound->throw(message => 'The user problem for the course '
 			. "$user_set->problem_sets->courses->course_name, problem set $user_set->problem_sets->set_name"
 			. " for user $user_set->course_users->users->username and problem number "
 			. "$problem->problem_number is not found")
@@ -330,11 +330,11 @@ sub addUserProblem ($self, %args) {
 		as_result_set => 1
 	);
 
-	DB::Exception::UserProblemExists->throw(message => "The user "
+	DB::Exception::UserProblemExists->throw(message => 'The user '
 			. $user_problem->user_sets->course_users->users->username
-			. " already has problem number "
+			. ' already has problem number '
 			. $user_problem->problems->problem_number
-			. " in set with name "
+			. ' in set with name '
 			. $user_problem->user_sets->problem_sets->set_name)
 		if $user_problem;
 
@@ -415,12 +415,12 @@ sub updateUserProblem ($self, %args) {
 		as_result_set => 1
 	);
 
-	DB::Exception::UserProblemNotFound->throw(message => "The user "
+	DB::Exception::UserProblemNotFound->throw(message => 'The user '
 			. getUserInfo($args{info})->{username} // getUserInfo($args{info})->{user_id}
-			. " already has problem number "
+			. ' already has problem number '
 			. getProblemInfo($args{info})->{problem_number}
 			// ("(problem_id): " . getProblemInfo($args{info})->{problem_id})
-			. " in set with name"
+			. ' in set with name'
 			. getSetInfo($args{info})->{set_name} // ("(set_id): " . getSetInfo($args{info})->{set_id}))
 		unless $user_problem;
 
@@ -480,12 +480,12 @@ sub deleteUserProblem ($self, %args) {
 		as_result_set => 1
 	);
 
-	DB::Exception::UserProblemNotFound->throw(message => "The user "
+	DB::Exception::UserProblemNotFound->throw(message => 'The user '
 			. getUserInfo($args{info})->{username} // getUserInfo($args{info})->{user_id}
-			. " already has problem number "
+			. ' already has problem number '
 			. getProblemInfo($args{info})->{problem_number}
 			// ("(problem_id): " . getProblemInfo($args{info})->{problem_id})
-			. " in set with name"
+			. ' in set with name'
 			. getSetInfo($args{info})->{set_name} // ("(set_id): " . getSetInfo($args{info})->{set_id}))
 		unless $user_problem;
 
