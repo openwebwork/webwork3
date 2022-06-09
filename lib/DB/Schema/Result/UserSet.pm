@@ -108,12 +108,12 @@ __PACKAGE__->add_columns(
 		default_value => 1,
 	},
 	type => {
-		data_type     => "int",
+		data_type     => 'int',
 		default_value => 1,
 		size          => 8
 	},
 	set_visible => {
-		data_type   => "boolean",
+		data_type   => 'boolean',
 		is_nullable => 1
 	},
 	# Store dates as a JSON object.

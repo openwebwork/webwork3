@@ -14,7 +14,7 @@ BEGIN {
 use lib "$main::ww3_dir/lib";
 
 use Carp;
-use feature "say";
+use feature 'say';
 
 use Clone qw/clone/;
 use DateTime::Format::Strptime;
@@ -80,12 +80,12 @@ sub addUsers {
 
 	# Add an admin user
 	my $admin = {
-		username     => "admin",
+		username     => 'admin',
 		email        => 'admin@google.com',
-		first_name   => "Andrea",
-		last_name    => "Administrator",
+		first_name   => 'Andrea',
+		last_name    => 'Administrator',
 		is_admin     => 1,
-		login_params => { password => "admin" }
+		login_params => { password => 'admin' }
 	};
 	$user_rs->create($admin);
 
