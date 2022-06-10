@@ -24,7 +24,7 @@ use DB::Exception;
 use Exception::Class (
 	'DB::Exception::UserNotFound',
 	'DB::Exception::CourseAlreadyExists',
-	"DB::Exception::UserNotInCourse"
+	'DB::Exception::UserNotInCourse'
 );
 
 =head1 getAllGlobalUsers

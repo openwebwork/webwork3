@@ -28,11 +28,11 @@ use PODParser;
 
 our @sections = (
 	'/'    => "(root)",
-	bin    => "Scripts",
-	conf   => "Config Files",
-	doc    => "Documentation",
-	lib    => "Libraries",
-	macros => "Macros"
+	bin    => 'Scripts',
+	conf   => 'Config Files',
+	doc    => 'Documentation',
+	lib    => 'Libraries',
+	macros => 'Macros'
 );
 
 sub new {
@@ -174,7 +174,7 @@ sub write_index {
 		$content_start .= qq{<li><a href="#$section">$section_name</a></li>};
 		my @files = sort @{ $idx->{$section} };
 		$content .= qq{<a name="$section"></a>};
-		$content .= qq{<h2><a href="#_podtop_">$section_name</a></h2><ul>};
+		$content .= qq{<h2><a href='#_podtop_'>$section_name</a></h2><ul>};
 		for my $file (sort { $a->[1] cmp $b->[1] } @files) {
 			my ($path, $name) = @$file;
 			$content .= qq{<li><a href="$path">$name</a></li>};
@@ -195,7 +195,7 @@ sub do_pod2html {
 	my $psx = PODParser->new;
 	$psx->{source_root} = $self->{source_root};
 	$psx->{verbose}     = $self->{verbose};
-	$psx->{base_url}    = ($self->{dest_url} // "") . "/" . (($self->{source_root} // "") =~ s|^.*/||r);
+	$psx->{base_url}    = ($self->{dest_url} // "") . '/' . (($self->{source_root} // "") =~ s|^.*/||r);
 	$psx->output_string(\my $html);
 	$psx->html_header(get_header($o{pod_name}));
 	$psx->html_footer(get_footer());

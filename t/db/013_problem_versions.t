@@ -73,9 +73,9 @@ for my $user_problem (@user_problems_from_csv) {
 # Get a user problem from a course
 
 my $user_problem_info = {
-	username       => "bart",
-	course_name    => "Precalculus",
-	set_name       => "HW #1",
+	username       => 'bart',
+	course_name    => 'Precalculus',
+	set_name       => 'HW #1',
 	problem_number => 1
 };
 
@@ -124,7 +124,7 @@ for my $user_problem (@all_user_problem_versions) {
 is_deeply(
 	\@all_user_problem_versions,
 	[ $user_problem1, $user_problem1_v2, $user_problem1_v3 ],
-	"getUserProblemVersions: get all versions of a user problem"
+	'getUserProblemVersions: get all versions of a user problem'
 );
 
 # clean up the created versioned user sets.
