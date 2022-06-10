@@ -28,8 +28,6 @@ morbo -v -m test -l "http://[::]:$port" bin/webwork3 &
 # Grab the process number.
 P1=$!
 
-echo "http://localhost:$port/webwork3/api"
-
 npx jest --verbose --runInBand --testURL "http://localhost:$port/webwork3/api" 'tests/stores'
 
 kill $P1
