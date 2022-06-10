@@ -16,8 +16,8 @@ while getopts ':p:' OPTION; do
 		echo "The port has been set to $port via a command line argument"
 		;;
 	*)
-		exit "the option $OPTARG is not defined"
-		exit 0
+		echo "the option $OPTARG is not defined"
+		exit 1
 		;;
 	esac
 done
