@@ -91,9 +91,10 @@ export const useSetProblemStore = defineStore('set_problems', {
 			const problem_set_store = useProblemSetStore();
 			const db_user_problem = state.db_user_problems.find((prob) => prob.user_problem_id === user_problem_id);
 			if (db_user_problem == undefined) return;
-			const set_problem = state.set_problems.find((prob) => prob.set_problem_id == db_user_problem.set_problem_id);
+			const set_problem = state.set_problems
+				.find((prob) => prob.set_problem_id == db_user_problem.set_problem_id);
 			if (set_problem == undefined) return;
-			const user_set = problem_set_store.findUserSet({user_set_id: db_user_problem.user_set_id});
+			const user_set = problem_set_store.findUserSet({ user_set_id: db_user_problem.user_set_id });
 			if (user_set == undefined) return;
 			return mergeUserProblem(set_problem as SetProblem, db_user_problem as DBUserProblem, user_set);
 		}
@@ -116,8 +117,8 @@ export const useSetProblemStore = defineStore('set_problems', {
 		async addSetProblem(problem: LibraryProblem, set_id: number): Promise<SetProblem> {
 			const course_id = useSessionStore().course.course_id;
 			const prob = new SetProblem({
-					problem_params: problem.location_params,
-					set_id: set_id
+				problem_params: problem.location_params,
+				set_id: set_id
 				 }).toObject();
 
 			// delete the render params.  Not in the database.

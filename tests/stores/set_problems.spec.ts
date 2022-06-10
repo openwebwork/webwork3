@@ -109,7 +109,7 @@ describe('Problem Set store tests', () => {
 				const set_problem = precalc_problems_from_csv.find(prob =>
 					prob.set_name === problem_set?.set_name && prob.problem_number === user_problem.problem_number);
 				const user = users_to_parse.find(user => user.username === user_problem.username);
-				return new UserProblem(Object.assign({}, problem_set?.toObject(), set_problem, user_problem, user));
+				return new UserProblem(Object.assign({}, set_problem, user_problem, user));
 			});
 
 		precalc_hw1_user_problems = precalc_merged_problems.filter(prob => prob.set_name === 'HW #1');
@@ -225,12 +225,6 @@ describe('Problem Set store tests', () => {
 			});
 			added_hw = await problem_set_store.addProblemSet(hw) as HomeworkSet;
 
-			const new_set_problem = new SetProblem({
-				set_id: added_hw.set_id,
-				problem_params: {
-					file_path: 'path/to/the/problem.pg'
-				}
-			});
 			const library_problem = new LibraryProblem({ location_params: { file_path: 'path/to/the/problem.pg' } });
 			added_set_problem = await set_problem_store.addSetProblem(library_problem, added_hw.set_id);
 
