@@ -8,6 +8,10 @@ import { ParseableUserCourse, UserCourse } from 'src/common/models/courses';
 import { logger } from 'boot/logger';
 import { ResponseError } from 'src/common/api-requests/interfaces';
 
+import { useUserStore } from 'src/stores/users';
+import { useSettingsStore } from 'src/stores/settings';
+import { useProblemSetStore } from 'src/stores/problem_sets';
+
 interface CourseInfo {
 	course_name: string;
 	course_id: number;
@@ -75,6 +79,9 @@ export const useSessionStore = defineStore('session', {
 			this.logged_in = false;
 			this.user = new User({ username: 'logged_out' });
 			this.course =  { course_id: 0, course_name: '' };
+			useProblemSetStore().clearAll();
+			useSettingsStore().clearAll();
+			useUserStore().clearAll();
 		}
 	}
 });

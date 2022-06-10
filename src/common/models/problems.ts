@@ -279,7 +279,9 @@ export class SetProblem extends Problem {
 	public set set_id(val: string | number) { this._set_id = parseNonNegInt(val);}
 
 	get problem_number(): number { return this._problem_number; }
-	set problem_number(value: string | number) { this._problem_number = parseNonNegInt(value); }
+	set problem_number(value: string | number) {
+		this._problem_number = parseNonNegInt(value);
+	}
 
 	clone(): SetProblem {
 		return new SetProblem(this.toObject() as unknown as ParseableSetProblem);

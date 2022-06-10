@@ -166,21 +166,33 @@ sub getUserProblemsForSet ($self, %args) {
 }
 
 =head1 getUserProblemsForUser
+
 Get all user problems (or merged user problems) for one user in one course
+
 =head3 input
+
 A hash of input values.
+
 =over
+
 =item * C<info>, either a course name or course_id and a user_id or username
+
 For example, C<{ course_name => 'Precalculus', username => 'homer'}>
 	or C<{user_id => 3, set_id => 4}> or a mix of these.
+
 =item * C<merged>, a boolean on whether to return a merged user or course user
+
 =item * C<as_result_set>, a boolean.  If true this an object of type
 C<DBIx::Class::ResultSet::UserProblem>
 if false, a hashrefs of a User Problem or merged User Problem with a Problem.
+
 =back
+
 =head3 output
+
 An array of a hashref of a user problem or merged user problem
 or an arrayref of C<DBIx::Class::ResultSet::UserProblem>
+
 =cut
 
 sub getUserProblemsForUser ($self, %args) {
@@ -261,7 +273,7 @@ sub getUserProblem ($self, %args) {
 	# If the problem doesn't exist throw a exception unless skip_throw (used)
 	# for checking in addUserProblem.
 
-	DB::Exception::UserProblemNotFound->throw(message => "The user problem for the course "
+	DB::Exception::UserProblemNotFound->throw(message => 'The user problem for the course '
 			. "$user_set->problem_sets->courses->course_name, problem set $user_set->problem_sets->set_name"
 			. " for user $user_set->course_users->users->username and problem number "
 			. "$problem->problem_number is not found")
@@ -318,11 +330,11 @@ sub addUserProblem ($self, %args) {
 		as_result_set => 1
 	);
 
-	DB::Exception::UserProblemExists->throw(message => "The user "
+	DB::Exception::UserProblemExists->throw(message => 'The user '
 			. $user_problem->user_sets->course_users->users->username
-			. " already has problem number "
+			. ' already has problem number '
 			. $user_problem->problems->problem_number
-			. " in set with name "
+			. ' in set with name '
 			. $user_problem->user_sets->problem_sets->set_name)
 		if $user_problem;
 
@@ -403,12 +415,12 @@ sub updateUserProblem ($self, %args) {
 		as_result_set => 1
 	);
 
-	DB::Exception::UserProblemNotFound->throw(message => "The user "
+	DB::Exception::UserProblemNotFound->throw(message => 'The user '
 			. getUserInfo($args{info})->{username} // getUserInfo($args{info})->{user_id}
-			. " already has problem number "
+			. ' already has problem number '
 			. getProblemInfo($args{info})->{problem_number}
 			// ("(problem_id): " . getProblemInfo($args{info})->{problem_id})
-			. " in set with name"
+			. ' in set with name'
 			. getSetInfo($args{info})->{set_name} // ("(set_id): " . getSetInfo($args{info})->{set_id}))
 		unless $user_problem;
 
@@ -468,12 +480,12 @@ sub deleteUserProblem ($self, %args) {
 		as_result_set => 1
 	);
 
-	DB::Exception::UserProblemNotFound->throw(message => "The user "
+	DB::Exception::UserProblemNotFound->throw(message => 'The user '
 			. getUserInfo($args{info})->{username} // getUserInfo($args{info})->{user_id}
-			. " already has problem number "
+			. ' already has problem number '
 			. getProblemInfo($args{info})->{problem_number}
 			// ("(problem_id): " . getProblemInfo($args{info})->{problem_id})
-			. " in set with name"
+			. ' in set with name'
 			. getSetInfo($args{info})->{set_name} // ("(set_id): " . getSetInfo($args{info})->{set_id}))
 		unless $user_problem;
 

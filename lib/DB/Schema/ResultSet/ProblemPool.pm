@@ -156,8 +156,8 @@ sub updateProblemPool ($self, %args) {
 			. (
 			$args{info}->{pool_name} ? " named $args{info}->{pool_name}" : " with id $args{info}->{problem_pool_id}"
 			)
-			. " is not in the course "
-			. $args{info}->{course_name} ? " named $args{info}->{course_name}" : " with id $args{info}->{course_id}"
+			. ' is not in the course '
+			. $args{info}->{course_name} ? " named '$args{info}->{course_name}'" : " with id $args{info}->{course_id}"
 	) unless defined($pool);
 
 	# create a new problem pool to check for valid fields

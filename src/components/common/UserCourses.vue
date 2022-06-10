@@ -8,7 +8,7 @@
 		<p>Select a course below:</p>
 	</div>
 	<div class="q-pa-md row items-start q-gutter-md">
-		<q-card>
+		<q-card v-if="student_courses.length > 0">
 			<q-card-section>
 				<div class="text-h4">Courses as a Student</div>
 			</q-card-section>
@@ -18,7 +18,7 @@
 						<template v-for="course in student_courses" :key="course.course_id">
 							<q-item
 								:to="{
-									name: 'student',
+									name: 'StudentDashboard',
 									params: { course_id: course.course_id, course_name: course.course_name }
 									}"
 								>
@@ -31,7 +31,7 @@
 				</q-card-section>
 			</div>
 		</q-card>
-		<q-card>
+		<q-card v-if="instructor_courses.length > 0">
 			<q-card-section>
 				<div class="text-h4">Courses as an Instructor</div>
 			</q-card-section>
@@ -57,25 +57,23 @@
 </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, computed } from 'vue';
+<script setup lang="ts">
+import { computed } from 'vue';
 import { useSessionStore } from 'src/stores/session';
 import { parseNonNegInt, parseUserRole } from 'src/common/models/parsers';
 
-export default defineComponent({
-	name: 'UserCourses',
-	async setup() {
-		const session = useSessionStore();
-		await session.fetchUserCourses(parseNonNegInt(session.user.user_id));
-		return {
-			student_courses: computed(() =>
-				session.user_courses.filter(user_course => parseUserRole(user_course.role) === 'STUDENT')
-			),
-			instructor_courses: computed(() =>
-				session.user_courses.filter(user_course => parseUserRole(user_course.role) === 'INSTRUCTOR')
-			),
-			user: computed(() => session.user)
-		};
-	},
-});
+const session = useSessionStore();
+// fetch the data when the view is created and the data is already being observed
+if (session) await session.fetchUserCourses(parseNonNegInt(session.user.user_id));
+
+const student_courses = computed(() =>
+	// for some reason on load the user_course.role is undefined.
+	session.user_courses.filter(user_course => parseUserRole(user_course.role) === 'STUDENT'));
+
+const instructor_courses = computed(() =>
+	// For some reason on load the user_course.role is undefined.
+	session.user_courses.filter(user_course => parseUserRole(user_course.role) === 'INSTRUCTOR')
+);
+const user = computed(() => session.user);
+
 </script>

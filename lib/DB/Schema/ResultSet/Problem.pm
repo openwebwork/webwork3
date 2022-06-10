@@ -251,7 +251,7 @@ sub addSetProblem ($self, %args) {
 sub checkProblemParams ($self, $params) {
 
 	# Check that the problem_number field is a positive number.
-	DB::Exception::InvalidParameter->throw(message => "The problem_number must be a positive integer")
+	DB::Exception::InvalidParameter->throw(message => 'The problem_number must be a positive integer')
 		unless defined $params->{problem_number} && $params->{problem_number} =~ /^\d+$/;
 
 	my $problem_to_add = $self->new($params);

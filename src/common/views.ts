@@ -19,17 +19,31 @@ export interface ViewInfo {
 
 export const student_views: Array<ViewInfo> = [
 	{
-		name: 'Calendar',
-		component_name: 'Calendar',
-		icon: 'today',
-		route: 'student-calendar',
+		name: 'Dashboard',
+		component_name: 'StudentDashboard',
+		icon: 'speed',
+		route: '',
 		sidebars: []
 	},
 	{
-		name: 'Problem Viewer',
-		component_name: 'ProblemViewer',
+		name: 'Calendar',
+		component_name: 'StudentCalendar',
+		icon: 'today',
+		route: 'calendar',
+		sidebars: []
+	},
+	{
+		name: 'Problem Sets',
+		component_name: 'ProblemSets',
 		icon: 'preview',
-		route: 'student-problems',
+		route: 'sets',
+		sidebars: []
+	},
+	{
+		name: 'Grades',
+		component_name: 'Grades',
+		icon: 'list',
+		route: 'grades',
 		sidebars: []
 	}
 ];
@@ -111,6 +125,13 @@ export const admin_views: Array<ViewInfo> = [
 	}
 ];
 
+// This parses route params in a type-safe manner.
+
+export const parseNumericRouteParam = (route_param: string | string []): number => {
+	return Array.isArray(route_param) ?
+		parseInt(route_param[0]) :
+		parseInt(route_param);
+};
 import { ProblemSetType } from 'src/common/models/problem_sets';
 
 // Used in multiple views
