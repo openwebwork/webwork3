@@ -18,6 +18,7 @@ while getopts ':p:' OPTION; do
 	*)
 		exit "the option $OPTARG is not defined"
 		exit 0
+		;;
 	esac
 done
 
