@@ -190,21 +190,6 @@ throws_ok {
 }
 'DB::Exception::SetNotInCourse', 'addSetProblem: try to add a problem to a non-existent set_id';
 
-# Try to set a negative problem number.
-throws_ok {
-	$problem_rs->addSetProblem(
-		params => {
-			course_name    => 'Precalculus',
-			set_name       => 'HW #1',
-			problem_number => -9,
-			problem_params => {
-				file_path => 'this_is_a_path'
-			}
-		}
-	);
-}
-'DB::Exception::InvalidParameter', 'addSetProblem: try to add a problem with a non positive integer problem_number';
-
 # Try to add a problem without information about the file_path, library_id or problem_pool_id
 throws_ok {
 	$problem_rs->addSetProblem(

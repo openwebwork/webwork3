@@ -239,8 +239,7 @@ sub addSetProblem ($self, %args) {
 	}
 
 	# set the problem number to one more than the set's largest
-	$params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0)
-		unless defined $params->{problem_number};
+	$params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0);
 	$params->{problem_params}{weight} = 1 unless defined($params->{problem_params}{weight});
 
 	$self->checkProblemParams($params);

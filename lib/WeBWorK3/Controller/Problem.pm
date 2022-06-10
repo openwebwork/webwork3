@@ -78,6 +78,7 @@ sub getUserProblemsForUser ($self) {
 
 sub addUserProblem ($self) {
 	my $problem_params = $self->req->json;
+
 	# add the route parameters to the UserProblem to be added.
 	$problem_params->{course_id} = int($self->param('course_id'))
 		unless defined($problem_params->{course_id}) || defined($problem_params->{course_name});
@@ -87,12 +88,12 @@ sub addUserProblem ($self) {
 		unless defined($problem_params->{user_id}) || defined($problem_params->{username});
 
 	# Only pass in set_id instead of set_name
-	delete $problem_params->{set_name} if ($problem_params->{set_id});
+	delete $problem_params->{set_name} if defined($problem_params->{set_id});
 
 	# Only pass in user_id instead of username
-	delete $problem_params->{username} if ($problem_params->{user_id});
+	delete $problem_params->{username} if defined($problem_params->{user_id});
 
-	# Only pass in problem_number or problem_id
+	# Only pass in problem_number or set_problem_id
 	delete $problem_params->{set_problem_id} if ($problem_params->{set_problem_id} == 0);
 
 	my $user_problem = $self->schema->resultset('UserProblem')->addUserProblem(params => $problem_params);
@@ -104,10 +105,10 @@ sub updateUserProblem ($self) {
 	my $problem_params = $self->req->json;
 	my $user_problem   = $self->schema->resultset('UserProblem')->updateUserProblem(
 		info => {
-			course_id      => int($self->param('course_id')),
-			set_id         => int($self->param('set_id')),
-			user_id        => int($self->param('user_id')),
-			set_problem_id => int($self->param('set_problem_id'))
+			course_id       => int($self->param('course_id')),
+			set_id          => int($self->param('set_id')),
+			user_id         => int($self->param('user_id')),
+			user_problem_id => int($self->param('user_problem_id'))
 		},
 		params => $problem_params
 	);
@@ -118,10 +119,10 @@ sub updateUserProblem ($self) {
 sub deleteUserProblem ($self) {
 	my $deleted_problem = $self->schema->resultset('UserProblem')->deleteUserProblem(
 		info => {
-			course_id      => int($self->param('course_id')),
-			set_id         => int($self->param('set_id')),
-			user_id        => int($self->param('user_id')),
-			set_problem_id => int($self->param('set_problem_id'))
+			course_id       => int($self->param('course_id')),
+			set_id          => int($self->param('set_id')),
+			user_id         => int($self->param('user_id')),
+			user_problem_id => int($self->param('user_problem_id'))
 		}
 	);
 	$self->render(json => $deleted_problem);

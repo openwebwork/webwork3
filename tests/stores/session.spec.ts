@@ -21,6 +21,7 @@ import { User } from 'src/common/models/users';
 import { SessionInfo } from 'src/common/models/session';
 
 import { cleanIDs, loadCSV } from '../utils';
+import { UserRole } from 'src/common/models/parsers';
 
 const app = createApp({});
 
@@ -34,7 +35,7 @@ describe('Session Store', () => {
 		user_id: 1234,
 		email: 'homer@msn.com',
 		username: 'homer',
-		is_admin: false
+		is_admin: false,
 	});
 
 	const logged_out: User = new User({
@@ -99,7 +100,8 @@ describe('Session Store', () => {
 			expect(session.user).toStrictEqual(logged_out);
 			expect(session.course).toStrictEqual({
 				course_id: 0,
-				course_name: ''
+				course_name: '',
+				role: UserRole.unknown
 			});
 		});
 

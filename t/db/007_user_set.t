@@ -24,8 +24,6 @@ use YAML::XS qw/LoadFile/;
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
 
-use Data::Dumper;
-
 # Load the configuration files
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
 $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
@@ -139,23 +137,12 @@ for my $user_set (@merged_user_sets) {
 # Get all user sets for a given user in a course.
 my @all_user_sets_from_db = $user_set_rs->getAllUserSets();
 
-print Dumper scalar(@all_user_sets_from_db);
-
 for my $set (@all_user_sets_from_db) {
 	removeIDs($set);
 	for my $key (keys %{$set}) {
 		delete $set->{$key} unless defined $set->{$key};
 	}
 }
-
-# print Dumper \@all_user_sets;
-# for my $set (@all_user_sets) {
-# 	say "$set->{course_name} $set->{username} $set->{set_name}";
-# }
-# for my $set (@all_user_sets_from_db) {
-# 	say "$set->{course_name} $set->{username} $set->{set_name}";
-# }
-# print Dumper \@all_user_sets_from_db;
 
 is_deeply(\@all_user_sets_from_db, \@all_user_sets, 'getAllUserSets: get all user sets for all courses');
 

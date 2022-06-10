@@ -263,7 +263,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		async deleteUserSet(user_set: UserSet) {
 			const course_id = useSessionStore().course.course_id;
 			const response = await
-			api.delete(`courses/${course_id}/sets/${user_set.set_id}/users/${user_set.course_user_id ?? 0}`);
+				api.delete(`courses/${course_id}/sets/${user_set.set_id}/users/${user_set.course_user_id ?? 0}`);
 			// TODO: check for errors
 			const deleted_user_set = parseDBUserSet(response.data as ParseableDBUserSet);
 			const index = this.db_user_sets.findIndex(s => s.user_set_id === deleted_user_set.user_set_id);

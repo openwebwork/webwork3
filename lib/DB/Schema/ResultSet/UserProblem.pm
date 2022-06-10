@@ -409,11 +409,14 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 =cut
 
 sub updateUserProblem ($self, %args) {
-	my $user_problem = $self->getUserProblem(
+	my $user_problem =
+		$args{info}->{user_problem_id}
+		? $self->find({ user_problem_id => $args{info}->{user_problem_id} })
+		: $self->getUserProblem(
 		info          => $args{info},
 		skip_throw    => 1,
 		as_result_set => 1
-	);
+		);
 
 	DB::Exception::UserProblemNotFound->throw(message => 'The user '
 			. getUserInfo($args{info})->{username} // getUserInfo($args{info})->{user_id}
@@ -474,11 +477,14 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 =cut
 
 sub deleteUserProblem ($self, %args) {
-	my $user_problem = $self->getUserProblem(
+	my $user_problem =
+		$args{info}->{user_problem_id}
+		? $self->find({ user_problem_id => $args{info}->{user_problem_id} })
+		: $self->getUserProblem(
 		info          => $args{info},
 		skip_throw    => 1,
 		as_result_set => 1
-	);
+		);
 
 	DB::Exception::UserProblemNotFound->throw(message => 'The user '
 			. getUserInfo($args{info})->{username} // getUserInfo($args{info})->{user_id}
