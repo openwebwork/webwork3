@@ -76,29 +76,29 @@ $t->put_ok("/webwork3/api/courses/2/users/$new_user_id" => json => { recitation 
 # Test for exceptions
 
 # A non-existent user
-$t->get_ok("/webwork3/api/courses/1/users/99999")->status_is(250, "status for exception")
+$t->get_ok("/webwork3/api/courses/1/users/99999")->status_is(500, "status for exception")
 	->content_type_is('application/json;charset=UTF-8')->json_is('/exception' => 'DB::Exception::UserNotFound');
 
 # Check that a new user is not in a course.
-$t->get_ok("/webwork3/api/courses/1/users/$new_user_id")->status_is(250, "status for exception")
+$t->get_ok("/webwork3/api/courses/1/users/$new_user_id")->status_is(500, "status for exception")
 	->content_type_is('application/json;charset=UTF-8')->json_is('/exception' => 'DB::Exception::UserNotInCourse');
 
 # Try to update a user that is not in a course.
 $t->put_ok("/webwork3/api/courses/1/users/$new_user_id" => json => { recitation => '2' })
-	->status_is(250, "status for exception")->content_type_is('application/json;charset=UTF-8')
+	->status_is(500, "status for exception")->content_type_is('application/json;charset=UTF-8')
 	->json_is('/exception' => 'DB::Exception::UserNotInCourse');
 
 # Try to add a user without a username.
 $t->post_ok("/webwork3/api/courses/1/users" => json => { username_name => "this is the wrong field" })
-	->status_is(250, "status for exception")->content_type_is('application/json;charset=UTF-8')
+	->status_is(500, "status for exception")->content_type_is('application/json;charset=UTF-8')
 	->json_is('/exception' => 'DB::Exception::ParametersNeeded');
 
 # Try to delete a user that is not found.
-$t->delete_ok("/webwork3/api/courses/1/users/99")->status_is(250, "status for exception")
+$t->delete_ok("/webwork3/api/courses/1/users/99")->status_is(500, "status for exception")
 	->content_type_is('application/json;charset=UTF-8')->json_is('/exception' => 'DB::Exception::UserNotFound');
 
 # Try to delete a user that is not in a course.
-$t->delete_ok("/webwork3/api/courses/1/users/$new_user_id")->status_is(250, "status for exception")
+$t->delete_ok("/webwork3/api/courses/1/users/$new_user_id")->status_is(500, "status for exception")
 	->content_type_is('application/json;charset=UTF-8')->json_is('/exception' => 'DB::Exception::UserNotInCourse');
 
 $t->delete_ok("/webwork3/api/courses/2/users/$new_user_id")->status_is(200)

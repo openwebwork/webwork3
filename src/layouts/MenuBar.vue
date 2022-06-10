@@ -42,6 +42,7 @@
 			</div>
 		</div>
 	</q-header>
+
 	<q-dialog medium v-model="open_user_settings">
 		<q-card style="width: 300px">
 			<q-card-section>
@@ -60,67 +61,51 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, ref } from 'vue';
+<script setup lang="ts">
+import { computed, defineEmits, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useRoute } from 'vue-router';
 import { endSession } from 'src/common/api-requests/session';
 import { useI18n } from 'vue-i18n';
 import { setI18nLanguage } from 'boot/i18n';
 import { useSessionStore } from 'src/stores/session';
 import type { CourseSettingInfo } from 'src/common/models/settings';
 import { useSettingsStore } from 'src/stores/settings';
+import { logger } from 'src/boot/logger';
 
-export default defineComponent({
-	name: 'MenuBar',
-	emits: ['toggle-menu', 'toggle-sidebar'],
-	setup() {
-		const session = useSessionStore();
-		const settings = useSettingsStore();
-		const router = useRouter();
-		const route = useRoute();
-		const current_view = ref('');
-		const currentLocale = ref(useI18n({ useScope: 'global' }).locale.value);
+defineEmits(['toggle-menu', 'toggle-sidebar']);
+const session = useSessionStore();
+const settings = useSettingsStore();
+const router = useRouter();
+const open_user_settings = ref(false);
+const currentLocale = ref(useI18n({ useScope: 'global' }).locale.value);
+const current_course_name = computed(() => session.course.course_name);
+const logged_in = computed(() => session.logged_in);
+const full_name = computed(() => session.full_name);
+const user_courses = computed(() =>
+	session.user_courses.filter(course => course.course_name !== current_course_name.value));
 
-		const current_course_name = computed(() => session.course.course_name);
+const changeCourse = (course_id: number, course_name: string) => {
+	const new_course = session.user_courses.find(course => course.course_name === course_name);
 
-		return {
-			logged_in: computed(() => session.logged_in),
-			user: computed(() => session.user),
-			current_course_name,
-			full_name: computed(() => session.full_name),
-			user_courses: computed(() =>
-				session.user_courses.filter(course => course.course_name !== current_course_name.value)),
-			changeCourse: (course_id: number, course_name: string) => {
-				const current_course = session.user_courses
-					.find(course => course.course_name === current_course_name.value);
-
-				const new_course = session.user_courses.find(course => course.course_name === course_name);
-				if (current_course && new_course && current_course.role !== new_course.role) {
-					void router.push({ name: new_course.role, params: { course_id: course_id } });
-				}
-				void session.setCourse({ course_name, course_id });
-			},
-			currentLocale,
-			availableLocales: computed(() =>
-				settings.default_settings.find((setting: CourseSettingInfo) => setting.var === 'language')?.options
-			),
-			setI18nLanguage,
-			open_user_settings: ref(false),
-			current_view,
-			logout: async () => {
-				await endSession();
-				void session.logout();
-				void router.push('/login');
-			},
-			menubar_color: computed(() =>
-				/^\/courses\/\d+\/instructor/.test(route.path)
-					? 'deep-purple-8'
-					: /^\/admin/.test(route.path)
-						? 'indigo-8'
-						: 'green-9'
-			)
-		};
+	if (new_course != undefined) {
+		router.push(`/courses/${new_course.course_id}`).then(() => {
+			session.setCourse({
+				course_name: new_course.course_name,
+				course_id: new_course.course_id
+			});
+		}).catch(() => {
+			logger.error('[MenuBar/changeCourse]: Error occurred.');
+		});
 	}
-});
+};
+
+const availableLocales = computed(() =>
+	settings.default_settings.find((setting: CourseSettingInfo) => setting.var === 'language')?.options
+);
+
+const logout = async () => {
+	await endSession();
+	void session.logout();
+	void router.push('/login');
+};
 </script>

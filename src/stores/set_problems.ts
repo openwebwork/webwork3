@@ -2,9 +2,10 @@
 
 import { api } from 'boot/axios';
 import { defineStore } from 'pinia';
+import { logger } from 'src/boot/logger';
 
 import { ParseableProblem, parseProblem, SetProblem, ParseableSetProblem, UserProblem,
-	mergeUserProblem, DBUserProblem, ParseableDBUserProblem } from 'src/common/models/problems';
+	mergeUserProblem, DBUserProblem, ParseableDBUserProblem, LibraryProblem } from 'src/common/models/problems';
 import { UserSet } from 'src/common/models/user_sets';
 import { useSessionStore } from 'src/stores/session';
 import { useProblemSetStore } from './problem_sets';
@@ -97,12 +98,16 @@ export const useSetProblemStore = defineStore('set_problems', {
 		/**
 		 * Adds the given set problem to both the database and the store.
 		 */
-		async addSetProblem(problem: SetProblem): Promise<SetProblem> {
+		async addSetProblem(problem: LibraryProblem | SetProblem, set_id: number): Promise<SetProblem> {
 			const course_id = useSessionStore().course.course_id;
-			const prob = problem.toObject();
+			const prob = problem instanceof LibraryProblem ?
+				new SetProblem({ problem_params: problem.location_params, set_id }).toObject() :
+				problem.toObject();
+
 			// delete the render params.  Not in the database.
 			delete prob.render_params;
-			const response = await api.post(`/courses/${course_id}/sets/${problem.set_id}/problems`, prob);
+			const response = await api.post(`/courses/${course_id}/sets/${set_id}/problems`, prob).
+				catch((e: Error) => logger.error(`[addSetProblem] ${JSON.stringify(prob)} failed with ${e.message}`));
 
 			// TODO: check for errors
 			const new_problem = new SetProblem(response.data as ParseableSetProblem);
