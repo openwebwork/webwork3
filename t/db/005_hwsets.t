@@ -59,7 +59,11 @@ for my $set (@review_sets) {
 }
 
 # Test getting all problem sets
-my @all_problem_sets     = (@hw_sets, @quizzes, @review_sets);
+my @all_problem_sets = (@hw_sets, @quizzes, @review_sets);
+
+# clone the sets since we need the original sets for the end of the test.
+@all_problem_sets = @{ clone \@all_problem_sets };
+
 my @problem_sets_from_db = $problem_set_rs->getAllProblemSets;
 
 @problem_sets_from_db = sort { $a->{set_name} cmp $b->{set_name} } @problem_sets_from_db;
@@ -381,6 +385,22 @@ throws_ok {
 }
 'DB::Exception::SetNotInCourse', "deleteCourse: try to delete a set that not exist.";
 
-done_testing;
+# ensure that the problem_sets table in the database is restored.
+@all_problem_sets     = (@hw_sets, @quizzes, @review_sets);
+@problem_sets_from_db = $problem_set_rs->getAllProblemSets;
 
-1;
+@all_problem_sets     = sort { $a->{set_name} cmp $b->{set_name} } @all_problem_sets;
+@problem_sets_from_db = sort { $a->{set_name} cmp $b->{set_name} } @problem_sets_from_db;
+
+# Remove the id tags
+for my $set (@problem_sets_from_db) {
+	removeIDs($set);
+	# Remove information that is returned about the course.
+	delete $set->{visible};
+	delete $set->{course_dates};
+	# delete $set->{course_name};
+}
+
+is_deeply(\@all_problem_sets, \@problem_sets_from_db, 'check: ensure that the problem_sets table is restored.');
+
+done_testing;

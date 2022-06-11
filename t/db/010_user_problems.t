@@ -38,22 +38,6 @@ my $schema =
 
 my $user_problem_rs = $schema->resultset('UserProblem');
 
-# Remove some user problems added via this test.
-
-my @user_problems_to_delete = $user_problem_rs->search(
-	{
-		'courses.course_name'   => 'Precalculus',
-		'problem_sets.set_name' => 'HW #4'
-	},
-	{
-		join => [ { user_sets => { 'problem_sets' => 'courses' } } ]
-	}
-);
-
-for my $up (@user_problems_to_delete) {
-	$up->delete;
-}
-
 # Load problems and user problems from the CSV files.
 my @user_problems_from_csv = loadCSV("$main::ww3_dir/t/db/sample_data/user_problems.csv");
 for my $user_problem (@user_problems_from_csv) {
@@ -98,7 +82,7 @@ for my $user_problem (@all_user_problems_from_db) {
 }
 
 is_deeply(\@user_problems_from_csv, \@all_user_problems_from_db,
-	"getAllUserProblems: fetch all user problems from the DB.");
+	'getAllUserProblems: fetch all user problems from the DB.');
 
 # Get merged user problems.
 
@@ -686,7 +670,7 @@ is_deeply($user_problem1, $user_problem_to_delete, 'deleteUserProblem: delete a 
 
 # Delete a user problem and return as a merged problem.
 
-my $user_problem_to_delete2 = $user_problem_rs->updateUserProblem(info => $problem_info2, merged => 1);
+my $user_problem_to_delete2 = $user_problem_rs->deleteUserProblem(info => $problem_info2, merged => 1);
 removeIDs($user_problem_to_delete2);
 
 is_deeply($problem2, $user_problem_to_delete2,
@@ -751,5 +735,15 @@ throws_ok {
 	);
 }
 'DB::Exception::SetProblemNotFound', 'deleteUserProblem: attempt to delete a user problem for a non-existent problem';
+
+# Ensure that the user_problems table is restored.
+@all_user_problems_from_db = $user_problem_rs->getAllUserProblems();
+for my $user_problem (@all_user_problems_from_db) {
+	removeIDs($user_problem);
+	delete $user_problem->{problem_version} unless defined $user_problem->{problem_version};
+}
+
+is_deeply(\@user_problems_from_csv, \@all_user_problems_from_db,
+	'check: Ensure that the set_problems table is restored.');
 
 done_testing;

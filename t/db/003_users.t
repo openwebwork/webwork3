@@ -33,14 +33,6 @@ my $strp   = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak
 my $users_rs  = $schema->resultset('User');
 my $course_rs = $schema->resultset('Course');
 
-# Remove a few users if they exists in the database
-# my $users_to_remove = $users_rs->search({
-# 	username => {
-# 		'-in' => [ 'maggie', 'wiggam', 'selma', 'selma@google.com' ]
-# 	}
-# });
-# $users_to_remove->delete_all if defined($users_to_remove);
-
 # Get a list of users from the CSV file
 my @students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
 
@@ -272,7 +264,13 @@ throws_ok {
 }
 'DB::Exception::UserNotFound', 'getUserCourses: try to get a list of courses for a non-existent user';
 
+# Check that the users db table is returned to its original state.
+@users_from_db = $users_rs->getAllGlobalUsers;
+for my $user (@users_from_db) {
+	removeIDs($user);
+}
+@users_from_db = sort { $a->{username} cmp $b->{username} } @users_from_db;
+is_deeply(\@all_students, \@users_from_db,
+	'check: make sure that the users db table is returned to its original state');
+
 done_testing;
-
-1;
-

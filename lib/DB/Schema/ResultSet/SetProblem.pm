@@ -140,7 +140,7 @@ This gets a single problem from a given course and problem
 =over
 =item - C<course_name> or C<course_id>
 =item - C<set_name> or C<set_id>
-=item - C<problem_number> or C<set_'SetProblem'>
+=item - C<problem_number> or C<set_problem_id>
 
 =back
 
