@@ -119,7 +119,7 @@ export const useSetProblemStore = defineStore('set_problems', {
 			const prob = new SetProblem({
 				problem_params: problem.location_params,
 				set_id: set_id
-				 }).toObject();
+			}).toObject();
 
 			// delete the render params.  Not in the database.
 			delete prob.render_params;
