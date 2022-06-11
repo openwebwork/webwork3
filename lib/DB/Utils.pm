@@ -34,7 +34,7 @@ sub getPoolInfo ($in) {
 }
 
 sub getProblemInfo ($in) {
-	return _get_info($in, qw/problem_number problem_id/);
+	return _get_info($in, qw/problem_number set_problem_id/);
 }
 
 sub getPoolProblemInfo ($in) {

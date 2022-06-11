@@ -1,4 +1,4 @@
-package DB::Schema::Result::Problem;
+package DB::Schema::Result::SetProblem;
 use DBIx::Class::Core;
 use DB::WithParams;
 
@@ -11,7 +11,7 @@ use base qw(DBIx::Class::Core DB::WithParams);
 
 =head1 DESCRIPTION
 
-This is the database schema for a Problem.  Note: this table has two purposes 1) a relationship table linking
+This is the database schema for a SetProblem.  Note: this table has two purposes 1) a relationship table linking
 the course and user tables (many-to-many) and 2) storing information about the user in the given course.
 
 =head2 fields
@@ -20,7 +20,7 @@ the course and user tables (many-to-many) and 2) storing information about the u
 
 =item *
 
-C<problem_id>: database id (primary key, autoincrement integer)
+C<set_problem_id>: database id (primary key, autoincrement integer)
 
 =item *
 
@@ -81,12 +81,12 @@ sub required_params ($=) {
 
 # This is the table that stores problems for a given Problem Set.
 
-__PACKAGE__->table('problem');
+__PACKAGE__->table('set_problem');
 
 __PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
 
 __PACKAGE__->add_columns(
-	problem_id => {
+	set_problem_id => {
 		data_type         => 'integer',
 		size              => 16,
 		is_nullable       => 0,
@@ -113,12 +113,12 @@ __PACKAGE__->add_columns(
 	}
 );
 
-__PACKAGE__->set_primary_key('problem_id');
+__PACKAGE__->set_primary_key('set_problem_id');
 
 # Maybe we don't need this.
-__PACKAGE__->add_unique_constraint([qw/problem_id set_id problem_number/]);
+__PACKAGE__->add_unique_constraint([qw/set_problem_id set_id problem_number/]);
 
 __PACKAGE__->belongs_to(problem_set => 'DB::Schema::Result::ProblemSet', 'set_id');
-__PACKAGE__->has_many(user_problems => 'DB::Schema::Result::UserProblem', 'problem_id');
+__PACKAGE__->has_many(user_problems => 'DB::Schema::Result::UserProblem', 'set_problem_id');
 
 1;

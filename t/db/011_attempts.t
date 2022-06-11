@@ -39,7 +39,8 @@ my $schema =
 my $user_problem_rs = $schema->resultset('UserProblem');
 my $attempt_rs      = $schema->resultset('Attempt');
 
-# Flush out already added attempts.
+# Delete previously added attempts.
+# Question: should we instead write a deleteAttempt method and delete at the end of the test?
 
 my $attempts = $attempt_rs->search(
 	{
@@ -65,7 +66,7 @@ my $attempts = $attempt_rs->search(
 
 $attempts->delete_all;
 
-# Add a few attemps for a give User Problem.
+# Add a few attempts for a give User Problem.
 
 my $user_problem_info = {
 	course_name    => 'Precalculus',

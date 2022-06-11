@@ -17,7 +17,7 @@ export interface SetProblemsState {
 
 type SetInfo =
 	{ set_id: number; set_name?: never } |
-	{ set_name?: string; set_id?: never };
+	{ set_name: string; set_id?: never };
 
 export const useSetProblemStore = defineStore('set_problems', {
 	state: (): SetProblemsState => ({
@@ -52,14 +52,16 @@ export const useSetProblemStore = defineStore('set_problems', {
 		findUserProblems(state) {
 			return (set_info: SetInfo) => {
 				const problem_set_store = useProblemSetStore();
-				// get a list of the desired problem_ids
-				const problem_ids = this.findSetProblems(set_info).map(prob => prob.problem_id);
+				// get a list of the desired set_problem_ids
+				const set_problem_ids = this.findSetProblems(set_info).map(prob => prob.set_problem_id);
 				return state.db_user_problems
-					.filter(user_prob => problem_ids.findIndex(prob_id => user_prob.problem_id === prob_id) >= 0)
+					.filter(user_prob => set_problem_ids
+						.findIndex(prob_id => user_prob.set_problem_id === prob_id) >= 0)
 					.map(user_prob => {
 						const user_set = problem_set_store.findUserSet({ user_set_id: user_prob.user_set_id })
 							?? new UserSet();
-						const set_problem = state.set_problems.find(prob => prob.problem_id === user_prob.problem_id)
+						const set_problem = state
+							.set_problems.find(prob => prob.set_problem_id === user_prob.set_problem_id)
 							?? new SetProblem();
 						// Not sure why the first two arguments need to be cast.
 						return mergeUserProblem(set_problem as SetProblem, user_prob as DBUserProblem, user_set);
@@ -75,11 +77,26 @@ export const useSetProblemStore = defineStore('set_problems', {
 			return state.db_user_problems.map(user_problem => {
 				const user_set = problem_set_store.findUserSet({ user_set_id: user_problem.user_set_id })
 					?? new UserSet();
-				const set_problem = state.set_problems.find(prob => prob.problem_id === user_problem.problem_id)
+				const set_problem = state.set_problems.find(prob => prob.set_problem_id === user_problem.set_problem_id)
 					?? new SetProblem();
 				// Not sure why the first two arguments need to be cast.
 				return mergeUserProblem(set_problem as SetProblem, user_problem as DBUserProblem, user_set);
 			});
+		},
+
+		/**
+		 * Return a single user problem with given user_problem_id.`
+		 */
+		findUserProblem: (state) => (user_problem_id: number) => {
+			const problem_set_store = useProblemSetStore();
+			const db_user_problem = state.db_user_problems.find((prob) => prob.user_problem_id === user_problem_id);
+			if (db_user_problem == undefined) return;
+			const set_problem = state.set_problems
+				.find((prob) => prob.set_problem_id == db_user_problem.set_problem_id);
+			if (set_problem == undefined) return;
+			const user_set = problem_set_store.findUserSet({ user_set_id: db_user_problem.user_set_id });
+			if (user_set == undefined) return;
+			return mergeUserProblem(set_problem as SetProblem, db_user_problem as DBUserProblem, user_set);
 		}
 	},
 	actions: {
@@ -94,20 +111,21 @@ export const useSetProblemStore = defineStore('set_problems', {
 		},
 
 		/**
-		 * Adds the given set problem to both the database and the store.
+		 * Adds the given set problem with information from a Library problem and a given
+		 * set_id to both the database and the store.
 		 */
-		async addSetProblem(problem: LibraryProblem | SetProblem, set_id: number): Promise<SetProblem> {
+		async addSetProblem(problem: LibraryProblem, set_id: number): Promise<SetProblem> {
 			const course_id = useSessionStore().course.course_id;
-			const prob = problem instanceof LibraryProblem ?
-				new SetProblem({ problem_params: problem.location_params, set_id }).toObject() :
-				problem.toObject();
+			const prob = new SetProblem({
+				problem_params: problem.location_params,
+				set_id: set_id
+			}).toObject();
 
 			// delete the render params.  Not in the database.
 			delete prob.render_params;
 			const response = await api.post(`/courses/${course_id}/sets/${set_id}/problems`, prob).
 				catch((e: Error) => logger.error(`[addSetProblem] ${JSON.stringify(prob)} failed with ${e.message}`));
 
-			// TODO: check for errors
 			const new_problem = new SetProblem(response.data as ParseableSetProblem);
 			this.set_problems.push(new_problem);
 			return new_problem;
@@ -123,10 +141,10 @@ export const useSetProblemStore = defineStore('set_problems', {
 			delete prob.render_params;
 
 			const response = await api.put(`courses/${course_id}/sets/${problem.set_id}/problems/${
-				problem.problem_id}`, prob);
+				problem.set_problem_id}`, prob);
 			const updated_problem = new SetProblem(response.data as ParseableSetProblem);
 			// TODO: check for errors
-			const index = this.set_problems.findIndex(prob => prob.problem_id === updated_problem.problem_id);
+			const index = this.set_problems.findIndex(prob => prob.set_problem_id === updated_problem.set_problem_id);
 			this.set_problems.splice(index, 1, updated_problem);
 			return updated_problem;
 		},
@@ -138,10 +156,10 @@ export const useSetProblemStore = defineStore('set_problems', {
 			const course_id = useSessionStore().course.course_id;
 
 			const response = await api.delete(`courses/${course_id}/sets/${
-				problem.set_id}/problems/${problem.problem_id}`);
+				problem.set_id}/problems/${problem.set_problem_id}`);
 			const deleted_problem = new SetProblem(response.data as ParseableSetProblem);
 			// TODO: check for errors
-			const index = this.set_problems.findIndex(prob => prob.problem_id === deleted_problem.problem_id);
+			const index = this.set_problems.findIndex(prob => prob.set_problem_id === deleted_problem.set_problem_id);
 			this.set_problems.splice(index, 1);
 			return deleted_problem;
 		},
@@ -166,40 +184,18 @@ export const useSetProblemStore = defineStore('set_problems', {
 		},
 
 		/**
-		 * Add a given UserProblem to the database and the store.
+		 * Update a given UserProblem in the database and in the store.
 		 */
-		async addUserProblem(user_problem: UserProblem): Promise<UserProblem> {
+		async updateUserProblem(user_problem: UserProblem): Promise<UserProblem | undefined> {
 			const course_id = useSessionStore().course.course_id;
-			const set_problem = this.set_problems.find(prob => prob.problem_id === user_problem.problem_id);
+			const set_problem = this.set_problems.find(prob => prob.set_problem_id === user_problem.set_problem_id);
 			const user_set = useProblemSetStore().findUserSet({ user_set_id: user_problem.user_set_id });
 			// TODO: handle if either set_problem or user_set undefined.
 
-			const user_problem_params = user_problem.toObject();
+			const user_problem_params = user_problem.toObject(DBUserProblem.ALL_FIELDS);
 			// The render params are not stored in the DB.
 			delete user_problem_params.render_params;
-			const response = await api.post(`courses/${course_id}/sets/${set_problem?.set_id ?? 0}/users/${
-				user_set?.user_id ?? 0}/problems`, user_problem_params);
-			const added_db_user_problem = new DBUserProblem(response.data as ParseableDBUserProblem);
-			this.db_user_problems.push(added_db_user_problem);
-			// Create a UserProblem to return from the current user problem and the saved
-			// db_user_problem.
-			const added_user_problem = new UserProblem(Object.assign(added_db_user_problem.toObject(),
-				user_problem_params));
-			return added_user_problem;
-		},
 
-		/**
-		 * update a UserProblem in the database and the store.
-		 */
-		async updateUserProblem(user_problem: UserProblem): Promise<UserProblem> {
-			const course_id = useSessionStore().course.course_id;
-			const set_problem = this.set_problems.find(prob => prob.problem_id === user_problem.problem_id);
-			const user_set = useProblemSetStore().findUserSet({ user_set_id: user_problem.user_set_id });
-			// TODO: handle if either set_problem or user_set undefined.
-
-			const user_problem_params = user_problem.toObject();
-			// The render params are not stored in the DB.
-			delete user_problem_params.render_params;
 			const response = await api.put(`courses/${course_id}/sets/${set_problem?.set_id ?? 0}/users/${
 				user_set?.user_id ?? 0}/problems/${user_problem.user_problem_id}`, user_problem_params);
 			const updated_db_user_problem = new DBUserProblem(response.data as ParseableDBUserProblem);
@@ -209,9 +205,32 @@ export const useSetProblemStore = defineStore('set_problems', {
 
 			// Create a UserProblem to return from the current user problem and the saved
 			// db_user_problem.
-			const updated_user_problem = new UserProblem(Object.assign(updated_db_user_problem.toObject(),
-				user_problem_params));
-			return updated_user_problem;
+			return this.findUserProblem(user_problem.user_problem_id);
+		},
+
+		/**
+		 * Add a given UserProblem to the database and the store.
+		 */
+		async addUserProblem(user_problem: UserProblem): Promise<UserProblem> {
+			const course_id = useSessionStore().course.course_id;
+			const set_problem = this.set_problems.find(prob => prob.set_problem_id === user_problem.set_problem_id);
+			const user_set = useProblemSetStore().findUserSet({ user_set_id: user_problem.user_set_id });
+			// TODO: handle if either set_problem or user_set undefined.
+
+			const user_problem_params = user_problem.toObject(DBUserProblem.ALL_FIELDS);
+			// The render params are not stored in the DB.
+			delete user_problem_params.render_params;
+
+			const response = await api.post(`courses/${course_id}/sets/${set_problem?.set_id ?? 0}/users/${
+				user_set?.user_id ?? 0}/problems`, user_problem_params);
+			const added_db_user_problem = new DBUserProblem(response.data as ParseableDBUserProblem);
+			this.db_user_problems.push(added_db_user_problem);
+
+			// Create a UserProblem to return from the current user problem and the saved
+			// db_user_problem.  The DBUserProblem overrides the values from the broader UserProblem
+			const added_user_problem = new UserProblem(Object.assign(user_problem.toObject(),
+				added_db_user_problem.toObject()));
+			return added_user_problem;
 		},
 
 		/**
@@ -219,14 +238,14 @@ export const useSetProblemStore = defineStore('set_problems', {
 		 */
 		async deleteUserProblem(user_problem: UserProblem): Promise<UserProblem> {
 			const course_id = useSessionStore().course.course_id;
-			const set_problem = this.set_problems.find(prob => prob.problem_id === user_problem.problem_id);
+			const set_problem = this.set_problems.find(prob => prob.set_problem_id === user_problem.set_problem_id);
 			const problem_set_store = useProblemSetStore();
 			const user_set = problem_set_store.findUserSet({ user_set_id: user_problem.user_set_id,  });
 			if (user_set == undefined) {
 				throw 'deleteUserProblem: returned undefined user set';
 			}
 			const response = await api.delete(`courses/${course_id}/sets/${set_problem?.set_id ?? 0
-			}/users/${user_set.user_id}/problems/${user_problem.problem_id}`);
+			}/users/${user_set.user_id}/problems/${user_problem.user_problem_id}`);
 			const db_deleted_problem = new DBUserProblem(response.data as ParseableDBUserProblem);
 			const index = this.db_user_problems
 				.findIndex(user_problem => user_problem.user_problem_id === db_deleted_problem.user_problem_id);

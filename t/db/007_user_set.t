@@ -24,8 +24,6 @@ use YAML::XS qw/LoadFile/;
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
 
-use Data::Dumper;
-
 # Load the configuration files
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
 $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
@@ -40,41 +38,6 @@ my $course_rs      = $schema->resultset('Course');
 my $course_user_rs = $schema->resultset('CourseUser');
 my $problem_set_rs = $schema->resultset('ProblemSet');
 my $course         = $course_rs->find({ course_id => 1 });
-
-# Delete all user sets from the db for user otto, frink, in the Precalc course
-# and two sets for ralph in the Arithmetic course.
-
-# Note: this is only needed because these weren't deleted.
-# my @usersets_that_may_exist = $user_set_rs->search(
-# 	{
-# 		-or => [
-# 			-and => [
-# 				'courses.course_name' => 'Precalculus',
-# 				-or                   => [
-# 					'users.username' => 'otto',
-# 					'users.username' => 'frink',
-# 				]
-# 			],
-# 			-and => [
-# 				'courses.course_name'   => 'Arithmetic',
-# 				'users.username'        => 'ralph',
-# 				'problem_sets.set_name' => 'HW #2'
-# 			],
-# 			-and => [
-# 				'courses.course_name'   => 'Precalculus',
-# 				'users.username'        => 'ralph',
-# 				'problem_sets.set_name' => 'HW #4'
-# 			]
-# 		]
-# 	},
-# 	{
-# 		join => [ { problem_sets => 'courses' }, { course_users => 'users' } ]
-# 	}
-# );
-
-# for my $u (@usersets_that_may_exist) {
-# 	$u->delete;
-# }
 
 # Load info from CSV files
 my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
@@ -141,23 +104,12 @@ for my $user_set (@merged_user_sets) {
 # Get all user sets for a given user in a course.
 my @all_user_sets_from_db = $user_set_rs->getAllUserSets();
 
-print Dumper scalar(@all_user_sets_from_db);
-
 for my $set (@all_user_sets_from_db) {
 	removeIDs($set);
 	for my $key (keys %{$set}) {
 		delete $set->{$key} unless defined $set->{$key};
 	}
 }
-
-# print Dumper \@all_user_sets;
-# for my $set (@all_user_sets) {
-# 	say "$set->{course_name} $set->{username} $set->{set_name}";
-# }
-# for my $set (@all_user_sets_from_db) {
-# 	say "$set->{course_name} $set->{username} $set->{set_name}";
-# }
-# print Dumper \@all_user_sets_from_db;
 
 is_deeply(\@all_user_sets_from_db, \@all_user_sets, 'getAllUserSets: get all user sets for all courses');
 
@@ -796,5 +748,33 @@ removeIDs($deleted_user_set3);
 is_deeply($deleted_user_set3, $otto_set2, "deleteUserSet: successfully delete yet another user set");
 
 my $deleted_user_set4 = $user_set_rs->deleteUserSet(info => $new_merged_set);
+
+# Try to delete a user_set that doesn't exist.
+throws_ok {
+	$user_set_rs->deleteUserSet(info => $otto_set_info3);
+}
+'DB::Exception::UserSetNotInCourse', 'deleteUserSet: try to delete a user set not the in the course';
+
+# delete a created user sets
+
+$user_set_rs->deleteUserSet(
+	info => {
+		course_name => 'Precalculus',
+		set_name    => 'HW #1',
+		username    => 'frink'
+	}
+);
+
+# Check that the user_sets db table is restored.
+@all_user_sets_from_db = $user_set_rs->getAllUserSets();
+
+for my $set (@all_user_sets_from_db) {
+	removeIDs($set);
+	for my $key (keys %{$set}) {
+		delete $set->{$key} unless defined $set->{$key};
+	}
+}
+
+is_deeply(\@all_user_sets_from_db, \@all_user_sets, 'check: ensure that the user sets are restored.');
 
 done_testing;

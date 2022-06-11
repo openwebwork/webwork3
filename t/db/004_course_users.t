@@ -28,9 +28,7 @@ $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-my $course_rs      = $schema->resultset('Course');
-my $user_rs        = $schema->resultset('User');
-my $course_user_rs = $schema->resultset('CourseUser');
+my $user_rs = $schema->resultset('User');
 
 # Get a list of users from the CSV file
 my @students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
@@ -47,32 +45,15 @@ for my $student (@precalc_students) {
 }
 @precalc_students = sort { $a->{username} cmp $b->{username} } @precalc_students;
 
-# Get the course_id for Precalc
-my $precalc = $course_rs->getCourse(info => { course_name => 'Precalculus' });
+# Fetch all precalc users from the database.
+my @precalc_users_from_db = $user_rs->getCourseUsers(info => { course_name => 'Precalculus' }, merged => 1);
 
-# Test getUsers
-my @results = $user_rs->search(
-	{
-		'course_users.course_id' => $precalc->{course_id}
-	},
-	{
-		join => ['course_users']
-	}
-);
-my @users = map {
-	removeLoginParams({
-		$_->get_columns,
-		$_->course_users->first->get_columns,
-		course_user_params => $_->course_users->first->get_inflated_column('course_user_params')
-	});
-} @results;
-
-my @precalc_students_from_db = sort { $a->{username} cmp $b->{username} } @users;
-for my $u (@precalc_students_from_db) {
+@precalc_users_from_db = sort { $a->{username} cmp $b->{username} } @precalc_users_from_db;
+for my $u (@precalc_users_from_db) {
 	removeIDs($u);
 }
 
-is_deeply(\@precalc_students, \@precalc_students_from_db, 'getUsers: get users from a course');
+is_deeply(\@precalc_students, \@precalc_users_from_db, 'getUsers: get users from a course');
 
 # getUsers: Test that an unknown course results in an error.
 throws_ok {
@@ -356,5 +337,16 @@ SKIP: {
 	}
 	'DB::Exception::ParametersNeeded', "deleteUser: the incorrect information is passed in.";
 }
+
+# Check that the precalc users have not changed.
+@precalc_users_from_db = $user_rs->getCourseUsers(info => { course_name => 'Precalculus' }, merged => 1);
+
+@precalc_users_from_db = sort { $a->{username} cmp $b->{username} } @precalc_users_from_db;
+for my $u (@precalc_users_from_db) {
+	removeIDs($u);
+}
+
+is_deeply(\@precalc_students, \@precalc_users_from_db,
+	'check: ensure that the precalc users in the database is restored.');
 
 done_testing;

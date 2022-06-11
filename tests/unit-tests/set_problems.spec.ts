@@ -21,7 +21,7 @@ describe('Test the SetProblem store', () => {
 	};
 
 	const default_problem_set: ParseableSetProblem = {
-		problem_id: 0,
+		set_problem_id: 0,
 		set_id: 0,
 		problem_number: 0,
 		render_params: { ... default_render_params },
@@ -42,7 +42,7 @@ describe('Test the SetProblem store', () => {
 	});
 
 	test('Check that calling all_fields() and params() is correct', () => {
-		const set_problem_fields = ['render_params', 'problem_params', 'problem_id',
+		const set_problem_fields = ['render_params', 'problem_params', 'set_problem_id',
 			'set_id', 'problem_number'];
 		const prob = new SetProblem();
 
@@ -85,10 +85,10 @@ describe('Test the SetProblem store', () => {
 		prob.problem_number = '7';
 		expect(prob.problem_number).toBe(7);
 
-		prob.problem_id = 9;
-		expect(prob.problem_id).toBe(9);
-		prob.problem_id = '7';
-		expect(prob.problem_id).toBe(7);
+		prob.set_problem_id = 9;
+		expect(prob.set_problem_id).toBe(9);
+		prob.set_problem_id = '7';
+		expect(prob.set_problem_id).toBe(7);
 
 		prob.set_id = 5;
 		expect(prob.set_id).toBe(5);
@@ -104,10 +104,10 @@ describe('Test the SetProblem store', () => {
 		prob.set({ problem_number: '7' });
 		expect(prob.problem_number).toBe(7);
 
-		prob.set({ problem_id: 9 });
-		expect(prob.problem_id).toBe(9);
-		prob.set({ problem_id: '7' });
-		expect(prob.problem_id).toBe(7);
+		prob.set({ set_problem_id: 9 });
+		expect(prob.set_problem_id).toBe(9);
+		prob.set({ set_problem_id: '7' });
+		expect(prob.set_problem_id).toBe(7);
 
 		prob.set({ set_id: 5 });
 		expect(prob.set_id).toBe(5);
@@ -123,10 +123,10 @@ describe('Test the SetProblem store', () => {
 		expect(() => { prob.problem_number = 1.3; }).toThrow(NonNegIntException);
 		expect(() => { prob.problem_number = '1.5'; }).toThrow(NonNegIntException);
 
-		expect(() => { prob.problem_id = -1; }).toThrow(NonNegIntException);
-		expect(() => { prob.problem_id = '-1'; }).toThrow(NonNegIntException);
-		expect(() => { prob.problem_id = 1.3; }).toThrow(NonNegIntException);
-		expect(() => { prob.problem_id = '1.5'; }).toThrow(NonNegIntException);
+		expect(() => { prob.set_problem_id = -1; }).toThrow(NonNegIntException);
+		expect(() => { prob.set_problem_id = '-1'; }).toThrow(NonNegIntException);
+		expect(() => { prob.set_problem_id = 1.3; }).toThrow(NonNegIntException);
+		expect(() => { prob.set_problem_id = '1.5'; }).toThrow(NonNegIntException);
 
 		expect(() => { prob.set_id = -1; }).toThrow(NonNegIntException);
 		expect(() => { prob.set_id = '-1'; }).toThrow(NonNegIntException);

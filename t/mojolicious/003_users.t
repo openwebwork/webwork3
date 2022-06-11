@@ -28,10 +28,6 @@ my $config = clone(LoadFile($config_file));
 # Connect to the database.
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-# Remove the user 'maggie' if it exists in the database.
-my $maggie = $schema->resultset('User')->find({ username => 'maggie' });
-$maggie->delete if defined($maggie);
-
 my $t = Test::Mojo->new(WeBWorK3 => $config);
 
 $t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200)
