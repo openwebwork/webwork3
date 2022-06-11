@@ -75,11 +75,11 @@ sub startup ($self) {
 }
 
 sub load_account ($self, $user_id) {
-	return $self->schema->resultset("User")->getGlobalUser(info => { username => $user_id });
+	return $self->schema->resultset('User')->getGlobalUser(info => { username => $user_id });
 }
 
 sub validate ($self, $user, $password) {
-	return $user if ($self->schema->resultset("User")->authenticate($user, $password));
+	return $user if ($self->schema->resultset('User')->authenticate($user, $password));
 	return;
 }
 
@@ -104,7 +104,7 @@ sub userRoutes ($self) {
 	my $user_routes = $self->routes->any('/webwork3/api/users')->requires(authenticated => 1)->to(controller => 'User');
 	$user_routes->get('/')->to(action => 'getGlobalUsers');
 	$user_routes->post('/')->to(action => 'addGlobalUser');
-	$user_routes->get('/:user')->to(action => 'getGlobalUser');
+	$user_routes->get('/:user_id')->to(action => 'getGlobalUser');
 	$user_routes->put('/:user_id')->to(action => 'updateGlobalUser');
 	$user_routes->delete('/:user_id')->to(action => 'deleteGlobalUser');
 	$user_routes->get('/:user_id/courses')->to(action => 'getUserCourses');
@@ -131,7 +131,7 @@ sub courseUserRoutes ($self) {
 }
 
 sub problemSetRoutes ($self) {
-	$self->routes->get('/webwork3/api/sets')->requires(authenticated => 1)->to("ProblemSet#getProblemSets");
+	$self->routes->get('/webwork3/api/sets')->requires(authenticated => 1)->to('ProblemSet#getProblemSets');
 	my $problem_set_routes =
 		$self->routes->any('/webwork3/api/courses/:course_id/sets')->requires(authenticated => 1)
 		->to(controller => 'ProblemSet');
@@ -147,6 +147,8 @@ sub problemSetRoutes ($self) {
 	$problem_set_routes->post('/:set_id/users')->to(action => 'addUserSet');
 	$problem_set_routes->put('/:set_id/users/:course_user_id')->to(action => 'updateUserSet');
 	$problem_set_routes->delete('/:set_id/users/:course_user_id')->to(action => 'deleteUserSet');
+
+	$self->routes->get('/webwork3/api/courses/:course_id/users/:user_id/sets')->to('ProblemSet#getUserSets');
 	return;
 }
 
@@ -170,16 +172,16 @@ sub problemRoutes ($self) {
 
 sub settingsRoutes ($self) {
 	$self->routes->get('/webwork3/api/default_settings')->requires(authenticated => 1)
-		->to("Settings#getDefaultCourseSettings");
+		->to('Settings#getDefaultCourseSettings');
 	$self->routes->get('/webwork3/api/courses/:course_id/settings')->requires(authenticated => 1)
-		->to("Settings#getCourseSettings");
+		->to('Settings#getCourseSettings');
 	$self->routes->put('/webwork3/api/courses/:course_id/setting')->requires(authenticated => 1)
-		->to("Settings#updateCourseSetting");
+		->to('Settings#updateCourseSetting');
 	return;
 }
 
 sub utilityRoutes ($self) {
-	$self->routes->post('/webwork3/api/client-logs')->requires(authenticated => 1)->to("Logger#clientLog");
+	$self->routes->post('/webwork3/api/client-logs')->requires(authenticated => 1)->to('Logger#clientLog');
 	return;
 }
 

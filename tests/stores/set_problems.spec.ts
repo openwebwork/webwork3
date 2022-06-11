@@ -15,18 +15,19 @@ import { api } from 'boot/axios';
 
 import { cleanIDs, loadCSV } from '../utils';
 import { useCourseStore } from 'src/stores/courses';
-import { Course } from 'src/common/models/courses';
 import { useUserStore } from 'src/stores/users';
-import { HomeworkSet, ProblemSet, Quiz, ReviewSet } from 'src/common/models/problem_sets';
-import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 import { useSessionStore } from 'src/stores/session';
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useSetProblemStore } from 'src/stores/set_problems';
-import { UserProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemParams,
-	DBUserProblem,
-	mergeUserProblem } from 'src/common/models/problems';
+
+import { Course } from 'src/common/models/courses';
+import { HomeworkSet, ProblemSet, Quiz, ReviewSet } from 'src/common/models/problem_sets';
+import { UserProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemParams, DBUserProblem,
+	mergeUserProblem, LibraryProblem } from 'src/common/models/problems';
 import { DBUserHomeworkSet, mergeUserSet, UserSet } from 'src/common/models/user_sets';
 import { Dictionary, generic } from 'src/common/models';
+
+import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 
 const app = createApp({});
 
@@ -165,7 +166,8 @@ describe('Problem Set store tests', () => {
 					file_path: path
 				})
 			});
-			new_problem = await set_problem_store.addSetProblem(new_set_problem);
+			const library_problem = new LibraryProblem({ location_params: { file_path: path } });
+			new_problem = await set_problem_store.addSetProblem(library_problem, hw1?.set_id || 0);
 			expect(cleanIDs(new_problem)).toStrictEqual(cleanIDs(new_set_problem));
 		});
 
@@ -222,12 +224,13 @@ describe('Problem Set store tests', () => {
 			added_hw = await problem_set_store.addProblemSet(hw) as HomeworkSet;
 
 			const new_set_problem = new SetProblem({
-				set_id: added_hw?.set_id ?? 0,
+				set_id: added_hw.set_id ?? 0,
 				problem_params: {
 					file_path: 'path/to/the/problem.pg'
 				}
 			});
-			new_problem = await set_problem_store.addSetProblem(new_set_problem);
+			const library_problem = new LibraryProblem({ location_params: { file_path: 'path/to/the/problem.pg' } });
+			new_problem = await set_problem_store.addSetProblem(library_problem, added_hw.set_id);
 
 			const users_store = useUserStore();
 			await users_store.fetchCourseUsers(precalc_course.course_id);

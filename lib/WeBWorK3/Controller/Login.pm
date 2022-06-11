@@ -10,7 +10,7 @@ sub login ($c) {
 	if ($c->authenticate($params->{username}, $params->{password})) {
 		$c->render(json => { logged_in => Mojo::JSON::true, user => $c->current_user });
 	} else {
-		$c->render(json => { logged_in => Mojo::JSON::false, message => "Incorrect username or password." });
+		$c->render(json => { logged_in => Mojo::JSON::false, message => 'Incorrect username or password.' });
 	}
 	return;
 }
@@ -18,7 +18,7 @@ sub login ($c) {
 sub logout_user ($c) {
 	$c->logout;
 	$c->session(expires => 1);
-	$c->render(json => { logged_in => Mojo::JSON::false, message => "Successfully logged out." });
+	$c->render(json => { logged_in => Mojo::JSON::false, message => 'Successfully logged out.' });
 	return;
 }
 

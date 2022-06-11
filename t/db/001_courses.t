@@ -33,7 +33,7 @@ my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 my $strp   = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
 
-my $course_rs = $schema->resultset("Course");
+my $course_rs = $schema->resultset('Course');
 
 # Get a list of courses from the CSV file.
 my @courses = loadCSV("$main::ww3_dir/t/db/sample_data/courses.csv");
@@ -51,41 +51,42 @@ my @courses_from_db = $course_rs->getCourses;
 for my $course (@courses_from_db) { removeIDs($course); }
 @courses_from_db = sortByCourseName(\@courses_from_db);
 
-is_deeply(\@courses_from_db, \@courses, "getCourses: course names");
+is_deeply(\@courses_from_db, \@courses, 'getCourses: course names');
 
 ## Get a single course by name
-my $course = $course_rs->getCourse(info => { course_name => "Calculus" });
+my $course = $course_rs->getCourse(info => { course_name => 'Calculus' });
 
 my $calc_id = $course->{course_id};
 delete $course->{course_id};
-my @calc_courses = grep { $_->{course_name} eq "Calculus" } @courses;
-is_deeply($course, $calc_courses[0], "getCourse: get a single course by name");
+my @calc_courses = grep { $_->{course_name} eq 'Calculus' } @courses;
+is_deeply($course, $calc_courses[0], 'getCourse: get a single course by name');
 
 # Get a single course by course_id
 $course = $course_rs->getCourse(info => { course_id => $calc_id });
 delete $course->{course_id};
-is_deeply($course, $calc_courses[0], "getCourse: get a single course by id");
+is_deeply($course, $calc_courses[0], 'getCourse: get a single course by id');
 
 # Try to get a single course by sending proper info:
 throws_ok {
-	$course_rs->getCourse(info => { course_id => $calc_id, course_name => "Calculus" });
+	$course_rs->getCourse(info => { course_id => $calc_id, course_name => 'Calculus' });
 }
-"DB::Exception::ParametersNeeded", "getCourse: sends too much info";
+'DB::Exception::ParametersNeeded', 'getCourse: sends too much info';
 
 throws_ok {
-	$course_rs->getCourse(info => { name => "Calculus" });
+	$course_rs->getCourse(info => { name => 'Calculus' });
 }
-"DB::Exception::ParametersNeeded", "getCourse: sends wrong info";
+'DB::Exception::ParametersNeeded', 'getCourse: sends wrong info';
 
 # Try to get a single course that doesn't exist
 throws_ok {
-	$course_rs->getCourse(info => { course_name => "non_existent_course" });
+	$course_rs->getCourse(info => { course_name => 'non_existent_course' });
 }
-"DB::Exception::CourseNotFound", "getCourse: get a non-existent course";
+'DB::Exception::CourseNotFound', 'getCourse: get a non-existent course';
 
 # Add a course
 my $new_course_params = {
-	course_name  => "Geometry",
+	course_name  => 'Geometry',
+	visible      => 1,
 	course_dates => {}
 };
 
@@ -95,53 +96,53 @@ $new_course_params->{visible} = 1;
 my $added_course_id = $new_course->{course_id};
 removeIDs($new_course);
 
-is_deeply($new_course_params, $new_course, "addCourse: add a new course");
+is_deeply($new_course_params, $new_course, 'addCourse: add a new course');
 
 # Add a course that already exists
 throws_ok {
-	$course_rs->addCourse(params => { course_name => "Geometry", visible => 1 });
+	$course_rs->addCourse(params => { course_name => 'Geometry', visible => 1 });
 }
-"DB::Exception::CourseAlreadyExists", "addCourse: course already exists";
+'DB::Exception::CourseAlreadyExists', 'addCourse: course already exists';
 
 # Update the course name
 my $updated_course = $course_rs->updateCourse(
 	info   => { course_id   => $added_course_id },
-	params => { course_name => "Geometry II" }
+	params => { course_name => 'Geometry II' }
 );
 
-$new_course_params->{course_name} = "Geometry II";
+$new_course_params->{course_name} = 'Geometry II';
 delete $updated_course->{course_id};
 
-is_deeply($new_course_params, $updated_course, "updateCourse: update a course by name");
+is_deeply($new_course_params, $updated_course, 'updateCourse: update a course by name');
 
 # Try to update an non-existent course
 throws_ok {
-	$course_rs->updateCourse(info => { course_name => "non_existent_course" });
+	$course_rs->updateCourse(info => { course_name => 'non_existent_course' });
 }
-"DB::Exception::CourseNotFound", "updateCourse: update a non-existent course_name";
+'DB::Exception::CourseNotFound', 'updateCourse: update a non-existent course_name';
 
 throws_ok {
 	$course_rs->updateCourse(info => { course_id => -9 }, params => $new_course_params);
 }
-"DB::Exception::CourseNotFound", "updateCourse: update a non-existent course_id";
+'DB::Exception::CourseNotFound', 'updateCourse: update a non-existent course_id';
 
 # Delete a course
-my $deleted_course = $course_rs->deleteCourse(info => { course_name => "Geometry II" });
+my $deleted_course = $course_rs->deleteCourse(info => { course_name => 'Geometry II' });
 removeIDs($deleted_course);
 
-is_deeply($new_course_params, $deleted_course, "deleteCourse: delete a course");
+is_deeply($new_course_params, $deleted_course, 'deleteCourse: delete a course');
 
 # Try to delete a non-existent course by name
 throws_ok {
-	$course_rs->deleteCourse(info => { course_name => "undefined_name" })
+	$course_rs->deleteCourse(info => { course_name => 'undefined_name' })
 }
-"DB::Exception::CourseNotFound", "deleteCourse: delete a non-existent course_name";
+'DB::Exception::CourseNotFound', 'deleteCourse: delete a non-existent course_name';
 
 # Try to delete a non-existent course by id
 throws_ok {
 	$course_rs->deleteCourse(info => { course_id => -9 })
 }
-"DB::Exception::CourseNotFound", "deleteCourse: delete a non-existent course_id";
+'DB::Exception::CourseNotFound', 'deleteCourse: delete a non-existent course_id';
 
 sub sortByCourseName {
 	my $course_rs = shift;

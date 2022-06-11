@@ -24,7 +24,7 @@ use DB::Exception;
 use Exception::Class (
 	'DB::Exception::UserNotFound',
 	'DB::Exception::CourseAlreadyExists',
-	"DB::Exception::UserNotInCourse"
+	'DB::Exception::UserNotInCourse'
 );
 
 =head1 getAllGlobalUsers
@@ -55,7 +55,7 @@ Gets a single user from the C<users> table.
 
 =over
 
-=item * C<user_info>, a hashref of the form C<{ user_id => 1 }> or C<{ username => "username" }>.
+=item * C<user_info>, a hashref of the form C<{ user_id => 1 }> or C<{ username => 'username' }>.
 
 =item * C<result_set>, a boolean that if true returns the user as a result set.  See below
 
@@ -70,14 +70,14 @@ C<result_set> determine which is returned.
 
 sub getGlobalUser ($self, %args) {
 	my $user = $self->find(getUserInfo($args{info}));
-	DB::Exception::UserNotFound->throw(message => "The user with "
+	DB::Exception::UserNotFound->throw(message => 'The user with '
 			. ($args{info}->{username} ? "username '"            : "user_id '")
 			. ($args{info}->{username} ? $args{info}->{username} : $args{info}->{user_id})
 			. "' does not exist ")
 		unless defined($user);
 	return $user if $args{as_result_set};
 	my $params = { $user->get_inflated_columns };
-	$params->{role} = "admin" if $user->is_admin;
+	$params->{role} = 'admin' if $user->is_admin;
 	return removeLoginParams($params);
 }
 
@@ -113,7 +113,7 @@ The user as  C<DBIx::Class::ResultSet::User> object or C<undef> if no user exist
 
 sub addGlobalUser ($self, %args) {
 
-	DB::Exception::ParametersNeeded->throw(message => "The parameters must include username")
+	DB::Exception::ParametersNeeded->throw(message => 'The parameters must include username')
 		unless defined($args{params}->{username});
 	my $params = clone($args{params});
 	# remove the user_id if defined and equal to zero.
@@ -136,7 +136,7 @@ This deletes a single user that is stored in the database in the C<users> table.
 
 =over
 
-=item * C<user_info>, a hashref of the form C<{user_id => 1}> or C<{username => "username"}>.
+=item * C<user_info>, a hashref of the form C<{user_id => 1}> or C<{username => 'username'}>.
 
 =item * as_result_set, a flag to return the result as a ResultSet of a hashref.
 
@@ -166,7 +166,7 @@ This updates a single user that is stored in the database in the C<user> table.
 
 =over
 
-=item * C<user_info>, a hashref of the form C<{user_id => 1}> or C<{username => "username"}>.
+=item * C<user_info>, a hashref of the form C<{user_id => 1}> or C<{username => 'username'}>.
 
 =item * C<params>, a hashref of the user parameters.   The following structure is expected:
 
@@ -209,7 +209,7 @@ This gets a list of all global users in a given course
 
 =head3 input
 
-=item * C<info>, a hashref of the form C<{course_id => 1}> or C<{course_name => "coursename"}>.
+=item * C<info>, a hashref of the form C<{course_id => 1}> or C<{course_name => 'coursename'}>.
 
 =head3 output
 
@@ -218,7 +218,7 @@ An array of users as a C<DBIx::Class::ResultSet::User> object.
 =cut
 
 sub getGlobalCourseUsers ($self, %args) {
-	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+	my $course = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 	my @users  = $self->search(
 		{
 			'course_users.course_id' => $course->course_id
@@ -271,8 +271,8 @@ or an arrayref of C<DBIx::Class::ResultSet::User>
 =cut
 
 sub getCourseUsers ($self, %args) {
-	my $course       = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
-	my @course_users = $self->rs("CourseUser")->search({
+	my $course       = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+	my @course_users = $self->rs('CourseUser')->search({
 		'course_id' => $course->course_id
 	});
 
@@ -330,13 +330,13 @@ sub getCourseUser ($self, %args) {
 	my $course_user;
 
 	if (defined($args{info}->{course_user_id})) {
-		$course_user = $self->rs("CourseUser")->find({
+		$course_user = $self->rs('CourseUser')->find({
 			course_user_id => $args{info}->{course_user_id}
 		});
 	} else {
-		my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+		my $course = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 		my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
-		$course_user = $self->rs("CourseUser")->find({ course_id => $course->course_id, user_id => $user->user_id });
+		$course_user = $self->rs('CourseUser')->find({ course_id => $course->course_id, user_id => $user->user_id });
 		DB::Exception::UserNotInCourse->throw(
 			message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}")
 			unless defined $course_user || $args{skip_throw};
@@ -391,10 +391,10 @@ An hashref of the user or merged user or a C<DB::Schema::ResultSet::CourseUser>
 sub addCourseUser ($self, %args) {
 	my $course_user = $self->getCourseUser(info => $args{info}, as_result_set => 1, skip_throw => 1);
 	DB::Exception::UserAlreadyInCourse->throw(
-		message => "The user with " . $args{info}->{username} ? ("username: " . $args{info}->{username})
-		: ("user_id: " . $args{info}->{user_id}) . " is already in the course with " . $args{params}->{course_name}
-		? ("course name: " . $args{info}->{course_name})
-		: ("course_id: " . $args{info}->{course_id}))
+		message => "The user with $args{info}->{username}" ? "username: $args{info}->{username}"
+		: "user_id: $args{info}->{user_id} is already in the course with $args{params}->{course_name}"
+		? "course name: $args{info}->{course_name}"
+		: "course_id: $args{info}->{course_id}")
 		if defined($course_user);
 
 	my $params = clone($args{params});
@@ -406,11 +406,11 @@ sub addCourseUser ($self, %args) {
 	}
 
 	# check for valid fields and parameters
-	my $updated_user = $self->rs("CourseUser")->new($params);
+	my $updated_user = $self->rs('CourseUser')->new($params);
 	$updated_user->validParams('course_user_params');
 
 	my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
-	my $course = $self->rs("Course")->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+	my $course = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 	$course->add_to_users({ user_id => $user->user_id });
 
 	my $user_to_return = $self->getCourseUser(
@@ -467,8 +467,8 @@ An hashref of the updated course user or merged user or a C<DB::Schema::ResultSe
 sub updateCourseUser ($self, %args) {
 	my $course_user = $self->getCourseUser(info => $args{info}, as_result_set => 1);
 
-	my $params_to_check = $self->rs("CourseUser")->new($args{params});
-	$params_to_check->validParams("course_user_params");
+	my $params_to_check = $self->rs('CourseUser')->new($args{params});
+	$params_to_check->validParams('course_user_params');
 
 	my $user_to_return = $course_user->update($args{params});
 

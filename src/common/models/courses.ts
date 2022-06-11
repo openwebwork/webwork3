@@ -137,8 +137,8 @@ export class UserCourse extends Model {
 		if (params.course_name == undefined) {
 			throw new RequiredFieldsException('course_name');
 		}
-		if (params.username == undefined) {
-			throw new RequiredFieldsException('username');
+		if (params.user_id == undefined) {
+			throw new RequiredFieldsException('user_id');
 		}
 		this.set(params);
 	}
@@ -182,7 +182,7 @@ export class UserCourse extends Model {
 		this._visible = parseBoolean(value);
 	}
 
-	get role() { return this._role; }
+	get role(): UserRole { return this._role; }
 	set role(value: string) { this._role = parseUserRole(value); }
 
 }

@@ -8,14 +8,14 @@ use Try::Tiny;
 use Mojo::JSON qw/true false/;
 
 sub getAllProblemSets ($self) {
-	my @all_problem_sets = $self->schema->resultset("ProblemSet")->getAllProblemSets;
+	my @all_problem_sets = $self->schema->resultset('ProblemSet')->getAllProblemSets;
 	$self->render(json => \@all_problem_sets);
 	return;
 }
 
 sub getProblemSets ($self) {
 	my @problem_sets =
-		$self->schema->resultset("ProblemSet")->getProblemSets(info => { course_id => int($self->param('course_id')) });
+		$self->schema->resultset('ProblemSet')->getProblemSets(info => { course_id => int($self->param('course_id')) });
 	# convert booleans
 	for my $set (@problem_sets) {
 		$set->{set_visible} = $set->{set_visible} ? true : false;
@@ -25,7 +25,7 @@ sub getProblemSets ($self) {
 }
 
 sub getProblemSet ($self) {
-	my $problem_set = $self->schema->resultset("ProblemSet")->getProblemSet(
+	my $problem_set = $self->schema->resultset('ProblemSet')->getProblemSet(
 		info => {
 			course_id => int($self->param('course_id')),
 			set_id    => int($self->param('set_id'))
@@ -38,7 +38,7 @@ sub getProblemSet ($self) {
 ## update the course given by course_id with given params
 
 sub updateProblemSet ($self) {
-	my $problem_set = $self->schema->resultset("ProblemSet")->updateProblemSet(
+	my $problem_set = $self->schema->resultset('ProblemSet')->updateProblemSet(
 		info => {
 			course_id => int($self->param('course_id')),
 			set_id    => int($self->param('set_id'))
@@ -51,7 +51,7 @@ sub updateProblemSet ($self) {
 }
 
 sub addProblemSet ($self) {
-	my $problem_set = $self->schema->resultset("ProblemSet")->addProblemSet(
+	my $problem_set = $self->schema->resultset('ProblemSet')->addProblemSet(
 		params => {
 			course_id => int($self->param('course_id')),
 			%{ $self->req->json }
@@ -62,7 +62,7 @@ sub addProblemSet ($self) {
 }
 
 sub deleteProblemSet ($self) {
-	my $problem_set = $self->schema->resultset("ProblemSet")->deleteProblemSet(
+	my $problem_set = $self->schema->resultset('ProblemSet')->deleteProblemSet(
 		info => {
 			course_id => int($self->param('course_id')),
 			set_id    => int($self->param('set_id'))
@@ -123,7 +123,7 @@ sub updateUserSet ($self) {
 		info => {
 			course_id      => int($self->param('course_id')),
 			set_id         => int($self->param('set_id')),
-			course_user_id => int($self->param("course_user_id"))
+			course_user_id => int($self->param('course_user_id'))
 		},
 		params => $self->req->json
 	);
@@ -136,7 +136,7 @@ sub deleteUserSet ($self) {
 		info => {
 			course_id      => int($self->param('course_id')),
 			set_id         => int($self->param('set_id')),
-			course_user_id => int($self->param("course_user_id"))
+			course_user_id => int($self->param('course_user_id'))
 		},
 		params => $self->req->json
 	);

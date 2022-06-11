@@ -52,9 +52,9 @@ sub _get_info ($input_info, @fields) {
 		$output_info->{$key} = $input_info->{$key} if defined($input_info->{$key});
 	}
 
-	DB::Exception::ParametersNeeded->throw(message => "You must pass in only one of " . join(", ", @fields) . ".")
+	DB::Exception::ParametersNeeded->throw(message => 'You must pass in only one of ' . join(', ', @fields) . '.')
 		if scalar(keys %$output_info) > 1;
-	DB::Exception::ParametersNeeded->throw(message => "You must pass exactly one of " . join(", ", @fields) . ".")
+	DB::Exception::ParametersNeeded->throw(message => 'You must pass exactly one of ' . join(', ', @fields) . '.')
 		if scalar(keys %$output_info) < 1;
 
 	return $output_info;
@@ -70,7 +70,7 @@ This returns the hashref with both the original and any replacements.
 sub updateAllFields ($current_fields, $updated_fields) {
 	my $fields_to_return = clone($current_fields);
 	for my $key (keys %$updated_fields) {
-		if (defined(reftype($updated_fields->{$key})) && reftype($updated_fields->{$key}) eq "HASH") {
+		if (defined(reftype($updated_fields->{$key})) && reftype($updated_fields->{$key}) eq 'HASH') {
 			$fields_to_return->{$key} = updateAllFields($current_fields->{$key} || {}, $updated_fields->{$key});
 		} else {
 			$fields_to_return->{$key} =
