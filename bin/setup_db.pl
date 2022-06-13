@@ -22,7 +22,7 @@ Note that this script must be run as root to create the database and user for
 mysql or mariadb.
 
 This script must be run as a postgres user that has sufficient permissions to
-create a postgres database and user.  On Ubuntu the "postgres" user has these
+create a postgres database and user.  On Ubuntu the 'postgres' user has these
 permissions, so run this script with C<sudo -u postgres ./setup_db.pl>.
 
 At this time it is assumed that the database host is localhost, and this script

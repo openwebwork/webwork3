@@ -9,9 +9,9 @@ sub getGlobalUsers ($self) {
 
 sub getGlobalUser ($self) {
 	my $user =
-		$self->param("user") =~ /^\d+$/
-		? $self->schema->resultset('User')->getGlobalUser(info => { user_id  => int($self->param("user")) })
-		: $self->schema->resultset('User')->getGlobalUser(info => { username => $self->param("user") });
+		$self->param('user_id') =~ /^\d+$/
+		? $self->schema->resultset('User')->getGlobalUser(info => { user_id  => int($self->param('user_id')) })
+		: $self->schema->resultset('User')->getGlobalUser(info => { username => $self->param('user_id') });
 	$self->render(json => $user);
 	return;
 }
@@ -77,7 +77,8 @@ sub getCourseUser ($self) {
 }
 
 sub addCourseUser ($self) {
-	my $info = { course_id => int($self->param("course_id")) };
+
+	my $info = { course_id => int($self->param('course_id')) };
 	$info->{username} = $self->req->json->{username}     if $self->req->json->{username};
 	$info->{user_id}  = int($self->req->json->{user_id}) if $self->req->json->{user_id};
 

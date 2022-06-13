@@ -342,7 +342,7 @@ sub addProblemSet {
 	# set_visible should default to  false
 	$set_params->{set_visible} = 0 unless defined($set_params->{set_visible});
 
-	DB::Exception::ParametersNeeded->throw(message => "You must defined the field set_name in the params argument")
+	DB::Exception::ParametersNeeded->throw(message => 'You must defined the field set_name in the params argument')
 		unless defined($set_params->{set_name});
 
 	# Check if the set exists.

@@ -23,7 +23,7 @@ describe('Testing DB User Problems and User problems', () => {
 			render_params: { ...default_render_params },
 			problem_params: { weight: 1 },
 			user_problem_id: 0,
-			problem_id: 0,
+			set_problem_id: 0,
 			user_set_id: 0,
 			seed: 0,
 			status: 0,
@@ -42,7 +42,7 @@ describe('Testing DB User Problems and User problems', () => {
 			test('Check that calling all_fields() and params() is correct', () => {
 				const prob = new DBUserProblem();
 				const user_problem_fields = ['render_params', 'problem_params', 'user_problem_id',
-					'problem_id', 'user_set_id', 'seed', 'status', 'problem_version'];
+					'set_problem_id', 'user_set_id', 'seed', 'status', 'problem_version'];
 
 				expect(prob.all_field_names.sort()).toStrictEqual(user_problem_fields.sort());
 				expect(prob.param_fields.sort()).toStrictEqual(['problem_params', 'render_params']);
@@ -202,7 +202,7 @@ describe('Testing DB User Problems and User problems', () => {
 				weight: 1,
 			},
 			user_problem_id: 0,
-			problem_id: 0,
+			set_problem_id: 0,
 			user_id: 0,
 			user_set_id: 0,
 			seed: 0,
@@ -226,7 +226,7 @@ describe('Testing DB User Problems and User problems', () => {
 			test('Check that calling all_fields() and params() is correct', () => {
 				const prob = new UserProblem();
 				const user_problem_fields = ['render_params', 'problem_params', 'user_problem_id',
-					'problem_id', 'user_id', 'user_set_id', 'seed', 'status', 'problem_version',
+					'set_problem_id', 'user_id', 'user_set_id', 'seed', 'status', 'problem_version',
 					'problem_number', 'username', 'set_name'];
 
 				expect(prob.all_field_names.sort()).toStrictEqual(user_problem_fields.sort());

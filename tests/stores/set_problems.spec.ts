@@ -13,7 +13,6 @@ import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { api } from 'boot/axios';
 
-import { cleanIDs, loadCSV } from '../utils';
 import { useCourseStore } from 'src/stores/courses';
 import { useUserStore } from 'src/stores/users';
 import { useSessionStore } from 'src/stores/session';
@@ -23,11 +22,12 @@ import { useSetProblemStore } from 'src/stores/set_problems';
 import { Course } from 'src/common/models/courses';
 import { HomeworkSet, ProblemSet, Quiz, ReviewSet } from 'src/common/models/problem_sets';
 import { UserProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemParams, DBUserProblem,
-	mergeUserProblem } from 'src/common/models/problems';
+	mergeUserProblem, LibraryProblem } from 'src/common/models/problems';
 import { DBUserHomeworkSet, mergeUserSet, UserSet } from 'src/common/models/user_sets';
 import { Dictionary, generic } from 'src/common/models';
 
 import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
+import { loadCSV, cleanIDs } from '../utils';
 
 const app = createApp({});
 
@@ -102,7 +102,7 @@ describe('Problem Set store tests', () => {
 				const set_problem = precalc_problems_from_csv.find(prob =>
 					prob.set_name === problem_set?.set_name && prob.problem_number === user_problem.problem_number);
 				const user = users_to_parse.find(user => user.username === user_problem.username);
-				return new UserProblem(Object.assign(problem_set, set_problem, user_problem, user));
+				return new UserProblem(Object.assign({}, set_problem, user_problem, user));
 			});
 
 		precalc_hw1_user_problems = precalc_merged_problems.filter(prob => prob.set_name === 'HW #1');
@@ -140,32 +140,35 @@ describe('Problem Set store tests', () => {
 	});
 
 	describe('CRUD tests for set problems', () => {
-		let new_problem: SetProblem;
+		let added_set_problem: SetProblem;
 		let updated_problem: SetProblem;
 		test('Add a set problem to a set', async () => {
 			const problem_set_store = useProblemSetStore();
 			const set_problem_store = useSetProblemStore();
 			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
-			const path = 'path/to/the/problem.pg';
 
 			// grab the set problems for HW #1 so we know which is the next problem number.
 			const probs = set_problem_store.findSetProblems({ set_name: 'HW #1' });
 
+			const problem_number = probs[probs.length - 1].problem_number + 1;
+
 			const new_set_problem = new SetProblem({
 				set_id: hw1?.set_id,
-				problem_number: probs[probs.length - 1].problem_number + 1,
+				problem_number,
 				problem_params: new SetProblemParams({
 					weight: 1,
-					file_path: path
+					file_path: 'path/to/the/problem.pg'
 				})
 			});
-			new_problem = await set_problem_store.addSetProblem(new_set_problem);
-			expect(cleanIDs(new_problem)).toStrictEqual(cleanIDs(new_set_problem));
+			const library_problem = new LibraryProblem({ location_params: { file_path: 'path/to/the/problem.pg' } });
+			added_set_problem = await set_problem_store.addSetProblem(library_problem, hw1?.set_id ?? 0);
+
+			expect(cleanIDs(added_set_problem)).toStrictEqual(cleanIDs(new_set_problem));
 		});
 
 		test('Update a set problem', async () => {
 			const set_problem_store = useSetProblemStore();
-			updated_problem = new_problem.clone();
+			updated_problem = added_set_problem.clone();
 			updated_problem.problem_params.weight = 2;
 
 			const problem_from_server = await set_problem_store.updateSetProblem(updated_problem);
@@ -175,7 +178,7 @@ describe('Problem Set store tests', () => {
 		test('Delete a set problem', async () => {
 			const set_problem_store = useSetProblemStore();
 			const problems = set_problem_store.findSetProblems({ set_name: 'HW #1' });
-			const deleted_problem = await set_problem_store.deleteSetProblem(new_problem);
+			const deleted_problem = await set_problem_store.deleteSetProblem(added_set_problem);
 			expect(deleted_problem).toStrictEqual(updated_problem);
 			expect(set_problem_store.findSetProblems({ set_name: 'HW #1' }).length)
 				.toBe(problems.length - 1);
@@ -202,7 +205,7 @@ describe('Problem Set store tests', () => {
 		let added_user_set: UserSet;
 		let added_user_problem: UserProblem;
 		let updated_user_problem: UserProblem;
-		let new_problem: SetProblem;
+		let added_set_problem: SetProblem;
 		test('Add a new ProblemSet, UserSet, SetProblem and DBUserProblem ', async () => {
 			// Note: adding a Problem Set, UserSet and SetProblem are done elsewhere,
 			// so no need to test that these are working.  Just add them to make testing
@@ -215,13 +218,8 @@ describe('Problem Set store tests', () => {
 			});
 			added_hw = await problem_set_store.addProblemSet(hw) as HomeworkSet;
 
-			const new_set_problem = new SetProblem({
-				set_id: added_hw?.set_id ?? 0,
-				problem_params: {
-					file_path: 'path/to/the/problem.pg'
-				}
-			});
-			new_problem = await set_problem_store.addSetProblem(new_set_problem);
+			const library_problem = new LibraryProblem({ location_params: { file_path: 'path/to/the/problem.pg' } });
+			added_set_problem = await set_problem_store.addSetProblem(library_problem, added_hw.set_id);
 
 			const users_store = useUserStore();
 			await users_store.fetchCourseUsers(precalc_course.course_id);
@@ -235,10 +233,10 @@ describe('Problem Set store tests', () => {
 			const user_set = mergeUserSet(added_hw, db_user_set, user) ?? new UserSet();
 			added_user_set = await problem_set_store.addUserSet(user_set) ?? new UserSet();
 
-			const user_problem = mergeUserProblem(new_set_problem,
+			const user_problem = mergeUserProblem(added_set_problem,
 				new DBUserProblem({
 					user_set_id: added_user_set.user_set_id,
-					problem_id: new_problem.problem_id,
+					set_problem_id: added_set_problem.set_problem_id,
 					seed: 4321
 				}),
 				user_set);
@@ -253,7 +251,9 @@ describe('Problem Set store tests', () => {
 			added_user_problem.problem_params.set({
 				file_path: 'a/different/file.pg'
 			});
-			updated_user_problem = await set_problem_store.updateUserProblem(added_user_problem);
+
+			updated_user_problem = await set_problem_store.updateUserProblem(added_user_problem)
+				?? new UserProblem();
 			expect(cleanIDs(updated_user_problem)).toStrictEqual(cleanIDs(added_user_problem));
 		});
 
@@ -267,16 +267,18 @@ describe('Problem Set store tests', () => {
 		afterAll(async () => {
 			const problem_set_store = useProblemSetStore();
 			const set_problem_store = useSetProblemStore();
-			await problem_set_store.deleteProblemSet(added_hw);
+			// Note: the reverse order is important here.  If the set is deleted first,
+			// then DBIx::class automatically deletes related data.
+			await set_problem_store.deleteSetProblem(added_set_problem);
 			await problem_set_store.deleteUserSet(added_user_set);
-			await set_problem_store.deleteSetProblem(new_problem);
+			await problem_set_store.deleteProblemSet(added_hw);
 		});
 	});
 
 	describe('Testing Merged User Problems for a set in a course.', () => {
 		test('Testing merged user problems', async () => {
 			// Reload all of the data from the database.
-			// Not sure why this is needed, but maybe something isn't rest from previous tests.
+			// Not sure why this is needed, but maybe something isn't reset from previous tests.
 			const set_problem_store = useSetProblemStore();
 			await set_problem_store.fetchSetProblems(precalc_course.course_id);
 			await set_problem_store.fetchUserProblems(precalc_course.course_id);

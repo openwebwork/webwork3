@@ -50,12 +50,14 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		db_user_sets: [],
 	}),
 	getters: {
+
 		/**
 		 * Returns all User Sets (merge between Problem Set and a DBUserSet)
 		 */
 		user_sets: (state) => state.db_user_sets.map(db_user_set => {
 			const problem_set = state.problem_sets.find(set => set.set_id == db_user_set.set_id);
-			const course_user = useUserStore().course_users.find(u => u.course_user_id === db_user_set.course_user_id);
+			const course_user = useUserStore()
+				.course_users.find(u => u.course_user_id === db_user_set.course_user_id);
 			return mergeUserSet(problem_set as ProblemSet, db_user_set as DBUserSet, course_user as CourseUser)
 				?? new UserSet();
 		}),

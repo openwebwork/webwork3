@@ -20,7 +20,7 @@ describe('Test the SetProblems', () => {
 	};
 
 	const default_problem_set: ParseableSetProblem = {
-		problem_id: 0,
+		set_problem_id: 0,
 		set_id: 0,
 		problem_number: 0,
 		render_params: { ... default_render_params },

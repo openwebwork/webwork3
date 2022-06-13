@@ -6,6 +6,7 @@ import { DBCourseUser, ParseableCourseUser, ParseableDBCourseUser, ParseableUser
 import { User, CourseUser } from 'src/common/models/users';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import { UserRole } from 'src/common/models/parsers';
+import { useSessionStore } from './session';
 
 export interface UserState {
 	users: User[];
@@ -87,7 +88,6 @@ export const useUserStore = defineStore('user', {
 		 * Fetch all global users in all courses and store the results.
 		 */
 		async fetchUsers(): Promise<void> {
-			logger.debug('[UserStore/fetchUsers] fetching users...');
 			const response = await api.get('users');
 			if (response.status === 200) {
 				const users_to_parse = response.data as Array<User>;
@@ -116,9 +116,7 @@ export const useUserStore = defineStore('user', {
 		},
 
 		/**
-		 * updates the user in the database and in the store.
-		 * @param {User} user -- the user to be updated.
-		 * @returns {User} -- the updated user.
+		 * Updates the given user in the database and in the store.
 		 */
 		async updateUser(user: User): Promise<User | undefined> {
 			if (!user.isValid()) {
@@ -170,6 +168,22 @@ export const useUserStore = defineStore('user', {
 				logger.error(response.data);
 				throw response.data as ResponseError;
 			}
+		},
+		/**
+		 * This addes the session user to the users field in the store.  This is
+		 * needed for other stores and merged models.
+		 */
+		async setSessionUser() {
+			const session_store = useSessionStore();
+			// if there is no user in the session don't fetch the user.
+			if (session_store.user.user_id === 0) return;
+			// Get the global user.
+			const user_response = await api.get(`users/${session_store.user.user_id}`);
+			this.users = [ new User(user_response.data as ParseableUser)];
+			// fetch the course user information for this use
+			const response = await api.get(`courses/${session_store.course.course_id}/users/${
+				session_store.user.user_id}`);
+			this.db_course_users = [ new DBCourseUser(response.data as ParseableDBCourseUser)];
 		},
 		// CourseUser actions
 
@@ -245,11 +259,15 @@ export const useUserStore = defineStore('user', {
 				this.course_users.splice(index, 1);
 				const deleted_course_user = new DBCourseUser(response.data as ParseableCourseUser);
 				const user = this.users.find(u => u.user_id === deleted_course_user.user_id);
-				return new CourseUser(Object.assign(user?.toObject(), deleted_course_user.toObject()));
+				return new CourseUser(Object.assign({}, user?.toObject(), deleted_course_user.toObject()));
 			} else if (response.status === 250) {
 				logger.error(response.data);
 				throw response.data as ResponseError;
 			}
+		},
+		clearAll() {
+			this.users = [];
+			this.db_course_users = [];
 		}
 	}
 });

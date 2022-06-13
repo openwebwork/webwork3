@@ -28,15 +28,10 @@ $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-my $problem_set_rs = $schema->resultset("ProblemSet");
-my $course_rs      = $schema->resultset("Course");
-my $user_rs        = $schema->resultset("User");
-my $user_set_rs    = $schema->resultset("UserSet");
-
-# remove any set versions greater than 2.
-
-my $user_sets_to_delete = $user_set_rs->search({ set_version => { '>' => 1 } });
-$user_sets_to_delete->delete_all;
+my $problem_set_rs = $schema->resultset('ProblemSet');
+my $course_rs      = $schema->resultset('Course');
+my $user_rs        = $schema->resultset('User');
+my $user_set_rs    = $schema->resultset('UserSet');
 
 # Load info from CSV files
 my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
@@ -107,9 +102,9 @@ for my $user_set (@merged_user_sets) {
 # Get a user set from a course
 
 my $user_set_info1 = {
-	username    => "bart",
-	course_name => "Precalculus",
-	set_name    => "HW #2"
+	username    => 'bart',
+	course_name => 'Precalculus',
+	set_name    => 'HW #2'
 };
 
 my $user_set1 = $user_set_rs->getUserSet(info => $user_set_info1);
@@ -186,5 +181,14 @@ my $user_set_v3_to_delete = $user_set_rs->deleteUserSet(
 removeIDs($user_set_v3_to_delete);
 delete $user_set_v3_to_delete->{set_visible} unless defined($user_set_v3_to_delete->{set_visible});
 is_deeply($user_set_v3_to_delete, $user_set1_v3, 'deleteUserSet: delete a versioned user set');
+
+# Ensure that the user_sets table is restored.
+my @all_user_sets_from_db = $user_set_rs->getAllUserSets(merged => 1);
+
+for my $set (@all_user_sets_from_db) {
+	removeIDs($set);
+}
+
+is_deeply(\@all_user_sets_from_db, \@merged_user_sets, 'check: Ensure that the user_sets table is restored.');
 
 done_testing;

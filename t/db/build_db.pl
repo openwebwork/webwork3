@@ -14,7 +14,7 @@ BEGIN {
 use lib "$main::ww3_dir/lib";
 
 use Carp;
-use feature "say";
+use feature 'say';
 
 use Clone qw/clone/;
 use DateTime::Format::Strptime;
@@ -49,7 +49,7 @@ my $user_rs         = $schema->resultset('User');
 my $course_user_rs  = $schema->resultset('CourseUser');
 my $problem_set_rs  = $schema->resultset('ProblemSet');
 my $problem_pool_rs = $schema->resultset('ProblemPool');
-my $problem_rs      = $schema->resultset('Problem');
+my $set_problem_rs  = $schema->resultset('SetProblem');
 my $user_set_rs     = $schema->resultset('UserSet');
 
 my $strp_date = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
@@ -72,7 +72,7 @@ sub addCourses {
 
 sub addUsers {
 	# Add some users
-	say "adding users" if $verbose;
+	say 'adding users' if $verbose;
 
 	my @all_students = loadCSV(
 		"$main::ww3_dir/t/db/sample_data/students.csv",
@@ -83,7 +83,7 @@ sub addUsers {
 
 	# Add an admin user
 	my $admin = {
-		username     => "admin",
+		username     => 'admin',
 		email        => 'admin@google.com',
 		first_name   => "Andrea",
 		last_name    => "Administrator",
@@ -120,7 +120,7 @@ sub addUsers {
 
 sub addSets {
 	# Add some problem sets
-	say "adding problem sets" if $verbose;
+	say 'adding problem sets' if $verbose;
 
 	my @hw_sets = loadCSV(
 		"$main::ww3_dir/t/db/sample_data/hw_sets.csv",
@@ -132,7 +132,7 @@ sub addSets {
 	for my $set (@hw_sets) {
 		my $course = $course_rs->find({ course_name => $set->{course_name} });
 		if (!defined($course)) {
-			croak "The course " . $set->{course_name} . " does not exist";
+			croak 'The course ' . $set->{course_name} . ' does not exist';
 		}
 		$set->{set_params} = {} unless defined $set->{set_params};
 		delete $set->{course_name};
@@ -140,7 +140,7 @@ sub addSets {
 	}
 
 	# Add quizzes
-	say "adding quizzes" if $verbose;
+	say 'adding quizzes' if $verbose;
 
 	my @quizzes = loadCSV(
 		"$main::ww3_dir/t/db/sample_data/quizzes.csv",
@@ -153,7 +153,7 @@ sub addSets {
 	for my $quiz (@quizzes) {
 		my $course = $course_rs->search({ course_name => $quiz->{course_name} })->single;
 		if (!defined($course)) {
-			croak "The course " . $quiz->{course_name} . " does not exist";
+			croak 'The course ' . $quiz->{course_name} . ' does not exist';
 		}
 
 		$quiz->{type} = 2;
@@ -162,7 +162,7 @@ sub addSets {
 		$course->add_to_problem_sets($quiz);
 	}
 
-	say "adding review sets" if $verbose;
+	say 'adding review sets' if $verbose;
 
 	my @review_sets = loadCSV(
 		"$main::ww3_dir/t/db/sample_data/review_sets.csv",
@@ -239,7 +239,7 @@ sub addUserSets {
 			user_id   => $user_in_course->user_id,
 			course_id => $course->course_id
 		});
-		# say "adding the user set for " . $user_set->{username} . " in " . $user_set->{course_name};
+		# say 'adding the user set for ' . $user_set->{username} . ' in ' . $user_set->{course_name};
 		if (defined $course_user) {
 			my $problem_set = $schema->resultset('ProblemSet')->find({
 				course_id => $course->course_id,
@@ -258,7 +258,7 @@ sub addUserSets {
 }
 
 sub addProblemPools {
-	say "adding problem pools" if $verbose;
+	say 'adding problem pools' if $verbose;
 	my @problem_pools = loadCSV("$main::ww3_dir/t/db/sample_data/pool_problems.csv");
 
 	for my $pool (@problem_pools) {
@@ -295,7 +295,7 @@ sub addUserProblems {
 				join => [ { problem_sets => 'courses' }, { course_users => 'users' } ]
 			}
 		);
-		my $problem = $problem_rs->find(
+		my $problem = $set_problem_rs->find(
 			{
 				'courses.course_name'  => $user_problem->{course_name},
 				'problem_set.set_name' => $user_problem->{set_name},
@@ -307,7 +307,7 @@ sub addUserProblems {
 		);
 
 		$user_set->add_to_user_problems({
-			problem_id      => $problem->problem_id,
+			set_problem_id  => $problem->set_problem_id,
 			seed            => $user_problem->{seed},
 			problem_version => 1,
 			status          => $user_problem->{status}

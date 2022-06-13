@@ -33,7 +33,7 @@ import { defineComponent, ref, watch } from 'vue';
 import MenuSidebar from './MenuSidebar.vue';
 import MenuBar from './MenuBar.vue';
 
-import { instructor_views, admin_views, ViewInfo } from 'src/common/views';
+import { instructor_views, admin_views, ViewInfo, student_views } from 'src/common/views';
 import { useRoute } from 'vue-router';
 import ProblemSetList from 'components/sidebars/ProblemSetList.vue';
 import UserList from 'components/sidebars/UserList.vue';
@@ -53,8 +53,6 @@ export default defineComponent({
 		const left_sidebar_open = ref<boolean>(true);
 		const right_sidebar_open = ref<boolean>(false);
 		const sidebars = ref<Array<string>>([]);
-		// const show_problem_sets = ref<boolean>(false);
-		// const show_users = ref<boolean>(false);
 
 		// is there any state/scope issue with route?
 		// should route: RouteLocationNormalizedLoaded be an argument?
@@ -63,7 +61,7 @@ export default defineComponent({
 				? admin_views
 				: /^\/courses\/\d+\/instructor/.exec(route.path)
 					? instructor_views
-					: [];
+					: student_views;
 			let current_view = views.find((view: ViewInfo) => view.component_name === route.name);
 
 			if (! current_view) { // it may be a child component

@@ -168,8 +168,8 @@ export class UserCourse extends Model {
 	get visible() { return this._visible; }
 	set visible(value: boolean) { this._visible = value; }
 
-	get role() { return this._role; }
-	set role(value: string) { this._role = value.toUpperCase(); }
+	get role(): UserRole { return this._role; }
+	set role(value: string) { this._role = parseUserRole(value); }
 
 	clone(): UserCourse {
 		return new UserCourse(this.toObject());

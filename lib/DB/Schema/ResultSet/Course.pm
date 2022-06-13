@@ -127,7 +127,7 @@ of the fields. See above.
 
 sub addCourse ($self, %args) {
 	my $course_params = clone $args{params};
-	DB::Exception::ParametersNeeded->throw(message => "The parameters must include course_name")
+	DB::Exception::ParametersNeeded->throw(message => 'The parameters must include course_name')
 		unless defined($course_params->{course_name});
 
 	# Check if the course exists.  If so throw an error.

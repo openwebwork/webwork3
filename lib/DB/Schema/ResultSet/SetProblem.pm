@@ -1,4 +1,4 @@
-package DB::Schema::ResultSet::Problem;
+package DB::Schema::ResultSet::SetProblem;
 
 use strict;
 use warnings;
@@ -140,7 +140,7 @@ This gets a single problem from a given course and problem
 =over
 =item - C<course_name> or C<course_id>
 =item - C<set_name> or C<set_id>
-=item - C<problem_number> or C<problem_id>
+=item - C<problem_number> or C<set_problem_id>
 
 =back
 
@@ -166,12 +166,12 @@ sub getSetProblem ($self, %args) {
 
 	my $problem = $problem_set->problems->find(getProblemInfo($args{info}));
 
-	DB::Exception::ProblemNotFound->throw(
+	DB::Exception::SetProblemNotFound->throw(
 		message => 'the problem with '
 			. (
 			$args{info}->{problem_number}
 			? 'problem number ' . $args{info}->{problem_number}
-			: 'problem id: ' . $args{info}->{problem_id}
+			: 'set_problem id: ' . $args{info}->{set_problem_id}
 			)
 			. ' is not found for set: '
 			. $problem_set->set_name
@@ -232,14 +232,14 @@ sub addSetProblem ($self, %args) {
 	my $problem_set = $self->rs('ProblemSet')->getProblemSet(info => $args{params}, as_result_set => 1);
 	my $params      = clone $args{params};
 
-	# Remove some parameters that are not in the database, but may be passed in.
-	for my $key (qw/course_name course_id set_name set_id/) {
+	# Remove some parameters that are not in the database, but may be passed in,
+	# including set_problem_id which should not have a value if being added.
+	for my $key (qw/set_problem_id course_name course_id set_name/) {
 		delete $params->{$key} if defined $params->{$key};
 	}
 
 	# set the problem number to one more than the set's largest
-	$params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0)
-		unless defined $params->{problem_number};
+	$params->{problem_number} = 1 + ($problem_set->problems->get_column('problem_number')->max // 0);
 	$params->{problem_params}{weight} = 1 unless defined($params->{problem_params}{weight});
 
 	$self->checkProblemParams($params);
@@ -251,14 +251,12 @@ sub addSetProblem ($self, %args) {
 sub checkProblemParams ($self, $params) {
 
 	# Check that the problem_number field is a positive number.
-	DB::Exception::InvalidParameter->throw(message => "The problem_number must be a positive integer")
+	DB::Exception::InvalidParameter->throw(message => 'The problem_number must be a positive integer')
 		unless defined $params->{problem_number} && $params->{problem_number} =~ /^\d+$/;
 
 	my $problem_to_add = $self->new($params);
 	$problem_to_add->validParams('problem_params');
-
 	return 1;
-
 }
 
 =head2 updateSetProblem
@@ -315,6 +313,7 @@ sub updateSetProblem ($self, %args) {
 	my $params  = updateAllFields({ $problem->get_inflated_columns }, $args{params});
 
 	# Check that the new params are valid.
+	my $updated_problem = $self->new($params);
 	$self->checkProblemParams($params);
 
 	my $problem_to_return = $problem->update($params);
@@ -334,7 +333,7 @@ delete a single problem to an existing problem set within a course
 =over
 =item - C<course_name> or C<course_id>
 =item - C<set_name> or C<set_id>
-=item - C<problem_number> or C<problem_id>
+=item - C<problem_number> or C<set_problem_id>
 
 =back
 

@@ -23,7 +23,7 @@ $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $t = Test::Mojo->new('WeBWorK3' => LoadFile($config_file));
 
 # Test missing credentials
-$t->post_ok('/webwork3/api/login')->status_is(250, 'error status')->content_type_is('application/json;charset=UTF-8')
+$t->post_ok('/webwork3/api/login')->status_is(500, 'error status')->content_type_is('application/json;charset=UTF-8')
 	->json_is(
 	'' => {
 		exception => 'DB::Exception::ParametersNeeded',

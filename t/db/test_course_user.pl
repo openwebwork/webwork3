@@ -27,7 +27,7 @@ use DB::TestUtils qw/loadCSV removeIDs/;
 my $db_file = "$main::test_dir/sample_db.sqlite";
 my $schema  = DB::Schema->connect("dbi:SQLite:$db_file");
 
-my $course_user_rs = $schema->resultset("CourseUser");
+my $course_user_rs = $schema->resultset('CourseUser');
 
 my $u = $course_user_rs->find({ course_id => 1, user_id => 1 });
 

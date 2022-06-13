@@ -104,7 +104,7 @@ sub userRoutes ($self) {
 	my $user_routes = $self->routes->any('/webwork3/api/users')->requires(authenticated => 1)->to(controller => 'User');
 	$user_routes->get('/')->to(action => 'getGlobalUsers');
 	$user_routes->post('/')->to(action => 'addGlobalUser');
-	$user_routes->get('/:user')->to(action => 'getGlobalUser');
+	$user_routes->get('/:user_id')->to(action => 'getGlobalUser');
 	$user_routes->put('/:user_id')->to(action => 'updateGlobalUser');
 	$user_routes->delete('/:user_id')->to(action => 'deleteGlobalUser');
 	$user_routes->get('/:user_id/courses')->to(action => 'getUserCourses');
@@ -147,6 +147,8 @@ sub problemSetRoutes ($self) {
 	$problem_set_routes->post('/:set_id/users')->to(action => 'addUserSet');
 	$problem_set_routes->put('/:set_id/users/:course_user_id')->to(action => 'updateUserSet');
 	$problem_set_routes->delete('/:set_id/users/:course_user_id')->to(action => 'deleteUserSet');
+
+	$self->routes->get('/webwork3/api/courses/:course_id/users/:user_id/sets')->to('ProblemSet#getUserSets');
 	return;
 }
 
@@ -155,15 +157,16 @@ sub problemRoutes ($self) {
 		->to(controller => 'Problem');
 	$problem_routes->get('/problems')->to(action => 'getAllProblems');
 	$problem_routes->post('/sets/:set_id/problems')->to(action => 'addProblem');
-	$problem_routes->put('/sets/:set_id/problems/:problem_id')->to(action => 'updateProblem');
-	$problem_routes->delete('/sets/:set_id/problems/:problem_id')->to(action => 'deleteProblem');
+	$problem_routes->put('/sets/:set_id/problems/:set_problem_id')->to(action => 'updateProblem');
+	$problem_routes->delete('/sets/:set_id/problems/:set_problem_id')->to(action => 'deleteProblem');
 
 	# UserProblem routes
 	$problem_routes->get('/sets/:set_id/user-problems')->to(action => 'getUserProblemsForSet');
 	$problem_routes->get('/users/:user_id/problems')->to(action => 'getUserProblemsForUser');
 	$problem_routes->post('/sets/:set_id/users/:user_id/problems')->to(action => 'addUserProblem');
-	$problem_routes->put('/sets/:set_id/users/:user_id/problems/:problem_id')->to(action => 'updateUserProblem');
-	$problem_routes->delete('/sets/:set_id/users/:user_id/problems/:problem_id')->to(action => 'deleteUserProblem');
+	$problem_routes->put('/sets/:set_id/users/:user_id/problems/:user_problem_id')->to(action => 'updateUserProblem');
+	$problem_routes->delete('/sets/:set_id/users/:user_id/problems/:user_problem_id')
+		->to(action => 'deleteUserProblem');
 
 	return;
 }

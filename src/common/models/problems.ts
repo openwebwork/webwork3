@@ -245,9 +245,9 @@ export class SetProblemParams extends Model {
 export interface ParseableSetProblem {
 	render_params?: ParseableRenderParams;
 	problem_params?: ParseableSetProblemParams;
-	problem_number?: number ;
-	problem_id?: number;
-	set_id?: number;
+	problem_number?: number | string ;
+	set_problem_id?: number | string;
+	set_id?: number | string;
 }
 
 /**
@@ -256,7 +256,7 @@ export interface ParseableSetProblem {
 
 export class SetProblem extends Problem {
 	private _problem_params = new SetProblemParams();
-	private _problem_id = 0;
+	private _set_problem_id = 0;
 	private _set_id = 0;
 	private _problem_number = 0;
 
@@ -275,11 +275,11 @@ export class SetProblem extends Problem {
 		});
 	}
 
-	static ALL_FIELDS = ['problem_id', 'problem_number', 'set_id',
+	static ALL_FIELDS = ['set_problem_id', 'problem_number', 'set_id',
 		'problem_params', 'render_params'];
 
 	set(params: ParseableSetProblem) {
-		if (params.problem_id != undefined) this.problem_id = params.problem_id;
+		if (params.set_problem_id != undefined) this.set_problem_id = params.set_problem_id;
 		if (params.set_id != undefined) this.set_id = params.set_id;
 		if (params.problem_number != undefined) this.problem_number = params.problem_number;
 	}
@@ -287,19 +287,21 @@ export class SetProblem extends Problem {
 	get problem_params() { return this._problem_params; }
 
 	get all_field_names() {
-		return [ ...super.all_field_names, ...['problem_id', 'set_id', 'problem_number', 'problem_params']];
+		return [ ...super.all_field_names, ...['set_problem_id', 'set_id', 'problem_number', 'problem_params']];
 	}
 
 	get param_fields() { return [...super.param_fields, ...['problem_params'] ]; }
 
-	public get problem_id() : number { return this._problem_id; }
-	public set problem_id(val: number) { this._problem_id = val; }
+	public get set_problem_id() : number { return this._set_problem_id; }
+	public set set_problem_id(val: string | number) { this._set_problem_id = parseNonNegInt(val);}
 
 	public get set_id() : number { return this._set_id; }
 	public set set_id(val: number) { this._set_id = val;}
 
 	get problem_number(): number { return this._problem_number; }
-	set problem_number(value: number) { this._problem_number = value; }
+	set problem_number(value: string | number) {
+		this._problem_number = parseNonNegInt(value);
+	}
 
 	clone(): SetProblem {
 		return new SetProblem(this.toObject());
@@ -323,23 +325,24 @@ export class SetProblem extends Problem {
 
 export interface ParseableDBUserProblem {
 	render_params?: RenderParams;
-	problem_params?: ParseableSetProblemParams;
-	problem_id?: number;
-	user_problem_id?: number;
-	user_set_id?: number;
-	seed?: number;
-	status?: number;
-	problem_version?: number;
+	problem_params?: SetProblemParams;
+	set_problem_id?: number | string;
+	user_problem_id?: number | string;
+	user_set_id?: number | string;
+	seed?: number | string;
+	status?: number | string;
+	problem_version?: number | string;
 }
 
 /**
  * The class DBUserProblem is used for problems assigned to Users and
  * to be used to store in the database.  This is used only in the store.
  */
+
 export class DBUserProblem extends Problem {
 	private _problem_params = new SetProblemParams();
 	private _user_problem_id = 0;
-	private _problem_id = 0;
+	private _set_problem_id = 0;
 	private _user_set_id = 0;
 	private _seed = 0;
 	private _status = 0;
@@ -360,7 +363,7 @@ export class DBUserProblem extends Problem {
 	}
 
 	set(params: ParseableDBUserProblem) {
-		if (params.problem_id != undefined) this.problem_id = params.problem_id;
+		if (params.set_problem_id != undefined) this.set_problem_id = params.set_problem_id;
 		if (params.user_set_id != undefined) this.user_set_id = params.user_set_id;
 		if (params.user_problem_id != undefined) this.user_problem_id = params.user_problem_id;
 		if (params.seed != undefined) this.seed = params.seed;
@@ -368,7 +371,7 @@ export class DBUserProblem extends Problem {
 		if (params.problem_version != undefined) this.problem_version = params.problem_version;
 	}
 
-	static ALL_FIELDS = ['user_problem_id', 'problem_id', 'user_set_id', 'seed', 'status',
+	static ALL_FIELDS = ['user_problem_id', 'set_problem_id', 'user_set_id', 'seed', 'status',
 		'problem_version', 'render_params', 'problem_params'];
 
 	get problem_params() { return this._problem_params; }
@@ -376,8 +379,8 @@ export class DBUserProblem extends Problem {
 
 	get param_fields() { return ['problem_params', 'render_params']; }
 
-	public get problem_id() : number { return this._problem_id; }
-	public set problem_id(val: number) { this._problem_id = val;}
+	public get set_problem_id() : number { return this._set_problem_id; }
+	public set set_problem_id(val: string | number) { this._set_problem_id = parseNonNegInt(val);}
 
 	public get user_problem_id() : number { return this._user_problem_id; }
 	public set user_problem_id(val: number) { this._user_problem_id = val;}
@@ -422,15 +425,15 @@ export class DBUserProblem extends Problem {
 export interface ParseableUserProblem {
 	render_params?: ParseableRenderParams;
 	problem_params?: ParseableSetProblemParams;
-	problem_id?: number;
-	user_problem_id?: number;
-	user_id?: number;
-	user_set_id?: number;
-	set_id?: number;
-	seed?: number;
-	status?: number;
-	problem_version?: number;
-	problem_number?: number;
+	set_problem_id?: number | string;
+	user_problem_id?: number | string;
+	user_id?: number | string;
+	user_set_id?: number | string;
+	set_id?: number | string;
+	seed?: number | string;
+	status?: number | string;
+	problem_version?: number | string;
+	problem_number?: number | string;
 	username?: string;
 	set_name?: string;
 }
@@ -438,10 +441,11 @@ export interface ParseableUserProblem {
 /**
  * The class UserProblem is used for merging User and set problems
  */
+
 export class UserProblem extends Problem {
 	private _problem_params = new SetProblemParams();
 	private _user_problem_id = 0;
-	private _problem_id = 0;
+	private _set_problem_id = 0;
 	private _user_id = 0;
 	private _user_set_id = 0;
 	private _set_id = 0;
@@ -469,7 +473,7 @@ export class UserProblem extends Problem {
 	}
 
 	set(params: ParseableUserProblem) {
-		if (params.problem_id != undefined) this.problem_id = params.problem_id;
+		if (params.set_problem_id != undefined) this.set_problem_id = params.set_problem_id;
 		if (params.user_id != undefined) this.user_id = params.user_id;
 		if (params.set_id != undefined) this.set_id = params.set_id;
 		if (params.user_set_id != undefined) this.user_set_id = params.user_set_id;
@@ -482,7 +486,7 @@ export class UserProblem extends Problem {
 		if (params.set_name) this.set_name = params.set_name;
 	}
 
-	static ALL_FIELDS = ['user_problem_id', 'problem_id', 'user_id', 'user_set_id', 'seed', 'status',
+	static ALL_FIELDS = ['user_problem_id', 'set_problem_id', 'user_id', 'user_set_id', 'seed', 'status',
 		'problem_number', 'username', 'set_name', 'problem_version', 'problem_params', 'render_params'];
 
 	get all_field_names() {
@@ -493,8 +497,8 @@ export class UserProblem extends Problem {
 
 	public get problem_params() { return this._problem_params; }
 
-	public get problem_id() : number { return this._problem_id; }
-	public set problem_id(val: number) { this._problem_id = val;}
+	public get set_problem_id() : number { return this._set_problem_id; }
+	public set set_problem_id(val: string | number) { this._set_problem_id = parseNonNegInt(val);}
 
 	public get user_problem_id() : number { return this._user_problem_id; }
 	public set user_problem_id(val: number) { this._user_problem_id = val;}
@@ -560,14 +564,15 @@ export function parseProblem(problem: ParseableProblem, type: 'Library' | 'Set' 
 }
 
 /**
- * Merges a SetProblem, DBUserProblem and UserSet returning a UserProblem.
+ * Merges a SetProblem, a DBUserProblem and a UserSet returning a UserProblem.
  * Note: if the arguments are not related in the database (based on primary and foreign keys)
  * A MergeError is thrown.
  */
+
 export function mergeUserProblem(set_problem: SetProblem, db_user_problem: DBUserProblem,
 	user_set: UserSet) {
 	// Check if the User Problem is related to the Set Problem
-	if (set_problem.problem_id !== db_user_problem.problem_id) {
+	if (set_problem.set_problem_id !== db_user_problem.set_problem_id) {
 		throw new MergeError('The User set is not related to the Problem set');
 	}
 	// Check if the user problem is related to the user set.
@@ -575,7 +580,7 @@ export function mergeUserProblem(set_problem: SetProblem, db_user_problem: DBUse
 		throw new MergeError('The Merged user is not related to the user set.');
 	}
 	const user_problem: ParseableUserProblem = {
-		problem_id: db_user_problem.problem_id,
+		set_problem_id: db_user_problem.set_problem_id,
 		user_problem_id: db_user_problem.user_problem_id,
 		user_id: user_set.user_id,
 		set_id: user_set.set_id,

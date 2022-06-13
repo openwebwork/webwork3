@@ -93,12 +93,12 @@ __PACKAGE__->add_columns(
 		is_nullable => 0,
 	},
 	type => {
-		data_type     => "int",
+		data_type     => 'int',
 		default_value => 1,
 		size          => 8
 	},
 	set_visible => {
-		data_type     => "boolean",
+		data_type     => 'boolean',
 		default_value => 1,
 		is_nullable   => 0
 	},
@@ -154,8 +154,8 @@ __PACKAGE__->set_primary_key('set_id');
 __PACKAGE__->add_unique_constraint([qw/course_id set_name/]);
 
 __PACKAGE__->belongs_to(courses => 'DB::Schema::Result::Course', 'course_id');
-__PACKAGE__->has_many(problems  => 'DB::Schema::Result::Problem', 'set_id');
-__PACKAGE__->has_many(user_sets => 'DB::Schema::Result::UserSet', 'set_id');
+__PACKAGE__->has_many(problems  => 'DB::Schema::Result::SetProblem', 'set_id');
+__PACKAGE__->has_many(user_sets => 'DB::Schema::Result::UserSet',    'set_id');
 
 =head2 set_type
 

@@ -652,8 +652,8 @@ export class UserReviewSet extends UserSet {
 }
 
 /**
-* Parse a UserSet, returning a model of the correct subclass.
-*/
+ * Parse the UserSet, returning a model of the correct subclass.
+ */
 export function parseUserSet(user_set: ParseableUserSet) {
 	if (user_set.set_type === 'HW') {
 		return new UserHomeworkSet(user_set as ParseableUserHomeworkSet);
@@ -665,12 +665,15 @@ export function parseUserSet(user_set: ParseableUserSet) {
 }
 
 /**
-* Merge a ProblemSet, a DBUserSet and a User and return a UserSet. Note: if the
-* arguments are not related in the database (based on primary and foreign keys), a MergeError is
-* thrown.  in that the result is a UserSet with overrides taken from the DBUserSet.
-*/
-export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: CourseUser) {
-// Check if the user_set is related to the Problem Set
+ * Merge a ProblemSet, a DBUserSet and a User and return a UserSet. Note: if the
+ * arguments are not related in the database (based on primary and foreign keys), a MergeError is
+ * thrown.  The result is a UserSet with overrides taken from the UserSet.
+ */
+export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: CourseUser): UserSet | undefined {
+	// Perhaps we need to handle this better, but this situation happens when reacting
+	// to changes between ProblemSets and UserSets in the store.
+	if (set == undefined || db_user_set == undefined || user == undefined) return;
+	// Check if the user_set is related to the Problem Set
 	if (set.set_id !== db_user_set.set_id) {
 		throw new MergeError('The User set is not related to the Problem set');
 	}

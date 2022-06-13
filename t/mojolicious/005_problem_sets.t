@@ -20,7 +20,7 @@ use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
 use DB::TestUtils qw/loadCSV/;
 
-# Test the api with common "courses/sets" routes.
+# Test the api with common 'courses/sets' routes.
 
 # Load the config file.
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
@@ -42,7 +42,7 @@ $t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 
 # Load the homework sets.
 my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
 for my $set (@hw_sets) {
-	$set->{set_type} = "HW";
+	$set->{set_type} = 'HW';
 }
 
 $t->get_ok('/webwork3/api/courses/2/sets')->status_is(200)->content_type_is('application/json;charset=UTF-8')
@@ -66,7 +66,7 @@ my $new_set = {
 	},
 };
 
-$t->post_ok("/webwork3/api/courses/2/sets" => json => $new_set)->content_type_is('application/json;charset=UTF-8')
+$t->post_ok('/webwork3/api/courses/2/sets' => json => $new_set)->content_type_is('application/json;charset=UTF-8')
 	->json_is('/set_name' => 'HW #9')->json_is('/set_type' => 'HW')->json_is('/set_dates/answer' => 500);
 
 my $new_set_id = $t->tx->res->json('/set_id');
@@ -95,17 +95,17 @@ ok(JSON::PP::is_bool($set_visible) && $set_visible, 'Test that set_visible is a 
 # Test for exceptions
 
 # A set that is not in a course
-$t->get_ok("/webwork3/api/courses/1/sets/6")->content_type_is('application/json;charset=UTF-8')
+$t->get_ok('/webwork3/api/courses/1/sets/6')->content_type_is('application/json;charset=UTF-8')
 	->json_is('/exception' => 'DB::Exception::SetNotInCourse');
 
 # Try to update a set not in a course
-$t->put_ok("/webwork3/api/courses/1/sets/6" => json => { set_name => 'HW #99' })
+$t->put_ok('/webwork3/api/courses/1/sets/6' => json => { set_name => 'HW #99' })
 	->content_type_is('application/json;charset=UTF-8')->json_is('/exception' => 'DB::Exception::SetNotInCourse');
 
 # Try to add a set without a setname.
-my $another_new_set = { name => "this is the wrong field" };
+my $another_new_set = { name => 'this is the wrong field' };
 
-$t->post_ok("/webwork3/api/courses/2/sets" => json => $another_new_set)
+$t->post_ok('/webwork3/api/courses/2/sets' => json => $another_new_set)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/exception' => 'DB::Exception::ParametersNeeded');
 
 # Test that booleans are returned correctly.
@@ -137,19 +137,19 @@ $t->delete_ok("/webwork3/api/courses/2/sets/$new_set_id")->content_type_is('appl
 	->json_is('/set_name' => 'HW #11');
 
 # Try to delete a set not in a course.
-$t->delete_ok("/webwork3/api/courses/1/sets/6")->content_type_is('application/json;charset=UTF-8')
+$t->delete_ok('/webwork3/api/courses/1/sets/6')->content_type_is('application/json;charset=UTF-8')
 	->json_is('/exception' => 'DB::Exception::SetNotInCourse');
 
 # Logout of the admin user account.
-$t->post_ok("/webwork3/api/logout")->status_is(200)->json_is('/logged_in' => 0);
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
 
 # Check that a non-admin user has proper access.
 my @instructors =
-	grep { $_->{role} eq 'instructor' } $schema->resultset("User")->getCourseUsers(info => { course_id => 1 });
-my $instructor = $schema->resultset("User")->getGlobalUser(info => { user_id => $instructors[0]{user_id} });
+	grep { $_->{role} eq 'instructor' } $schema->resultset('User')->getCourseUsers(info => { course_id => 1 });
+my $instructor = $schema->resultset('User')->getGlobalUser(info => { user_id => $instructors[0]{user_id} });
 
 $t->post_ok(
-	"/webwork3/api/login" => json => { username => $instructor->{username}, password => $instructor->{username} })
+	'/webwork3/api/login' => json => { username => $instructor->{username}, password => $instructor->{username} })
 	->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1);
 
 $t->get_ok('/webwork3/api/courses/1/sets')->status_is(200)->content_type_is('application/json;charset=UTF-8');
