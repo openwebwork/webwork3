@@ -10,7 +10,6 @@ import { useUserStore } from './users';
 import { parseProblemSet, ProblemSet, ParseableProblemSet } from 'src/common/models/problem_sets';
 import {
 	UserSet, mergeUserSet, DBUserSet, ParseableDBUserSet, parseDBUserSet
-import { UserSet, mergeUserSet, DBUserSet, ParseableDBUserSet, parseDBUserSet,
 } from 'src/common/models/user_sets';
 import { CourseUser } from 'src/common/models/users';
 import { ResponseError } from 'src/common/api-requests/interfaces';

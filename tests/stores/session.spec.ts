@@ -11,17 +11,17 @@
 import { createApp } from 'vue';
 import { setActivePinia, createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
-import { api } from 'src/boot/axios';
 
 import { api } from 'src/boot/axios';
 import { getUser } from 'src/common/api-requests/user';
 import { useSessionStore } from 'src/stores/session';
+import { checkPassword } from 'src/common/api-requests/session';
+import { UserRole } from 'src/common/models/parsers';
+import { loadCSV, cleanIDs } from '../utils';
 
 import { Course, UserCourse } from 'src/common/models/courses';
 import { SessionInfo } from 'src/common/models/session';
-
-import { cleanIDs, loadCSV } from '../utils';
-import { UserRole } from 'src/common/models/parsers';
+import { User } from 'src/common/models/users';
 
 const app = createApp({});
 
@@ -104,34 +104,49 @@ describe('Session Store', () => {
 				role: UserRole.unknown
 			});
 		});
-	});
+
+		test('Login as a user', async () => {
+		// test logging in as lisa gives the proper courses.
+			const session_info = await checkPassword({
+				username: 'lisa', password: 'lisa'
+			});
+			expect(session_info.logged_in).toBe(true);
+			expect(session_info.user).toStrictEqual(lisa.toObject());
+
+		});
+
+		test('check user courses', async () => {
+			const session_store = useSessionStore();
+			await session_store.fetchUserCourses(lisa.user_id);
+			expect(cleanIDs(session_store.user_courses)).toStrictEqual(cleanIDs(lisa_courses));
+		});
 
 		test('update the session', () => {
 			const session = useSessionStore();
 			session.updateSessionInfo(session_info);
 
-		expect(session.logged_in).toBe(true);
-		expect(session.user).toStrictEqual(user);
+			expect(session.logged_in).toBe(true);
+			expect(session.user).toStrictEqual(user);
 
-		const course = {
-			course_name: 'Arithmetic',
-			course_id: 1
-		};
+			const course = {
+				course_name: 'Arithmetic',
+				course_id: 1
+			};
 
 			session.setCourse(course);
 			expect(session.course).toStrictEqual(course);
 		});
 
-	test('logging out should clear the session', () => {
-		const session = useSessionStore();
-		// Update the session info as if being logged in.
-		session.updateSessionInfo(session_info);
+		test('logging out should clear the session', () => {
+			const session = useSessionStore();
+			// Update the session info as if being logged in.
+			session.updateSessionInfo(session_info);
 
-		session.logout();
+			session.logout();
 
-		expect(session.logged_in).toBe(false);
-		expect(session.user).toStrictEqual(logged_out);
+			expect(session.logged_in).toBe(false);
+			expect(session.user).toStrictEqual(logged_out);
 
+		});
 	});
-
 });
