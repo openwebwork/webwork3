@@ -113,7 +113,7 @@ import { logger } from 'boot/logger';
 import { useUserStore } from 'src/stores/users';
 import { useSessionStore } from 'src/stores/session';
 import type { Dictionary } from 'src/common/models';
-import type { ResponseError } from 'src/common/api-requests/interfaces';
+import type { ResponseError } from 'src/common/api-requests/errors';
 import { CourseUser, User, ParseableCourseUser } from 'src/common/models/users';
 import { invert } from 'src/common/utils';
 import { getUser } from 'src/common/api-requests/user';

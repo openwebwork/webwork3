@@ -145,7 +145,7 @@ describe('Problem Set store tests', () => {
 
 		test('Try to update an invalid global user', async () => {
 			const problem_set_store = useProblemSetStore();
-			const hw1 = await problem_set_store.findProblemSet({ set_name: 'HW #1'});
+			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
 			if (hw1) {
 				hw1.set_id = 1.34;
 				expect(hw1.isValid()).toBe(false);

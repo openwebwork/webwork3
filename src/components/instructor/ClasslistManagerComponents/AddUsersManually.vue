@@ -79,7 +79,7 @@ import { useSessionStore } from 'src/stores/session';
 import { useSettingsStore } from 'src/stores/settings';
 
 import { CourseUser, ParseableCourseUser, User } from 'src/common/models/users';
-import type { ResponseError } from 'src/common/api-requests/interfaces';
+import type { ResponseError } from 'src/common/api-requests/errors';
 import { AxiosError } from 'axios';
 import { isValidEmail, isValidUsername, parseNonNegInt } from 'src/common/models/parsers';
 

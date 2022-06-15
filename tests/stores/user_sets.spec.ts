@@ -198,7 +198,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 		test('Try to update an invalid user set', async () => {
 			const problem_set_store = useProblemSetStore();
-			const hw1 = await problem_set_store.findUserSet({ username: 'homer', set_name: 'HW #1'});
+			const hw1 = problem_set_store.findUserSet({ username: 'homer', set_name: 'HW #1' });
 			if (hw1) {
 				hw1.set_id = 1.34;
 				expect(hw1.isValid()).toBe(false);

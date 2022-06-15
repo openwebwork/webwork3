@@ -100,7 +100,7 @@ import { formatDate } from 'src/common/views';
 import HomeworkDatesView from './HomeworkDates.vue';
 import ReviewSetDatesView from './ReviewSetDates.vue';
 import QuizDatesView from './QuizDates.vue';
-import type { ResponseError } from 'src/common/api-requests/interfaces';
+import type { ResponseError } from 'src/common/api-requests/errors';
 
 type FieldType =
 	((row: UserHomeworkSet) => number) |

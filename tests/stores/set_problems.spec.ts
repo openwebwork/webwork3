@@ -190,7 +190,7 @@ describe('Problem Set store tests', () => {
 			const problem_set_store = useProblemSetStore();
 			const set_problem_store = useSetProblemStore();
 
-			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1'});
+			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
 
 			// This user has an invalid username
 			const library_problem = new LibraryProblem({
@@ -201,11 +201,9 @@ describe('Problem Set store tests', () => {
 		});
 
 		test('Try to update an invalid set problem', async () => {
-			const problem_set_store = useProblemSetStore();
 			const set_problem_store = useSetProblemStore();
 
-			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1'});
-			const prob1 = set_problem_store.findSetProblems({ set_name: 'HW #1'})[0].clone();
+			const prob1 = set_problem_store.findSetProblems({ set_name: 'HW #1' })[0].clone();
 
 			if (prob1) {
 				prob1.problem_number = -8;

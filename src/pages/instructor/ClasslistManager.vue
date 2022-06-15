@@ -63,7 +63,7 @@ import { logger } from 'src/boot/logger';
 
 import { User, CourseUser } from 'src/common/models/users';
 import { UserCourse } from 'src/common/models/courses';
-import type { ResponseError } from 'src/common/api-requests/interfaces';
+import type { ResponseError } from 'src/common/api-requests/errors';
 import AddUsersManually from 'src/components/instructor/ClasslistManagerComponents/AddUsersManually.vue';
 import AddUsersFromFile from 'src/components/instructor/ClasslistManagerComponents/AddUsersFromFile.vue';
 import EditUsers from 'src/components/instructor/ClasslistManagerComponents/EditUsers.vue';
