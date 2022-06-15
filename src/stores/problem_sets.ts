@@ -12,7 +12,7 @@ import {
 	UserSet, mergeUserSet, DBUserSet, ParseableDBUserSet, parseDBUserSet
 } from 'src/common/models/user_sets';
 import { CourseUser } from 'src/common/models/users';
-import { ResponseError } from 'src/common/api-requests/interfaces';
+import { invalidError, ResponseError } from 'src/common/api-requests/errors';
 
 /**
  * This is an type to retrieve set info.
@@ -137,6 +137,8 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		 * Adds the given problem set to the store and the database.
 		 */
 		async addProblemSet(set: ProblemSet): Promise<ProblemSet> {
+			if (!set.isValid()) await invalidError(set, 'The added problem set is invalid');
+
 			const response = await api.post(`courses/${set.course_id}/sets`, set.toObject());
 			const new_set = parseProblemSet(response.data as ParseableProblemSet);
 			this.problem_sets.push(new_set);
@@ -147,6 +149,8 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		 * Updates the given set in the store and the database.
 		 */
 		async updateSet(set: ProblemSet): Promise<ProblemSet | undefined> {
+			if (!set.isValid()) await invalidError(set, 'The updated problem set is invalid');
+
 			const response = await api.put(`courses/${set.course_id}/sets/${set.set_id}`, set.toObject());
 			if (response.status === 200) {
 				const updated_set = parseProblemSet(response.data as ParseableProblemSet);
@@ -228,6 +232,8 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		 * Adds a User Set to the store and the database.
 		 */
 		async addUserSet(user_set: UserSet): Promise<UserSet | undefined> {
+			if (!user_set.isValid()) await invalidError(user_set, 'The added user set is invalid');
+
 			const course_id = useSessionStore().course.course_id;
 			const response = await api.post(`courses/${course_id}/sets/${user_set.set_id}/users`,
 				user_set.toObject(DBUserSet.ALL_FIELDS));
@@ -244,6 +250,8 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		 * Updates the given UserSet to the store and the database.
 		 */
 		async updateUserSet(set: UserSet): Promise<UserSet> {
+			if (!set.isValid()) await invalidError(set, 'The updated user set is invalid');
+
 			const sessionStore = useSessionStore();
 			const course_id = sessionStore.course.course_id;
 			const response = await api.put(`courses/${course_id}/sets/${set.set_id ?? 0}/users/${

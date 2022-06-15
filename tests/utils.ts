@@ -79,8 +79,8 @@ function convert(data: Dictionary<string>[], config: CSVConfig): Dictionary<gene
 							param_non_neg_int_fields.includes(field) ? parseInt(row[val]) :
 								param_non_neg_float_fields.includes(field) ? parseFloat(row[val]) :
 									/DATES:/.test(val) ?
-									Date.parse(row[val]) / 1000 :
-									row[val];
+										Date.parse(row[val]) / 1000 :
+										row[val];
 				}
 				return prev;
 			}, {});

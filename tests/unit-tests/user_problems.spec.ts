@@ -91,8 +91,8 @@ describe('Testing DB User Problems and User problems', () => {
 
 			test('Check changes in fields set directly', () => {
 				const prob = new DBUserProblem();
-				prob.problem_id = 5;
-				expect(prob.problem_id).toBe(5);
+				prob.set_problem_id = 5;
+				expect(prob.set_problem_id).toBe(5);
 
 				prob.user_problem_id = 15;
 				expect(prob.user_problem_id).toBe(15);
@@ -112,8 +112,8 @@ describe('Testing DB User Problems and User problems', () => {
 
 			test('Check changes in fields using set()', () => {
 				const prob = new DBUserProblem();
-				prob.set({ problem_id: 5 });
-				expect(prob.problem_id).toBe(5);
+				prob.set({ set_problem_id: 5 });
+				expect(prob.set_problem_id).toBe(5);
 
 				prob.set({ user_problem_id: 15 });
 				expect(prob.user_problem_id).toBe(15);
@@ -143,11 +143,11 @@ describe('Testing DB User Problems and User problems', () => {
 				prob.user_problem_id = 11;
 				expect(prob.isValid()).toBe(true);
 
-				prob.problem_id = -1;
+				prob.set_problem_id = -1;
 				expect(prob.isValid()).toBe(false);
-				prob.problem_id = 8.32;
+				prob.set_problem_id = 8.32;
 				expect(prob.isValid()).toBe(false);
-				prob.problem_id = 11;
+				prob.set_problem_id = 11;
 				expect(prob.isValid()).toBe(true);
 
 				prob.user_set_id = -1;
@@ -276,8 +276,8 @@ describe('Testing DB User Problems and User problems', () => {
 
 			test('Check changes in fields set directly', () => {
 				const prob = new UserProblem();
-				prob.problem_id = 5;
-				expect(prob.problem_id).toBe(5);
+				prob.set_problem_id = 5;
+				expect(prob.set_problem_id).toBe(5);
 
 				prob.user_problem_id = 15;
 				expect(prob.user_problem_id).toBe(15);
@@ -308,8 +308,8 @@ describe('Testing DB User Problems and User problems', () => {
 
 			test('Check changes in fields using set()', () => {
 				const prob = new UserProblem();
-				prob.set({ problem_id: 5 });
-				expect(prob.problem_id).toBe(5);
+				prob.set({ set_problem_id: 5 });
+				expect(prob.set_problem_id).toBe(5);
 
 				prob.set({ user_problem_id: 15 });
 				expect(prob.user_problem_id).toBe(15);
@@ -352,11 +352,11 @@ describe('Testing DB User Problems and User problems', () => {
 				prob.user_problem_id = 11;
 				expect(prob.isValid()).toBe(true);
 
-				prob.problem_id = -1;
+				prob.set_problem_id = -1;
 				expect(prob.isValid()).toBe(false);
-				prob.problem_id = 8.32;
+				prob.set_problem_id = 8.32;
 				expect(prob.isValid()).toBe(false);
-				prob.problem_id = 11;
+				prob.set_problem_id = 11;
 				expect(prob.isValid()).toBe(true);
 
 				prob.user_id = -1;

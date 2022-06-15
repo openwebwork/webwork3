@@ -4,7 +4,7 @@ import { defineStore } from 'pinia';
 import { logger } from 'boot/logger';
 import { DBCourseUser, ParseableCourseUser, ParseableDBCourseUser, ParseableUser } from 'src/common/models/users';
 import { User, CourseUser } from 'src/common/models/users';
-import type { ResponseError } from 'src/common/api-requests/interfaces';
+import { invalidError, ResponseError } from 'src/common/api-requests/errors';
 import { UserRole } from 'src/common/models/parsers';
 import { useSessionStore } from './session';
 
@@ -119,11 +119,8 @@ export const useUserStore = defineStore('user', {
 		 * Updates the given user in the database and in the store.
 		 */
 		async updateUser(user: User): Promise<User | undefined> {
-			if (!user.isValid()) {
-				logger.error('The updated user is invalid');
-				logger.error(JSON.stringify(user.toObject()));
-				throw 'The updated user is invalid.';
-			}
+			if (!user.isValid()) return invalidError(user, 'The updated user is invalid');
+
 			const response = await api.put(`users/${user.user_id}`, user.toObject());
 			if (response.status === 200) {
 				const updated_user = new User(response.data as ParseableUser);
@@ -154,11 +151,8 @@ export const useUserStore = defineStore('user', {
 		 * Adds the given User to the database and to the store.
 		 */
 		async addUser(user: User): Promise<User | undefined> {
-			if (!user.isValid()) {
-				logger.error('The updated user is invalid');
-				logger.error(JSON.stringify(user.toObject()));
-				throw 'The added user is invalid.';
-			}
+			if (!user.isValid()) return invalidError(user, 'The added user is invalid.');
+
 			const response = await api.post('users', user.toObject());
 			if (response.status === 200) {
 				const new_user = new User(response.data as ParseableUser);
@@ -206,10 +200,9 @@ export const useUserStore = defineStore('user', {
 		 */
 		async addCourseUser(course_user: CourseUser): Promise<CourseUser> {
 			if (!course_user.isValid()) {
-				logger.error('The added course user is invalid');
-				logger.error(JSON.stringify(course_user.toObject()));
-				throw 'The added course user is invalid';
+				return invalidError(course_user, 'The added course user is invalid');
 			}
+
 			// When sending, only send the DBCourseUser fields.
 			const response = await api.post(`courses/${course_user.course_id}/users`,
 				course_user.toObject(DBCourseUser.ALL_FIELDS));
@@ -229,10 +222,9 @@ export const useUserStore = defineStore('user', {
 		 */
 		async updateCourseUser(course_user: CourseUser): Promise<CourseUser | undefined> {
 			if (!course_user.isValid()) {
-				logger.error('The updated course user is invalid');
-				logger.error(JSON.stringify(course_user.toObject()));
-				throw 'The updated course user is invalid';
+				return invalidError(course_user, 'The updated course user is invalid');
 			}
+
 			const url = `courses/${course_user.course_id || 0}/users/${course_user.user_id ?? 0}`;
 			// When sending, only send the DBCourseUser fields.
 			const response = await api.put(url, course_user.toObject(DBCourseUser.ALL_FIELDS));

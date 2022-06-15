@@ -27,7 +27,6 @@ import {
 	UserSet, UserHomeworkSet, UserQuiz, UserReviewSet, mergeUserSet, parseDBUserSet, DBUserHomeworkSet
 } from 'src/common/models/user_sets';
 
-import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 import { loadCSV, cleanIDs } from '../utils';
 
 const app = createApp({});
@@ -144,17 +143,20 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 			const problem_set_store = useProblemSetStore();
 			new_hw_set = await problem_set_store.addProblemSet(new HomeworkSet({
 				set_name: 'HW #9',
-				course_id: precalc_course.course_id
+				course_id: precalc_course.course_id,
 			}));
 
 			const user_store = useUserStore();
 			const user = user_store.course_users[0];
 
 			const user_set = new UserHomeworkSet({
+				username: 'homer',
+				set_name: 'HW #9',
 				set_id: new_hw_set.set_id,
 				course_user_id: user.course_user_id,
 				set_visible: true
 			});
+			expect(user_set.isValid()).toBe(true);
 			added_user_set = await problem_set_store.addUserSet(user_set) ?? new UserSet();
 			expect(cleanIDs(added_user_set)).toStrictEqual(cleanIDs(user_set));
 		});
@@ -181,6 +183,33 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		});
 	});
 
+	describe('Test that invalid user sets are handled correctly', () => {
+		test('Try to add an invalid user sets', async () => {
+			const problem_set_store = useProblemSetStore();
+
+			// A Homework set needs a not-empty set name.
+			const hw = new UserHomeworkSet({
+				set_name: ''
+			});
+			expect(hw.isValid()).toBe(false);
+			await expect(async () => { await problem_set_store.addUserSet(hw); })
+				.rejects.toThrow('The added user set is invalid');
+		});
+
+		test('Try to update an invalid user set', async () => {
+			const problem_set_store = useProblemSetStore();
+			const hw1 = await problem_set_store.findUserSet({ username: 'homer', set_name: 'HW #1'});
+			if (hw1) {
+				hw1.set_id = 1.34;
+				expect(hw1.isValid()).toBe(false);
+				await expect(async () => { await problem_set_store.updateUserSet(hw1 as UserHomeworkSet); })
+					.rejects.toThrow('The updated user set is invalid');
+			} else {
+				throw 'This should not have be thrown.  User set hw1 is not defined.';
+			}
+		});
+	});
+
 	let new_quiz: ProblemSet;
 	describe('CRUD functions on User Quiz', () => {
 		let added_user_set: UserSet;
@@ -199,7 +228,9 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 			const user_set = new UserQuiz({
 				set_id: new_quiz.set_id,
 				course_user_id: user.course_user_id,
-				set_visible: true
+				set_visible: true,
+				set_name: new_quiz.set_name,
+				username: 'homer'
 			});
 			added_user_set = await problem_set_store.addUserSet(user_set) ?? new UserSet();
 			expect(cleanIDs(added_user_set)).toStrictEqual(cleanIDs(user_set));
@@ -245,7 +276,9 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 			const user_set = new UserReviewSet({
 				set_id: new_review_set.set_id,
 				course_user_id: user.course_user_id,
-				set_visible: true
+				set_visible: true,
+				set_name: new_review_set.set_name,
+				username: 'homer'
 			});
 			added_user_review_set = await problem_set_store.addUserSet(user_set) ?? new UserSet();
 			expect(cleanIDs(added_user_review_set)).toStrictEqual(cleanIDs(user_set));
@@ -312,6 +345,8 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 			// Add a User set
 			new_user_hw = new UserHomeworkSet({
+				username: 'homer',
+				set_name: new_hw_set.set_name,
 				set_id: new_hw_set.set_id,
 				course_user_id: user_to_assign.course_user_id,
 				set_visible: false,

@@ -1,7 +1,7 @@
 import { api } from 'boot/axios';
 import { defineStore } from 'pinia';
 import { logger } from 'src/boot/logger';
-import { ResponseError } from 'src/common/api-requests/interfaces';
+import { invalidError, ResponseError } from 'src/common/api-requests/errors';
 
 import { Course, ParseableCourse } from 'src/common/models/courses';
 
@@ -44,6 +44,8 @@ export const useCourseStore = defineStore('courses', {
 		 * Adds a course to the database and the store.
 		 */
 		async addCourse(course: Course): Promise<Course | undefined> {
+			if (!course.isValid()) await invalidError(course, 'The added course is invalid');
+
 			const response = await api.post('courses', course.toObject());
 			if (response.status === 200) {
 				const new_course = new Course(response.data as ParseableCourse);
@@ -59,6 +61,8 @@ export const useCourseStore = defineStore('courses', {
 		 * This updates the course in the database and the store.
 		 */
 		async updateCourse(course: Course): Promise<Course | undefined> {
+			if (!course.isValid()) await invalidError(course, 'The updated course is invalid');
+
 			const response = await api.put(`courses/${course.course_id}`, course.toObject());
 			if (response.status === 200) {
 				const updated_course = new Course(response.data as ParseableCourse);

@@ -11,6 +11,7 @@
 import { createApp } from 'vue';
 import { setActivePinia, createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import { api } from 'boot/axios';
 
 import { getUser } from 'src/common/api-requests/user';
 import { useSessionStore } from 'src/stores/session';
@@ -129,6 +130,7 @@ describe('Session Store', () => {
 
 			const course = {
 				course_name: 'Arithmetic',
+				course_id: 1
 			};
 
 			session.setCourse(course);

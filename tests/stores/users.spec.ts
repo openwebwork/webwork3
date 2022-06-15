@@ -20,7 +20,6 @@ import { cleanIDs, loadCSV } from '../utils';
 import { Course } from 'src/common/models/courses';
 import { CourseUser, User } from 'src/common/models/users';
 
-
 const app = createApp({});
 
 describe('User store tests', () => {
@@ -98,6 +97,35 @@ describe('User store tests', () => {
 		});
 	});
 
+	describe('Test that invalid global users are handled correctly', () => {
+		test('Try to add an invalid global user', async () => {
+			const user_store = useUserStore();
+
+			// This user has an invalid username
+			const user = new User({
+				username: 'bad guy',
+				first_name: 'Bad',
+				last_name: 'Guy'
+			});
+			expect(user.isValid()).toBe(false);
+			await expect(async () => { await user_store.addUser(user); })
+				.rejects.toThrow('The added user is invalid');
+		});
+
+		test('Try to update an invalid global user', async () => {
+			const user_store = useUserStore();
+			const homer = user_store.getUserByName('homer');
+			if (homer) {
+				homer.email = 'not@an@email.address';
+				expect(homer.isValid()).toBe(false);
+				await expect(async () => { await user_store.updateUser(homer as User); })
+					.rejects.toThrow('The updated user is invalid');
+			} else {
+				throw 'This should not have be thrown.  User homer is not defined.';
+			}
+		});
+	});
+
 	describe('Fetch course users', () => {
 		test('Fetch all users of a course', async () => {
 			const user_store = useUserStore();
@@ -141,6 +169,35 @@ describe('User store tests', () => {
 			const user_to_delete = user_store.course_users.find(user => user.user_id === user_not_in_precalc.user_id);
 			const deleted_user = await user_store.deleteCourseUser(user_to_delete as CourseUser);
 			expect(user_to_delete).toStrictEqual(deleted_user);
+		});
+	});
+
+	describe('Test that invalid course users are handled correctly', () => {
+		test('Try to add an invalid course user', async () => {
+			const user_store = useUserStore();
+
+			// This user has an invalid username
+			const user = new CourseUser({
+				username: 'bad guy',
+				first_name: 'Bad',
+				last_name: 'Guy'
+			});
+			expect(user.isValid()).toBe(false);
+			await expect(async () => { await user_store.addCourseUser(user); })
+				.rejects.toThrow('The added course user is invalid');
+		});
+
+		test('Try to update an invalid course user', async () => {
+			const user_store = useUserStore();
+			const homer = user_store.course_users.find(user => user.username === 'homer');
+			if (homer) {
+				homer.email = 'not@an@email.address';
+				expect(homer.isValid()).toBe(false);
+				await expect(async () => { await user_store.updateCourseUser(homer); })
+					.rejects.toThrow('The updated course user is invalid');
+			} else {
+				throw 'This should not have be thrown.  User homer is not defined.';
+			}
 		});
 	});
 

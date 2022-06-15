@@ -26,7 +26,6 @@ import { UserProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemP
 import { DBUserHomeworkSet, mergeUserSet, UserSet } from 'src/common/models/user_sets';
 import { Dictionary, generic } from 'src/common/models';
 
-import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 import { loadCSV, cleanIDs } from '../utils';
 
 const app = createApp({});
@@ -161,6 +160,7 @@ describe('Problem Set store tests', () => {
 				})
 			});
 			const library_problem = new LibraryProblem({ location_params: { file_path: 'path/to/the/problem.pg' } });
+			expect(library_problem.isValid()).toBe(true);
 			added_set_problem = await set_problem_store.addSetProblem(library_problem, hw1?.set_id ?? 0);
 
 			expect(cleanIDs(added_set_problem)).toStrictEqual(cleanIDs(new_set_problem));
@@ -185,16 +185,52 @@ describe('Problem Set store tests', () => {
 		});
 	});
 
+	describe('Test that invalid set problems are handled correctly', () => {
+		test('Try to add an invalid set problem', async () => {
+			const problem_set_store = useProblemSetStore();
+			const set_problem_store = useSetProblemStore();
+
+			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1'});
+
+			// This user has an invalid username
+			const library_problem = new LibraryProblem({
+			});
+			expect(library_problem.isValid()).toBe(false);
+			await expect(async () => { await set_problem_store.addSetProblem(library_problem, hw1?.set_id ?? 0); })
+				.rejects.toThrow('The added problem is invalid');
+		});
+
+		test('Try to update an invalid set problem', async () => {
+			const problem_set_store = useProblemSetStore();
+			const set_problem_store = useSetProblemStore();
+
+			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1'});
+			const prob1 = set_problem_store.findSetProblems({ set_name: 'HW #1'})[0].clone();
+
+			if (prob1) {
+				prob1.problem_number = -8;
+				expect(prob1.isValid()).toBe(false);
+				await expect(async () => { await set_problem_store.updateSetProblem(prob1); })
+					.rejects.toThrow('The updated set problem is invalid');
+			} else {
+				throw 'This should not have be thrown.  The set problem is not defined.';
+			}
+		});
+	});
+
 	describe('Fetch user problems', () => {
 		test('Fetch all User Problems for a set in a course', async () => {
 			const user_store = useUserStore();
 			await user_store.fetchGlobalCourseUsers(precalc_course.course_id);
 			await user_store.fetchCourseUsers(precalc_course.course_id);
+
 			const problem_set_store = useProblemSetStore();
 			await problem_set_store.fetchProblemSets(precalc_course.course_id);
 			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' }) ?? new ProblemSet();
+
 			const set_problems_store = useSetProblemStore();
 			await set_problems_store.fetchUserProblems(hw1.set_id);
+
 			const hw1_user_problems = set_problems_store.findUserProblems({ set_name: 'HW #1' });
 			expect(cleanIDs(precalc_hw1_user_problems)).toStrictEqual(cleanIDs(hw1_user_problems));
 		});

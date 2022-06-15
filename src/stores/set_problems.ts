@@ -3,6 +3,7 @@
 import { api } from 'boot/axios';
 import { defineStore } from 'pinia';
 import { logger } from 'src/boot/logger';
+import { invalidError } from 'src/common/api-requests/errors';
 
 import { ParseableProblem, parseProblem, SetProblem, ParseableSetProblem, UserProblem,
 	mergeUserProblem, DBUserProblem, ParseableDBUserProblem, LibraryProblem } from 'src/common/models/problems';
@@ -115,6 +116,8 @@ export const useSetProblemStore = defineStore('set_problems', {
 		 * set_id to both the database and the store.
 		 */
 		async addSetProblem(problem: LibraryProblem, set_id: number): Promise<SetProblem> {
+			if (!problem.isValid()) await invalidError(problem, 'The added problem is invalid');
+
 			const course_id = useSessionStore().course.course_id;
 			const prob = new SetProblem({
 				problem_params: problem.location_params,
@@ -135,6 +138,8 @@ export const useSetProblemStore = defineStore('set_problems', {
 		 * Update the given SetProblem in both the database and the store.
 		 */
 		async updateSetProblem(problem: SetProblem): Promise<SetProblem> {
+			if (!problem.isValid()) await invalidError(problem, 'The updated set problem is invalid');
+
 			const course_id = useSessionStore().course.course_id;
 			const prob = problem.toObject();
 			// delete the render params.  Not in the database.

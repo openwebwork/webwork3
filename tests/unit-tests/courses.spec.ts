@@ -180,7 +180,7 @@ describe('Test Course Models', () => {
 			});
 
 			test('Create a course with invalid fields', () => {
-				const c1 = new UserCourse({ course_name: 'Arithmetic', username: 'homer' });
+				const c1 = new UserCourse({ course_name: 'Arithmetic', username: 'homer', role: 'student' });
 				expect(c1.isValid()).toBe(true);
 
 				c1.course_name = '';
@@ -216,6 +216,7 @@ describe('Test Course Models', () => {
 				const c1 = new UserCourse({
 					course_name: 'Arithmetic',
 					username: 'homer',
+					role: 'student',
 					course_dates: { start: 100, end: 200 }
 				});
 				expect(c1.isValid()).toBe(true);

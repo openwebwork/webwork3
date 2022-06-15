@@ -130,6 +130,33 @@ describe('Problem Set store tests', () => {
 		});
 	});
 
+	describe('Test that invalid homework sets are handled correctly', () => {
+		test('Try to add an invalid homework set', async () => {
+			const problem_set_store = useProblemSetStore();
+
+			// A Homework set needs a not-empty set name.
+			const hw = new HomeworkSet({
+				set_name: ''
+			});
+			expect(hw.isValid()).toBe(false);
+			await expect(async () => { await problem_set_store.addProblemSet(hw); })
+				.rejects.toThrow('The added problem set is invalid');
+		});
+
+		test('Try to update an invalid global user', async () => {
+			const problem_set_store = useProblemSetStore();
+			const hw1 = await problem_set_store.findProblemSet({ set_name: 'HW #1'});
+			if (hw1) {
+				hw1.set_id = 1.34;
+				expect(hw1.isValid()).toBe(false);
+				await expect(async () => { await problem_set_store.updateSet(hw1 as HomeworkSet); })
+					.rejects.toThrow('The updated problem set is invalid');
+			} else {
+				throw 'This should not have be thrown.  Problem set hw1 is not defined.';
+			}
+		});
+	});
+
 	describe('CRUD test for quizzes', () => {
 		test('Add a new Quiz', async () => {
 			const problem_set_store = useProblemSetStore();
