@@ -23,7 +23,7 @@ use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings getDefaultCourseValues
 	validateSettingsConfFile validateSingleCourseSetting validateSettingConfig
 	isInteger isTimeString isTimeDuration isDecimal mergeCourseSettings/;
 
-use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
+use DB::TestUtils qw/removeIDs loadSchema/;
 
 # Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
