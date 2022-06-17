@@ -352,8 +352,8 @@ const addMergedUsers = async () => {
 				global_user = await users.addUser(new User(user));
 				$q.notify({
 					message:
-            `The global user with username '${global_user?.username ?? 'UNKNOWN'}'` +
-            ' was successfully added to the course.',
+						`The global user with username '${global_user?.username ?? 'UNKNOWN'}'` +
+						' was successfully added to the course.',
 					color: 'green',
 				});
 			} catch (e) {
@@ -433,7 +433,7 @@ const getErrorClass = (col_name: string, err: ParseError) => {
 
 const hasError = (props: { col: { name: string }; row: { _error: ParseError } }) =>
 	props.row._error.type !== 'none' &&
-  (props.col.name === props.row._error.col || props.row._error.entire_row);
+		(props.col.name === props.row._error.col || props.row._error.entire_row);
 </script>
 
 <!-- Mainly this is needed to get a table with a sticky header -->
