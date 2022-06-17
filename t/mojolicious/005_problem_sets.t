@@ -4,6 +4,7 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
+use Mojo::JSON qw/true false/;
 
 use DateTime::Format::Strptime;
 
@@ -74,7 +75,7 @@ my $new_set_id = $t->tx->res->json('/set_id');
 # Check that set_visible is a JSON boolean
 my $set_visible = $t->tx->res->json('/set_visible');
 ok(!$set_visible, 'testing that set_visible is falsy');
-is($set_visible, Mojo::JSON::false, 'Test that set_visible compares to Mojo::JSON::false');
+is($set_visible, false, 'Test that set_visible compares to Mojo::JSON::false');
 ok(JSON::PP::is_bool($set_visible),                  'Test that set_visible is a JSON boolean');
 ok(JSON::PP::is_bool($set_visible) && !$set_visible, 'Test that set_visible is a JSON::false');
 
@@ -82,13 +83,13 @@ ok(JSON::PP::is_bool($set_visible) && !$set_visible, 'Test that set_visible is a
 $t->put_ok(
 	"/webwork3/api/courses/2/sets/$new_set_id" => json => {
 		set_name    => 'HW #11',
-		set_visible => Mojo::JSON::true
+		set_visible => true
 	}
 )->content_type_is('application/json;charset=UTF-8')->json_is('/set_name' => 'HW #11');
 
 $set_visible = $t->tx->res->json('/set_visible');
 ok($set_visible, 'testing that set_visible is truthy');
-is($set_visible, Mojo::JSON::true, 'Test that set_visible compares to Mojo::JSON::true');
+is($set_visible, true, 'Test that set_visible compares to Mojo::JSON::true');
 ok(JSON::PP::is_bool($set_visible),                 'Test that set_visible is a JSON boolean');
 ok(JSON::PP::is_bool($set_visible) && $set_visible, 'Test that set_visible is a JSON:: true');
 
@@ -114,21 +115,21 @@ $t->get_ok('/webwork3/api/courses/1/sets/1');
 my $hw1     = $t->tx->res->json;
 my $enabled = $hw1->{set_dates}->{enable_reduced_scoring};
 ok($enabled, 'testing that enabled_reduced_scoring compares to 1.');
-is($enabled, Mojo::JSON::true, 'testing that enabled_reduced_scoring compares to Mojo::JSON::true');
+is($enabled, true, 'testing that enabled_reduced_scoring compares to Mojo::JSON::true');
 ok(JSON::PP::is_bool($enabled), 'testing that enabled_reduced_scoring is a Mojo::JSON::true or Mojo::JSON::false');
 ok(JSON::PP::is_bool($enabled) && $enabled, 'testing that enabled_reduced_scoring is a Mojo::JSON::true');
 
 # Check that updating a boolean parameter is working:
 $t->put_ok(
 	"/webwork3/api/courses/2/sets/$new_set_id" => json => {
-		set_params => { hide_hint => Mojo::JSON::false }
+		set_params => { hide_hint => false }
 	}
 )->content_type_is('application/json;charset=UTF-8');
 
 my $hw2       = $t->tx->res->json;
 my $hide_hint = $hw2->{set_params}->{hide_hint};
 ok(!$hide_hint, 'testing that hide_hint is falsy.');
-is($hide_hint, Mojo::JSON::false, 'testing that hide_hint compares to Mojo::JSON::false');
+is($hide_hint, false, 'testing that hide_hint compares to Mojo::JSON::false');
 ok(JSON::PP::is_bool($hide_hint),                'testing that hide_hint is a Mojo::JSON::true or Mojo::JSON::false');
 ok(JSON::PP::is_bool($hide_hint) && !$hide_hint, 'testing that hide_hint is a Mojo::JSON::false');
 

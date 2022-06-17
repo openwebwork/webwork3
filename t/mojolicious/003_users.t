@@ -4,7 +4,7 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
-use Mojo::JSON;
+use Mojo::JSON qw/true false/;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -158,18 +158,16 @@ $t->get_ok('/webwork3/api/users/1')->json_is('/username', 'admin');
 my $admin_user = $t->tx->res->json;
 
 ok($admin_user->{is_admin}, 'testing that is_admin compares to 1.');
-is($admin_user->{is_admin}, Mojo::JSON::true, 'testing that is_admin compares to Mojo::JSON::true');
-ok(JSON::PP::is_bool($admin_user->{is_admin}), 'testing that is_admin is a Mojo::JSON::true or Mojo::JSON::false');
-ok(JSON::PP::is_bool($admin_user->{is_admin}) && $admin_user->{is_admin},
-	'testing that is_admin is a Mojo::JSON::true');
+is($admin_user->{is_admin}, true, 'testing that is_admin compares to true');
+ok(JSON::PP::is_bool($admin_user->{is_admin}),                            'testing that is_admin is a true or false');
+ok(JSON::PP::is_bool($admin_user->{is_admin}) && $admin_user->{is_admin}, 'testing that is_admin is a true');
 
 ok(not(JSON::PP::is_bool($admin_user->{user_id})), 'testing that $admin->{user_id} is not a JSON boolean');
 
 ok(!$new_user_from_db->{is_admin}, 'testing new_user->{is_admin} is not truthy.');
-is($new_user_from_db->{is_admin}, Mojo::JSON::false, 'testing that new_user->{is_admin} compares to Mojo::JSON::false');
-ok(JSON::PP::is_bool($new_user_from_db->{is_admin}),
-	'testing that new_user->{is_admin} is a Mojo::JSON::true or Mojo::JSON::false');
+is($new_user_from_db->{is_admin}, false, 'testing that new_user->{is_admin} compares to false');
+ok(JSON::PP::is_bool($new_user_from_db->{is_admin}), 'testing that new_user->{is_admin} is a true or false');
 ok(JSON::PP::is_bool($new_user_from_db->{is_admin}) && !$new_user_from_db->{is_admin},
-	'testing that new_user->{is_admin} is a Mojo::JSON::false');
+	'testing that new_user->{is_admin} is a false');
 
 done_testing;
