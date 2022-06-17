@@ -187,7 +187,7 @@ my $added_problem = $problem_pool_rs->addProblemToPool(params => { %$updated_poo
 is(
 	$prob_to_add->{params}->{library_id},
 	$added_problem->{params}->{library_id},
-	"addProblemToPool: adding a problem to an existing pool."
+	'addProblemToPool: adding a problem to an existing pool.'
 );
 
 # Check that adding a problem to a non-existence course fails.
@@ -228,7 +228,7 @@ my $updated_pool_problem = $problem_pool_rs->updatePoolProblem(
 is(
 	$updated_library_id,
 	$updated_pool_problem->{params}->{library_id},
-	"updatePoolProblem: update an existing problem in an existing pool."
+	'updatePoolProblem: update an existing problem in an existing pool.'
 );
 
 # Check that updating a problem to a non-existence course fails.

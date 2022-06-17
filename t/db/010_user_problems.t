@@ -106,7 +106,7 @@ for my $user_problem (@precalc_user_problems_from_db) {
 is_deeply(
 	\@precalc_user_problems,
 	\@precalc_user_problems_from_db,
-	"getUserProblems: get user problems from a single course."
+	'getUserProblems: get user problems from a single course.'
 );
 
 # Get merged problems from one course.
@@ -124,7 +124,7 @@ for my $merged_problem (@precalc_merged_problems_from_db) {
 is_deeply(
 	\@precalc_merged_problems,
 	\@precalc_merged_problems_from_db,
-	"getUserProblems: get merged problems from a single course."
+	'getUserProblems: get merged problems from a single course.'
 );
 
 # Get a single user problem.

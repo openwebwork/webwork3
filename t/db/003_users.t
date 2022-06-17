@@ -157,7 +157,7 @@ my $user2 = {
 
 my $added_user2 = $users_rs->addGlobalUser(params => $user2);
 removeIDs($added_user2);
-is_deeply($user2, $added_user2, "addUser: check that using an email for a username is valid.");
+is_deeply($user2, $added_user2, 'addUser: check that using an email for a username is valid.');
 
 # Update a user
 my $updated_user = clone $user;

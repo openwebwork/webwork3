@@ -48,11 +48,11 @@ sub resolve_pod_page_link {
 	if ($self->{pod_found}) {
 		my $pod_url = $self->{pod_found} =~ s/^$self->{source_root}/$self->{base_url}/r;
 		undef $self->{pod_found};
-		print "Resolved local pod link $to" . ($section ? "/$section" : "") . " to $pod_url\n" if $self->{verbose} > 2;
+		print "Resolved local pod link $to" . ($section ? "/$section" : '') . " to $pod_url\n" if $self->{verbose} > 2;
 		return $self->encode_entities($pod_url);
 	}
 
-	print "Using cpan pod link for $to" . ($section ? "/$section" : "") . "\n" if $self->{verbose} > 2;
+	print "Using cpan pod link for $to" . ($section ? "/$section" : '') . '\n' if $self->{verbose} > 2;
 	return $self->SUPER::resolve_pod_page_link($to, $section);
 }
 

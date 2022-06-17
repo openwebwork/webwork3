@@ -6,7 +6,7 @@
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of either: (a) the GNU General Public License as published by the
 # Free Software Foundation; either version 2, or (at your option) any later
-# version, or (b) the "Artistic License" which comes with this package.
+# version, or (b) the 'Artistic License' which comes with this package.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -95,8 +95,8 @@ if ($verbose) {
 	say "Rebuilding the database for course $course_name" if $rebuild_course;
 	say "Using the webwork2 database: $db_dsn";
 	say "with user $db_user";
-	say "The webwork3 database: " . $config->{database_dsn};
-	say "with user " . $config->{database_user};
+	say "The webwork3 database: $config->{database_dsn}";
+	say "with user $config->{database_user}";
 }
 
 my $dbh = DBI->connect($db_dsn, $db_user, $db_pass, { RaiseError => 1, AutoCommit => 0 });

@@ -238,7 +238,7 @@ my $user_from_db = $user_rs->updateCourseUser(
 );
 
 removeIDs($user_from_db);
-is_deeply($course_user_params, $user_from_db, "updateCourseUser: update a single user in an existing course.");
+is_deeply($course_user_params, $user_from_db, 'updateCourseUser: update a single user in an existing course.');
 
 # updateCourseUser: check that if the course doesn't exist, an error is thrown:
 throws_ok {
@@ -265,7 +265,7 @@ throws_ok {
 		params => $updated_user
 	);
 }
-'DB::Exception::ParametersNeeded', "updateCourseUser: the incorrect information is passed in.";
+'DB::Exception::ParametersNeeded', 'updateCourseUser: the incorrect information is passed in.';
 
 # Check that a non-existent course throws an error.
 throws_ok {
@@ -335,7 +335,7 @@ SKIP: {
 	throws_ok {
 		$user_rs->deleteCourseUser(info => { course_name => 'Arithmetic', username_name => 'bart' });
 	}
-	'DB::Exception::ParametersNeeded', "deleteUser: the incorrect information is passed in.";
+	'DB::Exception::ParametersNeeded', 'deleteUser: the incorrect information is passed in.';
 }
 
 # Check that the precalc users have not changed.

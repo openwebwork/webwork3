@@ -56,7 +56,7 @@ $t->post_ok('/webwork3/api/users' => json => $new_user)->status_is(200)
 
 # Extract the id from the response.
 $new_user->{user_id} = $t->tx->res->json('/user_id');
-is_deeply($new_user, $t->tx->res->json, "addUser: global user added.");
+is_deeply($new_user, $t->tx->res->json, 'addUser: global user added.');
 
 # Update the user.
 $new_user->{email} = 'maggie@juno.com';
