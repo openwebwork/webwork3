@@ -360,7 +360,6 @@ throws_ok {
 # Delete a set
 my $deleted_set = $problem_set_rs->deleteProblemSet(info => { course_name => 'Precalculus', set_name => 'HW #88' });
 removeIDs($deleted_set);
-delete $deleted_set->{set_visible};
 is_deeply($set_with_new_type_params, $deleted_set, 'deleteProblemSet: delete a set');
 
 # Try deleting a set with invalid course_name

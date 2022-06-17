@@ -755,16 +755,6 @@ throws_ok {
 }
 'DB::Exception::UserSetNotInCourse', 'deleteUserSet: try to delete a user set not the in the course';
 
-# delete a created user sets
-
-$user_set_rs->deleteUserSet(
-	info => {
-		course_name => 'Precalculus',
-		set_name    => 'HW #1',
-		username    => 'frink'
-	}
-);
-
 # Check that the user_sets db table is restored.
 @all_user_sets_from_db = $user_set_rs->getAllUserSets();
 
