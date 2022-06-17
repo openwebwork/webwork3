@@ -28,7 +28,7 @@ $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-my $problem_rs     = $schema->resultset('Problem');
+my $problem_rs     = $schema->resultset('SetProblem');
 my $problem_set_rs = $schema->resultset('ProblemSet');
 
 # Load all problems from the CVS files.
@@ -141,10 +141,43 @@ my $prob1 = $problem_rs->addSetProblem(
 	}
 );
 
-my $prob_id = $prob1->{problem_id};
+my $prob_id = $prob1->{set_problem_id};
 removeIDs($prob1);
 
 is_deeply($new_problem, $prob1, 'addSetProblem: add a valid problem to a set');
+
+# Add a problem and make sure the problem number is working.
+# Determine the largest current problem number.
+
+my @hw1_probs = $problem_rs->getSetProblems(
+	info => {
+		course_name => 'Precalculus',
+		set_name    => 'HW #1'
+	}
+);
+
+my @prob_nums = map { $_->{problem_number} } @hw1_probs;
+my $max       = $prob_nums[0];
+for my $i (1 .. $#prob_nums) { $max = $prob_nums[$i] if $prob_nums[$i] > $max; }
+
+my $prob2_from_db = $problem_rs->addSetProblem(
+	params => {
+		course_name    => 'Precalculus',
+		set_name       => 'HW #1',
+		problem_params => { file_path => 'path/to/problem.pg' }
+	}
+);
+removeIDs($prob2_from_db);
+
+my $prob2 = {
+	'problem_params' => {
+		'file_path' => 'path/to/problem.pg',
+		'weight'    => 1
+	},
+	'problem_number' => $max + 1,
+};
+
+is_deeply($prob2, $prob2_from_db, 'addSetProblem: add a set problem and ensure the problem number is correct.');
 
 # Try to add a problem to a non-existent course
 throws_ok {
@@ -189,21 +222,6 @@ throws_ok {
 	);
 }
 'DB::Exception::SetNotInCourse', 'addSetProblem: try to add a problem to a non-existent set_id';
-
-# Try to set a negative problem number.
-throws_ok {
-	$problem_rs->addSetProblem(
-		params => {
-			course_name    => 'Precalculus',
-			set_name       => 'HW #1',
-			problem_number => -9,
-			problem_params => {
-				file_path => 'this_is_a_path'
-			}
-		}
-	);
-}
-'DB::Exception::InvalidParameter', 'addSetProblem: try to add a problem with a non positive integer problem_number';
 
 # Try to add a problem without information about the file_path, library_id or problem_pool_id
 throws_ok {
@@ -252,9 +270,9 @@ my $updated_params = {
 my $all_params      = updateAllFields($new_problem, $updated_params);
 my $updated_problem = $problem_rs->updateSetProblem(
 	info => {
-		course_name => 'Precalculus',
-		set_name    => 'HW #1',
-		problem_id  => $prob_id
+		course_name    => 'Precalculus',
+		set_name       => 'HW #1',
+		set_problem_id => $prob_id
 	},
 	params => $updated_params
 );
@@ -346,7 +364,6 @@ my $deleted_problem = $problem_rs->deleteSetProblem(
 	}
 );
 removeIDs($deleted_problem);
-#$new_problem->{problem_version} = 1 unless defined($new_problem->{problem_version});
 
 is_deeply($updated_problem, $deleted_problem, "deleteSetProblem: delete one problem in an existing set.");
 
@@ -357,7 +374,32 @@ my $deleted_problem2 = $problem_rs->deleteSetProblem(
 		problem_number => $set_problem_to_delete->{problem_number},
 	}
 );
-# removeIDs($deleted_problem2);
 is_deeply($deleted_problem2, $set_problem_to_delete, "deleteSetProblem: delete another problem.");
+
+my $deleted_problem3 = $problem_rs->deleteSetProblem(
+	info => {
+		course_name    => 'Precalculus',
+		set_name       => 'HW #1',
+		problem_number => $prob2->{problem_number}
+	}
+);
+removeIDs($deleted_problem3);
+is_deeply($deleted_problem3, $prob2, "deleteSetProblem: delete another problem.");
+
+# Make sure the set_problem table is returned to its orginal state.
+@problems_from_db = $problem_rs->getGlobalProblems;
+for my $problem (@problems_from_db) {
+	removeIDs($problem);
+}
+
+is_deeply(\@all_problems, \@problems_from_db, 'The set_problems table is returned to its original state.');
+
+# Ensure that the set_problems table is restored.
+@problems_from_db = $problem_rs->getGlobalProblems;
+for my $problem (@problems_from_db) {
+	removeIDs($problem);
+}
+
+is_deeply(\@all_problems, \@problems_from_db, 'check: Ensure that the set_problems table is restored.');
 
 done_testing;

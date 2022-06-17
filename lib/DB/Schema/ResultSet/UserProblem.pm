@@ -14,7 +14,7 @@ use Clone qw/clone/;
 use Exception::Class (
 	'DB::Exception::UserProblemExists',
 	'DB::Exception::UserProblemNotFound',
-	'DB::Exception::ProblemNotFound'
+	'DB::Exception::SetProblemNotFound'
 );
 
 =head1 DESCRIPTION
@@ -242,7 +242,7 @@ A hash of input values.
 =item - either a C<course name> or C<course_id>.
 =item - either a C<username> or C<user_id>
 =item - either a C<set_nam> or C<set_id>
-=item - either a C<problem_number> or C<problem_id>
+=item - either a C<problem_number> or C<set_problem_id>
 
 For example, C<{ course_name => 'Precalculus', username=> 'homer', set_id => 3, problem_number => 1}>
 
@@ -262,7 +262,7 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 =cut
 
 sub getUserProblem ($self, %args) {
-	my $problem  = $self->rs('Problem')->getSetProblem(info => $args{info}, as_result_set => 1);
+	my $problem  = $self->rs('SetProblem')->getSetProblem(info => $args{info}, as_result_set => 1);
 	my $user_set = $self->rs('UserSet')->getUserSet(info => $args{info}, as_result_set => 1);
 
 	my $user_problem = $problem->user_problems->find({
@@ -301,7 +301,7 @@ A hash of input values.
 =item - either a C<course name> or C<course_id>.
 =item - either a C<username> or C<user_id>
 =item - either a C<set_name> or C<set_id>
-=item - either a C<problem_number> or C<problem_id>
+=item - either a C<problem_number> or C<set_problem_id>
 
 For example, C<{ course_name => 'Precalculus', username=> 'homer', set_id => 3, problem_number => 1}>
 
@@ -338,7 +338,7 @@ sub addUserProblem ($self, %args) {
 			. $user_problem->user_sets->problem_sets->set_name)
 		if $user_problem;
 
-	my $problem  = $self->rs('Problem')->getSetProblem(info => $args{params}, as_result_set => 1);
+	my $problem  = $self->rs('SetProblem')->getSetProblem(info => $args{params}, as_result_set => 1);
 	my $user_set = $self->rs('UserSet')->getUserSet(info => $args{params}, as_result_set => 1);
 
 	my $params = clone($args{params} // {});
@@ -348,7 +348,7 @@ sub addUserProblem ($self, %args) {
 		if defined($params->{user_problem_id}) && $params->{user_problem_id} == 0;
 
 	# Remove some parameters that are not in the UserProblem database, but may be passed in.
-	for my $key (qw/username user_id course_id course_name set_name set_type set_id problem_number problem_id/) {
+	for my $key (qw/username user_id course_id course_name set_name set_type set_id problem_number set_problem_id/) {
 		delete $params->{$key} if defined $params->{$key};
 	}
 
@@ -360,8 +360,8 @@ sub addUserProblem ($self, %args) {
 	$params->{problem_version} = 1                   unless defined $params->{problem_version};
 
 	my $problem_to_return = $problem->add_to_user_problems({
-		problem_id  => $problem->problem_id,
-		user_set_id => $user_set->user_set_id,
+		set_problem_id => $problem->set_problem_id,
+		user_set_id    => $user_set->user_set_id,
 		%$params
 	});
 
@@ -386,7 +386,7 @@ A hash of input values.
 =item - either a C<course name> or C<course_id>.
 =item - either a C<username> or C<user_id>
 =item - either a C<set_nam> or C<set_id>
-=item - either a C<problem_number> or C<problem_id>
+=item - either a C<problem_number> or C<set_problem_id>
 
 For example, C<{ course_name => 'Precalculus', username=> 'homer', set_id => 3, problem_number => 1}>
 
@@ -409,17 +409,20 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 =cut
 
 sub updateUserProblem ($self, %args) {
-	my $user_problem = $self->getUserProblem(
+	my $user_problem =
+		$args{info}->{user_problem_id}
+		? $self->find({ user_problem_id => $args{info}->{user_problem_id} })
+		: $self->getUserProblem(
 		info          => $args{info},
 		skip_throw    => 1,
 		as_result_set => 1
-	);
+		);
 
 	DB::Exception::UserProblemNotFound->throw(message => 'The user '
 			. getUserInfo($args{info})->{username} // getUserInfo($args{info})->{user_id}
 			. ' already has problem number '
 			. getProblemInfo($args{info})->{problem_number}
-			// ("(problem_id): " . getProblemInfo($args{info})->{problem_id})
+			// ("(set_problem_id): " . getProblemInfo($args{info})->{set_problem_id})
 			. ' in set with name'
 			. getSetInfo($args{info})->{set_name} // ("(set_id): " . getSetInfo($args{info})->{set_id}))
 		unless $user_problem;
@@ -454,7 +457,7 @@ A hash of input values.
 =item - either a C<course name> or C<course_id>.
 =item - either a C<username> or C<user_id>
 =item - either a C<set_nam> or C<set_id>
-=item - either a C<problem_number> or C<problem_id>
+=item - either a C<problem_number> or C<set_problem_id>
 
 For example, C<{ course_name => 'Precalculus', username=> 'homer', set_id => 3, problem_number => 1}>
 
@@ -474,17 +477,20 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 =cut
 
 sub deleteUserProblem ($self, %args) {
-	my $user_problem = $self->getUserProblem(
+	my $user_problem =
+		$args{info}->{user_problem_id}
+		? $self->find({ user_problem_id => $args{info}->{user_problem_id} })
+		: $self->getUserProblem(
 		info          => $args{info},
 		skip_throw    => 1,
 		as_result_set => 1
-	);
+		);
 
 	DB::Exception::UserProblemNotFound->throw(message => 'The user '
 			. getUserInfo($args{info})->{username} // getUserInfo($args{info})->{user_id}
 			. ' already has problem number '
 			. getProblemInfo($args{info})->{problem_number}
-			// ("(problem_id): " . getProblemInfo($args{info})->{problem_id})
+			// ("(set_problem_id): " . getProblemInfo($args{info})->{set_problem_id})
 			. ' in set with name'
 			. getSetInfo($args{info})->{set_name} // ("(set_id): " . getSetInfo($args{info})->{set_id}))
 		unless $user_problem;
@@ -501,12 +507,12 @@ This method returns all versions of user problems for a given problem for a user
 =cut
 
 sub getUserProblemVersions ($self, %args) {
-	my $problem  = $self->rs('Problem')->getSetProblem(info => $args{info}, as_result_set => 1);
+	my $problem  = $self->rs('SetProblem')->getSetProblem(info => $args{info}, as_result_set => 1);
 	my $user_set = $self->rs('UserSet')->getUserSet(info => $args{info}, as_result_set => 1);
 
 	my @user_problems = $self->search({
-		problem_id  => $problem->problem_id,
-		user_set_id => $user_set->user_set_id,
+		set_problem_id => $problem->set_problem_id,
+		user_set_id    => $user_set->user_set_id,
 	});
 
 	return @user_problems if $args{as_result_set};

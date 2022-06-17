@@ -33,14 +33,6 @@ $t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 
 	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/user_id' => 1)
 	->json_is('/user/is_admin' => 1);
 
-# Remove the user 'maggie' if it exists in the database.
-my $maggie = $schema->resultset('User')->find({ username => 'maggie' });
-if (defined($maggie)) {
-	my $maggie_cu = $schema->resultset('CourseUser')->search({ user_id => $maggie->user_id });
-	$maggie_cu->delete_all if defined($maggie_cu);
-	$maggie->delete        if defined($maggie);
-}
-
 $t->get_ok('/webwork3/api/courses/4/users')->status_is(200)->content_type_is('application/json;charset=UTF-8')
 	->json_is('/0/role' => 'instructor')->json_is('/1/role' => 'student');
 
@@ -125,5 +117,13 @@ $t->post_ok(
 	->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1);
 
 $t->get_ok('/webwork3/api/courses/1/users')->status_is(200)->content_type_is('application/json;charset=UTF-8');
+
+# Remove the user 'maggie' that was added.
+my $maggie = $schema->resultset('User')->find({ username => 'maggie' });
+if (defined($maggie)) {
+	my $maggie_cu = $schema->resultset('CourseUser')->search({ user_id => $maggie->user_id });
+	$maggie_cu->delete_all if defined($maggie_cu);
+	$maggie->delete        if defined($maggie);
+}
 
 done_testing;

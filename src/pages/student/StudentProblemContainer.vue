@@ -75,7 +75,7 @@ watch(() => problem_number.value, () => {
 	const user_problems = set_problem_store.user_problems.filter(
 		prob => prob.set_id === set_id.value);
 	void router.push({ name: 'StudentProblem', params: {
-		problem_id: user_problems[problem_number.value - 1].problem_id
+		problem_id: user_problems[problem_number.value - 1].set_problem_id
 	} });
 });
 

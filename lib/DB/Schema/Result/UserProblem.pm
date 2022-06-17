@@ -25,7 +25,7 @@ __PACKAGE__->add_columns(
 		is_nullable       => 0,
 		is_auto_increment => 1,
 	},
-	problem_id => {
+	set_problem_id => {
 		data_type   => 'integer',
 		size        => 16,
 		is_nullable => 0,
@@ -86,8 +86,8 @@ sub required_params ($=) {
 
 __PACKAGE__->set_primary_key('user_problem_id');
 
-__PACKAGE__->belongs_to(problems  => 'DB::Schema::Result::Problem', 'problem_id');
-__PACKAGE__->belongs_to(user_sets => 'DB::Schema::Result::UserSet', 'user_set_id');
+__PACKAGE__->belongs_to(problems  => 'DB::Schema::Result::SetProblem', 'set_problem_id');
+__PACKAGE__->belongs_to(user_sets => 'DB::Schema::Result::UserSet',    'user_set_id');
 
 __PACKAGE__->has_many(attempts => 'DB::Schema::Result::Attempt', 'user_problem_id');
 

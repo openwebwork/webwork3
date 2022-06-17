@@ -35,7 +35,7 @@ export default defineComponent({
 			),
 			user_problem: computed(
 				() => set_problem_store.user_problems.find(
-					prob => prob.set_id === set_id.value && prob.problem_id === problem_id.value)
+					prob => prob.set_id === set_id.value && prob.set_problem_id === problem_id.value)
 			)
 		};
 	}

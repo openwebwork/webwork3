@@ -48,7 +48,7 @@ my $user_rs         = $schema->resultset('User');
 my $course_user_rs  = $schema->resultset('CourseUser');
 my $problem_set_rs  = $schema->resultset('ProblemSet');
 my $problem_pool_rs = $schema->resultset('ProblemPool');
-my $problem_rs      = $schema->resultset('Problem');
+my $set_problem_rs  = $schema->resultset('SetProblem');
 my $user_set_rs     = $schema->resultset('UserSet');
 
 my $strp_date = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
@@ -250,7 +250,7 @@ sub addUserProblems {
 				join => [ { problem_sets => 'courses' }, { course_users => 'users' } ]
 			}
 		);
-		my $problem = $problem_rs->find(
+		my $problem = $set_problem_rs->find(
 			{
 				'courses.course_name'  => $user_problem->{course_name},
 				'problem_set.set_name' => $user_problem->{set_name},
@@ -262,7 +262,7 @@ sub addUserProblems {
 		);
 
 		$user_set->add_to_user_problems({
-			problem_id      => $problem->problem_id,
+			set_problem_id  => $problem->set_problem_id,
 			seed            => $user_problem->{seed},
 			problem_version => 1,
 			status          => $user_problem->{status}

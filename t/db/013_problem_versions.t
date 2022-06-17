@@ -28,13 +28,8 @@ $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-my $problem_rs      = $schema->resultset('Problem');
-my $user_problem_rs = $schema->resultset('UserProblem');
-
-# remove any problem versions greater than 2.
-
-my $user_sets_to_delete = $user_problem_rs->search({ problem_version => { '>' => 1 } });
-$user_sets_to_delete->delete_all;
+my $problem_rs      = $schema->resultset("SetProblem");
+my $user_problem_rs = $schema->resultset("UserProblem");
 
 # Load problems and user problems from the CSV files.
 my @user_problems_from_csv = loadCSV("$main::ww3_dir/t/db/sample_data/user_problems.csv");
@@ -155,21 +150,13 @@ removeIDs($user_problem_v3_to_delete);
 
 is_deeply($user_problem_v3_to_delete, $user_problem1_v3, 'deleteUserProblem: delete another versioned user problem');
 
-# removeIDs($user_set_v2_to_delete);
-# delete $user_set_v2_to_delete->{set_visible} unless defined($user_set_v2_to_delete->{set_visible});
-# is_deeply($user_set_v2_to_delete, $user_set1_v2, 'deleteUserSet: delete a versioned user set');
+# Ensure that the user_problems table is restored.
+my @all_user_problems_from_db = $user_problem_rs->getAllUserProblems();
+for my $user_problem (@all_user_problems_from_db) {
+	removeIDs($user_problem);
+	delete $user_problem->{problem_version} unless defined $user_problem->{problem_version};
+}
 
-# my $user_set_v3_to_delete = $user_set_rs->deleteUserSet(
-# 	info => {
-# 		course_name => $user_set1_v3_params->{course_name},
-# 		set_name => $user_set1_v3_params->{set_name},
-# 		username => $user_set1_v3_params->{username},
-# 		set_version => $user_set1_v3_params->{set_version}
-# 	}
-# );
-
-# removeIDs($user_set_v3_to_delete);
-# delete $user_set_v3_to_delete->{set_visible} unless defined($user_set_v3_to_delete->{set_visible});
-# is_deeply($user_set_v3_to_delete, $user_set1_v3, 'deleteUserSet: delete a versioned user set');
+is_deeply(\@user_problems_from_csv, \@all_user_problems_from_db, 'check: ensure that user_problems table is restored.');
 
 done_testing;

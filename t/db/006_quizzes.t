@@ -412,6 +412,13 @@ my $deleted_quiz = $problem_set_rs->deleteProblemSet(
 removeIDs($deleted_quiz);
 is_deeply($deleted_quiz, $new_quiz, 'delete Quiz: successfully delete a quiz');
 
-done_testing;
+# Ensure that the quizzes in the database are restored.
+@precalc_quizzes_from_db = $problem_set_rs->getQuizzes(info => { course_name => 'Precalculus' });
 
-1;
+# Remove id tags
+for my $quiz (@precalc_quizzes_from_db) {
+	removeIDs($quiz);
+}
+is_deeply(\@precalc_quizzes, \@precalc_quizzes_from_db, 'check: ensure that the quizzes have been restored.');
+
+done_testing;

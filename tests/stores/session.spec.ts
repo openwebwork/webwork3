@@ -15,11 +15,13 @@ import { api } from 'src/boot/axios';
 
 import { useSessionStore } from 'src/stores/session';
 import { getUser } from 'src/common/api-requests/user';
-import { Course, UserCourse } from 'src/common/models/courses';
-import { SessionInfo } from 'src/common/models/session';
+
+import { UserCourse, Course } from 'src/common/models/courses';
 import { User } from 'src/common/models/users';
+import { SessionInfo } from 'src/common/models/session';
 
 import { cleanIDs, loadCSV } from '../utils';
+import { UserRole } from 'src/common/models/parsers';
 
 const app = createApp({});
 
@@ -33,7 +35,7 @@ describe('Session Store', () => {
 		user_id: 1234,
 		email: 'homer@msn.com',
 		username: 'homer',
-		is_admin: false
+		is_admin: false,
 	});
 
 	const logged_out: User = new User({
@@ -56,7 +58,6 @@ describe('Session Store', () => {
 		await api.post('login', { username: 'admin', password: 'admin' });
 
 		// Load the user course information for testing later.
-
 		const parsed_courses = await loadCSV('t/db/sample_data/courses.csv', {
 			boolean_fields: ['visible'],
 			non_neg_fields: ['course_id'],
@@ -79,7 +80,7 @@ describe('Session Store', () => {
 		lisa_courses = users_to_parse.filter(user => user.username === 'lisa')
 			.map(user_course => {
 				const course = courses_from_csv.find(c => c.course_name == user_course.course_name)
-					?? new Course();
+							?? new Course();
 				return new UserCourse({
 					course_name: course.course_name,
 					user_id: lisa.user_id,
@@ -99,7 +100,8 @@ describe('Session Store', () => {
 			expect(session.user).toStrictEqual(logged_out);
 			expect(session.course).toStrictEqual({
 				course_id: 0,
-				course_name: ''
+				course_name: '',
+				role: UserRole.unknown
 			});
 		});
 
@@ -130,11 +132,12 @@ describe('Session Store', () => {
 			expect(session.user).toStrictEqual(logged_out);
 
 		});
+
+		test('check user courses', async () => {
+			const session_store = useSessionStore();
+			await session_store.fetchUserCourses(lisa.user_id);
+			expect(cleanIDs(session_store.user_courses)).toStrictEqual(cleanIDs(lisa_courses));
+		});
 	});
 
-	test('check user courses', async () => {
-		const session_store = useSessionStore();
-		await session_store.fetchUserCourses(lisa.user_id);
-		expect(cleanIDs(session_store.user_courses)).toStrictEqual(cleanIDs(lisa_courses));
-	});
 });

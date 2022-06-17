@@ -51,7 +51,7 @@ my @courses_from_db = $course_rs->getCourses;
 for my $course (@courses_from_db) { removeIDs($course); }
 @courses_from_db = sortByCourseName(\@courses_from_db);
 
-is_deeply(\@courses_from_db, \@courses, 'getCourses: course names');
+is_deeply(\@courses_from_db, \@courses, 'getCourses: get all courses');
 
 ## Get a single course by name
 my $course = $course_rs->getCourse(info => { course_name => 'Calculus' });
@@ -147,6 +147,13 @@ sub sortByCourseName {
 	my @new_array = sort { $a->{course_name} cmp $b->{course_name} } @$course_rs;
 	return @new_array;
 }
+
+# Check that the courses table is returned to its original state.
+@courses_from_db = $course_rs->getCourses;
+for my $course (@courses_from_db) { removeIDs($course); }
+@courses_from_db = sortByCourseName(\@courses_from_db);
+
+is_deeply(\@courses_from_db, \@courses, 'check: courses db table is returned to its original state.');
 
 done_testing();
 

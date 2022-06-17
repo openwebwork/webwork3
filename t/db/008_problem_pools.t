@@ -26,6 +26,8 @@ $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
+my $problem_pool_rs = $schema->resultset('ProblemPool');
+
 # Load problem pools from the csv files.
 my @pool_problems_from_file = loadCSV("$main::ww3_dir/t/db/sample_data/pool_problems.csv");
 
@@ -40,8 +42,6 @@ for my $pool (@problem_pools_from_file) {
 # Get an array of unique problem pools by pool_name.
 my %seen;
 @problem_pools_from_file = grep { !$seen{ $_->{pool_name} }++ } @problem_pools_from_file;
-
-my $problem_pool_rs = $schema->resultset('ProblemPool');
 
 my @problem_pools_from_db = $problem_pool_rs->getAllProblemPools();
 for my $pool (@problem_pools_from_db) {
@@ -279,5 +279,13 @@ my $pool_to_delete = $problem_pool_rs->deleteProblemPool(info => $updated_pool);
 removeIDs($pool_to_delete);
 $pool_to_delete->{course_name} = 'Arithmetic';
 is_deeply($updated_pool, $pool_to_delete, 'deleteProblemPool: delete an existing problem pool');
+
+# Ensure that the problem_pool table is restored.
+@problem_pools_from_db = $problem_pool_rs->getAllProblemPools();
+for my $pool (@problem_pools_from_db) {
+	removeIDs($pool);
+}
+
+is_deeply(\@problem_pools_from_file, \@problem_pools_from_db, 'check: Ensure that the problem_pool table is restored.');
 
 done_testing;
