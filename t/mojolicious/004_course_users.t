@@ -110,8 +110,7 @@ $t->delete_ok("/webwork3/api/courses/2/users/$new_user_id")->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/user_id' => $new_user_id);
 
 # Delete the added users.
-$t->delete_ok("/webwork3/api/users/$new_user_id")->status_is(200)
-	->json_is('/username' => $new_user->{username});
+$t->delete_ok("/webwork3/api/users/$new_user_id")->status_is(200)->json_is('/username' => $new_user->{username});
 
 # Logout of the admin user account.
 $t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);

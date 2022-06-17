@@ -1,7 +1,7 @@
 import { api } from 'boot/axios';
 
 import { ParseableUser, User } from 'src/common/models/users';
-import { ResponseError } from 'src/common/api-requests/interfaces';
+import { ResponseError } from 'src/common/api-requests/errors';
 
 /**
  * Gets the global user in the database given by username. This returns a user or throws a
