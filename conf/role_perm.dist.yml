@@ -1,0 +1,54 @@
+---
+# This file defines the default roles for webwork 3. If you wish to add or
+# change any roles, copy this file to conf/roles.yml and make changes.
+# Whether or not you have made changes, run /bin/update_role_db.pl to load all roles
+# in the database.
+
+roles:
+  - course_admin
+  - instructor
+  - ta
+  - student
+
+# This defines the permisions for each role for the backend/database.
+
+db_permissions:
+  Course:
+    getCourses:
+    getCourse:
+    updateCourse:
+      admin_required: true
+    addCourse:
+      admin_required: true
+    deleteCourse:
+      admin_required: true
+  User:
+    getGlobalUsers:
+      admin_required: true
+    getGlobalUser:
+      allowed_roles: ["course_admin", "instructor"]
+    updateGlobalUser:
+      admin_required: true
+    addGlobalUser:
+      admin_required: true
+    deleteGlobalUser:
+      admin_required: true
+    getUsers:
+      allowed_roles: ["course_admin", "instructor"]
+    getUser:
+      allowed_roles: ["course_admin", "instructor"]
+    addUser:
+      allowed_roles: ["course_admin", "instructor"]
+    updateUser:
+      allowed_roles: ["course_admin", "instructor"]
+    deleteUsers:
+      allowed_roles: ["course_admin", "instructor"]
+
+# This defines the permisions for each role for the frontend/UI layer.
+
+# This object is a list of routes, followed by an array of roles allowed.
+
+ui_permissions:
+  /login: ["*"]
+  /courses/*/instructor: ["instructor"]
+  /courses/*/student: ["instructor", "student"]
