@@ -6,8 +6,7 @@
 
 // tests parsing and handling of merged users
 
-import { EmailParseException, NonNegIntException, UsernameParseException,
-	UserRoleException } from 'src/common/models/parsers';
+import { EmailParseException, NonNegIntException, UsernameParseException } from 'src/common/models/parsers';
 import { CourseUser, DBCourseUser, ParseableDBCourseUser } from 'src/common/models/users';
 
 describe('Testing Database and client-side Course Users', () => {
@@ -16,7 +15,7 @@ describe('Testing Database and client-side Course Users', () => {
 		course_user_id: 0,
 		user_id: 0,
 		course_id: 0,
-		role: 'UNKNOWN'
+		role: ''
 	};
 
 	describe('Testing Database course users', () => {
@@ -47,10 +46,11 @@ describe('Testing Database and client-side Course Users', () => {
 			expect(course_user.clone() instanceof DBCourseUser).toBe(true);
 		});
 
-		test('create DBCourseUser with invalid role', () => {
+		// TODO: update this test after model validity has been changed.
+		test.skip('create DBCourseUser with invalid role', () => {
 			expect(() => {
 				new DBCourseUser({ role: 'superhero' });
-			}).toThrow(UserRoleException);
+			}).toThrow();
 		});
 
 		test('set fields of DBCourseUser', () => {
@@ -96,11 +96,6 @@ describe('Testing Database and client-side Course Users', () => {
 			course_user.set({ section: '12' });
 			expect(course_user.section).toBe('12');
 
-		});
-
-		test('set invalid role', () => {
-			const course_user = new DBCourseUser({ role: 'student' });
-			expect(() => { course_user.role = 'superhero';}).toThrow(UserRoleException);
 		});
 
 		test('set invalid user_id', () => {
@@ -187,13 +182,6 @@ describe('Testing Database and client-side Course Users', () => {
 			expect(() => {
 				new CourseUser({ username: 'test', email: 'user@info@site.com' });
 			}).toThrow(EmailParseException);
-		});
-
-		test('set invalid role', () => {
-			const course_user = new CourseUser({ username: 'test', role: 'student' });
-			expect(() => {
-				course_user.set({ role: 'superhero' });
-			}).toThrow(UserRoleException);
 		});
 
 		test('set fields of CourseUser', () => {

@@ -64,6 +64,7 @@ sub startup ($self) {
 
 	# Load all routes
 	$self->loginRoutes();
+	$self->permissionRoutes();
 	$self->coursesRoutes();
 	$self->userRoutes();
 	$self->courseUserRoutes();
@@ -87,6 +88,10 @@ sub loginRoutes ($self) {
 	$self->routes->post('/webwork3/api/login')->to('Login#login');
 	$self->routes->any('/webwork3/api/logout')->to('Login#logout_user');
 	return;
+}
+
+sub permissionRoutes ($self) {
+	$self->routes->get('/webwork3/api/roles')->to('Permission#getRoles');
 }
 
 sub coursesRoutes ($self) {

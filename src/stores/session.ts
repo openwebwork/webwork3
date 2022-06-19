@@ -11,7 +11,7 @@ import { ResponseError } from 'src/common/api-requests/interfaces';
 import { useUserStore } from 'src/stores/users';
 import { useSettingsStore } from 'src/stores/settings';
 import { useProblemSetStore } from 'src/stores/problem_sets';
-import { UserRole } from 'src/common/models/parsers';
+import { UserRole } from 'src/stores/permissions';
 
 interface CourseInfo {
 	course_name: string;
@@ -35,7 +35,7 @@ export const useSessionStore = defineStore('session', {
 		user: new User({ username: 'logged_out' }),
 		course: {
 			course_id: 0,
-			role: UserRole.unknown,
+			role: '',
 			course_name: ''
 		},
 		user_courses: []
@@ -57,7 +57,7 @@ export const useSessionStore = defineStore('session', {
 		setCourse(course: CourseInfo): void {
 			this.course = course;
 			this.course.role = this.user_courses.find((c) => c.course_id === course.course_id)?.role
-				|| UserRole.unknown;
+				|| '';
 		},
 		/**
 		 * fetch all User Courses for a given user.
@@ -83,7 +83,7 @@ export const useSessionStore = defineStore('session', {
 		logout() {
 			this.logged_in = false;
 			this.user = new User({ username: 'logged_out' });
-			this.course =  { course_id: 0, role: UserRole.unknown, course_name: '' };
+			this.course =  { course_id: 0, role: '', course_name: '' };
 			useProblemSetStore().clearAll();
 			useSettingsStore().clearAll();
 			useUserStore().clearAll();

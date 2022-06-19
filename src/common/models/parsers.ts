@@ -91,14 +91,6 @@ export class StringParseException extends ParseError {
 	}
 }
 
-/**
- * UserRoleException is thrown when the input is not a valid UserRole
- */
-export class UserRoleException extends ParseError {
-	constructor(message: string) {
-		super('UserRoleException', message, 'role');
-	}
-}
 
 // Parsing functions
 
@@ -158,22 +150,6 @@ export function parseNumber(_value: string | number) {
 		return parseFloat(_value);
 	}
 	throw new NumberParseException(`The value '${_value}' is not a number.`);
-}
-
-export enum UserRole {
-	admin = 'ADMIN',
-	instructor = 'INSTRUCTOR',
-	ta = 'TA',
-	student = 'STUDENT',
-	unknown = 'UNKNOWN'
-}
-
-export function parseUserRole(role: string): UserRole {
-	if (role.toLocaleLowerCase() === 'admin') return UserRole.admin;
-	if (role.toLocaleLowerCase() === 'instructor') return UserRole.instructor;
-	if (role.toLocaleLowerCase() === 'ta') return UserRole.ta;
-	if (role.toLocaleLowerCase() === 'student') return UserRole.student;
-	throw new UserRoleException(`The value '${role}' is not a valid role.`);
 }
 
 export function parseString(_value: string | number | boolean) {

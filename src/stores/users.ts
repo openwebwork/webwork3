@@ -5,7 +5,7 @@ import { logger } from 'boot/logger';
 import { DBCourseUser, ParseableCourseUser, ParseableDBCourseUser, ParseableUser } from 'src/common/models/users';
 import { User, CourseUser } from 'src/common/models/users';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
-import { UserRole } from 'src/common/models/parsers';
+import { UserRole } from 'src/stores/permissions';
 import { useSessionStore } from './session';
 
 export interface UserState {
@@ -240,7 +240,7 @@ export const useUserStore = defineStore('user', {
 				this.course_users.splice(index, 1);
 				const deleted_course_user = new DBCourseUser(response.data as ParseableCourseUser);
 				const user = this.users.find(u => u.user_id === deleted_course_user.user_id);
-				return new CourseUser(Object.assign(user?.toObject(), deleted_course_user.toObject()));
+				return new CourseUser(Object.assign({}, user?.toObject(), deleted_course_user.toObject()));
 			} else if (response.status === 250) {
 				logger.error(response.data);
 				throw response.data as ResponseError;

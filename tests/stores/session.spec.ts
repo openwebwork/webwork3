@@ -21,7 +21,7 @@ import { User } from 'src/common/models/users';
 import { SessionInfo } from 'src/common/models/session';
 
 import { cleanIDs, loadCSV } from '../utils';
-import { UserRole } from 'src/common/models/parsers';
+
 
 const app = createApp({});
 
@@ -101,7 +101,7 @@ describe('Session Store', () => {
 			expect(session.course).toStrictEqual({
 				course_id: 0,
 				course_name: '',
-				role: UserRole.unknown
+				role: ''
 			});
 		});
 

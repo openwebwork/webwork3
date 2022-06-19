@@ -1,5 +1,6 @@
 import { RequiredFieldsException, Model, Dictionary, generic  } from 'src/common/models';
-import { parseNonNegInt, parseBoolean, parseUsername, parseUserRole, UserRole } from './parsers';
+import { UserRole } from 'src/stores/permissions';
+import { parseNonNegInt, parseBoolean, parseUsername } from './parsers';
 
 export interface ParseableCourse {
 	course_id?: number | string;
@@ -118,7 +119,7 @@ export class UserCourse extends Model {
 	private _course_name = '';
 	private _username = '';
 	private _visible = true;
-	private _role = UserRole.unknown;
+	private _role = '';
 	private course_dates = new CourseDates();
 
 	static ALL_FIELDS = ['course_id', 'course_name', 'visible', 'course_dates',
@@ -183,6 +184,6 @@ export class UserCourse extends Model {
 	}
 
 	get role(): UserRole { return this._role; }
-	set role(value: string) { this._role = parseUserRole(value); }
+	set role(value: string) { this._role = value.toUpperCase(); }
 
 }

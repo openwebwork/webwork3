@@ -1,7 +1,7 @@
 
-import { parseNonNegInt, parseUsername, parseBoolean, parseEmail, parseUserRole,
-	UserRole } from 'src/common/models/parsers';
+import { parseNonNegInt, parseUsername, parseBoolean, parseEmail } from 'src/common/models/parsers';
 import { RequiredFieldsException, Model } from 'src/common/models';
+import { UserRole } from 'src/stores/permissions';
 
 export interface ParseableUser {
 	user_id?: number | string;
@@ -108,7 +108,7 @@ export class DBCourseUser extends Model {
 	private _course_user_id = 0;
 	private _course_id = 0;
 	private _user_id = 0;
-	private _role: UserRole = UserRole.unknown;
+	private _role: UserRole = '';
 	private _section?: string;
 	private _recitation?: string;
 
@@ -147,7 +147,7 @@ export class DBCourseUser extends Model {
 
 	get role(): string | undefined { return this._role; }
 	set role(value: string | undefined) {
-		if (value != undefined) this._role = parseUserRole(value);
+		if (value != undefined) this._role = value.toUpperCase();
 	}
 
 	get section(): string | undefined { return this._section; }
@@ -257,7 +257,7 @@ export class CourseUser extends Model {
 
 	get role(): string | undefined { return this._role; }
 	set role(value: string | undefined) {
-		if (value != undefined) this._role = parseUserRole(value);
+		if (value != undefined) this._role = value.toUpperCase();
 	}
 
 	get section(): string | undefined { return this._section; }
