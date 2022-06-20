@@ -54,8 +54,8 @@ sub startup ($self) {
 	$self->sessions->secure($config->{cookie_secure});
 
 	# Load permissions and set up a helper for dealing with permissions.
-	$perm_table = LoadFile("$ENV{WW3_ROOT}/conf/permissions.yaml");
-	$self->helper(perm_table => sub ($c) { return $perm_table; });
+	# $perm_table = LoadFile("$ENV{WW3_ROOT}/conf/permissions.yaml");
+	# $self->helper(perm_table => sub ($c) { return $perm_table; });
 
 	# Handle all api route exceptions
 	$self->hook(around_dispatch => $WeBWorK3::Hooks::exception_handler);

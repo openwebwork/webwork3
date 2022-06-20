@@ -2,19 +2,19 @@
 
 =head1 NAME
 
-role_perm_to_db.pl - Load the roles and permissions in conf/role_perm.yml into the database
+update_perms.pl - Load the roles and permissions in conf/permissions.yml into the database
 
 =head1 SYNOPSIS
 
-role_perm_to_db.p [options]
+update_perms.p [options]
 
  Options:
    -h|--help    Show full help
 
 =head1 DESCRIPTION
 
-All of the roles and permissions for webwork3 is defined in conf/role_perm.yml (or it's
-default file role_perm.dist.yml).  This script checks for consistancy of that file and
+All of the roles and permissions for webwork3 is defined in conf/permissions.yml (or it's
+default file permissions.dist.yml).  This script checks for consistancy of that file and
 then loads the roles and permissions into the database.
 
 =cut
@@ -53,15 +53,15 @@ my $schema = DB::Schema->connect(
 	{ quote_names => 1 }
 );
 
-my $role_perm_file = "$main::webwork3_dir/conf/role_perm.yml";
+my $role_perm_file = "$main::webwork3_dir/conf/permissions.yml";
 # if it doesn't exist, load the default one:
-$role_perm_file = "$main::webwork3_dir/conf/role_perm.dist.yml" unless -r $role_perm_file;
+$role_perm_file = "$main::webwork3_dir/conf/permissions.dist.yml" unless -r $role_perm_file;
 
 # load any YAML true/false as booleans, not string true/false.
 local $YAML::XS::Boolean = "JSON::PP";
 my $role_perm = LoadFile($role_perm_file);
 
-use Data::Dumper;
+print "Rebuilding all role an permissions in database\n";
 
 # clear out the tables role, db_perm, ui_perm
 $schema->resultset('Role')->delete_all;
@@ -75,18 +75,20 @@ $schema->resultset('Role')->populate(\@roles);
 
 # add the database permissions
 for my $category (keys %{$role_perm->{db_permissions}}) {
-	for my $task (keys %{$role_perm->{db_permissions}->{$category}}) {
-		my $row = { category => $category, task => $task };
-		$row->{admin_required} = $role_perm->{db_permissions}->{$category}->{$task}->{admin_required}
-			if $role_perm->{db_permissions}->{$category}->{$task}->{admin_required};
+	for my $action (keys %{$role_perm->{db_permissions}->{$category}}) {
+		my $row = { category => $category, action => $action };
+		$row->{admin_required} = $role_perm->{db_permissions}->{$category}->{$action}->{admin_required}
+			if $role_perm->{db_permissions}->{$category}->{$action}->{admin_required};
 
-		my $allowed_roles = $role_perm->{db_permissions}->{$category}->{$task}->{allowed_roles}
-			if $role_perm->{db_permissions}->{$category}->{$task}->{allowed_roles};
+		my $allowed_roles = $role_perm->{db_permissions}->{$category}->{$action}->{allowed_roles}
+			if $role_perm->{db_permissions}->{$category}->{$action}->{allowed_roles};
 
-		# check that the allowed roles exist.
-		for my $role (@$allowed_roles) {
-			my $role_in_db = $schema->resultset('Role')->find({ role_name => $role });
-			die "The role '$role' does not exist." unless defined $role_in_db;
+		# check that the allowed roles is '*" or that the role exist.
+		if ($allowed_roles && !(scalar(@$allowed_roles) == 1 && $allowed_roles->[0] eq '*')) {
+			for my $role (@$allowed_roles) {
+				my $role_in_db = $schema->resultset('Role')->find({ role_name => $role });
+				die "The role '$role' does not exist." unless defined $role_in_db;
+			}
 		}
 		$row->{allowed_roles} = $allowed_roles;
 

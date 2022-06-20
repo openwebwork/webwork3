@@ -3,6 +3,9 @@ use warnings;
 use strict;
 
 use Exception::Class (
+	'DB::Exception::RouteWithoutPermission' => {
+		fields => ['route', 'message']
+	},
 	'DB::Exception::UndefinedCourseField' => {
 		fields      => ['message'],
 		description => 'There is an undefined course setting field'

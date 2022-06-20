@@ -25,7 +25,7 @@ C<category>: the category (Controller module) of the task
 
 =item *
 
-C<task>: the name of the database task
+C<action>: the name of the database task
 
 =back
 
@@ -47,7 +47,7 @@ __PACKAGE__->add_columns(
 		size => 64,
 		is_nullable => 0,
 	},
-	task => {
+	action => {
 		data_type => 'text',
 		size => 64,
 		is_nullable => 0,
