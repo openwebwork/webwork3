@@ -47,6 +47,10 @@ __PACKAGE__->add_columns(
 		size => 256,
 		is_nullable => 0,
 	},
+	admin_required => {
+		data_type => 'boolean',
+		is_nullable => 1
+	},
 	allowed_roles => {
 		data_type => 'text',
 		size => 1024,

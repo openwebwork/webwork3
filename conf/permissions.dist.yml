@@ -13,6 +13,11 @@ roles:
 # This defines the permisions for each role for the backend/database.
 
 db_permissions:
+  Permission:
+    getRoles:
+      allowed_roles: ["*"]
+    getUIRoutePermissions:
+      allowed_roles: ["*"]
   Course:
     getCourses:
       allowed_roles: ["*"]
@@ -109,6 +114,11 @@ db_permissions:
 # This object is a list of routes, followed by an array of roles allowed.
 
 ui_permissions:
-  /login: ["*"]
-  /courses/*/instructor: ["instructor"]
-  /courses/*/student: ["instructor", "student"]
+  /login:
+    allowed_roles: ["*"]
+  /courses/*/instructor:
+    allowed_roles: ["instructor", "course_admin"]
+  /courses/*/student:
+    allowed_roles: ["student", "instructor", "course_admin"]
+  /admin:
+    admin_required: true

@@ -92,6 +92,7 @@ sub loginRoutes ($self) {
 
 sub permissionRoutes ($self) {
 	$self->routes->get('/webwork3/api/roles')->to('Permission#getRoles');
+	$self->routes->get('/webwork3/api/ui-permissions')->to('Permission#getUIRoutePermissions');
 }
 
 sub coursesRoutes ($self) {

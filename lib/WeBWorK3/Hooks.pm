@@ -42,8 +42,9 @@ sub has_permission ($c, $user) {
 		category =>  $c->{stash}{controller},
 		action =>  $c->{stash}{action}
 	});
+  print $c->{stash}{controller} . "\n";
 	DB::Exception::RouteWithoutPermission->throw(
-		message => "The route with action $c->{stash}{action} does not have a permission defined"
+		message => "The route with controller $c->{stash}{controller} and action $c->{stash}{action} does not have a permission defined"
 	) unless defined $perm_db;
 	return 1 if $user->{is_admin};
 

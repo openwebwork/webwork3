@@ -8,6 +8,7 @@ export type UserRole = string;
 interface UIPermission {
 	route: string;
 	allowed_roles: UserRole[];
+	admin_required: boolean;
 }
 
 export interface PermissionsState {
@@ -30,6 +31,17 @@ export const usePermissionStore = defineStore('permission', {
 		async fetchRoles(): Promise<void> {
 			const response = await api.get('roles/');
 			this.roles = (response.data as string[]).map(role => role.toUpperCase());
+		},
+		async fetchRoutePermissions(): Promise<void> {
+			const response = await api.get('ui-permissions/');
+			const perms = response.data as UIPermission[];
+
+			this.ui_permissions = perms.map(p => ({
+				allowed_roles: p.allowed_roles.map(r => r.toUpperCase()),
+				route: p.route,
+				// This can be updated when the server sends back true/false.
+				admin_required: p.admin_required ? true : false
+			}));
 		}
 	}
 });
