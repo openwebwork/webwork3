@@ -65,7 +65,7 @@ describe('Test the permissions store', () => {
 				allowed_roles: ['STUDENT', 'INSTRUCTOR', 'COURSE_ADMIN'],
 				admin_required: false
 			},
-		  { route: '/admin', admin_required: true, allowed_roles: [] }
+			{ route: '/admin', admin_required: true, allowed_roles: [] }
 		];
 
 		expect(permissions_store.ui_permissions.sort(routeCompare))

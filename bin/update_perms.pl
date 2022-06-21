@@ -43,7 +43,9 @@ GetOptions('h|help' => \$showHelp);
 pod2usage({ -verbose => 2, -exitval => 0 }) if $showHelp;
 
 # Load the configuration to obtain the database settings.
-my $config = LoadFile("$main::webwork3_dir/conf/webwork3.yml");
+my $ww3_conf = "$main::webwork3_dir/conf/webwork3.yml";
+$ww3_conf = "$main::webwork3_dir/conf/webwork3.dist.yml" unless -r $ww3_conf;
+my $config = LoadFile($ww3_conf);
 
 # Connect to the database.
 my $schema = DB::Schema->connect(
@@ -80,8 +82,7 @@ for my $category (keys %{ $role_perm->{db_permissions} }) {
 		$row->{admin_required} = $role_perm->{db_permissions}->{$category}->{$action}->{admin_required}
 			if $role_perm->{db_permissions}->{$category}->{$action}->{admin_required};
 
-		my $allowed_roles = $role_perm->{db_permissions}->{$category}->{$action}->{allowed_roles}
-			if $role_perm->{db_permissions}->{$category}->{$action}->{allowed_roles};
+		my $allowed_roles = $role_perm->{db_permissions}->{$category}->{$action}->{allowed_roles} // [];
 
 		# check that the allowed roles is '*" or that the role exist.
 		if ($allowed_roles && !(scalar(@$allowed_roles) == 1 && $allowed_roles->[0] eq '*')) {
@@ -99,11 +100,8 @@ for my $category (keys %{ $role_perm->{db_permissions} }) {
 # add the UI permissions
 
 for my $route (keys %{ $role_perm->{ui_permissions} }) {
-	my $allowed_roles = $role_perm->{ui_permissions}->{$route}->{allowed_roles}
-		if defined $role_perm->{ui_permissions}->{$route}->{allowed_roles};
-
-	my $admin_required = $role_perm->{ui_permissions}->{$route}->{admin_required}
-		if $role_perm->{ui_permissions}->{$route}->{admin_required};
+	my $allowed_roles = $role_perm->{ui_permissions}->{$route}->{allowed_roles} // [];
+	my $admin_required = $role_perm->{ui_permissions}->{$route}->{admin_required};
 
 	# check that the allowed roles exist.
 	for my $role (@$allowed_roles) {
