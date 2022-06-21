@@ -26,6 +26,7 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { checkPassword } from 'src/common/api-requests/session';
 import { useSessionStore } from 'src/stores/session';
+import { usePermissionStore } from 'src/stores/permissions';
 
 const router = useRouter();
 const username = ref('');
@@ -34,6 +35,7 @@ const message = ref('');
 const i18n = useI18n({ useScope: 'global' });
 
 const session = useSessionStore();
+const permission_store = usePermissionStore();
 
 if (session && session.logged_in && session.user) {
 	if (session.user.is_admin) {
@@ -53,6 +55,11 @@ const login = async () => {
 		message.value = i18n.t('authentication.failure');
 	} else {
 		// success
+		await permission_store.fetchRoles();
+		await permission_store.fetchRoutePermissions();
+
+		console.log(permission_store.ui_permissions);
+
 		void session.updateSessionInfo(session_info);
 		if (session_info?.user?.is_admin) {
 			void router.push('/admin');

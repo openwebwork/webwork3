@@ -1,4 +1,6 @@
 import { route } from 'quasar/wrappers';
+import { logger } from 'src/boot/logger';
+import { usePermissionStore } from 'src/stores/permissions';
 import { createMemoryHistory, createRouter, createWebHashHistory, createWebHistory } from 'vue-router';
 import routes from './routes';
 
@@ -16,7 +18,7 @@ export default route(() => {
 		? createMemoryHistory
 		: (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory);
 
-	const Router = createRouter({
+	const router = createRouter({
 		scrollBehavior: () => ({ left: 0, top: 0 }),
 		routes,
 
@@ -28,5 +30,17 @@ export default route(() => {
 		),
 	});
 
-	return Router;
+	router.beforeEach((to, _from, next) => {
+		if (to.path === '/login') next();
+		const permissions_store = usePermissionStore();
+		const perm = permissions_store.hasRoutePermission(to.path);
+		console.log(to);
+		console.log(perm);
+		if (!perm) {
+			logger.error(`[routing] The user does not have the permission to visit ${to.path}`);
+		}
+		next();
+	});
+
+	return router;
 });

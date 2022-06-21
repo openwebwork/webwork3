@@ -91,7 +91,6 @@ export class StringParseException extends ParseError {
 	}
 }
 
-
 // Parsing functions
 
 export function parseNonNegInt(val: string | number) {

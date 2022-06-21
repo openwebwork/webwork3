@@ -2,6 +2,7 @@
 
 import { defineStore } from 'pinia';
 import { api } from 'boot/axios';
+import { useSessionStore } from './session';
 
 export type UserRole = string;
 
@@ -25,7 +26,26 @@ export const usePermissionStore = defineStore('permission', {
 		/**
 		 * Determines if the passed in string is a valid role.
 		 */
-		isValidRole: (state) => (role: string): boolean  => state.roles.includes(role.toUpperCase())
+		isValidRole: (state) => (role: string): boolean  => state.roles.includes(role.toUpperCase()),
+
+		/**
+		 * Determines if the current user (from the session store) has permission for the given route.
+		 */
+		hasRoutePermission: (state) => (path: string): boolean => {
+			const role = useSessionStore().course.role ?? '';
+			const perms = state.ui_permissions.filter(perm => {
+				const re = new RegExp(perm.route.replace('*', '.*'));
+				return re.test(path);
+			});
+			// Find the longest matched route
+			const permission = perms.reduce((prev, curr) => prev.route.length > curr.route.length ? prev : curr,
+				{ route: '', allowed_roles: [], admin_required: false });
+			// console.log(permission);
+			// console.log(perms);
+			// console.log(role);
+			// console.log(path);
+			return permission.allowed_roles.includes(role);
+		 }
 	},
 	actions: {
 		async fetchRoles(): Promise<void> {

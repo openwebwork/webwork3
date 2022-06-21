@@ -13,6 +13,9 @@ roles:
 # This defines the permisions for each role for the backend/database.
 
 db_permissions:
+  Logger:
+    clientLog:
+      allowed_roles: ["*"]
   Permission:
     getRoles:
       allowed_roles: ["*"]
@@ -51,6 +54,8 @@ db_permissions:
     deleteUsers:
       allowed_roles: ["course_admin", "instructor"]
     getCourseUsers:
+      allowed_roles: ["course_admin", "instructor"]
+    getGlobalCourseUsers:
       allowed_roles: ["course_admin", "instructor"]
     getCourseUser:
       allowed_roles: ["course_admin", "instructor"]
@@ -116,6 +121,9 @@ db_permissions:
 ui_permissions:
   /login:
     allowed_roles: ["*"]
+  /users/*/courses:
+    allowed_roles: ["instructor", "course_admin"]
+    allow_self_access: true
   /courses/*/instructor:
     allowed_roles: ["instructor", "course_admin"]
   /courses/*/student:

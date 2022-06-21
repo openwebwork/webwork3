@@ -39,6 +39,7 @@ import ProblemSetList from 'components/sidebars/ProblemSetList.vue';
 import UserList from 'components/sidebars/UserList.vue';
 import LibrarySidebar from 'components/sidebars/LibrarySidebar.vue';
 import { logger } from 'boot/logger';
+import { usePermissionStore } from 'src/stores/permissions';
 
 export default defineComponent({
 	components: {
@@ -91,5 +92,10 @@ export default defineComponent({
 			sidebars
 		};
 	},
+	beforeCreate() {
+		const permission_store = usePermissionStore();
+		void permission_store.fetchRoles();
+		void permission_store.fetchRoutePermissions();
+	}
 });
 </script>
