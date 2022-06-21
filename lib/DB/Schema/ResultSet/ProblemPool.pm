@@ -119,9 +119,9 @@ sub addProblemPool ($self, %args) {
 	DB::Exception::PoolAlreadyInCourse->throw(
 		message => 'The problem pool '
 			. (
-				$args{info}->{pool_name} || $args{params}->{pool_name}
-				? ' with name ' . ($args{info}->{pool_name} // $args{params}->{pool_name})
-				: ' with id ' . $args{info}->{problem_pool_id}
+			$args{info}->{pool_name} || $args{params}->{pool_name}
+			? ' with name ' . ($args{info}->{pool_name} // $args{params}->{pool_name})
+			: ' with id ' . $args{info}->{problem_pool_id}
 			)
 			. " is already defined in the course $course->course_name"
 	) if defined($existing_pool);
@@ -154,9 +154,7 @@ sub updateProblemPool ($self, %args) {
 	DB::Excpetion::PoolNotInCourse->throw(
 		message => 'The problem pool '
 			. (
-				$args{info}->{pool_name}
-				? " named $args{info}->{pool_name}"
-				: " with id $args{info}->{problem_pool_id}"
+			$args{info}->{pool_name} ? " named $args{info}->{pool_name}" : " with id $args{info}->{problem_pool_id}"
 			)
 			. ' is not in the course '
 			. $args{info}->{course_name} ? " named '$args{info}->{course_name}'" : " with id $args{info}->{course_id}"

@@ -169,9 +169,9 @@ sub getSetProblem ($self, %args) {
 	DB::Exception::SetProblemNotFound->throw(
 		message => 'the problem with '
 			. (
-				$args{info}->{problem_number}
-				? 'problem number ' . $args{info}->{problem_number}
-				: 'set_problem id: ' . $args{info}->{set_problem_id}
+			$args{info}->{problem_number}
+			? 'problem number ' . $args{info}->{problem_number}
+			: 'set_problem id: ' . $args{info}->{set_problem_id}
 			)
 			. ' is not found for set: '
 			. $problem_set->set_name

@@ -45,7 +45,7 @@ export const usePermissionStore = defineStore('permission', {
 			// console.log(role);
 			// console.log(path);
 			return permission.allowed_roles.includes(role);
-		 }
+		}
 	},
 	actions: {
 		async fetchRoles(): Promise<void> {

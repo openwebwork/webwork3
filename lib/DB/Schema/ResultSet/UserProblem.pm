@@ -413,9 +413,9 @@ sub updateUserProblem ($self, %args) {
 		$args{info}->{user_problem_id}
 		? $self->find({ user_problem_id => $args{info}->{user_problem_id} })
 		: $self->getUserProblem(
-			info          => $args{info},
-			skip_throw    => 1,
-			as_result_set => 1
+		info          => $args{info},
+		skip_throw    => 1,
+		as_result_set => 1
 		);
 
 	DB::Exception::UserProblemNotFound->throw(message => 'The user '
@@ -481,9 +481,9 @@ sub deleteUserProblem ($self, %args) {
 		$args{info}->{user_problem_id}
 		? $self->find({ user_problem_id => $args{info}->{user_problem_id} })
 		: $self->getUserProblem(
-			info          => $args{info},
-			skip_throw    => 1,
-			as_result_set => 1
+		info          => $args{info},
+		skip_throw    => 1,
+		as_result_set => 1
 		);
 
 	DB::Exception::UserProblemNotFound->throw(message => 'The user '

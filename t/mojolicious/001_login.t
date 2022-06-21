@@ -25,29 +25,29 @@ my $t = Test::Mojo->new('WeBWorK3' => LoadFile($config_file));
 # Test missing credentials
 $t->post_ok('/webwork3/api/login')->status_is(500, 'error status')->content_type_is('application/json;charset=UTF-8')
 	->json_is(
-		'' => {
-			exception => 'DB::Exception::ParametersNeeded',
-			message   => 'You must pass exactly one of user_id, username, email.'
-		},
-		'no credentials'
+	'' => {
+		exception => 'DB::Exception::ParametersNeeded',
+		message   => 'You must pass exactly one of user_id, username, email.'
+	},
+	'no credentials'
 	);
 
 # Test valid username and password
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is(
-		'' => {
-			logged_in => 1,
-			user      => {
-				email      => 'lisa@google.com',
-				first_name => 'Lisa',
-				is_admin   => 0,
-				last_name  => 'Simpson',
-				student_id => '23',
-				user_id    => 3,
-				username   => 'lisa'
-			}
-		},
-		'valid credentials'
+	'' => {
+		logged_in => 1,
+		user      => {
+			email      => 'lisa@google.com',
+			first_name => 'Lisa',
+			is_admin   => 0,
+			last_name  => 'Simpson',
+			student_id => '23',
+			user_id    => 3,
+			username   => 'lisa'
+		}
+	},
+	'valid credentials'
 	);
 
 # Test logout
@@ -62,11 +62,11 @@ $t->post_ok('/webwork3/api/logout')->status_is(200)->content_type_is('applicatio
 # Test for a bad password
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'wrong_password' })->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is(
-		'' => {
-			logged_in => 0,
-			message   => 'Incorrect username or password.'
-		},
-		'invalid credentials'
+	'' => {
+		logged_in => 0,
+		message   => 'Incorrect username or password.'
+	},
+	'invalid credentials'
 	);
 
 done_testing;
