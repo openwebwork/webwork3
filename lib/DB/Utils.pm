@@ -11,8 +11,8 @@ our @EXPORT_OK = qw/getCourseInfo getUserInfo getSetInfo updateAllFields
 	getPoolInfo getProblemInfo getPoolProblemInfo removeLoginParams/;
 
 use Carp;
-use Clone        qw/clone/;
-use List::Util   qw/first/;
+use Clone qw/clone/;
+use List::Util qw/first/;
 use Scalar::Util qw/reftype/;
 
 use Exception::Class ('DB::Exception::ParametersNeeded');

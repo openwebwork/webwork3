@@ -7,7 +7,7 @@ use strict;
 
 BEGIN {
 	use File::Basename qw/dirname/;
-	use Cwd            qw/abs_path/;
+	use Cwd qw/abs_path/;
 	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
@@ -23,7 +23,7 @@ use YAML::XS qw/LoadFile/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
-use DB::Utils     qw/updateAllFields/;
+use DB::Utils qw/updateAllFields/;
 
 # Set up the database.
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";

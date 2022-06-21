@@ -8,7 +8,7 @@ use feature 'say';
 
 BEGIN {
 	use File::Basename qw/dirname/;
-	use Cwd            qw/abs_path/;
+	use Cwd qw/abs_path/;
 	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
@@ -19,7 +19,7 @@ use Test::More;
 use Clone qw/clone/;
 use Test::Exception;
 use List::MoreUtils qw/firstval/;
-use YAML::XS        qw/LoadFile/;
+use YAML::XS qw/LoadFile/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;

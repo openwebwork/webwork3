@@ -36,7 +36,7 @@ use feature 'say';
 
 BEGIN {
 	use File::Basename qw/dirname/;
-	use Cwd            qw/abs_path/;
+	use Cwd qw/abs_path/;
 	$main::webwork3_dir = dirname(dirname(abs_path(__FILE__)));
 }
 

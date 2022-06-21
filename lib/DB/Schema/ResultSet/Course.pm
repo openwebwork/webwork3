@@ -7,7 +7,7 @@ no warnings qw(experimental::signatures);
 
 use base 'DBIx::Class::ResultSet';
 
-use Clone     qw/clone/;
+use Clone qw/clone/;
 use DB::Utils qw/getCourseInfo getUserInfo/;
 use DB::Exception;
 use Exception::Class ('DB::Exception::CourseNotFound', 'DB::Exception::CourseExists');

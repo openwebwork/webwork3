@@ -7,13 +7,13 @@ use Test::Mojo;
 
 BEGIN {
 	use File::Basename qw/dirname/;
-	use Cwd            qw/abs_path/;
+	use Cwd qw/abs_path/;
 	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
 use lib "$main::ww3_dir/lib";
 
-use Clone    qw/clone/;
+use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
 
 # Test the api with common 'courses' routes.
