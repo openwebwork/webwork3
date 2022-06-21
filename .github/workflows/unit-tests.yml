@@ -18,6 +18,7 @@ jobs:
           HARNESS_PERL_SWITCHES: -MDevel::Cover
         run: |
           perl t/db/build_db.pl
+          perl bin/update_perms.pl
           prove -r t
 
       # we probably don'te need to upload the codecov data
