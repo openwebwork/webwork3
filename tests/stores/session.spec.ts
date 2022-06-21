@@ -22,7 +22,6 @@ import { SessionInfo } from 'src/common/models/session';
 
 import { cleanIDs, loadCSV } from '../utils';
 
-
 const app = createApp({});
 
 describe('Session Store', () => {

@@ -7,7 +7,7 @@ use strict;
 
 BEGIN {
 	use File::Basename qw/dirname/;
-	use Cwd qw/abs_path/;
+	use Cwd            qw/abs_path/;
 	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
@@ -15,12 +15,12 @@ use lib "$main::ww3_dir/lib";
 
 use Test::More;
 use Test::Exception;
-use Clone qw/clone/;
+use Clone           qw/clone/;
 use List::MoreUtils qw/firstval/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
-use YAML qw/LoadFile/;
+use YAML          qw/LoadFile/;
 use DateTime::Format::Strptime;
 
 # Load the database

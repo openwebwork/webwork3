@@ -55,6 +55,8 @@ db_permissions:
       allowed_roles: ["course_admin", "instructor"]
     getCourseUsers:
       allowed_roles: ["course_admin", "instructor"]
+    getUserCourses:
+      allowed_roles: ["course_admin", "instructor"]
     getGlobalCourseUsers:
       allowed_roles: ["course_admin", "instructor"]
     getCourseUser:
@@ -103,7 +105,7 @@ db_permissions:
       allowed_roles: ["course_admin", "instructor"]
     updateUserProblem:
       allowed_roles: ["course_admin", "instructor"]
-    deleteUserProblme:
+    deleteUserProblem:
       allowed_roles: ["course_admin", "instructor"]
   Settings:
     getDefaultCourseSettings:

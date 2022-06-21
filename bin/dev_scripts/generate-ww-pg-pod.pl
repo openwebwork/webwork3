@@ -67,7 +67,7 @@ pod2usage(2) unless (($webwork3_root || $pg_root) && $output_dir);
 $base_url = "/" if !$base_url;
 
 use IO::File;
-use File::Path qw(make_path remove_tree);
+use File::Path     qw(make_path remove_tree);
 use File::Basename qw(dirname);
 
 use lib dirname(__FILE__);

@@ -4,7 +4,7 @@ use strict;
 
 use Exception::Class (
 	'DB::Exception::RouteWithoutPermission' => {
-		fields => ['route', 'message']
+		fields => [ 'route', 'message' ]
 	},
 	'DB::Exception::UndefinedCourseField' => {
 		fields      => ['message'],

@@ -9,15 +9,15 @@ use DateTime::Format::Strptime;
 
 BEGIN {
 	use File::Basename qw/dirname/;
-	use Cwd qw/abs_path/;
+	use Cwd            qw/abs_path/;
 	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
 use lib "$main::ww3_dir/lib";
 
 use DB::Schema;
-use Clone qw/clone/;
-use YAML::XS qw/LoadFile/;
+use Clone         qw/clone/;
+use YAML::XS      qw/LoadFile/;
 use DB::TestUtils qw/loadCSV/;
 
 # Test the api with common 'courses/sets' routes for quizzes.

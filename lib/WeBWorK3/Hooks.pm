@@ -39,22 +39,22 @@ our $exception_handler = sub ($next, $c) {
 
 sub has_permission ($c, $user) {
 	my $perm_db = $c->schema->resultset('DBPermission')->find({
-		category =>  $c->{stash}{controller},
-		action =>  $c->{stash}{action}
+		category => $c->{stash}{controller},
+		action   => $c->{stash}{action}
 	});
-  print $c->{stash}{controller} . "\n";
-	DB::Exception::RouteWithoutPermission->throw(
-		message => "The route with controller $c->{stash}{controller} and action $c->{stash}{action} does not have a permission defined"
+	print $c->{stash}{controller} . "\n";
+	DB::Exception::RouteWithoutPermission->throw(message =>
+			"The route with controller $c->{stash}{controller} and action $c->{stash}{action} does not have a permission defined"
 	) unless defined $perm_db;
 	return 1 if $user->{is_admin};
 
 	my $allowed_roles = $perm_db->allowed_roles;
 
-	my @tmp =  grep { $_ eq $user->{role} } @{ $allowed_roles };
+	my @tmp = grep { $_ eq $user->{role} // '' } @{$allowed_roles};
 
 	if ($allowed_roles) {
 		return 1 if scalar(@$allowed_roles) == 1 && $allowed_roles->[0] eq '*';
-		return grep { $_ eq $user->{role} } @{ $allowed_roles };
+		return grep { $_ eq $user->{role} // '' } @{$allowed_roles};
 	}
 	return $user && $user->{is_admin};
 }
@@ -88,8 +88,7 @@ our $check_permission = sub ($next, $c, $action, $) {
 		# don't consult the permission table if a user is requesting their own information
 		my $userRequestingOwnInfo = ($c->stash('user_id') && $user->{user_id} == $c->stash('user_id')) ? 1 : 0;
 
-		if ($userRequestingOwnInfo || has_permission($c, $user))
-		{
+		if ($userRequestingOwnInfo || has_permission($c, $user)) {
 			return $next->();
 		} else {
 			$c->render(json => { has_permission => 0, msg => 'permission error' }, status => 403);

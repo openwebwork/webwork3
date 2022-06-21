@@ -37,30 +37,30 @@ __PACKAGE__->load_components(qw/InflateColumn::Serializer Core/);
 
 __PACKAGE__->add_columns(
 	db_perm_id => {
-		data_type => 'integer',
-		size => 16,
-		is_nullable => 0,
+		data_type         => 'integer',
+		size              => 16,
+		is_nullable       => 0,
 		is_auto_increment => 1
 	},
 	category => {
-		data_type => 'text',
-		size => 64,
+		data_type   => 'text',
+		size        => 64,
 		is_nullable => 0,
 	},
 	action => {
-		data_type => 'text',
-		size => 64,
+		data_type   => 'text',
+		size        => 64,
 		is_nullable => 0,
 	},
 	admin_required => {
-		data_type => 'boolean',
-		size => 8,
+		data_type   => 'boolean',
+		size        => 8,
 		is_nullable => 1
 	},
 	allowed_roles => {
-		data_type => 'text',
-		size => 1024,
-		is_nullable => 1,
+		data_type          => 'text',
+		size               => 1024,
+		is_nullable        => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}

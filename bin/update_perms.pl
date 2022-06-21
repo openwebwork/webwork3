@@ -25,7 +25,7 @@ use feature 'say';
 
 BEGIN {
 	use File::Basename qw/dirname/;
-	use Cwd qw/abs_path/;
+	use Cwd            qw/abs_path/;
 	$main::webwork3_dir = dirname(dirname(abs_path(__FILE__)));
 }
 
@@ -70,12 +70,12 @@ $schema->resultset('UIPermission')->delete_all;
 
 # add the roles to the database
 
-my @roles = map { {role_name => $_}; } @{$role_perm->{roles}};
+my @roles = map { { role_name => $_ }; } @{ $role_perm->{roles} };
 $schema->resultset('Role')->populate(\@roles);
 
 # add the database permissions
-for my $category (keys %{$role_perm->{db_permissions}}) {
-	for my $action (keys %{$role_perm->{db_permissions}->{$category}}) {
+for my $category (keys %{ $role_perm->{db_permissions} }) {
+	for my $action (keys %{ $role_perm->{db_permissions}->{$category} }) {
 		my $row = { category => $category, action => $action };
 		$row->{admin_required} = $role_perm->{db_permissions}->{$category}->{$action}->{admin_required}
 			if $role_perm->{db_permissions}->{$category}->{$action}->{admin_required};
@@ -98,7 +98,7 @@ for my $category (keys %{$role_perm->{db_permissions}}) {
 
 # add the UI permissions
 
-for my $route (keys %{$role_perm->{ui_permissions}}) {
+for my $route (keys %{ $role_perm->{ui_permissions} }) {
 	my $allowed_roles = $role_perm->{ui_permissions}->{$route}->{allowed_roles}
 		if defined $role_perm->{ui_permissions}->{$route}->{allowed_roles};
 
@@ -113,8 +113,8 @@ for my $route (keys %{$role_perm->{ui_permissions}}) {
 	}
 
 	$schema->resultset('UIPermission')->create({
-		route => $route,
-		allowed_roles => $allowed_roles,
+		route          => $route,
+		allowed_roles  => $allowed_roles,
 		admin_required => $admin_required
 	});
 }

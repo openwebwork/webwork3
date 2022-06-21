@@ -30,14 +30,14 @@ __PACKAGE__->table('role');
 
 __PACKAGE__->add_columns(
 	role_id => {
-		data_type => 'integer',
-		size => 16,
-		is_nullable => 0,
+		data_type         => 'integer',
+		size              => 16,
+		is_nullable       => 0,
 		is_auto_increment => 1
 	},
 	role_name => {
-		data_type => 'text',
-		size => 64,
+		data_type   => 'text',
+		size        => 64,
 		is_nullable => 0,
 	}
 );

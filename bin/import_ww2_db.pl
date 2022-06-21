@@ -52,7 +52,7 @@ use YAML::XS qw/LoadFile/;
 
 BEGIN {
 	use File::Basename qw/dirname/;
-	use Cwd qw/abs_path/;
+	use Cwd            qw/abs_path/;
 	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/..';
 }
 

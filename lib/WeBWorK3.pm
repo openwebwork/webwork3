@@ -2,7 +2,7 @@ package WeBWorK3;
 use Mojo::Base 'Mojolicious', -signatures;
 
 use Mojo::File qw(curfile path);
-use YAML::XS qw/LoadFile/;
+use YAML::XS   qw/LoadFile/;
 
 BEGIN {
 	use Env qw(WW3_ROOT);
@@ -93,6 +93,7 @@ sub loginRoutes ($self) {
 sub permissionRoutes ($self) {
 	$self->routes->get('/webwork3/api/roles')->to('Permission#getRoles');
 	$self->routes->get('/webwork3/api/ui-permissions')->to('Permission#getUIRoutePermissions');
+	return;
 }
 
 sub coursesRoutes ($self) {

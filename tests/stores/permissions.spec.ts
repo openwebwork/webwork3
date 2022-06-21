@@ -14,8 +14,6 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { api } from 'boot/axios';
 
 import { usePermissionStore } from 'src/stores/permissions';
-import { Course } from 'src/common/models/courses';
-import { cleanIDs, loadCSV } from '../utils';
 
 describe('Test the permissions store', () => {
 
@@ -44,8 +42,7 @@ describe('Test the permissions store', () => {
 	});
 
 	const routeCompare = (route1: { route: string}, route2: { route: string }) =>
-		route1.route > route2.route ? 1: -1;
-
+		route1.route > route2.route ? 1 : -1;
 
 	test('Load the UI route permissions', async () => {
 		const permissions_store = usePermissionStore();
@@ -54,8 +51,20 @@ describe('Test the permissions store', () => {
 		// the route permissions.  Perhaps better to load from yaml file.
 		const route_permissions = [
 			{ route: '/login', allowed_roles: ['*'], admin_required: false },
-			{ route: '/courses/*/instructor', allowed_roles: ['INSTRUCTOR', 'COURSE_ADMIN'], admin_required: false },
-			{ route: '/courses/*/student', allowed_roles: ['STUDENT', 'INSTRUCTOR', 'COURSE_ADMIN'], admin_required: false },
+			{
+				route: '/users/*/courses',
+				allowed_roles: ['INSTRUCTOR', 'COURSE_ADMIN'],
+				admin_required: false
+			},
+			{
+				route: '/courses/*/instructor',
+				allowed_roles: ['INSTRUCTOR', 'COURSE_ADMIN'],
+				admin_required: false },
+			{
+				route: '/courses/*/student',
+				allowed_roles: ['STUDENT', 'INSTRUCTOR', 'COURSE_ADMIN'],
+				admin_required: false
+			},
 		  { route: '/admin', admin_required: true, allowed_roles: [] }
 		];
 
@@ -63,6 +72,5 @@ describe('Test the permissions store', () => {
 			.toStrictEqual(route_permissions.sort(routeCompare));
 
 	});
-
 
 });

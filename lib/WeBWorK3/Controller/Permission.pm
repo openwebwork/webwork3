@@ -13,8 +13,10 @@ sub getRoles ($self) {
 }
 
 sub getUIRoutePermissions ($self) {
-	my @perms = $self->schema->resultset('UIPermission')->search;
-	my @route_perms = map { {$_->get_inflated_columns}; } @perms;
+	my @perms       = $self->schema->resultset('UIPermission')->search;
+	my @route_perms = map {
+		{ $_->get_inflated_columns };
+	} @perms;
 	$self->render(json => \@route_perms);
 	return;
 }

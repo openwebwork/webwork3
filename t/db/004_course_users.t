@@ -7,7 +7,7 @@ use strict;
 
 BEGIN {
 	use File::Basename qw/dirname/;
-	use Cwd qw/abs_path/;
+	use Cwd            qw/abs_path/;
 	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
 }
 
@@ -16,11 +16,11 @@ use lib "$main::ww3_dir/lib";
 use Test::More;
 use Test::Exception;
 use YAML::XS qw/LoadFile/;
-use Clone qw/clone/;
+use Clone    qw/clone/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
-use DB::Utils qw/removeLoginParams/;
+use DB::Utils     qw/removeLoginParams/;
 
 # Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";

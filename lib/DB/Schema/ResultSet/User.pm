@@ -16,7 +16,7 @@ no warnings qw(experimental::signatures);
 use base 'DBIx::Class::ResultSet';
 
 use Array::Utils qw/array_minus/;
-use Clone qw/clone/;
+use Clone        qw/clone/;
 
 use DB::Utils qw/getCourseInfo getUserInfo removeLoginParams/;
 
