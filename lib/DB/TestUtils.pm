@@ -7,12 +7,14 @@ no warnings qw(experimental::signatures);
 
 use Text::CSV qw/csv/;
 use DateTime::Format::Strptime;
+use Mojo::JSON qw/true false/;
 
 require Exporter;
 use base qw(Exporter);
 our @EXPORT_OK = qw/buildHash loadCSV removeIDs filterBySetType loadSchema/;
 
-my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
+my $strp_datetime = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
+my $strp_date     = DateTime::Format::Strptime->new(pattern => '%F',    on_error => 'croak');
 
 =head1 DESCRIPTION
 
@@ -25,33 +27,52 @@ field starting with PARAM: and DATE: respectively.
 
 =cut
 
-sub buildHash ($input) {
+sub buildHash ($input, $config) {
 	my $output = {};
 	for my $key (keys %{$input}) {
 		if ($key =~ /^([A-Z_]+):(.*)/x) {
-			$output->{ lc($1) } = {} unless defined($output->{ lc($1) });
-			$output->{ lc($1) }->{$2} = $input->{$key} if defined($input->{$key});
+			my $field    = lc($1);
+			my $subfield = lc($2);
+			$output->{$field} = {} unless defined($output->{$field});
+			if ($key =~ /DATES:/) {
+				# Determine if each field is a date, a datetime or other (currently a boolean).
+				if (defined($input->{$key}) && $input->{$key} =~ /^\d{4}-\d{2}-\d{2}$/) {
+					my $dt = $strp_date->parse_datetime($input->{$key});
+					$output->{$field}->{$subfield} = $dt->epoch;
+				} elsif (defined($input->{$key}) && $input->{$key} =~ /^\d{4}-\d{2}-\d{2}T\d\d:\d\d:\d\dZ$/) {
+					my $dt = $strp_datetime->parse_datetime($input->{$key});
+					$output->{$field}->{$subfield} = $dt->epoch;
+				} elsif (grep {/^$subfield$/} @{ $config->{param_boolean_fields} }) {
+					$output->{$field}->{$subfield} = int($input->{$key}) ? true : false if defined($input->{$key});
+				}
+			} elsif (grep {/^$subfield$/} @{ $config->{param_boolean_fields} }) {
+				$output->{$field}->{$subfield} = int($input->{$key}) ? true : false if defined($input->{$key});
+			} elsif (grep {/^$subfield$/} @{ $config->{param_non_neg_int_fields} }) {
+				$output->{$field}->{$subfield} = int($input->{$key}) if defined($input->{$key});
+			} elsif (grep {/^$subfield$/} @{ $config->{param_non_neg_float_fields} }) {
+				$output->{$field}->{$subfield} = 0 + $input->{$key} if defined($input->{$key});
+			} else {
+				$output->{$field}->{$subfield} = $input->{$key} if defined($input->{$key});
+			}
+		} elsif (grep {/^$key$/} @{ $config->{boolean_fields} }) {
+			$output->{$key} = defined($input->{$key}) && int($input->{$key}) ? true : false;
+		} elsif (grep {/^$key$/} @{ $config->{non_neg_int_fields} }) {
+			$output->{$key} = int($input->{$key}) if defined($input->{$key});
+		} elsif (grep {/^$key$/} @{ $config->{non_neg_float_fields} }) {
+			$output->{$key} = 0 + $input->{$key} if defined($input->{$key});
 		} else {
 			$output->{$key} = $input->{$key};
 		}
-	}
 
-	# parse dates
-	if ($output->{set_dates}) {
-		for my $date (keys %{ $output->{set_dates} }) {
-			my $dt = $strp->parse_datetime($output->{set_dates}->{$date});
-			$output->{set_dates}->{$date} = $dt->epoch;
-		}
 	}
-
 	return $output;
 }
 
-sub loadCSV ($filename) {
-	my $items_from_csv = csv(in => $filename, headers => 'auto', blank_is_undef => 1);
+sub loadCSV ($filename, $config = {}) {
+	my $items_from_csv = csv(in => $filename, headers => "auto", blank_is_undef => 1);
 	my @all_items      = ();
 	for my $item (@$items_from_csv) {
-		push(@all_items, buildHash($item));
+		push(@all_items, buildHash($item, $config));
 	}
 	return @all_items;
 }

@@ -232,14 +232,12 @@ for my $user_course (@user_courses) {
 	removeIDs($user_course);
 }
 
-my @courses = loadCSV("$main::ww3_dir/t/db/sample_data/courses.csv");
-for my $course (@courses) {
-	for my $date (keys %{ $course->{course_dates} }) {
-		my $dt = $strp->parse_datetime($course->{course_dates}->{$date});
-		$course->{course_dates}->{$date} = $dt->epoch;
+my @courses = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/courses.csv",
+	{
+		boolean_fields => ['visible']
 	}
-}
-
+);
 @students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
 
 my @user_courses_from_csv = grep { $_->{username} eq 'lisa' } @students;
