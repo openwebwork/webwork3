@@ -17,11 +17,12 @@ use Test::More;
 use Test::Exception;
 use Clone qw/clone/;
 use List::MoreUtils qw/firstval/;
+use YAML qw/LoadFile/;
+use DateTime::Format::Strptime;
+use Mojo::JSON qw/true false/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
-use YAML qw/LoadFile/;
-use DateTime::Format::Strptime;
 
 # Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
@@ -43,7 +44,7 @@ for my $student (@students) {
 	for my $key (qw/course_name recitation section params role/) {
 		delete $student->{$key};
 	}
-	$student->{is_admin} = Mojo::JSON::false;
+	$student->{is_admin} = false;
 }
 
 # Add the admin user
@@ -52,7 +53,7 @@ push(
 	{
 		username   => 'admin',
 		email      => 'admin@google.com',
-		is_admin   => Mojo::JSON::true,
+		is_admin   => true,
 		first_name => 'Andrea',
 		last_name  => 'Administrator',
 		student_id => undef
@@ -104,7 +105,7 @@ $user = {
 	first_name => 'Clancy',
 	email      => 'wiggam@springfieldpd.gov',
 	student_id => '',
-	is_admin   => Mojo::JSON::false,
+	is_admin   => false,
 };
 
 my $new_user = $users_rs->addGlobalUser(params => $user);
@@ -152,7 +153,7 @@ my $user2 = {
 	first_name => 'Selma',
 	email      => 'selma@google.com',
 	student_id => '',
-	is_admin   => Mojo::JSON::false,
+	is_admin   => false,
 };
 
 my $added_user2 = $users_rs->addGlobalUser(params => $user2);

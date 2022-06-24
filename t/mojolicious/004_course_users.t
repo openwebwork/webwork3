@@ -4,7 +4,7 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
-use Mojo::JSON;
+use Mojo::JSON qw/true false/;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -62,7 +62,7 @@ my $course_user_params = {
 	role               => 'student',
 	course_user_params => {
 		comment      => "I love my big sister",
-		useMathQuill => Mojo::JSON::true
+		useMathQuill => true
 	}
 };
 
@@ -130,7 +130,7 @@ $t->get_ok('/webwork3/api/courses/1/users')->status_is(200)->content_type_is('ap
 
 ok($added_user->{course_user_params}->{useMathQuill}, 'Testing that useMathQuill param is truthy.');
 is($added_user->{course_user_params}->{useMathQuill},
-	Mojo::JSON::true, 'Testing that the useMathQuill param compares to JSON::true');
+	true, 'Testing that the useMathQuill param compares to JSON::true');
 ok(
 	JSON::PP::is_bool($added_user->{course_user_params}->{useMathQuill}),
 	'Testing that the useMathQuill param is a JSON boolean'

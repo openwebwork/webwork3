@@ -1,7 +1,7 @@
 /**
-* This defines UserSets for the database (DBUserSet) and a UserSet (merged version
-* between a DBUserSet and a ProblemSt))
-*/
+ * This defines UserSets for the database (DBUserSet) and a UserSet (merged version
+ * between a DBUserSet and a ProblemSt))
+ */
 
 import { Model } from '.';
 import { MergeError, parseBoolean, parseNonNegInt, parseUsername } from './parsers';
@@ -29,10 +29,10 @@ export type ParseableDBUserSet = {
 }
 
 /**
-* The DBUserSet is used for overrides for a ProblemSet and in the client-side model
-* of the UserSet on the database.  Note: this has changed recently
-* to reflect that the UserSet should be independent of a ProblemSet (not inherit from it).
-*/
+ * The DBUserSet is used for overrides for a ProblemSet and in the client-side model
+ * of the UserSet on the database.  Note: this has changed recently
+ * to reflect that the UserSet should be independent of a ProblemSet (not inherit from it).
+ */
 export class DBUserSet extends Model {
 	private _user_set_id = 0;
 	private _course_user_id = 0;
@@ -90,8 +90,8 @@ export class DBUserSet extends Model {
 }
 
 /**
-* UserHomeworkSet is a HomeworkSet for a User
-*/
+ * UserHomeworkSet is a HomeworkSet for a User
+ */
 
 export type ParseableDBUserHomeworkSet = ParseableDBUserSet &
 	{
@@ -183,9 +183,9 @@ export class DBUserHomeworkSet extends DBUserSet {
 }
 
 /**
-	* DBUserQuiz stores a user quiz that mimics that on the database. This is used
-	* in the store as a transition to the database.
-	*/
+ * DBUserQuiz stores a user quiz that mimics that on the database. This is used
+ * in the store as a transition to the database.
+ */
 
 export type ParseableDBUserQuiz  = ParseableDBUserSet &
 	{
@@ -269,9 +269,9 @@ export class DBUserQuiz extends DBUserSet {
 }
 
 /**
-* DBUserReviewSet stores a user review set that mimics that on the database. This is used
-* in the store as a transition to the database.
-*/
+ * DBUserReviewSet stores a user review set that mimics that on the database. This is used
+ * in the store as a transition to the database.
+ */
 
 export type ParseableDBUserReviewSet = ParseableDBUserSet &
 	{
@@ -359,8 +359,8 @@ export function parseDBUserSet(user_set: ParseableDBUserSet) {
 }
 
 /**
-* UserSet is a structure that is a joined version of a DBUserSet and a ProblemSet
-*/
+ * UserSet is a structure that is a joined version of a DBUserSet and a ProblemSet
+ */
 
 export interface ParseableUserSet {
 	user_set_id?: number | string;
@@ -451,8 +451,8 @@ export class UserSet extends Model {
 }
 
 /**
-* MergedUserHomeworkSet is joined HomeworkSet and a UserSet
-*/
+ * MergedUserHomeworkSet is joined HomeworkSet and a UserSet
+ */
 
 export type ParseableUserHomeworkSet = ParseableUserSet &
 	{
@@ -484,8 +484,8 @@ export class UserHomeworkSet extends UserSet {
 }
 
 /**
-* MergedUserQuiz is a Quiz merged with a UserSet
-*/
+ * MergedUserQuiz is a Quiz merged with a UserSet
+ */
 
 export type ParseableUserQuiz = ParseableUserSet &
 	{
@@ -517,8 +517,8 @@ export class UserQuiz extends UserSet {
 }
 
 /**
-* UserReviewSet is a join between a DBUserReviewSet and a ReviewSet
-*/
+ * UserReviewSet is a join between a DBUserReviewSet and a ReviewSet
+ */
 
 export type ParseableUserReviewSet = ParseableUserSet &
 	{

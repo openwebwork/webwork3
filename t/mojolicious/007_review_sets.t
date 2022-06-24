@@ -91,7 +91,7 @@ my $returned_quiz = $t->tx->res->json;
 $review_set1 = $t->tx->res->json;
 $test_param  = $review_set1->{set_params}->{test_param};
 ok($test_param, 'testing that test_param compares to 1.');
-is($test_param, Mojo::JSON::true, 'testing that test_param compares to Mojo::JSON::true');
+is($test_param, true, 'testing that test_param compares to Mojo::JSON::true');
 ok(JSON::PP::is_bool($test_param),                'testing that test_param is a Mojo::JSON::true or Mojo::JSON::false');
 ok(JSON::PP::is_bool($test_param) && $test_param, 'testing that test_param is a Mojo::JSON::true');
 

@@ -85,10 +85,10 @@ sub addUsers {
 	my $admin = {
 		username     => 'admin',
 		email        => 'admin@google.com',
-		first_name   => "Andrea",
-		last_name    => "Administrator",
+		first_name   => 'Andrea',
+		last_name    => 'Administrator',
 		is_admin     => true,
-		login_params => { password => "admin" }
+		login_params => { password => 'admin' }
 	};
 	$user_rs->create($admin);
 

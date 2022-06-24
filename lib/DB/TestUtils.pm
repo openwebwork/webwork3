@@ -69,7 +69,7 @@ sub buildHash ($input, $config) {
 }
 
 sub loadCSV ($filename, $config = {}) {
-	my $items_from_csv = csv(in => $filename, headers => "auto", blank_is_undef => 1);
+	my $items_from_csv = csv(in => $filename, headers => 'auto', blank_is_undef => 1);
 	my @all_items      = ();
 	for my $item (@$items_from_csv) {
 		push(@all_items, buildHash($item, $config));

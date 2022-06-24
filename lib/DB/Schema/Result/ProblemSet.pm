@@ -112,7 +112,6 @@ __PACKAGE__->add_columns(
 		serializer_options => { utf8 => 1 }
 	},
 	# Store params as a JSON object.
-	# The boolean_fields from any subclass needs to be added here.
 	set_params => {
 		data_type          => 'text',
 		size               => 256,

@@ -4,7 +4,7 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
-use Mojo::JSON;
+use Mojo::JSON qw/true false/;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -51,11 +51,11 @@ my $new_course_id = $t->tx->res->json('/course_id');
 
 $new_course->{course_id} = $new_course_id;
 # The default for visible is true:
-$new_course->{visible} = Mojo::JSON::true;
+$new_course->{visible} = true;
 is_deeply($new_course, $t->tx->res->json, "addCourse: courses match");
 
 # Update the course
-$new_course->{visible} = Mojo::JSON::true;
+$new_course->{visible} = true;
 $t->put_ok("/webwork3/api/courses/$new_course_id" => json => $new_course)->status_is(200)
 	->json_is('/course_name' => $new_course->{course_name});
 
@@ -120,7 +120,7 @@ $t->get_ok('/webwork3/api/courses/1')->json_is('/course_name', 'Precalculus');
 my $precalc = $t->tx->res->json;
 
 ok($precalc->{visible}, 'Testing that visible field is truthy.');
-is($precalc->{visible}, Mojo::JSON::true, 'Testing that the visible field compares to JSON::true');
+is($precalc->{visible}, true, 'Testing that the visible field compares to JSON::true');
 ok(JSON::PP::is_bool($precalc->{visible}),                        'Testing that the visible field is a JSON boolean');
 ok(JSON::PP::is_bool($precalc->{visible}) && $precalc->{visible}, 'testing that the visible field is a JSON::true');
 

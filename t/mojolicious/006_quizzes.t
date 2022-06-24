@@ -4,6 +4,7 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
+use Mojo::JSON qw/true false/;
 
 use DateTime::Format::Strptime;
 
@@ -66,7 +67,7 @@ $t->get_ok("/webwork3/api/courses/2/sets/$quiz1->{set_id}")->content_type_is('ap
 $quiz1 = $t->tx->res->json;
 my $timed = $quiz1->{set_params}->{timed};
 ok($timed, 'testing that timed compares to 1.');
-is($timed, Mojo::JSON::true, 'testing that timed compares to Mojo::JSON::true');
+is($timed, true, 'testing that timed compares to Mojo::JSON::true');
 ok(JSON::PP::is_bool($timed),           'testing that timed is a Mojo::JSON::true or Mojo::JSON::false');
 ok(JSON::PP::is_bool($timed) && $timed, 'testing that timed is a Mojo::JSON::true');
 
@@ -76,9 +77,9 @@ my $new_quiz_params = {
 	set_name   => 'Quiz #20',
 	set_type   => 'QUIZ',
 	set_params => {
-		timed             => Mojo::JSON::true,
+		timed             => true,
 		quiz_duration     => 30,
-		problem_randorder => Mojo::JSON::true
+		problem_randorder => true
 	},
 	set_dates => {
 		open   => 100,
@@ -95,7 +96,7 @@ my $returned_quiz = $t->tx->res->json;
 my $new_quiz          = $t->tx->res->json;
 my $problem_randorder = $new_quiz->{set_params}->{problem_randorder};
 ok($problem_randorder, 'testing that problem_randorder compares to 1.');
-is($problem_randorder, Mojo::JSON::true, 'testing that problem_randorder compares to Mojo::JSON::true');
+is($problem_randorder, true, 'testing that problem_randorder compares to Mojo::JSON::true');
 ok(JSON::PP::is_bool($problem_randorder), 'testing that problem_randorder is a Mojo::JSON::true or Mojo::JSON::false');
 ok(JSON::PP::is_bool($problem_randorder) && $problem_randorder, 'testing that problem_randorder is a Mojo::JSON::true');
 
@@ -104,7 +105,7 @@ ok(JSON::PP::is_bool($problem_randorder) && $problem_randorder, 'testing that pr
 $t->put_ok(
 	"/webwork3/api/courses/2/sets/$returned_quiz->{set_id}" => json => {
 		set_params => {
-			problem_randorder => Mojo::JSON::false
+			problem_randorder => false
 		}
 	}
 )->content_type_is('application/json;charset=UTF-8');
@@ -113,7 +114,7 @@ my $updated_quiz = $t->tx->res->json;
 
 $problem_randorder = $updated_quiz->{set_params}->{problem_randorder};
 ok(!$problem_randorder, 'testing that hide_hint is falsy.');
-is($problem_randorder, Mojo::JSON::false, 'testing that problem_randorder compares to Mojo::JSON::false');
+is($problem_randorder, false, 'testing that problem_randorder compares to Mojo::JSON::false');
 ok(JSON::PP::is_bool($problem_randorder), 'testing that problem_randorder is a Mojo::JSON::true or Mojo::JSON::false');
 ok(
 	JSON::PP::is_bool($problem_randorder) && !$problem_randorder,
