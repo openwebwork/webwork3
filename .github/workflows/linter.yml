@@ -81,7 +81,7 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Install dependencies
-        run: cpanm -n Perl::Tidy
+        run: cpanm -n Perl::Tidy@20220217
       - name: perltidy --version
         run: perltidy --version
       - name: Run perltidy
