@@ -42,7 +42,6 @@ sub has_permission ($c, $user) {
 		category => $c->{stash}{controller},
 		action   => $c->{stash}{action}
 	});
-	print $c->{stash}{controller} . "\n";
 	DB::Exception::RouteWithoutPermission->throw(message =>
 			"The route with controller $c->{stash}{controller} and action $c->{stash}{action} does not have a permission defined"
 	) unless defined $perm_db;
@@ -62,6 +61,10 @@ sub has_permission ($c, $user) {
 # Check permission for /api routes
 our $check_permission = sub ($next, $c, $action, $) {
 	return $next->() if $c->req->url->to_string =~ m!/api/log(?:in|out)$!;
+	print $c->req->url->to_string . "\n";
+	return $next->() if $c->req->url->to_string =~ m!api/client-logs$!;
+
+	print "HERE!\n";
 
 	if (!$c->is_user_authenticated) {
 		$c->render(json => { has_permission => 0, msg => 'permission error' }, status => 401);

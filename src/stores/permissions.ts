@@ -3,6 +3,8 @@
 import { defineStore } from 'pinia';
 import { api } from 'boot/axios';
 import { useSessionStore } from './session';
+import { RouteLocationNormalized } from 'vue-router';
+import { parseRouteUserID } from 'src/router/utils';
 
 export type UserRole = string;
 
@@ -10,6 +12,7 @@ interface UIPermission {
 	route: string;
 	allowed_roles: UserRole[];
 	admin_required: boolean;
+	allow_self_access?: boolean;
 }
 
 export interface PermissionsState {
@@ -18,6 +21,7 @@ export interface PermissionsState {
 }
 
 export const usePermissionStore = defineStore('permission', {
+	persist: true,
 	state: (): PermissionsState => ({
 		roles: [],
 		ui_permissions: []
@@ -31,18 +35,26 @@ export const usePermissionStore = defineStore('permission', {
 		/**
 		 * Determines if the current user (from the session store) has permission for the given route.
 		 */
-		hasRoutePermission: (state) => (path: string): boolean => {
-			const role = useSessionStore().course.role ?? '';
+		hasRoutePermission: (state) => (route: RouteLocationNormalized): boolean => {
+			const session_store = useSessionStore();
+			const role = session_store.course.role ?? '';
+			const user = session_store.user;
 			const perms = state.ui_permissions.filter(perm => {
 				const re = new RegExp(perm.route.replace('*', '.*'));
-				return re.test(path);
+				return re.test(route.path);
 			});
+
 			// Find the longest matched route
 			const permission = perms.reduce((prev, curr) => prev.route.length > curr.route.length ? prev : curr,
 				{ route: '', allowed_roles: [], admin_required: false });
-			// console.log(permission);
-			// console.log(perms);
-			// console.log(role);
+
+			console.log(permission);
+			console.log(role);
+			// Some routes have self-access:
+			if (permission.allow_self_access) {
+				const user_id = parseRouteUserID(route);
+				if (user_id === user.user_id) return true;
+			}
 			// console.log(path);
 			return permission.allowed_roles.includes(role);
 		}
@@ -60,7 +72,8 @@ export const usePermissionStore = defineStore('permission', {
 				allowed_roles: p.allowed_roles.map(r => r.toUpperCase()),
 				route: p.route,
 				// This can be updated when the server sends back true/false.
-				admin_required: p.admin_required ? true : false
+				admin_required: p.admin_required ?? false,
+				allow_self_access: p.allow_self_access ?? false
 			}));
 		}
 	}

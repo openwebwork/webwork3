@@ -51,12 +51,32 @@ __PACKAGE__->add_columns(
 		data_type   => 'boolean',
 		is_nullable => 1
 	},
+	allow_self_access => {
+		data_type => 'boolean',
+		is_nullable => 1
+	},
 	allowed_roles => {
 		data_type          => 'text',
 		size               => 1024,
 		is_nullable        => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
+	}
+);
+
+__PACKAGE__->inflate_column(
+	'admin_required',
+	{
+		inflate => sub { return shift ? Mojo::JSON->true : Mojo::JSON->false; },
+		deflate => sub { return shift; }
+	}
+);
+
+__PACKAGE__->inflate_column(
+	'allow_self_access',
+	{
+		inflate => sub { return shift ? Mojo::JSON->true : Mojo::JSON->false; },
+		deflate => sub { return shift; }
 	}
 );
 

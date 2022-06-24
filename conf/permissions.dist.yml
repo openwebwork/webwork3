@@ -15,17 +15,17 @@ roles:
 db_permissions:
   Logger:
     clientLog:
-      allowed_roles: ["*"]
+      allowed_roles: ['*']
   Permission:
     getRoles:
-      allowed_roles: ["*"]
+      allowed_roles: ['*']
     getUIRoutePermissions:
-      allowed_roles: ["*"]
+      allowed_roles: ['*']
   Course:
     getCourses:
-      allowed_roles: ["*"]
+      allowed_roles: ['*']
     getCourse:
-      allowed_roles: ["*"]
+      allowed_roles: ['*']
     updateCourse:
       admin_required: true
     addCourse:
@@ -36,7 +36,7 @@ db_permissions:
     getGlobalUsers:
       admin_required: true
     getGlobalUser:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     updateGlobalUser:
       admin_required: true
     addGlobalUser:
@@ -44,77 +44,76 @@ db_permissions:
     deleteGlobalUser:
       admin_required: true
     getUsers:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     getUser:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     addUser:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     updateUser:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     deleteUsers:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     getCourseUsers:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     getUserCourses:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     getGlobalCourseUsers:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     getCourseUser:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     addCourseUser:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     updateCourseUser:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     deleteCourseUser:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
   ProblemSet:
     getProblemSets:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     getProblemSet:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     addProblemSet:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     updateProblemSet:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     deleteProblemSet:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     getAllUserSets:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     getUserSets:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     addUserSet:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     updateUserSet:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     deleteUserSet:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
   Problem:
     getAllProblems:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     addProblem:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     updateProblem:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     deleteProblem:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     getUserProblemsForSet:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     getUserProblemsForUser:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     addUserProblem:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     updateUserProblem:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
     deleteUserProblem:
-      allowed_roles: ["course_admin", "instructor"]
+      allowed_roles: ['course_admin', 'instructor']
   Settings:
     getDefaultCourseSettings:
-      allowed_roles: ["*"]
+      allowed_roles: ['*']
     getCourseSettings:
-      allowed_roles: ["*"]
+      allowed_roles: ['*']
     updateCourseSettings:
-      allowed_roles: ["course_admin", "instructor"]
-
+      allowed_roles: ['course_admin', 'instructor']
 
 # This defines the permisions for each role for the frontend/UI layer.
 
@@ -122,13 +121,13 @@ db_permissions:
 
 ui_permissions:
   /login:
-    allowed_roles: ["*"]
+    allowed_roles: ['*']
   /users/*/courses:
-    allowed_roles: ["instructor", "course_admin"]
+    allowed_roles: ['instructor', 'course_admin']
     allow_self_access: true
   /courses/*/instructor:
-    allowed_roles: ["instructor", "course_admin"]
+    allowed_roles: ['instructor', 'course_admin']
   /courses/*/student:
-    allowed_roles: ["student", "instructor", "course_admin"]
+    allowed_roles: ['student', 'instructor', 'course_admin']
   /admin:
     admin_required: true

@@ -101,7 +101,6 @@ for my $category (keys %{ $role_perm->{db_permissions} }) {
 
 for my $route (keys %{ $role_perm->{ui_permissions} }) {
 	my $allowed_roles  = $role_perm->{ui_permissions}->{$route}->{allowed_roles} // [];
-	my $admin_required = $role_perm->{ui_permissions}->{$route}->{admin_required};
 
 	# check that the allowed roles exist.
 	for my $role (@$allowed_roles) {
@@ -113,7 +112,8 @@ for my $route (keys %{ $role_perm->{ui_permissions} }) {
 	$schema->resultset('UIPermission')->create({
 		route          => $route,
 		allowed_roles  => $allowed_roles,
-		admin_required => $admin_required
+		admin_required =>  $role_perm->{ui_permissions}->{$route}->{admin_required},
+		allow_self_access =>  $role_perm->{ui_permissions}->{$route}->{allow_self_access}
 	});
 }
 

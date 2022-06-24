@@ -58,6 +58,8 @@ const login = async () => {
 		await permission_store.fetchRoles();
 		await permission_store.fetchRoutePermissions();
 
+		console.log(permission_store.ui_permissions);
+
 		void session.updateSessionInfo(session_info);
 		if (session_info?.user?.is_admin) {
 			void router.push('/admin');
