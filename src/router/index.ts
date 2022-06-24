@@ -34,9 +34,6 @@ export default route(() => {
 		if (to.path === '/login') next();
 		const permissions_store = usePermissionStore();
 		const perm = permissions_store.hasRoutePermission(to);
-		console.log(to);
-		// console.log(permissions_store.ui_permissions);
-		// console.log(perm);
 		if (!perm) {
 			logger.error(`[routing] The user does not have the permission to visit ${to.path}`);
 		}

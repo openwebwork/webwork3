@@ -48,14 +48,12 @@ export const usePermissionStore = defineStore('permission', {
 			const permission = perms.reduce((prev, curr) => prev.route.length > curr.route.length ? prev : curr,
 				{ route: '', allowed_roles: [], admin_required: false });
 
-			console.log(permission);
-			console.log(role);
+			if (permission.allowed_roles.length === 1 && permission.allowed_roles[0] === '*') return true;
 			// Some routes have self-access:
 			if (permission.allow_self_access) {
 				const user_id = parseRouteUserID(route);
 				if (user_id === user.user_id) return true;
 			}
-			// console.log(path);
 			return permission.allowed_roles.includes(role);
 		}
 	},

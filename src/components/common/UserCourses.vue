@@ -70,8 +70,6 @@ const instructor_courses = computed(() =>
 const user = computed(() => session.user);
 
 const switchCourse = async (course_id: number) => {
-	console.log(course_id);
-	console.log(student_courses.value);
 	const student_course = student_courses.value.find(c => c.course_id === course_id);
 	const instructor_course = instructor_courses.value.find(c => c.course_id === course_id);
 	if (student_course) {
