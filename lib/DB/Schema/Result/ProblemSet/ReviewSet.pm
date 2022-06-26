@@ -43,7 +43,7 @@ subroutine that returns the hashref for the valid parameters:  (currently empty)
 =cut
 
 sub valid_params ($=) {
-	return { test_param => qr/[01]/ };
+	return { test_param => 'bool' };
 }
 
 =head2 C<required_params>

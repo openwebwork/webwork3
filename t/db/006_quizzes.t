@@ -249,7 +249,7 @@ is_deeply($new_quiz, $updated_quiz, 'updateQuiz: successfully update the quiz');
 # Update the params of the quiz
 $updated_params = {
 	set_params => {
-		timed => 1
+		timed => true
 	}
 };
 $updated_quiz = $problem_set_rs->updateProblemSet(
@@ -260,7 +260,7 @@ $updated_quiz = $problem_set_rs->updateProblemSet(
 	params => $updated_params
 );
 removeIDs($updated_quiz);
-$new_quiz->{set_params} = { timed => 1 };
+$new_quiz->{set_params} = { timed => true };
 is_deeply($new_quiz, $updated_quiz, 'updateQuiz: successfully update the params of the quiz');
 
 # Update the dates of the quiz

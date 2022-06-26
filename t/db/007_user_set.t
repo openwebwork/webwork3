@@ -20,6 +20,7 @@ use Clone qw/clone/;
 use Test::Exception;
 use List::MoreUtils qw/firstval/;
 use YAML::XS qw/LoadFile/;
+use Mojo::JSON qw/true false/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
@@ -497,7 +498,7 @@ my $ralph_set_info = {
 		answer => $hw4->{set_dates}->{answer} + 100,
 	},
 	set_params => {
-		enable_reduced_scoring => 0
+		enable_reduced_scoring => false
 	}
 };
 
@@ -599,6 +600,21 @@ throws_ok {
 }
 'DB::Exception::ImproperDateOrder', 'addUserSet: user set is out of order with respect to problem set';
 
+## Check that setting a boolean as 0/1 throws an error
+
+throws_ok {
+	$user_set_rs->addUserSet(
+		params => {
+			%$otto_set_info3,
+			set_params => {
+				hide_hint => 0
+			}
+		},
+		merged => 1
+	);
+}
+'DB::Exception::InvalidParameter', 'addUserSet: user set is out of order with respect to problem set';
+
 # Update User Set
 # Get the user set for $otto_set_info2.
 
@@ -624,23 +640,23 @@ my $updated_user_set2 = $user_set_rs->updateUserSet(
 	info   => $otto_set_info2,
 	params => {
 		set_params => {
-			hide_hint => 1,
+			hide_hint => true,
 		}
 	}
 );
 removeIDs($updated_user_set2);
-$otto_set2->{set_params}->{hide_hint} = 1;
+$otto_set2->{set_params}->{hide_hint} = true;
 is_deeply($updated_user_set2, $otto_set2, 'updateUserSet: update the params');
 
 # Update a valid field
 my $updated_user_set3 = $user_set_rs->updateUserSet(
 	info   => $otto_set_info2,
 	params => {
-		set_visible => 1
+		set_visible => true
 	}
 );
 removeIDs($updated_user_set3);
-$otto_set2->{set_visible} = 1;
+$otto_set2->{set_visible} = true;
 
 is_deeply($otto_set2, $updated_user_set3, 'updateUserSet: update the set visibility');
 

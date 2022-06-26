@@ -134,11 +134,11 @@ __PACKAGE__->add_columns(
 sub valid_params {
 	return {
 		comment        => q{.*},
-		useMathQuill   => q{[01]},
+		useMathQuill   => 'bool',
 		displayMode    => q{.*},
 		status         => q{[A-Z]},
 		lis_source_did => q{.*},
-		showOldAnswers => q{[01]}
+		showOldAnswers => 'bool'
 	};
 }
 
