@@ -4,6 +4,7 @@
 
 use warnings;
 use strict;
+use feature 'say';
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -14,14 +15,13 @@ BEGIN {
 use lib "$main::ww3_dir/lib";
 
 use Carp;
-use feature 'say';
-
 use Clone qw/clone/;
 use DateTime::Format::Strptime;
 use YAML::XS qw/LoadFile/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV/;
+use DB::Utils qw/updatePermissions/;
 
 my $verbose = 1;
 
@@ -29,6 +29,10 @@ my $verbose = 1;
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
 $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
+
+# Load the Permissions file
+my $role_perm_file = "$main::ww3_dir/conf/permissions.yml";
+$role_perm_file = "$main::ww3_dir/conf/permissions.dist.yml" unless -r $role_perm_file;
 
 # Connect to the database.
 my $schema = DB::Schema->connect(
@@ -43,6 +47,9 @@ say "restoring the database with dbi: $config->{database_dsn}" if $verbose;
 # Create the database based on the schema.
 $schema->deploy({ add_drop_table => 1 });
 
+# The permissions need to be loaded into the DB before the rest of the script is run.
+updatePermissions($config_file, $role_perm_file);
+
 my $course_rs       = $schema->resultset('Course');
 my $user_rs         = $schema->resultset('User');
 my $course_user_rs  = $schema->resultset('CourseUser');
@@ -50,6 +57,7 @@ my $problem_set_rs  = $schema->resultset('ProblemSet');
 my $problem_pool_rs = $schema->resultset('ProblemPool');
 my $set_problem_rs  = $schema->resultset('SetProblem');
 my $user_set_rs     = $schema->resultset('UserSet');
+my $role_rs = $schema->resultset('Role');
 
 my $strp_date = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
 
@@ -104,10 +112,17 @@ sub addUsers {
 			course_id => $course->course_id,
 		};
 
+		# Look up the role of the user
+		my $role = $role_rs->find({ role_name => $student->{role} });
+		die "The user with username $student->{username} has role $student->{role} which does not exist\n"
+			. 'Either reassign the role or ensure that bin/update_perms.pl has been run.'
+			unless defined $role;
+
 		my $course_user = $course_user_rs->find($params);
-		for my $key (qw/section recitation params role/) {
+		for my $key (qw/section recitation params/) {
 			$params->{$key} = $student->{$key};
 		}
+		$params->{role_id} = $role->role_id;
 		$params->{course_user_params} = $params->{params} // {};
 		delete $params->{params};
 		my $u = $course_user->update($params);
@@ -270,6 +285,9 @@ sub addUserProblems {
 	}
 	return;
 }
+
+# First, make sure the roles/permissions are loaded.
+
 
 addCourses;
 addUsers;

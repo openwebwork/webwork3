@@ -33,8 +33,6 @@ C<action>: the name of the database task
 
 __PACKAGE__->table('db_perm');
 
-__PACKAGE__->load_components(qw/InflateColumn::Serializer Core/);
-
 __PACKAGE__->add_columns(
 	db_perm_id => {
 		data_type         => 'integer',
@@ -56,16 +54,19 @@ __PACKAGE__->add_columns(
 		data_type   => 'boolean',
 		size        => 8,
 		is_nullable => 1
-	},
-	allowed_roles => {
-		data_type          => 'text',
-		size               => 1024,
-		is_nullable        => 1,
-		serializer_class   => 'JSON',
-		serializer_options => { utf8 => 1 }
+	}
+);
+
+__PACKAGE__->inflate_column(
+	'admin_required',
+	{
+		inflate => sub { return shift ? Mojo::JSON->true : Mojo::JSON->false; },
+		deflate => sub { return shift; }
 	}
 );
 
 __PACKAGE__->set_primary_key('db_perm_id');
+__PACKAGE__->has_many(db_perm_roles => 'DB::Schema::Result::DBPermRole', 'db_perm_id');
+__PACKAGE__->many_to_many(roles => 'db_perm_roles', 'roles');
 
 1;

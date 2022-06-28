@@ -43,16 +43,6 @@ db_permissions:
       admin_required: true
     deleteGlobalUser:
       admin_required: true
-    getUsers:
-      allowed_roles: ['course_admin', 'instructor']
-    getUser:
-      allowed_roles: ['course_admin', 'instructor']
-    addUser:
-      allowed_roles: ['course_admin', 'instructor']
-    updateUser:
-      allowed_roles: ['course_admin', 'instructor']
-    deleteUsers:
-      allowed_roles: ['course_admin', 'instructor']
     getCourseUsers:
       allowed_roles: ['course_admin', 'instructor']
     getUserCourses:

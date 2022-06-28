@@ -239,13 +239,16 @@ sub getUserCourses ($self, %args) {
 
 	# my @user_courses = $user->courses->search({});
 
-	my @user_courses = $user->course_users->search({});
+	my @user_courses = $user->course_users->search({}, { prefetch => [qw/role/] });
 
 	return @user_courses if $args{as_result_set};
 	my @user_courses_hashref = ();
 	for my $user_course (@user_courses) {
 
-		my $params = { $user_course->get_inflated_columns, $user_course->courses->get_inflated_columns };
+		my $params = {
+			$user_course->get_inflated_columns, $user_course->courses->get_inflated_columns,
+			role => $user_course->role->role_name
+		};
 		push(@user_courses_hashref, $params);
 	}
 	return @user_courses_hashref;

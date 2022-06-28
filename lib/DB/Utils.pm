@@ -8,12 +8,13 @@ no warnings qw(experimental::signatures);
 require Exporter;
 use base qw(Exporter);
 our @EXPORT_OK = qw/getCourseInfo getUserInfo getSetInfo updateAllFields
-	getPoolInfo getProblemInfo getPoolProblemInfo removeLoginParams/;
+	getPoolInfo getProblemInfo getPoolProblemInfo removeLoginParams updatePermissions/;
 
 use Carp;
 use Clone qw/clone/;
 use List::Util qw/first/;
 use Scalar::Util qw/reftype/;
+use YAML::XS qw/LoadFile/;
 
 use Exception::Class ('DB::Exception::ParametersNeeded');
 
@@ -90,6 +91,97 @@ off the server.
 sub removeLoginParams ($params) {
 	delete $params->{login_params};
 	return $params;
+}
+
+=head2 updatePermissions
+
+The updatePermissions subroutine loads the roles and permissions from a YAML file into the database.
+
+=cut
+
+sub updatePermissions ($ww3_conf, $role_perm_file) {
+
+	my $config = LoadFile($ww3_conf);
+
+	# Connect to the database.
+	my $schema = DB::Schema->connect(
+		$config->{database_dsn},
+		$config->{database_user},
+		$config->{database_password},
+		{ quote_names => 1 }
+	);
+
+	# load any YAML true/false as booleans, not string true/false.
+	local $YAML::XS::Boolean = "JSON::PP";
+	my $role_perm = LoadFile($role_perm_file);
+
+	print "Rebuilding all roles and permissions in database\n";
+
+	# clear out the tables role, db_perm, ui_perm
+	$schema->resultset('Role')->delete_all;
+	$schema->resultset('DBPermission')->delete_all;
+	$schema->resultset('UIPermission')->delete_all;
+
+	# add the roles to the database
+
+	my @roles = map { { role_name => $_ }; } @{ $role_perm->{roles} };
+	$schema->resultset('Role')->populate(\@roles);
+
+	# fill the database permissions table
+	for my $category (keys %{ $role_perm->{db_permissions} }) {
+		for my $action (keys %{ $role_perm->{db_permissions}->{$category} }) {
+			$schema->resultset('DBPermission')->create({
+				category       => $category,
+				action         => $action,
+				admin_required => $role_perm->{db_permissions}->{$category}->{$action}->{admin_required}
+			});
+		}
+	}
+
+	# map roles to database permissions
+	for my $category (keys %{ $role_perm->{db_permissions} }) {
+		for my $action (keys %{ $role_perm->{db_permissions}->{$category} }) {
+			my $db_perm = $schema->resultset('DBPermission')->find({
+				category => $category,
+				action   => $action
+			});
+			my $allowed_roles = $role_perm->{db_permissions}->{$category}->{$action}->{allowed_roles} // [];
+
+			# check that the allowed roles is '*" or that the role exist.
+			if ($allowed_roles && !(scalar(@$allowed_roles) == 1 && $allowed_roles->[0] eq '*')) {
+				for my $role_name (@$allowed_roles) {
+					my $role = $schema->resultset('Role')->find({ role_name => $role_name });
+					die "The role '$role_name' does not exist." unless defined $role;
+
+					$db_perm->add_to_roles({ $role->get_columns });
+				}
+			}
+		}
+	}
+	# add all allowed_roles to the db
+
+	# $row->{allowed_roles} = $allowed_roles;
+
+	# add the UI permissions
+
+	for my $route (keys %{ $role_perm->{ui_permissions} }) {
+		my $allowed_roles = $role_perm->{ui_permissions}->{$route}->{allowed_roles} // [];
+
+		# check that the allowed roles exist.
+		for my $role (@$allowed_roles) {
+			next if $role eq '*';
+			my $role_in_db = $schema->resultset('Role')->find({ role_name => $role });
+			die "The role '$role' does not exist." unless defined $role_in_db;
+		}
+
+		$schema->resultset('UIPermission')->create({
+			route             => $route,
+			allowed_roles     => $allowed_roles,
+			admin_required    => $role_perm->{ui_permissions}->{$route}->{admin_required},
+			allow_self_access => $role_perm->{ui_permissions}->{$route}->{allow_self_access}
+		});
+	}
+
 }
 
 1;

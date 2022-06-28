@@ -4,6 +4,7 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
+use Mojo::JSON qw/true false/;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -85,10 +86,10 @@ $t->delete_ok("/webwork3/api/courses/$new_course_id")->status_is(200)
 # Logout of the admin user account.
 $t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
 
-# Login as a non admin user
+# Login as a non-admin
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })
-	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
-	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => 0);
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => true)
+	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => false);
 
 $t->get_ok('/webwork3/api/courses')->content_type_is('application/json;charset=UTF-8')
 	->json_is('/0/course_name' => 'Precalculus');
@@ -103,6 +104,6 @@ $t->post_ok('/webwork3/api/courses' => json => $new_course)->status_is(403)->jso
 $t->put_ok('/webwork3/api/courses/1' => json => { course_name => 'XXX' })->status_is(406)
 	->json_is('/has_permission' => 0);
 
-$t->delete_ok('/webwork3/api/courses/1')->status_is(406)->json_is('/has_permission' => 0);
+$t->delete_ok('/webwork3/api/courses/1')->status_is(406)->json_is('/has_permission' => false);
 
 done_testing;

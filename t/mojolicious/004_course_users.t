@@ -4,6 +4,7 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
+use Mojo::JSON qw/true false/;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -32,6 +33,10 @@ my $t = Test::Mojo->new(WeBWorK3 => $config);
 $t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/user_id' => 1)
 	->json_is('/user/is_admin' => 1);
+
+# Get all users for use below
+$t->get_ok('/webwork3/api/users')->status_is(200)->content_type_is('application/json;charset=UTF-8');
+my $all_users = $t->tx->res->json;
 
 $t->get_ok('/webwork3/api/courses/4/users')->status_is(200)->content_type_is('application/json;charset=UTF-8')
 	->json_is('/0/role' => 'instructor')->json_is('/1/role' => 'student');
@@ -107,19 +112,66 @@ $t->delete_ok("/webwork3/api/courses/2/users/$new_user_id")->status_is(200)
 # Logout of the admin user account.
 $t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
 
-# Check that a non_admin user has proper access.
-my @instructors =
-	grep { $_->{role} eq 'instructor' } $schema->resultset('User')->getCourseUsers(info => { course_id => 1 });
-my $instructor = $schema->resultset('User')->getGlobalUser(info => { user_id => $instructors[0]{user_id} });
+# Login as a non-admin
+$t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => true)
+	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => false);
+
+# Lisa has instructor access in the Arithmetic Course (course_id => 4)
+$t->get_ok('/webwork3/api/courses/4/users')->status_is(200)->content_type_is('application/json;charset=UTF-8');
+use Data::Dumper;
+
+my $course4_users = $t->tx->res->json;
+# get the user_id of a student
+my $course4_student_user_id = $course4_users->[1]->{user_id};
+$t->get_ok("/webwork3/api/courses/4/users/$course4_student_user_id")->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/username' => $course4_users->[1]->{username});
+
+# add Maggie to the course
+my $maggie = $schema->resultset('User')->find({ username => 'maggie' });
 
 $t->post_ok(
-	'/webwork3/api/login' => json => { username => $instructor->{username}, password => $instructor->{username} })
-	->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1);
+	'/webwork3/api/courses/4/users' => json => {
+		user_id => $maggie->user_id,
+		role    => 'student'
+	}
+)->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/user_id' => $maggie->user_id)
+	->json_is('/role' => 'student');
 
-$t->get_ok('/webwork3/api/courses/1/users')->status_is(200)->content_type_is('application/json;charset=UTF-8');
+$t->put_ok(
+	'/webwork3/api/courses/4/users/'
+		. $maggie->user_id => json => {
+		recitation => 4
+		}
+)->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/recitation' => 4);
+
+$t->delete_ok('/webwork3/api/courses/4/users/' . $maggie->user_id)->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/user_id' => $maggie->user_id)
+	->json_is('/role' => 'student');
+
+# Check that a student doesn't have the same access as an instructor
+# The user lisa is a student in the 'Topology' course (course_id => 3)
+# This checks that she doesn't have the instructor access to this course.
+$t->get_ok('/webwork3/api/courses/3/users')->status_is(403)->content_type_is('application/json;charset=UTF-8');
+
+$t->post_ok(
+	'/webwork3/api/courses/3/users' => json => {
+		user_id => $maggie->user_id,
+		role    => 'student'
+	}
+)->status_is(403)->content_type_is('application/json;charset=UTF-8');
+
+$t->put_ok(
+	'/webwork3/api/courses/3/users/'
+		. $maggie->user_id => json => {
+		recitation => 4
+		}
+)->status_is(403)->content_type_is('application/json;charset=UTF-8');
+
+$t->delete_ok('/webwork3/api/courses/3/users/' . $maggie->user_id)->status_is(403)
+	->content_type_is('application/json;charset=UTF-8');
 
 # Remove the user 'maggie' that was added.
-my $maggie = $schema->resultset('User')->find({ username => 'maggie' });
 if (defined($maggie)) {
 	my $maggie_cu = $schema->resultset('CourseUser')->search({ user_id => $maggie->user_id });
 	$maggie_cu->delete_all if defined($maggie_cu);

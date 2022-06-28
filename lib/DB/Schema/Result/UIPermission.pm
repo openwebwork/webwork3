@@ -52,7 +52,7 @@ __PACKAGE__->add_columns(
 		is_nullable => 1
 	},
 	allow_self_access => {
-		data_type => 'boolean',
+		data_type   => 'boolean',
 		is_nullable => 1
 	},
 	allowed_roles => {

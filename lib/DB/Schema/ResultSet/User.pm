@@ -77,7 +77,7 @@ sub getGlobalUser ($self, %args) {
 		unless defined($user);
 	return $user if $args{as_result_set};
 	my $params = { $user->get_inflated_columns };
-	$params->{role} = 'admin' if $user->is_admin;
+	# $params->{role} = 'admin' if $user->is_admin;
 	return removeLoginParams($params);
 }
 
@@ -272,9 +272,14 @@ or an arrayref of C<DBIx::Class::ResultSet::User>
 
 sub getCourseUsers ($self, %args) {
 	my $course       = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
-	my @course_users = $self->rs('CourseUser')->search({
-		'course_id' => $course->course_id
-	});
+	my @course_users = $self->rs('CourseUser')->search(
+		{
+			'course_id' => $course->course_id
+		},
+		{
+			prefetch => [qw/role/]
+		}
+	);
 
 	return \@course_users if $args{as_result_set};
 
@@ -330,20 +335,32 @@ sub getCourseUser ($self, %args) {
 	my $course_user;
 
 	if (defined($args{info}->{course_user_id})) {
-		$course_user = $self->rs('CourseUser')->find({
-			course_user_id => $args{info}->{course_user_id}
-		});
+		$course_user = $self->rs('CourseUser')->find(
+			{
+				course_user_id => $args{info}->{course_user_id}
+			},
+			{
+				prefetch => [qw/role/]
+			}
+		);
 	} else {
 		my $course = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 		my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
-		$course_user = $self->rs('CourseUser')->find({ course_id => $course->course_id, user_id => $user->user_id });
+		$course_user = $self->rs('CourseUser')->find(
+			{
+				course_id => $course->course_id,
+				user_id   => $user->user_id
+			},
+			{
+				prefetch => [qw/role/]
+			}
+		);
 		DB::Exception::UserNotInCourse->throw(
 			message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}")
 			unless defined $course_user || $args{skip_throw};
 	}
 
 	return $course_user if $args{as_result_set};
-
 	return $args{merged} ? _getMergedUser($course_user) : _getCourseUser($course_user);
 }
 
@@ -406,18 +423,31 @@ sub addCourseUser ($self, %args) {
 		delete $params->{$key};
 	}
 
+	# Ensure the user role is valid
+	my $role = $self->rs('Role')->find({ role_name => $params->{role} });
+	DB::Exception::UserRoleUndefined->throw(message => "The user role $params->{role} is not defined.")
+		unless defined $role;
+	$params->{role_id} = $role->role_id;
+	delete $params->{role};
+
 	# check for valid fields and parameters
 	my $updated_user = $self->rs('CourseUser')->new($params);
 	$updated_user->validParams('course_user_params');
 
 	my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
 	my $course = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
-	$course->add_to_users({ user_id => $user->user_id });
+	$params->{user_id} = $user->user_id;
 
-	my $user_to_return = $self->getCourseUser(
-		info          => { user_id => $user->user_id, course_id => $course->course_id },
-		as_result_set => 1
-	);
+	# This adds the line in the course_user table, but not adds all of the other fields in the table.
+	my $added_user = $course->add_to_users($params);
+
+	# So fetch the just created course user
+	my $user_to_return = $self->rs('CourseUser')->find({
+		user_id   => $added_user->user_id,
+		course_id => $course->course_id
+	});
+
+	# And then update the course_user
 	$user_to_return->update($params);
 
 	return $user_to_return if $args{as_result_set};
@@ -533,14 +563,18 @@ sub rs {
 # This returns the course user fields
 
 sub _getCourseUser {
-	return { shift->get_inflated_columns };
+	my $course_user = shift;
+	return { $course_user->get_inflated_columns, role => $course_user->role->role_name };
 }
 
 # This returns the merged user fields (course user and global user)
 
 sub _getMergedUser {
 	my $course_user = shift;
-	return removeLoginParams({ $course_user->get_inflated_columns, $course_user->users->get_inflated_columns });
+	return removeLoginParams({
+		$course_user->get_inflated_columns, $course_user->users->get_inflated_columns,
+		role => $course_user->role->role_name
+	});
 }
 
 1;

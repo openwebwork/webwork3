@@ -12,8 +12,6 @@ BEGIN {
 use DB::Schema;
 use WeBWorK3::Hooks;
 
-my $perm_table;
-
 # This method will run once at server start
 sub startup ($self) {
 	# log to file if we're in production mode
@@ -53,10 +51,6 @@ sub startup ($self) {
 	$self->sessions->samesite($config->{cookie_samesite});
 	$self->sessions->secure($config->{cookie_secure});
 
-	# Load permissions and set up a helper for dealing with permissions.
-	# $perm_table = LoadFile("$ENV{WW3_ROOT}/conf/permissions.yaml");
-	# $self->helper(perm_table => sub ($c) { return $perm_table; });
-
 	# Handle all api route exceptions
 	$self->hook(around_dispatch => $WeBWorK3::Hooks::exception_handler);
 
@@ -76,6 +70,13 @@ sub startup ($self) {
 }
 
 sub load_account ($self, $user_id) {
+	my $course_id = $self->param('course_id');
+	return $self->schema->resultset('User')->getGlobalCourseUser(
+		info => {
+			username  => $user_id,
+			course_id => $course_id
+		}
+	) if defined $course_id;
 	return $self->schema->resultset('User')->getGlobalUser(info => { username => $user_id });
 }
 
