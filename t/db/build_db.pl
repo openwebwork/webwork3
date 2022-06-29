@@ -62,8 +62,14 @@ sub addCourses {
 			boolean_fields => ['visible']
 		}
 	);
+	# currently course_params from the csv file are written to the course_settings database table.
 	for my $course (@courses) {
-		# currently course_params is not in the database.
+		$course->{course_settings} = {};
+		for my $key (keys %{ $course->{course_params} }) {
+			my @fields = split(/:/, $key);
+			$course->{course_settings}->{ $fields[0] } = { $fields[1] => $course->{course_params}->{$key} };
+		}
+
 		delete $course->{course_params};
 		$course_rs->create($course);
 	}
