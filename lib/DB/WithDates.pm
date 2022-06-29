@@ -12,7 +12,7 @@ use DB::Exception;
 
 my $valid_dates;                 # Arrayref of allowed/valid dates
 my $required_dates;              # Arrayref of required dates
-my $optional_fields_in_dates;    # Arrayref of other non-date fields in the hash.
+my $optional_fields_in_dates;    # hashref of other non-date fields in the hash and the type.
 
 sub validDates ($self, $field_name) {
 	$valid_dates              = ref($self)->valid_dates;
@@ -23,12 +23,13 @@ sub validDates ($self, $field_name) {
 	$self->hasRequiredDateFields($field_name);
 	$self->validDateFormat($field_name);
 	$self->checkDates($field_name);
+	$self->validateOptionalFields($field_name);
 	return 1;
 }
 
 sub validDateFields ($self, $field_name) {
 	my @fields     = keys %{ $self->get_inflated_column($field_name) };
-	my @all_fields = (@$valid_dates, @$optional_fields_in_dates);
+	my @all_fields = (@$valid_dates, keys %$optional_fields_in_dates);
 
 	# If this is not empty, there are illegal fields.
 	my @bad_fields = array_minus(@fields, @all_fields);
@@ -72,6 +73,22 @@ sub checkDates ($self, $field_name) {
 			if ($dates->{ $date_fields[$i] } > $dates->{ $date_fields[ $i + 1 ] });
 	}
 	return 1;
+}
+
+# This checks the options fields that aren't dates
+sub validateOptionalFields ($self, $field_name) {
+	my $params_hash = $self->get_inflated_column($field_name);
+	# if it doesn't exist, it is valid
+	return 1 unless defined $params_hash;
+
+	for my $key (keys %$optional_fields_in_dates) {
+		next unless defined $params_hash->{$key};
+		my $re    = $params_hash->{$key};
+		my $valid = $re eq 'bool' ? JSON::PP::is_bool($params_hash->{$key}) : $params_hash->{$key} =~ qr/^$re$/x;
+		DB::Exception::InvalidParameter->throw(
+			message => "The parameter named $key is not valid. It has value $params_hash->{$key}")
+			unless $valid;
+	}
 }
 
 1;

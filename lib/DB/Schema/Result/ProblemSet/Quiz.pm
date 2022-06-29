@@ -27,7 +27,7 @@ sub valid_dates ($=) {
 	return [ 'open', 'due', 'answer' ];
 }
 
-sub optional_fields_in_dates ($=) { return []; }
+sub optional_fields_in_dates ($=) { return {}; }
 
 =head2 C<required_dates>
 
