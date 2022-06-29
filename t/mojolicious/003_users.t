@@ -59,12 +59,12 @@ $t->post_ok('/webwork3/api/users' => json => $new_user)->status_is(200)
 my $new_user_from_db = $t->tx->res->json;
 
 $new_user->{user_id} = $new_user_from_db->{user_id};
-is_deeply($new_user, $new_user_from_db, "addUser: global user added.");
+is_deeply($new_user, $new_user_from_db, 'addUser: global user added.');
 
 # Update the user.
 $new_user->{email} = 'maggie@juno.com';
 $t->put_ok("/webwork3/api/users/$new_user->{user_id}" => json => $new_user)->status_is(200);
-is_deeply($new_user, $t->tx->res->json, "updateUser: global user updated");
+is_deeply($new_user, $t->tx->res->json, 'updateUser: global user updated');
 
 # Add the user to the course.
 my $added_user_to_course = {

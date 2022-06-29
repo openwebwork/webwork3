@@ -270,8 +270,8 @@ throws_ok {
 my $new_set7 = {
 	set_name   => 'HW #11',
 	set_dates  => { open => 100, due => 140, answer => 200 },
-	set_type   => "HW",
-	set_params => { not_a_valid_field => 5 }
+	set_type   => 'HW',
+	set_params => { enable_reduced_scoring => false, not_a_valid_field => 5 }
 };
 throws_ok {
 	$problem_set_rs->addProblemSet(
@@ -283,22 +283,33 @@ throws_ok {
 }
 'DB::Exception::UndefinedParameter', 'addProblemSet: adding an undefined parameter field';
 
-# Check for invalid parameter fields
-my $new_set8 = {
-	set_name   => "HW #11",
-	set_dates  => { open => 100, due => 140, answer => 200, enable_reduced_scoring => false },
-	set_type   => "HW",
-	set_params => { hide_hint => "yes" }
-};
+# Check for invalid parameter fields (the hide_hint param is a boolean)
 throws_ok {
 	$problem_set_rs->addProblemSet(
 		params => {
 			course_name => 'Precalculus',
-			%$new_set8
+			set_name    => 'HW #11',
+			set_dates   => { open => 100, due => 140, answer => 200 },
+			set_type    => 'HW',
+			set_params  => { enable_reduced_scoring => false, hide_hint => 'yes' }
 		}
 	);
 }
 'DB::Exception::InvalidParameter', 'addProblemSet: adding an non-valid parameter';
+
+# Check to ensure true/false are passed into the set_params, not 0/1
+throws_ok {
+	$problem_set_rs->addProblemSet(
+		params => {
+			course_name => 'Precalculus',
+			set_name    => 'HW #11',
+			set_dates   => { open => 100, due => 140, answer => 200 },
+			set_type    => 'HW',
+			set_params  => { enable_reduced_scoring => 0, hide_hint => true }
+		}
+	);
+}
+'DB::Exception::InvalidParameter', 'addProblemSet: adding an non-valid boolean parameter';
 
 # Update a set
 $new_set_params->{set_name}   = "HW #8";

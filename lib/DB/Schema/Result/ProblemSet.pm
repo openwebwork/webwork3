@@ -112,14 +112,13 @@ __PACKAGE__->add_columns(
 		serializer_options => { boolean_fields => ['enable_reduced_scoring'] }
 	},
 	# Store params as a JSON object.
-	# The boolean_fields from any subclass needs to be added here.
 	set_params => {
 		data_type          => 'text',
 		size               => 256,
 		is_nullable        => 0,
 		default_value      => '{}',
-		serializer_class   => 'Boolean::JSON',
-		serializer_options => { boolean_fields => [ 'hide_hint', 'timed', 'problem_randorder', 'test_param' ] }
+		serializer_class   => 'JSON',
+		serializer_options => { utf8 => 1 }
 	}
 );
 

@@ -83,10 +83,11 @@ This is a description of the homework set.
 
 sub valid_params ($=) {
 	return {
-		hide_hint       => q{[01]},
-		hardcopy_header => q{.*},
-		set_header      => q{.*},
-		description     => q{.*}
+		enable_reduced_scoring => 'bool',
+		hide_hint              => 'bool',
+		hardcopy_header        => q{.*},
+		set_header             => q{.*},
+		description            => q{.*}
 	};
 }
 

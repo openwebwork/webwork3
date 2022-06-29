@@ -126,19 +126,19 @@ __PACKAGE__->add_columns(
 		size               => 256,
 		is_nullable        => 0,
 		default_value      => '{}',
-		serializer_class   => 'Boolean::JSON',
-		serializer_options => { boolean_fields => [ 'useMathQuill', 'showOldAnswers' ] }
+		serializer_class   => 'JSON',
+		serializer_options => { utf8 => 1 }
 	}
 );
 
 sub valid_params {
 	return {
 		comment        => q{.*},
-		useMathQuill   => q{[01]},
+		useMathQuill   => 'bool',
 		displayMode    => q{.*},
 		status         => q{[A-Z]},
 		lis_source_did => q{.*},
-		showOldAnswers => q{[01]}
+		showOldAnswers => 'bool'
 	};
 }
 

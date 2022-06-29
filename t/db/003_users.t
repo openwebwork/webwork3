@@ -17,12 +17,12 @@ use Test::More;
 use Test::Exception;
 use Clone qw/clone/;
 use List::MoreUtils qw/firstval/;
+use YAML qw/LoadFile/;
+use DateTime::Format::Strptime;
 use Mojo::JSON qw/true false/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
-use YAML qw/LoadFile/;
-use DateTime::Format::Strptime;
 
 # Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";

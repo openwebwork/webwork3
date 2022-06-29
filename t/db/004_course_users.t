@@ -17,6 +17,7 @@ use Test::More;
 use Test::Exception;
 use YAML::XS qw/LoadFile/;
 use Clone qw/clone/;
+use Mojo::JSON qw/true false/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
@@ -122,9 +123,12 @@ my $user_params = {
 my $course_user_params = {
 	username           => 'quimby',
 	role               => 'student',
-	course_user_params => {},
-	recitation         => undef,
-	section            => undef
+	course_user_params => {
+		comment      => 'The chief is the best.',
+		useMathQuill => true
+	},
+	recitation => undef,
+	section    => undef
 };
 $user_rs->addGlobalUser(params => $user_params);
 $user = $user_rs->addCourseUser(
@@ -204,7 +208,7 @@ throws_ok {
 }
 'DB::Exception::UndefinedParameter', 'addCourseUser: an undefined parameter is set';
 
-# updateUser: Update a user with nonvalid fields
+# updateUser: Update a user with nonvalid boolean fields
 throws_ok {
 	$user_rs->addCourseUser(
 		info => {
@@ -213,7 +217,7 @@ throws_ok {
 		},
 		params => {
 			course_user_params => {
-				useMathQuill => 'yes'
+				useMathQuill => 0
 			}
 		}
 	);
