@@ -89,6 +89,7 @@ sub validateOptionalFields ($self, $field_name) {
 			message => "The parameter named $key is not valid. It has value $params_hash->{$key}")
 			unless $valid;
 	}
+	return 1;
 }
 
 1;
