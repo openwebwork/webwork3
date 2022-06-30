@@ -14,22 +14,34 @@ Course:
     admin_required: true
 User:
   getGlobalUsers:
-    admin_required: true
+    allowed_users: ["admin", "instructor"]
   getGlobalUser:
     allowed_users: ["admin", "instructor"]
   updateGlobalUser:
-    admin_required: true
+    allowed_users: ["admin", "instructor"]
   addGlobalUser:
-    admin_required: true
+    allowed_users: ["admin", "instructor"]
   deleteGlobalUser:
-    admin_required: true
-  getUsers:
     allowed_users: ["admin", "instructor"]
-  getUser:
+  getGlobalCourseUsers:
     allowed_users: ["admin", "instructor"]
-  addUser:
+  checkGlobalUser:
     allowed_users: ["admin", "instructor"]
-  updateUser:
+  getCourseUsers:
     allowed_users: ["admin", "instructor"]
-  deleteUsers:
+  getCourseUser:
+    allowed_users: ["admin", "instructor"]
+  addCourseUser:
+    allowed_users: ["admin", "instructor"]
+  updateCourseUser:
+    allowed_users: ["admin", "instructor"]
+  deleteCourseUsers:
+    allowed_users: ["admin", "instructor"]
+
+ProblemSet:
+  getProblemSets:
+    allowed_users: ["admin", "instructor"]
+
+Settings:
+  getDefaultCourseSettings:
     allowed_users: ["admin", "instructor"]

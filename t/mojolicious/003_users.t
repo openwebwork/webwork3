@@ -4,6 +4,7 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
+use List::MoreUtils qw/firstval/;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -71,12 +72,23 @@ my $added_user_to_course = {
 $t->post_ok('/webwork3/api/courses/4/users' => json => $added_user_to_course)->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/role' => 'student');
 
+my $lisa = firstval { $_->{username} eq 'lisa' } @all_users;
+
+# Check if the user is a global user
+$t->get_ok('/webwork3/api/courses/1/users/lisa/exists')->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/first_name' => $lisa->{first_name});
+
+# Check if a non-existent user is a global user
+$t->get_ok('/webwork3/api/courses/1/users/non_existent_user/exists')->status_is(200)
+	->content_type_is('application/json;charset=UTF-8');
+
+is_deeply($t->tx->res->json, {}, 'checkUserExists: check that a non-existent user returns {}');
+
 # Test for exceptions
 
 # Try to get a non-existent user.
 $t->get_ok('/webwork3/api/users/99999')->content_type_is('application/json;charset=UTF-8')
-	->status_is(500, 'exception status')->status_is(500, 'internal exception')
-	->json_is('/exception' => 'DB::Exception::UserNotFound');
+	->status_is(500, 'exception status')->json_is('/exception' => 'DB::Exception::UserNotFound');
 
 # Try to update a user not in a course.
 $t->put_ok('/webwork3/api/users/99999' => json => { email => 'fred@happy.com' })->status_is(500, 'exception status')

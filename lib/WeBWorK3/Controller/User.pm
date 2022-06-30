@@ -1,6 +1,8 @@
 package WeBWorK3::Controller::User;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
+use Try::Tiny;
+
 sub getGlobalUsers ($self) {
 	my @global_users = $self->schema->resultset('User')->getAllGlobalUsers;
 	$self->render(json => \@global_users);
@@ -13,6 +15,19 @@ sub getGlobalUser ($self) {
 		? $self->schema->resultset('User')->getGlobalUser(info => { user_id  => int($self->param('user_id')) })
 		: $self->schema->resultset('User')->getGlobalUser(info => { username => $self->param('user_id') });
 	$self->render(json => $user);
+	return;
+}
+
+# Passing the username into the getGlobalUser results in a problem with permssions.  This route
+# should be used to pass in the username.
+sub checkGlobalUser ($self) {
+	try {
+		my $user = $self->schema->resultset('User')->getGlobalUser(info => { username => $self->param('username') });
+		$self->render(json => $user);
+		return;
+	} catch {
+		$self->render(json => {}) if ref($_) eq 'DB::Exception::UserNotFound';
+	};
 	return;
 }
 
@@ -75,13 +90,14 @@ sub getCourseUser ($self) {
 	$self->render(json => $course_user);
 	return;
 }
-
+use Data::Dumper;
 sub addCourseUser ($self) {
-
+	print Dumper $self->req->json;
 	my $info = { course_id => int($self->param('course_id')) };
-	$info->{username} = $self->req->json->{username}     if $self->req->json->{username};
-	$info->{user_id}  = int($self->req->json->{user_id}) if $self->req->json->{user_id};
+	$info->{username} = $self->req->json->{username}     if defined($self->req->json->{username});
+	$info->{user_id}  = int($self->req->json->{user_id}) if defined($self->req->json->{user_id});
 
+	print Dumper  $info;
 	my $course_user = $self->schema->resultset('User')->addCourseUser(
 		info   => $info,
 		params => $self->req->json
