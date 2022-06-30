@@ -91,7 +91,6 @@ $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => '
 	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => true)
 	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => false);
 
-
 # an instructor can get information about the given course.
 $t->get_ok('/webwork3/api/courses/4')->status_is(200)->json_is('/course_name' => 'Arithmetic');
 

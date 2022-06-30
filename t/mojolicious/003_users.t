@@ -156,4 +156,31 @@ $t->put_ok('/webwork3/api/users/1' => json => { email => 'lisa@aol.com' })->stat
 $t->delete_ok('/webwork3/api/users/1')->content_type_is('application/json;charset=UTF-8')->status_is(403)
 	->json_is('/has_permission' => 0);
 
+# The following routes test that global users can be handled by an instructor in the course
+# Lisa is an instructor in the Arithmetic course (course_id => 4)
+
+my $new_global_user = {
+	username   => 'maggie',
+	first_name => 'Maggie',
+	last_name  => 'Simpson',
+	student_id => 1234,
+	email      => 'maggie@thesimpsons.tv'
+};
+
+$t->post_ok('/webwork3/api/courses/4/global-users' => json => $new_global_user)->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/username' => 'maggie');
+
+my $new_global_user_id = $t->tx->res->json('/user_id');
+
+$t->get_ok("/webwork3/api/courses/4/global-users/$new_global_user_id")->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/username' => 'maggie')
+	->json_is('/student_id' => 1234);
+
+$t->put_ok("/webwork3/api/courses/4/global-users/$new_global_user_id" => json => { student_id => 4321 })
+	->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/username' => 'maggie')
+	->json_is('/student_id' => 4321);
+
+$t->delete_ok("/webwork3/api/courses/4/global-users/$new_global_user_id")->status_is(200)
+	->content_type_is('application/json;charset=UTF-8');
+
 done_testing;

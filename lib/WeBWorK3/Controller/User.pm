@@ -63,6 +63,14 @@ sub getGlobalCourseUsers ($self) {
 	return;
 }
 
+# The following are needed for handling global users from instructors in a course
+
+sub getGlobalUsersFromCourse   ($self) { $self->getGlobalUsers;   return }
+sub getGlobalUserFromCourse    ($self) { $self->getGlobalUser;    return }
+sub addGlobalUserFromCourse    ($self) { $self->addGlobalUser;    return }
+sub updateGlobalUserFromCourse ($self) { $self->updateGlobalUser; return }
+sub deleteGlobalUserFromCourse ($self) { $self->deleteGlobalUser; return }
+
 # The following subs are related to users within a given course.
 
 sub getMergedCourseUsers ($self) {

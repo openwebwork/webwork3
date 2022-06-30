@@ -135,10 +135,10 @@ sub courseUserRoutes ($self) {
 	# global user routes for accessing within a course for users with course roles.
 
 	$course_user_routes->get('/global-courseusers')->to(action => 'getGlobalCourseUsers');
-	$course_user_routes->post('/global-users')->to(action => 'addGlobalUser');
-	$course_user_routes->get('/global-users/:user_id')->to(action => 'getGlobalUser');
-	$course_user_routes->put('/global-users/:user_id')->to(action => 'updateGlobalUser');
-	$course_user_routes->delete('/global-users/:user_id')->to(action => 'deleteGlobalUser');
+	$course_user_routes->post('/global-users')->to(action => 'addGlobalUserFromCourse');
+	$course_user_routes->get('/global-users/:user_id')->to(action => 'getGlobalUserFromCourse');
+	$course_user_routes->put('/global-users/:user_id')->to(action => 'updateGlobalUserFromCourse');
+	$course_user_routes->delete('/global-users/:user_id')->to(action => 'deleteGlobalUserFromCourse');
 
 	$course_user_routes->get('/courseusers')->to(action => 'getMergedCourseUsers');
 	return;

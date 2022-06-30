@@ -45,6 +45,17 @@ db_permissions:
       admin_required: true
     deleteGlobalUser:
       admin_required: true
+    # The following actions are needed for instructors to handle global users
+    getGlobalUsersFromCourse:
+      allowed_roles: ['course_admin', 'instructor']
+    getGlobalUserFromCourse:
+      allowed_roles: ['course_admin', 'instructor']
+    updateGlobalUserFromCourse:
+      allowed_roles: ['course_admin', 'instructor']
+    addGlobalUserFromCourse:
+      allowed_roles: ['course_admin', 'instructor']
+    deleteGlobalUserFromCourse:
+      allowed_roles: ['course_admin', 'instructor']
     getCourseUsers:
       allowed_roles: ['course_admin', 'instructor']
     getUserCourses:
