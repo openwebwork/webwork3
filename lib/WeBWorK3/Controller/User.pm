@@ -90,14 +90,12 @@ sub getCourseUser ($self) {
 	$self->render(json => $course_user);
 	return;
 }
-use Data::Dumper;
+
 sub addCourseUser ($self) {
-	print Dumper $self->req->json;
 	my $info = { course_id => int($self->param('course_id')) };
 	$info->{username} = $self->req->json->{username}     if defined($self->req->json->{username});
 	$info->{user_id}  = int($self->req->json->{user_id}) if defined($self->req->json->{user_id});
 
-	print Dumper  $info;
 	my $course_user = $self->schema->resultset('User')->addCourseUser(
 		info   => $info,
 		params => $self->req->json
