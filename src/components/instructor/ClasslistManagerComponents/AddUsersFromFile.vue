@@ -110,7 +110,7 @@ import type { Dictionary } from 'src/common/models';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import { CourseUser, User, ParseableCourseUser } from 'src/common/models/users';
 import { invert } from 'src/common/utils';
-import { getUser } from 'src/common/api-requests/user';
+import { checkIfUserExists } from 'src/common/api-requests/user';
 import { useSettingsStore } from 'src/stores/settings';
 
 interface ParseError {
@@ -306,49 +306,43 @@ const loadFile = () => {
 const addMergedUsers = async () => {
 	for await (const user of merged_users_to_add.value) {
 		user.course_id = session.course.course_id;
-		let global_user: User | undefined;
-		try {
-			// Skip if username is undefined?
-			global_user = await getUser(user.username ?? '') as User;
-		} catch (err) {
-			const error = err as ResponseError;
-			// this will occur is the user is not a global user
-			if (error.exception !== 'DB::Exception::UserNotFound') {
-				logger.error(error.message);
-			}
-			try {
-				global_user = await users.addUser(new User(user));
-				$q.notify({
-					message: `The global user with username '${global_user?.username ?? 'UNKNOWN'}'` +
-						' was successfully added to the course.',
-					color: 'green'
-				});
-			} catch (e) {
-				const error = e as ResponseError;
-				$q.notify({ message: error.message, color: 'red' });
-			}
-		}
-		if (global_user) {
-			user.user_id = global_user.user_id;
-		}
-		try {
-			await users.addCourseUser(new CourseUser(user));
-			const full_name = `${user.first_name as string} ${user.last_name as string}`;
-			$q.notify({
-				message: `The user ${full_name} was successfully added to the course.`,
-				color: 'green'
-			});
-			emit('closeDialog');
-		} catch (err) {
-			const error = err as AxiosError;
-			logger.error(error);
-			const data = error?.response?.data as ResponseError || { exception: '' };
-			$q.notify({
-				message: data.exception,
-				color: 'red'
-			});
-		}
 
+		// First check if the user is a global user.  If not, add the global user.
+		await checkIfUserExists(session.course.course_id, user.username ?? '').then(async (global_user) => {
+			if (global_user.username == undefined) {
+				await users.addUser(new User(user)).then(u => {
+					const msg =  `The global user with username '${u?.username ?? 'UNKNOWN'}'` +
+							' was successfully added to the course.';
+					logger.debug(`[addUsersFromFile]: ${msg}`);
+					$q.notify({ message: msg, color: 'green' });
+					user.user_id = u?.user_id ?? 0;
+				}).catch(e => {
+					const error = e as ResponseError;
+					logger.error(`[addUsersFromFile]: ${error.message}`);
+					$q.notify({ message: error.message, color: 'red' });
+				});
+
+			} else {
+				user.user_id = parseInt(`${global_user.user_id ?? 0}`);
+			}
+
+			// Now add the user as a course user.
+			users.addCourseUser(new CourseUser(user)).then(user => {
+				const full_name = `${user.first_name as string} ${user.last_name as string}`;
+				const msg = `The user ${full_name} was successfully added to the course.`;
+				logger.debug(`[addUsersFromFile]: ${msg}`);
+				$q.notify({ message: msg, color: 'green' });
+				emit('closeDialog');
+			}).catch(err => {
+				const error = err as AxiosError;
+				logger.error(`[addUsersFromFile]: ${error.toString()}`);
+				const data = error?.response?.data as ResponseError || { exception: '' };
+				$q.notify({
+					message: data.exception,
+					color: 'red'
+				});
+			});
+		});
 	}
 };
 

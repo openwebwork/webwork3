@@ -95,26 +95,12 @@ const settings = useSettingsStore();
 
 // see if the user exists already and fill in the known fields
 const checkUser = async () => {
-	// If the user doesn't exist, the catch statement will handle this.
-	try {
-		const course_id = session.course.course_id;
-		const user_params = await checkIfUserExists(course_id, merged_user.value.username ?? '');
-		const user = new User(user_params);
-
+	const user = await checkIfUserExists(session.course.course_id, merged_user.value.username ?? '');
+	if (user.username == undefined) {
+		user_exists.value = false;
+	} else {
 		user_exists.value = true;
-		merged_user.value.user_id = user.user_id;
-		merged_user.value.username = user.username;
-		merged_user.value.first_name = user.first_name;
-		merged_user.value.last_name = user.last_name;
-		merged_user.value.email = user.email;
-	} catch (err) {
-		const error = err as ResponseError;
-		// this will occur is the user is not a global user
-		if (error.exception === 'DB::Exception::UserNotFound') {
-			user_exists.value = false;
-		} else {
-			logger.error(error.message);
-		}
+		merged_user.value = user;
 	}
 };
 
@@ -147,12 +133,16 @@ const addUser = async (close: boolean) => {
 		}
 
 		merged_user.value.course_id = session.course.course_id;
-		const user = await users.addCourseUser(new CourseUser(merged_user.value));
-		const u = users.findCourseUser({ user_id: parseNonNegInt(user.user_id ?? 0) });
-		$q.notify({
-			message: `The user with username '${u.username ?? ''}' was added successfully.`,
-			color: 'green'
+		await users.addCourseUser(new CourseUser(merged_user.value)).then((course_user) => {
+			const u = users.findCourseUser({ user_id: parseNonNegInt(course_user.user_id ?? 0) });
+			// The global user needs to be added to the store as well.
+			users.users.push(new User(merged_user.value));
+			$q.notify({
+				message: `The user with username '${u.username ?? ''}' was added successfully.`,
+				color: 'green'
+			});
 		});
+
 		if (close) {
 			emit('closeDialog');
 		} else {
