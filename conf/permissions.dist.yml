@@ -37,6 +37,8 @@ db_permissions:
       admin_required: true
     getGlobalUser:
       allowed_roles: ['course_admin', 'instructor']
+    checkGlobalUser:
+      allowed_roles: ['course_admin', 'instructor']
     updateGlobalUser:
       admin_required: true
     addGlobalUser:

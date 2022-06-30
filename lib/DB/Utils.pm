@@ -147,8 +147,15 @@ sub updatePermissions ($ww3_conf, $role_perm_file) {
 			});
 			my $allowed_roles = $role_perm->{db_permissions}->{$category}->{$action}->{allowed_roles} // [];
 
+			next unless $allowed_roles;
+
 			# check that the allowed roles is '*" or that the role exist.
-			if ($allowed_roles && !(scalar(@$allowed_roles) == 1 && $allowed_roles->[0] eq '*')) {
+			if (scalar(@$allowed_roles) == 1 && $allowed_roles->[0] eq '*') {
+				my @all_roles = $schema->resultset('Role')->search({});
+				for my $role (@all_roles) {
+					$db_perm->add_to_roles({ $role->get_columns });
+				}
+			} else {
 				for my $role_name (@$allowed_roles) {
 					my $role = $schema->resultset('Role')->find({ role_name => $role_name });
 					die "The role '$role_name' does not exist." unless defined $role;

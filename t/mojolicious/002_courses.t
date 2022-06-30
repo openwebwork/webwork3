@@ -87,23 +87,27 @@ $t->delete_ok("/webwork3/api/courses/$new_course_id")->status_is(200)
 $t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
 
 # Login as a non-admin
-$t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })
+$t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => true)
 	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => false);
 
-$t->get_ok('/webwork3/api/courses')->content_type_is('application/json;charset=UTF-8')
-	->json_is('/0/course_name' => 'Precalculus');
 
-$t->get_ok('/webwork3/api/courses/2')->content_type_is('application/json;charset=UTF-8')
-	->json_is('/course_name' => 'Abstract Algebra');
+# an instructor can get information about the given course.
+$t->get_ok('/webwork3/api/courses/4')->status_is(200)->json_is('/course_name' => 'Arithmetic');
 
-# The user should not have permissions for the following routes.
+# and also the settings for the course.
+
+$t->get_ok('/webwork3/api/courses/4/default_settings')->status_is(200)
+	->content_type_is('application/json;charset=UTF-8');
+$t->get_ok('/webwork3/api/courses/4/settings')->status_is(200)->content_type_is('application/json;charset=UTF-8');
+
+# The user with role instructor should not have permissions for the following routes.
 
 $t->post_ok('/webwork3/api/courses' => json => $new_course)->status_is(403)->json_is('/has_permission' => 0);
 
-$t->put_ok('/webwork3/api/courses/1' => json => { course_name => 'XXX' })->status_is(406)
-	->json_is('/has_permission' => 0);
+$t->put_ok('/webwork3/api/courses/4' => json => { course_name => 'XXX' })->status_is(403)
+	->json_is('/has_permission' => false);
 
-$t->delete_ok('/webwork3/api/courses/1')->status_is(406)->json_is('/has_permission' => false);
+$t->delete_ok('/webwork3/api/courses/4')->status_is(403)->json_is('/has_permission' => false);
 
 done_testing;

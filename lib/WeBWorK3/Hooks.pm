@@ -51,7 +51,9 @@ sub has_permission ($c, $user) {
 	) unless defined $perm_db;
 	return 1 if $user->{is_admin};
 	return 0 if $perm_db->admin_required && !$user->{is_admin};
+
 	my $user_role_id = $user->{role_id};
+	return 0 unless defined $user_role_id;
 	return grep {/^$user_role_id$/x} map { $_->role_id } $perm_db->roles;
 }
 

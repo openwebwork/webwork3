@@ -57,7 +57,7 @@ my $problem_set_rs  = $schema->resultset('ProblemSet');
 my $problem_pool_rs = $schema->resultset('ProblemPool');
 my $set_problem_rs  = $schema->resultset('SetProblem');
 my $user_set_rs     = $schema->resultset('UserSet');
-my $role_rs = $schema->resultset('Role');
+my $role_rs         = $schema->resultset('Role');
 
 my $strp_date = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
 
@@ -122,7 +122,7 @@ sub addUsers {
 		for my $key (qw/section recitation params/) {
 			$params->{$key} = $student->{$key};
 		}
-		$params->{role_id} = $role->role_id;
+		$params->{role_id}            = $role->role_id;
 		$params->{course_user_params} = $params->{params} // {};
 		delete $params->{params};
 		my $u = $course_user->update($params);
@@ -287,7 +287,6 @@ sub addUserProblems {
 }
 
 # First, make sure the roles/permissions are loaded.
-
 
 addCourses;
 addUsers;

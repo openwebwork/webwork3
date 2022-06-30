@@ -141,7 +141,7 @@ $t->post_ok(
 $t->put_ok(
 	'/webwork3/api/courses/4/users/'
 		. $maggie->user_id => json => {
-		recitation => 4
+			recitation => 4
 		}
 )->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/recitation' => 4);
 
@@ -164,7 +164,7 @@ $t->post_ok(
 $t->put_ok(
 	'/webwork3/api/courses/3/users/'
 		. $maggie->user_id => json => {
-		recitation => 4
+			recitation => 4
 		}
 )->status_is(403)->content_type_is('application/json;charset=UTF-8');
 

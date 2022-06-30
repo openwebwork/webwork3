@@ -186,12 +186,11 @@ sub problemRoutes ($self) {
 }
 
 sub settingsRoutes ($self) {
-	$self->routes->get('/webwork3/api/courses/:course_id/default_settings')->requires(authenticated => 1)
-		->to('Settings#getDefaultCourseSettings');
-	$self->routes->get('/webwork3/api/courses/:course_id/settings')->requires(authenticated => 1)
-		->to('Settings#getCourseSettings');
-	$self->routes->put('/webwork3/api/courses/:course_id/setting')->requires(authenticated => 1)
-		->to('Settings#updateCourseSetting');
+	my $course_routes = $self->routes->any('/webwork3/api/courses/:course_id')->requires(authenticated => 1)
+		->to(controller => 'Settings');
+	$course_routes->get('/default_settings')->to(action => 'getDefaultCourseSettings');
+	$course_routes->get('/settings')->to(action => 'getCourseSettings');
+	$course_routes->put('/setting')->to(action => 'updateCourseSetting');
 	return;
 }
 
