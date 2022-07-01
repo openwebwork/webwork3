@@ -55,10 +55,12 @@ const login = async () => {
 		message.value = i18n.t('authentication.failure');
 	} else {
 		// success
+		console.log(session_info);
+		session.updateSessionInfo(session_info);
+
 		await permission_store.fetchRoles();
 		await permission_store.fetchRoutePermissions();
 
-		void session.updateSessionInfo(session_info);
 		if (session_info?.user?.is_admin) {
 			void router.push('/admin');
 		} else if (session && session.user && session.user.user_id) {

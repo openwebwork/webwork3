@@ -16,7 +16,7 @@
 				<q-card-section>
 					<q-list>
 						<template v-for="course in student_courses" :key="course.course_id">
-						  <q-item>
+							<q-item>
 								<q-btn outline color="primary" @click="switchCourse(course.course_id)"
 									:label="course.course_name" />
 								</q-item>
@@ -33,7 +33,7 @@
 				<q-card-section>
 					<q-list>
 						<template v-for="course in instructor_courses" :key="course.course_id">
-							 <q-item>
+							<q-item>
 								<q-btn outline color="primary" @click="switchCourse(course.course_id)"
 									:label="course.course_name" />
 								</q-item>

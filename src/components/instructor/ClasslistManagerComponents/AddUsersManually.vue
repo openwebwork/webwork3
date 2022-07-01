@@ -76,6 +76,7 @@ import { CourseUser, ParseableCourseUser, User } from 'src/common/models/users';
 import type { ResponseError } from 'src/common/api-requests/interfaces';
 import { AxiosError } from 'axios';
 import { parseNonNegInt, parseUsername } from 'src/common/models/parsers';
+import { usePermissionStore } from 'src/stores/permissions';
 
 interface QRef {
 	validate: () => boolean;
@@ -91,7 +92,7 @@ const username_ref = ref<QRef | null>(null);
 const role_ref = ref<QRef | null>(null);
 const users = useUserStore();
 const session = useSessionStore();
-const settings = useSettingsStore();
+const permission_store = usePermissionStore();
 
 // see if the user exists already and fill in the known fields
 const checkUser = async () => {
@@ -105,8 +106,7 @@ const checkUser = async () => {
 };
 
 // Return an array of the roles in the course.
-const roles = computed(() =>
-	(settings.getCourseSetting('roles').value as string[]).filter(v => v !== 'admin'));
+const roles = computed(() => permission_store.roles);
 
 const addUser = async (close: boolean) => {
 	try {
@@ -160,19 +160,14 @@ const addUser = async (close: boolean) => {
 };
 
 const validateRole = (val: string | null) => {
-	if (val == undefined) {
-		return 'You must select a role';
-	}
-	return true;
+	return (val == undefined) ? 'You must select a role' : true;
 };
 
 const validateUsername = (val: string) => {
 	try {
 		const username = parseUsername(val);
-		if (users.course_users.findIndex(u => u.username === username) >= 0) {
-			return 'This user is already in the course.';
-		}
-		return true;
+		return (users.course_users.findIndex(u => u.username === username) >= 0) ?
+			'This user is already in the course.' : true;
 	} catch (err) {
 		return 'This is not a valid username';
 	}

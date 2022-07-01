@@ -122,9 +122,9 @@ sub updatePermissions ($ww3_conf, $role_perm_file) {
 	$schema->resultset('DBPermission')->delete_all;
 	$schema->resultset('UIPermission')->delete_all;
 
-	# add the roles to the database
+	# add the roles to the database.  Store them as uppercase.
 
-	my @roles = map { { role_name => $_ }; } @{ $role_perm->{roles} };
+	my @roles = map { { role_name => uc($_) }; } @{ $role_perm->{roles} };
 	$schema->resultset('Role')->populate(\@roles);
 
 	# fill the database permissions table
@@ -133,7 +133,8 @@ sub updatePermissions ($ww3_conf, $role_perm_file) {
 			$schema->resultset('DBPermission')->create({
 				category       => $category,
 				action         => $action,
-				admin_required => $role_perm->{db_permissions}->{$category}->{$action}->{admin_required}
+				admin_required => $role_perm->{db_permissions}->{$category}->{$action}->{admin_required},
+				authenticated  => $role_perm->{db_permissions}->{$category}->{$action}->{authenticated}
 			});
 		}
 	}
@@ -157,7 +158,7 @@ sub updatePermissions ($ww3_conf, $role_perm_file) {
 				}
 			} else {
 				for my $role_name (@$allowed_roles) {
-					my $role = $schema->resultset('Role')->find({ role_name => $role_name });
+					my $role = $schema->resultset('Role')->find({ role_name => uc($role_name) });
 					die "The role '$role_name' does not exist." unless defined $role;
 
 					$db_perm->add_to_roles({ $role->get_columns });
@@ -165,9 +166,6 @@ sub updatePermissions ($ww3_conf, $role_perm_file) {
 			}
 		}
 	}
-	# add all allowed_roles to the db
-
-	# $row->{allowed_roles} = $allowed_roles;
 
 	# add the UI permissions
 
@@ -177,7 +175,7 @@ sub updatePermissions ($ww3_conf, $role_perm_file) {
 		# check that the allowed roles exist.
 		for my $role (@$allowed_roles) {
 			next if $role eq '*';
-			my $role_in_db = $schema->resultset('Role')->find({ role_name => $role });
+			my $role_in_db = $schema->resultset('Role')->find({ role_name => uc($role) });
 			die "The role '$role' does not exist." unless defined $role_in_db;
 		}
 
@@ -188,7 +186,7 @@ sub updatePermissions ($ww3_conf, $role_perm_file) {
 			allow_self_access => $role_perm->{ui_permissions}->{$route}->{allow_self_access}
 		});
 	}
-
+	return;
 }
 
 1;

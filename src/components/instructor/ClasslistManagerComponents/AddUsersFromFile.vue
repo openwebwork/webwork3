@@ -112,6 +112,7 @@ import { CourseUser, User, ParseableCourseUser } from 'src/common/models/users';
 import { invert } from 'src/common/utils';
 import { checkIfUserExists } from 'src/common/api-requests/user';
 import { useSettingsStore } from 'src/stores/settings';
+import { usePermissionStore } from 'src/stores/permissions';
 
 interface ParseError {
 	type: string;
@@ -130,8 +131,9 @@ const emit = defineEmits(['closeDialog']);
 
 const users = useUserStore();
 const session = useSessionStore();
-const settings = useSettingsStore();
+const permission_store = usePermissionStore();
 const $q = useQuasar();
+
 const file = ref<File>(new File([], ''));
 // Stores all users from the file as well as parsing errors.
 const merged_users = ref<Array<UserFromFile>>([]);
@@ -161,8 +163,7 @@ const user_fields = [
 	{ label: 'Role', field: 'role', regexp: /role/i } ];
 
 // Return an array of the roles in the course.
-const roles = computed(() =>
-	(settings.getCourseSetting('roles').value as string[]).filter(v => v !== 'admin'));
+const roles = computed(() => permission_store.roles);
 
 // use the first row to find the headers of the table (field names)
 // this is based on trying to match the needed field names to the know user

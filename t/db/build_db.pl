@@ -113,7 +113,7 @@ sub addUsers {
 		};
 
 		# Look up the role of the user
-		my $role = $role_rs->find({ role_name => $student->{role} });
+		my $role = $role_rs->find({ role_name => uc($student->{role}) });
 		die "The user with username $student->{username} has role $student->{role} which does not exist\n"
 			. 'Either reassign the role or ensure that bin/update_perms.pl has been run.'
 			unless defined $role;
