@@ -11,16 +11,25 @@ roles:
   - student
 
 # This defines the permisions for each role for the backend/database.
+#
+# This hash has each of the Controllers (Logger, Permission, Course, ...) as a field
+# and each action as a subfield.  For each Controller/action, there are three possibilities
+#
+# - authenticated: true      this route can be accessed by any user who has been authenticated.
+# - admin_required: true     this route can only be accessed by a user with admin flag (no course role)
+# - allowed_roles: Array     this route can be accessed by a user with a role in the given array.
+#                            and '*' can be used for all roles.
 
 db_permissions:
   Logger:
     clientLog:
-      allowed_roles: ['*']
+      authenticated: true
   Permission:
     getRoles:
-      allowed_roles: ['*']
+      authenticated: true
     getUIRoutePermissions:
-      allowed_roles: ['*']
+      authenticated: true
+
   Course:
     getCourses:
       allowed_roles: ['*']

@@ -42,15 +42,18 @@ __PACKAGE__->add_columns(
 	},
 	category => {
 		data_type   => 'text',
-		size        => 64,
 		is_nullable => 0,
 	},
 	action => {
 		data_type   => 'text',
-		size        => 64,
 		is_nullable => 0,
 	},
 	admin_required => {
+		data_type   => 'boolean',
+		size        => 8,
+		is_nullable => 1
+	},
+	authenticated => {
 		data_type   => 'boolean',
 		size        => 8,
 		is_nullable => 1
@@ -59,6 +62,14 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->inflate_column(
 	'admin_required',
+	{
+		inflate => sub { return shift ? Mojo::JSON->true : Mojo::JSON->false; },
+		deflate => sub { return shift; }
+	}
+);
+
+__PACKAGE__->inflate_column(
+	'authenticated',
 	{
 		inflate => sub { return shift ? Mojo::JSON->true : Mojo::JSON->false; },
 		deflate => sub { return shift; }

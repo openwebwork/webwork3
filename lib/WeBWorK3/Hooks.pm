@@ -34,11 +34,10 @@ our $exception_handler = sub ($next, $c) {
 # This is done first by
 # 1. ensuring that a route exists in the database.
 # 2. checking if the user is an admin and if so, allowing them in.
-# 3. return false if the route requires admin access and the user is not an admin.
-# 4. checking that the user has a role with an allowed permission.
+# 3. if the route just needs authentication access, permit the user.
+# 4. return false if the route requires admin access and the user is not an admin.
+# 5. checking that the user has a role with an allowed permission.
 #
-
-use Data::Dumper;
 
 sub has_permission ($c, $user) {
 	my $perm_db = $c->schema->resultset('DBPermission')->find({
@@ -49,7 +48,8 @@ sub has_permission ($c, $user) {
 	DB::Exception::RouteWithoutPermission->throw(message =>
 			"The route with controller $c->{stash}{controller} and action $c->{stash}{action} does not have a permission defined"
 	) unless defined $perm_db;
-	return 1 if $user->{is_admin};
+
+	return 1 if $user->{is_admin} || $perm_db->authenticated;
 	return 0 if $perm_db->admin_required && !$user->{is_admin};
 
 	my $user_role_id = $user->{role_id};
