@@ -189,8 +189,8 @@ export class DBUserHomeworkSet extends DBUserSet {
 
 export type ParseableDBUserQuiz  = ParseableDBUserSet &
 	{
-	set_params?: ParseableQuizParams;
-	set_dates?: ParseableQuizDates;
+		set_params?: ParseableQuizParams;
+		set_dates?: ParseableQuizDates;
 	}
 
 export class UserQuizDates extends Model {

@@ -142,10 +142,7 @@ sub addCourse ($self, %args) {
 	}
 	$params->{course_settings} = {};
 
-	# Add the visible default if not there.  Note: although in the database this value is
-	# already set, it appears that in the create method below, the default value is
-	# not created.  Perhaps rethink this a bit.
-	$params->{visible} = 1 unless defined $params->{visible};
+	# Check the parameters.
 	my $new_course = $self->create($params);
 
 	return $new_course if $args{as_result_set};
