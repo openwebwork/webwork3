@@ -9,6 +9,7 @@ use base 'DBIx::Class::ResultSet';
 
 use Carp;
 use Clone qw/clone/;
+use Mojo::JSON qw/true false/;
 
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 
@@ -338,9 +339,6 @@ sub addProblemSet {
 	for my $key (qw/course_id course_name set_type set_id/) {
 		delete $set_params->{$key} if defined $set_params->{$key};
 	}
-
-	# set_visible should default to  false
-	$set_params->{set_visible} = 0 unless defined($set_params->{set_visible});
 
 	DB::Exception::ParametersNeeded->throw(message => 'You must defined the field set_name in the params argument')
 		unless defined($set_params->{set_name});

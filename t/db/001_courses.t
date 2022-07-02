@@ -93,7 +93,6 @@ my $new_course_params = {
 
 my $new_course = $course_rs->addCourse(params => $new_course_params);
 # set the default value of visible
-$new_course_params->{visible} = 1;
 my $added_course_id = $new_course->{course_id};
 removeIDs($new_course);
 

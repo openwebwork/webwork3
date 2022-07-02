@@ -365,7 +365,7 @@ my $deleted_problem = $problem_rs->deleteSetProblem(
 );
 removeIDs($deleted_problem);
 
-is_deeply($updated_problem, $deleted_problem, "deleteSetProblem: delete one problem in an existing set.");
+is_deeply($updated_problem, $deleted_problem, 'deleteSetProblem: delete one problem in an existing set.');
 
 my $deleted_problem2 = $problem_rs->deleteSetProblem(
 	info => {
@@ -374,7 +374,7 @@ my $deleted_problem2 = $problem_rs->deleteSetProblem(
 		problem_number => $set_problem_to_delete->{problem_number},
 	}
 );
-is_deeply($deleted_problem2, $set_problem_to_delete, "deleteSetProblem: delete another problem.");
+is_deeply($deleted_problem2, $set_problem_to_delete, 'deleteSetProblem: delete another problem.');
 
 my $deleted_problem3 = $problem_rs->deleteSetProblem(
 	info => {
@@ -384,7 +384,7 @@ my $deleted_problem3 = $problem_rs->deleteSetProblem(
 	}
 );
 removeIDs($deleted_problem3);
-is_deeply($deleted_problem3, $prob2, "deleteSetProblem: delete another problem.");
+is_deeply($deleted_problem3, $prob2, 'deleteSetProblem: delete another problem.');
 
 # Make sure the set_problem table is returned to its orginal state.
 @problems_from_db = $problem_rs->getGlobalProblems;

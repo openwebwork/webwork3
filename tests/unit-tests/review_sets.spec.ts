@@ -46,7 +46,7 @@ describe('Testing for Review Sets', () => {
 				set_id: 7,
 				set_name: 'Review Set #1',
 				set_params: {
-					test_param: true,
+					can_retake: true,
 				},
 				set_visible: true,
 				set_type: 'REVIEW'
