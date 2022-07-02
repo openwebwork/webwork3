@@ -64,10 +64,10 @@ ok(!isTimeDuration('4 apples'), 'check type: not a time duration');
 ok(isDecimal(0.3),    'check type: decimal');
 ok(isDecimal(3),      'check type: decimal');
 ok(isDecimal(-0.3),   'check type: decimal');
-ok(isDecimal("0.33"), 'check type: decimal');
+ok(isDecimal('0.33'), 'check type: decimal');
 ok(isDecimal("-.33"), 'check type: decimal');
 
-ok(isDecimal("00.33"),  'check type: decimal');
+ok(isDecimal('00.33'),  'check type: decimal');
 ok(!isDecimal("0-.33"), 'check type: not a decimal');
 ok(!isDecimal('abc'),   'check type: not a decimal');
 
@@ -152,7 +152,7 @@ throws_ok {
 		doc      => 'this is a setting',
 		type     => 'integer',
 		category => 'general',
-		default  => "12.343"
+		default  => '12.343'
 	})
 }
 'DB::Exception::InvalidCourseFieldType', 'course setting: bad integer format';

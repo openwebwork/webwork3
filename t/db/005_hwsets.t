@@ -175,7 +175,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::ParametersNeeded', "addProblemSet: set_name not passed in.";
+'DB::Exception::ParametersNeeded', 'addProblemSet: set_name not passed in.';
 
 # Try to add a homework with bad date fields
 my $new_set3 = {
@@ -191,7 +191,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::InvalidDateField', "addProblemSet: invalid date field passed in.";
+'DB::Exception::InvalidDateField', 'addProblemSet: invalid date field passed in.';
 
 # Try to add a homework set without all required date fields
 my $new_set4 = {
@@ -240,7 +240,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::ImproperDateOrder', "addProblemSet: adding an illegal date order.";
+'DB::Exception::ImproperDateOrder', 'addProblemSet: adding an illegal date order.';
 
 # Check for undefined parameter fields
 my $new_set7 = {
@@ -352,7 +352,7 @@ throws_ok {
 		params => { set_dates   => { bad_date => 99 } }
 	);
 }
-'DB::Exception::InvalidDateField', "updateSet: invalid date field passed in.";
+'DB::Exception::InvalidDateField', 'updateSet: invalid date field passed in.';
 
 # Try to update a set with an dates in a bad order
 throws_ok {
@@ -366,7 +366,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::ImproperDateOrder', "updateSet: adding an illegal date order.";
+'DB::Exception::ImproperDateOrder', 'updateSet: adding an illegal date order.';
 
 # Delete a set
 my $deleted_set = $problem_set_rs->deleteProblemSet(info => { course_name => 'Precalculus', set_name => 'HW #88' });
@@ -382,7 +382,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::CourseNotFound', "deleteCourse: try to delete a set from a not existent course.";
+'DB::Exception::CourseNotFound', 'deleteCourse: try to delete a set from a not existent course.';
 
 # Try deleting a set that does not exist
 throws_ok {
@@ -393,7 +393,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::SetNotInCourse', "deleteCourse: try to delete a set that not exist.";
+'DB::Exception::SetNotInCourse', 'deleteCourse: try to delete a set that not exist.';
 
 # ensure that the problem_sets table in the database is restored.
 @all_problem_sets     = (@hw_sets, @quizzes, @review_sets);

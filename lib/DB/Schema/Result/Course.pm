@@ -56,7 +56,7 @@ __PACKAGE__->add_columns(
 	course_dates => {
 		data_type          => 'text',
 		is_nullable        => 0,
-		default_value      => "{}",
+		default_value      => '{}',
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
