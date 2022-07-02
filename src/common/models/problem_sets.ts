@@ -379,13 +379,12 @@ export class HomeworkSet extends ProblemSet {
 	isValid(): boolean {
 		return super.isValid() && this.set_params.isValid() && this.set_dates.isValid();
 	}
-
 }
 
 // Review Set model and interfaces.
 
 export interface ParseableReviewSetParams {
-	can_retake?: boolean | string | number;
+	can_retake?: boolean;
 }
 
 export class ReviewSetParams extends Model {
@@ -396,19 +395,22 @@ export class ReviewSetParams extends Model {
 		this.set(params);
 	}
 
+	static ALL_FIELDS = ['can_retake'];
+
+	get all_field_names(): string[] {
+		return ReviewSetParams.ALL_FIELDS;
+	}
+	get param_fields(): string[] { return [];}
+
 	set(params: ParseableReviewSetParams) {
 		if (params.can_retake != undefined) this.can_retake = params.can_retake;
 	}
 
-	get all_field_names(): string[] {
-		return ['can_retake'];
-	}
-	get param_fields(): string[] { return [];}
-
 	public get can_retake() : boolean { return this._can_retake;}
-	public set can_retake(value: number | string | boolean) {
-		this._can_retake = parseBoolean(value);
-	}
+	public set can_retake(value: boolean) { this._can_retake = value;}
+
+	public isValid(): boolean { return true; }
+	public clone(): ReviewSetParams { return new ReviewSetParams(this.toObject()); }
 }
 
 export interface ParseableReviewSetDates {

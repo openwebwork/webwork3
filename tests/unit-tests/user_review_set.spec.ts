@@ -18,7 +18,7 @@ describe('Testing db user Review Sets and User Review Sets', () => {
 			course_user_id: 0,
 			set_version: 1,
 			set_type: 'REVIEW',
-			set_params: { can_retake: false },
+			set_params: {},
 			set_dates: {}
 		};
 
@@ -88,7 +88,7 @@ describe('Testing db user Review Sets and User Review Sets', () => {
 					set_name: '',
 					username: '',
 					set_type: 'REVIEW',
-					set_params: { can_retake: false },
+					set_params: {},
 					set_dates: { open: 0, closed: 0 }
 				};
 				expect(user_review_set.toObject()).toStrictEqual(defaults);

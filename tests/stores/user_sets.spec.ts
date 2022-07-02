@@ -48,7 +48,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
 			boolean_fields: ['set_visible'],
-			param_boolean_fields: ['timed', 'enable_reduced_scoring', 'test_param'],
+			param_boolean_fields: ['timed', 'enable_reduced_scoring', 'can_retake'],
 			param_non_neg_int_fields: ['quiz_duration']
 		};
 
@@ -97,7 +97,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 			const user_sets_to_parse = await loadCSV('t/db/sample_data/user_sets.csv', {
 				params: ['set_dates', 'set_params'],
 				boolean_fields: ['set_visible'],
-				param_boolean_fields: ['timed', 'enable_reduced_scoring', 'test_param'],
+				param_boolean_fields: ['timed', 'enable_reduced_scoring', 'can_retake'],
 				param_non_neg_int_fields: ['quiz_duration']
 			});
 

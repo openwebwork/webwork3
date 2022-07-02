@@ -410,7 +410,7 @@ export class UserReviewSetDates extends Model {
  */
 
 export class UserReviewSetParams extends Model {
-	private _test_param?: boolean;
+	private _can_retake?: boolean;
 
 	constructor(params: ParseableReviewSetParams = {}) {
 		super();
@@ -418,15 +418,19 @@ export class UserReviewSetParams extends Model {
 	}
 
 	set(params: ParseableReviewSetParams) {
-		this.test_param = params.test_param;
+		this.can_retake = params.can_retake;
 	}
 
-	static ALL_FIELDS = ['test_params'];
+	static ALL_FIELDS = ['can_retakes'];
 	get all_field_names(): string[] { return UserReviewSetParams.ALL_FIELDS; }
 	get param_fields(): string[] { return [];}
 
-	public get test_param() : boolean | undefined { return this._test_param;}
-	public set test_param(value: boolean | undefined) { this._test_param = value; }
+	public get can_retake() : boolean | undefined { return this._can_retake;}
+	public set can_retake(value: boolean | undefined) { this._can_retake = value; }
+
+	isValid(): boolean {
+		return true;
+	}
 }
 
 export class DBUserReviewSet extends DBUserSet {

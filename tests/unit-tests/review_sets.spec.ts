@@ -10,7 +10,7 @@ describe('Testing for Review Sets', () => {
 			closed: 0
 		},
 		set_params: {
-			test_param: false
+			can_retake: false
 		},
 		set_id: 0,
 		course_id: 0,
@@ -46,7 +46,7 @@ describe('Testing for Review Sets', () => {
 				set_id: 7,
 				set_name: 'Review Set #1',
 				set_params: {
-					can_retake: true,
+					can_retake: false
 				},
 				set_visible: true,
 				set_type: 'REVIEW'
@@ -191,7 +191,7 @@ describe('Testing for Review Sets', () => {
 		});
 
 		test('Check that calling all_fields() and params() is correct', () => {
-			const review_params_fields = ['test_param'];
+			const review_params_fields = ['can_retake'];
 			const review_params = new ReviewSetParams();
 
 			expect(review_params.all_field_names.sort()).toStrictEqual(review_params_fields.sort());
@@ -209,14 +209,14 @@ describe('Testing for Review Sets', () => {
 	describe('Check setting review set params', () => {
 		test('Set review set params directly', () => {
 			const hw_params = new ReviewSetParams();
-			hw_params.test_param = true;
-			expect(hw_params.test_param).toBe(true);
+			hw_params.can_retake = true;
+			expect(hw_params.can_retake).toBe(true);
 		});
 
 		test('Set homework set params using the set method', () => {
 			const hw_params = new ReviewSetParams();
-			hw_params.set({ test_param: true });
-			expect(hw_params.test_param).toBe(true);
+			hw_params.set({ can_retake: true });
+			expect(hw_params.can_retake).toBe(true);
 		});
 
 		// No tests for validity for this currently because there is nothing

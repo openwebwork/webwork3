@@ -72,7 +72,7 @@ my @review_sets = loadCSV(
 	"$main::ww3_dir/t/db/sample_data/review_sets.csv",
 	{
 		boolean_fields       => ['set_visible'],
-		param_boolean_fields => ['test_param']
+		param_boolean_fields => ['can_retake']
 	}
 );
 

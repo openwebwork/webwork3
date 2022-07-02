@@ -49,7 +49,7 @@ describe('Problem Set store tests', () => {
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
 			boolean_fields: ['set_visible'],
-			param_boolean_fields: ['timed', 'enable_reduced_scoring', 'test_param'],
+			param_boolean_fields: ['timed', 'enable_reduced_scoring', 'can_retake'],
 			param_non_neg_int_fields: ['quiz_duration']
 		};
 
