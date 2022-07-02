@@ -74,7 +74,7 @@ describe('Problem Set store tests', () => {
 			.map(set => new ReviewSet(set));
 		// Do some parsing cleanup.
 		review_sets_from_csv.forEach(set => {
-			set.set_params.test_param = parseBoolean(set.set_params.test_param);
+			set.set_params.can_retake = parseBoolean(set.set_params.can_retake);
 		});
 		// combine quizzes, review sets and homework sets
 		const problem_sets_from_csv = [...hw_sets_from_csv, ...quizzes_from_csv, ...review_sets_from_csv];

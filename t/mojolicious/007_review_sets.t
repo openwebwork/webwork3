@@ -63,11 +63,11 @@ $t->get_ok("/webwork3/api/courses/1/sets/$review_set1->{set_id}")->content_type_
 # Test that booleans are returned correctly.
 
 $review_set1 = $t->tx->res->json;
-my $test_param = $review_set1->{set_params}->{test_param};
-ok($test_param, 'testing that test_param compares to 1.');
-is($test_param, true, 'testing that test_param compares to Mojo::JSON::true');
-ok(JSON::PP::is_bool($test_param),                'testing that test_param is a Mojo::JSON::true or Mojo::JSON::false');
-ok(JSON::PP::is_bool($test_param) && $test_param, 'testing that test_param is a Mojo::JSON::true');
+my $can_retake = $review_set1->{set_params}->{can_retake};
+ok($can_retake, 'testing that can_retake compares to 1.');
+is($can_retake, true, 'testing that can_retake compares to Mojo::JSON::true');
+ok(JSON::PP::is_bool($can_retake),                'testing that can_retake is a Mojo::JSON::true or Mojo::JSON::false');
+ok(JSON::PP::is_bool($can_retake) && $can_retake, 'testing that can_retake is a Mojo::JSON::true');
 
 # Make a new quiz
 
@@ -75,7 +75,7 @@ my $new_review_set_params = {
 	set_name   => 'Review #20',
 	set_type   => 'REVIEW',
 	set_params => {
-		test_param => true,
+		can_retake => true,
 	},
 	set_dates => {
 		open   => 100,
@@ -89,28 +89,28 @@ $t->post_ok('/webwork3/api/courses/2/sets' => json => $new_review_set_params)
 my $returned_quiz = $t->tx->res->json;
 
 $review_set1 = $t->tx->res->json;
-$test_param  = $review_set1->{set_params}->{test_param};
-ok($test_param, 'testing that test_param compares to 1.');
-is($test_param, true, 'testing that test_param compares to Mojo::JSON::true');
-ok(JSON::PP::is_bool($test_param),                'testing that test_param is a Mojo::JSON::true or Mojo::JSON::false');
-ok(JSON::PP::is_bool($test_param) && $test_param, 'testing that test_param is a Mojo::JSON::true');
+$can_retake  = $review_set1->{set_params}->{can_retake};
+ok($can_retake, 'testing that can_retake compares to 1.');
+is($can_retake, true, 'testing that can_retake compares to Mojo::JSON::true');
+ok(JSON::PP::is_bool($can_retake),                'testing that can_retake is a Mojo::JSON::true or Mojo::JSON::false');
+ok(JSON::PP::is_bool($can_retake) && $can_retake, 'testing that can_retake is a Mojo::JSON::true');
 
 # Check that updating a boolean parameter is working:
 
 $t->put_ok(
 	"/webwork3/api/courses/2/sets/$returned_quiz->{set_id}" => json => {
 		set_params => {
-			test_param => false
+			can_retake => false
 		}
 	}
 )->content_type_is('application/json;charset=UTF-8');
 
 my $updated_set = $t->tx->res->json;
-$test_param = $updated_set->{set_params}->{test_param};
-ok(!$test_param, 'testing that test_param is falsy.');
-is($test_param, false, 'testing that test_param compares to Mojo::JSON::false');
-ok(JSON::PP::is_bool($test_param), 'testing that test_param is a Mojo::JSON::true or Mojo::JSON::false');
-ok(JSON::PP::is_bool($test_param) && !$test_param, 'testing that test_param is a Mojo::JSON::false');
+$can_retake = $updated_set->{set_params}->{can_retake};
+ok(!$can_retake, 'testing that can_retake is falsy.');
+is($can_retake, false, 'testing that can_retake compares to Mojo::JSON::false');
+ok(JSON::PP::is_bool($can_retake), 'testing that can_retake is a Mojo::JSON::true or Mojo::JSON::false');
+ok(JSON::PP::is_bool($can_retake) && !$can_retake, 'testing that can_retake is a Mojo::JSON::false');
 
 # delete the added review set
 $t->delete_ok("/webwork3/api/courses/2/sets/$returned_quiz->{set_id}")

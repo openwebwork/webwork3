@@ -359,11 +359,11 @@ export class HomeworkSet extends ProblemSet {
 // Review Set model and interfaces.
 
 export interface ParseableReviewSetParams {
-	test_param?: boolean | string | number;
+	can_retake?: boolean | string | number;
 }
 
 export class ReviewSetParams extends Model {
-	private _test_param = false;
+	private _can_retake = false;
 
 	constructor(params: ParseableReviewSetParams = {}) {
 		super();
@@ -371,17 +371,17 @@ export class ReviewSetParams extends Model {
 	}
 
 	set(params: ParseableReviewSetParams) {
-		if (params.test_param != undefined) this.test_param = params.test_param;
+		if (params.can_retake != undefined) this.can_retake = params.can_retake;
 	}
 
 	get all_field_names(): string[] {
-		return ['test_param'];
+		return ['can_retake'];
 	}
 	get param_fields(): string[] { return [];}
 
-	public get test_param() : boolean { return this._test_param;}
-	public set test_param(value: number | string | boolean) {
-		this._test_param = parseBoolean(value);
+	public get can_retake() : boolean { return this._can_retake;}
+	public set can_retake(value: number | string | boolean) {
+		this._can_retake = parseBoolean(value);
 	}
 
 }

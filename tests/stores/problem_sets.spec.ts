@@ -64,7 +64,7 @@ describe('Problem Set store tests', () => {
 			.map(set => new ReviewSet(set));
 		// Do some parsing cleanup.
 		review_sets_from_csv.forEach(set => {
-			set.set_params.test_param = parseBoolean(set.set_params.test_param);
+			set.set_params.can_retake = parseBoolean(set.set_params.can_retake);
 		});
 		// combine quizzes, review sets and homework sets
 		problem_sets_from_csv = [...hw_sets_from_csv, ...quizzes_from_csv, ...review_sets_from_csv];
@@ -201,7 +201,7 @@ describe('Problem Set store tests', () => {
 				course_id: precalc_course.course_id,
 				set_visible: true,
 				set_params: {
-					test_param: true
+					can_retake: true
 				},
 				set_dates: {
 					open: 1000,
@@ -219,11 +219,11 @@ describe('Problem Set store tests', () => {
 		test('Update a Review Set', async () => {
 			const problem_set_store = useProblemSetStore();
 			const problem_set = (problem_set_store.findProblemSet({ set_name: 'Review Set #9' }) as ReviewSet).clone();
-			problem_set.set_params.test_param = false;
+			problem_set.set_params.can_retake = false;
 			await problem_set_store.updateSet(problem_set);
 			const set_to_update = (problem_set_store.problem_sets
 				.find(set => set.set_id === problem_set.set_id) as ReviewSet).clone();
-			expect(set_to_update?.set_params.test_param).toBeFalsy();
+			expect(set_to_update?.set_params.can_retake).toBeFalsy();
 
 			// update the closed date
 			set_to_update.set_dates.closed = (set_to_update.set_dates.closed ?? 0) + 100;
