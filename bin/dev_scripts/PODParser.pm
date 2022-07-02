@@ -52,7 +52,7 @@ sub resolve_pod_page_link {
 		return $self->encode_entities($pod_url);
 	}
 
-	print "Using cpan pod link for $to" . ($section ? "/$section" : '') . '\n' if $self->{verbose} > 2;
+	print "Using cpan pod link for $to" . ($section ? "/$section" : '') . "\n" if $self->{verbose} > 2;
 	return $self->SUPER::resolve_pod_page_link($to, $section);
 }
 
