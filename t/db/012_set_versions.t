@@ -118,7 +118,7 @@ my $user_set1_from_csv = firstval {
 
 # Make a new user set that has a  set_version of 2
 
-is_deeply($user_set1_from_csv, $user_set1, "getUserSet: get a single user set from a course.");
+is_deeply($user_set1_from_csv, $user_set1, 'getUserSet: get a single user set from a course.');
 
 my $user_set1_v2_params = clone $user_set1;
 $user_set1_v2_params->{set_version} = 2;
@@ -147,7 +147,7 @@ for my $user_set (@all_user_set_versions) {
 is_deeply(
 	\@all_user_set_versions,
 	[ $user_set1, $user_set1_v2, $user_set1_v3 ],
-	"getUserSetVersions: get all versions of a user set."
+	'getUserSetVersions: get all versions of a user set.'
 );
 
 # clean up the created versioned user sets.
