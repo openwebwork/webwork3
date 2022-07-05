@@ -75,7 +75,6 @@ export class Course extends Model {
 		if (params.course_id != undefined) this.course_id = params.course_id;
 		if (params.course_name != undefined) this.course_name = params.course_name;
 		if (params.visible != undefined) this.visible = params.visible;
-		// super.checkParams(params as Dictionary<generic>);
 		if (params.course_dates) this.setDates(params.course_dates);
 	}
 
@@ -146,7 +145,6 @@ export class UserCourse extends Model {
 		if (params.user_id != undefined) this.user_id = params.user_id;
 		if (params.username) this.username = params.username;
 		if (params.role) this.role = params.role;
-		// super.checkParams(params as Dictionary<generic>);
 	}
 
 	setDates(date_params: ParseableCourseDates = {}) {

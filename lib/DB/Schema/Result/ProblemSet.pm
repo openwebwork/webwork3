@@ -130,14 +130,6 @@ __PACKAGE__->inflate_column(
 	}
 );
 
-__PACKAGE__->inflate_column(
-	'set_visible',
-	{
-		inflate => sub { return shift ? Mojo::JSON->true : Mojo::JSON->false; },
-		deflate => sub { return shift; }
-	}
-);
-
 # This defines the non-abstract classes of ProblemSets.
 
 __PACKAGE__->typecast_map(

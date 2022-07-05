@@ -532,8 +532,5 @@ export function convertSet(old_set: ProblemSet, new_set_type: ProblemSetType) {
 	default:
 		throw new ParseError('ProblemSetType', `convertSet does not support conversion to ${new_set_type || 'EMPTY'}`);
 	}
-
-	// if (!new_set.set_dates.isValid())
-	// logger.error('[problem_sets/convertSet] corrupt dates in conversion of set, TSNH?');
 	return new_set;
 }
