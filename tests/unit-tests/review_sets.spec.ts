@@ -9,9 +9,7 @@ describe('Testing for Review Sets', () => {
 			open: 0,
 			closed: 0
 		},
-		set_params: {
-			can_retake: false
-		},
+		set_params: {},
 		set_id: 0,
 		course_id: 0,
 		set_name: '',

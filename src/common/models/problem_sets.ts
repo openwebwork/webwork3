@@ -388,7 +388,7 @@ export interface ParseableReviewSetParams {
 }
 
 export class ReviewSetParams extends Model {
-	private _can_retake = false;
+	private _can_retake?: boolean;
 
 	constructor(params: ParseableReviewSetParams = {}) {
 		super();
@@ -403,11 +403,11 @@ export class ReviewSetParams extends Model {
 	get param_fields(): string[] { return [];}
 
 	set(params: ParseableReviewSetParams) {
-		if (params.can_retake != undefined) this.can_retake = params.can_retake;
+		this.can_retake = params.can_retake;
 	}
 
-	public get can_retake() : boolean { return this._can_retake;}
-	public set can_retake(value: boolean) { this._can_retake = value;}
+	public get can_retake() : boolean | undefined { return this._can_retake;}
+	public set can_retake(value: boolean | undefined) { this._can_retake = value;}
 
 	public isValid(): boolean { return true; }
 	public clone(): ReviewSetParams { return new ReviewSetParams(this.toObject()); }
