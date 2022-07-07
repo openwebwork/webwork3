@@ -42,7 +42,7 @@ my @courses = loadCSV(
 		boolean_fields => ['visible']
 	}
 );
-use Data::Dumper;
+
 @courses = sortByCourseName(\@courses);
 for my $course (@courses) {
 	delete $course->{course_params};
@@ -92,8 +92,7 @@ my $new_course_params = {
 	course_dates => {}
 };
 
-my $new_course = $course_rs->addCourse(params => $new_course_params);
-# set the default value of visible
+my $new_course      = $course_rs->addCourse(params => $new_course_params);
 my $added_course_id = $new_course->{course_id};
 removeIDs($new_course);
 

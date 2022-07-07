@@ -564,8 +564,8 @@ export function parseUserSet(user_set: ParseableUserSet) {
 
 /**
  * Merge a ProblemSet, a DBUserSet and a User and return a UserSet. Note: if the
- * arguments are not related in the database (based on primary and foreign keys), a MergeError is
- * thrown.  The result is a UserSet with overrides taken from the UserSet.
+ * arguments are not related in the database (based on primary and foreign keys), a MergeError is thrown.
+ * The result is a UserSet created with values from the DBUserSet and missing values taken from the ProblemSet.
  */
 export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: CourseUser): UserSet | undefined {
 	// Perhaps we need to handle this better, but this situation happens when reacting
