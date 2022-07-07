@@ -39,13 +39,13 @@ $t->get_ok('/webwork3/api/users')->status_is(200)->content_type_is('application/
 my $all_users = $t->tx->res->json;
 
 $t->get_ok('/webwork3/api/courses/4/users')->status_is(200)->content_type_is('application/json;charset=UTF-8')
-	->json_is('/0/role' => 'instructor')->json_is('/1/role' => 'student');
+	->json_is('/0/role' => 'INSTRUCTOR')->json_is('/1/role' => 'STUDENT');
 
 # Extract id from the response.
 my $user_id = $t->tx->res->json('/0/user_id');
 
 $t->get_ok("/webwork3/api/courses/2/users/$user_id")->status_is(200)->content_type_is('application/json;charset=UTF-8')
-	->json_is('/user_id' => $user_id)->json_is('/role' => 'student');
+	->json_is('/user_id' => $user_id)->json_is('/role' => 'STUDENT');
 
 # Add a new global user.
 my $new_user = {
@@ -63,7 +63,7 @@ $t->post_ok('/webwork3/api/users' => json => $new_user)->status_is(200)
 my $new_user_id        = $t->tx->res->json('/user_id');
 my $course_user_params = {
 	user_id            => $new_user_id,
-	role               => 'student',
+	role               => 'STUDENT',
 	course_user_params => {
 		comment => 'I love my big sister'
 	}
@@ -133,10 +133,10 @@ my $maggie = $schema->resultset('User')->find({ username => 'maggie' });
 $t->post_ok(
 	'/webwork3/api/courses/4/users' => json => {
 		user_id => $maggie->user_id,
-		role    => 'student'
+		role    => 'STUDENT'
 	}
 )->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/user_id' => $maggie->user_id)
-	->json_is('/role' => 'student');
+	->json_is('/role' => 'STUDENT');
 
 $t->put_ok(
 	'/webwork3/api/courses/4/users/'
@@ -147,7 +147,7 @@ $t->put_ok(
 
 $t->delete_ok('/webwork3/api/courses/4/users/' . $maggie->user_id)->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/user_id' => $maggie->user_id)
-	->json_is('/role' => 'student');
+	->json_is('/role' => 'STUDENT');
 
 # Check that a student doesn't have the same access as an instructor
 # The user lisa is a student in the 'Topology' course (course_id => 3)
@@ -157,7 +157,7 @@ $t->get_ok('/webwork3/api/courses/3/users')->status_is(403)->content_type_is('ap
 $t->post_ok(
 	'/webwork3/api/courses/3/users' => json => {
 		user_id => $maggie->user_id,
-		role    => 'student'
+		role    => 'STUDENT'
 	}
 )->status_is(403)->content_type_is('application/json;charset=UTF-8');
 

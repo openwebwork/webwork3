@@ -122,7 +122,7 @@ my $user_params = {
 
 my $course_user_params = {
 	username           => 'quimby',
-	role               => 'student',
+	role               => 'STUDENT',
 	course_user_params => {},
 	section            => undef,
 	recitation         => undef,
@@ -184,7 +184,7 @@ throws_ok {
 			username    => 'quimby',
 		},
 		params => {
-			role            => 'student',
+			role            => 'STUDENT',
 			undefined_field => 1
 		}
 	);
@@ -199,7 +199,7 @@ throws_ok {
 			username    => 'quimby'
 		},
 		params => {
-			role               => 'student',
+			role               => 'STUDENT',
 			course_user_params => {
 				this_is_not_valid => 1
 			}
@@ -216,7 +216,7 @@ throws_ok {
 			username    => 'quimby'
 		},
 		params => {
-			role               => 'student',
+			role               => 'STUDENT',
 			course_user_params => {
 				useMathQuill => 'yes'
 			}
@@ -242,7 +242,7 @@ throws_ok {
 # updateCourseUser: check that the user updates.
 $updated_user = {
 	course_user_params => {
-		comment => 'Mayor Joe is the best!!'
+		comment => 'Mayor Joe is the best!!',
 	},
 	recitation => '2'
 };

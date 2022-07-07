@@ -104,7 +104,8 @@ $t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
 
 # Check that a non-admin user has proper access.
 my @instructors =
-	grep { $_->{role} eq 'instructor' } $schema->resultset('User')->getCourseUsers(info => { course_id => 1 });
+	grep { $_->{role} eq 'INSTRUCTOR' } $schema->resultset('User')->getCourseUsers(info => { course_id => 1 });
+
 my $instructor = $schema->resultset('User')->getGlobalUser(info => { user_id => $instructors[0]{user_id} });
 
 $t->post_ok(

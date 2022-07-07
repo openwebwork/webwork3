@@ -424,7 +424,7 @@ sub addCourseUser ($self, %args) {
 	}
 
 	# Ensure the user role is valid
-	my $role = $self->rs('Role')->find({ role_name => $params->{role} });
+	my $role = $self->rs('Role')->find({ role_name => uc($params->{role}) });
 	DB::Exception::UserRoleUndefined->throw(message => "The user role $params->{role} is not defined.")
 		unless defined $role;
 	$params->{role_id} = $role->role_id;
@@ -498,10 +498,21 @@ An hashref of the updated course user or merged user or a C<DB::Schema::ResultSe
 sub updateCourseUser ($self, %args) {
 	my $course_user = $self->getCourseUser(info => $args{info}, as_result_set => 1);
 
-	my $params_to_check = $self->rs('CourseUser')->new($args{params});
+	# Ensure the user role is valid
+	my $params = clone($args{params});
+
+	if (defined ($params->{role})) {
+		my $role = $self->rs('Role')->find({ role_name => uc($params->{role}) });
+		DB::Exception::UserRoleUndefined->throw(message => "The user role $params->{role} is not defined.")
+			unless defined $role;
+		$params->{role_id} = $role->role_id;
+		delete $params->{role};
+	}
+
+	my $params_to_check = $self->rs('CourseUser')->new($params);
 	$params_to_check->validParams('course_user_params');
 
-	my $user_to_return = $course_user->update($args{params});
+	my $user_to_return = $course_user->update($params);
 
 	return $user_to_return if $args{as_result_set};
 	return return $args{merged} ? _getMergedUser($user_to_return) : _getCourseUser($user_to_return);
