@@ -501,7 +501,7 @@ sub updateCourseUser ($self, %args) {
 	# Ensure the user role is valid
 	my $params = clone($args{params});
 
-	if (defined ($params->{role})) {
+	if (defined($params->{role})) {
 		my $role = $self->rs('Role')->find({ role_name => uc($params->{role}) });
 		DB::Exception::UserRoleUndefined->throw(message => "The user role $params->{role} is not defined.")
 			unless defined $role;

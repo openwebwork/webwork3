@@ -13,21 +13,21 @@ use DB::Schema;
 use WeBWorK3::Hooks;
 
 # This method will run once at server start
-sub startup ($self) {
+sub startup ($app) {
 	# log to file if we're in production mode
 	if ($ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'production') {
 		my $path = path("$ENV{WW3_ROOT}/logs")->make_path->child('webwork3.log');
-		$self->log->path($path);
+		$app->log->path($path);
 	}
 
 	# Load configuration from config file
-	my $config = $self->plugin('NotYAMLConfig');
+	my $config = $app->plugin('NotYAMLConfig');
 
 	# Configure the application
-	$self->secrets($config->{secrets});
+	$app->secrets($config->{secrets});
 
 	# Load the database and DBIC plugin
-	$self->plugin(
+	$app->plugin(
 		DBIC => {
 			schema => DB::Schema->connect(
 				$config->{database_dsn}, $config->{database_user},
@@ -37,165 +37,162 @@ sub startup ($self) {
 	);
 
 	# Load the authentication plugin
-	$self->plugin(
+	$app->plugin(
 		Authentication => {
-			load_user     => sub ($app, $uid) { return $self->load_account($uid); },
-			validate_user => sub ($c,   $u, $p, $e) { return $self->validate($u, $p); }
+			load_user     => sub ($c, $uid) { return $app->load_account($c, $uid); },
+			validate_user => sub ($c, $u, $p, $e) { return $app->validate($u, $p); }
 		}
 	);
 
 	# Set up the session
-	$self->sessions->cookie_name('Webwork3Authen');
-	$self->sessions->default_expiration($config->{cookie_lifetime});
-	$self->sessions->cookie_path('/webwork3');
-	$self->sessions->samesite($config->{cookie_samesite});
-	$self->sessions->secure($config->{cookie_secure});
+	$app->sessions->cookie_name('Webwork3Authen');
+	$app->sessions->default_expiration($config->{cookie_lifetime});
+	$app->sessions->cookie_path('/webwork3');
+	$app->sessions->samesite($config->{cookie_samesite});
+	$app->sessions->secure($config->{cookie_secure});
 
 	# Handle all api route exceptions
-	$self->hook(around_dispatch => $WeBWorK3::Hooks::exception_handler);
+	$app->hook(around_dispatch => $WeBWorK3::Hooks::exception_handler);
 
-	$self->hook(around_action => $WeBWorK3::Hooks::check_permission);
+	# The following defines the routes as well as handles whether a user has permission for each route
+	# The following routes need no authentication:
+	$app->loginRoutes();
+	$app->utilityRoutes();
 
-	# Load all routes
-	$self->loginRoutes();
-	$self->permissionRoutes();
-	$self->coursesRoutes();
-	$self->userRoutes();
-	$self->courseUserRoutes();
-	$self->problemSetRoutes();
-	$self->problemRoutes();
-	$self->settingsRoutes();
-	$self->utilityRoutes();
+	# These only require authentication.
+	my $authen_routes = $app->routes->any('webwork3/api')->requires(authenticated => 1);
+	permissionRoutes($authen_routes);
+
+	# The following routes are global, so can only be accessed with admin privileges.
+	my $global_routes =
+		$app->routes->under('webwork3/api')->requires(authenticated => 1)->to('Permission#checkPermission');
+	coursesRoutes($global_routes);
+	userRoutes($global_routes);
+
+	# The following courses are within courses, so we need more substantial checking
+	my $course_routes = $app->routes->under('/webwork3/api/courses/:course_id')->requires(authenticated => 1)
+		->to('Permission#checkPermission');
+	$app->courseUserRoutes($course_routes);
+	$app->problemSetRoutes($course_routes);
+	$app->problemRoutes($course_routes);
+	$app->settingsRoutes($course_routes);
+
 	return;
 }
 
-sub load_account ($self, $user_id) {
-	my $course_id = $self->param('course_id');
-	return $self->schema->resultset('User')->getGlobalCourseUser(
+sub load_account ($app, $c, $username) {
+	my $course_id = $c->param('course_id');
+	return $c->schema->resultset('User')->getGlobalCourseUser(
 		info => {
-			username  => $user_id,
+			username  => $username,
 			course_id => $course_id
 		}
 	) if defined $course_id;
-	return $self->schema->resultset('User')->getGlobalUser(info => { username => $user_id });
+	return $c->schema->resultset('User')->getGlobalUser(info => { username => $username });
 }
 
-sub validate ($self, $user, $password) {
-	return $user if ($self->schema->resultset('User')->authenticate($user, $password));
+sub validate ($app, $user, $password) {
+	return $user if ($app->schema->resultset('User')->authenticate($user, $password));
 	return;
 }
 
-sub loginRoutes ($self) {
-	$self->routes->post('/webwork3/api/login')->to('Login#login');
-	$self->routes->any('/webwork3/api/logout')->to('Login#logout_user');
+sub loginRoutes ($app) {
+	$app->routes->post('/webwork3/api/login')->to('Login#login');
+	$app->routes->any('/webwork3/api/logout')->to('Login#logout_user');
 	return;
 }
 
-sub permissionRoutes ($self) {
-	$self->routes->get('/webwork3/api/roles')->to('Permission#getRoles');
-	$self->routes->get('/webwork3/api/ui-permissions')->to('Permission#getUIRoutePermissions');
+sub permissionRoutes ($authen_routes) {
+	$authen_routes->get('/roles')->to('Permission#getRoles');
+	$authen_routes->get('/ui-permissions')->to('Permission#getUIRoutePermissions');
 	return;
 }
 
-sub coursesRoutes ($self) {
-	my $course_routes =
-		$self->routes->any('/webwork3/api/courses')->requires(authenticated => 1)->to(controller => 'Course');
-	$course_routes->get('/')->to(action => 'getCourses');
-	$course_routes->get('/:course_id')->to(action => 'getCourse');
-	$course_routes->put('/:course_id')->to(action => 'updateCourse');
-	$course_routes->post('/')->to(action => 'addCourse');
-	$course_routes->delete('/:course_id')->to(action => 'deleteCourse');
+sub coursesRoutes ($global_routes) {
+	$global_routes->get('/courses/')->to('Course#getCourses');
+	$global_routes->get('/courses/:course_id')->to('Course#getCourse');
+	$global_routes->put('/courses/:course_id')->to('Course#updateCourse');
+	$global_routes->post('/courses')->to('Course#addCourse');
+	$global_routes->delete('/courses/:course_id')->to('Course#deleteCourse');
 	return;
 }
 
-sub userRoutes ($self) {
-	my $user_routes = $self->routes->any('/webwork3/api/users')->requires(authenticated => 1)->to(controller => 'User');
-	$user_routes->get('/')->to(action => 'getGlobalUsers');
-	$user_routes->post('/')->to(action => 'addGlobalUser');
-	$user_routes->get('/:user_id')->to(action => 'getGlobalUser');
-	$user_routes->put('/:user_id')->to(action => 'updateGlobalUser');
-	$user_routes->delete('/:user_id')->to(action => 'deleteGlobalUser');
-	$user_routes->get('/:user_id/courses')->to(action => 'getUserCourses');
-
-	# This is used to check if a user with given username exists.
-	$self->routes->get('/webwork3/api/courses/:course_id/users/:username/exists')->requires(authenticated => 1)
-		->to('User#checkGlobalUser');
+sub userRoutes ($global_routes) {
+	$global_routes->get('/users')->to('User#getGlobalUsers');
+	$global_routes->post('/users')->to('User#addGlobalUser');
+	$global_routes->get('/users/:user_id')->to('User#getGlobalUser');
+	$global_routes->put('/users/:user_id')->to('User#updateGlobalUser');
+	$global_routes->delete('/users/:user_id')->to('User#deleteGlobalUser');
+	$global_routes->get('/users/:user_id/courses')->to('User#getUserCourses');
 	return;
 }
 
-sub courseUserRoutes ($self) {
-	my $course_user_routes =
-		$self->routes->any('/webwork3/api/courses/:course_id')->requires(authenticated => 1)->to(controller => 'User');
-	$course_user_routes->get('/users')->to(action => 'getCourseUsers');
-	$course_user_routes->post('/users')->to(action => 'addCourseUser');
-	$course_user_routes->get('/users/:user_id')->to(action => 'getCourseUser');
-	$course_user_routes->put('/users/:user_id')->to(action => 'updateCourseUser');
-	$course_user_routes->delete('/users/:user_id')->to(action => 'deleteCourseUser');
+sub courseUserRoutes ($app, $course_routes) {
+	$course_routes->get('/users')->to('User#getCourseUsers');
+	$course_routes->post('/users')->to('User#addCourseUser');
+	$course_routes->get('/users/:user_id')->to('User#getCourseUser');
+	$course_routes->put('/users/:user_id')->to('User#updateCourseUser');
+	$course_routes->delete('/users/:user_id')->to('User#deleteCourseUser');
 
 	# global user routes for accessing within a course for users with course roles.
 
-	$course_user_routes->get('/global-courseusers')->to(action => 'getGlobalCourseUsers');
-	$course_user_routes->post('/global-users')->to(action => 'addGlobalUserFromCourse');
-	$course_user_routes->get('/global-users/:user_id')->to(action => 'getGlobalUserFromCourse');
-	$course_user_routes->put('/global-users/:user_id')->to(action => 'updateGlobalUserFromCourse');
-	$course_user_routes->delete('/global-users/:user_id')->to(action => 'deleteGlobalUserFromCourse');
+	$course_routes->get('/global-courseusers')->to('User#getGlobalCourseUsers');
+	$course_routes->post('/global-users')->to('User#addGlobalUserFromCourse');
+	$course_routes->get('/global-users/:user_id')->to('User#getGlobalUserFromCourse');
+	$course_routes->put('/global-users/:user_id')->to('User#updateGlobalUserFromCourse');
+	$course_routes->delete('/global-users/:user_id')->to('User#deleteGlobalUserFromCourse');
 
-	$course_user_routes->get('/courseusers')->to(action => 'getMergedCourseUsers');
+	$course_routes->get('/courseusers')->to('User#getMergedCourseUsers');
+
+	# This is used to check if a user with given username exists.
+	$course_routes->get('/users/:username/exists')->to('User#checkGlobalUser');
+
 	return;
 }
 
-sub problemSetRoutes ($self) {
-	$self->routes->get('/webwork3/api/sets')->requires(authenticated => 1)->to('ProblemSet#getProblemSets');
-	my $problem_set_routes =
-		$self->routes->any('/webwork3/api/courses/:course_id/sets')->requires(authenticated => 1)
-		->to(controller => 'ProblemSet');
-	$problem_set_routes->get('/')->to(action => 'getProblemSets');
-	$problem_set_routes->get('/:set_id')->to(action => 'getProblemSet');
-	$problem_set_routes->put('/:set_id')->to(action => 'updateProblemSet');
-	$problem_set_routes->post('/')->to(action => 'addProblemSet');
-	$problem_set_routes->delete('/:set_id')->to(action => 'deleteProblemSet');
+sub problemSetRoutes ($app, $course_routes) {
+	$course_routes->get('/sets')->to('ProblemSet#getProblemSets');
+	$course_routes->get('/sets/:set_id')->to('ProblemSet#getProblemSet');
+	$course_routes->put('/sets/:set_id')->to('ProblemSet#updateProblemSet');
+	$course_routes->post('/sets')->to('ProblemSet#addProblemSet');
+	$course_routes->delete('/sets/:set_id')->to('ProblemSet#deleteProblemSet');
 
 	# CRUD for User Sets
-	$self->routes->get('/webwork3/api/courses/:course_id/user-sets')->to('ProblemSet#getAllUserSets');
-	$problem_set_routes->get('/:set_id/users')->to(action => 'getUserSets');
-	$problem_set_routes->post('/:set_id/users')->to(action => 'addUserSet');
-	$problem_set_routes->put('/:set_id/users/:course_user_id')->to(action => 'updateUserSet');
-	$problem_set_routes->delete('/:set_id/users/:course_user_id')->to(action => 'deleteUserSet');
+	$course_routes->get('/user-sets')->to('ProblemSet#getAllUserSets');
+	$course_routes->get('/:set_id/users')->to('ProblemSet#getUserSets');
+	$course_routes->post('/:set_id/users')->to('ProblemSet#addUserSet');
+	$course_routes->put('/:set_id/users/:course_user_id')->to('ProblemSet#updateUserSet');
+	$course_routes->delete('/:set_id/users/:course_user_id')->to('ProblemSet#deleteUserSet');
 
-	$self->routes->get('/webwork3/api/courses/:course_id/users/:user_id/sets')->to('ProblemSet#getUserSets');
+	$course_routes->get('/users/:user_id/sets')->to('ProblemSet#getUserSets');
 	return;
 }
 
-sub problemRoutes ($self) {
-	my $problem_routes = $self->routes->any('/webwork3/api/courses/:course_id')->requires(authenticated => 1)
-		->to(controller => 'Problem');
-	$problem_routes->get('/problems')->to(action => 'getAllProblems');
-	$problem_routes->post('/sets/:set_id/problems')->to(action => 'addProblem');
-	$problem_routes->put('/sets/:set_id/problems/:set_problem_id')->to(action => 'updateProblem');
-	$problem_routes->delete('/sets/:set_id/problems/:set_problem_id')->to(action => 'deleteProblem');
+sub problemRoutes ($app, $course_routes) {
+	$course_routes->get('/problems')->to('Problem#getAllProblems');
+	$course_routes->post('/sets/:set_id/problems')->to('ProblemaddProblem');
+	$course_routes->put('/sets/:set_id/problems/:set_problem_id')->to('ProblemupdateProblem');
+	$course_routes->delete('/sets/:set_id/problems/:set_problem_id')->to('ProblemdeleteProblem');
 
 	# UserProblem routes
-	$problem_routes->get('/sets/:set_id/user-problems')->to(action => 'getUserProblemsForSet');
-	$problem_routes->get('/users/:user_id/problems')->to(action => 'getUserProblemsForUser');
-	$problem_routes->post('/sets/:set_id/users/:user_id/problems')->to(action => 'addUserProblem');
-	$problem_routes->put('/sets/:set_id/users/:user_id/problems/:user_problem_id')->to(action => 'updateUserProblem');
-	$problem_routes->delete('/sets/:set_id/users/:user_id/problems/:user_problem_id')
-		->to(action => 'deleteUserProblem');
+	$course_routes->get('/sets/:set_id/user-problems')->to('ProblemgetUserProblemsForSet');
+	$course_routes->get('/users/:user_id/problems')->to('ProblemgetUserProblemsForUser');
+	$course_routes->post('/sets/:set_id/users/:user_id/problems')->to('ProblemaddUserProblem');
+	$course_routes->put('/sets/:set_id/users/:user_id/problems/:user_problem_id')->to('ProblemupdateUserProblem');
+	$course_routes->delete('/sets/:set_id/users/:user_id/problems/:user_problem_id')->to('ProblemdeleteUserProblem');
 
 	return;
 }
 
-sub settingsRoutes ($self) {
-	my $course_routes = $self->routes->any('/webwork3/api/courses/:course_id')->requires(authenticated => 1)
-		->to(controller => 'Settings');
-	$course_routes->get('/default_settings')->to(action => 'getDefaultCourseSettings');
-	$course_routes->get('/settings')->to(action => 'getCourseSettings');
-	$course_routes->put('/setting')->to(action => 'updateCourseSetting');
+sub settingsRoutes ($app, $course_routes) {
+	$course_routes->get('/default_settings')->to('Settings#getDefaultCourseSettings');
+	$course_routes->get('/settings')->to('Settings#getCourseSettings');
+	$course_routes->put('/setting')->to('Settings#updateCourseSetting');
 	return;
 }
 
-sub utilityRoutes ($self) {
-	$self->routes->post('/webwork3/api/client-logs')->requires(authenticated => 1)->to('Logger#clientLog');
+sub utilityRoutes ($app) {
+	$app->routes->post('/webwork3/api/client-logs')->requires(authenticated => 1)->to('Logger#clientLog');
 	return;
 }
 

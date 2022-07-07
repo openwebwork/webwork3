@@ -29,6 +29,8 @@ db_permissions:
       authenticated: true
     getUIRoutePermissions:
       authenticated: true
+    checkPermission:
+      authenticated: true
 
   Course:
     getCourses:
