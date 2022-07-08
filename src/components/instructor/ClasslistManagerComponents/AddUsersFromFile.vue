@@ -341,7 +341,7 @@ const addMergedUsers = async () => {
 		let global_user: User | undefined;
 		try {
 			// Skip if username is undefined?
-			global_user = await getUser(user.username);
+			global_user = await getUser(user.username ?? '') as User;
 		} catch (err) {
 			const error = err as ResponseError;
 			// this will occur is the user is not a global user
@@ -366,7 +366,7 @@ const addMergedUsers = async () => {
 		}
 		try {
 			await users.addCourseUser(new CourseUser(user));
-			const full_name = `${user.first_name} ${user.last_name}`;
+			const full_name = `${user.first_name as string} ${user.last_name as string}`;
 			$q.notify({
 				message: `The user ${full_name} was successfully added to the course.`,
 				color: 'green',

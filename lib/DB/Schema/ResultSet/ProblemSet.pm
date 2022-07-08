@@ -9,7 +9,6 @@ use base 'DBIx::Class::ResultSet';
 
 use Carp;
 use Clone qw/clone/;
-use Mojo::JSON qw/true false/;
 
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 
