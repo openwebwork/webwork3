@@ -132,9 +132,10 @@ sub addSets {
 		"$main::ww3_dir/t/db/sample_data/hw_sets.csv",
 		{
 			boolean_fields       => ['set_visible'],
-			param_boolean_fields => [ 'enable_reduced_scoring', 'hide_hint' ]
+			param_boolean_fields => ['enable_reduced_scoring', 'hide_hint']
 		}
 	);
+
 	for my $set (@hw_sets) {
 		my $course = $course_rs->find({ course_name => $set->{course_name} });
 		if (!defined($course)) {

@@ -42,6 +42,8 @@ sub buildHash ($input, $config) {
 				} elsif (defined($input->{$key}) && $input->{$key} =~ /^\d{4}-\d{2}-\d{2}T\d\d:\d\d:\d\dZ$/) {
 					my $dt = $strp_datetime->parse_datetime($input->{$key});
 					$output->{$field}->{$subfield} = $dt->epoch;
+				} elsif (grep {/^$subfield$/} @{ $config->{param_boolean_fields} }) {
+					$output->{$field}->{$subfield} = int($input->{$key}) ? true : false if defined($input->{$key});
 				}
 			} elsif (grep { $_ eq $subfield } @{ $config->{param_boolean_fields} }) {
 				$output->{$field}->{$subfield} = int($input->{$key}) ? true : false if defined($input->{$key});
@@ -52,11 +54,11 @@ sub buildHash ($input, $config) {
 			} else {
 				$output->{$field}->{$subfield} = $input->{$key} if defined($input->{$key});
 			}
-		} elsif (grep {/^$key$/} @{ $config->{boolean_fields} }) {
+		} elsif (grep { $_ eq $key } @{ $config->{boolean_fields} }) {
 			$output->{$key} = defined($input->{$key}) && int($input->{$key}) ? true : false;
-		} elsif (grep {/^$key$/} @{ $config->{non_neg_int_fields} }) {
+		} elsif (grep { $_ eq $key } @{ $config->{non_neg_int_fields} }) {
 			$output->{$key} = int($input->{$key}) if defined($input->{$key});
-		} elsif (grep {/^$key$/} @{ $config->{non_neg_float_fields} }) {
+		} elsif (grep { $_ eq $key } @{ $config->{non_neg_float_fields} }) {
 			$output->{$key} = 0 + $input->{$key} if defined($input->{$key});
 		} else {
 			$output->{$key} = $input->{$key};
