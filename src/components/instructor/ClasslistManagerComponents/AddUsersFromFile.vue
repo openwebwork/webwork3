@@ -333,7 +333,7 @@ const addMergedUsers = async () => {
 		}
 		try {
 			await users.addCourseUser(new CourseUser(user));
-			const full_name = `${user.first_name as string } ${user.last_name as string}`;
+			const full_name = `${user.first_name as string} ${user.last_name as string}`;
 			$q.notify({
 				message: `The user ${full_name} was successfully added to the course.`,
 				color: 'green'
