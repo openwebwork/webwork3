@@ -525,7 +525,7 @@ export function parseProblem(problem: ParseableProblem, type: 'Library' | 'Set' 
 }
 
 /**
- * * Merges a SetProblem, a DBUserProblem and a UserSet returning a UserProblem.
+ * Merges a SetProblem, a DBUserProblem and a UserSet returning a UserProblem.
  * Note: if the arguments are not related in the database (based on primary and foreign keys)
  * A MergeError is thrown.
  */

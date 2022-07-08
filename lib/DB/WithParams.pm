@@ -41,11 +41,16 @@ sub validParamFields ($self, $field_name) {
 }
 
 sub validateParams ($self, $field_name) {
-	return 1 unless defined $self->get_inflated_column($field_name);
-	for my $key (keys %{ $self->get_inflated_column($field_name) }) {
-		my $re = $valid_params->{$key};
-		DB::Exception::InvalidParameter->throw(message => "The parameter named $key is not valid")
-			unless $self->get_inflated_column($field_name)->{$key} =~ qr/^$re$/x;
+	my $params_hash = $self->get_inflated_column($field_name);
+	# if it doesn't exist, it is valid
+	return 1 unless defined $params_hash;
+
+	for my $key (keys %$params_hash) {
+		my $re    = $valid_params->{$key};
+		my $valid = $re eq 'bool' ? JSON::PP::is_bool($params_hash->{$key}) : $params_hash->{$key} =~ qr/^$re$/x;
+		DB::Exception::InvalidParameter->throw(
+			message => "The parameter named $key is not valid. It has value $params_hash->{$key}")
+			unless $valid;
 	}
 	return 1;
 }

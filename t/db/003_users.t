@@ -17,11 +17,12 @@ use Test::More;
 use Test::Exception;
 use Clone qw/clone/;
 use List::MoreUtils qw/firstval/;
+use YAML qw/LoadFile/;
+use DateTime::Format::Strptime;
+use Mojo::JSON qw/true false/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
-use YAML qw/LoadFile/;
-use DateTime::Format::Strptime;
 
 # Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
@@ -43,7 +44,7 @@ for my $student (@students) {
 	for my $key (qw/course_name recitation section params role/) {
 		delete $student->{$key};
 	}
-	$student->{is_admin} = 0;
+	$student->{is_admin} = false;
 }
 
 # Add the admin user
@@ -52,7 +53,7 @@ push(
 	{
 		username   => 'admin',
 		email      => 'admin@google.com',
-		is_admin   => 1,
+		is_admin   => true,
 		first_name => 'Andrea',
 		last_name  => 'Administrator',
 		student_id => undef
@@ -104,7 +105,7 @@ $user = {
 	first_name => 'Clancy',
 	email      => 'wiggam@springfieldpd.gov',
 	student_id => '',
-	is_admin   => 0,
+	is_admin   => false,
 };
 
 my $new_user = $users_rs->addGlobalUser(params => $user);
@@ -152,7 +153,7 @@ my $user2 = {
 	first_name => 'Selma',
 	email      => 'selma@google.com',
 	student_id => '',
-	is_admin   => 0,
+	is_admin   => false,
 };
 
 my $added_user2 = $users_rs->addGlobalUser(params => $user2);
@@ -232,14 +233,12 @@ for my $user_course (@user_courses) {
 	removeIDs($user_course);
 }
 
-my @courses = loadCSV("$main::ww3_dir/t/db/sample_data/courses.csv");
-for my $course (@courses) {
-	for my $date (keys %{ $course->{course_dates} }) {
-		my $dt = $strp->parse_datetime($course->{course_dates}->{$date});
-		$course->{course_dates}->{$date} = $dt->epoch;
+my @courses = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/courses.csv",
+	{
+		boolean_fields => ['visible']
 	}
-}
-
+);
 @students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
 
 my @user_courses_from_csv = grep { $_->{username} eq 'lisa' } @students;

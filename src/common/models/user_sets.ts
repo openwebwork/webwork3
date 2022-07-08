@@ -31,8 +31,8 @@ export type ParseableDBUserSet = {
 /**
  * The DBUserSet is used for overrides for a ProblemSet and in the client-side model
  * of the UserSet on the database.  Note: this has changed recently
-* to reflect that the UserSet should be independent of a ProblemSet (not inherit from it).
-*/
+ * to reflect that the UserSet should be independent of a ProblemSet (not inherit from it).
+ */
 export class DBUserSet extends Model {
 	private _user_set_id = 0;
 	private _course_user_id = 0;
@@ -188,10 +188,10 @@ export class DBUserHomeworkSet extends DBUserSet {
  */
 
 export type ParseableDBUserQuiz  = ParseableDBUserSet &
-{
-	set_params?: ParseableQuizParams;
-	set_dates?: ParseableQuizDates;
-}
+	{
+		set_params?: ParseableQuizParams;
+		set_dates?: ParseableQuizDates;
+	}
 
 export class UserQuizDates extends Model {
 	protected _open?: number;
@@ -274,10 +274,10 @@ export class DBUserQuiz extends DBUserSet {
  */
 
 export type ParseableDBUserReviewSet = ParseableDBUserSet &
-{
-	set_params?: ParseableReviewSetParams;
-	set_dates?: ParseableReviewSetDates;
-}
+	{
+		set_params?: ParseableReviewSetParams;
+		set_dates?: ParseableReviewSetDates;
+	}
 
 export class UserReviewSetDates extends Model {
 	protected _open?: number;
@@ -316,7 +316,6 @@ export class UserReviewSetDates extends Model {
 	public clone(): UserReviewSetDates {
 		return new UserReviewSetDates(this.toObject());
 	}
-
 }
 
 export class DBUserReviewSet extends DBUserSet {
@@ -564,11 +563,11 @@ export function parseUserSet(user_set: ParseableUserSet) {
 }
 
 /**
- * Merge a ProblemSet, a DBUserSet and a CourseUser and return a UserSet. Note: if the
- * arguments are not related in the database (based on primary and foreign keys), a MergeError is
- * thrown.  in that the result is a MergedUserSet with overrides taken from the UserSet.
+ * Merge a ProblemSet, a DBUserSet and a User and return a UserSet. Note: if the
+ * arguments are not related in the database (based on primary and foreign keys), a MergeError is thrown.
+ * The result is a UserSet created with values from the DBUserSet and missing values taken from the ProblemSet.
  */
-export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: CourseUser) {
+export function mergeUserSet(set: ProblemSet, db_user_set: DBUserSet, user: CourseUser): UserSet | undefined {
 	// Perhaps we need to handle this better, but this situation happens when reacting
 	// to changes between ProblemSets and UserSets in the store.
 	if (set == undefined || db_user_set == undefined || user == undefined) return;

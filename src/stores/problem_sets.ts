@@ -63,7 +63,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		}),
 
 		/**
-		 * Returns a ProblemSet given either the set_id or set_name.
+		 * Return a single ProblemSet with given set_name or set_id.
 		 */
 		findProblemSet: (state) => (set_info: SetInfo) =>
 			set_info.set_id ?
@@ -71,7 +71,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 				state.problem_sets.find(set => set.set_name === set_info.set_name),
 
 		/**
-		 * Returns all user sets with given a set_id or set_name.
+		 * Return all user sets with given set_id or set_name.
 		 */
 		findUserSets(state) {
 			// TODO: for performance, maybe don't call this.user_sets, but build up the

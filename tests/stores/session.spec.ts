@@ -11,17 +11,17 @@
 import { createApp } from 'vue';
 import { setActivePinia, createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+
 import { api } from 'src/boot/axios';
-
-import { useSessionStore } from 'src/stores/session';
 import { getUser } from 'src/common/api-requests/user';
-
-import { UserCourse, Course } from 'src/common/models/courses';
-import { User } from 'src/common/models/users';
-import { SessionInfo } from 'src/common/models/session';
-
-import { cleanIDs, loadCSV } from '../utils';
+import { useSessionStore } from 'src/stores/session';
+import { checkPassword } from 'src/common/api-requests/session';
 import { UserRole } from 'src/common/models/parsers';
+import { loadCSV, cleanIDs } from '../utils';
+
+import { Course, UserCourse } from 'src/common/models/courses';
+import { SessionInfo } from 'src/common/models/session';
+import { User } from 'src/common/models/users';
 
 const app = createApp({});
 
@@ -105,6 +105,22 @@ describe('Session Store', () => {
 			});
 		});
 
+		test('Login as a user', async () => {
+		// test logging in as lisa gives the proper courses.
+			const session_info = await checkPassword({
+				username: 'lisa', password: 'lisa'
+			});
+			expect(session_info.logged_in).toBe(true);
+			expect(session_info.user).toStrictEqual(lisa.toObject());
+
+		});
+
+		test('check user courses', async () => {
+			const session_store = useSessionStore();
+			await session_store.fetchUserCourses(lisa.user_id);
+			expect(cleanIDs(session_store.user_courses)).toStrictEqual(cleanIDs(lisa_courses));
+		});
+
 		test('update the session', () => {
 			const session = useSessionStore();
 			session.updateSessionInfo(session_info);
@@ -132,12 +148,5 @@ describe('Session Store', () => {
 			expect(session.user).toStrictEqual(logged_out);
 
 		});
-
-		test('check user courses', async () => {
-			const session_store = useSessionStore();
-			await session_store.fetchUserCourses(lisa.user_id);
-			expect(cleanIDs(session_store.user_courses)).toStrictEqual(cleanIDs(lisa_courses));
-		});
 	});
-
 });

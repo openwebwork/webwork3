@@ -79,8 +79,8 @@ This is a description of the homework set.
 
 sub valid_params ($=) {
 	return {
-		enable_reduced_scoring => q{[01]},
-		hide_hint              => q{[01]},
+		enable_reduced_scoring => 'bool',
+		hide_hint              => 'bool',
 		hardcopy_header        => q{.*},
 		set_header             => q{.*},
 		description            => q{.*}

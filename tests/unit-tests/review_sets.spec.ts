@@ -16,7 +16,7 @@ describe('Testing for Review Sets', () => {
 	};
 
 	const default_review_set_params: ParseableReviewSetParams = {
-		test_param: false
+		can_retake: false
 	};
 
 	const default_review_set = {
@@ -55,7 +55,7 @@ describe('Testing for Review Sets', () => {
 				set_id: 7,
 				set_name: 'Review Set #1',
 				set_params: {
-					test_param: true,
+					can_retake: true,
 				},
 				set_visible: true,
 				set_type: 'REVIEW'
@@ -90,7 +90,7 @@ describe('Testing for Review Sets', () => {
 	describe('Setting review_set parameters', () => {
 		test('Check that the review_set param defaults are working', () => {
 			const review_set1 = new ReviewSet({ set_name: 'HW #1' });
-			const review_set2 = new ReviewSet({ set_name: 'HW #1', set_params: { test_param: false } });
+			const review_set2 = new ReviewSet({ set_name: 'HW #1', set_params: { can_retake: false } });
 			expect(review_set1).toStrictEqual(review_set2);
 			const review_set3 = new ReviewSet({ set_name: 'HW #1', set_dates: {
 				open: 0
@@ -127,8 +127,8 @@ describe('Testing for Review Sets', () => {
 	describe('Setting review_set Dates', () => {
 		test('Test the review_set dates', () => {
 			const review_set = new ReviewSet();
-			review_set.set_params.set({ test_param: true });
-			expect(review_set.set_params.test_param).toBeTruthy();
+			review_set.set_params.set({ can_retake: true });
+			expect(review_set.set_params.can_retake).toBeTruthy();
 
 			review_set.set_dates.set({
 				open: 0,
@@ -142,8 +142,8 @@ describe('Testing for Review Sets', () => {
 			});
 			expect(review_set.hasValidDates()).toBeFalsy();
 
-			review_set.set_params.set({ test_param: false });
-			expect(review_set.set_params.test_param).toBeFalsy();
+			review_set.set_params.set({ can_retake: false });
+			expect(review_set.set_params.can_retake).toBeFalsy();
 
 			review_set.set_dates.set({
 				open: 0,

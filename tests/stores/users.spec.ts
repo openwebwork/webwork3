@@ -6,7 +6,7 @@
 // tested with persistance.
 
 // users.spec.ts
-// Test the users Store
+// Test the user Store
 
 import { createApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
