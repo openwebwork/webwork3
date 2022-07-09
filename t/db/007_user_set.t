@@ -20,6 +20,7 @@ use Clone qw/clone/;
 use Test::Exception;
 use List::MoreUtils qw/firstval/;
 use YAML::XS qw/LoadFile/;
+use Mojo::JSON qw/true false/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs/;
@@ -40,27 +41,56 @@ my $problem_set_rs = $schema->resultset('ProblemSet');
 my $course         = $course_rs->find({ course_id => 1 });
 
 # Load info from CSV files
-my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
+my @hw_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/hw_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => [ 'enable_reduced_scoring', 'hide_hint' ]
+	}
+);
 for my $hw_set (@hw_sets) {
-	$hw_set->{set_type}    = 'HW';
-	$hw_set->{set_version} = 1 unless defined($hw_set->{set_version});
+	$hw_set->{set_type}    = "HW";
+	$hw_set->{set_version} = 1  unless defined($hw_set->{set_version});
+	$hw_set->{set_params}  = {} unless defined $hw_set->{set_params};
 }
 
-my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
+my @quizzes = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/quizzes.csv",
+	{
+		boolean_fields           => ['set_visible'],
+		param_boolean_fields     => ['timed'],
+		param_non_neg_int_fields => ['quiz_duration']
+	}
+);
 for my $set (@quizzes) {
-	$set->{set_type}    = 'QUIZ';
-	$set->{set_version} = 1 unless defined($set->{set_version});
+	$set->{set_type}    = "QUIZ";
+	$set->{set_version} = 1  unless defined($set->{set_version});
+	$set->{set_params}  = {} unless defined $set->{set_params};
 }
 
-my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv");
+my @review_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/review_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => ['can_retake']
+	}
+);
+
 for my $set (@review_sets) {
-	$set->{set_type}    = 'REVIEW';
-	$set->{set_version} = 1 unless defined($set->{set_version});
+	$set->{set_type}    = "REVIEW";
+	$set->{set_version} = 1  unless defined($set->{set_version});
+	$set->{set_params}  = {} unless defined $set->{set_params};
 }
 
 my @all_problem_sets = (@hw_sets, @quizzes, @review_sets);
 
-my @all_user_sets = loadCSV("$main::ww3_dir/t/db/sample_data/user_sets.csv");
+my @all_user_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/user_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => [ 'enable_reduced_scoring', 'hide_hint' ]
+	}
+);
 
 for my $set (@all_user_sets) {
 	$set->{set_version} = 1 unless defined($set->{set_version});
@@ -69,7 +99,8 @@ for my $set (@all_user_sets) {
 		$_->{course_name} eq $set->{course_name} && $_->{set_name} eq $set->{set_name}
 	}
 	@all_problem_sets;
-	$set->{set_type} = $s->{set_type};
+	$set->{set_params} = {} unless defined $set->{set_params};
+	$set->{set_type}   = $s->{set_type};
 }
 
 my @merged_user_sets = @{ clone(\@all_user_sets) };
@@ -493,11 +524,12 @@ my $ralph_set_info = {
 	course_name => 'Precalculus',
 	set_name    => 'HW #4',
 	set_dates   => {
-		open   => $hw4->{set_dates}->{open} - 100,
-		answer => $hw4->{set_dates}->{answer} + 100,
+		open                   => $hw4->{set_dates}->{open} - 100,
+		answer                 => $hw4->{set_dates}->{answer} + 100,
+		enable_reduced_scoring => false,
 	},
 	set_params => {
-		enable_reduced_scoring => 0
+		hide_hint => false
 	}
 };
 
@@ -599,6 +631,21 @@ throws_ok {
 }
 'DB::Exception::ImproperDateOrder', 'addUserSet: user set is out of order with respect to problem set';
 
+## Check that setting a boolean as 0/1 throws an error
+
+throws_ok {
+	$user_set_rs->addUserSet(
+		params => {
+			%$otto_set_info3,
+			set_params => {
+				hide_hint => 0
+			}
+		},
+		merged => 1
+	);
+}
+'DB::Exception::InvalidParameter', 'addUserSet: user set is out of order with respect to problem set';
+
 # Update User Set
 # Get the user set for $otto_set_info2.
 
@@ -624,23 +671,23 @@ my $updated_user_set2 = $user_set_rs->updateUserSet(
 	info   => $otto_set_info2,
 	params => {
 		set_params => {
-			hide_hint => 1,
+			hide_hint => true,
 		}
 	}
 );
 removeIDs($updated_user_set2);
-$otto_set2->{set_params}->{hide_hint} = 1;
+$otto_set2->{set_params}->{hide_hint} = true;
 is_deeply($updated_user_set2, $otto_set2, 'updateUserSet: update the params');
 
 # Update a valid field
 my $updated_user_set3 = $user_set_rs->updateUserSet(
 	info   => $otto_set_info2,
 	params => {
-		set_visible => 1
+		set_visible => true
 	}
 );
 removeIDs($updated_user_set3);
-$otto_set2->{set_visible} = 1;
+$otto_set2->{set_visible} = true;
 
 is_deeply($otto_set2, $updated_user_set3, 'updateUserSet: update the set visibility');
 
@@ -710,55 +757,50 @@ throws_ok {
 }
 'DB::Exception::UserSetNotInCourse', 'updateUserSet: try to update a user set not the in the course';
 
-# Delete a user set.
-my $deleted_user_set = $user_set_rs->deleteUserSet(info => $otto_set_info2);
-removeIDs($deleted_user_set);
-
-is_deeply($deleted_user_set, $otto_set2, 'deleteUserSet: successfully delete a user set');
-
-# Delete another user set.
-my $deleted_user_set2 = $user_set_rs->deleteUserSet(
-	info => {
-		username    => $ralph_set_info->{username},
-		course_name => $ralph_set_info->{course_name},
-		set_name    => $ralph_set_info->{set_name}
-	}
-);
-removeIDs($deleted_user_set2);
-# remove the set_visible field to compare to the above user_set
-delete $deleted_user_set2->{set_visible};
-
-is_deeply($deleted_user_set2, $ralph_set_info, 'deleteUserSet: successfully delete another user set.');
-
-# Delete another added user set
-my $deleted_user_set3 = $user_set_rs->deleteUserSet(
-	info => {
-		username    => $new_user_params2->{username},
-		course_name => $new_user_params2->{course_name},
-		set_name    => $new_user_params2->{set_name}
-	}
-);
-removeIDs($deleted_user_set3);
-# remove the set_visible field to compare to the above user_set
-delete $deleted_user_set3->{set_visible};
-
-is_deeply($deleted_user_set3, $new_user_params2, 'deleteUserSet: successfully delete another user set.');
-
 # Try to delete a user_set that doesn't exist.
 throws_ok {
 	$user_set_rs->deleteUserSet(info => $otto_set_info3);
 }
 'DB::Exception::UserSetNotInCourse', 'deleteUserSet: try to delete a user set not the in the course';
 
-# delete a created user sets
+# Delete some user sets that were created.
 
-$user_set_rs->deleteUserSet(
+my $deleted_user_set = $user_set_rs->deleteUserSet(
 	info => {
-		course_name => 'Precalculus',
-		set_name    => 'HW #1',
-		username    => 'frink'
+		username    => $new_user_set2->{username},
+		course_name => $new_user_set2->{course_name},
+		set_name    => $new_user_set2->{set_name}
 	}
 );
+removeIDs($deleted_user_set);
+removeIDs($new_user_set2);
+# remove set_visible to handle comparison
+delete $deleted_user_set->{set_visible};
+is_deeply($deleted_user_set, $new_user_set2, "deleteUserSet: successfully delete a user set");
+
+my $deleted_user_set2 = $user_set_rs->deleteUserSet(
+	info => {
+		username    => $ralph_user_set->{username},
+		course_name => $ralph_user_set->{course_name},
+		set_name    => $ralph_user_set->{set_name}
+	}
+);
+removeIDs($deleted_user_set2);
+# remove set_visible to handle comparison
+delete $deleted_user_set2->{set_visible};
+is_deeply($deleted_user_set2, $ralph_user_set, "deleteUserSet: successfully delete another user set");
+
+my $deleted_user_set3 = $user_set_rs->deleteUserSet(info => $otto_set_info2);
+removeIDs($deleted_user_set3);
+is_deeply($deleted_user_set3, $otto_set2, "deleteUserSet: successfully delete yet another user set");
+
+my $deleted_user_set4 = $user_set_rs->deleteUserSet(info => $new_merged_set);
+
+# Try to delete a user_set that doesn't exist.
+throws_ok {
+	$user_set_rs->deleteUserSet(info => $otto_set_info3);
+}
+'DB::Exception::UserSetNotInCourse', 'deleteUserSet: try to delete a user set not the in the course';
 
 # Check that the user_sets db table is restored.
 @all_user_sets_from_db = $user_set_rs->getAllUserSets();

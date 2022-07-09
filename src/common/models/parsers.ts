@@ -93,39 +93,38 @@ export class StringParseException extends ParseError {
 
 // Parsing functions
 
+export const non_neg_int_re = /^\s*(\d+)\s*$/;
+export const non_neg_decimal_re = /(^\s*(\d+)(\.\d*)?\s*$)|(^\s*\.\d+\s*$)/;
+export const mail_re = /^[\w.]+@([a-zA-Z_.]+)+\.[a-zA-Z]{2,9}$/;
+export const username_re = /^[_a-zA-Z]([a-zA-Z._0-9])+$/;
+
+// Checking functions
+
+export const isNonNegInt = (v: number | string) => non_neg_int_re.test(`${v}`);
+export const isNonNegDecimal = (v: number | string) => non_neg_decimal_re.test(`${v}`);
+export const isValidUsername = (v: string) => username_re.test(v) || mail_re.test(v);
+export const isValidEmail = (v: string) => mail_re.test(v);
+
+// Parsing functionis
+
 export function parseNonNegInt(val: string | number) {
-	if (/^\s*(\d+)\s*$/.test(`${val}`)) {
-		return parseInt(`${val}`);
-	} else {
-		throw new NonNegIntException(`The value ${val} is not a non-negative integer`);
-	}
+	if (isNonNegInt(val)) return parseInt(`${val}`);
+	throw new NonNegIntException(`The value ${val} is not a non-negative integer`);
 }
 
 export function parseNonNegDecimal(val: string | number) {
-	if (/(^\s*(\d+)(\.\d*)?\s*$)|(^\s*\.\d+\s*$)/.test(`${val}`)) {
-		return parseFloat(`${val}`);
-	} else {
-		throw new NonNegDecimalException(`The value ${val} is not a non-negative decimal`);
-	}
+	if (isNonNegDecimal(val)) return parseFloat(`${val}`);
+	throw new NonNegDecimalException(`The value ${val} is not a non-negative decimal`);
 }
 
-export const mailRE = /^[\w.]+@([a-zA-Z_.]+)+\.[a-zA-Z]{2,9}$/;
-export const usernameRE = /^[_a-zA-Z]([a-zA-Z._0-9])+$/;
-
-export function parseUsername(val: string | undefined) {
-	if (typeof val === 'string' && (val === '' || mailRE.test(`${val ?? ''}`) || usernameRE.test(`${val}`))) {
-		return val;
-	} else {
-		throw new UsernameParseException(`The value '${val?.toString() ?? ''}' is not a value username`);
-	}
+export function parseUsername(val: string) {
+	if (isValidUsername(val)) return val;
+	throw new UsernameParseException(`The value '${val?.toString() ?? ''}' is not a value username`);
 }
 
-export function parseEmail(val: string | undefined) {
-	if (typeof val === 'string' && mailRE.test(`${val}`)) {
-		return val;
-	} else {
-		throw new EmailParseException(`The value '${val?.toString() ?? ''}' is not a value email`);
-	}
+export function parseEmail(val: string) {
+	if (isValidEmail(val)) return val;
+	throw new EmailParseException(`The value '${val?.toString() ?? ''}' is not a value email`);
 }
 
 const booleanRE = /^([01])|(true)|(false)$/;

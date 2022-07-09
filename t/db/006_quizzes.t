@@ -18,6 +18,7 @@ use Test::Exception;
 use YAML::XS qw/LoadFile/;
 use Clone qw/clone/;
 use DateTime::Format::Strptime;
+use Mojo::JSON qw/true false/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs filterBySetType/;
@@ -95,7 +96,9 @@ my $new_quiz = $problem_set_rs->addProblemSet(
 );
 
 removeIDs($new_quiz);
-is_deeply($new_quiz, $new_quiz_params, 'addQuiz: add a new quiz');
+## add the default set_visible field
+$new_quiz_params->{set_visible} = false;
+is_deeply($new_quiz, $new_quiz_params, "addQuiz: add a new quiz");
 
 # Try to add a quiz to a non existent course.
 throws_ok {
@@ -127,7 +130,7 @@ throws_ok {
 		params => {
 			course_name => 'Precalculus',
 			set_type    => 'QUIZ',
-			set_visible => 1,
+			set_visible => true,
 		}
 	);
 }
@@ -140,7 +143,7 @@ throws_ok {
 			course_name => 'Precalculus',
 			set_type    => 'QUIZ',
 			set_name    => 'Quiz #99',
-			set_visible => 1,
+			set_visible => true,
 			set_params  => {
 				param1 => 0
 			},
@@ -161,7 +164,7 @@ throws_ok {
 			course_name => 'Precalculus',
 			set_type    => 'QUIZ',
 			set_name    => 'Quiz #99',
-			set_visible => 1,
+			set_visible => true,
 			set_params  => {
 				timed => 'yes'
 			},
@@ -246,7 +249,7 @@ is_deeply($new_quiz, $updated_quiz, 'updateQuiz: successfully update the quiz');
 # Update the params of the quiz
 $updated_params = {
 	set_params => {
-		timed => 1
+		timed => true
 	}
 };
 $updated_quiz = $problem_set_rs->updateProblemSet(
@@ -257,7 +260,7 @@ $updated_quiz = $problem_set_rs->updateProblemSet(
 	params => $updated_params
 );
 removeIDs($updated_quiz);
-$new_quiz->{set_params} = { timed => 1 };
+$new_quiz->{set_params} = { timed => true };
 is_deeply($new_quiz, $updated_quiz, 'updateQuiz: successfully update the params of the quiz');
 
 # Update the dates of the quiz

@@ -1,18 +1,12 @@
-// tests parsing and handling of users
-
-import { Course, ParseableCourse } from 'src/common/models/courses';
-import { NonNegIntException } from 'src/common/models/parsers';
-import { InvalidFieldsException } from 'src/common/models';
+import { Course, ParseableCourse, UserCourse } from 'src/common/models/courses';
 
 describe('Test Course Models', () => {
-
-	const default_course_dates = { start: 0, end: 0 };
 
 	const default_course = {
 		course_id: 0,
 		course_name: 'Arithmetic',
 		visible: true,
-		course_dates: { ...default_course_dates }
+		course_dates: { start: 0, end: 0 }
 	};
 
 	describe('Creation of a Course', () => {
@@ -20,9 +14,8 @@ describe('Test Course Models', () => {
 		test('Create a Valid Course', () => {
 			const course = new Course({ course_name: 'Arithmetic' });
 			expect(course).toBeInstanceOf(Course);
-
 			expect(course.toObject()).toStrictEqual(default_course);
-
+			expect(course.isValid()).toBe(true);
 		});
 
 		test('Check that calling all_fields() and params() is correct', () => {
@@ -31,9 +24,7 @@ describe('Test Course Models', () => {
 
 			expect(course.all_field_names.sort()).toStrictEqual(course_fields.sort());
 			expect(course.param_fields.sort()).toStrictEqual(['course_dates']);
-
 			expect(Course.ALL_FIELDS.sort()).toStrictEqual(course_fields.sort());
-
 		});
 
 		test('Check that cloning works', () => {
@@ -42,6 +33,46 @@ describe('Test Course Models', () => {
 			expect(course.clone()).toBeInstanceOf(Course);
 		});
 
+	});
+
+	describe('Updating a course', () => {
+		test('set fields of a course', () => {
+			const course = new Course({ course_name: 'Arithmetic' });
+			course.course_id = 5;
+			expect(course.course_id).toBe(5);
+
+			course.course_name = 'Geometry';
+			expect(course.course_name).toBe('Geometry');
+
+			course.visible = false;
+			expect(course.visible).toBe(false);
+			expect(course.isValid()).toBe(true);
+
+		});
+
+		test('set fields of a course using the set method', () => {
+			const course = new Course({ course_name: 'Arithmetic' });
+			course.set({
+				course_id: 5,
+				course_name: 'Geometry',
+				visible: false
+			});
+			expect(course.course_id).toBe(5);
+			expect(course.course_name).toBe('Geometry');
+			expect(course.visible).toBe(false);
+			expect(course.isValid()).toBe(true);
+		});
+	});
+
+	describe('Checking the course dates', () => {
+		test('checking for valid course dates', () => {
+			const course = new Course({
+				course_name: 'Arithemetic',
+				course_dates: { start: 100, end: 100 }
+			});
+			expect(course.course_dates.isValid()).toBe(true);
+			expect(course.isValid()).toBe(true);
+		});
 	});
 
 	describe('Checking valid and invalid creation parameters.', () => {
@@ -57,63 +88,143 @@ describe('Test Course Models', () => {
 			expect(course1).toStrictEqual(course3);
 		});
 
-		test('Create a course with invalid params', () => {
-			// make a generic object and cast it as a Course
-			const p = { course_name: 'Arithmetic', CourseNumber: -1 } as unknown as ParseableCourse;
-			expect(() => { new Course(p);})
-				.toThrow(InvalidFieldsException);
+		test('Create a course with invalid fields', () => {
+			const c1 = new Course({ course_name: 'Arithmetic', course_id: -1 });
+			expect(c1.isValid()).toBe(false);
+
+			const c2 = new Course({ course_name: '', course_id: 0 });
+			expect(c2.isValid()).toBe(false);
 		});
 
-		test('Course with invalid course_id', () => {
-			expect(() => {
-				new Course({ course_name: 'Arithmetic', course_id: -1 });
-			}).toThrow(NonNegIntException);
+		test('Create a course with invalid dates', () => {
+			const c1 = new Course({
+				course_name: 'Arithmetic',
+				course_dates: { start: 100, end: 0 }
+			});
+			expect(c1.isValid()).toBe(false);
 		});
 	});
 
-	describe('Updating a course', () => {
+	describe('Creating a UserCourse', () => {
+		const default_user_course = {
+			course_id: 0,
+			user_id: 0,
+			course_name: '',
+			username: '',
+			visible: true,
+			role: 'UNKNOWN',
+			course_dates : { start: 0, end: 0 }
+		};
 
-		test('set fields of a course', () => {
-			const course = new Course({ course_name: 'Arithmetic' });
-			course.course_id = 5;
-			expect(course.course_id).toBe(5);
+		describe('Creating a User Course', () => {
+			test('Create a Valid Course', () => {
+				const user_course = new UserCourse();
+				expect(user_course).toBeInstanceOf(UserCourse);
+				expect(user_course.toObject()).toStrictEqual(default_user_course);
+				// The user course is not valid because the course name and username are empty strings
+				expect(user_course.isValid()).toBe(false);
+			});
 
-			course.course_name = 'Geometry';
-			expect(course.course_name).toBe('Geometry');
+			test('Check that calling all_fields() and params() is correct', () => {
+				const user_course_fields = ['course_id', 'user_id', 'course_name', 'username',
+					'visible', 'role', 'course_dates'];
+				const user_course = new UserCourse();
+				expect(user_course.all_field_names.sort()).toStrictEqual(user_course_fields.sort());
+				expect(UserCourse.ALL_FIELDS.sort()).toStrictEqual(user_course_fields.sort());
+				expect(user_course.param_fields).toStrictEqual(['course_dates']);
+			});
 
-			course.visible = true;
-			expect(course.visible).toBeTruthy();
-
-			course.visible = 0;
-			expect(course.visible).toBeFalsy();
-
-			course.visible = 'true';
-			expect(course.visible).toBeTruthy();
-
-			course.visible = 'false';
-			expect(course.visible).toBeFalsy();
-
+			test('Check that cloning works', () => {
+				const user_course = new UserCourse();
+				expect(user_course.clone().toObject()).toStrictEqual(default_user_course);
+				expect(user_course.clone()).toBeInstanceOf(UserCourse);
+			});
 		});
 
-		test('set fields of a course using the set method', () => {
-			const course = new Course({ course_name: 'Arithmetic' });
-			course.set({ course_id: 5 });
-			expect(course.course_id).toBe(5);
+		describe('Updating a UserCourse', () => {
+			test('set fields of a user course', () => {
+				const user_course = new UserCourse({ course_name: 'Arithmetic' });
+				user_course.course_id = 5;
+				expect(user_course.course_id).toBe(5);
 
-			course.set({ course_name: 'Geometry' });
-			expect(course.course_name).toBe('Geometry');
+				user_course.course_name = 'Geometry';
+				expect(user_course.course_name).toBe('Geometry');
 
-			course.set({ visible: true });
-			expect(course.visible).toBeTruthy();
+				user_course.visible = false;
+				expect(user_course.visible).toBe(false);
 
-			course.set({ visible: 'true' });
-			expect(course.visible).toBeTruthy();
+				user_course.username = 'homer';
+				expect(user_course.username).toBe('homer');
 
-			course.set({ visible: 'false' });
-			expect(course.visible).toBeFalsy();
+				user_course.role = 'student';
+				expect(user_course.role).toBe('STUDENT');
 
-			course.set({ visible: 0 });
-			expect(course.visible).toBeFalsy();
+				expect(user_course.isValid()).toBe(true);
+			});
+		});
+
+		describe('Checking valid and invalid creation parameters.', () => {
+			test('Parsing of undefined and null values', () => {
+				const course1 = new UserCourse({ course_name: 'Arithmetic' });
+				const course2 = new UserCourse({
+					course_name: 'Arithmetic',
+					user_id: undefined,
+					course_id: undefined
+				});
+				expect(course1).toStrictEqual(course2);
+
+				// the following allow to pass in non-valid parameters for testing
+				const params = { course_name: 'Arithmetic', course_id: null };
+				const course3 = new UserCourse(params as unknown as ParseableCourse);
+				expect(course1).toStrictEqual(course3);
+			});
+
+			test('Create a course with invalid fields', () => {
+				const c1 = new UserCourse({ course_name: 'Arithmetic', username: 'homer', role: 'student' });
+				expect(c1.isValid()).toBe(true);
+
+				c1.course_name = '';
+				expect(c1.isValid()).toBe(false);
+
+				c1.set({ course_name: 'Arithmetic', user_id: -1 });
+				expect(c1.isValid()).toBe(false);
+
+				c1.set({ user_id: 10, course_id: -1 });
+				expect(c1.isValid()).toBe(false);
+
+				c1.course_id = 10;
+				expect(c1.isValid()).toBe(true);
+
+				c1.role = 'wizard';
+				expect(c1.isValid()).toBe(false);
+
+				c1.role = 'ta';
+				expect(c1.isValid()).toBe(true);
+
+				c1.username = '';
+				expect(c1.isValid()).toBe(false);
+
+				c1.username = 'invalid user';
+				expect(c1.isValid()).toBe(false);
+
+				c1.username = 'homer@msn.com';
+				expect(c1.isValid()).toBe(true);
+
+			});
+
+			test('Create a user course with invalid dates', () => {
+				const c1 = new UserCourse({
+					course_name: 'Arithmetic',
+					username: 'homer',
+					role: 'student',
+					course_dates: { start: 100, end: 200 }
+				});
+				expect(c1.isValid()).toBe(true);
+
+				c1.setDates({ start: 100, end: 0 });
+				expect(c1.isValid()).toBe(false);
+			});
+
 		});
 	});
 });

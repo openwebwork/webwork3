@@ -3,6 +3,8 @@ use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
 
+use Mojo::JSON qw/true false/;
+
 =head1 DESCRIPTION
 
 This is the database schema for a User.
@@ -97,7 +99,7 @@ __PACKAGE__->add_columns(
 		is_nullable => 1,
 	},
 	is_admin => {
-		data_type     => 'bool',
+		data_type     => 'boolean',
 		is_nullable   => 0,
 		default_value => 0,
 	},
@@ -108,6 +110,14 @@ __PACKAGE__->add_columns(
 		default_value      => '{}',
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
+	}
+);
+
+__PACKAGE__->inflate_column(
+	'is_admin',
+	{
+		inflate => sub { return shift ? true : false; },
+		deflate => sub { return shift; }
 	}
 );
 

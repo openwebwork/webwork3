@@ -41,7 +41,7 @@ export class Model {
 						unknown as { toObject(): Dictionary<generic>};
 					obj[key] = param_obj.toObject();
 				} else {
-					obj[key] = (this as unknown as Dictionary<generic>)[key];
+					if (this[key as keyof this] != undefined) obj[key] = (this as unknown as Dictionary<generic>)[key];
 				}
 			}
 		});

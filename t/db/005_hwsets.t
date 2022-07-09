@@ -18,6 +18,7 @@ use Test::Exception;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
 use DateTime::Format::Strptime;
+use Mojo::JSON qw/true false/;
 
 use DB::Schema;
 use DB::TestUtils qw/loadCSV removeIDs filterBySetType/;
@@ -37,21 +38,39 @@ my $course_rs      = $schema->resultset('Course');
 my $user_rs        = $schema->resultset('User');
 
 # Load HW sets from CSV file
-my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
+my @hw_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/hw_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => [ 'enable_reduced_scoring', 'hide_hint' ]
+	}
+);
 for my $hw_set (@hw_sets) {
 	$hw_set->{set_type}   = 'HW';
 	$hw_set->{set_params} = {} unless defined $hw_set->{set_params};
 
 }
 
-my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
-for my $set (@quizzes) {
-	$set->{set_type}   = 'QUIZ';
-	$set->{set_params} = {} unless defined $set->{set_params};
-
+my @quizzes = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/quizzes.csv",
+	{
+		boolean_fields           => ['set_visible'],
+		param_boolean_fields     => ['timed'],
+		param_non_neg_int_fields => ['quiz_duration']
+	}
+);
+for my $quiz (@quizzes) {
+	$quiz->{set_type}   = "QUIZ";
+	$quiz->{set_params} = {} unless defined($quiz->{set_params});
 }
 
-my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv");
+my @review_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/review_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => ['can_retake']
+	}
+);
 for my $set (@review_sets) {
 	$set->{set_type}   = 'REVIEW';
 	$set->{set_params} = {} unless defined $set->{set_params};
@@ -142,9 +161,15 @@ throws_ok {
 
 # Add a new problem set
 my $new_set_params = {
-	set_name  => 'HW #9',
-	set_dates => { open => 100, reduced_scoring => 120, due => 140, answer => 200 },
-	set_type  => 'HW'
+	set_name  => "HW #9",
+	set_dates => {
+		open                   => 100,
+		reduced_scoring        => 120,
+		due                    => 140,
+		answer                 => 200,
+		enable_reduced_scoring => true
+	},
+	set_type => "HW"
 };
 
 my $new_set = $problem_set_rs->addProblemSet(
@@ -156,7 +181,9 @@ my $new_set = $problem_set_rs->addProblemSet(
 my $new_set_id = $new_set->{set_id};
 removeIDs($new_set);
 delete $new_set->{type};
-is_deeply($new_set_params, $new_set, 'addProblemSet: add one homework');
+# add the default set_visible
+$new_set_params->{set_visible} = false;
+is_deeply($new_set_params, $new_set, "addProblemSet: add one homework");
 
 # Try to add a homework without set_name
 my $new_set2 = {
@@ -172,7 +199,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::ParametersNeeded', "addProblemSet: set_name not passed in.";
+'DB::Exception::ParametersNeeded', 'addProblemSet: set_name not passed in.';
 
 # Try to add a homework with bad date fields
 my $new_set3 = {
@@ -188,7 +215,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::InvalidDateField', "addProblemSet: invalid date field passed in.";
+'DB::Exception::InvalidDateField', 'addProblemSet: invalid date field passed in.';
 
 # Try to add a homework set without all required date fields
 my $new_set4 = {
@@ -237,14 +264,14 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::ImproperDateOrder', "addProblemSet: adding an illegal date order.";
+'DB::Exception::ImproperDateOrder', 'addProblemSet: adding an illegal date order.';
 
 # Check for undefined parameter fields
 my $new_set7 = {
 	set_name   => 'HW #11',
-	set_dates  => { open => 100, due => 140, answer => 200 },
+	set_dates  => { open => 100, due => 140, answer => 200, enable_reduced_scoring => false },
 	set_type   => 'HW',
-	set_params => { enable_reduced_scoring => 0, not_a_valid_field => 5 }
+	set_params => { not_a_valid_field => 5 }
 };
 throws_ok {
 	$problem_set_rs->addProblemSet(
@@ -256,26 +283,51 @@ throws_ok {
 }
 'DB::Exception::UndefinedParameter', 'addProblemSet: adding an undefined parameter field';
 
-# Check for invalid parameter fields
-my $new_set8 = {
-	set_name   => 'HW #11',
-	set_dates  => { open => 100, due => 140, answer => 200 },
-	set_type   => 'HW',
-	set_params => { enable_reduced_scoring => 0, hide_hint => 'yes' }
-};
+# Check for invalid parameter fields (the hide_hint param is a boolean)
 throws_ok {
 	$problem_set_rs->addProblemSet(
 		params => {
 			course_name => 'Precalculus',
-			%$new_set8
+			set_name    => 'HW #11',
+			set_dates   => { open => 100, due => 140, answer => 200, enable_reduced_scoring => false },
+			set_type    => 'HW',
+			set_params  => { hide_hint => 'yes' }
 		}
 	);
 }
 'DB::Exception::InvalidParameter', 'addProblemSet: adding an non-valid parameter';
 
+# Check to ensure true/false are passed into the set_params, not 0/1
+throws_ok {
+	$problem_set_rs->addProblemSet(
+		params => {
+			course_name => 'Precalculus',
+			set_name    => 'HW #11',
+			set_dates   => { open => 100, due => 140, answer => 200, enable_reduced_scoring => false },
+			set_type    => 'HW',
+			set_params  => { hide_hint => 0 }
+		}
+	);
+}
+'DB::Exception::InvalidParameter', 'addProblemSet: adding an non-valid boolean parameter';
+
+# Check to ensure true/false are passed into the enable_reduced_scoring in set_dates, not 0/1
+throws_ok {
+	$problem_set_rs->addProblemSet(
+		params => {
+			course_name => 'Precalculus',
+			set_name    => 'HW #11',
+			set_dates   => { open => 100, due => 140, answer => 200, enable_reduced_scoring => 0 },
+			set_type    => 'HW',
+			set_params  => { hide_hint => 0 }
+		}
+	);
+}
+'DB::Exception::InvalidParameter', 'addProblemSet: adding an non-valid boolean parameter in set_dates';
+
 # Update a set
-$new_set_params->{set_name}   = 'HW #8';
-$new_set_params->{set_params} = { enable_reduced_scoring => 1 };
+$new_set_params->{set_name}   = "HW #8";
+$new_set_params->{set_params} = { hide_hint => true };
 $new_set_params->{type}       = 1;
 
 my $updated_set = $problem_set_rs->updateProblemSet(
@@ -286,18 +338,18 @@ my $updated_set = $problem_set_rs->updateProblemSet(
 	params => {
 		set_name   => $new_set_params->{set_name},
 		set_params => {
-			enable_reduced_scoring => 1
+			hide_hint => true
 		}
 	}
 );
 removeIDs($updated_set);
-delete $updated_set->{set_visible};
 delete $new_set_params->{type};
 is_deeply($new_set_params, $updated_set, 'updateSet: change the set parameters');
 
 # Update the set where the set_type is sent, but the type is not:
-$new_set_params->{set_name} = 'HW #88';
-$new_set_params->{set_type} = 'HW';
+$new_set_params->{set_name}    = 'HW #88';
+$new_set_params->{set_type}    = 'HW';
+$new_set_params->{set_visible} = true;
 delete $new_set_params->{type};
 $updated_set = $problem_set_rs->updateProblemSet(
 	info   => { course_name => 'Precalculus', set_id => $new_set_id },
@@ -305,7 +357,6 @@ $updated_set = $problem_set_rs->updateProblemSet(
 );
 
 removeIDs($updated_set);
-delete $updated_set->{set_visible};
 is_deeply($new_set_params, $updated_set, "updateSet: update a set with set_type defined.");
 
 # Change the type of a problem set from a Homework Set to a Quiz.
@@ -320,8 +371,6 @@ my $set_with_new_type = $problem_set_rs->updateProblemSet(
 	params => { set_type    => 'QUIZ' }
 );
 removeIDs($set_with_new_type);
-# PS: Look into this.  Why are we deleting this throughout this test?
-delete $set_with_new_type->{set_visible};
 
 is_deeply($set_with_new_type, $set_with_new_type_params, 'updateSet: change the type of the problem set');
 
@@ -341,7 +390,7 @@ throws_ok {
 		params => { set_dates   => { bad_date => 99 } }
 	);
 }
-'DB::Exception::InvalidDateField', "updateSet: invalid date field passed in.";
+'DB::Exception::InvalidDateField', 'updateSet: invalid date field passed in.';
 
 # Try to update a set with an dates in a bad order
 throws_ok {
@@ -355,12 +404,11 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::ImproperDateOrder', "updateSet: adding an illegal date order.";
+'DB::Exception::ImproperDateOrder', 'updateSet: adding an illegal date order.';
 
 # Delete a set
 my $deleted_set = $problem_set_rs->deleteProblemSet(info => { course_name => 'Precalculus', set_name => 'HW #88' });
 removeIDs($deleted_set);
-delete $deleted_set->{set_visible};
 is_deeply($set_with_new_type_params, $deleted_set, 'deleteProblemSet: delete a set');
 
 # Try deleting a set with invalid course_name
@@ -372,7 +420,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::CourseNotFound', "deleteCourse: try to delete a set from a not existent course.";
+'DB::Exception::CourseNotFound', 'deleteCourse: try to delete a set from a not existent course.';
 
 # Try deleting a set that does not exist
 throws_ok {
@@ -383,7 +431,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::SetNotInCourse', "deleteCourse: try to delete a set that not exist.";
+'DB::Exception::SetNotInCourse', 'deleteCourse: try to delete a set that not exist.';
 
 # ensure that the problem_sets table in the database is restored.
 @all_problem_sets     = (@hw_sets, @quizzes, @review_sets);

@@ -392,10 +392,26 @@ sub addUserSet ($self, %args) {
 	$params->{set_version}    = 1  unless defined($params->{set_version});
 	my $original_dates = $params->{set_dates} // {};
 
-	# If any of the date are 0, then remove them.
+	# If any of the dates are 0, then remove them.
+	# Only check if the date_fields are 0.  There is the option to store non-dates in the
+	# set_dates field.
+	my $date_fields;
+
+	# Note: although this works okay, if another subtype of a UserSet is created, this needs to be updated.
+	if ($params->{type} == 1) {
+		$date_fields = \&DB::Schema::Result::UserSet::HWSet::valid_dates;
+	} elsif ($params->{type} == 2) {
+		$date_fields = \&DB::Schema::Result::UserSet::Quiz::valid_dates;
+	} elsif ($params->{type} == 4) {
+		$date_fields = \&DB::Schema::Result::UserSet::ReviewSet::valid_dates;
+	} else {
+		die "The type $params->{type} is not valid.";
+	}
+
 	if ($args{params}->{set_dates}) {
-		for my $key (keys %{ $args{params}->{set_dates} }) {
-			delete $args{params}->{set_dates}->{$key} if $args{params}->{set_dates}->{$key} == 0;
+		for my $key (@{ $date_fields->() }) {
+			delete $args{params}->{set_dates}->{$key}
+				if defined($args{params}->{set_dates}->{$key}) && $args{params}->{set_dates}->{$key} == 0;
 		}
 	}
 

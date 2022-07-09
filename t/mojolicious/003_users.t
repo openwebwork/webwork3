@@ -4,6 +4,7 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Test::Mojo;
+use Mojo::JSON qw/true false/;
 use List::MoreUtils qw/firstval/;
 
 BEGIN {
@@ -56,12 +57,14 @@ $t->post_ok('/webwork3/api/users' => json => $new_user)->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/username' => $new_user->{username});
 
 # Extract the id from the response.
-$new_user->{user_id} = $t->tx->res->json('/user_id');
-is_deeply($new_user, $t->tx->res->json, "addUser: global user added.");
+my $new_user_from_db = $t->tx->res->json;
+
+$new_user->{user_id} = $new_user_from_db->{user_id};
+is_deeply($new_user, $new_user_from_db, 'addUser: global user added.');
 
 # Update the user.
 $new_user->{email} = 'maggie@juno.com';
-$t->put_ok('/webwork3/api/users/' . $new_user->{user_id} => json => $new_user)->status_is(200);
+$t->put_ok("/webwork3/api/users/$new_user->{user_id}" => json => $new_user)->status_is(200);
 is_deeply($new_user, $t->tx->res->json, 'updateUser: global user updated');
 
 # Add the user to the course.
@@ -127,7 +130,7 @@ $t->post_ok(
 my $another_new_user_id = $t->tx->res->json('/user_id');
 
 # Delete the added users.
-$t->delete_ok("/webwork3/api/users/$new_user->{user_id}")->status_is(200)
+$t->delete_ok("/webwork3/api/users/$new_user_from_db->{user_id}")->status_is(200)
 	->json_is('/username' => $new_user->{username});
 
 $t->delete_ok("/webwork3/api/users/$another_new_user_id")->status_is(200)
@@ -155,6 +158,29 @@ $t->put_ok('/webwork3/api/users/1' => json => { email => 'lisa@aol.com' })->stat
 
 $t->delete_ok('/webwork3/api/users/1')->content_type_is('application/json;charset=UTF-8')->status_is(403)
 	->json_is('/has_permission' => 0);
+
+# Testing that booleans returned from the server are JSON booleans.
+# the first user is the admin
+
+# to check this, relogin as admin
+$t->post_ok('/webwork3/api/logout')->status_is(200);
+$t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200);
+
+$t->get_ok('/webwork3/api/users/1')->json_is('/username', 'admin');
+my $admin_user = $t->tx->res->json;
+
+ok($admin_user->{is_admin}, 'testing that is_admin compares to 1.');
+is($admin_user->{is_admin}, true, 'testing that is_admin compares to true');
+ok(JSON::PP::is_bool($admin_user->{is_admin}),                            'testing that is_admin is a true or false');
+ok(JSON::PP::is_bool($admin_user->{is_admin}) && $admin_user->{is_admin}, 'testing that is_admin is a true');
+
+ok(not(JSON::PP::is_bool($admin_user->{user_id})), 'testing that $admin->{user_id} is not a JSON boolean');
+
+ok(!$new_user_from_db->{is_admin}, 'testing new_user->{is_admin} is not truthy.');
+is($new_user_from_db->{is_admin}, false, 'testing that new_user->{is_admin} compares to false');
+ok(JSON::PP::is_bool($new_user_from_db->{is_admin}), 'testing that new_user->{is_admin} is a true or false');
+ok(JSON::PP::is_bool($new_user_from_db->{is_admin}) && !$new_user_from_db->{is_admin},
+	'testing that new_user->{is_admin} is a false');
 
 # The following routes test that global users can be handled by an instructor in the course
 # Lisa is an instructor in the Arithmetic course (course_id => 4)

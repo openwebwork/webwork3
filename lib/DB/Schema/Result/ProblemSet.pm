@@ -4,6 +4,7 @@ use warnings;
 use feature 'signatures';
 no warnings qw(experimental::signatures);
 
+use Mojo::JSON qw/true false/;
 use base qw(DBIx::Class::Core);
 
 =head1 DESCRIPTION
@@ -98,14 +99,14 @@ __PACKAGE__->add_columns(
 		size          => 8
 	},
 	set_visible => {
-		data_type     => 'boolean',
-		default_value => 1,
-		is_nullable   => 0
+		data_type          => 'boolean',
+		default_value      => 0,
+		is_nullable        => 0,
+		retrieve_on_insert => 1
 	},
 	# Store dates as a JSON object.
 	set_dates => {
 		data_type          => 'text',
-		size               => 256,
 		is_nullable        => 0,
 		default_value      => '{}',
 		serializer_class   => 'JSON',
@@ -114,11 +115,18 @@ __PACKAGE__->add_columns(
 	# Store params as a JSON object.
 	set_params => {
 		data_type          => 'text',
-		size               => 256,
 		is_nullable        => 0,
 		default_value      => '{}',
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
+	}
+);
+
+__PACKAGE__->inflate_column(
+	'set_visible',
+	{
+		inflate => sub { return shift ? true : false; },
+		deflate => sub { return shift; }
 	}
 );
 

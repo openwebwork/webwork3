@@ -125,7 +125,7 @@ sub addGlobalUser ($self, %args) {
 
 	my $new_user = $self->create($params);
 	return $new_user if $args{as_result_set};
-	return removeLoginParams({ $new_user->get_columns });
+	return removeLoginParams({ $new_user->get_inflated_columns });
 }
 
 =head1 deleteGlobalUser
@@ -406,7 +406,6 @@ An hashref of the user or merged user or a C<DB::Schema::ResultSet::CourseUser>
 =cut
 
 sub addCourseUser ($self, %args) {
-
 	my $course_user = $self->getCourseUser(info => $args{info}, as_result_set => 1, skip_throw => 1);
 	DB::Exception::UserAlreadyInCourse->throw(
 		message => "The user with $args{info}->{username}" ? "username: $args{info}->{username}"

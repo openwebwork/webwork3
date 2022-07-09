@@ -27,6 +27,8 @@ sub valid_dates ($=) {
 	return [ 'open', 'due', 'answer' ];
 }
 
+sub optional_fields_in_dates ($=) { return {}; }
+
 =head2 C<required_dates>
 
 subroutine that returns the array for the required dates: C<['open', 'due' ,'answer']>
@@ -124,11 +126,11 @@ C<relax_restrict_ip>: string
 
 sub valid_params ($=) {
 	return {
-		timed                 => q{^[01]$},
+		timed                 => 'bool',
 		quiz_duration         => q{\d+},
 		set_header            => q{\w+},
 		hardcopy_header       => q{\w+},
-		problem_randorder     => q{^[01]$},
+		problem_randorder     => 'bool',
 		problems_per_page     => q{\d+},
 		hide_score            => q{\w+},
 		hide_score_by_problem => q{\w+},

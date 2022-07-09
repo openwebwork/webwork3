@@ -33,28 +33,55 @@ my $course_rs      = $schema->resultset('Course');
 my $user_rs        = $schema->resultset('User');
 my $user_set_rs    = $schema->resultset('UserSet');
 
-# Load info from CSV files
-my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
+# Load HW sets from CSV file
+my @hw_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/hw_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => [ 'enable_reduced_scoring', 'hide_hint' ]
+	}
+);
 for my $hw_set (@hw_sets) {
-	$hw_set->{set_type}    = 'HW';
-	$hw_set->{set_version} = 1 unless defined($hw_set->{set_version});
+	$hw_set->{set_type}   = 'HW';
+	$hw_set->{set_params} = {} unless defined $hw_set->{set_params};
+
 }
 
-my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
-for my $set (@quizzes) {
-	$set->{set_type}    = 'QUIZ';
-	$set->{set_version} = 1 unless defined($set->{set_version});
+my @quizzes = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/quizzes.csv",
+	{
+		boolean_fields           => ['set_visible'],
+		param_boolean_fields     => ['timed'],
+		param_non_neg_int_fields => ['quiz_duration']
+	}
+);
+for my $quiz (@quizzes) {
+	$quiz->{set_type}   = "QUIZ";
+	$quiz->{set_params} = {} unless defined($quiz->{set_params});
 }
 
-my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv");
+my @review_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/review_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => ['can_retake']
+	}
+);
 for my $set (@review_sets) {
-	$set->{set_type}    = 'REVIEW';
-	$set->{set_version} = 1 unless defined($set->{set_version});
+	$set->{set_type}   = 'REVIEW';
+	$set->{set_params} = {} unless defined $set->{set_params};
+
 }
 
 my @all_problem_sets = (@hw_sets, @quizzes, @review_sets);
 
-my @all_user_sets = loadCSV("$main::ww3_dir/t/db/sample_data/user_sets.csv");
+my @all_user_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/user_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => [ 'enable_reduced_scoring', 'hide_hint' ]
+	}
+);
 
 for my $set (@all_user_sets) {
 	$set->{set_version} = 1 unless defined($set->{set_version});
@@ -63,7 +90,8 @@ for my $set (@all_user_sets) {
 		$_->{course_name} eq $set->{course_name} && $_->{set_name} eq $set->{set_name}
 	}
 	@all_problem_sets;
-	$set->{set_type} = $s->{set_type};
+	$set->{set_type}   = $s->{set_type};
+	$set->{set_params} = {} unless defined $set->{set_params};
 }
 
 my @merged_user_sets = @{ clone(\@all_user_sets) };
@@ -118,7 +146,7 @@ my $user_set1_from_csv = firstval {
 
 # Make a new user set that has a  set_version of 2
 
-is_deeply($user_set1_from_csv, $user_set1, "getUserSet: get a single user set from a course.");
+is_deeply($user_set1_from_csv, $user_set1, 'getUserSet: get a single user set from a course.');
 
 my $user_set1_v2_params = clone $user_set1;
 $user_set1_v2_params->{set_version} = 2;
@@ -147,7 +175,7 @@ for my $user_set (@all_user_set_versions) {
 is_deeply(
 	\@all_user_set_versions,
 	[ $user_set1, $user_set1_v2, $user_set1_v3 ],
-	"getUserSetVersions: get all versions of a user set."
+	'getUserSetVersions: get all versions of a user set.'
 );
 
 # clean up the created versioned user sets.

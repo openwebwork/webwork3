@@ -28,8 +28,8 @@ $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-my $problem_rs      = $schema->resultset("SetProblem");
-my $user_problem_rs = $schema->resultset("UserProblem");
+my $problem_rs      = $schema->resultset('SetProblem');
+my $user_problem_rs = $schema->resultset('UserProblem');
 
 # Load problems and user problems from the CSV files.
 my @user_problems_from_csv = loadCSV("$main::ww3_dir/t/db/sample_data/user_problems.csv");
@@ -88,7 +88,7 @@ my $user_problem1_from_csv = clone firstval {
 }
 @user_problems_from_csv;
 
-is_deeply($user_problem1_from_csv, $user_problem1, "getUserProblem: get a single user problem from a course.");
+is_deeply($user_problem1_from_csv, $user_problem1, 'getUserProblem: get a single user problem from a course.');
 
 # Make a new user problem that has a problem_version of 2
 

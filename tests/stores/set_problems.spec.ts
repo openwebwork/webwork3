@@ -26,7 +26,6 @@ import { UserProblem, ParseableSetProblem, parseProblem, SetProblem, SetProblemP
 import { DBUserHomeworkSet, mergeUserSet, UserSet } from 'src/common/models/user_sets';
 import { Dictionary, generic } from 'src/common/models';
 
-import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 import { loadCSV, cleanIDs } from '../utils';
 
 const app = createApp({});
@@ -49,40 +48,32 @@ describe('Problem Set store tests', () => {
 
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
-			boolean_fields: ['set_visible']
+			boolean_fields: ['set_visible'],
+			param_boolean_fields: ['timed', 'enable_reduced_scoring', 'can_retake'],
+			param_non_neg_int_fields: ['quiz_duration']
 		};
 
 		const hw_sets_to_parse = await loadCSV('t/db/sample_data/hw_sets.csv', problem_set_config);
-		// Do some parsing cleanup.
 		const hw_sets_from_csv = hw_sets_to_parse.filter(set => set.course_name === 'Precalculus')
 			.map(set => new HomeworkSet(set));
-		hw_sets_from_csv.forEach(set => {
-			set.set_params.enable_reduced_scoring = parseBoolean(set.set_params.enable_reduced_scoring);
-		});
 
 		const quizzes_to_parse = await loadCSV('t/db/sample_data/quizzes.csv', problem_set_config);
 		const quizzes_from_csv = quizzes_to_parse.filter(set => set.course_name === 'Precalculus')
 			.map(q => new Quiz(q));
-		// Do some parsing cleanup.
-		quizzes_from_csv.forEach(q => {
-			q.set_params.timed = parseBoolean(q.set_params.timed);
-			q.set_params.quiz_duration = parseNonNegInt(q.set_params.quiz_duration);
-		});
 
 		const review_sets_to_parse = await loadCSV('t/db/sample_data/review_sets.csv', problem_set_config);
 		const review_sets_from_csv = review_sets_to_parse.filter(set => set.course_name === 'Precalculus')
 			.map(set => new ReviewSet(set));
-		// Do some parsing cleanup.
-		review_sets_from_csv.forEach(set => {
-			set.set_params.test_param = parseBoolean(set.set_params.test_param);
-		});
+
 		// combine quizzes, review sets and homework sets
 		const problem_sets_from_csv = [...hw_sets_from_csv, ...quizzes_from_csv, ...review_sets_from_csv];
 
 		// Load all problems from CSV files
 		const problems_to_parse = await loadCSV('t/db/sample_data/problems.csv', {
 			params: ['problem_params'],
-			non_neg_fields: ['problem_number']
+			non_neg_int_fields: ['problem_number'],
+			param_non_neg_float_fields: ['weight'],
+			param_non_neg_int_fields: ['library_id', 'problem_pool_id']
 		});
 
 		// Filter only Precalc problems and remove any undefined library_ids
@@ -92,14 +83,15 @@ describe('Problem Set store tests', () => {
 		// Load the User Problem information from the csv file:
 		const user_problems_from_csv = await loadCSV('t/db/sample_data/user_problems.csv', {
 			params: [],
-			non_neg_fields: ['problem_number', 'seed']
+			non_neg_int_fields: ['problem_number', 'seed'],
+			non_neg_float_fields: ['status']
 		});
 
 		// load all user problems in Precalc from CSV files and merge them with set problems.
 		// Load the users from the csv file.
 		const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
 			boolean_fields: ['is_admin'],
-			non_neg_fields: ['user_id']
+			non_neg_int_fields: ['user_id']
 		});
 
 		precalc_merged_problems = user_problems_from_csv
@@ -168,6 +160,7 @@ describe('Problem Set store tests', () => {
 				})
 			});
 			const library_problem = new LibraryProblem({ location_params: { file_path: 'path/to/the/problem.pg' } });
+			expect(library_problem.isValid()).toBe(true);
 			added_set_problem = await set_problem_store.addSetProblem(library_problem, hw1?.set_id ?? 0);
 
 			expect(cleanIDs(added_set_problem)).toStrictEqual(cleanIDs(new_set_problem));
@@ -192,16 +185,50 @@ describe('Problem Set store tests', () => {
 		});
 	});
 
+	describe('Test that invalid set problems are handled correctly', () => {
+		test('Try to add an invalid set problem', async () => {
+			const problem_set_store = useProblemSetStore();
+			const set_problem_store = useSetProblemStore();
+
+			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
+
+			// This user has an invalid username
+			const library_problem = new LibraryProblem({
+			});
+			expect(library_problem.isValid()).toBe(false);
+			await expect(async () => { await set_problem_store.addSetProblem(library_problem, hw1?.set_id ?? 0); })
+				.rejects.toThrow('The added problem is invalid');
+		});
+
+		test('Try to update an invalid set problem', async () => {
+			const set_problem_store = useSetProblemStore();
+
+			const prob1 = set_problem_store.findSetProblems({ set_name: 'HW #1' })[0].clone();
+
+			if (prob1) {
+				prob1.problem_number = -8;
+				expect(prob1.isValid()).toBe(false);
+				await expect(async () => { await set_problem_store.updateSetProblem(prob1); })
+					.rejects.toThrow('The updated set problem is invalid');
+			} else {
+				throw 'This should not have be thrown.  The set problem is not defined.';
+			}
+		});
+	});
+
 	describe('Fetch user problems', () => {
 		test('Fetch all User Problems for a set in a course', async () => {
 			const user_store = useUserStore();
 			await user_store.fetchGlobalCourseUsers(precalc_course.course_id);
 			await user_store.fetchCourseUsers(precalc_course.course_id);
+
 			const problem_set_store = useProblemSetStore();
 			await problem_set_store.fetchProblemSets(precalc_course.course_id);
 			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' }) ?? new ProblemSet();
+
 			const set_problems_store = useSetProblemStore();
 			await set_problems_store.fetchUserProblems(hw1.set_id);
+
 			const hw1_user_problems = set_problems_store.findUserProblems({ set_name: 'HW #1' });
 			expect(cleanIDs(precalc_hw1_user_problems)).toStrictEqual(cleanIDs(hw1_user_problems));
 		});

@@ -155,7 +155,7 @@ __PACKAGE__->typecast_map(
 	}
 );
 
-my $set_type = {
+our $set_type = {
 	1 => 'DB::Schema::Result::UserSet::HWSet',
 	2 => 'DB::Schema::Result::UserSet::Quiz',
 	3 => 'DB::Schema::Result::UserSet::JITAR',

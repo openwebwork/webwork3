@@ -48,11 +48,14 @@ $t->post_ok('/webwork3/api/courses' => json => $new_course)->status_is(200)
 
 # Extract the id from the response.
 my $new_course_id = $t->tx->res->json('/course_id');
+
 $new_course->{course_id} = $new_course_id;
-is_deeply($new_course, $t->tx->res->json, 'addCourse: courses match');
+# The default for visible is true:
+$new_course->{visible} = true;
+is_deeply($new_course, $t->tx->res->json, "addCourse: courses match");
 
 # Update the course
-$new_course->{visible} = 0;
+$new_course->{visible} = true;
 $t->put_ok("/webwork3/api/courses/$new_course_id" => json => $new_course)->status_is(200)
 	->json_is('/course_name' => $new_course->{course_name});
 
@@ -108,5 +111,22 @@ $t->put_ok('/webwork3/api/courses/4' => json => { course_name => 'XXX' })->statu
 	->json_is('/has_permission' => false);
 
 $t->delete_ok('/webwork3/api/courses/4')->status_is(403)->json_is('/has_permission' => false);
+
+# Testing that booleans returned from the server are JSON booleans.
+# getting the first course
+
+# to check this, relogin as admin
+$t->post_ok('/webwork3/api/logout')->status_is(200);
+$t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200);
+
+$t->get_ok('/webwork3/api/courses/1')->json_is('/course_name', 'Precalculus');
+my $precalc = $t->tx->res->json;
+
+ok($precalc->{visible}, 'Testing that visible field is truthy.');
+is($precalc->{visible}, true, 'Testing that the visible field compares to JSON::true');
+ok(JSON::PP::is_bool($precalc->{visible}),                        'Testing that the visible field is a JSON boolean');
+ok(JSON::PP::is_bool($precalc->{visible}) && $precalc->{visible}, 'testing that the visible field is a JSON::true');
+
+ok(not(JSON::PP::is_bool($precalc->{course_id})), 'testing that $precalc->{visible} is not a JSON boolean');
 
 done_testing;

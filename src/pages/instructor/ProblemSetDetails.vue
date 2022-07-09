@@ -52,7 +52,7 @@ import { ProblemSet, ProblemSetType, convertSet, HomeworkSet, ReviewSet, Quiz
 import HomeworkSetView from 'src/components/instructor/SetDetails/HomeworkSet.vue';
 import QuizView from 'src/components/instructor/SetDetails/Quiz.vue';
 import ReviewSetView from 'src/components/instructor/SetDetails/ReviewSet.vue';
-import { ResponseError } from 'src/common/api-requests/interfaces';
+import { ResponseError } from 'src/common/api-requests/errors';
 
 export default defineComponent({
 	name: 'ProblemSetDetails',

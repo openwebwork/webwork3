@@ -26,6 +26,8 @@ sub valid_dates ($=) {
 	return [ 'open', 'closed' ];
 }
 
+sub optional_fields_in_dates ($=) { return {}; }
+
 =head2 C<required_dates>
 
 subroutine that returns the array for the required dates: C<['open', 'closed']>
@@ -43,7 +45,7 @@ subroutine that returns the hashref for the valid parameters:  (currently empty)
 =cut
 
 sub valid_params ($=) {
-	return { test_param => qr/[01]/ };
+	return { can_retake => 'bool' };
 }
 
 =head2 C<required_params>

@@ -17,9 +17,8 @@ describe('Testing db user Review Sets and User Review Sets', () => {
 			set_id: 0,
 			course_user_id: 0,
 			set_version: 1,
-			set_visible: false,
 			set_type: 'REVIEW',
-			set_params: { test_param: false },
+			set_params: {},
 			set_dates: {}
 		};
 
@@ -66,10 +65,10 @@ describe('Testing db user Review Sets and User Review Sets', () => {
 				closed: 800
 			});
 
-			expect(user_quiz.hasValidDates()).toBeTruthy();
+			expect(user_quiz.set_dates.isValid()).toBeTruthy();
 
 			user_quiz.set_dates.open = 1000;
-			expect(user_quiz.hasValidDates()).toBeFalsy();
+			expect(user_quiz.set_dates.isValid()).toBeFalsy();
 
 		});
 
@@ -89,7 +88,7 @@ describe('Testing db user Review Sets and User Review Sets', () => {
 					set_name: '',
 					username: '',
 					set_type: 'REVIEW',
-					set_params: { test_param: false },
+					set_params: {},
 					set_dates: { open: 0, closed: 0 }
 				};
 				expect(user_review_set.toObject()).toStrictEqual(defaults);
@@ -112,10 +111,10 @@ describe('Testing db user Review Sets and User Review Sets', () => {
 					closed: 800
 				});
 
-				expect(user_quiz.hasValidDates()).toBeTruthy();
+				expect(user_quiz.set_dates.isValid()).toBeTruthy();
 
 				user_quiz.set_dates.open = 1000;
-				expect(user_quiz.hasValidDates()).toBeFalsy();
+				expect(user_quiz.set_dates.isValid()).toBeFalsy();
 
 			});
 		});

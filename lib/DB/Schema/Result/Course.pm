@@ -3,6 +3,8 @@ use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
 
+use Mojo::JSON qw/true false/;
+
 =head1 DESCRIPTION
 
 This is the database schema for a Course.
@@ -49,21 +51,28 @@ __PACKAGE__->add_columns(
 	},
 	course_name => {
 		data_type   => 'text',
-		size        => 256,
 		is_nullable => 0,
 	},
 	course_dates => {
 		data_type          => 'text',
-		size               => 256,
 		is_nullable        => 0,
-		default_value      => "{}",
+		default_value      => '{}',
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
 	visible => {
-		data_type     => 'boolean',
-		is_nullable   => 0,
-		default_value => 1,
+		data_type          => 'boolean',
+		is_nullable        => 0,
+		default_value      => 1,
+		retrieve_on_insert => 1
+	}
+);
+
+__PACKAGE__->inflate_column(
+	'visible',
+	{
+		inflate => sub { return shift ? true : false; },
+		deflate => sub { return shift; }
 	}
 );
 

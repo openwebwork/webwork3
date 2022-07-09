@@ -75,7 +75,7 @@ __PACKAGE__->add_columns(
 		data_type          => 'text',
 		size               => 256,
 		is_nullable        => 0,
-		default_value      => "{}",
+		default_value      => '{}',
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
@@ -83,7 +83,7 @@ __PACKAGE__->add_columns(
 		data_type          => 'text',
 		size               => 256,
 		is_nullable        => 0,
-		default_value      => "{}",
+		default_value      => '{}',
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
@@ -91,7 +91,7 @@ __PACKAGE__->add_columns(
 		data_type          => 'text',
 		size               => 256,
 		is_nullable        => 0,
-		default_value      => "{}",
+		default_value      => '{}',
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
@@ -99,7 +99,7 @@ __PACKAGE__->add_columns(
 		data_type          => 'text',
 		size               => 256,
 		is_nullable        => 0,
-		default_value      => "{}",
+		default_value      => '{}',
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
@@ -107,7 +107,7 @@ __PACKAGE__->add_columns(
 		data_type          => 'text',
 		size               => 256,
 		is_nullable        => 0,
-		default_value      => "{}",
+		default_value      => '{}',
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
@@ -115,7 +115,7 @@ __PACKAGE__->add_columns(
 		data_type          => 'text',
 		size               => 256,
 		is_nullable        => 0,
-		default_value      => "{}",
+		default_value      => '{}',
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}

@@ -4,8 +4,8 @@ import { defineStore } from 'pinia';
 import { logger } from 'boot/logger';
 import { DBCourseUser, ParseableCourseUser, ParseableDBCourseUser, ParseableUser } from 'src/common/models/users';
 import { User, CourseUser } from 'src/common/models/users';
-import type { ResponseError } from 'src/common/api-requests/interfaces';
-import { UserRole } from 'src/stores/permissions';
+import { invalidError, ResponseError } from 'src/common/api-requests/errors';
+import { UserRole } from 'src/common/models/parsers';
 import { useSessionStore } from './session';
 
 export interface UserState {
@@ -88,7 +88,6 @@ export const useUserStore = defineStore('user', {
 		 * Fetch all global users in all courses and store the results.
 		 */
 		async fetchUsers(): Promise<void> {
-			logger.debug('[UserStore/fetchUsers] fetching users...');
 			const response = await api.get('users');
 			if (response.status === 200) {
 				const users_to_parse = response.data as Array<User>;
@@ -202,6 +201,10 @@ export const useUserStore = defineStore('user', {
 		 * Adds the given Course User to the store and the database.
 		 */
 		async addCourseUser(course_user: CourseUser): Promise<CourseUser> {
+			if (!course_user.isValid()) {
+				return invalidError(course_user, 'The added course user is invalid');
+			}
+
 			// When sending, only send the DBCourseUser fields.
 			const response = await api.post(`courses/${course_user.course_id}/users`,
 				course_user.toObject(DBCourseUser.ALL_FIELDS));
@@ -220,6 +223,10 @@ export const useUserStore = defineStore('user', {
 		 * Updates the given Course User to the store and the database.
 		 */
 		async updateCourseUser(course_user: CourseUser): Promise<CourseUser | undefined> {
+			if (!course_user.isValid()) {
+				return invalidError(course_user, 'The updated course user is invalid');
+			}
+
 			const url = `courses/${course_user.course_id || 0}/users/${course_user.user_id ?? 0}`;
 			// When sending, only send the DBCourseUser fields.
 			const response = await api.put(url, course_user.toObject(DBCourseUser.ALL_FIELDS));

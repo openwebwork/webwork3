@@ -11,14 +11,17 @@
 import { createApp } from 'vue';
 import { setActivePinia, createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
-import { api } from 'src/boot/axios';
+import { api } from 'boot/axios';
 
-import { useSessionStore } from 'src/stores/session';
 import { getUser } from 'src/common/api-requests/user';
+import { useSessionStore } from 'src/stores/session';
+import { checkPassword } from 'src/common/api-requests/session';
+import { UserRole } from 'src/common/models/parsers';
+import { loadCSV, cleanIDs } from '../utils';
 
-import { UserCourse, Course } from 'src/common/models/courses';
-import { User } from 'src/common/models/users';
+import { Course, UserCourse } from 'src/common/models/courses';
 import { SessionInfo } from 'src/common/models/session';
+import { User } from 'src/common/models/users';
 
 import { cleanIDs, loadCSV } from '../utils';
 
@@ -59,7 +62,7 @@ describe('Session Store', () => {
 		// Load the user course information for testing later.
 		const parsed_courses = await loadCSV('t/db/sample_data/courses.csv', {
 			boolean_fields: ['visible'],
-			non_neg_fields: ['course_id'],
+			non_neg_int_fields: ['course_id'],
 			params: ['course_dates', 'course_params']
 		});
 
@@ -70,7 +73,7 @@ describe('Session Store', () => {
 
 		const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
 			boolean_fields: ['is_admin'],
-			non_neg_fields: ['user_id']
+			non_neg_int_fields: ['user_id']
 		});
 
 		// Fetch the user lisa.  This is used below.
@@ -104,6 +107,22 @@ describe('Session Store', () => {
 			});
 		});
 
+		test('Login as a user', async () => {
+		// test logging in as lisa gives the proper courses.
+			const session_info = await checkPassword({
+				username: 'lisa', password: 'lisa'
+			});
+			expect(session_info.logged_in).toBe(true);
+			expect(session_info.user).toStrictEqual(lisa.toObject());
+
+		});
+
+		test('check user courses', async () => {
+			const session_store = useSessionStore();
+			await session_store.fetchUserCourses(lisa.user_id);
+			expect(cleanIDs(session_store.user_courses)).toStrictEqual(cleanIDs(lisa_courses));
+		});
+
 		test('update the session', () => {
 			const session = useSessionStore();
 			session.updateSessionInfo(session_info);
@@ -131,12 +150,5 @@ describe('Session Store', () => {
 			expect(session.user).toStrictEqual(logged_out);
 
 		});
-
-		test('check user courses', async () => {
-			const session_store = useSessionStore();
-			await session_store.fetchUserCourses(lisa.user_id);
-			expect(cleanIDs(session_store.user_courses)).toStrictEqual(cleanIDs(lisa_courses));
-		});
 	});
-
 });

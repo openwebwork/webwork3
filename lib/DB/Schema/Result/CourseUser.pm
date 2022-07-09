@@ -88,19 +88,6 @@ __PACKAGE__->table('course_user');
 
 __PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
 
-our $VALID_PARAMS = {
-	comment        => q{.*},
-	useMathQuill   => q{[01]},
-	useMathView    => q{[01]},
-	displayMode    => q{\w+},
-	status         => q{\w},
-	lis_source_did => q{\w*},
-	useWirisEditor => q{[01]},
-	showOldAnswers => q{[01]}
-};
-
-our $REQUIRED_PARAMS = {};
-
 __PACKAGE__->add_columns(
 	course_user_id => {
 		data_type         => 'integer',
@@ -148,13 +135,11 @@ __PACKAGE__->add_columns(
 sub valid_params {
 	return {
 		comment        => q{.*},
-		useMathQuill   => q{[01]},
-		useMathView    => q{[01]},
+		useMathQuill   => 'bool',
 		displayMode    => q{.*},
 		status         => q{[A-Z]},
 		lis_source_did => q{.*},
-		useWirisEditor => q{[01]},
-		showOldAnswers => q{[01]}
+		showOldAnswers => 'bool'
 	};
 }
 
