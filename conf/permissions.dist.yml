@@ -85,7 +85,7 @@ db_permissions:
       allowed_roles: ['course_admin', 'instructor']
   ProblemSet:
     getProblemSets:
-      allowed_roles: ['course_admin', 'instructor']
+      allowed_roles: ['course_admin', 'instructor', 'student']
     getProblemSet:
       allowed_roles: ['course_admin', 'instructor']
     addProblemSet:
@@ -106,7 +106,7 @@ db_permissions:
       allowed_roles: ['course_admin', 'instructor']
   Problem:
     getAllProblems:
-      allowed_roles: ['course_admin', 'instructor']
+      allowed_roles: ['course_admin', 'instructor', 'student']
     addProblem:
       allowed_roles: ['course_admin', 'instructor']
     updateProblem:

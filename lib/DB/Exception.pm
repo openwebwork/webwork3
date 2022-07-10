@@ -115,7 +115,7 @@ DB::Exception::UndefinedCourseField->Trace(1);
 DB::Exception::InvalidCourseField->Trace(1);
 DB::Exception::UserSetNotInCourse->Trace(1);
 DB::Exception::SetNotInCourse->Trace(1);
-# DB::Exception::UserNotInCourse->Trace(1);
+DB::Exception::UserNotInCourse->Trace(1);
 DB::Exception::UserNotFound->Trace(1);
 DB::Exception::CourseAlreadyExists->Trace(1);
 DB::Exception::InvalidParameter->Trace(1);

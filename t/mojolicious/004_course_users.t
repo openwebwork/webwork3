@@ -123,7 +123,6 @@ $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => '
 
 # Lisa has instructor access in the Arithmetic Course (course_id => 4)
 $t->get_ok('/webwork3/api/courses/4/users')->status_is(200)->content_type_is('application/json;charset=UTF-8');
-use Data::Dumper;
 
 my $course4_users = $t->tx->res->json;
 # get the user_id of a student

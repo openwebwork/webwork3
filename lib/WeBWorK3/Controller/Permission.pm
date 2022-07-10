@@ -63,14 +63,15 @@ sub checkPermission ($c) {
 		$msg       = 'This route requires admin privileges.';
 	} elsif (!$course_id && $perm_db->allow_self_access && defined($c->param('user_id'))) {
 		# Some routes allow self access, but the course_id is not defined.
-		return $user->{user_id} == $c->param('user_id');
+		$permitted = $user->{user_id} == $c->param('user_id');
 	} elsif ($course_id) {
 		my $course_user = $c->schema->resultset('User')->getCourseUser(
 			info => {
 				user_id   => $user->{user_id},
 				course_id => $course_id
 			},
-			merged => 1
+			merged => 1,
+			skip_throw => 1
 		);
 
 		if (!$course_user) {
@@ -78,7 +79,7 @@ sub checkPermission ($c) {
 			$msg       = 'The user does not belong to the course.';
 		} else {
 			my $user_role_id = $course_user->{role_id};
-			if (!$user_role_id) {
+			if (! defined($user_role_id)) {
 				$permitted = undef;
 				$msg       = 'The user does not have a role in the course.';
 			} else {
