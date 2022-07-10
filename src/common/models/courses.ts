@@ -1,5 +1,6 @@
 import { RequiredFieldsException, Model, Dictionary, generic  } from 'src/common/models';
-import { isNonNegInt, isValidUsername, UserRole, parseUserRole } from './parsers';
+import { UserRole } from 'src/stores/permissions';
+import { isNonNegInt, isValidUsername } from './parsers';
 
 export interface ParseableCourse {
 	course_id?: number;
@@ -119,7 +120,7 @@ export class UserCourse extends Model {
 	private _course_name = '';
 	private _username = '';
 	private _visible = true;
-	private _role = '';
+	private _role = 'UNKNOWN';
 	private course_dates = new CourseDates();
 
 	static ALL_FIELDS = ['course_id', 'course_name', 'visible', 'course_dates',
@@ -175,6 +176,6 @@ export class UserCourse extends Model {
 
 	isValid(): boolean {
 		return isNonNegInt(this.course_id) && isNonNegInt(this.user_id) && isValidUsername(this.username)
-			&& this.role !== UserRole.unknown && this.course_name.length > 0 && this.course_dates.isValid();
+			&& this.role !== 'UNKNOWN' && this.course_name.length > 0 && this.course_dates.isValid();
 	}
 }

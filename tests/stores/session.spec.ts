@@ -16,8 +16,6 @@ import { api } from 'boot/axios';
 import { getUser } from 'src/common/api-requests/user';
 import { useSessionStore } from 'src/stores/session';
 import { checkPassword } from 'src/common/api-requests/session';
-import { UserRole } from 'src/common/models/parsers';
-import { loadCSV, cleanIDs } from '../utils';
 
 import { Course, UserCourse } from 'src/common/models/courses';
 import { SessionInfo } from 'src/common/models/session';

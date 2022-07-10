@@ -67,7 +67,7 @@ sub startup ($app) {
 	my $global_routes =
 		$app->routes->under('webwork3/api')->requires(authenticated => 1)->to('Permission#checkPermission');
 	coursesRoutes($global_routes);
-	userRoutes($global_routes);
+	userRoutes($authen_routes, $global_routes);
 
 	# The following courses are within courses, so we need more substantial checking
 	my $course_routes = $app->routes->under('/webwork3/api/courses/:course_id')->requires(authenticated => 1)
@@ -117,13 +117,14 @@ sub coursesRoutes ($global_routes) {
 	return;
 }
 
-sub userRoutes ($global_routes) {
+sub userRoutes ($authen_routes, $global_routes) {
 	$global_routes->get('/users')->to('User#getGlobalUsers');
 	$global_routes->post('/users')->to('User#addGlobalUser');
 	$global_routes->get('/users/:user_id')->to('User#getGlobalUser');
 	$global_routes->put('/users/:user_id')->to('User#updateGlobalUser');
 	$global_routes->delete('/users/:user_id')->to('User#deleteGlobalUser');
-	$global_routes->get('/users/:user_id/courses')->to('User#getUserCourses');
+	$authen_routes->under('/users/:user_id')->to('Permission#checkPermission')->get('/courses')
+		->to('User#getUserCourses');
 	return;
 }
 
@@ -159,10 +160,10 @@ sub problemSetRoutes ($app, $course_routes) {
 
 	# CRUD for User Sets
 	$course_routes->get('/user-sets')->to('ProblemSet#getAllUserSets');
-	$course_routes->get('/:set_id/users')->to('ProblemSet#getUserSets');
-	$course_routes->post('/:set_id/users')->to('ProblemSet#addUserSet');
-	$course_routes->put('/:set_id/users/:course_user_id')->to('ProblemSet#updateUserSet');
-	$course_routes->delete('/:set_id/users/:course_user_id')->to('ProblemSet#deleteUserSet');
+	$course_routes->get('/sets/:set_id/users')->to('ProblemSet#getUserSets');
+	$course_routes->post('/sets/:set_id/users')->to('ProblemSet#addUserSet');
+	$course_routes->put('/sets/:set_id/users/:course_user_id')->to('ProblemSet#updateUserSet');
+	$course_routes->delete('/sets/:set_id/users/:course_user_id')->to('ProblemSet#deleteUserSet');
 
 	$course_routes->get('/users/:user_id/sets')->to('ProblemSet#getUserSets');
 	return;
@@ -170,16 +171,16 @@ sub problemSetRoutes ($app, $course_routes) {
 
 sub problemRoutes ($app, $course_routes) {
 	$course_routes->get('/problems')->to('Problem#getAllProblems');
-	$course_routes->post('/sets/:set_id/problems')->to('ProblemaddProblem');
-	$course_routes->put('/sets/:set_id/problems/:set_problem_id')->to('ProblemupdateProblem');
-	$course_routes->delete('/sets/:set_id/problems/:set_problem_id')->to('ProblemdeleteProblem');
+	$course_routes->post('/sets/:set_id/problems')->to('Problem#addProblem');
+	$course_routes->put('/sets/:set_id/problems/:set_problem_id')->to('Problem#updateProblem');
+	$course_routes->delete('/sets/:set_id/problems/:set_problem_id')->to('Problem#deleteProblem');
 
 	# UserProblem routes
-	$course_routes->get('/sets/:set_id/user-problems')->to('ProblemgetUserProblemsForSet');
-	$course_routes->get('/users/:user_id/problems')->to('ProblemgetUserProblemsForUser');
-	$course_routes->post('/sets/:set_id/users/:user_id/problems')->to('ProblemaddUserProblem');
-	$course_routes->put('/sets/:set_id/users/:user_id/problems/:user_problem_id')->to('ProblemupdateUserProblem');
-	$course_routes->delete('/sets/:set_id/users/:user_id/problems/:user_problem_id')->to('ProblemdeleteUserProblem');
+	$course_routes->get('/sets/:set_id/user-problems')->to('Problem#getUserProblemsForSet');
+	$course_routes->get('/users/:user_id/problems')->to('Problem#getUserProblemsForUser');
+	$course_routes->post('/sets/:set_id/users/:user_id/problems')->to('Problem#addUserProblem');
+	$course_routes->put('/sets/:set_id/users/:user_id/problems/:user_problem_id')->to('Problem#updateUserProblem');
+	$course_routes->delete('/sets/:set_id/users/:user_id/problems/:user_problem_id')->to('Problem#deleteUserProblem');
 
 	return;
 }

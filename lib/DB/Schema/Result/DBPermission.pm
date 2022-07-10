@@ -57,6 +57,11 @@ __PACKAGE__->add_columns(
 		data_type   => 'boolean',
 		size        => 8,
 		is_nullable => 1
+	},
+	allow_self_access => {
+		data_type   => 'boolean',
+		size        => 8,
+		is_nullable => 1
 	}
 );
 
@@ -70,6 +75,14 @@ __PACKAGE__->inflate_column(
 
 __PACKAGE__->inflate_column(
 	'authenticated',
+	{
+		inflate => sub { return shift ? Mojo::JSON->true : Mojo::JSON->false; },
+		deflate => sub { return shift; }
+	}
+);
+
+__PACKAGE__->inflate_column(
+	'allow_self_access',
 	{
 		inflate => sub { return shift ? Mojo::JSON->true : Mojo::JSON->false; },
 		deflate => sub { return shift; }

@@ -56,8 +56,7 @@ export const useSessionStore = defineStore('session', {
 		},
 		setCourse(course: CourseInfo): void {
 			this.course = course;
-			this.course.role = this.user_courses.find((c) => c.course_id === course.course_id)?.role
-				|| '';
+			this.course.role = this.user_courses.find((c) => c.course_id === course.course_id)?.role || '';
 		},
 		/**
 		 * fetch all User Courses for a given user.

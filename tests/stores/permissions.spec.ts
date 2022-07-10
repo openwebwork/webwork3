@@ -50,22 +50,36 @@ describe('Test the permissions store', () => {
 
 		// the route permissions.  Perhaps better to load from yaml file.
 		const route_permissions = [
-			{ route: '/login', allowed_roles: ['*'], admin_required: false },
+			{
+				route: '/login',
+				allowed_roles: ['*'],
+				admin_required: false,
+				allow_self_access: false,
+			},
 			{
 				route: '/users/*/courses',
 				allowed_roles: ['INSTRUCTOR', 'COURSE_ADMIN'],
-				admin_required: false
+				admin_required: false,
+				allow_self_access: true
 			},
 			{
 				route: '/courses/*/instructor',
 				allowed_roles: ['INSTRUCTOR', 'COURSE_ADMIN'],
-				admin_required: false },
+				admin_required: false,
+				allow_self_access: false,
+			},
 			{
 				route: '/courses/*/student',
 				allowed_roles: ['STUDENT', 'INSTRUCTOR', 'COURSE_ADMIN'],
-				admin_required: false
+				admin_required: false,
+				allow_self_access: false,
 			},
-			{ route: '/admin', admin_required: true, allowed_roles: [] }
+			{
+				route: '/admin',
+				admin_required: true,
+				allowed_roles: [],
+				allow_self_access: false,
+			}
 		];
 
 		expect(permissions_store.ui_permissions.sort(routeCompare))

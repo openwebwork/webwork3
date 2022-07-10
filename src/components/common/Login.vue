@@ -55,7 +55,6 @@ const login = async () => {
 		message.value = i18n.t('authentication.failure');
 	} else {
 		// success
-		console.log(session_info);
 		session.updateSessionInfo(session_info);
 
 		await permission_store.fetchRoles();

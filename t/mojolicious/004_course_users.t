@@ -113,9 +113,6 @@ $t->delete_ok("/webwork3/api/courses/1/users/$new_user_id")->status_is(500, 'sta
 $t->delete_ok("/webwork3/api/courses/2/users/$new_user_id")->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/user_id' => $new_user_id);
 
-# Delete the added users.
-$t->delete_ok("/webwork3/api/users/$new_user_id")->status_is(200)->json_is('/username' => $new_user->{username});
-
 # Logout of the admin user account.
 $t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
 
@@ -134,27 +131,22 @@ my $course4_student_user_id = $course4_users->[1]->{user_id};
 $t->get_ok("/webwork3/api/courses/4/users/$course4_student_user_id")->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/username' => $course4_users->[1]->{username});
 
-# add Maggie to the course
-my $maggie = $schema->resultset('User')->find({ username => 'maggie' });
+# Add the new user (Maggie) to the course
 
 $t->post_ok(
 	'/webwork3/api/courses/4/users' => json => {
-		user_id => $maggie->user_id,
+		user_id => $new_user_id,
 		role    => 'STUDENT'
 	}
-)->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/user_id' => $maggie->user_id)
+)->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/user_id' => $new_user_id)
 	->json_is('/role' => 'STUDENT');
 
-$t->put_ok(
-	'/webwork3/api/courses/4/users/'
-		. $maggie->user_id => json => {
-			recitation => 4
-		}
-)->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/recitation' => 4);
+$t->put_ok("/webwork3/api/courses/4/users/$new_user_id" => json => { recitation => 4 })->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/recitation' => 4);
 
 # Test that boolean fields inside of course_user_params are JSON true/false.
-$t->delete_ok('/webwork3/api/courses/4/users/' . $maggie->user_id)->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')->json_is('/user_id' => $maggie->user_id)
+$t->delete_ok('/webwork3/api/courses/4/users/' . $new_user_id)->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/user_id' => $new_user_id)
 	->json_is('/role' => 'STUDENT');
 
 # Check that a student doesn't have the same access as an instructor
@@ -164,27 +156,20 @@ $t->get_ok('/webwork3/api/courses/3/users')->status_is(403)->content_type_is('ap
 
 $t->post_ok(
 	'/webwork3/api/courses/3/users' => json => {
-		user_id => $maggie->user_id,
+		user_id => $new_user_id,
 		role    => 'STUDENT'
 	}
 )->status_is(403)->content_type_is('application/json;charset=UTF-8');
 
 $t->put_ok(
 	'/webwork3/api/courses/3/users/'
-		. $maggie->user_id => json => {
+		. $new_user_id => json => {
 			recitation => 4
 		}
 )->status_is(403)->content_type_is('application/json;charset=UTF-8');
 
-$t->delete_ok('/webwork3/api/courses/3/users/' . $maggie->user_id)->status_is(403)
+$t->delete_ok('/webwork3/api/courses/3/users/' . $new_user_id)->status_is(403)
 	->content_type_is('application/json;charset=UTF-8');
-
-# Remove the user 'maggie' that was added.
-if (defined($maggie)) {
-	my $maggie_cu = $schema->resultset('CourseUser')->search({ user_id => $maggie->user_id });
-	$maggie_cu->delete_all if defined($maggie_cu);
-	$maggie->delete        if defined($maggie);
-}
 
 ok($added_user->{course_user_params}->{useMathQuill}, 'Testing that useMathQuill param is truthy.');
 is($added_user->{course_user_params}->{useMathQuill},
@@ -198,5 +183,12 @@ ok(
 		&& $added_user->{course_user_params}->{useMathQuill},
 	'testing that the useMathQuill param is a JSON::true'
 );
+
+# Delete the added global user, but need to relogin as admin
+$t->post_ok('/webwork3/api/logout')->status_is(200);
+$t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200);
+
+# Delete the added users.
+$t->delete_ok("/webwork3/api/users/$new_user_id")->status_is(200)->json_is('/username' => $new_user->{username});
 
 done_testing;

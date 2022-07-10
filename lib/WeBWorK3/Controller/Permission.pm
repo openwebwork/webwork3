@@ -29,7 +29,8 @@ sub getUIRoutePermissions ($c) {
 # 2. checking if the user is an admin and if so, allowing them in.
 # 3. if the route just needs authentication access, permit the user.
 # 4. return false if the route requires admin access and the user is not an admin.
-# 5. checking that the user has a role with an allowed permission.
+# 5. if the route allows self access return true if the user_id matches the route.
+# 6. checking that the user has a role with an allowed permission.
 #
 
 sub checkPermission ($c) {
@@ -60,6 +61,9 @@ sub checkPermission ($c) {
 	} elsif ($perm_db->admin_required && !$user->{is_admin}) {
 		$permitted = undef;
 		$msg       = 'This route requires admin privileges.';
+	} elsif (!$course_id && $perm_db->allow_self_access && defined($c->param('user_id'))) {
+		# Some routes allow self access, but the course_id is not defined.
+		return $user->{user_id} == $c->param('user_id');
 	} elsif ($course_id) {
 		my $course_user = $c->schema->resultset('User')->getCourseUser(
 			info => {

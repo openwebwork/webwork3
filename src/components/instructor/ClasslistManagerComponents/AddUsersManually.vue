@@ -73,15 +73,15 @@ import { ref, computed, defineEmits } from 'vue';
 import { useQuasar } from 'quasar';
 import { logger } from 'boot/logger';
 
-import { getUser } from 'src/common/api-requests/user';
 import { useUserStore } from 'src/stores/users';
 import { useSessionStore } from 'src/stores/session';
-import { useSettingsStore } from 'src/stores/settings';
+import { usePermissionStore } from 'src/stores/permissions';
 
-import { CourseUser, ParseableCourseUser, User } from 'src/common/models/users';
+import { CourseUser, User } from 'src/common/models/users';
 import type { ResponseError } from 'src/common/api-requests/errors';
 import { AxiosError } from 'axios';
 import { isValidEmail, isValidUsername, parseNonNegInt } from 'src/common/models/parsers';
+import { checkIfUserExists } from 'src/common/api-requests/user';
 
 interface QRef {
 	validate: () => boolean;
@@ -101,12 +101,12 @@ const permission_store = usePermissionStore();
 
 // see if the user exists already and fill in the known fields
 const checkUser = async () => {
-	const user = await checkIfUserExists(session.course.course_id, merged_user.value.username ?? '');
+	const user = await checkIfUserExists(session.course.course_id, course_user.value.username ?? '');
 	if (user.username == undefined) {
 		user_exists.value = false;
 	} else {
 		user_exists.value = true;
-		merged_user.value = user;
+		course_user.value = new CourseUser(user);
 	}
 };
 

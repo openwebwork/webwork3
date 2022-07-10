@@ -131,10 +131,11 @@ sub updatePermissions ($ww3_conf, $role_perm_file) {
 	for my $category (keys %{ $role_perm->{db_permissions} }) {
 		for my $action (keys %{ $role_perm->{db_permissions}->{$category} }) {
 			$schema->resultset('DBPermission')->create({
-				category       => $category,
-				action         => $action,
-				admin_required => $role_perm->{db_permissions}->{$category}->{$action}->{admin_required},
-				authenticated  => $role_perm->{db_permissions}->{$category}->{$action}->{authenticated}
+				category          => $category,
+				action            => $action,
+				admin_required    => $role_perm->{db_permissions}->{$category}->{$action}->{admin_required},
+				authenticated     => $role_perm->{db_permissions}->{$category}->{$action}->{authenticated},
+				allow_self_access => $role_perm->{db_permissions}->{$category}->{$action}->{allow_self_access}
 			});
 		}
 	}

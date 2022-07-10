@@ -117,7 +117,6 @@ import type { ResponseError } from 'src/common/api-requests/errors';
 import { CourseUser, User, ParseableCourseUser } from 'src/common/models/users';
 import { invert } from 'src/common/utils';
 import { checkIfUserExists } from 'src/common/api-requests/user';
-import { useSettingsStore } from 'src/stores/settings';
 import { usePermissionStore } from 'src/stores/permissions';
 
 interface ParseError {
@@ -360,7 +359,7 @@ const addMergedUsers = async () => {
 
 			// Now add the user as a course user.
 			users.addCourseUser(new CourseUser(user)).then(user => {
-				const full_name = `${user.first_name as string} ${user.last_name as string}`;
+				const full_name = `${user.first_name} ${user.last_name}`;
 				const msg = `The user ${full_name} was successfully added to the course.`;
 				logger.debug(`[addUsersFromFile]: ${msg}`);
 				$q.notify({ message: msg, color: 'green' });

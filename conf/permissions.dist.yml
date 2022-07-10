@@ -17,6 +17,7 @@ roles:
 #
 # - authenticated: true      this route can be accessed by any user who has been authenticated.
 # - admin_required: true     this route can only be accessed by a user with admin flag (no course role)
+# - allow_self_access: true  this route can be accessed by a user matching the user_id
 # - allowed_roles: Array     this route can be accessed by a user with a role in the given array.
 #                            and '*' can be used for all roles.
 
@@ -70,6 +71,7 @@ db_permissions:
     getCourseUsers:
       allowed_roles: ['course_admin', 'instructor']
     getUserCourses:
+      allow_self_access: true
       allowed_roles: ['course_admin', 'instructor']
     getGlobalCourseUsers:
       allowed_roles: ['course_admin', 'instructor']

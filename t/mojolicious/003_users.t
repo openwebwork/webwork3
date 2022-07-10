@@ -159,6 +159,9 @@ $t->put_ok('/webwork3/api/users/1' => json => { email => 'lisa@aol.com' })->stat
 $t->delete_ok('/webwork3/api/users/1')->content_type_is('application/json;charset=UTF-8')->status_is(403)
 	->json_is('/has_permission' => 0);
 
+# Test that a user can access their own courses.  Lisa has user_id 3.
+$t->get_ok('/webwork3/api/users/3/courses')->status_is(200)->content_type_is('application/json;charset=UTF-8');
+
 # Testing that booleans returned from the server are JSON booleans.
 # the first user is the admin
 

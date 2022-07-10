@@ -145,6 +145,7 @@ describe('Problem Set store tests', () => {
 			const problem_set_store = useProblemSetStore();
 			const set_problem_store = useSetProblemStore();
 			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
+			console.log(hw1);
 
 			// grab the set problems for HW #1 so we know which is the next problem number.
 			const probs = set_problem_store.findSetProblems({ set_name: 'HW #1' });
@@ -162,6 +163,7 @@ describe('Problem Set store tests', () => {
 			const library_problem = new LibraryProblem({ location_params: { file_path: 'path/to/the/problem.pg' } });
 			expect(library_problem.isValid()).toBe(true);
 			added_set_problem = await set_problem_store.addSetProblem(library_problem, hw1?.set_id ?? 0);
+			console.log(added_set_problem);
 
 			expect(cleanIDs(added_set_problem)).toStrictEqual(cleanIDs(new_set_problem));
 		});

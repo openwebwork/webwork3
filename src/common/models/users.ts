@@ -1,9 +1,10 @@
 /* This file contains the definitions of a User, DBCourseUser and Course User
 	in terms of a model. */
 
-import { isNonNegInt, isValidUsername, isValidEmail, parseUserRole, UserRole }
+import { isNonNegInt, isValidUsername, isValidEmail }
 	from 'src/common/models/parsers';
 import { Dictionary, Model } from 'src/common/models';
+import { UserRole } from 'src/stores/permissions';
 
 export interface ParseableUser {
 	user_id?: number;
@@ -182,7 +183,7 @@ export class CourseUser extends Model {
 	private _first_name = '';
 	private _last_name = '';
 	private _student_id = '';
-	private _role = UserRole.unknown;
+	private _role = 'UNKNOWN';
 	private _section?: string;
 	private _recitation?: string;
 
@@ -257,7 +258,7 @@ export class CourseUser extends Model {
 	isValid(): boolean {
 		return isNonNegInt(this.user_id) && isNonNegInt(this.course_user_id) &&
 			isNonNegInt(this.course_id) && isValidUsername(this.username) &&
-			this.role !== UserRole.unknown && (this.email === '' || isValidEmail(this.email));
+			this.role !== 'UNKNOWN' && (this.email === '' || isValidEmail(this.email));
 	}
 
 	validate(): Dictionary<string | boolean> {
@@ -267,7 +268,7 @@ export class CourseUser extends Model {
 			user_id: isNonNegInt(this.user_id) || 'The user_id must be a non negative integer.',
 			username: isValidUsername(this.username) || 'The username must be valid.',
 			email: (this.email === '' || isValidEmail(this.email)) || 'The email must be valid',
-			role: this.role !== UserRole.unknown || 'The role is not valid.',
+			role: this.role !== 'UNKNOWN' || 'The role is not valid.',
 		};
 	}
 }
