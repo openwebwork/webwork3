@@ -171,6 +171,7 @@ sub problemSetRoutes ($app, $course_routes) {
 
 sub problemRoutes ($app, $course_routes) {
 	$course_routes->get('/problems')->to('Problem#getAllProblems');
+	$course_routes->get('/sets/:set_id/problems/:set_problem_id')->to('Problem#getProblem');
 	$course_routes->post('/sets/:set_id/problems')->to('Problem#addProblem');
 	$course_routes->put('/sets/:set_id/problems/:set_problem_id')->to('Problem#updateProblem');
 	$course_routes->delete('/sets/:set_id/problems/:set_problem_id')->to('Problem#deleteProblem');
@@ -178,6 +179,7 @@ sub problemRoutes ($app, $course_routes) {
 	# UserProblem routes
 	$course_routes->get('/sets/:set_id/user-problems')->to('Problem#getUserProblemsForSet');
 	$course_routes->get('/users/:user_id/problems')->to('Problem#getUserProblemsForUser');
+	$course_routes->get('/sets/:set_id/users/:user_id/problems/:user_problem_id')->to('Problem#getUserProblem');
 	$course_routes->post('/sets/:set_id/users/:user_id/problems')->to('Problem#addUserProblem');
 	$course_routes->put('/sets/:set_id/users/:user_id/problems/:user_problem_id')->to('Problem#updateUserProblem');
 	$course_routes->delete('/sets/:set_id/users/:user_id/problems/:user_problem_id')->to('Problem#deleteUserProblem');

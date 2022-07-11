@@ -4,6 +4,28 @@ use strict;
 
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
+sub getAllProblems ($self) {
+	my @problems = $self->schema->resultset('SetProblem')->getProblems(
+		info => {
+			course_id => int($self->param('course_id'))
+		}
+	);
+	$self->render(json => \@problems);
+	return;
+}
+
+sub getProblem ($self) {
+	my $problem = $self->schema->resultset('SetProblem')->getSetProblem(
+		info => {
+			course_id      => int($self->param('course_id')),
+			set_id         => int($self->param('set_id')),
+			set_problem_id => int($self->param('set_problem_id')),
+		}
+	);
+	$self->render(json => $problem);
+	return;
+}
+
 sub addProblem ($self) {
 	my $problem = $self->schema->resultset('SetProblem')->addSetProblem(
 		params => {
@@ -13,16 +35,6 @@ sub addProblem ($self) {
 		}
 	);
 	$self->render(json => $problem);
-	return;
-}
-
-sub getAllProblems ($self) {
-	my @problems = $self->schema->resultset('SetProblem')->getProblems(
-		info => {
-			course_id => int($self->param('course_id'))
-		}
-	);
-	$self->render(json => \@problems);
 	return;
 }
 
@@ -76,6 +88,17 @@ sub getUserProblemsForUser ($self) {
 	return;
 }
 
+sub getUserProblem ($self) {
+	my $user_problem = $self->schema->resultset('UserProblem')->getUserProblem(
+		info => {
+			course_id       => int($self->param('course_id')),
+			user_problem_id => int($self->param('user_problem_id'))
+		}
+	);
+	$self->render(json => $user_problem);
+	return;
+}
+
 sub addUserProblem ($self) {
 	my $problem_params = $self->req->json;
 
@@ -94,7 +117,8 @@ sub addUserProblem ($self) {
 	delete $problem_params->{username} if defined($problem_params->{user_id});
 
 	# Only pass in problem_number or set_problem_id
-	delete $problem_params->{set_problem_id} if ($problem_params->{set_problem_id} == 0);
+	delete $problem_params->{set_problem_id}
+		if (defined($problem_params->{set_problem_id}) && $problem_params->{set_problem_id} == 0);
 
 	my $user_problem = $self->schema->resultset('UserProblem')->addUserProblem(params => $problem_params);
 	$self->render(json => $user_problem);
@@ -103,7 +127,8 @@ sub addUserProblem ($self) {
 
 sub updateUserProblem ($self) {
 	my $problem_params = $self->req->json;
-	my $user_problem   = $self->schema->resultset('UserProblem')->updateUserProblem(
+
+	my $user_problem = $self->schema->resultset('UserProblem')->updateUserProblem(
 		info => {
 			course_id       => int($self->param('course_id')),
 			set_id          => int($self->param('set_id')),

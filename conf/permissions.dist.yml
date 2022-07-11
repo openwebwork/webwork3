@@ -107,6 +107,8 @@ db_permissions:
   Problem:
     getAllProblems:
       allowed_roles: ['course_admin', 'instructor', 'student']
+    getProblem:
+      allowed_roles: ['course_admin', 'instructor', 'student']
     addProblem:
       allowed_roles: ['course_admin', 'instructor']
     updateProblem:
@@ -117,10 +119,15 @@ db_permissions:
       allowed_roles: ['course_admin', 'instructor']
     getUserProblemsForUser:
       allowed_roles: ['course_admin', 'instructor']
+      allow_self_access: true
+    getUserProblem:
+      allowed_roles: ['course_admin', 'instructor']
+      allow_self_access: true
     addUserProblem:
       allowed_roles: ['course_admin', 'instructor']
     updateUserProblem:
       allowed_roles: ['course_admin', 'instructor']
+      allow_self_access: true
     deleteUserProblem:
       allowed_roles: ['course_admin', 'instructor']
   Settings:

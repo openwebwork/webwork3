@@ -359,7 +359,7 @@ sub getCourseUser ($self, %args) {
 			message => "The user ${\$user->username} is not enrolled in the course ${\$course->course_name}")
 			unless defined $course_user || $args{skip_throw};
 	}
-	return undef if $args{skip_throw} && !defined($course_user);
+	return undef        if $args{skip_throw} && !defined($course_user);
 	return $course_user if $args{as_result_set};
 	return $args{merged} ? _getMergedUser($course_user) : _getCourseUser($course_user);
 }

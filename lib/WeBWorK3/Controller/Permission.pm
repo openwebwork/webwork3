@@ -50,6 +50,7 @@ sub checkPermission ($c) {
 
 	# The param method usually gets the course_id correctly, if not check the match->stack.
 	my $course_id = $c->param('course_id') // $c->match->stack->[1]->{course_id};
+	my $user_id   = $c->match->stack->[1]->{user_id};
 
 	DB::Exception::RouteWithoutPermission->throw(
 		message => "The route with controller $controller and action $action does not have a permission defined")
@@ -70,7 +71,7 @@ sub checkPermission ($c) {
 				user_id   => $user->{user_id},
 				course_id => $course_id
 			},
-			merged => 1,
+			merged     => 1,
 			skip_throw => 1
 		);
 
@@ -79,9 +80,11 @@ sub checkPermission ($c) {
 			$msg       = 'The user does not belong to the course.';
 		} else {
 			my $user_role_id = $course_user->{role_id};
-			if (! defined($user_role_id)) {
+			if (!defined($user_role_id)) {
 				$permitted = undef;
 				$msg       = 'The user does not have a role in the course.';
+			} elsif ($perm_db->allow_self_access && $user_id && $user_id == $user->{user_id}) {
+				$permitted = 1;
 			} else {
 				$permitted = grep { $_ == $user_role_id } map { $_->role_id } $perm_db->roles;
 				$msg       = 'The user does not have permission for the route' unless $permitted;
