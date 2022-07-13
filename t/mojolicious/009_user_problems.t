@@ -149,7 +149,8 @@ my $new_user_problem = $t->tx->res->json;
 
 # get the user problem
 
-$t->get_ok("/webwork3/api/courses/4/sets/$hw1->{set_id}/users/$ralph->{user_id}/problems/$new_user_problem->{user_problem_id}")
+$t->get_ok(
+	"/webwork3/api/courses/4/sets/$hw1->{set_id}/users/$ralph->{user_id}/problems/$new_user_problem->{user_problem_id}")
 	->status_is(200)->json_is('/seed' => 5421)->json_is('/problem_params/weight' => 3);
 
 # Update the user problem
@@ -167,7 +168,8 @@ $t->post_ok('/webwork3/api/login' => json => { username => 'ralph', password => 
 $t->get_ok("/webwork3/api/courses/4/users/$ralph->{user_id}/problems")->status_is(200);
 
 # get a single problem
-$t->get_ok("/webwork3/api/courses/4/sets/$hw1->{set_id}/users/$ralph->{user_id}/problems/$new_user_problem->{user_problem_id}")
+$t->get_ok(
+	"/webwork3/api/courses/4/sets/$hw1->{set_id}/users/$ralph->{user_id}/problems/$new_user_problem->{user_problem_id}")
 	->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/seed' => 789)
 	->json_is('/problem_params/weight' => 3);
 
@@ -202,20 +204,20 @@ my $moe = firstval { $_->{username} eq 'moe' } @$all_users;
 $t->get_ok("/webwork3/api/users/$moe->{user_id}/courses")->status_is(200);
 my $moes_courses = $t->tx->res->json;
 
-ok(firstval {$_->{course_name} eq 'Arithmetic' } @$moes_courses, 'Check that moe is in the Arithmetic course.');
+ok(firstval { $_->{course_name} eq 'Arithmetic' } @$moes_courses, 'Check that moe is in the Arithmetic course.');
 
 # Try to get ralph's user problems
 $t->get_ok("/webwork3/api/courses/4/users/$ralph->{user_id}/problems")->status_is(403);
 
 # Try to get a single problem
-$t->get_ok("/webwork3/api/courses/4/sets/$hw1->{set_id}/users/$ralph->{user_id}/problems/$new_user_problem->{user_problem_id}")
+$t->get_ok(
+	"/webwork3/api/courses/4/sets/$hw1->{set_id}/users/$ralph->{user_id}/problems/$new_user_problem->{user_problem_id}")
 	->status_is(403);
 
 # Try to update a single problem
 $t->put_ok(
 	"/webwork3/api/courses/4/sets/$hw1->{set_id}/users/$ralph->{user_id}/problems/$new_user_problem->{user_problem_id}"
 		=> json => { status => 0.5 })->status_is(403);
-
 
 # Switch back to the instructor and delete the user problem
 $t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);

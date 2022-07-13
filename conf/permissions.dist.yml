@@ -48,9 +48,9 @@ db_permissions:
     getGlobalUsers:
       admin_required: true
     getGlobalUser:
-      allowed_roles: ['course_admin', 'instructor']
+      admin_required: true
     checkGlobalUser:
-      allowed_roles: ['course_admin', 'instructor']
+      admin_required: true
     updateGlobalUser:
       admin_required: true
     addGlobalUser:
@@ -115,6 +115,9 @@ db_permissions:
       allowed_roles: ['course_admin', 'instructor']
     deleteProblem:
       allowed_roles: ['course_admin', 'instructor']
+
+    # UserProblem Routes
+
     getUserProblemsForSet:
       allowed_roles: ['course_admin', 'instructor']
     getUserProblemsForUser:
@@ -130,6 +133,23 @@ db_permissions:
       allow_self_access: true
     deleteUserProblem:
       allowed_roles: ['course_admin', 'instructor']
+
+    # ProblemPool routes
+    getProblemPools:
+      allowed_roles: ['course_admin', 'instructor']
+    getProblemPool:
+      allowed_roles: ['course_admin', 'instructor']
+    addProblemPool:
+      allowed_roles: ['course_admin', 'instructor']
+    updateProblemPool:
+      allowed_roles: ['course_admin', 'instructor']
+    deleteProblemPool:
+      allowed_roles: ['course_admin', 'instructor']
+
+    # PoolProblem routes
+    getPoolProblems:
+      allowed_roles: ['course_admin', 'instructor']
+
   Settings:
     getDefaultCourseSettings:
       allowed_roles: ['*']

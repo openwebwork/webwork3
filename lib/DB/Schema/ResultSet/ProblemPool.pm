@@ -194,6 +194,44 @@ sub deleteProblemPool ($self, %args) {
 #
 ####
 
+=head2 getPoolProblems
+
+This gets all problems out of the given Problem Pool
+
+=head3 arguments
+
+=over
+
+=item * hashref containing
+
+=over
+
+=item - course_id or course_name
+
+=item - problem_pool_id or pool_name
+
+=back
+
+=back
+
+=cut
+
+use Data::Dumper;
+
+sub getPoolProblems ($self, %args) {
+
+	my $problem_pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
+
+	my @pool_problems = $self->search({
+		'pool_problems.problem_pool_id' => $problem_pool->problem_pool_id
+	}, {
+		prefetch => [qw/pool_problems/]
+	});
+
+	return \@pool_problems if $args{as_result_set};
+	return map { {$_->get_inflated_columns}; } @pool_problems;
+}
+
 =head2 getPoolProblem
 
 This gets a single problem out of a ProblemPool.
@@ -218,15 +256,18 @@ This gets a single problem out of a ProblemPool.
 
 =cut
 
+use Data::Dumper;
+
 sub getPoolProblem ($self, %args) {
 
 	my $problem_pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
 
 	my $pool_problem_info = {};
 
-	try {    # if problem_info was passed in, then parse it.
+	# If problem_info (pool_problem_id or pool_name) was passed in, then parse it.
+	try {
 		$pool_problem_info = getPoolProblemInfo($args{info});
-	} catch {    # else just use an empty hash;
+	} catch {
 		$pool_problem_info = {};
 	};
 
@@ -234,7 +275,8 @@ sub getPoolProblem ($self, %args) {
 
 	if (scalar(@pool_problems) == 1) {
 		return $args{as_result_set} ? $pool_problems[0] : { $pool_problems[0]->get_inflated_columns };
-	} else {     # pick a random problem.
+	} else {
+		# Pick a random problem.
 		my $prob = $pool_problems[ rand @pool_problems ];
 		return $args{as_result_set} ? $prob : { $prob->get_inflated_columns };
 	}
@@ -305,6 +347,39 @@ sub updatePoolProblem ($self, %args) {
 	my $prob_to_update = $self->rs('PoolProblem')->new($args{params});
 
 	my $prob2 = $prob->update({ $prob_to_update->get_columns });
+	return $prob2 if $args{as_result_set};
+	return { $prob2->get_inflated_columns };
+}
+
+=head2 removePoolProblem
+
+remove a Problem out of a ProblemPool in a course
+
+=head3 arguments
+
+=over
+
+=item * hashref containing
+
+=over
+
+=item - course_id or course_name
+
+=item - pool_problem_id
+
+=back
+
+=item * hashref containing information about the Problem.
+
+=back
+
+=cut
+
+sub removePoolProblem ($self, %args) {
+	my $prob = $self->getPoolProblem(info => $args{info}, as_result_set => 1);
+	DB::Exception::PoolProblemNotInPool->throw(info => $args{info}) unless defined($prob);
+
+	my $prob2 = $prob->delete;
 	return $prob2 if $args{as_result_set};
 	return { $prob2->get_inflated_columns };
 }

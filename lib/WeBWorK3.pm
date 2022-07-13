@@ -184,6 +184,26 @@ sub problemRoutes ($app, $course_routes) {
 	$course_routes->put('/sets/:set_id/users/:user_id/problems/:user_problem_id')->to('Problem#updateUserProblem');
 	$course_routes->delete('/sets/:set_id/users/:user_id/problems/:user_problem_id')->to('Problem#deleteUserProblem');
 
+	# ProblemPool Routes
+	$course_routes->get('/problem-pools')->to('Problem#getProblemPools');
+	$course_routes->get('/problem-pools/:problem_pool_id')->to('Problem#getProblemPool');
+	$course_routes->post('/problem-pools')->to('Problem#addProblemPool');
+	$course_routes->put('/problem-pools/:problem_pool_id')->to('Problem#updateProblemPool');
+	$course_routes->delete('/problem-pools/:problem_pool_id')->to('Problem#deleteProblemPool');
+
+	# PoolProblem Routes
+
+	# This gets all problems in a give pool
+	$course_routes->get('/problem-pools/:problem_pool_id/pool-problems')->to('Problem#getPoolProblems');
+	# This gets a random problem out of the given pool
+	$course_routes->get('/problem-pools/:problem_pool_id/pool-problem')->to('Problem#getPoolProblem');
+	# This gets the particular problem out of the given pool
+	$course_routes->get('/problem-pools/:problem_pool_id/pool-problems/:pool_problem_id')->to('Problem#getPoolProblem');
+	$course_routes->post('/problem-pools/:problem_pool_id/pool-problems')->to('Problem#addProblemToPool');
+	$course_routes->put('/problem-pools/:problem_pool_id/pool-problems/:pool_problem_id')
+		->to('Problem#updatePoolProblem');
+	$course_routes->delete('/problem-pools/:problem_pool_id/pool-problems/:pool_problem_id')
+		->to('Problem#removePoolProblem');
 	return;
 }
 

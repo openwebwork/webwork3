@@ -3,142 +3,144 @@ use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 use Try::Tiny;
 
-sub getGlobalUsers ($self) {
-	my @global_users = $self->schema->resultset('User')->getAllGlobalUsers;
-	$self->render(json => \@global_users);
+sub getGlobalUsers ($c) {
+	my @global_users = $c->schema->resultset('User')->getAllGlobalUsers;
+	$c->render(json => \@global_users);
 	return;
 }
 
-sub getGlobalUser ($self) {
+sub getGlobalUser ($c) {
 	my $user =
-		$self->param('user_id') =~ /^\d+$/
-		? $self->schema->resultset('User')->getGlobalUser(info => { user_id  => int($self->param('user_id')) })
-		: $self->schema->resultset('User')->getGlobalUser(info => { username => $self->param('user_id') });
-	$self->render(json => $user);
+		$c->param('user_id') =~ /^\d+$/
+		? $c->schema->resultset('User')->getGlobalUser(info => { user_id  => int($c->param('user_id')) })
+		: $c->schema->resultset('User')->getGlobalUser(info => { username => $c->param('user_id') });
+	$c->render(json => $user);
 	return;
 }
 
 # Passing the username into the getGlobalUser results in a problem with permssions.  This route
 # should be used to pass in the username.
-sub checkGlobalUser ($self) {
+sub checkGlobalUser ($c) {
 	try {
-		my $user = $self->schema->resultset('User')->getGlobalUser(info => { username => $self->param('username') });
-		$self->render(json => $user);
+		my $user = $c->schema->resultset('User')->getGlobalUser(info => { username => $c->param('username') });
+		$c->render(json => $user);
 		return;
 	} catch {
-		$self->render(json => {}) if ref($_) eq 'DB::Exception::UserNotFound';
+		$c->render(json => {}) if ref($_) eq 'DB::Exception::UserNotFound';
 	};
 	return;
 }
 
-sub updateGlobalUser ($self) {
-	my $user = $self->schema->resultset('User')->updateGlobalUser(
-		info   => { user_id => int($self->param('user_id')) },
-		params => $self->req->json
+sub updateGlobalUser ($c) {
+	my $user = $c->schema->resultset('User')->updateGlobalUser(
+		info   => { user_id => int($c->param('user_id')) },
+		params => $c->req->json
 	);
-	$self->render(json => $user);
+	$c->render(json => $user);
 	return;
 }
 
-sub addGlobalUser ($self) {
-	my $user = $self->schema->resultset('User')->addGlobalUser(params => $self->req->json);
-	$self->render(json => $user);
+sub addGlobalUser ($c) {
+	my $user = $c->schema->resultset('User')->addGlobalUser(params => $c->req->json);
+	$c->render(json => $user);
 	return;
 }
 
-sub deleteGlobalUser ($self) {
-	my $user = $self->schema->resultset('User')->deleteGlobalUser(info => { user_id => int($self->param('user_id')) });
-	$self->render(json => $user);
+sub deleteGlobalUser ($c) {
+	my $user = $c->schema->resultset('User')->deleteGlobalUser(info => { user_id => int($c->param('user_id')) });
+	$c->render(json => $user);
 	return;
 }
 
 # This gets all global users for a given course
-sub getGlobalCourseUsers ($self) {
-	my @users = $self->schema->resultset('User')->getGlobalCourseUsers(
+sub getGlobalCourseUsers ($c) {
+	my @users = $c->schema->resultset('User')->getGlobalCourseUsers(
 		info => {
-			course_id => int($self->param('course_id'))
+			course_id => int($c->param('course_id'))
 		}
 	);
-	$self->render(json => \@users);
+	$c->render(json => \@users);
 	return;
 }
 
 # The following are needed for handling global users from instructors in a course
 
-sub getGlobalUsersFromCourse   ($self) { $self->getGlobalUsers;   return }
-sub getGlobalUserFromCourse    ($self) { $self->getGlobalUser;    return }
-sub addGlobalUserFromCourse    ($self) { $self->addGlobalUser;    return }
-sub updateGlobalUserFromCourse ($self) { $self->updateGlobalUser; return }
-sub deleteGlobalUserFromCourse ($self) { $self->deleteGlobalUser; return }
+sub getGlobalUsersFromCourse   ($c) { $c->getGlobalUsers;   return }
+sub getGlobalUserFromCourse    ($c) { $c->getGlobalUser;    return }
+sub addGlobalUserFromCourse    ($c) { $c->addGlobalUser;    return }
+sub updateGlobalUserFromCourse ($c) { $c->updateGlobalUser; return }
+sub deleteGlobalUserFromCourse ($c) { $c->deleteGlobalUser; return }
 
 # The following subs are related to users within a given course.
 
-sub getMergedCourseUsers ($self) {
+sub getMergedCourseUsers ($c) {
 	my @course_users =
-		$self->schema->resultset('User')
-		->getCourseUsers(info => { course_id => int($self->param('course_id')) }, merged => 1);
-	$self->render(json => \@course_users);
+		$c->schema->resultset('User')
+		->getCourseUsers(info => { course_id => int($c->param('course_id')) }, merged => 1);
+	$c->render(json => \@course_users);
 	return;
 }
 
-sub getCourseUsers ($self) {
+sub getCourseUsers ($c) {
 	my @course_users =
-		$self->schema->resultset('User')->getCourseUsers(info => { course_id => int($self->param('course_id')) });
-	$self->render(json => \@course_users);
+		$c->schema->resultset('User')->getCourseUsers(info => { course_id => int($c->param('course_id')) });
+	$c->render(json => \@course_users);
 	return;
 }
 
-sub getCourseUser ($self) {
-	my $course_user = $self->schema->resultset('User')->getCourseUser(
+sub getCourseUser ($c) {
+	print $c->dumper('in getCourseUser');
+	print $c->dumper($c->stash->{'mojo.captures'});
+	my $course_user = $c->schema->resultset('User')->getCourseUser(
 		info => {
-			course_id => int($self->param('course_id')),
-			user_id   => int($self->param('user_id'))
+			course_id => int($c->param('course_id')),
+			user_id   => int($c->param('user_id'))
 		}
 	);
-	$self->render(json => $course_user);
+	$c->render(json => $course_user);
 	return;
 }
 
-sub addCourseUser ($self) {
-	my $info = { course_id => int($self->param('course_id')) };
-	$info->{username} = $self->req->json->{username}     if defined($self->req->json->{username});
-	$info->{user_id}  = int($self->req->json->{user_id}) if defined($self->req->json->{user_id});
+sub addCourseUser ($c) {
+	my $info = { course_id => int($c->param('course_id')) };
+	$info->{username} = $c->req->json->{username}     if defined($c->req->json->{username});
+	$info->{user_id}  = int($c->req->json->{user_id}) if defined($c->req->json->{user_id});
 
-	my $course_user = $self->schema->resultset('User')->addCourseUser(
+	my $course_user = $c->schema->resultset('User')->addCourseUser(
 		info   => $info,
-		params => $self->req->json
+		params => $c->req->json
 	);
-	$self->render(json => $course_user);
+	$c->render(json => $course_user);
 	return;
 }
 
-sub updateCourseUser ($self) {
-	my $course_user = $self->schema->resultset('User')->updateCourseUser(
+sub updateCourseUser ($c) {
+	my $course_user = $c->schema->resultset('User')->updateCourseUser(
 		info => {
-			course_id => int($self->param('course_id')),
-			user_id   => int($self->param('user_id'))
+			course_id => int($c->param('course_id')),
+			user_id   => int($c->param('user_id'))
 		},
-		params => $self->req->json
+		params => $c->req->json
 	);
-	$self->render(json => $course_user);
+	$c->render(json => $course_user);
 	return;
 }
 
-sub deleteCourseUser ($self) {
-	my $course_user = $self->schema->resultset('User')->deleteCourseUser(
+sub deleteCourseUser ($c) {
+	my $course_user = $c->schema->resultset('User')->deleteCourseUser(
 		info => {
-			course_id => int($self->param('course_id')),
-			user_id   => int($self->param('user_id'))
+			course_id => int($c->param('course_id')),
+			user_id   => int($c->param('user_id'))
 		}
 	);
-	$self->render(json => $course_user);
+	$c->render(json => $course_user);
 	return;
 }
 
-sub getUserCourses ($self) {
+sub getUserCourses ($c) {
 	my @user_courses =
-		$self->schema->resultset('Course')->getUserCourses(info => { user_id => $self->param('user_id') });
-	$self->render(json => \@user_courses);
+		$c->schema->resultset('Course')->getUserCourses(info => { user_id => $c->param('user_id') });
+	$c->render(json => \@user_courses);
 	return;
 }
 
