@@ -1,17 +1,32 @@
 package WeBWorK3::Controller::User;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
+use Try::Tiny;
+
 sub getGlobalUsers ($self) {
 	my @global_users = $self->schema->resultset('User')->getAllGlobalUsers;
 	$self->render(json => \@global_users);
 	return;
 }
 
+# Passing the username into the getGlobalUser results in a problem with permssions.  This route
+# should be used to pass in the username.
+sub checkGlobalUser ($self) {
+	try {
+		my $user = $self->schema->resultset('User')->getGlobalUser(info => { username => $self->param('username') });
+		$self->render(json => $user);
+		return;
+	} catch {
+		$self->render(json => {}) if ref($_) eq 'DB::Exception::UserNotFound';
+	};
+	return;
+}
+
 sub getGlobalUser ($self) {
 	my $user =
-		$self->param('user_id') =~ /^\d+$/
-		? $self->schema->resultset('User')->getGlobalUser(info => { user_id  => int($self->param('user_id')) })
-		: $self->schema->resultset('User')->getGlobalUser(info => { username => $self->param('user_id') });
+		$self->param('user') =~ /^\d+$/
+		? $self->schema->resultset('User')->getGlobalUser(info => { user_id  => int($self->param('user')) })
+		: $self->schema->resultset('User')->getGlobalUser(info => { username => $self->param('user') });
 	$self->render(json => $user);
 	return;
 }
@@ -47,6 +62,14 @@ sub getGlobalCourseUsers ($self) {
 	$self->render(json => \@users);
 	return;
 }
+
+# The following are needed for handling global users from instructors in a course
+
+sub getGlobalUsersFromCourse   ($self) { $self->getGlobalUsers;   return }
+sub getGlobalUserFromCourse    ($self) { $self->getGlobalUser;    return }
+sub addGlobalUserFromCourse    ($self) { $self->addGlobalUser;    return }
+sub updateGlobalUserFromCourse ($self) { $self->updateGlobalUser; return }
+sub deleteGlobalUserFromCourse ($self) { $self->deleteGlobalUser; return }
 
 # The following subs are related to users within a given course.
 

@@ -104,29 +104,40 @@ sub userRoutes ($self) {
 	my $user_routes = $self->routes->any('/webwork3/api/users')->requires(authenticated => 1)->to(controller => 'User');
 	$user_routes->get('/')->to(action => 'getGlobalUsers');
 	$user_routes->post('/')->to(action => 'addGlobalUser');
-	$user_routes->get('/:user_id')->to(action => 'getGlobalUser');
+	$user_routes->get('/:user')->to(action => 'getGlobalUser');
 	$user_routes->put('/:user_id')->to(action => 'updateGlobalUser');
 	$user_routes->delete('/:user_id')->to(action => 'deleteGlobalUser');
 	$user_routes->get('/:user_id/courses')->to(action => 'getUserCourses');
 	# Get global users for a course.
 	$self->routes->get('/webwork3/api/courses/:course_id/global-users')->to('User#getGlobalCourseUsers');
-	# This is needed to get global users as instructor permission.  Need to have
-	# the parameter course_id.
-	$self->routes->any('/webwork3/api/courses/:course_id/users/:user/exists')->requires(authenticated => 1)
-		->to('User#getGlobalUser');
+
 	return;
 }
 
 sub courseUserRoutes ($self) {
-	my $course_user_routes = $self->routes->any('/webwork3/api/courses/:course_id/users')->requires(authenticated => 1)
-		->to(controller => 'User');
-	$course_user_routes->get('/')->to(action => 'getCourseUsers');
-	$course_user_routes->post('/')->to(action => 'addCourseUser');
-	$course_user_routes->get('/:user_id')->to(action => 'getCourseUser');
-	$course_user_routes->put('/:user_id')->to(action => 'updateCourseUser');
-	$course_user_routes->delete('/:user_id')->to(action => 'deleteCourseUser');
-	$self->routes->any('/webwork3/api/courses/:course_id/courseusers')->requires(authenticated => 1)
-		->to('User#getMergedCourseUsers');
+	my $course_routes =
+		$self->routes->any('/webwork3/api/courses/:course_id')->requires(authenticated => 1)->to(controller => 'User');
+	$course_routes->get('/users')->to(action => 'getCourseUsers');
+	$course_routes->get('/users')->to(action => 'getCourseUsers');
+	$course_routes->post('/users')->to(action => 'addCourseUser');
+	$course_routes->get('/users/:user_id')->to(action => 'getCourseUser');
+	$course_routes->put('/users/:user_id')->to(action => 'updateCourseUser');
+	$course_routes->delete('/users/:user_id')->to(action => 'deleteCourseUser');
+
+	# There are some routes needed for global user crud, but the permssions require that the
+	# user has permissions within a course.
+
+	$course_routes->get('/global-courseusers')->to('User#getGlobalCourseUsers');
+	$course_routes->post('/global-users')->to('User#addGlobalUserFromCourse');
+	$course_routes->get('/global-users/:user')->to('User#getGlobalUserFromCourse');
+	$course_routes->put('/global-users/:user_id')->to('User#updateGlobalUserFromCourse');
+	$course_routes->delete('/global-users/:user_id')->to('User#deleteGlobalUserFromCourse');
+
+	$course_routes->get('/courseusers')->to('User#getMergedCourseUsers');
+
+	# This is used to check if a user with given username exists.
+	$course_routes->get('/users/:username/exists')->to('User#checkGlobalUser');
+
 	return;
 }
 

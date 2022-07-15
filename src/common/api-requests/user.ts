@@ -3,12 +3,20 @@ import { api } from 'boot/axios';
 import { ParseableCourseUser, ParseableUser, User } from 'src/common/models/users';
 import { ResponseError } from 'src/common/api-requests/errors';
 
-export async function checkIfUserExists(course_id: number, username: string) {
-	const response = await api.get(`courses/${course_id}/users/${username}/exists`);
-	if (response.status === 250) {
-		throw response.data as ResponseError;
+/**
+ * Checks if a global user exists. Both the course_id and username need to be passed in
+ * in order to check permissions.
+ *
+ * @returns either an existing user or an empty object.
+ */
+
+export async function checkIfUserExists(course_id: number, username: string): Promise<ParseableCourseUser> {
+	try {
+		const response = await api.get(`courses/${course_id}/users/${username}/exists`);
+		return response.data as ParseableCourseUser;
+	} catch (_err) {
+		return {};
 	}
-	return response.data as ParseableCourseUser;
 }
 
 /**

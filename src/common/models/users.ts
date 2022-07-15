@@ -153,6 +153,7 @@ export class DBCourseUser extends Model {
 		return isNonNegInt(this.user_id) && isNonNegInt(this.course_user_id) &&
 			isNonNegInt(this.course_id);
 	}
+
 }
 
 export interface ParseableCourseUser {
