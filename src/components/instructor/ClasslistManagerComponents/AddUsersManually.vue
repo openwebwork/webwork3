@@ -100,14 +100,17 @@ const settings = useSettingsStore();
 
 // see if the user exists already and fill in the known fields
 const checkUser = async () => {
-	const existing_user = await checkIfUserExists(session.course.course_id, course_user.value.username);
-	if (existing_user.username) {
-		course_user.value.set(existing_user);
-		user_exists.value = true;
-	} else {
-		// make sure the other fields are emptied.  This can happen if they were prefilled.
-		course_user.value = new CourseUser({ username: course_user.value.username });
-		user_exists.value = false;
+	// check first if the username is valid.
+	if (validateUsername(course_user.value.username) === true) {
+		const existing_user = await checkIfUserExists(session.course.course_id, course_user.value.username);
+		if (existing_user.username) {
+			course_user.value.set(existing_user);
+			user_exists.value = true;
+		} else {
+			// make sure the other fields are emptied.  This can happen if they were prefilled.
+			course_user.value = new CourseUser({ username: course_user.value.username });
+			user_exists.value = false;
+		}
 	}
 };
 
