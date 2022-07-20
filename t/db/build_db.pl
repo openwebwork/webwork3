@@ -147,7 +147,7 @@ sub addSets {
 		"$main::ww3_dir/t/db/sample_data/hw_sets.csv",
 		{
 			boolean_fields       => ['set_visible'],
-			param_boolean_fields => ['enable_reduced_scoring', 'hide_hint']
+			param_boolean_fields => [ 'enable_reduced_scoring', 'hide_hint' ]
 		}
 	);
 
@@ -279,10 +279,12 @@ sub addUserSets {
 
 sub addProblemPools {
 	say 'adding problem pools' if $verbose;
-	my @problem_pools = my @problem_pools_from_file = loadCSV("$main::ww3_dir/t/db/sample_data/pool_problems.csv",
+	my @problem_pools = my @problem_pools_from_file = loadCSV(
+		"$main::ww3_dir/t/db/sample_data/pool_problems.csv",
 		{
 			non_neg_int_fields => ['library_id']
-		});
+		}
+	);
 
 	for my $pool (@problem_pools) {
 		my $course = $course_rs->find({ course_name => $pool->{course_name} });
