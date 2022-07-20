@@ -41,6 +41,10 @@ if (session && session.logged_in && session.user) {
 	if (session.user.is_admin) {
 		void router.push('/admin');
 	} else if (session.user.user_id) {
+		// load the permissions if needed
+		if (permission_store.roles.length === 0) await permission_store.fetchRoles();
+		if (permission_store.ui_permissions.length === 0) await permission_store.fetchRoutePermissions();
+
 		void router.push(`/users/${session.user.user_id}/courses`);
 	}
 }
@@ -51,6 +55,7 @@ const login = async () => {
 		password: password.value
 	};
 	const session_info = await checkPassword(username_info);
+
 	if (!session_info.logged_in) {
 		message.value = i18n.t('authentication.failure');
 	} else {
