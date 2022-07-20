@@ -63,9 +63,12 @@ our $check_permission = sub ($next, $c, $action, $) {
 		$user = { %$user, $course_user->get_inflated_columns };
 	}
 
+	# most routes use user_id as a parameter, but one uses 'user' instead.
+	my $user_id = $c->stash('user_id') // $c->stash('user');
+
 	if ($c->req->url->to_string =~ /\/api/x) {
 		# don't consult the permission table if a user is requesting their own information
-		my $userRequestingOwnInfo = ($c->stash('user_id') && $user->{user_id} == $c->stash('user_id')) ? 1 : 0;
+		my $userRequestingOwnInfo = ($user_id && $user->{user_id} == $user_id) ? 1 : 0;
 
 		if ($userRequestingOwnInfo
 			|| has_permission($user, $c->perm_table->{ $c->{stash}{controller} }{ $c->{stash}{action} }))

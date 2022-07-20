@@ -41,7 +41,7 @@
 						<template v-for="course in instructor_courses" :key="course.course_id">
 							<q-item
 								:to="{
-									name: 'instructor',
+									name: 'InstructorDashboard',
 									params: { course_id: course.course_id }
 								}">
 								<q-item-section>

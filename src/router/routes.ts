@@ -35,7 +35,7 @@ const routes: RouteRecordRaw[] = [
 					)
 			},
 			{
-				path: 'courses/:course_id',
+				path: 'courses/:course_id/student',
 				component: () =>
 					import(
 						/* webpackChunkName: "Student" */
@@ -113,6 +113,15 @@ const routes: RouteRecordRaw[] = [
 				name: 'instructor',
 				meta: { requiresAuth: true },
 				children: [
+					{
+						path: '',
+						name: 'InstructorDashboard',
+						component: () =>
+							import(
+								/* webpackChunkName: "Dashboard" */
+								'pages/instructor/Dashboard.vue'
+							)
+					},
 					{
 						path: 'settings',
 						name: 'Settings',

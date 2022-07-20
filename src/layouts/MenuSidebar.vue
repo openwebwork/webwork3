@@ -27,7 +27,9 @@ export default defineComponent({
 					? admin_views
 					: /^\/courses\/\d+\/instructor/.exec(route.path)
 						? instructor_views
-						: student_views
+						: /^\/courses\/\d+\/student/.exec(route.path)
+							? student_views
+							: []
 			),
 			changeView: (view: ViewInfo) => {
 				void router.push({ name: view.component_name, params: route.params });
