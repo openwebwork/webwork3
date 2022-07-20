@@ -64,13 +64,17 @@
 <script setup lang="ts">
 import { computed, defineEmits, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { endSession } from 'src/common/api-requests/session';
 import { useI18n } from 'vue-i18n';
+
 import { setI18nLanguage } from 'boot/i18n';
-import { useSessionStore } from 'src/stores/session';
-import type { CourseSettingInfo } from 'src/common/models/settings';
-import { useSettingsStore } from 'src/stores/settings';
 import { logger } from 'src/boot/logger';
+
+import { endSession } from 'src/common/api-requests/session';
+import { useSessionStore } from 'src/stores/session';
+import { useSettingsStore } from 'src/stores/settings';
+
+import type { CourseSettingInfo } from 'src/common/models/settings';
+import { UserRole } from 'src/common/models/parsers';
 
 defineEmits(['toggle-menu', 'toggle-sidebar']);
 const session = useSessionStore();
@@ -87,8 +91,12 @@ const user_courses = computed(() =>
 const changeCourse = (course_id: number, course_name: string) => {
 	const new_course = session.user_courses.find(course => course.course_name === course_name);
 
+	// This sets the path to the instructor or student dashboard.
+	const role = new_course?.role === UserRole.instructor ?
+		'instructor' : new_course?.role === UserRole.student ? 'student' : 'UNKNOWN';
+
 	if (new_course != undefined) {
-		router.push(`/courses/${new_course.course_id}`).then(() => {
+		router.push(`/courses/${new_course.course_id}/${role}`).then(() => {
 			session.setCourse({
 				course_name: new_course.course_name,
 				course_id: new_course.course_id
