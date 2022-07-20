@@ -218,10 +218,9 @@ sub deleteProblemPool ($c) {
 # Pool Problem routes
 
 sub getPoolProblems ($c) {
-	# print $c->dumper($c->stash{'mojo.captures'});
 	my @pool_problems = $c->schema->resultset('ProblemPool')->getPoolProblems(
 		info => {
-			course_id => int($c->param('course_id')),
+			course_id       => int($c->param('course_id')),
 			problem_pool_id => int($c->param('problem_pool_id'))
 		}
 	);
@@ -230,26 +229,27 @@ sub getPoolProblems ($c) {
 }
 
 sub getPoolProblem ($c) {
-	my $problem_pool = $c->schema->resultset('ProblemPool')->getProblemPool(
-		info => {
-			course_id       => int($c->param('course_id')),
-			problem_pool_id => int($c->param('problem_pool_id'))
-		}
-	);
+	my $problem_info = {
+		course_id       => int($c->param('course_id')),
+		problem_pool_id => int($c->param('problem_pool_id'))
+	};
+	$problem_info->{pool_problem_id} = int($c->param('pool_problem_id')) if defined($c->param('pool_problem_id'));
+
+	my $problem_pool = $c->schema->resultset('ProblemPool')->getPoolProblem(info => $problem_info);
 	$c->render(json => $problem_pool);
 	return;
 }
 
-sub addPoolProblem ($c) {
+sub addProblemToPool ($c) {
 	my $pool_params = $c->req->json;
 	$pool_params->{course_id} = int($c->param('course_id'));
-	my $problem_pool = $c->schema->resultset('ProblemPool')->addProblemPool(params => $pool_params);
+	my $problem_pool = $c->schema->resultset('ProblemPool')->addProblemToPool(params => $pool_params);
 	$c->render(json => $problem_pool);
 	return;
 }
 
 sub updatePoolProblem ($c) {
-	my $problem_pool = $c->schema->resultset('ProblemPool')->updateProblemPool(
+	my $problem_pool = $c->schema->resultset('ProblemPool')->updatePoolProblem(
 		info => {
 			course_id       => int($c->param('course_id')),
 			problem_pool_id => int($c->param('problem_pool_id')),
@@ -261,7 +261,7 @@ sub updatePoolProblem ($c) {
 }
 
 sub removePoolProblem ($c) {
-	my $problem_pool = $c->schema->resultset('ProblemPool')->deleteProblemPool(
+	my $problem_pool = $c->schema->resultset('ProblemPool')->removePoolProblem(
 		info => {
 			course_id       => int($c->param('course_id')),
 			problem_pool_id => int($c->param('problem_pool_id')),

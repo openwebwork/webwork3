@@ -40,14 +40,8 @@ $t->get_ok('/webwork3/api/courses/4/global-courseusers')->status_is(200)
 	->content_type_is('application/json;charset=UTF-8');
 my $all_users = $t->tx->res->json;
 
-use Data::Dumper;
-print Dumper $all_users;
-
 $t->get_ok('/webwork3/api/courses/4/users')->status_is(200)->content_type_is('application/json;charset=UTF-8')
 	->json_is('/0/role' => 'INSTRUCTOR')->json_is('/1/role' => 'STUDENT');
-
-use Data::Dumper;
-print Dumper $t->tx->res->json;
 
 # Extract id from the response.
 my $user_id = $t->tx->res->json('/1/user_id');

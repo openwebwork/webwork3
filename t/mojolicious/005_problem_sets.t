@@ -55,9 +55,6 @@ for my $set (@hw_sets) {
 
 my @arith_hw = grep { $_->{course_name} eq 'Arithmetic' } @hw_sets;
 
-use Data::Dumper;
-print Dumper \@arith_hw;
-
 $t->get_ok('/webwork3/api/courses/4/sets')->status_is(200)->content_type_is('application/json;charset=UTF-8')
 	->json_is('/1/set_name'       => $arith_hw[1]->{set_name})
 	->json_is('/1/set_dates/open' => $arith_hw[1]->{set_dates}->{open});

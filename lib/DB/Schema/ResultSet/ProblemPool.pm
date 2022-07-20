@@ -216,20 +216,18 @@ This gets all problems out of the given Problem Pool
 
 =cut
 
-use Data::Dumper;
-
 sub getPoolProblems ($self, %args) {
 
 	my $problem_pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
 
-	my @pool_problems = $self->search({
-		'pool_problems.problem_pool_id' => $problem_pool->problem_pool_id
-	}, {
-		prefetch => [qw/pool_problems/]
+	my @pool_problems = $self->rs('PoolProblem')->search({
+		problem_pool_id => $problem_pool->problem_pool_id
 	});
 
 	return \@pool_problems if $args{as_result_set};
-	return map { {$_->get_inflated_columns}; } @pool_problems;
+	return map {
+		{ $_->get_inflated_columns };
+	} @pool_problems;
 }
 
 =head2 getPoolProblem
@@ -255,8 +253,6 @@ This gets a single problem out of a ProblemPool.
 =back
 
 =cut
-
-use Data::Dumper;
 
 sub getPoolProblem ($self, %args) {
 
@@ -289,9 +285,9 @@ This adds a problem as a hashref to an existing problem pool.
 =cut
 
 sub addProblemToPool ($self, %args) {
-
 	my $pool   = $self->getProblemPool(info => $args{params}, as_result_set => 1);
 	my $params = clone $args{params};
+
 	DB::Excpetion::PoolNotInCourse->throw(message => 'The problem pool '
 			. ($params->{pool_name} ? " named $params->{pool_name}" : " with id $params->{problem_pool_id}")
 			. ' is not in the course '

@@ -149,7 +149,14 @@ db_permissions:
     # PoolProblem routes
     getPoolProblems:
       allowed_roles: ['course_admin', 'instructor']
-
+    getPoolProblem:
+      allowed_roles: ['course_admin', 'instructor']
+    addProblemToPool:
+      allowed_roles: ['course_admin', 'instructor']
+    updatePoolProblem:
+      allowed_roles: ['course_admin', 'instructor']
+    removePoolProblem:
+      allowed_roles: ['course_admin', 'instructor']
   Settings:
     getDefaultCourseSettings:
       allowed_roles: ['*']

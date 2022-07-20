@@ -89,8 +89,6 @@ sub getCourseUsers ($c) {
 }
 
 sub getCourseUser ($c) {
-	print $c->dumper('in getCourseUser');
-	print $c->dumper($c->stash->{'mojo.captures'});
 	my $course_user = $c->schema->resultset('User')->getCourseUser(
 		info => {
 			course_id => int($c->param('course_id')),

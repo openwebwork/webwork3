@@ -37,10 +37,8 @@ my @pool_problems_from_file = loadCSV(
 	}
 );
 
-use Data::Dumper;
-
 # To find the problem pools, remove duplicates and remove the params field.
-my @problem_pools_from_file = sort { $a->{pool_name} cmp $b->{pool_name} } @{clone(\@pool_problems_from_file)};
+my @problem_pools_from_file = sort { $a->{pool_name} cmp $b->{pool_name} } @{ clone(\@pool_problems_from_file) };
 my %seen;
 @problem_pools_from_file = grep { !$seen{ $_->{pool_name} }++ } @problem_pools_from_file;
 for my $pool (@problem_pools_from_file) {
@@ -49,15 +47,14 @@ for my $pool (@problem_pools_from_file) {
 
 # get only problem_pools for Precalculus course.
 
-my @precalc_pools_from_file = grep { $_->{course_name} eq 'Precalculus' } @{clone(\@problem_pools_from_file)};
-my @problem_pools_from_db = $problem_pool_rs->getAllProblemPools();
+my @precalc_pools_from_file = grep { $_->{course_name} eq 'Precalculus' } @{ clone(\@problem_pools_from_file) };
+my @problem_pools_from_db   = $problem_pool_rs->getAllProblemPools();
 @problem_pools_from_db = sort { $a->{pool_name} cmp $b->{pool_name} } @problem_pools_from_db;
 for my $pool (@problem_pools_from_db) {
 	removeIDs($pool);
 }
 
 is_deeply(\@problem_pools_from_file, \@problem_pools_from_db, 'getAllProblemPools: find all problem pools');
-
 
 my @precalc_pools = $problem_pool_rs->getProblemPools(info => { course_name => 'Precalculus' });
 
@@ -168,12 +165,12 @@ throws_ok {
 
 # Get all PoolProblems from within a pool
 
-my @pool_problems = $problem_pool_rs->getPoolProblems(info => {
-	course_name => 'Precalculus',
-	pool_name => $precalc_pools_from_file[0]->{pool_name}
-});
-
-# print Dumper \@pool_problems;
+my @pool_problems = $problem_pool_rs->getPoolProblems(
+	info => {
+		course_name => 'Precalculus',
+		pool_name   => $precalc_pools_from_file[0]->{pool_name}
+	}
+);
 
 # Get a PoolProblem (a problem within a ProblemPool).
 my $prob2 = $pool_problems_from_file[0];
@@ -191,7 +188,8 @@ my $random_prob = $problem_pool_rs->getPoolProblem(
 );
 
 my @probs3 =
-	grep { $_->{course_name} eq $prob2->{course_name} and $_->{pool_name} eq $prob2->{pool_name} } @pool_problems_from_file;
+	grep { $_->{course_name} eq $prob2->{course_name} and $_->{pool_name} eq $prob2->{pool_name} }
+	@pool_problems_from_file;
 my @lib_ids = map  { $_->{params}->{library_id} } @probs3;
 my @arr     = grep { $_ == $random_prob->{params}->{library_id} } @lib_ids;
 

@@ -48,7 +48,7 @@ my @pool_problems_from_file = loadCSV(
 	}
 );
 
-my @arith_pool_problems = grep { $_->{course_name} eq 'Arithmetic' } @pool_problems_from_file;
+my @arith_pool_problems = grep { $_->{course_name} eq 'Arithmetic' } @{ clone(\@pool_problems_from_file) };
 for my $problem (@arith_pool_problems) {
 	# delete $problem->{params};
 	delete $problem->{course_name};
@@ -56,11 +56,14 @@ for my $problem (@arith_pool_problems) {
 
 # Get an array of unique problem pools by pool_name.
 my %seen;
-my @arith_problem_pools = grep { !$seen{ $_->{pool_name} }++ } @arith_pool_problems;
+my @arith_problem_pools = grep { !$seen{ $_->{pool_name} }++ } @{ clone(\@arith_pool_problems) };
 @arith_problem_pools = sort { $a->{pool_name} cmp $b->{pool_name} } @arith_problem_pools;
+for my $pool (@arith_problem_pools) {
+	delete $pool->{params} if defined($pool->{params});
+}
 
 # Get all problem pools in Arithemtic
-$t->get_ok('/webwork3/api/courses/4/problem-pools')->content_type_is('application/json;charset=UTF-8')->status_is(200);
+$t->get_ok('/webwork3/api/courses/4/pools')->content_type_is('application/json;charset=UTF-8')->status_is(200);
 
 my @arith_pools_from_db = sort { $a->{pool_name} cmp $b->{pool_name} } @{ $t->tx->res->json };
 
@@ -69,16 +72,17 @@ my $arith_pools = clone(\@arith_pools_from_db);
 for my $pool (@$arith_pools) {
 	removeIDs($pool);
 }
+# my @sorted_arith_pools = sort { $a->{pool_name} cmp $b->{pool_name} } @$arith_pools;
 
 is_deeply($arith_pools, \@arith_problem_pools, 'getProblemPools: get problem pools from one course');
 
-$t->get_ok("/webwork3/api/courses/4/problem-pools/$arith_pools_from_db[0]->{problem_pool_id}")->status_is(200)
+$t->get_ok("/webwork3/api/courses/4/pools/$arith_pools_from_db[0]->{problem_pool_id}")->status_is(200)
 	->json_is('/pool_name' => $arith_problem_pools[0]->{pool_name});
 
 # Add a new Problem Pool
 
 $t->post_ok(
-	'/webwork3/api/courses/4/problem-pools' => json => {
+	'/webwork3/api/courses/4/pools' => json => {
 		pool_name => 'integer powers'
 	}
 )->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/pool_name' => 'integer powers');
@@ -88,32 +92,110 @@ my $added_problem_pool = $t->tx->res->json;
 # Update the problem Pool
 
 $t->put_ok(
-	"/webwork3/api/courses/4/problem-pools/$added_problem_pool->{problem_pool_id}" => json => {
+	"/webwork3/api/courses/4/pools/$added_problem_pool->{problem_pool_id}" => json => {
 		pool_name => 'adding decimals'
 	}
 )->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/pool_name' => 'adding decimals');
-
-# Delete the problem pool
-
-$t->delete_ok("/webwork3/api/courses/4/problem-pools/$added_problem_pool->{problem_pool_id}")->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')->json_is('/pool_name' => 'adding decimals');
+# update the local hash ref
+$added_problem_pool->{pool_name} = 'adding decimals';
 
 # Test Pool Problems
 
-use Data::Dumper;
-print Dumper $arith_pools_from_db[0];
-print Dumper \@arith_pool_problems;
+my $prob_pool1 = $arith_pools_from_db[0];
 
-my @arith_pool1 = grep { $_->{pool_name} eq $arith_pools_from_db[0]->{pool_name} } @arith_pool_problems;
-print Dumper \@arith_pool1;
+my @arith_pool1 = grep { $_->{pool_name} eq $prob_pool1->{pool_name} } @arith_pool_problems;
 
-$t->get_ok("/webwork3/api/courses/4/problem-pools/$arith_pools_from_db[0]->{problem_pool_id}/pool-problems")->status_is(200)
+# Get all pool problems from a particular pool in a course
+
+$t->get_ok("/webwork3/api/courses/4/pools/$prob_pool1->{problem_pool_id}/problems")->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')
+	->json_is('/0/params/library_id' => $arith_pool_problems[0]->{params}->{library_id});
+
+my $pool_prob1 = $t->tx->res->json->[0];
+
+# get a random pool problem
+
+$t->get_ok("/webwork3/api/courses/4/pools/$prob_pool1->{problem_pool_id}/problem")->status_is(200)
+	->content_type_is('application/json;charset=UTF-8');
+
+# get a single pool problem
+
+$t->get_ok("/webwork3/api/courses/4/pools/$prob_pool1->{problem_pool_id}/problems/$pool_prob1->{pool_problem_id}")
+	->status_is(200)->content_type_is('application/json;charset=UTF-8')
+	->json_is('/params/library_id' => $pool_prob1->{params}->{library_id});
+
+# add a new pool problem
+
+$t->post_ok(
+	"/webwork3/api/courses/4/pools/$added_problem_pool->{problem_pool_id}/problems" => json => {
+		pool_name => $added_problem_pool->{pool_name},
+		params    => { library_id => 3492 }
+	}
+)->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/params/library_id' => 3492);
+
+my $new_pool_problem = $t->tx->res->json;
+
+# update the pool problem
+
+$t->put_ok(
+	"/webwork3/api/courses/4/pools/$added_problem_pool->{problem_pool_id}/problems/$new_pool_problem->{pool_problem_id}"
+		=> json => {
+			params => { library_id => 8932 }
+		}
+)->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/params/library_id' => 8932);
+
+# Make sure that students don't have access to Problem Pools
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
+$t->post_ok('/webwork3/api/login' => json => { username => 'ralph', password => 'ralph' })->status_is(200);
+
+$t->get_ok('/webwork3/api/courses/4/pools')->status_is(403);
+$t->get_ok("/webwork3/api/courses/4/pools/$arith_pools_from_db[0]->{problem_pool_id}")->status_is(403);
+$t->post_ok(
+	'/webwork3/api/courses/4/pools' => json => {
+		pool_name => 'pool name here'
+	}
+)->status_is(403);
+$t->put_ok(
+	"/webwork3/api/courses/4/pools/$added_problem_pool->{problem_pool_id}" => json => {
+		pool_name => 'another name'
+	}
+)->status_is(403);
+$t->delete_ok("/webwork3/api/courses/4/pools/$arith_pools_from_db[0]->{problem_pool_id}")->status_is(403);
+
+# Make sure that students don't have access to Pool Problems
+$t->get_ok("/webwork3/api/courses/4/pools/$prob_pool1->{problem_pool_id}/problems")->status_is(403);
+$t->get_ok("/webwork3/api/courses/4/pools/$prob_pool1->{problem_pool_id}/problem")->status_is(403);
+$t->get_ok("/webwork3/api/courses/4/pools/$prob_pool1->{problem_pool_id}/problems/$pool_prob1->{pool_problem_id}")
+	->status_is(403);
+$t->post_ok(
+	"/webwork3/api/courses/4/pools/$added_problem_pool->{problem_pool_id}/problems" => json => {
+		pool_name => $added_problem_pool->{pool_name},
+		params    => { library_id => 6188 }
+	}
+)->status_is(403);
+$t->put_ok(
+	"/webwork3/api/courses/4/pools/$added_problem_pool->{problem_pool_id}/problems/$new_pool_problem->{pool_problem_id}"
+		=> json => {
+			params => { library_id => 8932 }
+		}
+)->status_is(403);
+$t->delete_ok(
+	"/webwork3/api/courses/4/pools/$added_problem_pool->{problem_pool_id}/problems/$new_pool_problem->{pool_problem_id}"
+)->status_is(403);
+
+# Cleanup.  Log back in as the instructor and delete added pool and problem
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
+$t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200);
+
+# Delete the pool problem.
+
+$t->delete_ok(
+	"/webwork3/api/courses/4/pools/$added_problem_pool->{problem_pool_id}/problems/$new_pool_problem->{pool_problem_id}"
+)->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/params/library_id' => 8932);
+
+# Delete the problem pool
+
+$t->delete_ok("/webwork3/api/courses/4/pools/$added_problem_pool->{problem_pool_id}")->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/pool_name' => 'adding decimals');
-
-print Dumper $t->tx->res->json;
-
-# Make sure that students don't have access to Problem Pools
-
-# Make sure that students don't have access to Problem Pools
 
 done_testing();
