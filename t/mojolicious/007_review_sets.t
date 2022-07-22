@@ -13,13 +13,14 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use DB::Schema;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
 use DateTime::Format::Strptime;
 use List::MoreUtils qw/firstval/;
-use DB::TestUtils qw/loadCSV/;
+use TestUtils qw/loadCSV/;
 
 my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 # Test the api with common "users" routes.

@@ -100,6 +100,22 @@ export const useUserStore = defineStore('user', {
 		},
 
 		/**
+		 * Fetch a single global user and add to the store.
+		 */
+		async fetchUser(user_id: number): Promise<void> {
+			const session_store = useSessionStore();
+			const course_id = session_store.course.course_id;
+			const response = await api.get(`courses/${course_id}/global-users/${user_id}`);
+			if (response.status === 200) {
+				this.users.push(new User(response.data as ParseableUser));
+			} else {
+				const error = response.data as ResponseError;
+				logger.error(`${error.exception}: ${error.message}`);
+				throw new Error(error.message);
+			}
+		},
+
+		/**
 		 * Fetch the global users for a given course and store the results.
 		 */
 		// the users are stored in the same users field as the all global users

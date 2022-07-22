@@ -15,7 +15,7 @@
 							@blur="checkUser"
 							ref="username_ref"
 							lazy-rules
-							:rules="[(val) => validateUsername(val)]"
+							:rules="[val => validateUsername(val)]"
 						/>
 					</div>
 					<div class="col">
@@ -53,7 +53,7 @@
 							:options="roles"
 							label="Role *"
 							:validate="validateRole"
-							:rules="[(val) => validateRole(val)]"
+							:rules="[val => validateRole(val)]"
 							/>
 					</div>
 				</div>
@@ -114,13 +114,15 @@ const checkUser = async () => {
 const roles = computed(() => permission_store.roles);
 
 const addUser = async (close: boolean) => {
-	try {
-		// Check to ensure username is correct and a role is selected.
+
+	// Check that the user fields are valid.
+	if (! course_user.value.isValid()) {
 		if (username_ref.value && role_ref.value) {
 			username_ref.value.validate();
 			role_ref.value.validate();
-			if (username_ref.value.hasError || role_ref.value.hasError) return;
 		}
+		return;
+	}
 
 		// if the user is not global, add them.
 		if (!user_exists.value) {
@@ -137,6 +139,7 @@ const addUser = async (close: boolean) => {
 				$q.notify({ message: error.message, color: 'red' });
 			}
 		}
+	}
 
 		course_user.value.course_id = session.course.course_id;
 		const user = await user_store.addCourseUser(new CourseUser(course_user.value));
@@ -159,6 +162,16 @@ const addUser = async (close: boolean) => {
 			message: data.exception,
 			color: 'red'
 		});
+	}
+	const u = user_store.findCourseUser({ user_id: parseNonNegInt(user.user_id ?? 0) });
+	$q.notify({
+		message: `The user with username '${u.username ?? ''}' was added successfully.`,
+		color: 'green'
+	});
+	if (close) {
+		emit('closeDialog');
+	} else {
+		course_user.value = new CourseUser();
 	}
 };
 

@@ -13,6 +13,7 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use Carp;
 use Clone qw/clone/;
@@ -21,8 +22,8 @@ use YAML::XS qw/LoadFile/;
 use Mojo::JSON qw/true false/;
 
 use DB::Schema;
-use DB::TestUtils qw/loadCSV/;
 use DB::Utils qw/updatePermissions/;
+use TestUtils qw/loadCSV/;
 
 my $verbose = 1;
 

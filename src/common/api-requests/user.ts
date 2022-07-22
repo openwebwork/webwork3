@@ -4,12 +4,19 @@ import { ParseableCourseUser, ParseableUser, User } from 'src/common/models/user
 import { ResponseError } from 'src/common/api-requests/errors';
 
 /**
- * Checks if a global user exists with given course_id and username.
+ * Checks if a global user exists. Both the course_id and username need to be passed in
+ * in order to check permissions.
+ *
+ * @returns either an existing user or an empty object.
  */
 
-export async function checkIfUserExists(course_id: number, username: string) {
-	const response = await api.get(`courses/${course_id}/users/${username}/exists`);
-	return response.data as ParseableCourseUser;
+export async function checkIfUserExists(course_id: number, username: string): Promise<ParseableCourseUser> {
+	try {
+		const response = await api.get(`courses/${course_id}/users/${username}/exists`);
+		return response.data as ParseableCourseUser;
+	} catch (_err) {
+		return {};
+	}
 }
 
 /**

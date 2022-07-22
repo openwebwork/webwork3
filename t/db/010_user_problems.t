@@ -12,6 +12,7 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use Test::More;
 use Test::Exception;
@@ -22,7 +23,7 @@ use List::MoreUtils qw/firstval/;
 use YAML::XS qw/LoadFile/;
 
 use DB::Schema;
-use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
+use TestUtils qw/loadCSV removeIDs loadSchema/;
 use DB::Utils qw/updateAllFields/;
 
 # Set up the database.

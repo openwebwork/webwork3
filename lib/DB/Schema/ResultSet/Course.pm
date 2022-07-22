@@ -12,7 +12,7 @@ use DB::Utils qw/getCourseInfo getUserInfo/;
 use DB::Exception;
 use Exception::Class ('DB::Exception::CourseNotFound', 'DB::Exception::CourseExists');
 
-#use DB::TestUtils qw/removeIDs/;
+#use TestUtils qw/removeIDs/;
 use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings mergeCourseSettings
 	getDefaultCourseValues validateCourseSettings/;
 

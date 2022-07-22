@@ -15,11 +15,12 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use DB::Schema;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
-use DB::TestUtils qw/loadCSV/;
+use TestUtils qw/loadCSV/;
 
 # Test the api with common 'courses/sets' routes.
 
