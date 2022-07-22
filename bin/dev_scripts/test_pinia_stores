@@ -1,0 +1,33 @@
+#! /usr/bin/env bash
+
+# Runs the tests in the tests/store directory by first spawning morbo (needed to test the stores)
+# The port can be changed either with the environmental variable WEBWORK3_TEST_PORT
+# or the command line option -p (which overrides WEBWORK3_TEST_PORT)
+
+port=3333
+if [[ -n ${WEBWORK3_TEST_PORT+x} ]]; then
+	port=$WEBWORK3_TEST_PORT
+fi
+
+while getopts ':p:' OPTION; do
+	case "$OPTION" in
+	p)
+		port="$OPTARG"
+		echo "The port has been set to $port via a command line argument"
+		;;
+	*)
+		echo "the option $OPTARG is not defined"
+		exit 1
+		;;
+	esac
+done
+
+echo "Running the test scripts using port $port"
+
+morbo -v -m test -l "http://[::]:$port" bin/webwork3 &
+# Grab the process number.
+P1=$!
+
+npx jest --verbose --runInBand --testURL "http://localhost:$port/webwork3/api" 'tests/stores'
+
+kill $P1
