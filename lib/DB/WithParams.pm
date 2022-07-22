@@ -35,24 +35,29 @@ sub validParamFields ($self, $field_name) {
 	if (scalar(@inter) != scalar(@fields)) {
 		my @bad_fields = array_minus(@fields, @valid_fields);
 		DB::Exception::UndefinedParameter->throw(
-			"The following parameters are not allowed for this DB table: " . join(", ", @bad_fields));
+			'The following parameters are not allowed for this DB table: ' . join(', ', @bad_fields));
 	}
 	return 1;
 }
 
 sub validateParams ($self, $field_name) {
-	return 1 unless defined $self->get_inflated_column($field_name);
-	for my $key (keys %{ $self->get_inflated_column($field_name) }) {
-		my $re = $valid_params->{$key};
-		DB::Exception::InvalidParameter->throw(message => "The parameter named $key is not valid")
-			unless $self->get_inflated_column($field_name)->{$key} =~ qr/^$re$/x;
+	my $params_hash = $self->get_inflated_column($field_name);
+	# if it doesn't exist, it is valid
+	return 1 unless defined $params_hash;
+
+	for my $key (keys %$params_hash) {
+		my $re    = $valid_params->{$key};
+		my $valid = $re eq 'bool' ? JSON::PP::is_bool($params_hash->{$key}) : $params_hash->{$key} =~ qr/^$re$/x;
+		DB::Exception::InvalidParameter->throw(
+			message => "The parameter named $key is not valid. It has value $params_hash->{$key}")
+			unless $valid;
 	}
 	return 1;
 }
 
 sub checkRequiredParams ($self, $field_name) {
 	# Depending on the data type of the $required_params, check different things.
-	croak "The structure of the required type needs to be an hashref." unless reftype($required_params) eq "HASH";
+	croak 'The structure of the required type needs to be an hashref.' unless reftype($required_params) eq 'HASH';
 
 	for my $key (keys %$required_params) {
 		last unless $self->_check_params($field_name, $key, $required_params->{$key});
@@ -64,14 +69,14 @@ sub checkRequiredParams ($self, $field_name) {
 
 sub _check_for_all ($self, $field_name, $value = undef) {
 	my $valid = 0;
-	croak "The value of the _ALL_ required type needs to be an array ref." unless reftype($value) eq "ARRAY";
+	croak 'The value of the _ALL_ required type needs to be an array ref.' unless reftype($value) eq 'ARRAY';
 	for my $el (@$value) {
 		if (!defined(reftype($el))) {
 			# Assume it is a string.
 			$valid = grep {/^$el$/x} keys %{ $self->get_inflated_column($field_name) };
 			DB::Exception::ParametersNeeded->throw(message => "Request must include: $el")
 				unless $valid;
-		} elsif (reftype($el) eq "HASH") {
+		} elsif (reftype($el) eq 'HASH') {
 			for my $key (keys %$el) {
 				$valid = $self->_check_params($field_name, $key, $el->{$key});
 			}
@@ -82,28 +87,28 @@ sub _check_for_all ($self, $field_name, $value = undef) {
 }
 
 sub _check_for_one_of ($self, $field_name, $value = undef) {
-	croak "The value of the _ONE_OF_ required type needs to be an array ref." unless reftype($value) eq "ARRAY";
+	croak 'The value of the _ONE_OF_ required type needs to be an array ref.' unless reftype($value) eq 'ARRAY';
 	my @fields = keys %{ $self->get_inflated_column($field_name) };
 	DB::Exception::ParametersNeeded->throw(
-		message => "Request must include exactly ONE of the following parameters: " . join(', ', @$value))
+		message => 'Request must include exactly ONE of the following parameters: ' . join(', ', @$value))
 		unless scalar(intersect(@fields, @$value)) == 1;
 	return 1;
 }
 
 sub _check_for_at_least_one_of ($self, $field_name, $value = undef) {
-	croak "The value of the _AT_LEAST_ONE_OF_ required type needs to be an array ref."
-		unless reftype($value) eq "ARRAY";
+	croak 'The value of the _AT_LEAST_ONE_OF_ required type needs to be an array ref.'
+		unless reftype($value) eq 'ARRAY';
 	my @fields = keys %{ $self->get_inflated_column($field_name) };
 	DB::Exception::ParametersNeeded->throw(
-		message => "Request must include ONE or more of the following parameters: " . join(', ', @$value))
+		message => 'Request must include ONE or more of the following parameters: ' . join(', ', @$value))
 		unless scalar(intersect(@fields, @$value)) >= 1;
 	return 1;
 }
 
 sub _check_params ($self, $field_name, $type, $value = undef) {
-	if ($type eq "_ALL_") {
+	if ($type eq '_ALL_') {
 		return $self->_check_for_all($field_name, $value);
-	} elsif ($type eq "_ONE_OF_") {
+	} elsif ($type eq '_ONE_OF_') {
 		return $self->_check_for_one_of($field_name, $value);
 	} elsif ($type eq '_AT_LEAST_ONE_OF_') {
 		return $self->_check_for_at_least_one_of($field_name, $value);

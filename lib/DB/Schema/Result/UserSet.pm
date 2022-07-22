@@ -108,12 +108,12 @@ __PACKAGE__->add_columns(
 		default_value => 1,
 	},
 	type => {
-		data_type     => "int",
+		data_type     => 'int',
 		default_value => 1,
 		size          => 8
 	},
 	set_visible => {
-		data_type   => "boolean",
+		data_type   => 'boolean',
 		is_nullable => 1
 	},
 	# Store dates as a JSON object.
@@ -154,13 +154,6 @@ __PACKAGE__->typecast_map(
 		4 => 'DB::Schema::Result::UserSet::ReviewSet',
 	}
 );
-
-my $set_type = {
-	1 => 'DB::Schema::Result::UserSet::HWSet',
-	2 => 'DB::Schema::Result::UserSet::Quiz',
-	3 => 'DB::Schema::Result::UserSet::JITAR',
-	4 => 'DB::Schema::Result::UserSet::ReviewSet'
-};
 
 sub set_type ($) {
 	my %set_type_rev = reverse %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES};

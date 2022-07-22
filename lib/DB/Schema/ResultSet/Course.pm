@@ -12,7 +12,7 @@ use DB::Utils qw/getCourseInfo getUserInfo/;
 use DB::Exception;
 use Exception::Class ('DB::Exception::CourseNotFound', 'DB::Exception::CourseExists');
 
-#use DB::TestUtils qw/removeIDs/;
+#use TestUtils qw/removeIDs/;
 use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings mergeCourseSettings
 	getDefaultCourseValues validateCourseSettings/;
 
@@ -127,7 +127,7 @@ of the fields. See above.
 
 sub addCourse ($self, %args) {
 	my $course_params = clone $args{params};
-	DB::Exception::ParametersNeeded->throw(message => "The parameters must include course_name")
+	DB::Exception::ParametersNeeded->throw(message => 'The parameters must include course_name')
 		unless defined($course_params->{course_name});
 
 	# Check if the course exists.  If so throw an error.
@@ -234,7 +234,7 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 =cut
 
 sub getUserCourses ($self, %args) {
-	my $user = $self->result_source->schema->resultset("User")
+	my $user = $self->result_source->schema->resultset('User')
 		->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
 
 	# my @user_courses = $user->courses->search({});

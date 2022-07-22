@@ -201,7 +201,7 @@ export default defineComponent({
 				await getUser(username.value)
 					.then((_user) => {
 						logger.debug(`[AddCourse/checkUser] Found user: ${username.value}`);
-						user.value = new User(_user);
+						user.value.set(_user.toObject());
 						instructor_exists.value = true;
 					})
 					.catch((e) => {

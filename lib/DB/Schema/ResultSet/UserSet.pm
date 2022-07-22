@@ -112,7 +112,7 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 =cut
 
 sub getAllUserSetsForCourse ($self, %args) {
-	my $course    = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
+	my $course    = $self->rs('Course')->getCourse(info => $args{info}, as_result_set => 1);
 	my @user_sets = $self->search(
 		{
 			'courses.course_id' => $course->course_id
@@ -170,8 +170,8 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 =cut
 
 sub getUserSetsForSet ($self, %args) {
-	my $course      = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
-	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
+	my $course      = $self->rs('Course')->getCourse(info => $args{info}, as_result_set => 1);
+	my $problem_set = $self->rs('ProblemSet')->getProblemSet(info => $args{info}, as_result_set => 1);
 	my @user_sets   = $self->search(
 		{ 'problem_sets.set_id' => $problem_set->set_id },
 		{
@@ -180,7 +180,7 @@ sub getUserSetsForSet ($self, %args) {
 	);
 
 	# } elsif ($args{info}->{user_id} || $args{info}->{username}) {
-	# 	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
+	# 	my $course_user = $self->rs('User')->getCourseUser(info => $args{info}, as_result_set => 1);
 
 	# 	@user_sets = $self->search(
 	# 		{ 'course_users.user_id' => $course_user->user_id },
@@ -237,10 +237,13 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 =cut
 
 sub getUserSetsForUser ($self, %args) {
-	my $course      = $self->rs("Course")->getCourse(info => $args{info}, as_result_set => 1);
-	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
+	my $course      = $self->rs('Course')->getCourse(info => $args{info}, as_result_set => 1);
+	my $course_user = $self->rs('User')->getCourseUser(info => $args{info}, as_result_set => 1);
 	my @user_sets   = $self->search(
-		{ 'course_users.user_id' => $course_user->user_id },
+		{
+			'course_users.user_id' => $course_user->user_id,
+			'courses.course_id'    => $course->course_id
+		},
 		{
 			join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
 		}
@@ -299,19 +302,19 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 =cut
 
 sub getUserSet ($self, %args) {
-	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
-	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
+	my $problem_set = $self->rs('ProblemSet')->getProblemSet(info => $args{info}, as_result_set => 1);
+	my $course_user = $self->rs('User')->getCourseUser(info => $args{info}, as_result_set => 1);
 
 	my $user_set = $problem_set->user_sets->find({
 		course_user_id => $course_user->course_user_id,
 		set_version    => $args{info}->{set_version} // 1
 	});
 
-	DB::Exception::UserSetNotInCourse->throw(message => "The set "
+	DB::Exception::UserSetNotInCourse->throw(message => 'The set '
 			. $problem_set->set_name
-			. " is not assigned to "
+			. ' is not assigned to '
 			. $course_user->users->username
-			. " in the course.")
+			. ' in the course.')
 		unless defined($user_set) || $args{skip_throw};
 
 	return $user_set if $args{as_result_set};
@@ -362,15 +365,13 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 =cut
 
 sub addUserSet ($self, %args) {
-	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{params}, as_result_set => 1);
-	my $course_user = $self->rs("User")->getCourseUser(info => $args{params}, as_result_set => 1);
+	my $problem_set = $self->rs('ProblemSet')->getProblemSet(info => $args{params}, as_result_set => 1);
+	my $course_user = $self->rs('User')->getCourseUser(info => $args{params}, as_result_set => 1);
 
 	my $user_set = $self->getUserSet(info => $args{params}, skip_throw => 1, as_result_set => 1);
 
-	DB::Exception::UserSetExists->throw(message => "The user "
-			. $course_user->users->username
-			. " is already assigned to the set "
-			. $problem_set->set_name)
+	DB::Exception::UserSetExists->throw(
+		message => "The user $course_user->users->username is already assigned to the set $problem_set->set_name")
 		if $user_set;
 
 	# Remove user_set_id if it is zero.  On the client side, this means that
@@ -391,10 +392,26 @@ sub addUserSet ($self, %args) {
 	$params->{set_version}    = 1  unless defined($params->{set_version});
 	my $original_dates = $params->{set_dates} // {};
 
-	# If any of the date are 0, then remove them.
+	# If any of the dates are 0, then remove them.
+	# Only check if the date_fields are 0.  There is the option to store non-dates in the
+	# set_dates field.
+	my $date_fields;
+
+	# Note: although this works okay, if another subtype of a UserSet is created, this needs to be updated.
+	if ($params->{type} == 1) {
+		$date_fields = \&DB::Schema::Result::UserSet::HWSet::valid_dates;
+	} elsif ($params->{type} == 2) {
+		$date_fields = \&DB::Schema::Result::UserSet::Quiz::valid_dates;
+	} elsif ($params->{type} == 4) {
+		$date_fields = \&DB::Schema::Result::UserSet::ReviewSet::valid_dates;
+	} else {
+		die "The type $params->{type} is not valid.";
+	}
+
 	if ($args{params}->{set_dates}) {
-		for my $key (keys %{ $args{params}->{set_dates} }) {
-			delete $args{params}->{set_dates}->{$key} if $args{params}->{set_dates}->{$key} == 0;
+		for my $key (@{ $date_fields->() }) {
+			delete $args{params}->{set_dates}->{$key}
+				if defined($args{params}->{set_dates}->{$key}) && $args{params}->{set_dates}->{$key} == 0;
 		}
 	}
 
@@ -439,7 +456,7 @@ sub updateUserSet ($self, %args) {
 	my $params = clone $args{params};
 	# Remove some parameters that are not in the UserSet database, but may
 	# be passed in.
-	for my $key (qw/username course_name set_name set_type/) {
+	for my $key (qw/username course_name set_name set_type user_id/) {
 		delete $params->{$key} if defined $params->{$key};
 	}
 
@@ -513,8 +530,8 @@ This method returns all versions of user set for a given user for a set in a cou
 =cut
 
 sub getUserSetVersions ($self, %args) {
-	my $problem_set = $self->rs("ProblemSet")->getProblemSet(info => $args{info}, as_result_set => 1);
-	my $course_user = $self->rs("User")->getCourseUser(info => $args{info}, as_result_set => 1);
+	my $problem_set = $self->rs('ProblemSet')->getProblemSet(info => $args{info}, as_result_set => 1);
+	my $course_user = $self->rs('User')->getCourseUser(info => $args{info}, as_result_set => 1);
 
 	my @user_sets = $self->search({
 		set_id         => $problem_set->set_id,

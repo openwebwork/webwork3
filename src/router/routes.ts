@@ -43,7 +43,65 @@ const routes: RouteRecordRaw[] = [
 					),
 				name: 'student',
 				props: true,
-				meta: { requiresAuth: true }
+				meta: { requiresAuth: true },
+				children: [
+					{
+						path: '',
+						name: 'StudentDashboard',
+						component: () =>
+							import(
+								/* webpackChunkName: "StudentDashboard" */
+								'pages/student/Dashboard.vue'
+							)
+					},
+					{
+						path: 'calendar',
+						name: 'StudentCalendar',
+						component: () =>
+							import(
+								/* webpackChunkName: "StudentCalendar" */
+								'pages/student/Calendar.vue'
+							)
+					},
+					{
+						path: 'sets',
+						name: 'ProblemSets',
+						component: () =>
+							import(
+								/* webpackChunkName: "ProblemSets" */
+								'pages/student/ProblemSets.vue'
+							)
+					},
+					{
+						path: 'sets/:set_id',
+						name: 'StudentProblemContainer',
+						component: () =>
+							import(
+								/* webpackChunkName: "StudentProblemContainer" */
+								'src/pages/student/StudentProblemContainer.vue'
+							),
+						children: [
+							{
+								path: 'problems/:problem_id',
+								name: 'StudentProblem',
+								component: () =>
+									import(
+										/* webpackChunkName: "StudentProblem" */
+										'src/pages/student/StudentProblem.vue'
+									)
+							}
+						]
+					},
+					{
+						path: 'grades',
+						name: 'Grades',
+						component: () =>
+							import(
+								/* webpackChunkName: "Grades" */
+								'pages/student/Grades.vue'
+							)
+					},
+				]
 			},
 			{
 				path: 'courses/:course_id/instructor',

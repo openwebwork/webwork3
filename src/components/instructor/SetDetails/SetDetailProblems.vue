@@ -33,7 +33,7 @@ import { useProblemSetStore } from 'src/stores/problem_sets';
 import ProblemVue from 'components/common/Problem.vue';
 import { ProblemSet } from 'src/common/models/problem_sets';
 import { Problem, SetProblem } from 'src/common/models/problems';
-import { ResponseError } from 'src/common/api-requests/interfaces';
+import { ResponseError } from 'src/common/api-requests/errors';
 import { logger } from 'boot/logger';
 import { parseRouteSetID } from 'src/router/utils';
 import { useSetProblemStore } from 'src/stores/set_problems';
@@ -43,7 +43,7 @@ const problem_sets = useProblemSetStore();
 const set_problem_store = useSetProblemStore();
 const route = useRoute();
 // copy of the set_id prop and ensure it is a number
-const problems = ref<Array<SetProblem>>([]);
+const problems = ref<SetProblem[]>([]);
 const problem_set = ref<ProblemSet>(new ProblemSet());
 
 const set_id = computed(() => parseRouteSetID(route));
@@ -65,11 +65,8 @@ const reorderProblems = async () => {
 	const promises: Promise<Problem | undefined>[] = [];
 	problems.value.forEach((prob, i) => {
 		if (prob.problem_number !== i + 1) {
-			promises.push(set_problem_store.updateSetProblem({
-				set_id: prob.set_id,
-				problem_id: prob.problem_id,
-				props: { problem_number: i + 1 }
-			}));
+			prob.problem_number = i + 1;
+			promises.push(set_problem_store.updateSetProblem(prob as SetProblem));
 		}
 	});
 	await Promise.all(promises)

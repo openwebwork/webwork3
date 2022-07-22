@@ -14,7 +14,7 @@ use Clone qw/clone/;
 use Exception::Class (
 	'DB::Exception::UserProblemExists',
 	'DB::Exception::UserProblemNotFound',
-	'DB::Exception::ProblemNotFound'
+	'DB::Exception::SetProblemNotFound'
 );
 
 =head1 DESCRIPTION
@@ -57,7 +57,7 @@ is true, the return is a merged hashref.
 =cut
 
 sub getAttempts ($self, %args) {
-	my $user_problem = $self->rs("UserProblem")->getUserProblem(info => $args{info}, as_result_set => 1);
+	my $user_problem = $self->rs('UserProblem')->getUserProblem(info => $args{info}, as_result_set => 1);
 
 	my @attempts = $self->search({ user_problem_id => $user_problem->user_problem_id });
 
@@ -111,12 +111,12 @@ is true, the return is a merged hashref.
 =cut
 
 sub addAttempt ($self, %args) {
-	my $user_problem = $self->rs("UserProblem")->getUserProblem(info => $args{params}, as_result_set => 1);
+	my $user_problem = $self->rs('UserProblem')->getUserProblem(info => $args{params}, as_result_set => 1);
 
 	my $params = clone $args{params};
 
 	# Remove some parameters that are not in the UserSet database, but may be passed in.
-	for my $key (qw/username user_id course_name set_name set_id problem_id problem_number problem_version/) {
+	for my $key (qw/username user_id course_name set_name set_id set_problem_id problem_number problem_version/) {
 		delete $params->{$key} if defined $params->{$key};
 	}
 

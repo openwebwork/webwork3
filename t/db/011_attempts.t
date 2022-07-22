@@ -12,6 +12,7 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use Test::More;
 use Test::Exception;
@@ -22,7 +23,7 @@ use Try::Tiny;
 use YAML::XS qw/LoadFile/;
 
 use DB::Schema;
-use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
+use TestUtils qw/loadCSV removeIDs loadSchema/;
 use DB::Utils qw/updateAllFields/;
 
 # Set up the database.
@@ -36,10 +37,11 @@ my $schema =
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 
-my $user_problem_rs = $schema->resultset("UserProblem");
-my $attempt_rs      = $schema->resultset("Attempt");
+my $user_problem_rs = $schema->resultset('UserProblem');
+my $attempt_rs      = $schema->resultset('Attempt');
 
-# Flush out already added attempts.
+# Delete previously added attempts.
+# Question: should we instead write a deleteAttempt method and delete at the end of the test?
 
 my $attempts = $attempt_rs->search(
 	{
@@ -65,12 +67,12 @@ my $attempts = $attempt_rs->search(
 
 $attempts->delete_all;
 
-# Add a few attemps for a give User Problem.
+# Add a few attempts for a give User Problem.
 
 my $user_problem_info = {
-	course_name    => "Precalculus",
-	username       => "homer",
-	set_name       => "HW #2",
+	course_name    => 'Precalculus',
+	username       => 'homer',
+	set_name       => 'HW #2',
 	problem_number => 3
 };
 
@@ -82,7 +84,7 @@ my $attempt_params1 = {
 my $attempt1 = $attempt_rs->addAttempt(params => { %$user_problem_info, %$attempt_params1 });
 removeIDs($attempt1);
 
-is_deeply($attempt_params1, $attempt1, "addAttempt: add an attempt");
+is_deeply($attempt_params1, $attempt1, 'addAttempt: add an attempt');
 
 my $attempt_params2 = {
 	scores  => [ 0,    1,      1 ],
@@ -91,7 +93,7 @@ my $attempt_params2 = {
 
 my $attempt2 = $attempt_rs->addAttempt(params => { %$user_problem_info, %$attempt_params2 });
 removeIDs($attempt2);
-is_deeply($attempt_params2, $attempt2, "addAttempt: add another attempt");
+is_deeply($attempt_params2, $attempt2, 'addAttempt: add another attempt');
 
 my $attempt_params3 = {
 	scores  => [ 0,     0,      0 ],
@@ -100,7 +102,7 @@ my $attempt_params3 = {
 
 my $attempt3 = $attempt_rs->addAttempt(params => { %$user_problem_info, %$attempt_params3 });
 removeIDs($attempt3);
-is_deeply($attempt_params3, $attempt3, "addAttempt: add yet another attempt");
+is_deeply($attempt_params3, $attempt3, 'addAttempt: add yet another attempt');
 
 my @all_attempts = $attempt_rs->getAttempts(info => $user_problem_info);
 for my $attempt (@all_attempts) {

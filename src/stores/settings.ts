@@ -71,6 +71,10 @@ export const useSettingsStore = defineStore('settings', {
 				this.course_settings.splice(i, 1, updated_setting);
 			}
 			return updated_setting;
+		},
+		clearAll() {
+			this.course_settings = [];
+			this.default_settings = [];
 		}
 	}
 });

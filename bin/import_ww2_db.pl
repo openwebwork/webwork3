@@ -95,8 +95,8 @@ if ($verbose) {
 	say "Rebuilding the database for course $course_name" if $rebuild_course;
 	say "Using the webwork2 database: $db_dsn";
 	say "with user $db_user";
-	say "The webwork3 database: " . $config->{database_dsn};
-	say "with user " . $config->{database_user};
+	say "The webwork3 database: $config->{database_dsn}";
+	say "with user $config->{database_user}";
 }
 
 my $dbh = DBI->connect($db_dsn, $db_user, $db_pass, { RaiseError => 1, AutoCommit => 0 });
@@ -115,9 +115,9 @@ my $attempts_rs     = $schema->resultset('Attempt');
 $schema->deploy({ add_drop_table => 1 }) if $rebuild_db;
 
 my %PERMISSIONS = (
-	0  => "student",
-	10 => "instructor",
-	20 => "admin"
+	0  => 'student',
+	10 => 'instructor',
+	20 => 'admin'
 );
 
 rebuildCourse() if $rebuild_course;
@@ -160,7 +160,7 @@ sub addCourse ($=) {
 }
 
 sub removeCourse ($=) {
-	say "in removeCourse";
+	say 'in removeCourse';
 	$course_rs->deleteCourse(info => { course_name => $course_name });
 	say "deleting the course $course_name" if $verbose;
 	return;
@@ -169,8 +169,8 @@ sub removeCourse ($=) {
 # Add/Remove Users
 
 sub addUsers ($=) {
-	my $user_table = $course_name . "_user";
-	my $perm_table = $course_name . "_permission";
+	my $user_table = $course_name . '_user';
+	my $perm_table = $course_name . '_permission';
 
 	my $sth = $dbh->prepare("SELECT * FROM `$user_table`");
 	$sth->execute();
@@ -178,10 +178,10 @@ sub addUsers ($=) {
 	my @keys = keys %{ $ref->[0] };
 
 	my @user_fields =
-		grep { $_ ne "login_params" && $_ ne "user_id" && $_ ne "email" } $user_rs->result_source->columns;
+		grep { $_ ne 'login_params' && $_ ne 'user_id' && $_ ne 'email' } $user_rs->result_source->columns;
 	my @course_user_param_fields = keys %$DB::Schema::Result::CourseUser::VALID_PARAMS;
 	my @course_user_fields =
-		grep { $_ !~ /\_id$/x && $_ ne "course_user_params" } $schema->resultset("CourseUser")->result_source->columns;
+		grep { $_ !~ /\_id$/x && $_ ne 'course_user_params' } $schema->resultset('CourseUser')->result_source->columns;
 
 	for my $r (@$ref) {
 		# skip admin users to the course
@@ -246,7 +246,7 @@ sub removeUsers ($=) {
 
 sub addProblemSets ($=) {
 
-	my $set_table = $course_name . "_set";
+	my $set_table = $course_name . '_set';
 	my $sth       = $dbh->prepare("SELECT * FROM `$set_table`");
 	$sth->execute();
 	my $ref = $sth->fetchall_arrayref({});
@@ -316,7 +316,7 @@ sub removeProblemSets ($=) {
 ## Add/Remove UserSets
 
 sub addUserSets ($=) {
-	my $user_set_table = $course_name . "_set_user";
+	my $user_set_table = $course_name . '_set_user';
 	my @problem_sets   = $problem_set_rs->getProblemSets(info => { course_name => $course_name });
 	for my $set (@problem_sets) {
 		say "Adding user sets for set $set->{set_name}" if $verbose;
@@ -388,7 +388,7 @@ sub removeUserSets ($=) {
 			as_result_set => 1
 		);
 		for my $user_set (@user_sets) {
-			say "Removing set " . $set->{set_name} . " for user " . $user_set->course_users->users->username
+			say 'Removing set ' . $set->{set_name} . ' for user ' . $user_set->course_users->users->username
 				if $verbose;
 			$user_set->delete;
 		}
@@ -401,14 +401,14 @@ sub removeUserSets ($=) {
 sub removeProblems ($=) {
 	my @problems = $problem_rs->getProblems(info => { course_name => $course_name }, as_result_set => 1);
 	for my $problem (@problems) {
-		say "Removing problem " . $problem->problem_number . " from " . $problem->problem_set->set_name if $verbose;
+		say 'Removing problem ' . $problem->problem_number . ' from ' . $problem->problem_set->set_name if $verbose;
 		$problem->delete;
 	}
 	return;
 }
 
 sub addProblems ($=) {
-	my $problem_table = $course_name . "_problem";
+	my $problem_table = $course_name . '_problem';
 	my $sth           = $dbh->prepare("SELECT * FROM `$problem_table`");
 	$sth->execute();
 	my $ref = $sth->fetchall_arrayref({});
@@ -439,9 +439,9 @@ sub removeUserProblems ($=) {
 		as_result_set => 1
 	);
 	for my $problem (@user_problems) {
-		say "Removing problem "
+		say 'Removing problem '
 			. $problem->problems->problem_number
-			. " from "
+			. ' from '
 			. $problem->user_sets->problem_sets->set_name
 			if $verbose;
 		$problem->delete;
@@ -451,12 +451,12 @@ sub removeUserProblems ($=) {
 }
 
 sub addUserProblems ($=) {
-	my $problem_user_table = $course_name . "_problem_user";
+	my $problem_user_table = $course_name . '_problem_user';
 	my $sth                = $dbh->prepare("SELECT * FROM `$problem_user_table`");
 	$sth->execute();
 	my $ref = $sth->fetchall_arrayref({});
 
-	say "adding User Problems";
+	say 'adding User Problems';
 	my @user_problem_param_fields = keys %{ DB::Schema::Result::UserProblem::valid_params() };
 
 	for my $r (@$ref) {
@@ -524,8 +524,8 @@ sub removeAttempts ($=) {
 }
 
 sub addPastAnswers ($=) {
-	say "adding Past Answers" if $verbose;
-	my $past_answer_table = $course_name . "_past_answer";
+	say 'adding Past Answers' if $verbose;
+	my $past_answer_table = $course_name . '_past_answer';
 	my $sth               = $dbh->prepare("SELECT * FROM `$past_answer_table`");
 	$sth->execute();
 	my $ref = $sth->fetchall_arrayref({});

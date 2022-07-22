@@ -32,7 +32,7 @@ describe('Test the course store', () => {
 
 			const parsed_courses = await loadCSV('t/db/sample_data/courses.csv', {
 				boolean_fields: ['visible'],
-				non_neg_fields: ['course_id'],
+				non_neg_int_fields: ['course_id'],
 				params: ['course_dates', 'course_params']
 			});
 			courses_from_csv = parsed_courses.map(course => {
@@ -80,6 +80,34 @@ describe('Test the course store', () => {
 			const course_store = useCourseStore();
 			const deleted_course = await course_store.deleteCourse(added_course) ?? new Course();
 			expect(cleanIDs(deleted_course)).toStrictEqual(cleanIDs(updated_course));
+		});
+	});
+
+	describe('Test that invalid courses are handled correctly', () => {
+		test('Try to add an invalid course', async () => {
+			const course_store = useCourseStore();
+
+			// This course is invalid because the name is the empty string.
+			const course = new Course({
+				course_name: ''
+			});
+			expect(course.isValid()).toBe(false);
+			await expect(async () => { await course_store.addCourse(course); })
+				.rejects.toThrow('The added course is invalid');
+		});
+
+		test('Try to update an invalid course', async () => {
+			const course_store = useCourseStore();
+			const precalc = course_store.courses.find(c => c.course_name === 'Precalculus');
+			if (precalc) {
+				precalc.course_dates.start = 200;
+				precalc.course_dates.end = 100;
+				expect(precalc.isValid()).toBe(false);
+				await expect(async () => { await course_store.updateCourse(precalc as Course); })
+					.rejects.toThrow('The updated course is invalid');
+			} else {
+				throw 'This should not have be thrown.  Course precalc is not defined.';
+			}
 		});
 	});
 });

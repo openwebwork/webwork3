@@ -59,9 +59,9 @@ describe('Testing functionality of a Library Problem', () => {
 
 	test('Check the changing problem location params works', () => {
 		const prob = new LibraryProblem();
-		prob.setLocationParams({ file_path: 'path' });
+		prob.location_params.set({ file_path: 'path' });
 		expect(prob.location_params.file_path).toBe('path');
-		prob.setLocationParams({ library_id: 1234 });
+		prob.location_params.set({ library_id: 1234 });
 		expect(prob.location_params.library_id).toBe(1234);
 	});
 

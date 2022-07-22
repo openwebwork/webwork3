@@ -12,6 +12,7 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use Test::More;
 use Test::Exception;
@@ -20,7 +21,7 @@ use List::MoreUtils qw/firstval/;
 use Clone qw/clone/;
 
 use DB::Schema;
-use DB::TestUtils qw/loadCSV removeIDs/;
+use TestUtils qw/loadCSV removeIDs/;
 
 # Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
@@ -28,38 +29,60 @@ $config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
-my $problem_set_rs = $schema->resultset("ProblemSet");
-my $course_rs      = $schema->resultset("Course");
-my $user_rs        = $schema->resultset("User");
-my $user_set_rs    = $schema->resultset("UserSet");
+my $problem_set_rs = $schema->resultset('ProblemSet');
+my $course_rs      = $schema->resultset('Course');
+my $user_rs        = $schema->resultset('User');
+my $user_set_rs    = $schema->resultset('UserSet');
 
-# remove any set versions greater than 2.
-
-my $user_sets_to_delete = $user_set_rs->search({ set_version => { '>' => 1 } });
-$user_sets_to_delete->delete_all;
-
-# Load info from CSV files
-my @hw_sets = loadCSV("$main::ww3_dir/t/db/sample_data/hw_sets.csv");
+# Load HW sets from CSV file
+my @hw_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/hw_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => [ 'enable_reduced_scoring', 'hide_hint' ]
+	}
+);
 for my $hw_set (@hw_sets) {
-	$hw_set->{set_type}    = "HW";
-	$hw_set->{set_version} = 1 unless defined($hw_set->{set_version});
+	$hw_set->{set_type}   = 'HW';
+	$hw_set->{set_params} = {} unless defined $hw_set->{set_params};
+
 }
 
-my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
-for my $set (@quizzes) {
-	$set->{set_type}    = "QUIZ";
-	$set->{set_version} = 1 unless defined($set->{set_version});
+my @quizzes = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/quizzes.csv",
+	{
+		boolean_fields           => ['set_visible'],
+		param_boolean_fields     => ['timed'],
+		param_non_neg_int_fields => ['quiz_duration']
+	}
+);
+for my $quiz (@quizzes) {
+	$quiz->{set_type}   = "QUIZ";
+	$quiz->{set_params} = {} unless defined($quiz->{set_params});
 }
 
-my @review_sets = loadCSV("$main::ww3_dir/t/db/sample_data/review_sets.csv");
+my @review_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/review_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => ['can_retake']
+	}
+);
 for my $set (@review_sets) {
-	$set->{set_type}    = "REVIEW";
-	$set->{set_version} = 1 unless defined($set->{set_version});
+	$set->{set_type}   = 'REVIEW';
+	$set->{set_params} = {} unless defined $set->{set_params};
+
 }
 
 my @all_problem_sets = (@hw_sets, @quizzes, @review_sets);
 
-my @all_user_sets = loadCSV("$main::ww3_dir/t/db/sample_data/user_sets.csv");
+my @all_user_sets = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/user_sets.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => [ 'enable_reduced_scoring', 'hide_hint' ]
+	}
+);
 
 for my $set (@all_user_sets) {
 	$set->{set_version} = 1 unless defined($set->{set_version});
@@ -68,7 +91,8 @@ for my $set (@all_user_sets) {
 		$_->{course_name} eq $set->{course_name} && $_->{set_name} eq $set->{set_name}
 	}
 	@all_problem_sets;
-	$set->{set_type} = $s->{set_type};
+	$set->{set_type}   = $s->{set_type};
+	$set->{set_params} = {} unless defined $set->{set_params};
 }
 
 my @merged_user_sets = @{ clone(\@all_user_sets) };
@@ -103,9 +127,9 @@ for my $user_set (@merged_user_sets) {
 # Get a user set from a course
 
 my $user_set_info1 = {
-	username    => "bart",
-	course_name => "Precalculus",
-	set_name    => "HW #2"
+	username    => 'bart',
+	course_name => 'Precalculus',
+	set_name    => 'HW #2'
 };
 
 my $user_set1 = $user_set_rs->getUserSet(info => $user_set_info1);
@@ -123,7 +147,7 @@ my $user_set1_from_csv = firstval {
 
 # Make a new user set that has a  set_version of 2
 
-is_deeply($user_set1_from_csv, $user_set1, "getUserSet: get a single user set from a course.");
+is_deeply($user_set1_from_csv, $user_set1, 'getUserSet: get a single user set from a course.');
 
 my $user_set1_v2_params = clone $user_set1;
 $user_set1_v2_params->{set_version} = 2;
@@ -152,7 +176,7 @@ for my $user_set (@all_user_set_versions) {
 is_deeply(
 	\@all_user_set_versions,
 	[ $user_set1, $user_set1_v2, $user_set1_v3 ],
-	"getUserSetVersions: get all versions of a user set."
+	'getUserSetVersions: get all versions of a user set.'
 );
 
 # clean up the created versioned user sets.
@@ -182,5 +206,14 @@ my $user_set_v3_to_delete = $user_set_rs->deleteUserSet(
 removeIDs($user_set_v3_to_delete);
 delete $user_set_v3_to_delete->{set_visible} unless defined($user_set_v3_to_delete->{set_visible});
 is_deeply($user_set_v3_to_delete, $user_set1_v3, 'deleteUserSet: delete a versioned user set');
+
+# Ensure that the user_sets table is restored.
+my @all_user_sets_from_db = $user_set_rs->getAllUserSets(merged => 1);
+
+for my $set (@all_user_sets_from_db) {
+	removeIDs($set);
+}
+
+is_deeply(\@all_user_sets_from_db, \@merged_user_sets, 'check: Ensure that the user_sets table is restored.');
 
 done_testing;
