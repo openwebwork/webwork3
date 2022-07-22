@@ -12,6 +12,7 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use List::MoreUtils qw(uniq);
 
@@ -24,7 +25,7 @@ use DB::WithParams;
 use DB::WithDates;
 use DB::Schema;
 
-use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
+use TestUtils qw/loadCSV removeIDs loadSchema/;
 
 # Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";

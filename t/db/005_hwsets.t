@@ -12,6 +12,7 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use Test::More;
 use Test::Exception;
@@ -21,7 +22,7 @@ use DateTime::Format::Strptime;
 use Mojo::JSON qw/true false/;
 
 use DB::Schema;
-use DB::TestUtils qw/loadCSV removeIDs filterBySetType/;
+use TestUtils qw/loadCSV removeIDs filterBySetType/;
 
 # Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";

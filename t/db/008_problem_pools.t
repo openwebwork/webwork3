@@ -12,13 +12,14 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use Test::More;
 use Test::Exception;
 use YAML::XS qw/LoadFile/;
 
 use DB::Schema;
-use DB::TestUtils qw/loadCSV removeIDs/;
+use TestUtils qw/loadCSV removeIDs/;
 
 # Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";

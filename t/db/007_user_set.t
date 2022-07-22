@@ -13,6 +13,7 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use DateTime::Format::Strptime;
 use Test::More;
@@ -23,7 +24,7 @@ use YAML::XS qw/LoadFile/;
 use Mojo::JSON qw/true false/;
 
 use DB::Schema;
-use DB::TestUtils qw/loadCSV removeIDs/;
+use TestUtils qw/loadCSV removeIDs/;
 
 # Load the configuration files
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
