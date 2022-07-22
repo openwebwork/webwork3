@@ -16,6 +16,10 @@ sub required_dates ($=) {
 	return DB::Schema::Result::ProblemSet::ReviewSet::required_dates();
 }
 
+sub optional_fields_in_dates ($=) {
+	return DB::Schema::Result::ProblemSet::ReviewSet::optional_fields_in_dates();
+}
+
 sub valid_params ($=) {
 	return DB::Schema::Result::ProblemSet::ReviewSet::valid_params();
 }

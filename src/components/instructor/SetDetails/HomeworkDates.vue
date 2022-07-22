@@ -8,7 +8,7 @@
 				:errorMessage="error_message"
 			/></td>
 	</tr>
-	<tr v-if="props.reduced_scoring">
+	<tr v-if="hw_dates.reduced_scoring">
 		<td class="header">Reduced Scoring Date</td>
 		<td>
 			<date-time-input
@@ -46,9 +46,6 @@ const props = defineProps({
 	dates: {
 		type: Object as PropType<HomeworkSetDates>,
 		required: true
-	},
-	reduced_scoring: {
-		type: Boolean
 	}
 });
 
@@ -69,13 +66,13 @@ watch(() => hw_dates.value, () => {
 	logger.debug('[HomeworkDates] detected mutation in hw_dates...');
 
 	// avoid reactive loop
-	if (!props.reduced_scoring && hw_dates.value.reduced_scoring !== hw_dates.value.due) {
+	if (!hw_dates.value.reduced_scoring && hw_dates.value.reduced_scoring !== hw_dates.value.due) {
 		hw_dates.value.reduced_scoring = hw_dates.value.due;
 	}
 
 	const dates = new HomeworkSetDates(hw_dates.value);
 
-	if (dates.isValid({ enable_reduced_scoring: props.reduced_scoring })) {
+	if (dates.isValid()) {
 		logger.debug('[HomeworkDates] dates are valid -> telling parent & clearing error message.');
 		error_message.value = '';
 		emit('validDates', true);

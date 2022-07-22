@@ -12,6 +12,7 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use Carp;
 use feature 'say';
@@ -22,7 +23,7 @@ use YAML::XS qw/LoadFile/;
 use Mojo::JSON qw/true false/;
 
 use DB::Schema;
-use DB::TestUtils qw/loadCSV/;
+use TestUtils qw/loadCSV/;
 
 my $verbose = 1;
 
@@ -91,10 +92,10 @@ sub addUsers {
 	my $admin = {
 		username     => 'admin',
 		email        => 'admin@google.com',
-		first_name   => 'Andrea',
-		last_name    => 'Administrator',
+		first_name   => "Andrea",
+		last_name    => "Administrator",
 		is_admin     => true,
-		login_params => { password => 'admin' }
+		login_params => { password => "admin" }
 	};
 	$user_rs->create($admin);
 
@@ -135,6 +136,7 @@ sub addSets {
 			param_boolean_fields => [ 'enable_reduced_scoring', 'hide_hint' ]
 		}
 	);
+
 	for my $set (@hw_sets) {
 		my $course = $course_rs->find({ course_name => $set->{course_name} });
 		if (!defined($course)) {

@@ -15,11 +15,12 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use DB::Schema;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
-use DB::TestUtils qw/loadCSV/;
+use TestUtils qw/loadCSV/;
 use List::MoreUtils qw/firstval/;
 
 # Test the api with common 'courses/sets' routes for quizzes.
@@ -67,9 +68,9 @@ $t->get_ok("/webwork3/api/courses/2/sets/$quiz1->{set_id}")->content_type_is('ap
 $quiz1 = $t->tx->res->json;
 my $timed = $quiz1->{set_params}->{timed};
 ok($timed, 'testing that timed compares to 1.');
-is($timed, true, 'testing that timed compares to Mojo::JSON::true');
-ok(JSON::PP::is_bool($timed),           'testing that timed is a Mojo::JSON::true or Mojo::JSON::false');
-ok(JSON::PP::is_bool($timed) && $timed, 'testing that timed is a Mojo::JSON::true');
+is($timed, true, 'testing that timed compares to true');
+ok(JSON::PP::is_bool($timed),           'testing that timed is a true or false');
+ok(JSON::PP::is_bool($timed) && $timed, 'testing that timed is a true');
 
 # Make a new quiz
 
@@ -96,9 +97,9 @@ my $returned_quiz = $t->tx->res->json;
 my $new_quiz          = $t->tx->res->json;
 my $problem_randorder = $new_quiz->{set_params}->{problem_randorder};
 ok($problem_randorder, 'testing that problem_randorder compares to 1.');
-is($problem_randorder, true, 'testing that problem_randorder compares to Mojo::JSON::true');
-ok(JSON::PP::is_bool($problem_randorder), 'testing that problem_randorder is a Mojo::JSON::true or Mojo::JSON::false');
-ok(JSON::PP::is_bool($problem_randorder) && $problem_randorder, 'testing that problem_randorder is a Mojo::JSON::true');
+is($problem_randorder, true, 'testing that problem_randorder compares to true');
+ok(JSON::PP::is_bool($problem_randorder),                       'testing that problem_randorder is a true or false');
+ok(JSON::PP::is_bool($problem_randorder) && $problem_randorder, 'testing that problem_randorder is a true');
 
 # Check that updating a boolean parameter is working:
 
@@ -114,12 +115,9 @@ my $updated_quiz = $t->tx->res->json;
 
 $problem_randorder = $updated_quiz->{set_params}->{problem_randorder};
 ok(!$problem_randorder, 'testing that hide_hint is falsy.');
-is($problem_randorder, false, 'testing that problem_randorder compares to Mojo::JSON::false');
-ok(JSON::PP::is_bool($problem_randorder), 'testing that problem_randorder is a Mojo::JSON::true or Mojo::JSON::false');
-ok(
-	JSON::PP::is_bool($problem_randorder) && !$problem_randorder,
-	'testing that problem_randorder is a Mojo::JSON::false'
-);
+is($problem_randorder, false, 'testing that problem_randorder compares to false');
+ok(JSON::PP::is_bool($problem_randorder),                        'testing that problem_randorder is a true or false');
+ok(JSON::PP::is_bool($problem_randorder) && !$problem_randorder, 'testing that problem_randorder is a false');
 
 # delete the added quiz
 $t->delete_ok("/webwork3/api/courses/2/sets/$returned_quiz->{set_id}")

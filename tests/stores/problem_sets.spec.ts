@@ -21,7 +21,6 @@ import { HomeworkSet, ProblemSet, Quiz, ReviewSet } from 'src/common/models/prob
 import { Course } from 'src/common/models/courses';
 
 import { cleanIDs, loadCSV } from '../utils';
-import { parseBoolean, parseNonNegInt } from 'src/common/models/parsers';
 
 const app = createApp({});
 
@@ -39,33 +38,23 @@ describe('Problem Set store tests', () => {
 
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
-			boolean_fields: ['set_visible']
+			boolean_fields: ['set_visible'],
+			param_boolean_fields: ['timed', 'enable_reduced_scoring', 'can_retake'],
+			param_non_neg_int_fields: ['quiz_duration']
 		};
 
 		const hw_sets_to_parse = await loadCSV('t/db/sample_data/hw_sets.csv', problem_set_config);
-		// Do some parsing cleanup.
 		const hw_sets_from_csv = hw_sets_to_parse.filter(set => set.course_name === 'Precalculus')
 			.map(set => new HomeworkSet(set));
-		hw_sets_from_csv.forEach(set => {
-			set.set_params.enable_reduced_scoring = parseBoolean(set.set_params.enable_reduced_scoring);
-		});
 
 		const quizzes_to_parse = await loadCSV('t/db/sample_data/quizzes.csv', problem_set_config);
 		const quizzes_from_csv = quizzes_to_parse.filter(set => set.course_name === 'Precalculus')
 			.map(q => new Quiz(q));
-		// Do some parsing cleanup.
-		quizzes_from_csv.forEach(q => {
-			q.set_params.timed = parseBoolean(q.set_params.timed);
-			q.set_params.quiz_duration = parseNonNegInt(q.set_params.quiz_duration);
-		});
 
 		const review_sets_to_parse = await loadCSV('t/db/sample_data/review_sets.csv', problem_set_config);
 		const review_sets_from_csv = review_sets_to_parse.filter(set => set.course_name === 'Precalculus')
 			.map(set => new ReviewSet(set));
-		// Do some parsing cleanup.
-		review_sets_from_csv.forEach(set => {
-			set.set_params.can_retake = parseBoolean(set.set_params.can_retake);
-		});
+
 		// combine quizzes, review sets and homework sets
 		problem_sets_from_csv = [...hw_sets_from_csv, ...quizzes_from_csv, ...review_sets_from_csv];
 
@@ -99,14 +88,12 @@ describe('Problem Set store tests', () => {
 				set_name: 'HW #9',
 				course_id: precalc_course.course_id,
 				set_visible: true,
-				set_params: {
-					enable_reduced_scoring: true
-				},
 				set_dates: {
 					open: 1000,
 					reduced_scoring: 1500,
 					due: 2000,
-					answer: 3000
+					answer: 3000,
+					enable_reduced_scoring: true
 				}
 			};
 			const new_set = new HomeworkSet(new_set_info);
@@ -120,11 +107,11 @@ describe('Problem Set store tests', () => {
 		test('Update a Homework Set', async () => {
 			const problem_set_store = useProblemSetStore();
 			const problem_set = (problem_set_store.findProblemSet({ set_name: 'HW #9' }) as HomeworkSet).clone();
-			problem_set.set_params.enable_reduced_scoring = false;
+			problem_set.set_dates.enable_reduced_scoring = false;
 			await problem_set_store.updateSet(problem_set);
 			const set_to_update = (problem_set_store.problem_sets
 				.find(set => set.set_id === problem_set.set_id) as HomeworkSet).clone();
-			expect(set_to_update?.set_params.enable_reduced_scoring).toBeFalsy();
+			expect(set_to_update?.set_dates.enable_reduced_scoring).toBeFalsy();
 
 			// update the answer date
 			set_to_update.set_dates.answer = (set_to_update.set_dates.answer ?? 0) + 100;
@@ -140,6 +127,33 @@ describe('Problem Set store tests', () => {
 			expect(deleted_set.toObject()).toStrictEqual(set_to_delete?.toObject());
 			const is_the_set_deleted = problem_set_store.findProblemSet({ set_name: 'HW #9' });
 			expect(is_the_set_deleted).toBeUndefined();
+		});
+	});
+
+	describe('Test that invalid homework sets are handled correctly', () => {
+		test('Try to add an invalid homework set', async () => {
+			const problem_set_store = useProblemSetStore();
+
+			// A Homework set needs a not-empty set name.
+			const hw = new HomeworkSet({
+				set_name: ''
+			});
+			expect(hw.isValid()).toBe(false);
+			await expect(async () => { await problem_set_store.addProblemSet(hw); })
+				.rejects.toThrow('The added problem set is invalid');
+		});
+
+		test('Try to update an invalid global user', async () => {
+			const problem_set_store = useProblemSetStore();
+			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
+			if (hw1) {
+				hw1.set_id = 1.34;
+				expect(hw1.isValid()).toBe(false);
+				await expect(async () => { await problem_set_store.updateSet(hw1 as HomeworkSet); })
+					.rejects.toThrow('The updated problem set is invalid');
+			} else {
+				throw 'This should not have be thrown.  Problem set hw1 is not defined.';
+			}
 		});
 	});
 

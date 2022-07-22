@@ -2,7 +2,7 @@
 
 import { parseNonNegInt, parseBoolean, parseEmail, parseUsername, EmailParseException,
 	NonNegIntException, BooleanParseException, UsernameParseException,
-	parseUserRole, UserRoleException, parseNonNegDecimal, NonNegDecimalException } from 'src/common/models/parsers';
+	parseUserRole, parseNonNegDecimal, NonNegDecimalException } from 'src/common/models/parsers';
 
 test('parsing nonnegative integers', () => {
 	expect(parseNonNegInt(1)).toBe(1);
@@ -69,5 +69,5 @@ test('parsing user roles', () => {
 	expect(parseUserRole('instructor')).toBe('INSTRUCTOR');
 	expect(parseUserRole('TA')).toBe('TA');
 	expect(parseUserRole('student')).toBe('STUDENT');
-	expect(() => {parseUserRole('not_existent'); }).toThrow(UserRoleException);
+	expect(parseUserRole('not_existent')).toBe('UNKNOWN');
 });

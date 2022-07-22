@@ -11,8 +11,8 @@
 import { createApp } from 'vue';
 import { setActivePinia, createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import { api } from 'boot/axios';
 
-import { api } from 'src/boot/axios';
 import { getUser } from 'src/common/api-requests/user';
 import { useSessionStore } from 'src/stores/session';
 import { checkPassword } from 'src/common/api-requests/session';
@@ -60,7 +60,7 @@ describe('Session Store', () => {
 		// Load the user course information for testing later.
 		const parsed_courses = await loadCSV('t/db/sample_data/courses.csv', {
 			boolean_fields: ['visible'],
-			non_neg_fields: ['course_id'],
+			non_neg_int_fields: ['course_id'],
 			params: ['course_dates', 'course_params']
 		});
 
@@ -71,7 +71,7 @@ describe('Session Store', () => {
 
 		const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
 			boolean_fields: ['is_admin'],
-			non_neg_fields: ['user_id']
+			non_neg_int_fields: ['user_id']
 		});
 
 		// Fetch the user lisa.  This is used below.

@@ -13,13 +13,14 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use DB::Schema;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
 use DateTime::Format::Strptime;
 use List::MoreUtils qw/firstval/;
-use DB::TestUtils qw/loadCSV/;
+use TestUtils qw/loadCSV/;
 
 my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 # Test the api with common "users" routes.
@@ -86,7 +87,6 @@ my $new_review_set_params = {
 $t->post_ok('/webwork3/api/courses/2/sets' => json => $new_review_set_params)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/set_name' => 'Review #20')
 	->json_is('/set_type' => 'REVIEW');
-my $returned_quiz = $t->tx->res->json;
 
 $review_set1 = $t->tx->res->json;
 $can_retake  = $review_set1->{set_params}->{can_retake};
@@ -98,7 +98,7 @@ ok(JSON::PP::is_bool($can_retake) && $can_retake, 'testing that can_retake is a 
 # Check that updating a boolean parameter is working:
 
 $t->put_ok(
-	"/webwork3/api/courses/2/sets/$returned_quiz->{set_id}" => json => {
+	"/webwork3/api/courses/2/sets/$review_set1->{set_id}" => json => {
 		set_params => {
 			can_retake => false
 		}
@@ -113,8 +113,7 @@ ok(JSON::PP::is_bool($can_retake), 'testing that can_retake is a Mojo::JSON::tru
 ok(JSON::PP::is_bool($can_retake) && !$can_retake, 'testing that can_retake is a Mojo::JSON::false');
 
 # delete the added review set
-$t->delete_ok("/webwork3/api/courses/2/sets/$returned_quiz->{set_id}")
-	->content_type_is('application/json;charset=UTF-8')->json_is('/set_type' => 'REVIEW')
-	->json_is('/set_name' => 'Review #20');
+$t->delete_ok("/webwork3/api/courses/2/sets/$review_set1->{set_id}")->content_type_is('application/json;charset=UTF-8')
+	->json_is('/set_type' => 'REVIEW')->json_is('/set_name' => 'Review #20');
 
 done_testing();

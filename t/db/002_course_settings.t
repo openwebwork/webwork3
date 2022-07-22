@@ -12,6 +12,7 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use Test::More;
 use Test::Exception;
@@ -23,7 +24,7 @@ use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings getDefaultCourseValues
 	validateSettingsConfFile validateSingleCourseSetting validateSettingConfig
 	isInteger isTimeString isTimeDuration isDecimal mergeCourseSettings/;
 
-use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
+use TestUtils qw/removeIDs loadSchema/;
 
 # Load the database
 my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";

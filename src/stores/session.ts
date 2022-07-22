@@ -6,7 +6,7 @@ import { User } from 'src/common/models/users';
 import type { SessionInfo } from 'src/common/models/session';
 import { ParseableUserCourse, UserCourse } from 'src/common/models/courses';
 import { logger } from 'boot/logger';
-import { ResponseError } from 'src/common/api-requests/interfaces';
+import { ResponseError } from 'src/common/api-requests/errors';
 
 import { useUserStore } from 'src/stores/users';
 import { useSettingsStore } from 'src/stores/settings';

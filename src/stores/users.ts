@@ -4,7 +4,7 @@ import { defineStore } from 'pinia';
 import { logger } from 'boot/logger';
 import { DBCourseUser, ParseableCourseUser, ParseableDBCourseUser, ParseableUser } from 'src/common/models/users';
 import { User, CourseUser } from 'src/common/models/users';
-import type { ResponseError } from 'src/common/api-requests/interfaces';
+import { invalidError, ResponseError } from 'src/common/api-requests/errors';
 import { UserRole } from 'src/common/models/parsers';
 import { useSessionStore } from './session';
 
@@ -100,12 +100,28 @@ export const useUserStore = defineStore('user', {
 		},
 
 		/**
+		 * Fetch a single global user and add to the store.
+		 */
+		async fetchUser(user_id: number): Promise<void> {
+			const session_store = useSessionStore();
+			const course_id = session_store.course.course_id;
+			const response = await api.get(`courses/${course_id}/global-users/${user_id}`);
+			if (response.status === 200) {
+				this.users.push(new User(response.data as ParseableUser));
+			} else {
+				const error = response.data as ResponseError;
+				logger.error(`${error.exception}: ${error.message}`);
+				throw new Error(error.message);
+			}
+		},
+
+		/**
 		 * Fetch the global users for a given course and store the results.
 		 */
 		// the users are stored in the same users field as the all global users
 		// Perhaps this is a problem.
 		async fetchGlobalCourseUsers(course_id: number): Promise<void> {
-			const response = await api.get(`courses/${course_id}/global-users`);
+			const response = await api.get(`courses/${course_id}/global-courseusers`);
 			if (response.status === 200) {
 				const users = response.data as ParseableUser[];
 				this.users = users.map(user => new User(user));
@@ -119,7 +135,11 @@ export const useUserStore = defineStore('user', {
 		 * Updates the given user in the database and in the store.
 		 */
 		async updateUser(user: User): Promise<User | undefined> {
-			const response = await api.put(`users/${user.user_id}`, user.toObject());
+			if (!user.isValid()) return invalidError(user, 'The updated user is invalid');
+
+			const session_store = useSessionStore();
+			const course_id = session_store.course.course_id;
+			const response = await api.put(`courses/${course_id}/global-users/${user.user_id}`, user.toObject());
 			if (response.status === 200) {
 				const updated_user = new User(response.data as ParseableUser);
 				const index = this.users.findIndex(user => user.user_id === updated_user.user_id);
@@ -136,7 +156,9 @@ export const useUserStore = defineStore('user', {
 		 * Deletes the given User in the database and in the store.
 		 */
 		async deleteUser(user: User): Promise<User | undefined> {
-			const response = await api.delete(`/users/${user.user_id ?? 0}`);
+			const session_store = useSessionStore();
+			const course_id = session_store.course.course_id;
+			const response = await api.delete(`courses/${course_id}/global-users/${user.user_id}`);
 			if (response.status === 200) {
 				const index = this.users.findIndex((u) => u.user_id === user.user_id);
 				// splice is used so vue3 reacts to changes.
@@ -149,7 +171,11 @@ export const useUserStore = defineStore('user', {
 		 * Adds the given User to the database and to the store.
 		 */
 		async addUser(user: User): Promise<User | undefined> {
-			const response = await api.post('users', user.toObject());
+			if (!user.isValid()) return invalidError(user, 'The added user is invalid.');
+
+			const session_store = useSessionStore();
+			const course_id = session_store.course.course_id;
+			const response = await api.post(`courses/${course_id}/global-users`, user.toObject());
 			if (response.status === 200) {
 				const new_user = new User(response.data as ParseableUser);
 				this.users.push(new_user);
@@ -195,6 +221,10 @@ export const useUserStore = defineStore('user', {
 		 * Adds the given Course User to the store and the database.
 		 */
 		async addCourseUser(course_user: CourseUser): Promise<CourseUser> {
+			if (!course_user.isValid()) {
+				return invalidError(course_user, 'The added course user is invalid');
+			}
+
 			// When sending, only send the DBCourseUser fields.
 			const response = await api.post(`courses/${course_user.course_id}/users`,
 				course_user.toObject(DBCourseUser.ALL_FIELDS));
@@ -213,6 +243,10 @@ export const useUserStore = defineStore('user', {
 		 * Updates the given Course User to the store and the database.
 		 */
 		async updateCourseUser(course_user: CourseUser): Promise<CourseUser | undefined> {
+			if (!course_user.isValid()) {
+				return invalidError(course_user, 'The updated course user is invalid');
+			}
+
 			const url = `courses/${course_user.course_id || 0}/users/${course_user.user_id ?? 0}`;
 			// When sending, only send the DBCourseUser fields.
 			const response = await api.put(url, course_user.toObject(DBCourseUser.ALL_FIELDS));
@@ -235,8 +269,9 @@ export const useUserStore = defineStore('user', {
 			const response = await api.delete(`courses/${course_user.course_id}/users/${course_user.user_id}`);
 			if (response.status === 200) {
 				const index = this.db_course_users.findIndex((u) => u.course_user_id === course_user.course_user_id);
+
 				// splice is used so vue3 reacts to changes.
-				this.course_users.splice(index, 1);
+				this.db_course_users.splice(index, 1);
 				const deleted_course_user = new DBCourseUser(response.data as ParseableCourseUser);
 				const user = this.users.find(u => u.user_id === deleted_course_user.user_id);
 				return new CourseUser(Object.assign({}, user?.toObject(), deleted_course_user.toObject()));
