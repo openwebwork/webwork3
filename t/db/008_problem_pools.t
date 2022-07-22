@@ -22,8 +22,8 @@ use DB::Schema;
 use TestUtils qw/loadCSV removeIDs/;
 
 # Load the database
-my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
+my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
+$config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 
