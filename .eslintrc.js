@@ -26,7 +26,6 @@ const baseRules = {
 	'keyword-spacing': ['error'],
 	'space-before-blocks': ['error', 'always'],
 	'arrow-spacing': ['error'],
-	'template-curly-spacing': ['error', 'never'],
 
 	// allow console and debugger during development only
 	'no-console': process.env.NODE_ENV === 'development' ? 'off' : 'error',

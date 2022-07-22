@@ -79,7 +79,6 @@ import { usePermissionStore } from 'src/stores/permissions';
 
 import { CourseUser, User } from 'src/common/models/users';
 import type { ResponseError } from 'src/common/api-requests/errors';
-import { AxiosError } from 'axios';
 import { isValidEmail, isValidUsername, parseNonNegInt } from 'src/common/models/parsers';
 import { checkIfUserExists } from 'src/common/api-requests/user';
 
@@ -124,50 +123,30 @@ const addUser = async (close: boolean) => {
 		return;
 	}
 
-		// if the user is not global, add them.
-		if (!user_exists.value) {
-			try {
-				logger.debug(`Trying to add the new global user ${course_user.value.username ?? 'UNKNOWN'}`);
-				const global_user = await user_store.addUser(new User(course_user.value));
-				if (global_user == undefined) throw `There is an error adding the user ${course_user.value.username}`;
-				const msg = `The global user with username ${global_user?.username ?? 'UNKNOWN'} was created.`;
-				$q.notify({ message: msg, color: 'green' });
-				logger.debug(msg);
-				course_user.value.user_id = global_user.user_id;
-			} catch (err) {
-				const error = err as ResponseError;
-				$q.notify({ message: error.message, color: 'red' });
-			}
+	// if the user is not global, add them.
+	if (!user_exists.value) {
+		try {
+			logger.debug(`Trying to add the new global user ${course_user.value.username}`);
+			const global_user = await user_store.addUser(new User(course_user.value));
+			if (global_user == undefined) throw `There is an error adding the user ${course_user.value.username}`;
+			const msg = `The global user with username ${global_user.username} was created.`;
+			$q.notify({ message: msg, color: 'green' });
+			logger.debug(msg);
+			course_user.value.user_id = global_user.user_id;
+		} catch (err) {
+			const error = err as ResponseError;
+			$q.notify({ message: error.message, color: 'red' });
 		}
 	}
 
-		course_user.value.course_id = session.course.course_id;
-		const user = await user_store.addCourseUser(new CourseUser(course_user.value));
-		const u = user_store.findCourseUser({ user_id: parseNonNegInt(user.user_id ?? 0) });
-		$q.notify({
-			message: `The user with username '${u.username ?? ''}' was added successfully.`,
-			color: 'green'
-		});
-
-		if (close) {
-			emit('closeDialog');
-		} else {
-			course_user.value = new CourseUser();
-		}
-	} catch (err) {
-		const error = err as AxiosError;
-		logger.error(error);
-		const data = error?.response?.data as ResponseError || { exception: '' };
-		$q.notify({
-			message: data.exception,
-			color: 'red'
-		});
-	}
+	course_user.value.course_id = session.course.course_id;
+	const user = await user_store.addCourseUser(new CourseUser(course_user.value));
 	const u = user_store.findCourseUser({ user_id: parseNonNegInt(user.user_id ?? 0) });
 	$q.notify({
 		message: `The user with username '${u.username ?? ''}' was added successfully.`,
 		color: 'green'
 	});
+
 	if (close) {
 		emit('closeDialog');
 	} else {

@@ -11,29 +11,6 @@ sub getGlobalUsers ($c) {
 
 # Passing the username into the getGlobalUser results in a problem with permssions.  This route
 # should be used to pass in the username.
-sub checkGlobalUser ($self) {
-	try {
-		my $user = $self->schema->resultset('User')->getGlobalUser(info => { username => $self->param('username') });
-		$self->render(json => $user);
-		return;
-	} catch {
-		$self->render(json => {}) if ref($_) eq 'DB::Exception::UserNotFound';
-	};
-	return;
-}
-
-sub getGlobalUser ($self) {
-sub getGlobalUser ($c) {
-	my $user =
-		$c->param('user_id') =~ /^\d+$/
-		? $c->schema->resultset('User')->getGlobalUser(info => { user_id  => int($c->param('user_id')) })
-		: $c->schema->resultset('User')->getGlobalUser(info => { username => $c->param('user_id') });
-	$c->render(json => $user);
-	return;
-}
-
-# Passing the username into the getGlobalUser results in a problem with permssions.  This route
-# should be used to pass in the username.
 sub checkGlobalUser ($c) {
 	try {
 		my $user = $c->schema->resultset('User')->getGlobalUser(info => { username => $c->param('username') });
@@ -42,6 +19,15 @@ sub checkGlobalUser ($c) {
 	} catch {
 		$c->render(json => {}) if ref($_) eq 'DB::Exception::UserNotFound';
 	};
+	return;
+}
+
+sub getGlobalUser ($c) {
+	my $user =
+		$c->param('user_id') =~ /^\d+$/
+		? $c->schema->resultset('User')->getGlobalUser(info => { user_id  => int($c->param('user_id')) })
+		: $c->schema->resultset('User')->getGlobalUser(info => { username => $c->param('user_id') });
+	$c->render(json => $user);
 	return;
 }
 
