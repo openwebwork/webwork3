@@ -1,4 +1,4 @@
-package DB::TestUtils;
+package TestUtils;
 
 use warnings;
 use strict;

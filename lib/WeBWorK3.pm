@@ -22,8 +22,19 @@ sub startup ($self) {
 		$self->log->path($path);
 	}
 
-	# Load configuration from config file
-	my $config = $self->plugin('NotYAMLConfig');
+	my $config;
+
+	if ($ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'test') {
+		my $path = path("$ENV{WW3_ROOT}/logs")->make_path->child('webwork3_test.log');
+		$self->log->path($path);
+		$self->log->level('trace');
+		my $test_config_file = "$ENV{WW3_ROOT}/conf/ww3-dev.yml";
+		$test_config_file = "$ENV{WW3_ROOT}/conf/ww3-dev.dist.yml" unless (-e $test_config_file);
+		$config           = $self->plugin(NotYAMLConfig => { file => $test_config_file });
+	} else {
+		# Load configuration from config file
+		$config = $self->plugin('NotYAMLConfig');
+	}
 
 	# Configure the application
 	$self->secrets($config->{secrets});

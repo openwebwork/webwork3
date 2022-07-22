@@ -155,13 +155,6 @@ __PACKAGE__->typecast_map(
 	}
 );
 
-our $set_type = {
-	1 => 'DB::Schema::Result::UserSet::HWSet',
-	2 => 'DB::Schema::Result::UserSet::Quiz',
-	3 => 'DB::Schema::Result::UserSet::JITAR',
-	4 => 'DB::Schema::Result::UserSet::ReviewSet'
-};
-
 sub set_type ($) {
 	my %set_type_rev = reverse %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES};
 	return $set_type_rev{ shift->type };

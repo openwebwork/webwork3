@@ -12,6 +12,7 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use Carp;
 use feature 'say';
@@ -22,7 +23,7 @@ use YAML::XS qw/LoadFile/;
 use Mojo::JSON qw/true false/;
 
 use DB::Schema;
-use DB::TestUtils qw/loadCSV/;
+use TestUtils qw/loadCSV/;
 
 my $verbose = 1;
 
