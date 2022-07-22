@@ -14,6 +14,7 @@ const baseRules = {
 	'no-trailing-spaces': ['error'],
 	'space-in-parens': ['error', 'never'],
 	'object-curly-spacing': ['error', 'always'],
+	'template-curly-spacing': ['error', 'never'],
 	'comma-spacing': ['error', { before: false, after: true }],
 	'semi': ['error', 'always'],
 	'generator-star-spacing': 'off',
