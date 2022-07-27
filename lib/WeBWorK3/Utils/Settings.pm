@@ -6,6 +6,7 @@ use feature 'signatures';
 no warnings qw(experimental::signatures);
 
 use YAML::XS qw/LoadFile/;
+use Mojo::Home;
 use Carp;
 
 require Exporter;
@@ -15,9 +16,11 @@ our @EXPORT_OK = qw/checkSettings getDefaultCourseSettings getDefaultCourseValue
 	validateSingleCourseSetting validateSettingConfig
 	isInteger isTimeString isTimeDuration isDecimal/;
 
-use DB::Exception::UndefinedCourseField;
-use DB::Exception::InvalidCourseField;
-use DB::Exception::InvalidCourseFieldType;
+use Exception::Class qw(
+	DB::Exception::UndefinedCourseField
+	DB::Exception::InvalidCourseField
+	DB::Exception::InvalidCourseFieldType
+);
 
 use WeBWorK3;
 
@@ -31,7 +34,7 @@ load the default settings from the conf/course_settings.yaml file
 =cut
 
 sub getDefaultCourseSettings () {
-	return LoadFile("$ENV{WW3_ROOT}/conf/course_defaults.yml");
+	return LoadFile(Mojo::Home->new->detect->child('conf', 'course_defaults.yml'));
 }
 
 my @course_setting_categories = qw/email optional general permissions problem problem_set/;

@@ -81,8 +81,7 @@ GetOptions(
 # Load the webwork3 configuration file.
 
 my $config_file = "$main::ww3_dir/conf/webwork3.yml";
-die "The file $config_file does not exist.  Did you make a copy of it from ww3-dev.dist.yml ?"
-	unless (-e $config_file);
+$config_file = "$main::ww3_dir/conf/webwork3.yml.dist" unless -e $config_file;
 
 my $config = LoadFile($config_file);
 
