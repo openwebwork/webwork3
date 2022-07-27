@@ -7,7 +7,7 @@ const { compilerOptions } = requireJSON5('./node_modules/@quasar/app/tsconfig-pr
 module.exports = {
 	preset: 'ts-jest',
 	testEnvironment: 'node',
-	testURL: 'http://localhost:3000/webwork3/api',
+	testURL: 'http://localhost:3333/webwork3/api',
 	globals: {
 		'ts-jest': {
 			'tsconfig': 'tsconfig.json',

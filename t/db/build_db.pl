@@ -28,8 +28,8 @@ use TestUtils qw/loadCSV/;
 my $verbose = 1;
 
 # Load the configuration for the database settings.
-my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
+my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
+$config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 
 # Load the Permissions file

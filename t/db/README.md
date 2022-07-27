@@ -3,7 +3,7 @@
 This directory contains numerous tests for the database interactions. To run the tests,
 `cd` to the top level of the webwork3 directory.
 
-1. Run  `cp conf/ww3-dev.dist.yml conf/ww3-dev.yml`.  This makes a copy of a configuration
+1. Run  `cp conf/webwork3-test.dist.yml conf/webwork3-test.yml`.  This makes a copy of a configuration
 file that the testing uses.  You can look in that file and make any desired changes.
 
 2. Run `perl t/db/build_db.pl`.  This runs a script which restores the database and
