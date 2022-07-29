@@ -32,7 +32,7 @@ sub getUIRoutePermissions ($c) {
 # 5. if the route allows self access return true if the user_id matches the route.
 # 6. checking that the user has a role with an allowed permission.
 #
-use Data::Dumper;
+
 sub checkPermission ($c) {
 	# seems like $c->current_user doesn't have access to the course_id, so we never
 	# get a CourseUser.
@@ -42,9 +42,6 @@ sub checkPermission ($c) {
 	# See https://docs.mojolicious.org/Mojolicious/Guides/Routing#Under
 	my $controller = $c->match->stack->[1]->{controller};
 	my $action     = $c->match->stack->[1]->{action};
-
-	print Dumper $controller;
-	print Dumper $action;
 
 	my $perm_db = $c->schema->resultset('DBPermission')->find({
 		category => $controller,
