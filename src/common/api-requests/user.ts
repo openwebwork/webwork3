@@ -14,7 +14,8 @@ export async function checkIfUserExists(course_id: number, username: string): Pr
 	try {
 		const response = await api.get(`courses/${course_id}/users/${username}/exists`);
 		return response.data as ParseableCourseUser;
-	} catch (_err) {
+	} catch (err) {
+		console.log(err);
 		return {};
 	}
 }

@@ -27,8 +27,8 @@ use TestUtils qw/loadCSV removeIDs/;
 # Test the api with common 'courses/sets' routes.
 
 # Load the config file.
-my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
+my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
+$config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = clone(LoadFile($config_file));
 
 # Connect to the database.

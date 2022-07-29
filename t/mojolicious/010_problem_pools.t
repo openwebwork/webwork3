@@ -18,7 +18,7 @@ use DB::Schema;
 use Clone qw/clone/;
 use Mojo::JSON qw/true false/;
 use YAML::XS qw/LoadFile/;
-use DateTime::Format::Strptime;
+use DateTime::Format::Strptime;Th
 use List::MoreUtils qw/firstval/;
 
 use TestUtils qw/loadCSV removeIDs/;
@@ -27,8 +27,8 @@ my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croa
 # Test the api with common "users" routes.
 
 # Load the config file.
-my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
+my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
+$config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = clone(LoadFile($config_file));
 
 # Connect to the database.

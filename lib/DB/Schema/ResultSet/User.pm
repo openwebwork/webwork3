@@ -77,7 +77,6 @@ sub getGlobalUser ($self, %args) {
 		unless defined($user);
 	return $user if $args{as_result_set};
 	my $params = { $user->get_inflated_columns };
-	# $params->{role} = 'admin' if $user->is_admin;
 	return removeLoginParams($params);
 }
 

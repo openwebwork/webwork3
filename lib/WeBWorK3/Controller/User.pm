@@ -67,6 +67,7 @@ sub getGlobalCourseUsers ($c) {
 
 sub getGlobalUsersFromCourse   ($c) { $c->getGlobalUsers;   return }
 sub getGlobalUserFromCourse    ($c) { $c->getGlobalUser;    return }
+sub getUserCoursesFromCourse   ($c) { $c->getCourseUsers;   return }
 sub addGlobalUserFromCourse    ($c) { $c->addGlobalUser;    return }
 sub updateGlobalUserFromCourse ($c) { $c->updateGlobalUser; return }
 sub deleteGlobalUserFromCourse ($c) { $c->deleteGlobalUser; return }

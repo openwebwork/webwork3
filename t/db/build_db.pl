@@ -342,8 +342,6 @@ sub addUserProblems {
 	return;
 }
 
-# First, make sure the roles/permissions are loaded.
-
 addCourses;
 addUsers;
 addSets;
