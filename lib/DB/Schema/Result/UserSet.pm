@@ -3,8 +3,6 @@ use base qw(DBIx::Class::Core DB::WithParams DB::WithDates);
 
 use strict;
 use warnings;
-use feature 'signatures';
-no warnings qw(experimental::signatures);
 
 =head1 DESCRIPTION
 
@@ -36,10 +34,6 @@ C<course_id>: id of the course the set is in (foreign key)
 
 =item *
 
-C<type>: the type of problem set (see below)
-
-=item *
-
 C<set_visible>: (boolean) visiblility of the set to a student
 
 =item *
@@ -58,31 +52,11 @@ types have different params fields.
 
 =back
 
-=head3 Problem Set types
-
-The three subtypes of a C<ProblemSet> are
-
-=over
-
-=item *
-
-L<DB::Schema::Result::ProblemSet::HWSet> which gives properties common to homework sets.
-
-=item *
-
-L<DB::Schema::Result::ProblemSet::Quiz> which gives properties common to quizzes.
-
-=item *
-
-L<DB::Schema::Result::ProblemSet::ReviewSet> which gives properties common to review sets.
-
-=back
-
 =cut
 
 __PACKAGE__->table('user_set');
 
-__PACKAGE__->load_components(qw/DynamicSubclass Core/, qw/InflateColumn::Serializer Core/);
+__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
 
 __PACKAGE__->add_columns(
 	user_set_id => {
@@ -105,12 +79,7 @@ __PACKAGE__->add_columns(
 		data_type     => 'integer',
 		size          => 16,
 		is_nullable   => 0,
-		default_value => 1,
-	},
-	type => {
-		data_type     => 'int',
-		default_value => 1,
-		size          => 8
+		default_value => 0,
 	},
 	set_visible => {
 		data_type   => 'boolean',
@@ -142,22 +111,19 @@ __PACKAGE__->belongs_to(
 	course_users => 'DB::Schema::Result::CourseUser',
 	{ 'foreign.course_user_id' => 'self.course_user_id' }
 );
-__PACKAGE__->belongs_to(problem_sets => 'DB::Schema::Result::ProblemSet', 'set_id');
+__PACKAGE__->belongs_to(problem_set => 'DB::Schema::Result::ProblemSet', 'set_id');
 __PACKAGE__->has_many(user_problems => 'DB::Schema::Result::UserProblem', 'user_set_id');
 
-# This defines the non-abstract classes of ProblemSets.
-__PACKAGE__->typecast_map(
-	type => {
-		1 => 'DB::Schema::Result::UserSet::HWSet',
-		2 => 'DB::Schema::Result::UserSet::Quiz',
-		3 => 'DB::Schema::Result::UserSet::JITAR',
-		4 => 'DB::Schema::Result::UserSet::ReviewSet',
-	}
-);
+sub inflate_result {
+	my $self = shift;
+	my $ret  = $self->next::method(@_);
+	# bless into subclass based on relation to problem_set
+	return bless $ret, (ref($ret->problem_set) =~ s/:ProblemSet:/:UserSet:/r);
+}
 
-sub set_type ($) {
+sub set_type {
 	my %set_type_rev = reverse %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES};
-	return $set_type_rev{ shift->type };
+	return $set_type_rev{ shift->problem_set->type };
 }
 
 1;
