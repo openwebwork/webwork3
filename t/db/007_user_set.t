@@ -602,7 +602,7 @@ my @otto_user_sets = $user_set_rs->search(
 		'users.username'      => 'otto',
 	},
 	{
-		join => [ { problem_sets => 'courses' }, { course_users => 'users' } ]
+		join => [ { problem_set => 'courses' }, { course_users => 'users' } ]
 	}
 );
 
