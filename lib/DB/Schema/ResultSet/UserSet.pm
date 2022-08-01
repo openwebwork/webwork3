@@ -30,7 +30,6 @@ no warnings qw(experimental::signatures);
 
 use base 'DBIx::Class::ResultSet';
 
-use Clone qw/clone/;
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 use DB::WithDates;
 use DB::WithParams;
@@ -269,7 +268,7 @@ sub getUserSet ($self, %args) {
 
 	my $user_set = $problem_set->user_sets->find({
 		course_user_id => $course_user->course_user_id,
-		set_version    => $args{info}->{set_version} // 1
+		set_version    => $args{info}->{set_version} // 0
 	});
 
 	DB::Exception::UserSetNotInCourse->throw(message => 'The set '
@@ -337,11 +336,18 @@ sub addUserSet ($self, %args) {
 	# Remove user_set_id. The client side does *not* get to determine this.
 	delete $args{params}{user_set_id};
 
-	# The hashref of parameters is a mixture of passed in parameters and defaults. Filter down to only the relevant keys.
-	my %params = map {exists $args{params}{$_} ? ($_ => $args{params}{$_}) : ()} qw/ set_dates set_params set_visible /;
+	# Filter down to only the relevant keys.
+	my %params = 
+			map {exists $args{params}{$_} ? ($_ => $args{params}{$_}) : ()} qw/ set_dates set_params set_visible /;
 	$params{course_user_id} = $course_user->course_user_id;
 
 	my $new_user_set = $problem_set->add_to_user_sets(\%params);
+	foreach ($problem_set->problems->all()) {
+		$_->add_to_user_problems({
+			user_set_id => $new_user_set->user_set_id,
+			seed        => int(rand(10000)),
+		});
+	}
 
 	return $new_user_set if $args{as_result_set};
 
@@ -363,34 +369,37 @@ sub updateUserSet ($self, %args) {
 		username    => $args{info}->{username}
 	) unless defined($user_set);
 
-	# The hashref of parameters is a mixture of passed in parameters and defaults. Filter down to only the relevant keys.
-	my %params = map {exists $args{params}{$_} ? ($_ => $args{params}{$_}) : ()} qw/ set_dates set_params set_visible /;
+	# Filter down to only the relevant keys.
+	my %params = 
+			map {exists $args{params}{$_} ? ($_ => $args{params}{$_}) : ()} qw/ set_dates set_params set_visible /;
 
-	# If any of the dates are 0, then remove them.
-	if ($params{set_dates} && scalar(keys %{$params{set_dates}}) > 0) {
-		for my $key (ref($user_set->problem_set)->valid_dates()) {
-			delete $params{set_dates}{$key}
-				unless defined($params{set_dates}{$key}) && $params{set_dates}{$key} != 0;
+	# If any of the dates match the problem set (or == 0?), then remove them.
+	my $problem_set = $user_set->problem_set;
+	if ($params{set_dates} && scalar(keys %{ $params{set_dates} }) > 0) {
+		foreach (@{ ref($problem_set)->valid_dates() }) {
+			delete $params{set_dates}{$_}
+				unless defined($params{set_dates}{$_})
+					&& $params{set_dates}{$_} != 0
+					&& $params{set_dates}{$_} != $problem_set->set_dates->{$_};
 		}
 	}
-	my $original_dates  = $params{set_dates} // {};
-	my $original_params = $params{set_params} // {};
+
+	# if any of the parameters match the problem set, remove them as well.
+	if ($params{set_params} && scalar(keys %{ $params{set_params} }) > 0) {
+		foreach (keys %{ ref($problem_set)->valid_params() }) {
+			delete $params{set_params}{$_}
+				unless defined($params{set_params}{$_})
+					&& $params{set_params}{$_} # caveat: blocks overriding with empty string
+					&& $params{set_params}{$_} eq $problem_set->set_params->{$_};
+		}
+	}
 
 	# Make sure the parameters and dates are valid when merged with existing problem set.
-	$params{set_dates}  = updateAllFields($user_set->problem_set->set_dates, $params{set_dates} // {});
-	$params{set_params} = updateAllFields($user_set->problem_set->set_params, $params{set_params} // {});
-	my $new_user_set = $self->new_result(\%params);
-
-	# the 'new' user set is not actually inserted,
-	# so we have to manually re-bless this Result into its subclass... *sigh*
-	# ...is there a BETTER way to handle this??
-	bless $new_user_set, (ref($user_set->problem_set) =~ s/:ProblemSet:/:UserSet:/r);
-	$new_user_set->validParams('set_params');
-	$new_user_set->validDates('set_dates');
-
-	# If the dates and params are valid reset to only those passed in.
-	$params{set_dates}  = $original_dates;
-	$params{set_params} = $original_params;
+	$problem_set->set_dates(updateAllFields($problem_set->set_dates, $params{set_dates} // {}));
+	$problem_set->set_params(updateAllFields($problem_set->set_params, $params{set_params} // {}));
+	$problem_set->validParams('set_params');
+	$problem_set->validDates('set_dates');
+	$problem_set->discard_changes;
 
 	my $updated_user_set = $user_set->update(\%params);
 

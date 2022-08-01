@@ -22,23 +22,19 @@ __PACKAGE__->add_columns(
 	user_problem_id => {
 		data_type         => 'integer',
 		size              => 16,
-		is_nullable       => 0,
 		is_auto_increment => 1,
 	},
 	set_problem_id => {
 		data_type   => 'integer',
 		size        => 16,
-		is_nullable => 0,
 	},
 	user_set_id => {
 		data_type   => 'integer',
 		size        => 16,
-		is_nullable => 0,
 	},
 	seed => {
 		data_type   => 'integer',
 		size        => 16,
-		is_nullable => 0,
 	},
 	status => {
 		data_type     => 'decimal',
@@ -47,14 +43,14 @@ __PACKAGE__->add_columns(
 		default_value => '0.00000'
 	},
 	problem_version => {
-		data_type   => 'integer',
-		size        => 16,
-		is_nullable => 1
+		data_type     => 'integer',
+		size          => 16,
+		is_nullable   => 1,
+		default_value => 1,
 	},
 	problem_params => {
 		data_type          => 'text',
 		size               => 1024,
-		is_nullable        => 0,
 		default_value      => '{}',
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
