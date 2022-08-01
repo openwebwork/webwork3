@@ -337,8 +337,8 @@ sub addUserSet ($self, %args) {
 	delete $args{params}{user_set_id};
 
 	# Filter down to only the relevant keys.
-	my %params = 
-			map {exists $args{params}{$_} ? ($_ => $args{params}{$_}) : ()} qw/ set_dates set_params set_visible /;
+	my %params =
+		map { exists $args{params}{$_} ? ($_ => $args{params}{$_}) : () } qw/ set_dates set_params set_visible /;
 	$params{course_user_id} = $course_user->course_user_id;
 
 	my $new_user_set = $problem_set->add_to_user_sets(\%params);
@@ -370,8 +370,8 @@ sub updateUserSet ($self, %args) {
 	) unless defined($user_set);
 
 	# Filter down to only the relevant keys.
-	my %params = 
-			map {exists $args{params}{$_} ? ($_ => $args{params}{$_}) : ()} qw/ set_dates set_params set_visible /;
+	my %params =
+		map { exists $args{params}{$_} ? ($_ => $args{params}{$_}) : () } qw/ set_dates set_params set_visible /;
 
 	# If any of the dates match the problem set (or == 0?), then remove them.
 	my $problem_set = $user_set->problem_set;
@@ -379,23 +379,24 @@ sub updateUserSet ($self, %args) {
 		foreach (@{ ref($problem_set)->valid_dates() }) {
 			delete $params{set_dates}{$_}
 				unless defined($params{set_dates}{$_})
-					&& $params{set_dates}{$_} != 0
-					&& $params{set_dates}{$_} != $problem_set->set_dates->{$_};
+				&& $params{set_dates}{$_} != 0
+				&& $params{set_dates}{$_} != $problem_set->set_dates->{$_};
 		}
 	}
 
 	# if any of the parameters match the problem set, remove them as well.
+	# caveat: blocks overriding with empty string
 	if ($params{set_params} && scalar(keys %{ $params{set_params} }) > 0) {
 		foreach (keys %{ ref($problem_set)->valid_params() }) {
 			delete $params{set_params}{$_}
 				unless defined($params{set_params}{$_})
-					&& $params{set_params}{$_} # caveat: blocks overriding with empty string
-					&& $params{set_params}{$_} eq $problem_set->set_params->{$_};
+				&& $params{set_params}{$_}
+				&& $params{set_params}{$_} eq $problem_set->set_params->{$_};
 		}
 	}
 
 	# Make sure the parameters and dates are valid when merged with existing problem set.
-	$problem_set->set_dates(updateAllFields($problem_set->set_dates, $params{set_dates} // {}));
+	$problem_set->set_dates(updateAllFields($problem_set->set_dates, $params{set_dates}    // {}));
 	$problem_set->set_params(updateAllFields($problem_set->set_params, $params{set_params} // {}));
 	$problem_set->validParams('set_params');
 	$problem_set->validDates('set_dates');

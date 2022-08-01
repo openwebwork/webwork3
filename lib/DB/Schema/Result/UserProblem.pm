@@ -25,16 +25,16 @@ __PACKAGE__->add_columns(
 		is_auto_increment => 1,
 	},
 	set_problem_id => {
-		data_type   => 'integer',
-		size        => 16,
+		data_type => 'integer',
+		size      => 16,
 	},
 	user_set_id => {
-		data_type   => 'integer',
-		size        => 16,
+		data_type => 'integer',
+		size      => 16,
 	},
 	seed => {
-		data_type   => 'integer',
-		size        => 16,
+		data_type => 'integer',
+		size      => 16,
 	},
 	status => {
 		data_type     => 'decimal',
