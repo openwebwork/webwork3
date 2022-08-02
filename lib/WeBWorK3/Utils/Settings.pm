@@ -166,6 +166,7 @@ sub validateMultilist ($setting, $value) {
 	throw DB::Exception::InvalidCourseFieldType->throw(
 		message => "The values for $setting->{setting_name} must be a subset of the options field")
 		unless scalar(@diff) == 0;
+	return 1;
 }
 
 # Test for an integer.
