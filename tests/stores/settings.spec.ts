@@ -19,7 +19,7 @@ import { api } from 'boot/axios';
 
 import { useSessionStore } from 'src/stores/session';
 import { useSettingsStore } from 'src/stores/settings';
-import { DBCourseSetting, ParseableDBCourseSetting, ParseableGlobalSetting, SettingValueType
+import { CourseSetting, DBCourseSetting, ParseableDBCourseSetting, ParseableGlobalSetting, SettingValueType
 } from 'src/common/models/settings';
 
 import { cleanIDs, loadCSV } from '../utils';
@@ -100,6 +100,21 @@ describe('Test the settings store', () => {
 			expect(() => {
 				settings_store.getCourseSetting('non_existant_setting');
 			}).toThrowError('The setting with name: \'non_existant_setting\' does not exist.');
+		});
+
+		test('Get all course settings for a given category', () => {
+			const settings_store = useSettingsStore();
+			const settings_from_db = settings_store.getSettingsByCategory('general');
+			const settings_from_file = default_settings
+				.filter(setting => setting.category === 'general')
+				.map(setting => new CourseSetting(setting));
+				// merge in the course setting overrides.
+			settings_from_file.forEach(setting => {
+				const db_setting = arith_settings.find(a_setting => setting.setting_name === a_setting.setting_name);
+				if (db_setting) setting.value = db_setting.value;
+			});
+
+			expect(cleanIDs(settings_from_db)).toStrictEqual(cleanIDs(settings_from_file));
 		});
 	});
 

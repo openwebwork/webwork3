@@ -101,10 +101,12 @@ sub addSettings {
 		die "the course: '$setting->{course_name}' does not exist in the db" unless $course;
 		my $global_setting = $global_setting_rs->find({ setting_name => $setting->{setting_name} });
 		die "the setting: '$setting->{setting_name}' does not exist in the db" unless $global_setting;
+
 		$course->add_to_course_settings({
 			course_id  => $course->course_id,
 			setting_id => $global_setting->setting_id,
-			value      => $setting->{setting_value}
+			# encode value as a JSON object.
+			value => { value => $setting->{setting_value} }
 		});
 	}
 	return;

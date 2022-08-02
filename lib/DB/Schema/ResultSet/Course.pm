@@ -356,18 +356,19 @@ sub getCourseSettings ($self, %args) {
 	my @settings_from_db = $course->course_settings;
 
 	return \@settings_from_db if $args{as_result_set};
-	my @settings_to_return;
-	if ($args{merged}) {
-		@settings_to_return = map {
+	my @settings_to_return = ($args{merged})
+		? map {
 			{ $_->get_inflated_columns, $_->global_setting->get_inflated_columns };
-		} @settings_from_db;
-		for my $setting (@settings_to_return) {
-			$setting->{default_value} = $setting->{default_value}->{value};
-		}
-	} else {
-		@settings_to_return = map {
+		} @settings_from_db
+		: map {
 			{ $_->get_inflated_columns };
 		} @settings_from_db;
+
+	for my $setting (@settings_to_return) {
+		# value and default_value are decoded from JSON as a hash.  Return to a value.
+		for my $key (qw/default_value value/) {
+			$setting->{$key} = $setting->{$key}->{value} if defined($setting->{$key});
+		}
 	}
 	return \@settings_to_return;
 }
@@ -409,13 +410,16 @@ sub getCourseSetting ($self, %args) {
 	my $setting = $course->course_settings->find({ setting_id => $global_setting->setting_id });
 
 	return $setting if $args{as_result_set};
-	if ($args{merged}) {
-		my $setting_to_return = { $setting->get_inflated_columns, $setting->global_setting->get_inflated_columns };
-		$setting_to_return->{default_value} = $setting_to_return->{default_value}->{value};
-		return $setting_to_return;
-	} else {
-		return { $setting->get_inflated_columns };
+	my $setting_to_return =
+		$args{merged}
+		? { $setting->get_inflated_columns, $setting->global_setting->get_inflated_columns }
+		: { $setting->get_inflated_columns };
+
+	# value and default_value are decoded from JSON as a hash.  Return to a value.
+	for my $key (qw/default_value value/) {
+		$setting_to_return->{$key} = $setting_to_return->{$key}->{value} if defined($setting_to_return->{$key});
 	}
+	return $setting_to_return;
 }
 
 =pod
@@ -445,7 +449,9 @@ global setting.
 A single course setting as either a hashref or a C<DBIx::Class::ResultSet::CourseSetting> object.
 
 =cut
+
 use Data::Dumper;
+
 sub updateCourseSetting ($self, %args) {
 	my $course = $self->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 
@@ -460,32 +466,32 @@ sub updateCourseSetting ($self, %args) {
 	my $params = {
 		course_id  => $course->course_id,
 		setting_id => $global_setting->{setting_id},
-		value      => $args{params}->{value}
+		value      => { value => $args{params}->{value} }
 	};
 
 	# remove the following fields before checking for valid settings:
 	for (qw/setting_id course_id/) { delete $global_setting->{$_}; }
 
-	isValidSetting($global_setting, $params->{value});
+	isValidSetting($global_setting, $params->{value}->{value});
 
 	# The course_id must be deleted to ensure it is written to the database correctly.
 	delete $params->{course_id} if defined($params->{course_id});
 
-	my $updated_course_setting = defined($course_setting) ? $course_setting->update($params) : $course->add_to_course_settings($params);
+	my $updated_course_setting =
+		defined($course_setting) ? $course_setting->update($params) : $course->add_to_course_settings($params);
 
-	if ($args{merged}) {
-		my $setting_to_return = {
-			$updated_course_setting->get_inflated_columns,
-			$updated_course_setting->global_setting->get_inflated_columns
-		};
-		$setting_to_return->{default_value} = $setting_to_return->{default_value}->{value};
-		return $setting_to_return;
-	} else {
-		return { $updated_course_setting->get_inflated_columns };
+	return $updated_course_setting if $args{as_result_set};
+	my $setting_to_return =
+		($args{merged})
+		? { $updated_course_setting->get_inflated_columns,
+			$updated_course_setting->global_setting->get_inflated_columns }
+		: { $updated_course_setting->get_inflated_columns };
+
+	# value and default_value are decoded from JSON as a hash.  Return to a value.
+	for my $key (qw/default_value value/) {
+		$setting_to_return->{$key} = $setting_to_return->{$key}->{value} if defined($setting_to_return->{$key});
 	}
-
-
-	return $args{as_result_set} ? $updated_course_setting : { $updated_course_setting->get_inflated_columns };
+	return $setting_to_return;
 }
 
 =pod
@@ -516,7 +522,17 @@ sub deleteCourseSetting ($self, %args) {
 	my $deleted_setting = $setting->delete;
 
 	return $deleted_setting if $args{as_result_set};
-	return { $deleted_setting->get_inflated_columns };
+
+	my $setting_to_return =
+		($args{merged})
+		? { $deleted_setting->get_inflated_columns, $deleted_setting->global_setting->get_inflated_columns }
+		: { $deleted_setting->get_inflated_columns };
+
+	# value and default_value are decoded from JSON as a hash.  Return to a value.
+	for my $key (qw/default_value value/) {
+		$setting_to_return->{$key} = $setting_to_return->{$key}->{value} if defined($setting_to_return->{$key});
+	}
+	return $setting_to_return;
 }
 
 1;

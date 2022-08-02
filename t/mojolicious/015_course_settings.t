@@ -40,7 +40,6 @@ $t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 
 # Load the global settings from the file
 my $global_settings_from_file = LoadFile("$main::ww3_dir/conf/course_settings.yml");
 
-
 # Get the global/default settings
 
 $t->get_ok('/webwork3/api/global-settings')->content_type_is('application/json;charset=UTF-8')->status_is(200);
@@ -61,23 +60,22 @@ is_deeply($global_settings_from_db, $global_settings_from_file, 'test that the g
 
 # get a single global/default setting
 $t->get_ok('/webwork3/api/global-setting/1')->content_type_is('application/json;charset=UTF-8')->status_is(200)
-	->json_is('/setting_name' => $global_settings_from_file->[0]->{setting_name})
+	->json_is('/setting_name'  => $global_settings_from_file->[0]->{setting_name})
 	->json_is('/default_value' => $global_settings_from_file->[0]->{default_value})
-	->json_is('/description' => $global_settings_from_file->[0]->{description});
+	->json_is('/description'   => $global_settings_from_file->[0]->{description});
 
 # Get all of the course settings for Arithmetic from the csv file:
 my @course_settings = loadCSV("$main::ww3_dir/t/db/sample_data/course_settings.csv");
 
 @course_settings = grep { $_->{course_name} eq 'Arithmetic' } @course_settings;
 
-
 # pull out setting_name/value pairs
 for my $setting (@course_settings) {
 	$setting = {
 		setting_name => $setting->{setting_name},
-		value => $setting->{setting_value}
-	}
-};
+		value        => $setting->{setting_value}
+	};
+}
 
 # Get all course settings for a course (Arithmetic- course_id: 4)
 
@@ -87,9 +85,9 @@ my $course_settings_from_db = $t->tx->res->json;
 for my $setting (@$course_settings_from_db) {
 	$setting = {
 		setting_name => $setting->{setting_name},
-		value => $setting->{value}
-	}
-};
+		value        => $setting->{value}
+	};
+}
 
 is_deeply($course_settings_from_db, \@course_settings, 'Ensure that the course settings are correct.');
 
@@ -97,14 +95,13 @@ is_deeply($course_settings_from_db, \@course_settings, 'Ensure that the course s
 
 my $reduced_scoring = firstval { $_->{setting_name} eq 'reduced_scoring_value' } @$global_settings;
 
-$t->put_ok("/webwork3/api/courses/4/settings/$reduced_scoring->{setting_id}" => json =>{
-	value => 0.5
-})->content_type_is('application/json;charset=UTF-8')->status_is(200)
-->json_is('/value' => 0.5);
+$t->put_ok(
+	"/webwork3/api/courses/4/settings/$reduced_scoring->{setting_id}" => json => {
+		value => 0.5
+	}
+)->content_type_is('application/json;charset=UTF-8')->status_is(200)->json_is('/value' => 0.5);
 
 $t->delete_ok("/webwork3/api/courses/4/settings/$reduced_scoring->{setting_id}")
-	->content_type_is('application/json;charset=UTF-8')->status_is(200)
-	->json_is('/value' => 0.5);
-
+	->content_type_is('application/json;charset=UTF-8')->status_is(200)->json_is('/value' => 0.5);
 
 done_testing;

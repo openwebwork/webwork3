@@ -79,7 +79,7 @@ ok(!isDecimal('abc'),   'check type: not a decimal');
 
 # Check that each of the given course_setting types are both valid and invalid.
 my $valid_setting = {
-	setting_name          => 'my_setting',
+	setting_name  => 'my_setting',
 	description   => 'this is a setting',
 	type          => 'int',
 	category      => 'general',
@@ -90,7 +90,7 @@ ok(isValidSetting($valid_setting), 'course setting: valid setting');
 # Check that the setting hash has only valid fields
 throws_ok {
 	isValidSetting({
-		setting_name          => 'my_setting',
+		setting_name  => 'my_setting',
 		doc3          => 'this is a setting',
 		type          => 'int',
 		category      => 'general',
@@ -101,7 +101,7 @@ throws_ok {
 
 throws_ok {
 	isValidSetting({
-		setting_name          => 'my_setting',
+		setting_name  => 'my_setting',
 		type          => 'int',
 		category      => 'general',
 		default_value => 0
@@ -111,7 +111,7 @@ throws_ok {
 
 throws_ok {
 	isValidSetting({
-		setting_name          => 'my_setting',
+		setting_name  => 'my_setting',
 		description   => 'this is a setting',
 		type          => 'nonnegint',
 		category      => 'general',
@@ -124,7 +124,7 @@ throws_ok {
 
 throws_ok {
 	isValidSetting({
-		setting_name          => 'my_setting',
+		setting_name  => 'my_setting',
 		description   => 'this is a setting',
 		type          => 'time',
 		category      => 'general',
@@ -135,7 +135,7 @@ throws_ok {
 
 throws_ok {
 	isValidSetting({
-		setting_name          => 'my_setting',
+		setting_name  => 'my_setting',
 		description   => 'this is a setting',
 		type          => 'integer',
 		category      => 'general',
@@ -146,7 +146,7 @@ throws_ok {
 
 throws_ok {
 	isValidSetting({
-		setting_name          => 'my_setting',
+		setting_name  => 'my_setting',
 		description   => 'this is a setting',
 		type          => 'time_duration',
 		category      => 'general',
@@ -157,7 +157,7 @@ throws_ok {
 
 throws_ok {
 	isValidSetting({
-		setting_name          => 'my_setting',
+		setting_name  => 'my_setting',
 		description   => 'this is a setting',
 		type          => 'decimal',
 		category      => 'general',
@@ -182,8 +182,7 @@ for my $setting (@$global_settings) {
 local $YAML::XS::Boolean = "JSON::PP";
 my $global_settings_from_file = LoadFile("$main::ww3_dir/conf/course_settings.yml");
 
-is_deeply($global_settings, $global_settings_from_file,
-	'default settings: db values are the same as the file values.');
+is_deeply($global_settings, $global_settings_from_file, 'default settings: db values are the same as the file values.');
 
 # Make sure all of the default settings are valid
 for my $setting (@$global_settings) {
@@ -217,19 +216,36 @@ for my $setting (@$arith_settings_from_db) {
 is_deeply($arith_settings_from_db, \@arith_settings, 'getCourseSettings: compare settings for given course');
 
 my $updated_setting = $course_rs->updateCourseSetting(
-	info   => {
-		course_id => $new_course->{course_id},
+	info => {
+		course_id    => $new_course->{course_id},
 		setting_name => 'course_description'
 	},
 	params => { value => 'This is my new course description' }
 );
 
-is('This is my new course description', $updated_setting->{value}, 'updateCourseSetting: successfully update a course setting');
+# Check that updating a boolean is a JSON boolean
+
+my $boolean_setting = $course_rs->updateCourseSetting(
+	info => {
+		course_id    => $new_course->{course_id},
+		setting_name => 'enable_conditional_release'
+	},
+	params => { value => true }
+);
+
+is($boolean_setting->{value}, true, 'updateCourseSetting: ensure that a value is truthy');
+ok(JSON::PP::is_bool($boolean_setting->{value}), 'updateCourseSetting: ensure that a value is a JSON boolean');
+
+is(
+	'This is my new course description',
+	$updated_setting->{value},
+	'updateCourseSetting: successfully update a course setting'
+);
 
 my $fetched_setting = $course_rs->getCourseSetting(
 	info => {
-		course_id => $new_course->{course_id},
-		setting_name      => 'course_description'
+		course_id    => $new_course->{course_id},
+		setting_name => 'course_description'
 	}
 );
 
@@ -239,9 +255,9 @@ is($fetched_setting->{value}, $updated_setting->{value}, 'getCourseSetting: fetc
 
 throws_ok {
 	$course_rs->updateCourseSetting(
-		info   => {
-			course_id => $new_course->{course_id},
-			setting_name  => 'non_existant_setting'
+		info => {
+			course_id    => $new_course->{course_id},
+			setting_name => 'non_existant_setting'
 		},
 		params => { value => 3 }
 	);
@@ -250,20 +266,20 @@ throws_ok {
 
 throws_ok {
 	$course_rs->updateCourseSetting(
-		info   => {
-			course_id => $new_course->{course_id},
-			setting_name  => 'language'
+		info => {
+			course_id    => $new_course->{course_id},
+			setting_name => 'language'
 		},
-		params => { value => 'Klingon'}
+		params => { value => 'Klingon' }
 	);
 }
 'DB::Exception::InvalidCourseFieldType', 'updateCourseSetting: try to update the list setting.';
 
 throws_ok {
 	$course_rs->updateCourseSetting(
-		info   => {
-			course_id => $new_course->{course_id},
-			setting_name  => 'session_key_timeout'
+		info => {
+			course_id    => $new_course->{course_id},
+			setting_name => 'session_key_timeout'
 		},
 		params => { value => '45 years' }
 	);
@@ -272,9 +288,9 @@ throws_ok {
 
 throws_ok {
 	$course_rs->updateCourseSetting(
-		info   => {
-			course_id => $new_course->{course_id},
-			setting_name  => 'enable_reduced_scoring'
+		info => {
+			course_id    => $new_course->{course_id},
+			setting_name => 'enable_reduced_scoring'
 		},
 		params => { value => 'true' }
 	);
@@ -283,9 +299,9 @@ throws_ok {
 
 throws_ok {
 	$course_rs->updateCourseSetting(
-		info   => {
-			course_id => $new_course->{course_id},
-			setting_name  => 'show_me_another_default'
+		info => {
+			course_id    => $new_course->{course_id},
+			setting_name => 'show_me_another_default'
 		},
 		params => { value => 'true' }
 	);
@@ -294,9 +310,9 @@ throws_ok {
 
 throws_ok {
 	$course_rs->updateCourseSetting(
-		info   => {
-			course_id => $new_course->{course_id},
-			setting_name  => 'display_mode_options'
+		info => {
+			course_id    => $new_course->{course_id},
+			setting_name => 'display_mode_options'
 		},
 		params => { value => [ '1', '2' ] }
 	);
@@ -305,9 +321,9 @@ throws_ok {
 
 throws_ok {
 	$course_rs->updateCourseSetting(
-		info   => {
-			course_id => $new_course->{course_id},
-			setting_name  => 'num_rel_percent_tol_default'
+		info => {
+			course_id    => $new_course->{course_id},
+			setting_name => 'num_rel_percent_tol_default'
 		},
 		params => { value => 'true' }
 	);
@@ -318,12 +334,21 @@ throws_ok {
 
 my $deleted_setting = $course_rs->deleteCourseSetting(
 	info => {
-		course_name => 'New Course',
-		setting_name        => 'course_description'
+		course_name  => 'New Course',
+		setting_name => 'course_description'
 	}
 );
 
 is_deeply($deleted_setting, $updated_setting, 'deleteCourseSetting: delete a course setting.');
+
+my $deleted_setting2 = $course_rs->deleteCourseSetting(
+	info => {
+		course_name  => 'New Course',
+		setting_name => 'enable_conditional_release'
+	}
+);
+
+is_deeply($deleted_setting2, $boolean_setting, 'deleteCourseSetting: delete another course setting.');
 
 # Finally delete the course that was made
 $course_rs->deleteCourse(info => { course_id => $new_course->{course_id} });

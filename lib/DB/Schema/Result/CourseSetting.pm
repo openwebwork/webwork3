@@ -25,13 +25,15 @@ C<setting_id>: database id that the given setting is related to (foreign key)
 
 =item *
 
-C<value>: the value of the setting
+C<value>: the value of the setting as a JSON so different types of data can be stored.
 
 =back
 
 =cut
 
 __PACKAGE__->table('course_setting');
+
+__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
 
 __PACKAGE__->add_columns(
 	course_setting_id => {
@@ -51,8 +53,11 @@ __PACKAGE__->add_columns(
 		is_nullable => 0,
 	},
 	value => {
-		data_type   => 'text',
-		is_nullable => 0,
+		data_type          => 'text',
+		is_nullable        => 0,
+		default_value      => '\'\'',
+		serializer_class   => 'JSON',
+		serializer_options => { utf8 => 1 }
 	},
 );
 
