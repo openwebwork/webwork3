@@ -5,15 +5,19 @@ use warnings;
 use feature 'signatures';
 no warnings qw(experimental::signatures);
 
+use YAML::XS qw/LoadFile/;
+use Mojo::Home;
 use Carp;
 
 require Exporter;
 use base qw(Exporter);
 our @EXPORT_OK = qw/isValidSetting mergeCourseSettings isInteger isTimeString isTimeDuration isDecimal/;
 
-use DB::Exception::UndefinedCourseField;
-use DB::Exception::InvalidCourseField;
-use DB::Exception::InvalidCourseFieldType;
+use Exception::Class qw(
+	DB::Exception::UndefinedCourseField
+	DB::Exception::InvalidCourseField
+	DB::Exception::InvalidCourseFieldType
+);
 
 use DateTime::TimeZone;
 use JSON::PP;
@@ -23,6 +27,17 @@ my @allowed_fields            = qw/setting_name category subcategory description
 my @required_fields           = qw/setting_name description type default_value/;
 my @course_setting_categories = qw/email optional general permissions problem problem_set/;
 my @valid_types               = qw/text list multilist boolean int decimal time date_time time_duration timezone/;
+
+=head1 loadDefaultCourseSettings
+
+load the default settings from the conf/course_settings.yaml file
+
+=cut
+
+sub getDefaultCourseSettings () {
+	return LoadFile(Mojo::Home->new->detect->child('conf', 'course_defaults.yml'));
+}
+
 
 =pod
 

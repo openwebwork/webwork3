@@ -4,11 +4,6 @@ use Mojo::Base 'Mojolicious', -signatures;
 use Mojo::File qw(curfile path);
 use YAML::XS qw/LoadFile/;
 
-BEGIN {
-	use Env qw(WW3_ROOT);
-	$WW3_ROOT = curfile->dirname->dirname->to_string;
-}
-
 use DB::Schema;
 use WeBWorK3::Hooks;
 
@@ -16,14 +11,28 @@ my $perm_table;
 
 # This method will run once at server start
 sub startup ($self) {
-	# log to file if we're in production mode
+	# Pick the config file to use and set up logging dependant on the mode being run in.
+	my $config_file;
 	if ($ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'production') {
-		my $path = path("$ENV{WW3_ROOT}/logs")->make_path->child('webwork3.log');
-		$self->log->path($path);
+		$self->log->path($self->home->child('logs', 'webwork3.log'));
+
+		$config_file = $self->home->child('conf', 'webwork3.yml');
+		$config_file = $self->home->child('conf', 'webwork3.dist.yml') unless -e $config_file;
+	} elsif ($ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'test') {
+		$self->log->path($self->home->child('logs', 'webwork3_test.log'));
+		$self->log->level('trace');
+
+		$config_file = $self->home->child('conf', 'webwork3-test.yml');
+		$config_file = $self->home->child('conf', 'webwork3-test.dist.yml') unless -e $config_file;
+		$self->plugin(NotYAMLConfig => { file => $config_file });
+	} else {
+		$config_file = $self->home->child('conf', 'webwork3-dev.yml');
+		$config_file = $self->home->child('conf', 'webwork3.yml')      unless -e $config_file;
+		$config_file = $self->home->child('conf', 'webwork3.dist.yml') unless -e $config_file;
 	}
 
 	# Load configuration from config file
-	my $config = $self->plugin('NotYAMLConfig');
+	my $config = $self->plugin(NotYAMLConfig => { file => $config_file });
 
 	# Configure the application
 	$self->secrets($config->{secrets});
@@ -54,7 +63,7 @@ sub startup ($self) {
 	$self->sessions->secure($config->{cookie_secure});
 
 	# Load permissions and set up a helper for dealing with permissions.
-	$perm_table = LoadFile("$ENV{WW3_ROOT}/conf/permissions.yaml");
+	$perm_table = LoadFile($self->home->child('conf', 'permissions.yaml'));
 	$self->helper(perm_table => sub ($c) { return $perm_table; });
 
 	# Handle all api route exceptions

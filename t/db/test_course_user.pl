@@ -21,7 +21,7 @@ use Try::Tiny;
 use DB::WithParams;
 use DB::WithDates;
 use DB::Schema;
-use DB::TestUtils qw/loadCSV removeIDs/;
+use TestUtils qw/loadCSV removeIDs/;
 
 # load the database
 my $db_file = "$main::test_dir/sample_db.sqlite";

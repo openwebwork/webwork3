@@ -12,6 +12,7 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use Test::More;
 use Test::Exception;
@@ -22,12 +23,12 @@ use Try::Tiny;
 use YAML::XS qw/LoadFile/;
 
 use DB::Schema;
-use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
+use TestUtils qw/loadCSV removeIDs loadSchema/;
 use DB::Utils qw/updateAllFields/;
 
 # Set up the database.
-my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
+my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
+$config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 
 my $config = LoadFile($config_file);
 

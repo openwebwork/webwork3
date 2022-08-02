@@ -9,6 +9,7 @@ node_modules
 
 # Log files
 logs/*
+!logs/.gitkeep
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -26,8 +27,7 @@ pnpm-debug.log*
 
 # Project files
 sample_db.sqlite
-conf/webwork3.yml
-conf/ww3-dev.yml
+conf/webwork3*.yml
 conf/apache2/webwork3-apache2.conf
 conf/apache2/webwork3.service
 conf/apache2/renderer.service

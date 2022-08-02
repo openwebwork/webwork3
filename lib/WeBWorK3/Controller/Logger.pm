@@ -3,12 +3,11 @@ use warnings;
 use strict;
 
 use Mojo::Base 'Mojolicious::Controller', -signatures;
-use Mojo::File qw(path);
+use Mojo::Home;
 use Mojo::Log;
 use JSON qw(decode_json);
 
-my $path          = path("$ENV{WW3_ROOT}/logs")->make_path->child('clientLog.log');
-my $clientLogFile = Mojo::Log->new(path => $path);
+my $clientLogFile = Mojo::Log->new(path => Mojo::Home->new->detect->child('logs', 'clientLog.log'));
 
 sub clientLog ($c) {
 	my $rawJSON  = $c->req->body;

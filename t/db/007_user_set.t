@@ -13,6 +13,7 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use DateTime::Format::Strptime;
 use Test::More;
@@ -23,11 +24,11 @@ use YAML::XS qw/LoadFile/;
 use Mojo::JSON qw/true false/;
 
 use DB::Schema;
-use DB::TestUtils qw/loadCSV removeIDs/;
+use TestUtils qw/loadCSV removeIDs/;
 
 # Load the configuration files
-my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
+my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
+$config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 

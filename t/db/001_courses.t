@@ -12,6 +12,7 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use List::MoreUtils qw(uniq);
 
@@ -24,11 +25,11 @@ use DB::WithParams;
 use DB::WithDates;
 use DB::Schema;
 
-use DB::TestUtils qw/loadCSV removeIDs loadSchema/;
+use TestUtils qw/loadCSV removeIDs loadSchema/;
 
 # Load the database
-my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
+my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
+$config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
 my $strp   = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');

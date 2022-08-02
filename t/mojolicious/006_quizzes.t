@@ -15,18 +15,19 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use DB::Schema;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
-use DB::TestUtils qw/loadCSV/;
+use TestUtils qw/loadCSV/;
 use List::MoreUtils qw/firstval/;
 
 # Test the api with common 'courses/sets' routes for quizzes.
 
 # Load the config file.
-my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
+my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
+$config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = clone(LoadFile($config_file));
 
 my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
