@@ -217,8 +217,7 @@ sub problemRoutes ($app, $course_routes) {
 }
 
 sub settingsRoutes ($self) {
-	$self->routes->get('/webwork3/api/global-settings')->requires(authenticated => 1)
-		->to('Settings#getGlobalSettings');
+	$self->routes->get('/webwork3/api/global-settings')->requires(authenticated => 1)->to('Settings#getGlobalSettings');
 	$self->routes->get('/webwork3/api/global-setting/:setting_id')->requires(authenticated => 1)
 		->to('Settings#getGlobalSetting');
 	$self->routes->get('/webwork3/api/courses/:course_id/settings')->requires(authenticated => 1)

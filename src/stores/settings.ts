@@ -3,7 +3,7 @@ import { defineStore } from 'pinia';
 
 import { useSessionStore } from 'src/stores/session';
 import { CourseSetting, DBCourseSetting, GlobalSetting, ParseableDBCourseSetting,
-	ParseableGlobalSetting } from 'src/common/models/settings';
+	ParseableGlobalSetting, SettingValueType } from 'src/common/models/settings';
 
 export interface SettingsState {
 	// These are the default setting and documentation
@@ -43,16 +43,25 @@ export const useSettingsStore = defineStore('settings', {
 			}
 		},
 		/**
-		 * This returns the value of the setting in the course.  If the setting has been
-		 * changed from the default, that value is used, if not the default value is used.
+		 * This returns the value of the setting in the course passed in as a string.  If the
+		 * setting has been changed from the default, that value is used, if not the default value is used.
 		 */
 		// Note: using standard function notation (not arrow) due to using this.
-		getSettingValue() {
+		getSettingValue(): {(setting_name: string): SettingValueType} {
 			return (setting_name: string) => {
 				const course_setting = this.getCourseSetting(setting_name);
 				return course_setting.value;
 			};
 		},
+		/**
+		 * This returns the course settings for the given category (as a string)
+		 */
+		getSettingsByCategory(state): { (category_name: string): CourseSetting[] } {
+			return (category_name: string): CourseSetting[] => {
+				const category = state.global_settings.filter(setting => setting.category === category_name);
+				return category.map(setting => this.getCourseSetting(setting.setting_name));
+			};
+		}
 	},
 	actions: {
 		async fetchGlobalSettings(): Promise<void> {

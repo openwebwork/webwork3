@@ -101,9 +101,7 @@ const changeCourse = (course_id: number) => {
 	}
 };
 
-const availableLocales = computed(() =>
-	settings.default_settings.find((setting: CourseSettingInfo) => setting.var === 'language')?.options
-);
+const availableLocales = computed(() => settings.getCourseSetting('language')?.options);
 
 const logout = async () => {
 	await endSession();

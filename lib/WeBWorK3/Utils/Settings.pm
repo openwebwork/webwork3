@@ -35,7 +35,7 @@ sub getDefaultCourseSettings () {
 }
 
 my @course_setting_categories = qw/email optional general permissions problem problem_set/;
-my @valid_types = qw/text list multilist boolean int decimal time date_time time_duration timezone/;
+my @valid_types               = qw/text list multilist boolean int decimal time date_time time_duration timezone/;
 
 =pod
 
@@ -88,8 +88,8 @@ sub isValidSetting ($setting, $value = undef) {
 	} elsif ($setting->{type} eq 'multilist') {
 		validateMultilist($setting, $val);
 	} elsif ($setting->{type} eq 'time') {
-		DB::Exception::InvalidCourseFieldType->throw(
-			message => qq/The variable $setting->{setting_name} has value $val and must be a time in the form XX:XX/)
+		DB::Exception::InvalidCourseFieldType->throw(message =>
+				qq/The variable $setting->{setting_name} has value $val and must be a time in the form XX:XX/)
 			unless isTimeString($val);
 	} elsif ($setting->{type} eq 'int') {
 		DB::Exception::InvalidCourseFieldType->throw(
@@ -128,7 +128,8 @@ sub validateList ($setting, $value) {
 	DB::Exception::InvalidCourseFieldType->throw(
 		message => "The options field for the type list in $setting->{setting_name} is missing ")
 		unless defined($setting->{options});
-	DB::Exception::InvalidCourseFieldType->throw(message => "The options field for $setting->{setting_name} is not an ARRAYREF")
+	DB::Exception::InvalidCourseFieldType->throw(
+		message => "The options field for $setting->{setting_name} is not an ARRAYREF")
 		unless ref($setting->{options}) eq 'ARRAY';
 
 	DB::Exception::InvalidCourseFieldType->throw(
@@ -160,7 +161,8 @@ sub validateMultilist ($setting, $value) {
 	DB::Exception::InvalidCourseFieldType->throw(
 		message => "The options field for the type multilist in $setting->{setting_name} is missing ")
 		unless defined($setting->{options});
-	DB::Exception::InvalidCourseFieldType->throw(message => "The options field for $setting->{setting_name} is not an ARRAYREF")
+	DB::Exception::InvalidCourseFieldType->throw(
+		message => "The options field for $setting->{setting_name} is not an ARRAYREF")
 		unless ref($setting->{options}) eq 'ARRAY';
 
 	my @diff = array_minus(@{ $setting->{options} }, @$value);

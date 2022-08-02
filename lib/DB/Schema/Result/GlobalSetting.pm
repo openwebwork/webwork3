@@ -80,8 +80,8 @@ __PACKAGE__->add_columns(
 		default_value => '',
 	},
 	doc => {
-		data_type     => 'text',
-		is_nullable   => 1,
+		data_type   => 'text',
+		is_nullable => 1,
 	},
 	type => {
 		data_type     => 'varchar',
@@ -102,9 +102,9 @@ __PACKAGE__->add_columns(
 		default_value => ''
 	},
 	subcategory => {
-		data_type     => 'varchar',
-		size          => 64,
-		is_nullable   => 1
+		data_type   => 'varchar',
+		size        => 64,
+		is_nullable => 1
 	}
 );
 
