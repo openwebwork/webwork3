@@ -18,9 +18,11 @@ sub getGlobalSettings ($c) {
 }
 
 sub getGlobalSetting ($c) {
-	my $setting = $c->schema->resultset('Course')->getGlobalSetting(info => {
-		setting_id => int($c->param('setting_id'))
-	});
+	my $setting = $c->schema->resultset('Course')->getGlobalSetting(
+		info => {
+			setting_id => int($c->param('setting_id'))
+		}
+	);
 	$c->render(json => $setting);
 	return;
 }
@@ -38,8 +40,8 @@ sub getCourseSettings ($c) {
 
 sub updateCourseSetting ($c) {
 	my $course_setting = $c->schema->resultset('Course')->updateCourseSetting(
-		info     => {
-			course_id => $c->param('course_id'),
+		info => {
+			course_id  => $c->param('course_id'),
 			setting_id => $c->param('setting_id')
 		},
 		params => $c->req->json
@@ -50,13 +52,13 @@ sub updateCourseSetting ($c) {
 
 sub deleteCourseSetting ($c) {
 	my $course_setting = $c->schema->resultset('Course')->deleteCourseSetting(
-		info     => {
-			course_id => $c->param('course_id'),
+		info => {
+			course_id  => $c->param('course_id'),
 			setting_id => $c->param('setting_id')
-		});
+		}
+	);
 	$c->render(json => $course_setting);
 	return;
 }
-
 
 1;

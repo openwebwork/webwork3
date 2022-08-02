@@ -68,7 +68,6 @@ import { endSession } from 'src/common/api-requests/session';
 import { useI18n } from 'vue-i18n';
 import { setI18nLanguage } from 'boot/i18n';
 import { useSessionStore } from 'src/stores/session';
-import type { CourseSettingInfo } from 'src/common/models/settings';
 import { useSettingsStore } from 'src/stores/settings';
 import { logger } from 'src/boot/logger';
 
@@ -99,9 +98,7 @@ const changeCourse = (course_id: number, course_name: string) => {
 	}
 };
 
-const availableLocales = computed(() =>
-	settings.default_settings.find((setting: CourseSettingInfo) => setting.var === 'language')?.options
-);
+const availableLocales = computed(() => settings.getCourseSetting('language')?.options);
 
 const logout = async () => {
 	await endSession();

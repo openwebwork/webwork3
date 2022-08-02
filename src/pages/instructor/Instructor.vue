@@ -26,7 +26,7 @@ export default defineComponent({
 	async setup() {
 		const session = useSessionStore();
 		const users = useUserStore();
-		const settings = useSettingsStore();
+		const settings_store = useSettingsStore();
 		const problem_sets = useProblemSetStore();
 		const route = useRoute();
 
@@ -47,9 +47,9 @@ export default defineComponent({
 		await users.fetchGlobalCourseUsers(course_id);
 		await users.fetchCourseUsers(course_id);
 		await problem_sets.fetchProblemSets(course_id);
-		await settings.fetchDefaultSettings()
-			.then(() => settings.fetchCourseSettings(course_id))
-			.then(() => void setI18nLanguage(settings.getCourseSetting('language').value as string))
+		await settings_store.fetchGlobalSettings()
+			.then(() => settings_store.fetchCourseSettings(course_id))
+			.then(() => void setI18nLanguage(settings_store.getCourseSetting('language').value as string))
 			.catch((err) => logger.error(`${JSON.stringify(err)}`));
 
 	},
