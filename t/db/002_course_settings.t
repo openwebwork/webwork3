@@ -23,8 +23,7 @@ use DB::Schema;
 
 use WeBWorK3::Utils::Settings qw/isInteger isTimeString isTimeDuration isDecimal mergeCourseSettings
 	isValidSetting/;
-
-use TestUtils qw/removeIDs loadSchema/;
+use TestUtils qw/removeIDs loadSchema loadCSV/;
 
 # Load the database
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";

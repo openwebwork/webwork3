@@ -38,7 +38,6 @@ sub getDefaultCourseSettings () {
 	return LoadFile(Mojo::Home->new->detect->child('conf', 'course_defaults.yml'));
 }
 
-
 =pod
 
 =head2 isValidSetting
