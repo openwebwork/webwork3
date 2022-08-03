@@ -5,127 +5,33 @@ use warnings;
 use feature 'signatures';
 no warnings qw(experimental::signatures);
 
-use base qw(DB::Schema::Result::ProblemSet DB::WithParams DB::WithDates);
+use base qw(DB::Schema::Result::ProblemSet DB::Validation);
 
 =head1 DESCRIPTION
 
-This is the database schema for a Quiz, a subclass of a C<DB::Schema::Result::ProblemSet>
+This is the database schema for a HWSet, a subclass of a C<DB::Schema::Result::ProblemSet>
 
-In particular, this contains the methods C<valid_dates>, C<required_dates>,
-C<valid_params> and C<required_params>.  See C<DB::Schema::Result::ProblemSet>
+In particular, this contains the methods C<validation>, C<required>,
+and C<additional_validation>.  See C<DB::Validation>
 for details on these.
 
 =cut
 
-=head2 C<valid_dates>
+=head2 C<validation>
 
-subroutine that returns the array for the valid dates: C<['open', 'due' ,'answer']>
-
-=cut
-
-sub valid_dates ($=) {
-	return [ 'open', 'due', 'answer' ];
-}
-
-sub optional_fields_in_dates ($=) { return {}; }
-
-=head2 C<required_dates>
-
-subroutine that returns the array for the required dates: C<['open', 'due' ,'answer']>
+subroutine that returns a hash of the validation for both set_dates and set_params.
 
 =cut
 
-sub required_dates ($=) {
-	return [ 'open', 'due', 'answer' ];
-}
-
-=head2 C<valid_params>
-
-subroutine that returns the hashref for the valid params and their data types:
-
-=over
-
-=item *
-
-C<timed> : boolean
-
-whether or not the quiz should be a timed quiz
-
-=item *
-
-C<quiz_duration>: integer
-
-if the quiz is timed, how long should it be open.
-
-=item *
-
-C<set_header>: string
-
-The header information to the quiz.
-
-=item *
-
-C<hardcopy_header>: string
-
-The header information to the quiz if printed.
-
-=item *
-
-C<problem_randorder>: boolean
-
-If this is true, then the problems should be presented in a random order.
-
-=item *
-
-C<problems_per_page>: Non-negative integer
-
-If value is 0, show all problems, else show this many per page.
-
-=item *
-
-C<hide_score>: string
-
-(See Webwork2 ProblemSetDetail.pm -- stay with same options?)
-
-=item *
-
-C<hide_score_by_problem>: string
-
-(See Webwork2 ProblemSetDetail.pm -- stay with same options?)
-
-=item *
-
-C<hide_work>: string
-
-(See Webwork2 ProblemSetDetail.pm -- stay with same options?)
-
-=item *
-
-C<time_limit_cap>: boolean
-
-If this is true, then cap the test time at due date.
-
-=item *
-
-C<restrict_ip>: string
-
-(See Webwork2 ProblemSetDetail.pm -- stay with same options?)
-
-=item *
-
-C<relax_restrict_ip>: string
-
-(See Webwork2 ProblemSetDetail.pm -- stay with same options?)
-
-
-
-
-=back
-
-=cut
-
-sub valid_params ($=) {
-	return {
+sub validation ($self, $name) {
+	if ($name eq 'set_dates') {
+	 return {
+			open => q{\d+},
+			due => q{\d+},
+			answer => q{\d+}
+		};
+	} elsif ($name eq 'set_params') {
+			return {
 		timed                 => 'bool',
 		quiz_duration         => q{\d+},
 		set_header            => q{\w+},
@@ -139,16 +45,43 @@ sub valid_params ($=) {
 		restrict_ip           => q{\w+},
 		relax_restrict_ip     => q{\w+}
 	};
+	} else {
+		return {};
+	}
 }
 
-=head2 C<required_params>
+=pod
 
-No parameters are required for the homework set.
+=head2 add_validation
+
+subroutine that checks any additional validation
 
 =cut
 
-sub required_params ($=) {
-	return {};
+sub additional_validation ($self, $name) {
+	return 1 if ($name ne 'set_dates');
+
+	my $dates = $self->get_inflated_column('set_dates');
+	DB::Exception::ImproperDateOrder->throw(
+			message => 'The dates are not in order'
+		) unless $dates->{open} <= $dates->{due} &&
+			$dates->{due} <= $dates->{answer};
+
+	return 1;
+}
+
+=head2 C<required>
+
+subroutine that returns the array for required set_dates or set_params (none)
+
+=cut
+
+sub required ($self, $name) {
+	if ($name eq 'set_dates') {
+		return {'_ALL_' => [ 'open', 'due', 'answer' ]};
+	} else {
+		return {};
+	}
 }
 
 1;

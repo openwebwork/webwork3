@@ -5,99 +5,84 @@ use warnings;
 use feature 'signatures';
 no warnings qw(experimental::signatures);
 
-use base qw(DB::Schema::Result::ProblemSet DB::WithParams DB::WithDates);
+use base qw(DB::Schema::Result::ProblemSet DB::Validation);
 
 =head1 DESCRIPTION
 
 This is the database schema for a HWSet, a subclass of a C<DB::Schema::Result::ProblemSet>
 
-In particular, this contains the methods C<valid_dates>, C<required_dates>,
-C<valid_params> and C<required_params>.  See C<DB::Schema::Result::ProblemSet>
+In particular, this contains the methods C<validation>, C<required>,
+and C<additional_validation>.  See C<DB::Validation>
 for details on these.
 
 =cut
 
-=head2 C<valid_dates>
+=head2 C<validation>
 
-subroutine that returns the array for the valid dates: C<['open', 'reduced_scoring', 'due' ,'answer']>
-
-=cut
-
-sub valid_dates ($=) {
-	return [ 'open', 'reduced_scoring', 'due', 'answer' ];
-}
-
-sub optional_fields_in_dates ($=) {
-	return { enable_reduced_scoring => 'bool' };
-}
-
-=head2 C<required_dates>
-
-subroutine that returns the array for the required dates: C<['open', 'due' ,'answer']>
+subroutine that returns a hash of the validation for both set_dates and set_params.
 
 =cut
 
-sub required_dates ($=) {
-	return [ 'open', 'due', 'answer' ];
+sub validation ($self, $name) {
+	if ($name eq 'set_dates') {
+	 return {
+			open => q{\d+},
+			reduced_scoring => q{\d+},
+			due => q{\d+},
+			answer => q{\d+},
+			enable_reduced_scoring => 'bool'
+		};
+	} elsif ($name eq 'set_params') {
+			return {
+				hide_hint       => 'bool',
+				hardcopy_header => q{.*},
+				set_header      => q{.*},
+				description     => q{.*}
+			};
+	} else {
+		return {};
+	}
 }
 
-=head2 C<valid_params>
+=pod
 
-subroutine that returns the hashref for the valid params and their data types:
+=head2 additional_validation
 
-=over
-
-=item *
-
-C<enable_reduced_scoring> : boolean
-
-This determines if the homework set allows a reduced scoring period.
-
-=item *
-
-C<hide_hint> : boolean
-
-This determines if the homework set hides hints to students.
-
-=item *
-
-C<hardcopy_header> : string
-
-This is the header to the homework set when a hardcopy (PDF) is generated.
-
-=item *
-
-C<set_header> : string
-
-This is the header to the homework set.
-
-=item *
-
-C<description> : string
-
-This is a description of the homework set.
-
-=back
+subroutine that checks any additional validation
 
 =cut
 
-sub valid_params ($=) {
-	return {
-		hide_hint       => 'bool',
-		hardcopy_header => q{.*},
-		set_header      => q{.*},
-		description     => q{.*}
-	};
+sub additional_validation ($self, $name) {
+	return 1 if ($name ne 'set_dates');
+
+	my $dates = $self->get_inflated_column('set_dates');
+	if ($dates->{enable_reduced_scoring}) {
+		DB::Exception::ImproperDateOrder->throw(
+			message => 'The dates are not in order'
+		) unless $dates->{open} <= $dates->{reduced_scoring} &&
+			$dates->{reduced_scoring} <= $dates->{due} &&
+			$dates->{due} <= $dates->{answer};
+	} else {
+		DB::Exception::ImproperDateOrder->throw(
+			message => 'The dates are not in order'
+		) unless $dates->{open} <= $dates->{due} &&
+			$dates->{due} <= $dates->{answer};
+	}
+	return 1;
 }
 
-=head2 C<required_params>
+=head2 C<required>
 
-No parameters are required for the homework set.
+subroutine that returns the array for required set_dates or set_params (none)
 
 =cut
 
-sub required_params ($=) {
-	return {};
+sub required ($self, $name) {
+	if ($name eq 'set_dates') {
+		return {'_ALL_' => [ 'open', 'due', 'answer' ]};
+	} else {
+		return {};
+	}
 }
 
 1;

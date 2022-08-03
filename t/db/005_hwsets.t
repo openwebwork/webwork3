@@ -221,7 +221,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::InvalidDateField', 'addProblemSet: invalid date field passed in.';
+'DB::Exception::InvalidField', 'addProblemSet: invalid date field passed in.';
 
 # Try to add a homework set without all required date fields
 my $new_set4 = {
@@ -237,7 +237,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::RequiredDateFields', 'addProblemSet: missing required date fields';
+'DB::Exception::FieldsNeeded', 'addProblemSet: missing required date fields';
 
 # Try to add a homework set without all required date fields
 my $new_set5 = {
@@ -253,7 +253,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::InvalidDateFormat', 'addProblemSet: adding a non-numeric date';
+'DB::Exception::InvalidParameter', 'addProblemSet: adding a non-numeric date';
 
 # Try to add a homework set without invalid date order
 my $new_set6 = {
@@ -287,7 +287,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::UndefinedParameter', 'addProblemSet: adding an undefined parameter field';
+'DB::Exception::InvalidField', 'addProblemSet: adding an undefined parameter field';
 
 # Check for invalid parameter fields (the hide_hint param is a boolean)
 throws_ok {
@@ -396,7 +396,7 @@ throws_ok {
 		params => { set_dates   => { bad_date => 99 } }
 	);
 }
-'DB::Exception::InvalidDateField', 'updateSet: invalid date field passed in.';
+'DB::Exception::InvalidField', 'updateSet: invalid date field passed in.';
 
 # Try to update a set with an dates in a bad order
 throws_ok {
