@@ -40,7 +40,7 @@ export const usePermissionStore = defineStore('permission', {
 			const role = session_store.course.role ?? '';
 			const user = session_store.user;
 			const perms = state.ui_permissions.filter(perm => {
-				const re = new RegExp(perm.route.replace('*', '.*'));
+				const re = new RegExp(perm.route.replace('*', '.*?'));
 				return re.test(route.path);
 			});
 

@@ -20,6 +20,7 @@ const routes: RouteRecordRaw[] = [
 			},
 			{
 				path: 'login',
+				name: 'login',
 				component: () =>
 					import(
 						/* webpackChunkName: "Login" */
@@ -28,6 +29,7 @@ const routes: RouteRecordRaw[] = [
 			},
 			{
 				path: 'users/:user_id/courses',
+				name: 'user_courses',
 				component: () =>
 					import(
 						/* webpackChunkName: "UserCourses" */
