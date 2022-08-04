@@ -41,7 +41,7 @@ export const useSessionStore = defineStore('session', {
 		user_courses: []
 	}),
 	getters: {
-		full_name: (state): string => `${state.user?.first_name ?? ''} ${state.user?.last_name ?? ''} `,
+		full_name: (state): string => `${state.user?.first_name ?? ''} ${state.user?.last_name ?? ''}`,
 		getUser: (state): User => new User(state.user)
 	},
 	actions: {

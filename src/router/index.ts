@@ -1,6 +1,7 @@
 import { route } from 'quasar/wrappers';
 import { logger } from 'src/boot/logger';
 import { usePermissionStore } from 'src/stores/permissions';
+import { useSessionStore } from 'src/stores/session';
 import { createMemoryHistory, createRouter, createWebHashHistory, createWebHistory } from 'vue-router';
 import routes from './routes';
 
@@ -30,14 +31,19 @@ export default route(() => {
 		),
 	});
 
-	router.beforeEach((to, _from, next) => {
-		if (to.path === '/login') next();
+	router.beforeResolve((to) => {
+		// must be logged in, or else headed to the login page
+		const session_store = useSessionStore();
+		if (!session_store.logged_in && to.name !== 'login') return { name: 'login' };
+
+		// otherwise, we're logged in, so check permissions on the route
 		const permissions_store = usePermissionStore();
 		const perm = permissions_store.hasRoutePermission(to);
 		if (!perm) {
-			logger.error(`[routing] The user does not have the permission to visit ${to.path}`);
+			const user = session_store.getUser;
+			logger.error(`[routing] User #${user.user_id} does not have the permission to visit ${to.fullPath}`);
+			return { name: 'user_courses', params: { user_id: user.user_id } };
 		}
-		next();
 	});
 
 	return router;
