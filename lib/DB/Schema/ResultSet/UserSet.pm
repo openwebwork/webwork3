@@ -28,7 +28,7 @@ use warnings;
 use feature 'signatures';
 no warnings qw(experimental::signatures);
 
-use base 'DBIx::Class::ResultSet';
+use base qw/DBIx::Class::ResultSet DB::Validation/;
 
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 use DB::WithDates;
@@ -322,7 +322,7 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 =back
 
 =cut
-
+use Data::Dumper;
 sub addUserSet ($self, %args) {
 	my $problem_set = $self->rs('ProblemSet')->getProblemSet(info => $args{params}, as_result_set => 1);
 	my $course_user = $self->rs('User')->getCourseUser(info => $args{params}, as_result_set => 1);
@@ -338,8 +338,16 @@ sub addUserSet ($self, %args) {
 
 	# Filter down to only the relevant keys.
 	my %params =
-		map { exists $args{params}{$_} ? ($_ => $args{params}{$_}) : () } qw/ set_dates set_params set_visible /;
+		map { exists $args{params}{$_} ? ($_ => $args{params}{$_}) : () } qw/ set_dates set_params set_visible set_version/;
 	$params{course_user_id} = $course_user->course_user_id;
+	$params{type} = $problem_set->type;
+
+
+	# Check that fields/dates/parameters are valid
+	my $set_obj = $self->new(\%params);
+	$set_obj->validate(field_name => 'set_dates', problem_set_dates => $problem_set->get_inflated_column('set_dates'));
+	$set_obj->validate(field_name => 'set_params');
+
 
 	my $new_user_set = $problem_set->add_to_user_sets(\%params);
 	foreach ($problem_set->problems->all()) {
@@ -371,12 +379,12 @@ sub updateUserSet ($self, %args) {
 
 	# Filter down to only the relevant keys.
 	my %params =
-		map { exists $args{params}{$_} ? ($_ => $args{params}{$_}) : () } qw/ set_dates set_params set_visible /;
+		map { exists $args{params}{$_} ? ($_ => $args{params}{$_}) : () } qw/ set_dates set_params set_visible set_version/;
 
 	# If any of the dates match the problem set (or == 0?), then remove them.
 	my $problem_set = $user_set->problem_set;
 	if ($params{set_dates} && scalar(keys %{ $params{set_dates} }) > 0) {
-		foreach (@{ ref($problem_set)->valid_dates() }) {
+		foreach (keys %{$problem_set->validation(field_name=>'set_dates')}) {
 			delete $params{set_dates}{$_}
 				unless defined($params{set_dates}{$_})
 				&& $params{set_dates}{$_} != 0
@@ -387,10 +395,9 @@ sub updateUserSet ($self, %args) {
 	# if any of the parameters match the problem set, remove them as well.
 	# caveat: blocks overriding with empty string
 	if ($params{set_params} && scalar(keys %{ $params{set_params} }) > 0) {
-		foreach (keys %{ ref($problem_set)->valid_params() }) {
+		foreach (keys %{$problem_set->validation(field_name => 'set_params') }) {
 			delete $params{set_params}{$_}
-				unless defined($params{set_params}{$_})
-				&& $params{set_params}{$_}
+				if defined($params{set_params}{$_})
 				&& $params{set_params}{$_} eq $problem_set->set_params->{$_};
 		}
 	}
@@ -398,8 +405,8 @@ sub updateUserSet ($self, %args) {
 	# Make sure the parameters and dates are valid when merged with existing problem set.
 	$problem_set->set_dates(updateAllFields($problem_set->set_dates, $params{set_dates}    // {}));
 	$problem_set->set_params(updateAllFields($problem_set->set_params, $params{set_params} // {}));
-	$problem_set->validParams('set_params');
-	$problem_set->validDates('set_dates');
+	$problem_set->validate(field_name => 'set_params');
+	$problem_set->validate(field_name => 'set_dates');
 	$problem_set->discard_changes;
 
 	my $updated_user_set = $user_set->update(\%params);

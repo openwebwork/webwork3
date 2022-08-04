@@ -23,28 +23,28 @@ subroutine that returns a hash of the validation for both set_dates and set_para
 
 =cut
 
-sub validation ($self, $name) {
-	if ($name eq 'set_dates') {
-	 return {
-			open => q{\d+},
-			due => q{\d+},
+sub validation ($self, %args) {
+	if ($args{field_name} eq 'set_dates') {
+		return {
+			open   => q{\d+},
+			due    => q{\d+},
 			answer => q{\d+}
 		};
-	} elsif ($name eq 'set_params') {
-			return {
-		timed                 => 'bool',
-		quiz_duration         => q{\d+},
-		set_header            => q{\w+},
-		hardcopy_header       => q{\w+},
-		problem_randorder     => 'bool',
-		problems_per_page     => q{\d+},
-		hide_score            => q{\w+},
-		hide_score_by_problem => q{\w+},
-		hide_work             => q{\w+},
-		time_limit_cap        => q{\d+},
-		restrict_ip           => q{\w+},
-		relax_restrict_ip     => q{\w+}
-	};
+	} elsif ($args{field_name} eq 'set_params') {
+		return {
+			timed                 => 'bool',
+			quiz_duration         => q{\d+},
+			set_header            => q{\w+},
+			hardcopy_header       => q{\w+},
+			problem_randorder     => 'bool',
+			problems_per_page     => q{\d+},
+			hide_score            => q{\w+},
+			hide_score_by_problem => q{\w+},
+			hide_work             => q{\w+},
+			time_limit_cap        => q{\d+},
+			restrict_ip           => q{\w+},
+			relax_restrict_ip     => q{\w+}
+		};
 	} else {
 		return {};
 	}
@@ -58,14 +58,12 @@ subroutine that checks any additional validation
 
 =cut
 
-sub additional_validation ($self, $name) {
-	return 1 if ($name ne 'set_dates');
+sub additional_validation ($self, %args) {
+	return 1 if ($args{field_name} ne 'set_dates');
 
 	my $dates = $self->get_inflated_column('set_dates');
-	DB::Exception::ImproperDateOrder->throw(
-			message => 'The dates are not in order'
-		) unless $dates->{open} <= $dates->{due} &&
-			$dates->{due} <= $dates->{answer};
+	DB::Exception::ImproperDateOrder->throw(message => 'The dates are not in order')
+		unless $dates->{open} <= $dates->{due} && $dates->{due} <= $dates->{answer};
 
 	return 1;
 }
@@ -76,9 +74,9 @@ subroutine that returns the array for required set_dates or set_params (none)
 
 =cut
 
-sub required ($self, $name) {
-	if ($name eq 'set_dates') {
-		return {'_ALL_' => [ 'open', 'due', 'answer' ]};
+sub required ($self, %args) {
+	if ($args{field_name} eq 'set_dates') {
+		return { '_ALL_' => [ 'open', 'due', 'answer' ] };
 	} else {
 		return {};
 	}

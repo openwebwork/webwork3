@@ -13,6 +13,7 @@ use Exception::Class qw{
 	DB::Exception::UndefinedParameter
 	DB::Exception::InvalidField
 	DB::Exception::FieldsNeeded
+	DB::Exception::ParamFormatIncorrect
 };
 
 =pod
@@ -24,20 +25,21 @@ required fields, validates the parameters and running any additional validation.
 
 =cut
 
-sub validate ($self, $field_name) {
-	$self->checkForValidFields($field_name);
-	$self->checkRequiredFields($field_name);
-	$self->validateParams($field_name);
-	$self->additional_validation($field_name);
+sub validate ($self, %args) {
+	$self->checkForValidFields(%args);
+	$self->checkRequiredFields(%args);
+	$self->validateParams(%args);
+	$self->additional_validation(%args);
 	return 1;
 }
 
 # Check if the hash has the correct fields.
+use Data::Dumper;
+sub checkForValidFields ($self, %args) {
+	my $params       = $self->get_inflated_column($args{field_name});
 
-sub checkForValidFields ($self, $field_name) {
-	my $params = $self->get_inflated_column($field_name);
-	my $valid_fields = ref($self)->validation($field_name);
 	return 1 unless defined($params);
+	my $valid_fields = $self->validation(%args);
 	my @valid_fields = keys %$valid_fields;
 	my @fields       = keys %$params;
 	my @inter        = intersect(@fields, @valid_fields);
@@ -49,9 +51,9 @@ sub checkForValidFields ($self, $field_name) {
 	return 1;
 }
 
-sub validateParams ($self, $field_name) {
-	my $params = $self->get_inflated_column($field_name);
-	my $valid_fields = ref($self)->validation($field_name);
+sub validateParams ($self, %args) {
+	my $params       = $self->get_inflated_column($args{field_name});
+	my $valid_fields = ref($self)->validation(%args);
 	# if it doesn't exist, it is valid
 	return 1 unless defined $params;
 
@@ -65,13 +67,15 @@ sub validateParams ($self, $field_name) {
 	return 1;
 }
 
-sub checkRequiredFields ($self, $field_name) {
-	my $required_fields = ref($self)->required($field_name);
+sub checkRequiredFields ($self, %args) {
+	my $required_fields = ref($self)->required(%args);
 	# Depending on the data type of the $required_params, check different things.
-	croak 'The structure of the required type needs to be an hashref.' unless reftype($required_fields) eq 'HASH';
+	DB::Exception::ParamFormatIncorrect->throw(
+		message => 'The structure of the return type of ' . ref($self) . '::required must be a hashref.')
+		unless reftype($required_fields) eq 'HASH';
 
 	for my $key (keys %$required_fields) {
-		last unless $self->_check_params($field_name, $key, $required_fields->{$key});
+		last unless $self->_check_params($args{field_name}, $key, $required_fields->{$key});
 	}
 	return 1;
 }
@@ -80,7 +84,11 @@ sub checkRequiredFields ($self, $field_name) {
 
 sub _check_for_all ($self, $field_name, $value = undef) {
 	my $valid = 0;
-	croak 'The value of the _ALL_ required type needs to be an array ref.' unless reftype($value) eq 'ARRAY';
+	DB::Exception::ParamFormatIncorrect->throw(message => 'The value of the _ALL_ part of the required type of '
+			. ref($self)
+			. '::required must be an arrayref.')
+		unless reftype($value) eq 'ARRAY';
+
 	for my $el (@$value) {
 		if (!defined(reftype($el))) {
 			# Assume it is a string.
@@ -98,7 +106,11 @@ sub _check_for_all ($self, $field_name, $value = undef) {
 }
 
 sub _check_for_one_of ($self, $field_name, $value = undef) {
-	croak 'The value of the _ONE_OF_ required type needs to be an array ref.' unless reftype($value) eq 'ARRAY';
+	DB::Exception::ParamFormatIncorrect->throw(message => 'The value of the _ONE_OF_ part of the required type of '
+			. ref($self)
+			. '::required must be an arrayref.')
+		unless reftype($value) eq 'ARRAY';
+
 	my @fields = keys %{ $self->get_inflated_column($field_name) };
 	DB::Exception::FieldsNeeded->throw(
 		message => 'Request must include exactly ONE of the following parameters: ' . join(', ', @$value))
@@ -107,8 +119,12 @@ sub _check_for_one_of ($self, $field_name, $value = undef) {
 }
 
 sub _check_for_at_least_one_of ($self, $field_name, $value = undef) {
-	croak 'The value of the _AT_LEAST_ONE_OF_ required type needs to be an array ref.'
+	DB::Exception::ParamFormatIncorrect->throw(
+		message => 'The value of the _AT_LEAST_ONE_OF part of the required type of '
+			. ref($self)
+			. '::required must be an arrayref.')
 		unless reftype($value) eq 'ARRAY';
+
 	my @fields = keys %{ $self->get_inflated_column($field_name) };
 	DB::Exception::FieldsNeeded->throw(
 		message => 'Request must include ONE or more of the following parameters: ' . join(', ', @$value))

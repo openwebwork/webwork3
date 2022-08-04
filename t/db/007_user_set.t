@@ -57,7 +57,6 @@ my @hw_sets = loadCSV(
 );
 for my $hw_set (@hw_sets) {
 	$hw_set->{set_type}    = "HW";
-	$hw_set->{set_version} = 1  unless defined($hw_set->{set_version});
 	$hw_set->{set_params}  = {} unless defined $hw_set->{set_params};
 }
 
@@ -71,7 +70,6 @@ my @quizzes = loadCSV(
 );
 for my $set (@quizzes) {
 	$set->{set_type}    = "QUIZ";
-	$set->{set_version} = 1  unless defined($set->{set_version});
 	$set->{set_params}  = {} unless defined $set->{set_params};
 }
 
@@ -85,7 +83,6 @@ my @review_sets = loadCSV(
 
 for my $set (@review_sets) {
 	$set->{set_type}    = "REVIEW";
-	$set->{set_version} = 1  unless defined($set->{set_version});
 	$set->{set_params}  = {} unless defined $set->{set_params};
 }
 
@@ -100,7 +97,7 @@ my @all_user_sets = loadCSV(
 );
 
 for my $set (@all_user_sets) {
-	$set->{set_version} = 1 unless defined($set->{set_version});
+	$set->{set_version} = 0 unless defined($set->{set_version});
 	# find the problem set type
 	my $s = firstval {
 		$_->{course_name} eq $set->{course_name} && $_->{set_name} eq $set->{set_name}
@@ -350,10 +347,12 @@ my $new_info = {
 my $new_user_set = $user_set_rs->addUserSet(params => $new_info);
 removeIDs($new_user_set);
 
+use Data::Dumper;
+
 # Set the other default parameters.
 $new_info->{set_dates}   = {};
 $new_info->{set_params}  = {};
-$new_info->{set_version} = 1;
+$new_info->{set_version} = 0;
 $new_info->{set_type}    = 'HW';
 
 is_deeply($new_user_set, $new_info, 'addUserSet: add a new user set');
@@ -375,6 +374,8 @@ my $new_merged_set = $user_set_rs->addUserSet(
 	merged => 1
 );
 removeIDs($new_merged_set);
+# add the default value for set_version
+$hw_set1->{set_version} = 0;
 
 is_deeply($new_merged_set, $hw_set1, 'addUserSet: add a new user set and check that it is merged correctly');
 
@@ -392,7 +393,7 @@ removeIDs($new_user_set2);
 
 # add some fields to the params that are added when writing to the DB.
 $new_user_params2->{set_type}    = 'HW';
-$new_user_params2->{set_version} = 1;
+$new_user_params2->{set_version} = 0;
 $new_user_params2->{set_params}  = {};
 
 is_deeply($new_user_set2, $new_user_params2, 'addUserSet: add a new user set with empty dates.');
@@ -433,19 +434,6 @@ throws_ok {
 }
 'DB::Exception::UserNotInCourse', 'addUserSet: try to add a user set for a user who is not in the course';
 
-# Try to add a user set with bad fields.
-throws_ok {
-	$user_set_rs->addUserSet(
-		params => {
-			username    => 'otto',
-			course_name => 'Precalculus',
-			set_name    => 'HW #2',
-			bad_field   => 1
-		}
-	);
-}
-'DBIx::Class::Exception', 'addUserSet: try to add a user set with a bad field';
-
 # Try to add a user_set that already exists.
 throws_ok {
 	$user_set_rs->addUserSet(
@@ -461,7 +449,8 @@ throws_ok {
 my $otto_set_info2 = {
 	username    => 'otto',
 	course_name => 'Precalculus',
-	set_name    => 'HW #2'
+	set_name    => 'HW #2',
+	set_version => 1
 };
 
 # Add a user set with valid params.
@@ -491,13 +480,14 @@ throws_ok {
 			username    => 'otto',
 			course_name => 'Precalculus',
 			set_name    => 'HW #4',
+			set_version => 1,
 			set_params  => {
 				bad_field => 12
 			}
 		}
 	);
 }
-'DB::Exception::UndefinedParameter', 'addUserSet: try to add a new user set with an undefined parameter';
+'DB::Exception::InvalidField', 'addUserSet: try to add a new user set with an undefined parameter';
 
 ## add a user set with a new date
 
@@ -512,6 +502,7 @@ my $otto_set_info3 = {
 	username    => 'otto',
 	course_name => 'Precalculus',
 	set_name    => 'HW #3',
+	set_version => 1
 };
 
 my $otto_set_info4 = {
@@ -560,7 +551,7 @@ removeIDs($ralph_user_set);
 
 # set some fields that are created from defaults when written to the DB.
 $ralph_set_info->{set_type}    = 'HW';
-$ralph_set_info->{set_version} = 1;
+$ralph_set_info->{set_version} = 0;
 
 is_deeply($ralph_user_set, $ralph_set_info, 'addUserSet: add a new user with dates (some are missing).');
 
@@ -635,6 +626,8 @@ my $user_set_to_merge = $user_set_rs->addUserSet(
 	merged => 1
 );
 removeIDs($user_set_to_merge);
+# otto_set2 has set_version 1.  Need to match to compare.
+$merged_set1->{set_version} = 1;
 
 is_deeply($merged_set1, $user_set_to_merge, 'addUserSet: adding a user set with dates to check merging');
 
@@ -713,17 +706,6 @@ $otto_set2->{set_visible} = true;
 
 is_deeply($otto_set2, $updated_user_set3, 'updateUserSet: update the set visibility');
 
-# Try updating an invalid field.
-throws_ok {
-	$user_set_rs->updateUserSet(
-		info   => $otto_set_info2,
-		params => {
-			not_a_valid_param => 'bad'
-		}
-	);
-}
-'DBIx::Class::Exception', 'updateUserSet: try setting a field that does not exist';
-
 # Try updating an invalid param.
 throws_ok {
 	$user_set_rs->updateUserSet(
@@ -735,7 +717,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::UndefinedParameter', 'updateUserSet: try setting a parameter that does not exist';
+'DB::Exception::InvalidField', 'updateUserSet: try setting a parameter that does not exist';
 
 # Try updating an invalid date.
 throws_ok {
@@ -749,7 +731,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::InvalidDateField', 'updateUserSet: try to update an invalid date field';
+'DB::Exception::InvalidField', 'updateUserSet: try to update an invalid date field';
 
 # Test with out of order dates.
 throws_ok {
