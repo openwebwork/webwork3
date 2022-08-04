@@ -3,7 +3,7 @@ package DB::Schema::ResultSet::ProblemPool;
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 use base 'DBIx::Class::ResultSet';
 
@@ -12,10 +12,12 @@ use Clone qw/clone/;
 
 use DB::Utils qw/getCourseInfo getPoolInfo getPoolProblemInfo/;
 
-use Exception::Class (
-	'DB::Exception::PoolNotInCourse',      'DB::Exception::PoolAlreadyInCourse',
-	'DB::Exception::PoolProblemNotInPool', 'DB::Exception::ParametersNeeded'
-);
+use Exception::Class qw/
+	DB::Exception::PoolNotInCourse
+	DB::Exception::PoolAlreadyInCourse
+	DB::Exception::PoolProblemNotInPool
+	DB::Exception::ParametersNeeded
+/;
 
 =head1 DESCRIPTION
 

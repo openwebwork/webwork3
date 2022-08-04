@@ -1,13 +1,12 @@
 package DB::Schema::Result::UserProblem;
 use DBIx::Class::Core;
-use DB::WithParams;
 
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
-use base qw(DBIx::Class::Core DB::WithParams);
+use base qw(DBIx::Class::Core DB::Validation);
 
 # This is the table that stores problems for a given Problem Set.
 # Note: we probably also need to store the problem info if it changes.

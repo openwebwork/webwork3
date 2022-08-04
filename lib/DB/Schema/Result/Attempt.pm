@@ -1,11 +1,10 @@
 package DB::Schema::Result::Attempt;
 use DBIx::Class::Core;
-use DB::WithParams;
 
 use strict;
 use warnings;
 
-use base qw(DBIx::Class::Core DB::WithParams);
+use base qw(DBIx::Class::Core DB::Validation);
 
 =head1 DESCRIPTION
 

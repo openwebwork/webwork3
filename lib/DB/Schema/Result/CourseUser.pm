@@ -3,7 +3,7 @@ use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
 
-use base qw(DBIx::Class::Core DB::WithParams);
+use base qw(DBIx::Class::Core DB::Validation);
 
 =head1 DESCRIPTION
 

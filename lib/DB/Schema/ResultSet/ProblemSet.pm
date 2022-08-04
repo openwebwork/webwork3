@@ -3,23 +3,22 @@ package DB::Schema::ResultSet::ProblemSet;
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 use base 'DBIx::Class::ResultSet';
 
-use Carp;
 use Clone qw/clone/;
 
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 
-our $SET_TYPES = {
+my $SET_TYPES = {
 	'HW'     => 1,
 	'QUIZ'   => 2,
 	'JITAR'  => 3,
 	'REVIEW' => 4,
 };
 
-our $SUBCLASS_NAMES = {
+my $SUBCLASS_NAMES = {
 	1 => 'HWSet',
 	2 => 'Quiz',
 	3 => 'JITAR',

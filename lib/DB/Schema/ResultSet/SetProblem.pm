@@ -3,7 +3,7 @@ package DB::Schema::ResultSet::SetProblem;
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 use Clone qw/clone/;
 use base 'DBIx::Class::ResultSet';

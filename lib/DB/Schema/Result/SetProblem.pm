@@ -1,13 +1,12 @@
 package DB::Schema::Result::SetProblem;
 use DBIx::Class::Core;
-use DB::WithParams;
 
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
-use base qw(DBIx::Class::Core DB::WithParams);
+use base qw(DBIx::Class::Core DB::Validation);
 
 =head1 DESCRIPTION
 

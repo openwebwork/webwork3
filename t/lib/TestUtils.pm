@@ -3,7 +3,7 @@ package TestUtils;
 use warnings;
 use strict;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 use Text::CSV qw/csv/;
 use DateTime::Format::Strptime;

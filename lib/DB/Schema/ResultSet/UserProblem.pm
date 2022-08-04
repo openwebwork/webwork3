@@ -2,7 +2,7 @@ package DB::Schema::ResultSet::UserProblem;
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 use Clone qw/clone/;
 use base 'DBIx::Class::ResultSet';
@@ -11,11 +11,11 @@ use DB::Utils qw/getCourseInfo getSetInfo getProblemInfo getUserInfo updateAllFi
 
 use Clone qw/clone/;
 
-use Exception::Class (
-	'DB::Exception::UserProblemExists',
-	'DB::Exception::UserProblemNotFound',
-	'DB::Exception::SetProblemNotFound'
-);
+use Exception::Class qw/
+	DB::Exception::UserProblemExists
+	DB::Exception::UserProblemNotFound
+	DB::Exception::SetProblemNotFound
+/;
 
 =head1 DESCRIPTION
 

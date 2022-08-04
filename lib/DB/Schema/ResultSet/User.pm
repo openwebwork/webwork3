@@ -11,7 +11,7 @@ package DB::Schema::ResultSet::User;
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 use base 'DBIx::Class::ResultSet';
 
@@ -21,11 +21,11 @@ use Clone qw/clone/;
 use DB::Utils qw/getCourseInfo getUserInfo removeLoginParams/;
 
 use DB::Exception;
-use Exception::Class (
-	'DB::Exception::UserNotFound',
-	'DB::Exception::CourseAlreadyExists',
-	'DB::Exception::UserNotInCourse'
-);
+use Exception::Class qw/
+	DB::Exception::UserNotFound
+	DB::Exception::CourseAlreadyExists
+	DB::Exception::UserNotInCourse
+/;
 
 =head1 getAllGlobalUsers
 
