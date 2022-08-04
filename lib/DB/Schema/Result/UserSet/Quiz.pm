@@ -1,31 +1,23 @@
 package DB::Schema::Result::UserSet::Quiz;
-use base qw/DB::Schema::Result::UserSet/;
+
 use strict;
 use warnings;
-
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
+use base qw/DB::Schema::Result::UserSet/;
 use DB::Schema::Result::ProblemSet::Quiz;
 
-sub valid_dates ($=) {
-	return DB::Schema::Result::ProblemSet::Quiz::valid_dates();
+sub valid_fields ($self, %args) {
+	return DB::Schema::Result::ProblemSet::Quiz::valid_fields($self, %args);
 }
 
-sub required_dates ($=) {
-	return DB::Schema::Result::ProblemSet::Quiz::required_dates();
+sub required ($self, %args) {
+	return {};
 }
 
-sub optional_fields_in_dates ($=) {
-	return DB::Schema::Result::ProblemSet::Quiz::optional_fields_in_dates();
-}
-
-sub valid_params ($=) {
-	return DB::Schema::Result::ProblemSet::Quiz::valid_params();
-}
-
-sub required_params ($=) {
-	return DB::Schema::Result::ProblemSet::Quiz::required_params();
+sub additional_validation ($self, %args) {
+	return DB::Schema::Result::ProblemSet::Quiz::additional_validation($self, %args);
 }
 
 1;

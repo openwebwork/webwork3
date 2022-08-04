@@ -2,9 +2,10 @@ package DB::Schema::Result::ProblemSet;
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 use Mojo::JSON qw/true false/;
+use DB::Utils qw/updateAllFields/;
 use base qw(DBIx::Class::Core);
 
 =head1 DESCRIPTION
@@ -158,4 +159,49 @@ sub set_type ($set) {
 	my %set_type_rev = reverse %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES};
 	return $set_type_rev{ $set->type };
 }
+
+=head2 validateOverrides
+
+when called on a problem_set with proposed update hash, loops through the problem_set fields that
+require validation, stripping out any unchanged values from the proposed update and then validating
+the set works with the proposed overrides.
+
+=cut
+
+sub validateOverrides ($set, $updates) {
+	foreach my $field_name (qw/set_dates set_params/) {
+		$set->_stripUnchanged($updates, $field_name);
+		$set->set_column($field_name, updateAllFields($set->get_inflated_column($field_name), $updates->{$field_name}));
+		$set->validate(field_name => $field_name);
+	}
+	$set->discard_changes;
+}
+
+=head2 _stripUnchanged
+
+when called on a problem_set with proposed update hash containing $field_name as a key
+will iteratively compare key-values in the update hash to existing values on the 
+field_name column of the problem_set, deleting (in-place!) any key-value pairs that are
+unchanged from the problem_set
+
+=cut
+
+sub _stripUnchanged ($set, $updates, $field_name) {
+	foreach (keys %{ $set->valid_fields(field_name => $field_name) }) {
+		next unless exists($updates->{$field_name}{$_});
+		my $defined = defined($updates->{$field_name}{$_}) ? 1 : 0;
+		my $is_truthy = $updates->{$field_name}{$_} ? 1 : 0;
+		my $was_undef = defined($set->$field_name->{$_}) ? 0 : 1;
+
+		# use eq since numbers stringify and strings don't numerify ;P
+		my $different = ($defined && ($was_undef || $updates->{$field_name}{$_} ne $set->$field_name->{$_})) ? 1 : 0;
+
+		if (ref($set->$field_name->{$_}) =~ m/boolean/i) {
+			delete $updates->{$field_name}{$_} unless $different;
+		} else {
+			delete $updates->{$field_name}{$_} unless $is_truthy && $different;
+		}
+	}
+}
+
 1;

@@ -2,19 +2,18 @@ package DB::Validation;
 use warnings;
 use strict;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
-use Carp;
 use Array::Utils qw/array_minus intersect/;
 use Scalar::Util qw/reftype/;
 
 use DB::Exception;
-use Exception::Class qw{
+use Exception::Class qw/
 	DB::Exception::UndefinedParameter
 	DB::Exception::InvalidField
 	DB::Exception::FieldsNeeded
 	DB::Exception::ParamFormatIncorrect
-};
+/;
 
 =pod
 
@@ -34,12 +33,11 @@ sub validate ($self, %args) {
 }
 
 # Check if the hash has the correct fields.
-use Data::Dumper;
 sub checkForValidFields ($self, %args) {
 	my $params       = $self->get_inflated_column($args{field_name});
 
 	return 1 unless defined($params);
-	my $valid_fields = $self->validation(%args);
+	my $valid_fields = $self->valid_fields(%args);
 	my @valid_fields = keys %$valid_fields;
 	my @fields       = keys %$params;
 	my @inter        = intersect(@fields, @valid_fields);
@@ -53,7 +51,7 @@ sub checkForValidFields ($self, %args) {
 
 sub validateParams ($self, %args) {
 	my $params       = $self->get_inflated_column($args{field_name});
-	my $valid_fields = ref($self)->validation(%args);
+	my $valid_fields = ref($self)->valid_fields(%args);
 	# if it doesn't exist, it is valid
 	return 1 unless defined $params;
 

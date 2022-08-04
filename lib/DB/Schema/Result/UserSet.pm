@@ -4,7 +4,7 @@ use base qw(DBIx::Class::Core DB::Validation);
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 =head1 DESCRIPTION
 
@@ -117,29 +117,11 @@ __PACKAGE__->belongs_to(problem_set => 'DB::Schema::Result::ProblemSet', 'set_id
 __PACKAGE__->has_many(user_problems => 'DB::Schema::Result::UserProblem', 'user_set_id');
 
 # See https://metacpan.org/dist/DBIx-Class/view/lib/DBIx/Class/Manual/Cookbook.pod#Dynamic-Sub-classing-DBIx::Class-proxy-classes
-
 sub inflate_result {
 	my $self = shift;
 	my $ret  = $self->next::method(@_);
 	# bless into subclass based on relation to problem_set
 	return bless $ret, (ref($ret->problem_set) =~ s/:ProblemSet:/:UserSet:/r);
-}
-
-# This sets the default params when new is called.
-# See https://metacpan.org/dist/DBIx-Class/view/lib/DBIx/Class/Manual/Cookbook.pod#Setting-default-values-for-a-row
-use Data::Dumper;
-sub new ($class, $attrs) {
-	$attrs->{set_version} = 0 unless defined $attrs->{set_version};
-	$attrs->{set_params} = {} unless defined $attrs->{set_params};
-	$attrs->{set_dates} = {} unless defined $attrs->{set_dates};
-
-	# Create a subclass using the type if defined.
-	$class .= '::' . $DB::Schema::ResultSet::ProblemSet::SUBCLASS_NAMES->{$attrs->{type}}
-		if defined $attrs->{type};
-	delete $attrs->{type};
-	my $new = $class->next::method($attrs);
-
-	return $new;
 }
 
 sub set_type {

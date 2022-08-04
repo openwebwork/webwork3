@@ -493,7 +493,7 @@ export class UserSet extends Model {
 	private _course_user_id = 0;
 	private _user_id = 0;
 	protected _set_type = '';
-	private _set_version = 1;
+	private _set_version = 0;
 	private _set_visible?: boolean;
 	private _set_name = '';
 	private _username = '';

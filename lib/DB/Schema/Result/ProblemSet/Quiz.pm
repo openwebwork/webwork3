@@ -3,7 +3,7 @@ package DB::Schema::Result::ProblemSet::Quiz;
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 use base qw(DB::Schema::Result::ProblemSet DB::Validation);
 
@@ -11,19 +11,19 @@ use base qw(DB::Schema::Result::ProblemSet DB::Validation);
 
 This is the database schema for a HWSet, a subclass of a C<DB::Schema::Result::ProblemSet>
 
-In particular, this contains the methods C<validation>, C<required>,
+In particular, this contains the methods C<valid_fields>, C<required>,
 and C<additional_validation>.  See C<DB::Validation>
 for details on these.
 
 =cut
 
-=head2 C<validation>
+=head2 C<valid_fields>
 
 subroutine that returns a hash of the validation for both set_dates and set_params.
 
 =cut
 
-sub validation ($self, %args) {
+sub valid_fields ($self, %args) {
 	if ($args{field_name} eq 'set_dates') {
 		return {
 			open   => q{\d+},
