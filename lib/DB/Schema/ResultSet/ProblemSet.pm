@@ -11,18 +11,11 @@ use Clone qw/clone/;
 
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
 
-my $SET_TYPES = {
+our $SET_TYPES = {
 	'HW'     => 1,
 	'QUIZ'   => 2,
 	'JITAR'  => 3,
 	'REVIEW' => 4,
-};
-
-my $SUBCLASS_NAMES = {
-	1 => 'HWSet',
-	2 => 'Quiz',
-	3 => 'JITAR',
-	4 => 'ReviewSet'
 };
 
 use DB::Exception;
