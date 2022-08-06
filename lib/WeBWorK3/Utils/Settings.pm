@@ -21,8 +21,8 @@ use DateTime::TimeZone;
 use JSON::PP;
 use Array::Utils qw/array_minus/;
 
-my @allowed_fields  = qw/var category subcategory doc doc2 default type options/;
-my @required_fields = qw/var doc type default/;
+my @allowed_fields  = qw/setting_name category subcategory description doc default_value type options/;
+my @required_fields = qw/setting_name description type default_value/;
 
 =head1 loadDefaultCourseSettings
 
@@ -169,6 +169,7 @@ sub validateMultilist ($setting, $value) {
 	throw DB::Exception::InvalidCourseFieldType->throw(
 		message => "The values for $setting->{setting_name} must be a subset of the options field")
 		unless scalar(@diff) == 0;
+	return 1;
 }
 
 # Test for an integer.
