@@ -27,4 +27,9 @@ our $exception_handler = sub ($next, $c) {
 	}
 };
 
+our $notify_expiry = sub ($c) {
+	$c->res->headers->header('x-expiry' => time + $c->app->sessions->default_expiration)
+		if ($c->signature_exists());
+};
+
 1;

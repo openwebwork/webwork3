@@ -22,6 +22,7 @@ interface CourseInfo {
 // SessionState should contain a de facto User, already parsed
 export interface SessionState {
 	logged_in: boolean;
+	expiry: number;
 	user: User;
 	course: CourseInfo;
 	user_courses: UserCourse[];
@@ -32,6 +33,7 @@ export const useSessionStore = defineStore('session', {
 	persist: true,
 	state: (): SessionState => ({
 		logged_in: false,
+		expiry: 0,
 		user: new User({ username: 'logged_out' }),
 		course: {
 			course_id: 0,
@@ -42,9 +44,13 @@ export const useSessionStore = defineStore('session', {
 	}),
 	getters: {
 		full_name: (state): string => `${state.user?.first_name ?? ''} ${state.user?.last_name ?? ''}`,
-		getUser: (state): User => new User(state.user)
+		getUser: (state): User => new User(state.user),
+		authenticated: (state): boolean => state.logged_in && state.expiry > Date.now(),
 	},
 	actions: {
+		updateExpiry(expiry: number): void {
+			this.expiry = expiry;
+		},
 		updateSessionInfo(session_info: SessionInfo): void {
 			this.logged_in = session_info.logged_in;
 			if (this.logged_in) {

@@ -1,5 +1,6 @@
 import { boot } from 'quasar/wrappers';
 import axios, { AxiosInstance } from 'axios';
+import { useSessionStore } from 'src/stores/session';
 
 declare module '@vue/runtime-core' {
 	interface ComponentCustomProperties {
@@ -15,6 +16,14 @@ declare module '@vue/runtime-core' {
 // for each client)
 
 const api = axios.create({ baseURL: (process.env.VUE_ROUTER_BASE ?? '') + 'api' });
+
+api.interceptors.response.use((response) => {
+	const session = useSessionStore();
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+	const expiry = response.headers['x-expiry'] as number ?? 0;
+	session.updateExpiry(expiry * 1000);
+	return response;
+});
 
 export default boot(({ app }) => {
 	// for use inside Vue files (Options API) through this.$axios and this.$api

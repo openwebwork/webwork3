@@ -34,7 +34,11 @@ export default route(() => {
 	router.beforeResolve((to) => {
 		// must be logged in, or else headed to the login page
 		const session_store = useSessionStore();
-		if (!session_store.logged_in && to.name !== 'login') return { name: 'login' };
+		if (!session_store.authenticated && to.name !== 'login') {
+			// dump current session and redirect to login
+			session_store.logout();
+			return { name: 'login' };
+		};
 
 		// otherwise, we're logged in, so check permissions on the route
 		const permissions_store = usePermissionStore();
