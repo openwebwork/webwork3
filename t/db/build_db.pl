@@ -28,8 +28,11 @@ use TestUtils qw/loadCSV/;
 my $verbose = 1;
 
 # Load the configuration for the database settings.
-my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
-$config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
+my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
+$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
+
+# the YAML true/false will be loaded a JSON booleans.
+local $YAML::XS::Boolean = "JSON::PP";
 my $config = LoadFile($config_file);
 
 # Load the Permissions file
@@ -73,16 +76,36 @@ sub addCourses {
 			boolean_fields => ['visible']
 		}
 	);
-	# currently course_params from the csv file are written to the course_settings database table.
 	for my $course (@courses) {
-		$course->{course_settings} = {};
-		for my $key (keys %{ $course->{course_params} }) {
-			my @fields = split(/:/, $key);
-			$course->{course_settings}->{ $fields[0] } = { $fields[1] => $course->{course_params}->{$key} };
-		}
-
-		delete $course->{course_params};
 		$course_rs->create($course);
+	}
+	return;
+}
+
+sub addSettings {
+	say 'adding default settings' if $verbose;
+	my $settings_file = "$main::ww3_dir/conf/course_settings.yml";
+	die "The default settings file: '$settings_file' does not exist or is not readable"
+		unless -r $settings_file;
+	my $course_settings = LoadFile($settings_file);
+	for my $setting (@$course_settings) {
+		# encode default_value as a JSON object.
+		$setting->{default_value} = { value => $setting->{default_value} };
+		$global_setting_rs->create($setting);
+	}
+
+	say 'adding course settings' if $verbose;
+	my @course_settings = loadCSV("$main::ww3_dir/t/db/sample_data/course_settings.csv");
+	for my $setting (@course_settings) {
+		my $course = $course_rs->find({ course_name => $setting->{course_name} });
+		die "the course: '$setting->{course_name}' does not exist in the db" unless $course;
+		my $global_setting = $global_setting_rs->find({ setting_name => $setting->{setting_name} });
+		die "the setting: '$setting->{setting_name}' does not exist in the db" unless $global_setting;
+		$course->add_to_course_settings({
+			course_id  => $course->course_id,
+			setting_id => $global_setting->setting_id,
+			value      => $setting->{setting_value}
+		});
 	}
 	return;
 }
@@ -342,6 +365,7 @@ sub addUserProblems {
 }
 
 addCourses;
+addSettings;
 addUsers;
 addSets;
 addProblems;
