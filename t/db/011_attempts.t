@@ -45,9 +45,9 @@ my $attempt_rs      = $schema->resultset('Attempt');
 
 my $attempts = $attempt_rs->search(
 	{
-		'courses.course_name'   => 'Precalculus',
-		'users.username'        => 'homer',
-		'problem_sets.set_name' => 'HW #2'
+		'courses.course_name'  => 'Precalculus',
+		'users.username'       => 'homer',
+		'problem_set.set_name' => 'HW #2'
 	},
 	{
 		join => {
@@ -57,7 +57,7 @@ my $attempts = $attempt_rs->search(
 						'course_users' => 'users'
 					},
 					{
-						'problem_sets' => 'courses'
+						'problem_set' => 'courses'
 					}
 				]
 			}

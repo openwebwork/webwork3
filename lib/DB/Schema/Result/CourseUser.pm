@@ -2,6 +2,8 @@ package DB::Schema::Result::CourseUser;
 use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw/experimental::signatures/;
 
 use base qw(DBIx::Class::Core DB::Validation);
 
@@ -132,19 +134,25 @@ __PACKAGE__->add_columns(
 	}
 );
 
-sub valid_params {
-	return {
-		comment        => q{.*},
-		useMathQuill   => 'bool',
-		displayMode    => q{.*},
-		status         => q{[A-Z]},
-		lis_source_did => q{.*},
-		showOldAnswers => 'bool'
-	};
+sub valid_fields ($self, %args) {
+	if ($args{field_name} eq 'course_user_params') {
+		return {
+			comment        => q{.*},
+			useMathQuill   => 'bool',
+			displayMode    => q{.*},
+			status         => q{[A-Z]},
+			lis_source_did => q{.*},
+			showOldAnswers => 'bool'
+		};
+	}
 }
 
-sub required_params {
+sub required ($self, %args) {
 	return {};
+}
+
+sub additional_validation ($self, %args) {
+	return 1;
 }
 
 __PACKAGE__->set_primary_key('course_user_id');

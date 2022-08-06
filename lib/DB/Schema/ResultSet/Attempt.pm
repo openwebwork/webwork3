@@ -15,7 +15,7 @@ use Exception::Class qw/
 	DB::Exception::UserProblemExists
 	DB::Exception::UserProblemNotFound
 	DB::Exception::SetProblemNotFound
-/;
+	/;
 
 =head1 DESCRIPTION
 

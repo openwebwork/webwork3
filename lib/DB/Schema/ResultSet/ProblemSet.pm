@@ -18,6 +18,13 @@ our $SET_TYPES = {
 	'REVIEW' => 4,
 };
 
+our $SUBCLASS_NAMES = {
+	1 => 'HWSet',
+	2 => 'Quiz',
+	3 => 'JITAR',
+	4 => 'ReviewSet'
+};
+
 use DB::Exception;
 
 =head1 DESCRIPTION

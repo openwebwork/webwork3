@@ -90,7 +90,7 @@ my @all_user_sets = loadCSV(
 );
 
 for my $set (@all_user_sets) {
-	$set->{set_version} = 1 unless defined($set->{set_version});
+	$set->{set_version} = 0 unless defined($set->{set_version});
 	# find the problem set type
 	my $s = firstval {
 		$_->{course_name} eq $set->{course_name} && $_->{set_name} eq $set->{set_name}
@@ -124,7 +124,7 @@ for my $user_set (@merged_user_sets) {
 
 	$user_set->{set_params}  = $params;
 	$user_set->{set_dates}   = $dates;
-	$user_set->{set_version} = 1                   unless defined($user_set->{set_version});
+	$user_set->{set_version} = 0                   unless defined($user_set->{set_version});
 	$user_set->{set_type}    = $set->{set_type}    unless defined($user_set->{set_type});
 	$user_set->{set_visible} = $set->{set_visible} unless defined($user_set->{set_visible});
 }
@@ -150,27 +150,27 @@ my $user_set1_from_csv = firstval {
 }
 @all_user_sets;
 
-# Make a new user set that has a  set_version of 2
+# Make a new user set that has a  set_version of 1
 
 is_deeply($user_set1_from_csv, $user_set1, 'getUserSet: get a single user set from a course.');
 
-my $user_set1_v2_params = clone $user_set1;
+my $user_set1_v1_params = clone $user_set1;
+$user_set1_v1_params->{set_version} = 1;
+
+my $user_set1_v1 = $user_set_rs->addUserSet(params => { %$user_set_info1, %$user_set1_v1_params });
+removeIDs($user_set1_v1);
+
+is_deeply($user_set1_v1_params, $user_set1_v1, "addUserSet: add a user set with version =1 ");
+
+# Make a new user set that has a  set_version of 2
+
+my $user_set1_v2_params = clone $user_set1_v1_params;
 $user_set1_v2_params->{set_version} = 2;
 
 my $user_set1_v2 = $user_set_rs->addUserSet(params => { %$user_set_info1, %$user_set1_v2_params });
 removeIDs($user_set1_v2);
 
-is_deeply($user_set1_v2_params, $user_set1_v2, "addUserSet: add a user set with version =2 ");
-
-# Make a new user set that has a  set_version of 3
-
-my $user_set1_v3_params = clone $user_set1;
-$user_set1_v3_params->{set_version} = 3;
-
-my $user_set1_v3 = $user_set_rs->addUserSet(params => { %$user_set_info1, %$user_set1_v3_params });
-removeIDs($user_set1_v3);
-
-is_deeply($user_set1_v3_params, $user_set1_v3, "addUserSet: add a user set with  version = 3.");
+is_deeply($user_set1_v2_params, $user_set1_v2, "addUserSet: add a user set with  version = 2.");
 
 my @all_user_set_versions = $user_set_rs->getUserSetVersions(info => $user_set_info1);
 for my $user_set (@all_user_set_versions) {
@@ -180,11 +180,24 @@ for my $user_set (@all_user_set_versions) {
 
 is_deeply(
 	\@all_user_set_versions,
-	[ $user_set1, $user_set1_v2, $user_set1_v3 ],
+	[ $user_set1, $user_set1_v1, $user_set1_v2 ],
 	'getUserSetVersions: get all versions of a user set.'
 );
 
 # clean up the created versioned user sets.
+
+my $user_set_v1_to_delete = $user_set_rs->deleteUserSet(
+	info => {
+		course_name => $user_set1_v1_params->{course_name},
+		set_name    => $user_set1_v1_params->{set_name},
+		username    => $user_set1_v1_params->{username},
+		set_version => $user_set1_v1_params->{set_version}
+	}
+);
+
+removeIDs($user_set_v1_to_delete);
+delete $user_set_v1_to_delete->{set_visible} unless defined($user_set_v1_to_delete->{set_visible});
+is_deeply($user_set_v1_to_delete, $user_set1_v1, 'deleteUserSet: delete user set with set_version = 1');
 
 my $user_set_v2_to_delete = $user_set_rs->deleteUserSet(
 	info => {
@@ -198,19 +211,6 @@ my $user_set_v2_to_delete = $user_set_rs->deleteUserSet(
 removeIDs($user_set_v2_to_delete);
 delete $user_set_v2_to_delete->{set_visible} unless defined($user_set_v2_to_delete->{set_visible});
 is_deeply($user_set_v2_to_delete, $user_set1_v2, 'deleteUserSet: delete a versioned user set');
-
-my $user_set_v3_to_delete = $user_set_rs->deleteUserSet(
-	info => {
-		course_name => $user_set1_v3_params->{course_name},
-		set_name    => $user_set1_v3_params->{set_name},
-		username    => $user_set1_v3_params->{username},
-		set_version => $user_set1_v3_params->{set_version}
-	}
-);
-
-removeIDs($user_set_v3_to_delete);
-delete $user_set_v3_to_delete->{set_visible} unless defined($user_set_v3_to_delete->{set_visible});
-is_deeply($user_set_v3_to_delete, $user_set1_v3, 'deleteUserSet: delete a versioned user set');
 
 # Ensure that the user_sets table is restored.
 my @all_user_sets_from_db = $user_set_rs->getAllUserSets(merged => 1);

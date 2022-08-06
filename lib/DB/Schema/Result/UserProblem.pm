@@ -56,28 +56,37 @@ __PACKAGE__->add_columns(
 	}
 );
 
-sub valid_params ($=) {
-	return {
-		# positive integers or decimals
-		weight               => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},
-		library_id           => q{\d+},
-		file_path            => q{.*},
-		problem_pool_id      => q{\d+},
-		max_attempts         => q{^-?\d+$},
-		att_to_open_children => q{\d+},
-		last_answer          => q{^.*$},
-		prPeriod             => q{^-?\d+$},
-		prCount              => q{\d+},
-		counts_parent_grade  => 'bool',
-		attempted            => q{\d+},
-		num_correct          => q{\d+},
-		num_incorrect        => q{\d+},
-		showMeAnotherCount   => q{\d+}
-	};
+sub valid_fields ($self, %args) {
+	if ($args{field_name} eq 'problem_params') {
+
+		return {
+			# positive integers or decimals
+			weight               => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},
+			library_id           => q{\d+},
+			file_path            => q{.*},
+			problem_pool_id      => q{\d+},
+			max_attempts         => q{^-?\d+$},
+			att_to_open_children => q{\d+},
+			last_answer          => q{^.*$},
+			prPeriod             => q{^-?\d+$},
+			prCount              => q{\d+},
+			counts_parent_grade  => 'bool',
+			attempted            => q{\d+},
+			num_correct          => q{\d+},
+			num_incorrect        => q{\d+},
+			showMeAnotherCount   => q{\d+}
+		};
+	} else {
+		return {};
+	}
 }
 
-sub required_params ($=) {
+sub required ($self, %args) {
 	return {};
+}
+
+sub additional_validation ($self, %args) {
+	return 1;
 }
 
 __PACKAGE__->set_primary_key('user_problem_id');

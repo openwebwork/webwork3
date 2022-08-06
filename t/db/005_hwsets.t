@@ -161,7 +161,7 @@ throws_ok {
 
 # Try to get a problem set that is not in a given course
 throws_ok {
-	$problem_set_rs->getProblemSet(info => { course_name => 'Precalculus', set_id => 6 });
+	$problem_set_rs->getProblemSet(info => { course_name => 'Precalculus', set_id => 999 });
 }
 'DB::Exception::SetNotInCourse', 'getProblemSet: find a set that is not in a course';
 

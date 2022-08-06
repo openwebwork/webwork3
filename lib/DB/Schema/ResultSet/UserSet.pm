@@ -266,11 +266,13 @@ sub getUserSet ($self, %args) {
 
 	my $user_set = $problem_set->user_sets->find({
 		course_user_id => $course_user->course_user_id,
-		set_version    => $args{params}{set_version} // 0
+		set_version    => $args{info}{set_version} // 0
 	});
 
 	DB::Exception::UserSetNotInCourse->throw(message => 'The set '
 			. $problem_set->set_name
+			. ' with set_version '
+			. ($args{info}{set_version} // 0)
 			. ' is not assigned to '
 			. $course_user->users->username
 			. ' in the course.')
@@ -320,21 +322,29 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 =back
 
 =cut
+
 sub addUserSet ($self, %args) {
 	my $problem_set = $self->rs('ProblemSet')->getProblemSet(info => $args{params}, as_result_set => 1);
 	my $course_user = $self->rs('User')->getCourseUser(info => $args{params}, as_result_set => 1);
 
 	# Filter down to only the relevant keys.
 	my %params =
-		map { exists $args{params}{$_} ? ($_ => $args{params}{$_}) : () } qw/set_dates set_params set_visible set_version/;
+		map { exists $args{params}{$_} ? ($_ => $args{params}{$_}) : () }
+		qw/set_dates set_params set_visible set_version/;
 
-	my $user_set = $problem_set->find_related('user_sets', { 
-		course_user_id => $params{course_user_id},
-		set_version    => $params{set_version} // 0
-	});
-
-	DB::Exception::UserSetExists->throw(
-		message => "The user $course_user->users->username is already assigned to the set $problem_set->set_name")
+	my $user_set = $problem_set->find_related(
+		'user_sets',
+		{
+			course_user_id => $course_user->course_user_id,
+			set_version    => $params{set_version} // 0
+		}
+	);
+	DB::Exception::UserSetExists->throw(message => 'The user '
+			. $course_user->users->username
+			. ' is already assigned to the set '
+			. $problem_set->set_name
+			. ' with set version'
+			. ($params{set_version} // 0))
 		if $user_set;
 
 	# Check that fields/dates/parameters are valid & clean %params
@@ -361,21 +371,24 @@ update a single UserSet for a given course, user, and ProblemSet
 =cut
 
 sub updateUserSet ($self, %args) {
-	my $user_set = $self->getUserSet(info => $args{info}, as_result_set => 1);
+	my $user_set = $self->getUserSet(info => $args{info}, as_result_set => 1, skip_throw => 1);
 
-	DB::Exception::UserSetNotInCourse->throw(
-		set_name    => $args{info}->{set_name},
-		course_name => $args{info}->{course_name},
-		username    => $args{info}->{username}
-	) unless defined($user_set);
+	DB::Exception::UserSetNotInCourse->throw(message => 'The user '
+			. $args{info}{username}
+			. ' is not assigned to the set '
+			. $args{info}{set_name}
+			. ' with set version '
+			. ($args{info}{set_version} // 0))
+		unless defined($user_set);
 
 	# Filter down to only the relevant keys.
 	my %filtered =
-		map { exists $args{params}{$_} ? ($_ => $args{params}{$_}) : () } qw/set_dates set_params set_visible set_version/;
+		map { exists $args{params}{$_} ? ($_ => $args{params}{$_}) : () }
+		qw/set_dates set_params set_visible set_version/;
 
 	# merge this update over any existing overrides (e.g. don't lose date overrides when overriding params)
 	my %existing_overrides = $user_set->get_inflated_columns;
-	my $merged = updateAllFields(\%existing_overrides, \%filtered);
+	my $merged             = updateAllFields(\%existing_overrides, \%filtered);
 
 	# Check that fields/dates/parameters are valid & clean %params
 	my $problem_set = $user_set->problem_set;

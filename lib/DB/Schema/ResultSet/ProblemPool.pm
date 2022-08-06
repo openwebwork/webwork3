@@ -17,7 +17,7 @@ use Exception::Class qw/
 	DB::Exception::PoolAlreadyInCourse
 	DB::Exception::PoolProblemNotInPool
 	DB::Exception::ParametersNeeded
-/;
+	/;
 
 =head1 DESCRIPTION
 

@@ -56,8 +56,8 @@ my @hw_sets = loadCSV(
 	}
 );
 for my $hw_set (@hw_sets) {
-	$hw_set->{set_type}    = "HW";
-	$hw_set->{set_params}  = {} unless defined $hw_set->{set_params};
+	$hw_set->{set_type}   = "HW";
+	$hw_set->{set_params} = {} unless defined $hw_set->{set_params};
 }
 
 my @quizzes = loadCSV(
@@ -69,8 +69,8 @@ my @quizzes = loadCSV(
 	}
 );
 for my $set (@quizzes) {
-	$set->{set_type}    = "QUIZ";
-	$set->{set_params}  = {} unless defined $set->{set_params};
+	$set->{set_type}   = "QUIZ";
+	$set->{set_params} = {} unless defined $set->{set_params};
 }
 
 my @review_sets = loadCSV(
@@ -82,8 +82,8 @@ my @review_sets = loadCSV(
 );
 
 for my $set (@review_sets) {
-	$set->{set_type}    = "REVIEW";
-	$set->{set_params}  = {} unless defined $set->{set_params};
+	$set->{set_type}   = "REVIEW";
+	$set->{set_params} = {} unless defined $set->{set_params};
 }
 
 my @all_problem_sets = (@hw_sets, @quizzes, @review_sets);
@@ -347,8 +347,6 @@ my $new_info = {
 my $new_user_set = $user_set_rs->addUserSet(params => $new_info);
 removeIDs($new_user_set);
 
-use Data::Dumper;
-
 # Set the other default parameters.
 $new_info->{set_dates}   = {};
 $new_info->{set_params}  = {};
@@ -397,6 +395,27 @@ $new_user_params2->{set_version} = 0;
 $new_user_params2->{set_params}  = {};
 
 is_deeply($new_user_set2, $new_user_params2, 'addUserSet: add a new user set with empty dates.');
+
+# Test that adding a field that is not in the database is ignored.
+my $user_set_params3 = {
+	username    => 'otto',
+	course_name => 'Precalculus',
+	set_name    => 'HW #3',
+	bad_field   => 1,
+	set_version => 0,
+	set_params  => {},
+	set_dates   => {}
+};
+my $user_set3 = $user_set_rs->addUserSet(params => $user_set_params3);
+removeIDs($user_set3);
+
+# The bad_field isn't returned
+delete $user_set_params3->{bad_field};
+
+# and need to explicitly set the type
+$user_set_params3->{set_type} = 'HW';
+
+is_deeply($user_set3, $user_set_params3, 'addUserSet: add a user set with a bad field');
 
 # Try to add a user set to a course that doesn't exist.
 throws_ok {
@@ -473,7 +492,7 @@ $set_params2->{set_type}    = 'HW';
 
 is_deeply($user_set2, $set_params2, 'addUserSet: add a new user set with params');
 
-# Try to add a user set with a bad field.
+# When adding a user set with a bad field in the params, it is ignored
 throws_ok {
 	$user_set_rs->addUserSet(
 		params => {
@@ -482,46 +501,47 @@ throws_ok {
 			set_name    => 'HW #4',
 			set_version => 1,
 			set_params  => {
-				bad_field => 12
+				bad_field => 12,
+				hide_hint => false
 			}
 		}
-	);
+	)
 }
 'DB::Exception::InvalidField', 'addUserSet: try to add a new user set with an undefined parameter';
 
 ## add a user set with a new date
 
-my $set_dates3 = {
+my $set_dates4 = {
 	open            => 1,
 	reduced_scoring => 800,
 	due             => 900,
 	answer          => 1000
 };
 
-my $otto_set_info3 = {
-	username    => 'otto',
-	course_name => 'Precalculus',
-	set_name    => 'HW #3',
-	set_version => 1
-};
-
 my $otto_set_info4 = {
 	username    => 'otto',
 	course_name => 'Precalculus',
-	set_name    => 'HW #4',
+	set_name    => 'HW #5',
+	set_version => 1
 };
 
-my $otto_set_params3 = { %$otto_set_info3, set_dates => $set_dates3 };
+my $otto_set_info5 = {
+	username    => 'otto',
+	course_name => 'Precalculus',
+	set_name    => 'HW #6',
+};
 
-my $user_set3 = $user_set_rs->addUserSet(params => $otto_set_params3);
-removeIDs($user_set3);
+my $otto_set_params4 = { %$otto_set_info4, set_dates => $set_dates4 };
 
-my $set_params3 = clone($otto_set_params3);
-$set_params3->{set_type}    = 'HW';
-$set_params3->{set_params}  = {};
-$set_params3->{set_version} = 1;
+my $user_set4 = $user_set_rs->addUserSet(params => $otto_set_params4);
+removeIDs($user_set4);
 
-is_deeply($user_set3, $set_params3, 'addUserSet: add a new user set with dates');
+my $set_params4 = clone($otto_set_params4);
+$set_params4->{set_type}    = 'HW';
+$set_params4->{set_params}  = {};
+$set_params4->{set_version} = 1;
+
+is_deeply($user_set4, $set_params4, 'addUserSet: add a new user set with dates');
 
 # add a user with only override dates set.
 
@@ -559,11 +579,12 @@ is_deeply($ralph_user_set, $ralph_set_info, 'addUserSet: add a new user with dat
 throws_ok {
 	$user_set_rs->addUserSet(
 		params => {
-			%$otto_set_info4,
+			%$otto_set_info5,
 			set_dates => {
-				open   => 100,
-				due    => 9,
-				answer => 1000
+				open                   => 100,
+				due                    => 9,
+				answer                 => 1000,
+				enable_reduced_scoring => false
 			}
 		}
 	);
@@ -573,7 +594,7 @@ throws_ok {
 throws_ok {
 	$user_set_rs->addUserSet(
 		params => {
-			%$otto_set_info4,
+			%$otto_set_info5,
 			set_dates => {
 				open   => 100,
 				due    => 900,
@@ -584,32 +605,21 @@ throws_ok {
 }
 'DB::Exception::ImproperDateOrder', 'addUserSet: dates are out of order';
 
-# Test that dates are merged correctly.
-# First remove the sets added for user otto.
+# Add a new user set and test that it is merged correctly.
 
-my @otto_user_sets = $user_set_rs->search(
-	{
-		'courses.course_name' => 'Precalculus',
-		'users.username'      => 'otto',
-	},
-	{
-		join => [ { problem_set => 'courses' }, { course_users => 'users' } ]
-	}
-);
-
-for my $u (@otto_user_sets) {
-	$u->delete;
-}
-
-# Then add a new user set and test that it is merged correctly.
+my $otto_quiz_info = {
+	course_name => 'Precalculus',
+	set_name    => 'Quiz #1',
+	username    => 'otto'
+};
 
 my $merged_set1 = clone firstval {
-	$_->{course_name} eq $otto_set_info2->{course_name}
-		&& $_->{set_name} eq $otto_set_info2->{set_name}
+	$_->{course_name} eq $otto_quiz_info->{course_name}
+		&& $_->{set_name} eq $otto_quiz_info->{set_name}
 }
 @all_problem_sets;
 
-$merged_set1->{username} = $otto_set_info2->{username};
+$merged_set1->{username} = $otto_quiz_info->{username};
 
 my $new_dates = {
 	due    => $merged_set->{set_dates}->{answer} + 1000,
@@ -621,13 +631,13 @@ $merged_set1->{set_dates}->{answer} = $new_dates->{answer};
 
 my $user_set_to_merge = $user_set_rs->addUserSet(
 	params => {
-		%$otto_set_info2, set_dates => $new_dates
+		%$otto_quiz_info, set_dates => $new_dates
 	},
 	merged => 1
 );
 removeIDs($user_set_to_merge);
-# otto_set2 has set_version 1.  Need to match to compare.
-$merged_set1->{set_version} = 1;
+# otto_quiz has set_version 0.  Need to match to compare.
+$merged_set1->{set_version} = 0;
 
 is_deeply($merged_set1, $user_set_to_merge, 'addUserSet: adding a user set with dates to check merging');
 
@@ -636,7 +646,7 @@ is_deeply($merged_set1, $user_set_to_merge, 'addUserSet: adding a user set with 
 throws_ok {
 	$user_set_rs->addUserSet(
 		params => {
-			%$otto_set_info3,
+			%$otto_set_info5,
 			set_dates => {
 				due => 1609595640,    # this is after the problem set answer date.
 			}
@@ -648,68 +658,70 @@ throws_ok {
 
 ## Check that setting a boolean as 0/1 throws an error
 
+# Currently, this is stripped out if hide_hint is 0.  Doe we want to check for this?
+
 throws_ok {
 	$user_set_rs->addUserSet(
 		params => {
-			%$otto_set_info3,
+			%$otto_set_info5,
 			set_params => {
-				hide_hint => 0
+				hide_hint => 1
 			}
 		},
 		merged => 1
 	);
 }
-'DB::Exception::InvalidParameter', 'addUserSet: user set is out of order with respect to problem set';
+'DB::Exception::InvalidParameter', 'addUserSet: boolean valid should be JSON boolean';
 
 # Update User Set
 # Get the user set for $otto_set_info2.
 
-my $otto_set2 = $user_set_rs->getUserSet(info => $otto_set_info2);
-removeIDs($otto_set2);
+my $otto_quiz = $user_set_rs->getUserSet(info => $otto_quiz_info);
+removeIDs($otto_quiz);
 
 # Update the dates
 my $updated_dates = {
-	due    => $otto_set2->{set_dates}->{due} + 100,
-	answer => $otto_set2->{set_dates}->{due} + 1000
+	due    => $otto_quiz->{set_dates}->{due} + 100,
+	answer => $otto_quiz->{set_dates}->{due} + 1000
 };
 
-$otto_set2->{set_dates}->{due}    = $updated_dates->{due};
-$otto_set2->{set_dates}->{answer} = $updated_dates->{answer};
+$otto_quiz->{set_dates}->{due}    = $updated_dates->{due};
+$otto_quiz->{set_dates}->{answer} = $updated_dates->{answer};
 
-my $updated_user_set = $user_set_rs->updateUserSet(info => $otto_set_info2, params => $otto_set2);
-removeIDs($updated_user_set);
+my $updated_user_quiz = $user_set_rs->updateUserSet(info => $otto_quiz_info, params => $otto_quiz);
+removeIDs($updated_user_quiz);
 
-is_deeply($updated_user_set, $otto_set2, 'updateUserSet: update the dates');
+is_deeply($updated_user_quiz, $otto_quiz, 'updateUserSet: update the dates');
 
 # Update the params
 my $updated_user_set2 = $user_set_rs->updateUserSet(
-	info   => $otto_set_info2,
+	info   => $otto_quiz_info,
 	params => {
 		set_params => {
-			hide_hint => true,
+			problem_randorder => true,
 		}
 	}
 );
 removeIDs($updated_user_set2);
-$otto_set2->{set_params}->{hide_hint} = true;
-is_deeply($updated_user_set2, $otto_set2, 'updateUserSet: update the params');
+$otto_quiz->{set_params}->{problem_randorder} = true;
+is_deeply($updated_user_set2, $otto_quiz, 'updateUserSet: update the params');
 
 # Update a valid field
 my $updated_user_set3 = $user_set_rs->updateUserSet(
-	info   => $otto_set_info2,
+	info   => $otto_quiz_info,
 	params => {
 		set_visible => true
 	}
 );
 removeIDs($updated_user_set3);
-$otto_set2->{set_visible} = true;
+$otto_quiz->{set_visible} = true;
 
-is_deeply($otto_set2, $updated_user_set3, 'updateUserSet: update the set visibility');
+is_deeply($otto_quiz, $updated_user_set3, 'updateUserSet: update the set visibility');
 
 # Try updating an invalid param.
 throws_ok {
 	$user_set_rs->updateUserSet(
-		info   => $otto_set_info2,
+		info   => $otto_quiz_info,
 		params => {
 			set_params => {
 				not_a_valid_param => 'bad'
@@ -722,7 +734,7 @@ throws_ok {
 # Try updating an invalid date.
 throws_ok {
 	$user_set_rs->updateUserSet(
-		info   => $otto_set_info2,
+		info   => $otto_quiz_info,
 		params => {
 			set_dates => {
 				open   => 1,
@@ -736,7 +748,7 @@ throws_ok {
 # Test with out of order dates.
 throws_ok {
 	$user_set_rs->updateUserSet(
-		info   => $otto_set_info2,
+		info   => $otto_quiz_info,
 		params => {
 			set_dates => {
 				open   => 100,
@@ -751,10 +763,10 @@ throws_ok {
 # Try to update a user_set that doesn't exist.
 throws_ok {
 	$user_set_rs->updateUserSet(
-		info   => $otto_set_info3,
+		info   => $otto_set_info5,
 		params => {
 			set_params => {
-				hide_hint => 1
+				hide_hint => true
 			}
 		}
 	);
@@ -763,7 +775,7 @@ throws_ok {
 
 # Try to delete a user_set that doesn't exist.
 throws_ok {
-	$user_set_rs->deleteUserSet(info => $otto_set_info3);
+	$user_set_rs->deleteUserSet(info => $otto_set_info5);
 }
 'DB::Exception::UserSetNotInCourse', 'deleteUserSet: try to delete a user set not the in the course';
 
@@ -794,17 +806,30 @@ removeIDs($deleted_user_set2);
 delete $deleted_user_set2->{set_visible};
 is_deeply($deleted_user_set2, $ralph_user_set, "deleteUserSet: successfully delete another user set");
 
-my $deleted_user_set3 = $user_set_rs->deleteUserSet(info => $otto_set_info2);
+my $deleted_user_set3 = $user_set_rs->deleteUserSet(info => $otto_quiz_info);
 removeIDs($deleted_user_set3);
-is_deeply($deleted_user_set3, $otto_set2, "deleteUserSet: successfully delete yet another user set");
+is_deeply($deleted_user_set3, $otto_quiz, "deleteUserSet: successfully delete yet another user set");
 
 my $deleted_user_set4 = $user_set_rs->deleteUserSet(info => $new_merged_set);
 
-# Try to delete a user_set that doesn't exist.
-throws_ok {
-	$user_set_rs->deleteUserSet(info => $otto_set_info3);
+# remove the rest of the user sets added for user 'otto'
+
+# Test that dates are merged correctly.
+# First remove the sets added for user otto.
+
+my @otto_user_sets = $user_set_rs->search(
+	{
+		'courses.course_name' => 'Precalculus',
+		'users.username'      => 'otto',
+	},
+	{
+		join => [ { problem_set => 'courses' }, { course_users => 'users' } ]
+	}
+);
+
+for my $u (@otto_user_sets) {
+	$u->delete;
 }
-'DB::Exception::UserSetNotInCourse', 'deleteUserSet: try to delete a user set not the in the course';
 
 # Check that the user_sets db table is restored.
 @all_user_sets_from_db = $user_set_rs->getAllUserSets();

@@ -13,7 +13,7 @@ use Exception::Class qw/
 	DB::Exception::InvalidField
 	DB::Exception::FieldsNeeded
 	DB::Exception::ParamFormatIncorrect
-/;
+	/;
 
 =pod
 
@@ -34,13 +34,14 @@ sub validate ($self, %args) {
 
 # Check if the hash has the correct fields.
 sub checkForValidFields ($self, %args) {
-	my $params       = $self->get_inflated_column($args{field_name});
-
+	my $params = $self->get_inflated_column($args{field_name});
 	return 1 unless defined($params);
+
 	my $valid_fields = $self->valid_fields(%args);
 	my @valid_fields = keys %$valid_fields;
 	my @fields       = keys %$params;
 	my @inter        = intersect(@fields, @valid_fields);
+
 	if (scalar(@inter) != scalar(@fields)) {
 		my @bad_fields = array_minus(@fields, @valid_fields);
 		DB::Exception::InvalidField->throw(
@@ -52,6 +53,7 @@ sub checkForValidFields ($self, %args) {
 sub validateParams ($self, %args) {
 	my $params       = $self->get_inflated_column($args{field_name});
 	my $valid_fields = ref($self)->valid_fields(%args);
+
 	# if it doesn't exist, it is valid
 	return 1 unless defined $params;
 

@@ -25,7 +25,7 @@ use Exception::Class qw/
 	DB::Exception::UserNotFound
 	DB::Exception::CourseAlreadyExists
 	DB::Exception::UserNotInCourse
-/;
+	/;
 
 =head1 getAllGlobalUsers
 
@@ -418,7 +418,7 @@ sub addCourseUser ($self, %args) {
 
 	# check for valid fields and parameters
 	my $updated_user = $self->rs('CourseUser')->new($params);
-	$updated_user->validParams('course_user_params');
+	$updated_user->validate(field_name => 'course_user_params');
 
 	my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
 	my $course = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
@@ -497,7 +497,7 @@ sub updateCourseUser ($self, %args) {
 	}
 
 	my $params_to_check = $self->rs('CourseUser')->new($params);
-	$params_to_check->validParams('course_user_params');
+	$params_to_check->validate(field_name => 'course_user_params');
 
 	my $user_to_return = $course_user->update($params);
 

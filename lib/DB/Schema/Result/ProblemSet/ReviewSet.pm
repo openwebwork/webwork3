@@ -26,13 +26,11 @@ subroutine that returns a hash of the validation for both set_dates and set_para
 sub valid_fields ($self, %args) {
 	if ($args{field_name} eq 'set_dates') {
 		return {
-			open => q{\d+},
+			open   => q{\d+},
 			closed => q{\d+},
 		};
 	} elsif ($args{field_name} eq 'set_params') {
-		return {
-			can_retake => 'bool',
-		}
+		return { can_retake => 'bool', };
 	} else {
 		return {};
 	}
@@ -50,7 +48,7 @@ sub additional_validation ($self, %args) {
 	my $dates = $self->get_inflated_column('set_dates');
 	DB::Exception::ImproperDateOrder->throw(message => 'The dates are not in order')
 		unless $dates->{open} <= $dates->{closed};
-	
+
 	return 1;
 }
 
@@ -62,7 +60,7 @@ subroutine that returns the array for required set_dates or set_params (none)
 
 sub required ($self, %args) {
 	if ($args{field_name} eq 'set_dates') {
-		return { '_ALL_' => [ 'open', 'closed' ]};
+		return { '_ALL_' => [ 'open', 'closed' ] };
 	} else {
 		return {};
 	}

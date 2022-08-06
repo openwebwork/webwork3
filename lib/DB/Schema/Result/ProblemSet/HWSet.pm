@@ -54,6 +54,7 @@ sub additional_validation ($self, %args) {
 	return 1 if ($args{field_name} ne 'set_dates');
 
 	my $dates = $self->get_inflated_column('set_dates');
+
 	if ($dates->{enable_reduced_scoring}) {
 		DB::Exception::ImproperDateOrder->throw(message => 'The dates are not in order')
 			unless $dates->{open} <= $dates->{reduced_scoring}
