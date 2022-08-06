@@ -97,6 +97,9 @@ export const non_neg_int_re = /^\s*(\d+)\s*$/;
 export const non_neg_decimal_re = /(^\s*(\d+)(\.\d*)?\s*$)|(^\s*\.\d+\s*$)/;
 export const mail_re = /^[\w.]+@([a-zA-Z_.]+)+\.[a-zA-Z]{2,9}$/;
 export const username_re = /^[_a-zA-Z]([a-zA-Z._0-9])+$/;
+export const time_re = /^([01][0-9]|2[0-3]):[0-5]\d$/;
+// Update this for localization
+export const time_duration_re = /^(\d+)\s(sec|second|min|minute|day|week|hr|hour)s?$/i;
 
 // Checking functions
 
@@ -104,6 +107,8 @@ export const isNonNegInt = (v: number | string) => non_neg_int_re.test(`${v}`);
 export const isNonNegDecimal = (v: number | string) => non_neg_decimal_re.test(`${v}`);
 export const isValidUsername = (v: string) => username_re.test(v) || mail_re.test(v);
 export const isValidEmail = (v: string) => mail_re.test(v);
+export const isTimeDuration = (v: string) => time_duration_re.test(v);
+export const isTime = (v: string) => time_re.test(v);
 
 // Parsing functionis
 

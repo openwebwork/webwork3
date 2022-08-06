@@ -8,7 +8,7 @@ no warnings qw/experimental::signatures/;
 require Exporter;
 use base qw/Exporter/;
 our @EXPORT_OK = qw/getCourseInfo getUserInfo getSetInfo updateAllFields
-	getPoolInfo getProblemInfo getPoolProblemInfo removeLoginParams updatePermissions/;
+	getPoolInfo getProblemInfo getPoolProblemInfo getSettingInfo removeLoginParams/;
 
 use Clone qw/clone/;
 use List::Util qw/first/;
@@ -39,6 +39,10 @@ sub getProblemInfo ($in) {
 
 sub getPoolProblemInfo ($in) {
 	return _get_info($in, qw/library_id pool_problem_id/);
+}
+
+sub getSettingInfo ($in) {
+	return _get_info($in, qw/setting_name setting_id/);
 }
 
 # This is a generic internal subroutine to check that the info passed in contains certain fields.

@@ -8,13 +8,15 @@ no warnings qw/experimental::signatures/;
 use base 'DBIx::Class::ResultSet';
 
 use Clone qw/clone/;
-use DB::Utils qw/getCourseInfo getUserInfo/;
-use DB::Exception;
-use Exception::Class qw/DB::Exception::CourseNotFound DB::Exception::CourseExists/;
+use DB::Utils qw/getCourseInfo getUserInfo getSettingInfo/;
 
-#use TestUtils qw/removeIDs/;
-use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings mergeCourseSettings
-	getDefaultCourseValues validateCourseSettings/;
+use Exception::Class qw(
+	DB::Exception::CourseNotFound
+	DB::Exception::CourseExists
+	DB::Exception::SettingNotFound
+);
+
+use WeBWorK3::Utils::Settings qw/ mergeCourseSettings isValidSetting/;
 
 =head1 DESCRIPTION
 
@@ -140,7 +142,6 @@ sub addCourse ($self, %args) {
 		# This should be looked up.
 		$params->{$field} = $course_params->{$field} if defined($course_params->{$field});
 	}
-	$params->{course_settings} = {};
 
 	# Check the parameters.
 	my $new_course = $self->create($params);
@@ -254,15 +255,15 @@ sub getUserCourses ($self, %args) {
 	return @user_courses_hashref;
 }
 
-=head2 getCourseSettings
+=pod
 
-This gets the Course Settings for a course
+=head2 getGlobalSettings
+
+This gets the Global/Default Settings for all courses
 
 =head3 input
 
 =over
-
-=item * hashref containing info about the course
 
 =item * C<$as_result_set>, a boolean if the return is to be a result_set
 
@@ -275,23 +276,247 @@ if C<$as_result_set> is true.  Otherwise an array of hash_ref.
 
 =cut
 
-sub getCourseSettings ($self, %args) {
-	my $course = $self->getCourse(info => $args{info}, as_result_set => 1);
+sub getGlobalSettings ($self, %args) {
+	my @global_settings = $self->result_source->schema->resultset('GlobalSetting')->search({});
 
-	my $course_settings  = getDefaultCourseValues();
-	my $settings_from_db = { $course->course_settings->get_inflated_columns };
-	return mergeCourseSettings($course_settings, $settings_from_db);
+	return \@global_settings if $args{as_result_set};
+	my @settings = map {
+		{ $_->get_inflated_columns };
+	} @global_settings;
+	for my $setting (@settings) {
+		# The default_value is stored as a JSON and needs to be parsed.
+		$setting->{default_value} = $setting->{default_value}->{value};
+	}
+	return \@settings;
 }
 
-sub updateCourseSettings ($self, %args) {
-	my $course = $self->getCourse(info => $args{info}, as_result_set => 1);
-	validateCourseSettings($args{settings});
+=pod
 
-	my $current_settings = { $course->course_settings->get_inflated_columns };
-	my $updated_settings = mergeCourseSettings($current_settings, $args{settings});
+=head2 getGlobalSetting
 
-	my $cs = $course->course_settings->update($updated_settings);
-	return mergeCourseSettings(getDefaultCourseValues(), { $cs->get_inflated_columns });
+This gets a single global/default setting.
+
+=head3 input
+
+=over
+
+=item * C<info> which is a hash of either a C<setting_id> or C<setting_name> with information
+on the setting.
+
+=item * C<$as_result_set>, a boolean if the return is to be a result_set
+
+=back
+
+=head3 output
+
+A single global/default setting.
+
+=cut
+
+sub getGlobalSetting ($self, %args) {
+	my $setting_info   = getSettingInfo($args{info});
+	my $global_setting = $self->result_source->schema->resultset('GlobalSetting')->find($setting_info);
+
+	DB::Exception::SettingNotFound->throw(message => $setting_info->{setting_name}
+		? "The setting with name $setting_info->{setting_name} is not found"
+		: "The setting with setting_id $setting_info->{setting_id} is not found")
+		unless $global_setting;
+	return $global_setting if $args{as_result_set};
+	my $setting_to_return = { $global_setting->get_inflated_columns };
+	$setting_to_return->{default_value} = $setting_to_return->{default_value}->{value};
+	return $setting_to_return;
+}
+
+=head2 getCourseSettings
+
+This gets the Course Settings for a course
+
+=head3 input
+
+=over
+
+=item * C<info>, hashref containing info about the course
+
+=item * C<merged>, a boolean on whether the course setting is merged with its corresponding
+global setting.
+
+=item * C<$as_result_set>, a boolean if the return is to be a result_set
+
+=back
+
+=head3 output
+
+An array of course settings as a C<DBIx::Class::ResultSet::CourseSetting> object
+if C<$as_result_set> is true.  Otherwise an array of hash_ref.
+
+=cut
+
+sub getCourseSettings ($self, %args) {
+	my $course           = $self->getCourse(info => $args{info}, as_result_set => 1);
+	my @settings_from_db = $course->course_settings;
+
+	return \@settings_from_db if $args{as_result_set};
+	my @settings_to_return;
+	if ($args{merged}) {
+		@settings_to_return = map {
+			{ $_->get_inflated_columns, $_->global_setting->get_inflated_columns };
+		} @settings_from_db;
+		for my $setting (@settings_to_return) {
+			$setting->{default_value} = $setting->{default_value}->{value};
+		}
+	} else {
+		@settings_to_return = map {
+			{ $_->get_inflated_columns };
+		} @settings_from_db;
+	}
+	return \@settings_to_return;
+}
+
+=pod
+
+=head2 getCourseSetting
+
+This gets a single course setting.
+
+=head3 input
+
+=over
+
+=item * C<info> which is a hash of either a C<setting_id> or C<setting_name> with information
+on the setting.
+
+=item * C<merged>, a boolean on whether the course setting is merged with its corresponding
+global setting.
+
+=item * C<$as_result_set>, a boolean if the return is to be a result_set
+
+=back
+
+=head3 output
+
+A single course setting as either a hashref or a C<DBIx::Class::ResultSet::CourseSetting> object.
+
+=cut
+
+sub getCourseSetting ($self, %args) {
+
+	my $global_setting = $self->getGlobalSetting(info => $args{info}, as_result_set => 1);
+	DB::Exception::SettingNotFound->throw(
+		message => "The setting with name: '" . $args{info}->{setting_name} . "' is not a defined info.")
+		unless defined($global_setting);
+
+	my $course  = $self->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+	my $setting = $course->course_settings->find({ setting_id => $global_setting->setting_id });
+
+	return $setting if $args{as_result_set};
+	if ($args{merged}) {
+		my $setting_to_return = { $setting->get_inflated_columns, $setting->global_setting->get_inflated_columns };
+		$setting_to_return->{default_value} = $setting_to_return->{default_value}->{value};
+		return $setting_to_return;
+	} else {
+		return { $setting->get_inflated_columns };
+	}
+}
+
+=pod
+
+=head2 updateCourseSetting
+
+Update a single course setting.
+
+=head3 input
+
+=over
+
+=item * C<info> which is a hash containing information about the course (either a
+C<course_id> or C<course_name>) and a setting (either a C<setting_id> or C<setting_name>).
+
+=item * C<params> the updated value of the course setting.
+
+=item * C<merged>, a boolean on whether the course setting is merged with its corresponding
+global setting.
+
+=item * C<$as_result_set>, a boolean if the return is to be a result_set
+
+=back
+
+=head3 output
+
+A single course setting as either a hashref or a C<DBIx::Class::ResultSet::CourseSetting> object.
+
+=cut
+use Data::Dumper;
+sub updateCourseSetting ($self, %args) {
+	my $course = $self->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+
+	my $global_setting = $self->getGlobalSetting(info => getSettingInfo($args{info}));
+
+	my $course_setting = $course->course_settings->find({
+		setting_id => $global_setting->{setting_id}
+	});
+
+	# Check that the setting is valid.
+
+	my $params = {
+		course_id  => $course->course_id,
+		setting_id => $global_setting->{setting_id},
+		value      => $args{params}->{value}
+	};
+
+	# remove the following fields before checking for valid settings:
+	for (qw/setting_id course_id/) { delete $global_setting->{$_}; }
+
+	isValidSetting($global_setting, $params->{value});
+
+	# The course_id must be deleted to ensure it is written to the database correctly.
+	delete $params->{course_id} if defined($params->{course_id});
+
+	my $updated_course_setting = defined($course_setting) ? $course_setting->update($params) : $course->add_to_course_settings($params);
+
+	if ($args{merged}) {
+		my $setting_to_return = {
+			$updated_course_setting->get_inflated_columns,
+			$updated_course_setting->global_setting->get_inflated_columns
+		};
+		$setting_to_return->{default_value} = $setting_to_return->{default_value}->{value};
+		return $setting_to_return;
+	} else {
+		return { $updated_course_setting->get_inflated_columns };
+	}
+
+
+	return $args{as_result_set} ? $updated_course_setting : { $updated_course_setting->get_inflated_columns };
+}
+
+=pod
+
+=head2 deleteCourseSetting
+
+Delete a single course setting.
+
+=head3 input
+
+=over
+
+=item * C<info> which is a hash containing information about the course (either a
+C<course_id> or C<course_name>) and a setting (either a C<setting_id> or C<setting_name>).
+
+=item * C<$as_result_set>, a boolean if the return is to be a result_set
+
+=back
+
+=head3 output
+
+A single course setting as either a hashref or a C<DBIx::Class::ResultSet::CourseSetting> object.
+
+=cut
+
+sub deleteCourseSetting ($self, %args) {
+	my $setting         = $self->getCourseSetting(info => $args{info}, as_result_set => 1);
+	my $deleted_setting = $setting->delete;
+
+	return $deleted_setting if $args{as_result_set};
+	return { $deleted_setting->get_inflated_columns };
 }
 
 1;
