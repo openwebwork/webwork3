@@ -15,16 +15,17 @@ BEGIN {
 }
 
 use lib "$main::ww3_dir/lib";
+use lib "$main::ww3_dir/t/lib";
 
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
 use List::MoreUtils qw/firstval/;
 
-use DB::TestUtils qw/loadCSV removeIDs/;
+use TestUtils qw/loadCSV removeIDs/;
 
 # Load the config file.
-my $config_file = "$main::ww3_dir/conf/ww3-dev.yml";
-$config_file = "$main::ww3_dir/conf/ww3-dev.dist.yml" unless (-e $config_file);
+my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
+$config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 
 # the YAML true/false will be loaded a JSON booleans.
 local $YAML::XS::Boolean = "JSON::PP";
