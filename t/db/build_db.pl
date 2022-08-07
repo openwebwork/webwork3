@@ -280,9 +280,8 @@ sub addUserSets {
 
 sub addProblemPools {
 	say 'adding problem pools' if $verbose;
-	my @problem_pools = my @problem_pools_from_file = loadCSV(
-		"$main::ww3_dir/t/db/sample_data/pool_problems.csv",
-		{ non_neg_int_fields => ['library_id'] });
+	my @problem_pools = my @problem_pools_from_file =
+		loadCSV("$main::ww3_dir/t/db/sample_data/pool_problems.csv", { non_neg_int_fields => ['library_id'] });
 
 	for my $pool (@problem_pools) {
 		my $course = $course_rs->find({ course_name => $pool->{course_name} });
