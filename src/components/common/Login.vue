@@ -62,14 +62,17 @@ const login = async () => {
 		// success
 		session.updateSessionInfo(session_info);
 
+		// permissions require access to user courses and respective roles
+		await session.fetchUserCourses(session_info.user.user_id);
 		await permission_store.fetchRoles();
 		await permission_store.fetchRoutePermissions();
 
-		if (session_info?.user?.is_admin) {
-			void router.push('/admin');
-		} else if (session && session.user && session.user.user_id) {
-			void router.push(`/users/${session.user.user_id}/courses`);
-		}
+		let forward = localStorage.getItem('afterLogin');
+		forward ||= (session_info.user.is_admin) ?
+			'/admin' :
+			`/users/${session.user.user_id}/courses`;
+		localStorage.removeItem('afterLogin');
+		void router.push(forward);
 	}
 };
 </script>
