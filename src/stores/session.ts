@@ -45,17 +45,21 @@ export const useSessionStore = defineStore('session', {
 	getters: {
 		full_name: (state): string => `${state.user?.first_name ?? ''} ${state.user?.last_name ?? ''}`,
 		getUser: (state): User => new User(state.user),
-		authenticated: (state): boolean => state.logged_in && state.expiry > Date.now(),
 	},
 	actions: {
 		updateExpiry(expiry: number): void {
 			this.expiry = expiry;
 		},
+		// because this result may change despite state being unchanged, it is an action and not a getter
+		authIsCurrent(): boolean {
+			if (this.logged_in && this.expiry > Date.now()) return true;
+			if (this.logged_in) this.logout();
+			return false;
+		},
 		updateSessionInfo(session_info: SessionInfo): void {
 			this.logged_in = session_info.logged_in;
 			if (this.logged_in) {
 				this.user = session_info.user;
-				// state.user.is_admin = _session_info.user.is_admin;
 			} else {
 				this.user = new User({ username: 'logged_out' });
 			}
@@ -69,7 +73,6 @@ export const useSessionStore = defineStore('session', {
 		 * @param {number} user_id
 		 */
 		async fetchUserCourses(user_id: number): Promise<void> {
-			logger.debug(`[UserStore/fetchUserCourses] fetching courses for user #${user_id}`);
 			const response = await api.get(`users/${user_id}/courses`);
 			if (response.status === 200) {
 				this.user_courses = (response.data as ParseableUserCourse[])
