@@ -5,7 +5,6 @@ use Mojo::Base -strict;
 use Test::More;
 use Test::Mojo;
 use Mojo::JSON qw/true false/;
-use List::MoreUtils qw/firstval/;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -75,9 +74,9 @@ my $added_user_to_course = {
 	role    => 'student'
 };
 $t->post_ok('/webwork3/api/courses/4/users' => json => $added_user_to_course)->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')->json_is('/role' => 'STUDENT');
+	->content_type_is('application/json;charset=UTF-8')->json_is('/role' => 'student');
 
-my $lisa = firstval { $_->{username} eq 'lisa' } @all_users;
+my $lisa = (grep { $_->{username} eq 'lisa' } @all_users)[0];
 
 # Check if the user is a global user
 $t->get_ok('/webwork3/api/courses/1/users/lisa/exists')->status_is(200)
@@ -92,7 +91,7 @@ is_deeply($t->tx->res->json, {}, 'checkUserExists: check that a non-existent use
 # Testing that booleans returned from the server are JSON booleans.
 # the first user is the admin
 
-my $admin_user = firstval { $_->{username} eq 'admin' } @all_users;
+my $admin_user = (grep { $_->{username} eq 'admin' } @all_users)[0];
 ok(not(JSON::PP::is_bool($admin_user->{user_id})), 'testing that $admin->{user_id} is not a JSON boolean');
 
 ok(!$new_user_from_db->{is_admin}, 'testing new_user->{is_admin} is not truthy.');

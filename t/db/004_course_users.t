@@ -53,7 +53,7 @@ for my $student (@precalc_students) {
 my @precalc_users_from_db = $user_rs->getCourseUsers(info => { course_name => 'Precalculus' }, merged => 1);
 
 @precalc_users_from_db = sort { $a->{username} cmp $b->{username} } @precalc_users_from_db;
-for (@precalc_users_from_db) { removeIDs($_); }
+removeIDs($_) for @precalc_users_from_db;
 
 is_deeply(\@precalc_students, \@precalc_users_from_db, 'getUsers: get users from a course');
 
@@ -124,7 +124,7 @@ my $user_params = {
 
 my $course_user_params = {
 	username           => 'quimby',
-	role               => 'STUDENT',
+	role               => 'student',
 	course_user_params => {},
 	section            => undef,
 	recitation         => undef,
@@ -186,7 +186,7 @@ throws_ok {
 			username    => 'quimby',
 		},
 		params => {
-			role            => 'STUDENT',
+			role            => 'student',
 			undefined_field => 1
 		}
 	);
@@ -201,7 +201,7 @@ throws_ok {
 			username    => 'quimby'
 		},
 		params => {
-			role               => 'STUDENT',
+			role               => 'student',
 			course_user_params => {
 				this_is_not_valid => 1
 			}
@@ -218,7 +218,7 @@ throws_ok {
 			username    => 'quimby'
 		},
 		params => {
-			role               => 'STUDENT',
+			role               => 'student',
 			course_user_params => {
 				useMathQuill => 0
 			}

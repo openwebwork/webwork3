@@ -31,6 +31,8 @@ C<action>: the name of the database task
 
 =cut
 
+__PACKAGE__->load_components(qw/InflateColumn::JSONBool Core/);
+
 __PACKAGE__->table('db_perm');
 
 __PACKAGE__->add_columns(
@@ -49,43 +51,19 @@ __PACKAGE__->add_columns(
 		is_nullable => 0,
 	},
 	admin_required => {
-		data_type   => 'boolean',
+		data_type   => 'json_bool',
 		size        => 8,
 		is_nullable => 1
 	},
 	authenticated => {
-		data_type   => 'boolean',
+		data_type   => 'json_bool',
 		size        => 8,
 		is_nullable => 1
 	},
 	allow_self_access => {
-		data_type   => 'boolean',
+		data_type   => 'json_bool',
 		size        => 8,
 		is_nullable => 1
-	}
-);
-
-__PACKAGE__->inflate_column(
-	'admin_required',
-	{
-		inflate => sub { return shift ? Mojo::JSON->true : Mojo::JSON->false; },
-		deflate => sub { return shift; }
-	}
-);
-
-__PACKAGE__->inflate_column(
-	'authenticated',
-	{
-		inflate => sub { return shift ? Mojo::JSON->true : Mojo::JSON->false; },
-		deflate => sub { return shift; }
-	}
-);
-
-__PACKAGE__->inflate_column(
-	'allow_self_access',
-	{
-		inflate => sub { return shift ? Mojo::JSON->true : Mojo::JSON->false; },
-		deflate => sub { return shift; }
 	}
 );
 

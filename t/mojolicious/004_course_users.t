@@ -41,13 +41,13 @@ $t->get_ok('/webwork3/api/courses/4/global-courseusers')->status_is(200)
 my $all_users = $t->tx->res->json;
 
 $t->get_ok('/webwork3/api/courses/4/users')->status_is(200)->content_type_is('application/json;charset=UTF-8')
-	->json_is('/0/role' => 'INSTRUCTOR')->json_is('/1/role' => 'STUDENT');
+	->json_is('/0/role' => 'instructor')->json_is('/1/role' => 'student');
 
 # Extract id from the response.
 my $user_id = $t->tx->res->json('/1/user_id');
 
 $t->get_ok("/webwork3/api/courses/4/users/$user_id")->status_is(200)->content_type_is('application/json;charset=UTF-8')
-	->json_is('/user_id' => $user_id)->json_is('/role' => 'STUDENT');
+	->json_is('/user_id' => $user_id)->json_is('/role' => 'student');
 
 # Add a new global user.
 my $new_user = {
@@ -65,7 +65,7 @@ $t->post_ok('/webwork3/api/courses/4/global-users' => json => $new_user)->status
 my $new_user_id        = $t->tx->res->json('/user_id');
 my $course_user_params = {
 	user_id            => $new_user_id,
-	role               => 'STUDENT',
+	role               => 'student',
 	course_user_params => {
 		comment      => "I love my big sister",
 		useMathQuill => true
@@ -136,7 +136,7 @@ $t->get_ok('/webwork3/api/courses/3/users')->status_is(403)->content_type_is('ap
 $t->post_ok(
 	'/webwork3/api/courses/3/users' => json => {
 		user_id => $new_user_id,
-		role    => 'STUDENT'
+		role    => 'student'
 	}
 )->status_is(403)->content_type_is('application/json;charset=UTF-8');
 

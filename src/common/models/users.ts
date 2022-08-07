@@ -133,7 +133,7 @@ export class DBCourseUser extends Model {
 
 	get role(): string | undefined { return this._role; }
 	set role(value: string | undefined) {
-		if (value != undefined) this._role = value.toUpperCase();
+		if (value != undefined) this._role = value;
 	}
 
 	get section(): string | undefined { return this._section; }
@@ -232,7 +232,7 @@ export class CourseUser extends Model {
 
 	get role(): string | undefined { return this._role; }
 	set role(value: string | undefined) {
-		if (value != undefined) this._role = value.toUpperCase();
+		if (value != undefined) this._role = value;
 	}
 
 	get section(): string | undefined { return this._section; }

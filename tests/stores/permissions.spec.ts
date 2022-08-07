@@ -32,7 +32,7 @@ describe('Test the permissions store', () => {
 
 	test('Check the roles', async () => {
 		const permissions_store = usePermissionStore();
-		const defined_roles = ['COURSE_ADMIN', 'INSTRUCTOR', 'TA', 'STUDENT'];
+		const defined_roles = ['course_admin', 'instructor', 'ta', 'student'];
 		await permissions_store.fetchRoles();
 
 		expect(defined_roles.sort()).toStrictEqual(permissions_store.roles.sort());
@@ -58,19 +58,19 @@ describe('Test the permissions store', () => {
 			},
 			{
 				route: '/users/*/courses',
-				allowed_roles: ['INSTRUCTOR', 'COURSE_ADMIN'],
+				allowed_roles: ['instructor', 'course_admin'],
 				admin_required: false,
 				allow_self_access: true
 			},
 			{
 				route: '/courses/*/instructor',
-				allowed_roles: ['INSTRUCTOR', 'COURSE_ADMIN'],
+				allowed_roles: ['instructor', 'course_admin'],
 				admin_required: false,
 				allow_self_access: false,
 			},
 			{
 				route: '/courses/*/student',
-				allowed_roles: ['STUDENT', 'INSTRUCTOR', 'COURSE_ADMIN'],
+				allowed_roles: ['student', 'instructor', 'course_admin'],
 				admin_required: false,
 				allow_self_access: false,
 			},

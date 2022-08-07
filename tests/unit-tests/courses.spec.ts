@@ -111,7 +111,7 @@ describe('Test Course Models', () => {
 		course_name: '',
 		username: '',
 		visible: true,
-		role: 'UNKNOWN',
+		role: 'unknown',
 		course_dates : { start: 0, end: 0 }
 	};
 
@@ -159,7 +159,7 @@ describe('Test Course Models', () => {
 			expect(user_course.username).toBe('homer');
 
 			user_course.role = 'student';
-			expect(user_course.role).toBe('STUDENT');
+			expect(user_course.role).toBe('student');
 
 			expect(user_course.isValid()).toBe(true);
 		});

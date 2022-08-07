@@ -13,7 +13,7 @@ update_perms.p [options]
 
 =head1 DESCRIPTION
 
-All of the roles and permissions for webwork3 is defined in conf/permissions.yml (or it's
+All of the roles and permissions for webwork3 are defined in conf/permissions.yml (or it's
 default file permissions.dist.yml).  This script checks for consistancy of that file and
 then loads the roles and permissions into the database.
 
@@ -21,7 +21,6 @@ then loads the roles and permissions into the database.
 
 use warnings;
 use strict;
-use feature 'say';
 
 require Exporter;
 use base qw(Exporter);

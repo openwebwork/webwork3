@@ -40,8 +40,8 @@ sub checkPermission ($c) {
 
 	# The controller/action pair is stored in the $c->match->stack array at the end.
 	# See https://docs.mojolicious.org/Mojolicious/Guides/Routing#Under
-	my $controller = $c->match->stack->[1]->{controller};
-	my $action     = $c->match->stack->[1]->{action};
+	my $controller = $c->match->stack->[1]{controller};
+	my $action     = $c->match->stack->[1]{action};
 
 	my $perm_db = $c->schema->resultset('DBPermission')->find({
 		category => $controller,
@@ -50,7 +50,7 @@ sub checkPermission ($c) {
 
 	# The param method usually gets the course_id correctly, if not check the match->stack.
 	my $course_id = $c->param('course_id') // $c->match->stack->[1]->{course_id};
-	my $user_id   = $c->match->stack->[1]->{user_id};
+	my $user_id   = $c->match->stack->[1]{user_id};
 
 	DB::Exception::RouteWithoutPermission->throw(
 		message => "The route with controller $controller and action $action does not have a permission defined")

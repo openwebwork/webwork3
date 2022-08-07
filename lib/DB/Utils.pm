@@ -122,9 +122,9 @@ sub updatePermissions ($ww3_conf, $role_perm_file) {
 	$schema->resultset('DBPermission')->delete_all;
 	$schema->resultset('UIPermission')->delete_all;
 
-	# add the roles to the database.  Store them as uppercase.
+	# Add the roles to the database.
 
-	my @roles = map { { role_name => uc($_) }; } @{ $role_perm->{roles} };
+	my @roles = map { { role_name => $_ }; } @{ $role_perm->{roles} };
 	$schema->resultset('Role')->populate(\@roles);
 
 	# fill the database permissions table
@@ -151,7 +151,7 @@ sub updatePermissions ($ww3_conf, $role_perm_file) {
 
 			next unless $allowed_roles;
 
-			# check that the allowed roles is '*" or that the role exist.
+			# check that the allowed roles is '*' (any role) or that the given role exists.
 			if (scalar(@$allowed_roles) == 1 && $allowed_roles->[0] eq '*') {
 				my @all_roles = $schema->resultset('Role')->search({});
 				for my $role (@all_roles) {
@@ -159,7 +159,7 @@ sub updatePermissions ($ww3_conf, $role_perm_file) {
 				}
 			} else {
 				for my $role_name (@$allowed_roles) {
-					my $role = $schema->resultset('Role')->find({ role_name => uc($role_name) });
+					my $role = $schema->resultset('Role')->find({ role_name => $role_name });
 					die "The role '$role_name' does not exist." unless defined $role;
 
 					$db_perm->add_to_roles({ $role->get_columns });
@@ -176,7 +176,7 @@ sub updatePermissions ($ww3_conf, $role_perm_file) {
 		# check that the allowed roles exist.
 		for my $role (@$allowed_roles) {
 			next if $role eq '*';
-			my $role_in_db = $schema->resultset('Role')->find({ role_name => uc($role) });
+			my $role_in_db = $schema->resultset('Role')->find({ role_name => $role });
 			die "The role '$role' does not exist." unless defined $role_in_db;
 		}
 

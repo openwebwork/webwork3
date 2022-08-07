@@ -61,10 +61,10 @@ describe('Testing Database and client-side Course Users', () => {
 			expect(db_course_user.course_id).toBe(5);
 
 			db_course_user.role = 'admin';
-			expect(db_course_user.role).toBe('ADMIN');
+			expect(db_course_user.role).toBe('admin');
 
 			db_course_user.role = 'student';
-			expect(db_course_user.role).toBe('STUDENT');
+			expect(db_course_user.role).toBe('student');
 		});
 
 		test('Update DBCourseUser using the set method', () => {
@@ -81,10 +81,10 @@ describe('Testing Database and client-side Course Users', () => {
 			expect(db_course_user.course_id).toBe(5);
 
 			db_course_user.set({ role: 'admin' });
-			expect(db_course_user.role).toBe('ADMIN');
+			expect(db_course_user.role).toBe('admin');
 
 			db_course_user.set({ role: 'student' });
-			expect(db_course_user.role).toBe('STUDENT');
+			expect(db_course_user.role).toBe('student');
 		});
 	});
 
@@ -203,10 +203,10 @@ describe('Testing Database and client-side Course Users', () => {
 			expect(course_user.course_id).toBe(5);
 
 			course_user.role = 'admin';
-			expect(course_user.role).toBe('ADMIN');
+			expect(course_user.role).toBe('admin');
 
 			course_user.role = 'student';
-			expect(course_user.role).toBe('STUDENT');
+			expect(course_user.role).toBe('student');
 		});
 
 		test('Update CourseUser using the set method', () => {
@@ -223,10 +223,10 @@ describe('Testing Database and client-side Course Users', () => {
 			expect(course_user.course_id).toBe(5);
 
 			course_user.set({ role: 'admin' });
-			expect(course_user.role).toBe('ADMIN');
+			expect(course_user.role).toBe('admin');
 
 			course_user.set({ role: 'student' });
-			expect(course_user.role).toBe('STUDENT');
+			expect(course_user.role).toBe('student');
 
 			course_user.set({ username: 'test2' });
 			expect(course_user.username).toBe('test2');

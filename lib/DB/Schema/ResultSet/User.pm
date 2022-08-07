@@ -270,15 +270,9 @@ or an arrayref of C<DBIx::Class::ResultSet::User>
 =cut
 
 sub getCourseUsers ($self, %args) {
-	my $course       = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
-	my @course_users = $self->rs('CourseUser')->search(
-		{
-			'course_id' => $course->course_id
-		},
-		{
-			prefetch => [qw/role/]
-		}
-	);
+	my $course = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
+	my @course_users =
+		$self->rs('CourseUser')->search({ 'course_id' => $course->course_id }, { prefetch => [qw/role/] });
 
 	return \@course_users if $args{as_result_set};
 
@@ -334,14 +328,8 @@ sub getCourseUser ($self, %args) {
 	my $course_user;
 
 	if (defined($args{info}->{course_user_id})) {
-		$course_user = $self->rs('CourseUser')->find(
-			{
-				course_user_id => $args{info}->{course_user_id}
-			},
-			{
-				prefetch => [qw/role/]
-			}
-		);
+		$course_user = $self->rs('CourseUser')
+			->find({ course_user_id => $args{info}->{course_user_id} }, { prefetch => [qw/role/] });
 	} else {
 		my $course = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 		my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
@@ -422,7 +410,7 @@ sub addCourseUser ($self, %args) {
 	}
 
 	# Ensure the user role is valid
-	my $role = $self->rs('Role')->find({ role_name => uc($params->{role}) });
+	my $role = $self->rs('Role')->find({ role_name => $params->{role} });
 	DB::Exception::UserRoleUndefined->throw(message => "The user role $params->{role} is not defined.")
 		unless defined $role;
 	$params->{role_id} = $role->role_id;
@@ -500,7 +488,7 @@ sub updateCourseUser ($self, %args) {
 	my $params = clone($args{params});
 
 	if (defined($params->{role})) {
-		my $role = $self->rs('Role')->find({ role_name => uc($params->{role}) });
+		my $role = $self->rs('Role')->find({ role_name => $params->{role} });
 		DB::Exception::UserRoleUndefined->throw(message => "The user role $params->{role} is not defined.")
 			unless defined $role;
 		$params->{role_id} = $role->role_id;

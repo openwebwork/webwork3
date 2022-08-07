@@ -165,7 +165,6 @@ throws_ok {
 'DB::Exception::PoolNotInCourse', 'updateProblemPool: update a problem pool from a non-existent course';
 
 # Get all PoolProblems from within a pool
-
 my @pool_problems = $problem_pool_rs->getPoolProblems(
 	info => {
 		course_name => 'Precalculus',

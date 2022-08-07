@@ -30,7 +30,7 @@ export const usePermissionStore = defineStore('permission', {
 		/**
 		 * Determines if the passed in string is a valid role.
 		 */
-		isValidRole: (state) => (role: string): boolean  => state.roles.includes(role.toUpperCase()),
+		isValidRole: (state) => (role: string): boolean  => state.roles.includes(role),
 
 		/**
 		 * Determines if the current user (from the session store) has permission for the given route.
@@ -60,14 +60,14 @@ export const usePermissionStore = defineStore('permission', {
 	actions: {
 		async fetchRoles(): Promise<void> {
 			const response = await api.get('roles/');
-			this.roles = (response.data as string[]).map(role => role.toUpperCase());
+			this.roles = (response.data as string[]).map(role => role);
 		},
 		async fetchRoutePermissions(): Promise<void> {
 			const response = await api.get('ui-permissions/');
 			const perms = response.data as UIPermission[];
 
 			this.ui_permissions = perms.map(p => ({
-				allowed_roles: p.allowed_roles.map(r => r.toUpperCase()),
+				allowed_roles: p.allowed_roles,
 				route: p.route,
 				// This can be updated when the server sends back true/false.
 				admin_required: p.admin_required ?? false,

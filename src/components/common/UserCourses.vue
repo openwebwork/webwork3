@@ -52,11 +52,11 @@ if (session) await session.fetchUserCourses(parseNonNegInt(session.user.user_id)
 
 const student_courses = computed(() =>
 	// for some reason on load the user_course.role is undefined.
-	session.user_courses.filter(user_course => user_course.role === 'STUDENT'));
+	session.user_courses.filter(user_course => user_course.role === 'student'));
 
 const instructor_courses = computed(() =>
 	// For some reason on load the user_course.role is undefined.
-	session.user_courses.filter(user_course => user_course.role === 'INSTRUCTOR')
+	session.user_courses.filter(user_course => user_course.role === 'instructor')
 );
 const user = computed(() => session.user);
 
@@ -67,7 +67,7 @@ const switchCourse = async (course_id: number) => {
 		session.setCourse({
 			course_name: student_course.course_name,
 			course_id: student_course.course_id,
-			role: 'STUDENT'
+			role: 'student'
 		});
 		await router.push({
 			name: 'StudentDashboard',
@@ -77,7 +77,7 @@ const switchCourse = async (course_id: number) => {
 		session.setCourse({
 			course_name: instructor_course.course_name,
 			course_id: instructor_course.course_id,
-			role: 'INSTRUCTOR'
+			role: 'instructor'
 		});
 		await router.push({
 			name: 'instructor',

@@ -17,7 +17,7 @@ use lib "$main::ww3_dir/t/lib";
 use Test::More;
 use Test::Exception;
 use Clone qw/clone/;
-use List::MoreUtils qw/firstval/;
+
 use YAML qw/LoadFile/;
 use DateTime::Format::Strptime;
 use Mojo::JSON qw/true false/;
@@ -245,7 +245,7 @@ my @courses = loadCSV(
 my @user_courses_from_csv = grep { $_->{username} eq 'lisa' } @students;
 
 for my $user_course (@user_courses_from_csv) {
-	my $course = firstval { $_->{course_name} eq $user_course->{course_name} } @courses;
+	my $course = (grep { $_->{course_name} eq $user_course->{course_name} } @courses)[0];
 	for my $key (qw/email first_name last_name username student_id/) {
 		delete $user_course->{$key};
 	}

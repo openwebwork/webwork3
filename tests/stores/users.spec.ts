@@ -145,7 +145,7 @@ describe('User store tests', () => {
 			const new_course_user = new CourseUser(user_not_in_precalc);
 			new_course_user.set({
 				course_id: precalc_course.course_id,
-				role: 'STUDENT'
+				role: 'student'
 			});
 			const added_course_user = await user_store.addCourseUser(new_course_user);
 			new_course_user.course_user_id = added_course_user.course_user_id;

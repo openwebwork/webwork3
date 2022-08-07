@@ -123,7 +123,7 @@ sub addUsers {
 		};
 
 		# Look up the role of the user
-		my $role = $role_rs->find({ role_name => uc($student->{role}) });
+		my $role = $role_rs->find({ role_name => $student->{role} });
 		die "The user with username $student->{username} has role $student->{role} which does not exist\n"
 			. 'Either reassign the role or ensure that bin/update_perms.pl has been run.'
 			unless defined $role;
@@ -282,10 +282,7 @@ sub addProblemPools {
 	say 'adding problem pools' if $verbose;
 	my @problem_pools = my @problem_pools_from_file = loadCSV(
 		"$main::ww3_dir/t/db/sample_data/pool_problems.csv",
-		{
-			non_neg_int_fields => ['library_id']
-		}
-	);
+		{ non_neg_int_fields => ['library_id'] });
 
 	for my $pool (@problem_pools) {
 		my $course = $course_rs->find({ course_name => $pool->{course_name} });
