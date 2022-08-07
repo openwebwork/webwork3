@@ -26,6 +26,7 @@ sub register_column {
 			}
 		);
 	}
+	return;
 }
 
 1;
