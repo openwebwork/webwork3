@@ -108,13 +108,14 @@ sub addUsers {
 	$user_rs->create($admin);
 
 	for my $student (@all_students) {
-		my $course    = $course_rs->find({ course_name => $student->{course_name} });
-		my $stud_info = {};
+		my $student_role = $role_rs->find({ role_name => 'student' });
+		my $course       = $course_rs->find({ course_name => $student->{course_name} });
+		my $stud_info    = {};
 		for my $key (qw/username first_name last_name email student_id/) {
 			$stud_info->{$key} = $student->{$key};
 		}
 		$stud_info->{login_params} = { password => $student->{username} };
-		$course->add_to_users($stud_info);
+		$course->add_to_users($stud_info, { role_id => $student_role->role_id });
 
 		my $user   = $user_rs->find({ username => $student->{username} });
 		my $params = {

@@ -40,7 +40,7 @@ our $REQUIRED_PARAMS = { _ALL_   => ['visible'] };
 
 __PACKAGE__->table('course');
 
-__PACKAGE__->load_components(qw/InflateColumn::Serializer InflateColumn::JSONBool Core/);
+__PACKAGE__->load_components(qw/InflateColumn::Serializer InflateColumn::Boolean Core/);
 
 __PACKAGE__->add_columns(
 	course_id => {
@@ -61,7 +61,7 @@ __PACKAGE__->add_columns(
 		serializer_options => { utf8 => 1 }
 	},
 	visible => {
-		data_type          => 'json_bool',
+		data_type          => 'boolean',
 		is_nullable        => 0,
 		default_value      => 1,
 		retrieve_on_insert => 1

@@ -33,7 +33,7 @@ C<permitted_roles>: the permitted roles for the give route.
 
 __PACKAGE__->table('ui_perm');
 
-__PACKAGE__->load_components(qw/InflateColumn::Serializer InflateColumn::JSONBool Core/);
+__PACKAGE__->load_components(qw/InflateColumn::Serializer InflateColumn::Boolean Core/);
 
 __PACKAGE__->add_columns(
 	ui_perm_id => {
@@ -48,11 +48,11 @@ __PACKAGE__->add_columns(
 		is_nullable => 0,
 	},
 	admin_required => {
-		data_type   => 'json_bool',
+		data_type   => 'boolean',
 		is_nullable => 1
 	},
 	allow_self_access => {
-		data_type   => 'json_bool',
+		data_type   => 'boolean',
 		is_nullable => 1
 	},
 	allowed_roles => {

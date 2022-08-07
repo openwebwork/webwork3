@@ -68,7 +68,7 @@ or authentication, like LTI or LDAP
 
 __PACKAGE__->table('user');
 
-__PACKAGE__->load_components(qw/InflateColumn::Serializer InflateColumn::JSONBool Core/);
+__PACKAGE__->load_components(qw/InflateColumn::Serializer InflateColumn::Boolean Core/);
 
 __PACKAGE__->add_columns(
 	user_id => {
@@ -99,7 +99,7 @@ __PACKAGE__->add_columns(
 		is_nullable => 1,
 	},
 	is_admin => {
-		data_type     => 'json_bool',
+		data_type     => 'boolean',
 		is_nullable   => 0,
 		default_value => 0,
 	},
