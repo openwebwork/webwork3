@@ -37,7 +37,7 @@ my $schema = DB::Schema->connect(
 	$config->{database_password},
 	{ quote_names => 1 }
 );
-my $strp   = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
+my $strp = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
 
 my $course_rs = $schema->resultset('Course');
 

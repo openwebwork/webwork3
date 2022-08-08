@@ -41,9 +41,9 @@ __PACKAGE__->add_columns(
 		is_nullable => 0,
 	},
 	status => {
-		data_type   => 'decimal',
-		size        => '10,5',
-		is_nullable => 0,
+		data_type     => 'decimal',
+		size          => '10,5',
+		is_nullable   => 0,
 		default_value => '0.00000'
 	},
 	problem_version => {

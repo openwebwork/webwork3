@@ -144,10 +144,9 @@ for my $set (@all_user_sets_from_db) {
 }
 
 # sort both arrays
-@all_user_sets = sort {
-	$a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @all_user_sets;
-@all_user_sets_from_db = sort {
-	$a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @all_user_sets_from_db;
+@all_user_sets = sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @all_user_sets;
+@all_user_sets_from_db =
+	sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @all_user_sets_from_db;
 
 is_deeply(\@all_user_sets_from_db, \@all_user_sets, 'getAllUserSets: get all user sets for all courses');
 
@@ -158,11 +157,10 @@ for my $merged_set (@merged_sets_from_db) {
 }
 
 # sort both arrays
-@merged_sets_from_db = sort {
-	$a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @merged_sets_from_db;
-@merged_user_sets = sort {
-	$a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @merged_user_sets;
-
+@merged_sets_from_db =
+	sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @merged_sets_from_db;
+@merged_user_sets =
+	sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @merged_user_sets;
 
 is_deeply(\@merged_sets_from_db, \@merged_user_sets, 'getAllUserSets: get all merged sets for all courses');
 
@@ -183,7 +181,7 @@ for my $user_set (@user_sets_from_db) {
 }
 
 # sort both arrays
-@user_sets_from_db = sort { $a->{set_name} cmp $b->{set_name} } @user_sets_from_db;
+@user_sets_from_db      = sort { $a->{set_name} cmp $b->{set_name} } @user_sets_from_db;
 @user_sets_for_one_user = sort { $a->{set_name} cmp $b->{set_name} } @user_sets_for_one_user;
 
 is_deeply(\@user_sets_from_db, \@user_sets_for_one_user, 'getUserSets: get all user sets for one user');
@@ -831,11 +829,9 @@ for my $set (@all_user_sets_from_db) {
 }
 
 # Sort before comparing.
-@all_user_sets = sort {
-	$a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @all_user_sets;
-@all_user_sets_from_db = sort {
-	$a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @all_user_sets_from_db;
-
+@all_user_sets = sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @all_user_sets;
+@all_user_sets_from_db =
+	sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @all_user_sets_from_db;
 
 is_deeply(\@all_user_sets_from_db, \@all_user_sets, 'check: ensure that the user sets are restored.');
 

@@ -40,7 +40,8 @@ my $schema =
 # Helpful for sorting user problems:
 
 sub user_prob_sort_fxn {
-	return $a->{course_name} cmp $b->{course_name}
+	return
+		$a->{course_name} cmp $b->{course_name}
 		|| $a->{set_name} cmp $b->{set_name}
 		|| $a->{username} cmp $b->{username}
 		|| $a->{problem_number} <=> $b->{problem_number};
@@ -57,7 +58,6 @@ for my $user_problem (@user_problems_from_csv) {
 }
 # Sort before comparing
 @user_problems_from_csv = sort user_prob_sort_fxn @user_problems_from_csv;
-
 
 my @problems_from_csv = loadCSV("$main::ww3_dir/t/db/sample_data/problems.csv");
 for my $problem (@problems_from_csv) {
@@ -145,7 +145,7 @@ for my $merged_problem (@precalc_merged_problems_from_db) {
 	removeIDs($merged_problem);
 }
 
-@precalc_merged_problems = sort user_prob_sort_fxn @precalc_merged_problems;
+@precalc_merged_problems         = sort user_prob_sort_fxn @precalc_merged_problems;
 @precalc_merged_problems_from_db = sort user_prob_sort_fxn @precalc_merged_problems_from_db;
 
 is_deeply(
@@ -485,7 +485,7 @@ my $updated_problem2 = $user_problem_rs->updateUserProblem(
 	merged => 1
 );
 removeIDs($updated_problem2);
-$problem2->{seed} = 4567;
+$problem2->{seed}   = 4567;
 $problem2->{status} = '0.00000';
 
 is_deeply($problem2, $updated_problem2, 'updateUserProblem: sucessfully update a field and return as a merged problem');
