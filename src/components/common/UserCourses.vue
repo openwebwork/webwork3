@@ -36,7 +36,6 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { useSessionStore } from 'src/stores/session';
-import { parseNonNegInt } from 'src/common/models/parsers';
 
 const session = useSessionStore();
 const router = useRouter();
@@ -46,9 +45,6 @@ const course_types = computed(() => [
 	{ name: 'Student', courses: student_courses.value },
 	{ name: 'Instrutor', courses: instructor_courses.value }
 ]);
-
-// fetch the data when the view is created and the data is already being observed
-if (session) await session.fetchUserCourses(parseNonNegInt(session.user.user_id));
 
 const student_courses = computed(() =>
 	// for some reason on load the user_course.role is undefined.

@@ -32,16 +32,19 @@ export default route(() => {
 	});
 
 	router.beforeResolve((to) => {
-		// must be logged in, or else headed to the login page
 		const session_store = useSessionStore();
-		if (!session_store.logged_in && to.name !== 'login') return { name: 'login' };
 
-		// otherwise, we're logged in, so check permissions on the route
+		// Redirect to the login page if user is not authenticated
+		if (!session_store.authIsCurrent() && to.name !== 'login') {
+			localStorage.setItem('afterLogin', to.path);
+			return { name: 'login' };
+		};
+
+		// user is logged in, so check permissions on the route
 		const permissions_store = usePermissionStore();
-		const perm = permissions_store.hasRoutePermission(to);
-		if (!perm) {
+		if (!permissions_store.hasRoutePermission(to)) {
 			const user = session_store.getUser;
-			logger.error(`[routing] User #${user.user_id} does not have the permission to visit ${to.fullPath}`);
+			logger.warn(`[routing] User #${user.user_id} does not have the permission to visit ${to.fullPath}`);
 			return { name: 'user_courses', params: { user_id: user.user_id } };
 		}
 	});

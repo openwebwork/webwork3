@@ -62,6 +62,7 @@ sub startup ($app) {
 
 	# Handle all api route exceptions
 	$app->hook(around_dispatch => $WeBWorK3::Hooks::exception_handler);
+	$app->hook(after_dispatch  => $WeBWorK3::Hooks::notify_expiry);
 
 	# The following defines the routes as well as handles whether a user has permission for each route
 	# The following routes need no authentication:

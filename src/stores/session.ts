@@ -22,6 +22,7 @@ interface CourseInfo {
 // SessionState should contain a de facto User, already parsed
 export interface SessionState {
 	logged_in: boolean;
+	expiry: number;
 	user: User;
 	course: CourseInfo;
 	user_courses: UserCourse[];
@@ -32,6 +33,7 @@ export const useSessionStore = defineStore('session', {
 	persist: true,
 	state: (): SessionState => ({
 		logged_in: false,
+		expiry: 0,
 		user: new User({ username: 'logged_out' }),
 		course: {
 			course_id: 0,
@@ -42,14 +44,22 @@ export const useSessionStore = defineStore('session', {
 	}),
 	getters: {
 		full_name: (state): string => `${state.user?.first_name ?? ''} ${state.user?.last_name ?? ''}`,
-		getUser: (state): User => new User(state.user)
+		getUser: (state): User => new User(state.user),
 	},
 	actions: {
+		updateExpiry(expiry: number): void {
+			this.expiry = expiry;
+		},
+		// because this result may change despite state being unchanged, it is an action and not a getter
+		authIsCurrent(): boolean {
+			if (this.logged_in && this.expiry > Date.now()) return true;
+			if (this.logged_in) this.logout();
+			return false;
+		},
 		updateSessionInfo(session_info: SessionInfo): void {
 			this.logged_in = session_info.logged_in;
 			if (this.logged_in) {
 				this.user = session_info.user;
-				// state.user.is_admin = _session_info.user.is_admin;
 			} else {
 				this.user = new User({ username: 'logged_out' });
 			}
@@ -63,7 +73,6 @@ export const useSessionStore = defineStore('session', {
 		 * @param {number} user_id
 		 */
 		async fetchUserCourses(user_id: number): Promise<void> {
-			logger.debug(`[UserStore/fetchUserCourses] fetching courses for user #${user_id}`);
 			const response = await api.get(`users/${user_id}/courses`);
 			if (response.status === 200) {
 				this.user_courses = (response.data as ParseableUserCourse[])
