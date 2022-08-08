@@ -29,9 +29,12 @@ $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_f
 
 my $config = LoadFile($config_file);
 
-my $schema =
-	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
-
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
 # $schema->storage->debug(1);  # print out the SQL commands.
 
 my $user_problem_rs = $schema->resultset('UserProblem');

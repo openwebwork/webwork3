@@ -27,7 +27,12 @@ use TestUtils qw/loadCSV removeIDs/;
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
 $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
-my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
 
 my $problem_rs      = $schema->resultset('SetProblem');
 my $user_problem_rs = $schema->resultset('UserProblem');
@@ -88,6 +93,9 @@ my $user_problem1_from_csv = clone firstval {
 		&& $_->{problem_number} == $user_problem_info->{problem_number}
 }
 @user_problems_from_csv;
+
+# need to set the default status to 0.00000 for comparison
+$user_problem1_from_csv->{status} = '0.00000';
 
 is_deeply($user_problem1_from_csv, $user_problem1, 'getUserProblem: get a single user problem from a course.');
 
@@ -153,10 +161,13 @@ is_deeply($user_problem_v3_to_delete, $user_problem1_v3, 'deleteUserProblem: del
 
 # Ensure that the user_problems table is restored.
 my @all_user_problems_from_db = $user_problem_rs->getAllUserProblems();
+
 for my $user_problem (@all_user_problems_from_db) {
 	removeIDs($user_problem);
 	delete $user_problem->{problem_version} unless defined $user_problem->{problem_version};
 }
+# For comparision make sure the loaded status are printed to 5 digits.
+$_->{status} = sprintf('%.5f', $_->{status}) for (@user_problems_from_csv);
 
 is_deeply(\@user_problems_from_csv, \@all_user_problems_from_db, 'check: ensure that user_problems table is restored.');
 

@@ -32,7 +32,12 @@ $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_f
 my $config = clone(LoadFile($config_file));
 
 # Connect to the database.
-my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
 
 my $t = Test::Mojo->new(WeBWorK3 => $config);
 

@@ -214,6 +214,12 @@ for my $set (@all_user_sets_from_db) {
 	removeIDs($set);
 }
 
+# Sort before comparing.
+@merged_user_sets =
+	sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @merged_user_sets;
+@all_user_sets_from_db =
+	sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @all_user_sets_from_db;
+
 is_deeply(\@all_user_sets_from_db, \@merged_user_sets, 'check: Ensure that the user_sets table is restored.');
 
 done_testing;

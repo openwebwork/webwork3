@@ -29,8 +29,13 @@ use TestUtils qw/loadCSV removeIDs/;
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
 $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
-my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
-my $strp   = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
+my $strp = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
 
 my $users_rs  = $schema->resultset('User');
 my $course_rs = $schema->resultset('Course');
@@ -254,6 +259,10 @@ for my $user_course (@user_courses_from_csv) {
 	$user_course->{visible}      = $course->{visible};
 	$user_course->{course_dates} = $course->{course_dates};
 }
+
+# Make sure that the order of the courses is the same
+@user_courses          = sort { $a->{course_name} cmp $b->{course_name} } @user_courses;
+@user_courses_from_csv = sort { $a->{course_name} cmp $b->{course_name} } @user_courses_from_csv;
 
 is_deeply(\@user_courses, \@user_courses_from_csv, 'getUserCourses: get all courses for a given user');
 

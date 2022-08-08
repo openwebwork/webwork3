@@ -32,9 +32,12 @@ $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_f
 my $config = clone(LoadFile($config_file));
 
 # Connect to the database.
-my $schema =
-	DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
-
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
 my $t = Test::Mojo->new(WeBWorK3 => $config);
 
 # First run tests as logged in as an instructor
@@ -102,6 +105,9 @@ $t->get_ok("/webwork3/api/courses/4/sets/$hw1->{set_id}/user-problems")->status_
 
 my $user_problems_from_db = $t->tx->res->json;
 for my $problem (@$user_problems_from_db) { removeIDs($problem); }
+ # For comparision make sure the loaded status are printed to 5 digits.
+$_->{status} = sprintf('%.5f', $_->{status}) for (@arith_user_problems);
+
 
 is_deeply(\@arith_user_problems, $user_problems_from_db, 'getUserProblems: get all problems for a set in a course.');
 
@@ -117,6 +123,9 @@ for my $problem (@$ralph_user_problems) {
 }
 
 my @ralph_user_problems_from_file = grep { $_->{username} eq 'ralph' } @arith_user_problems;
+# For comparision make sure the loaded status are printed to 5 digits.
+$_->{status} = sprintf('%.5f', $_->{status}) for (@ralph_user_problems_from_file);
+
 
 is_deeply(\@ralph_user_problems_from_file,
 	$ralph_user_problems, 'getUserProblems: get all problems for a set in a course.');

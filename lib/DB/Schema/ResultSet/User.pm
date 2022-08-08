@@ -425,7 +425,8 @@ sub addCourseUser ($self, %args) {
 	$params->{user_id} = $user->user_id;
 
 	# This adds the line in the course_user table, but not adds all of the other fields in the table.
-	my $added_user = $course->add_to_users($params);
+	# Because the role_id is a required foreign key, it needs to be passed as a second argument.
+	my $added_user = $course->add_to_users($params, { role_id => $role->role_id });
 
 	# So fetch the just created course user
 	my $user_to_return = $self->rs('CourseUser')->find({

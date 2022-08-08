@@ -37,6 +37,15 @@ my $schema =
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 
+# Helpful for sorting user problems:
+
+sub user_prob_sort_fxn {
+	return $a->{course_name} cmp $b->{course_name}
+		|| $a->{set_name} cmp $b->{set_name}
+		|| $a->{username} cmp $b->{username}
+		|| $a->{problem_number} <=> $b->{problem_number};
+}
+
 my $user_problem_rs = $schema->resultset('UserProblem');
 
 # Load problems and user problems from the CSV files.
@@ -46,6 +55,9 @@ for my $user_problem (@user_problems_from_csv) {
 	$user_problem->{problem_params}  = {} unless defined($user_problem->{problem_params});
 	$user_problem->{problem_version} = 1  unless defined($user_problem->{problem_version});
 }
+# Sort before comparing
+@user_problems_from_csv = sort user_prob_sort_fxn @user_problems_from_csv;
+
 
 my @problems_from_csv = loadCSV("$main::ww3_dir/t/db/sample_data/problems.csv");
 for my $problem (@problems_from_csv) {
@@ -82,6 +94,11 @@ for my $user_problem (@all_user_problems_from_db) {
 	delete $user_problem->{problem_version} unless defined $user_problem->{problem_version};
 }
 
+@all_user_problems_from_db = sort user_prob_sort_fxn @all_user_problems_from_db;
+
+# For comparision make sure the loaded status are printed to 5 digits.
+$_->{status} = sprintf('%.5f', $_->{status}) for (@user_problems_from_csv);
+
 is_deeply(\@user_problems_from_csv, \@all_user_problems_from_db,
 	'getAllUserProblems: fetch all user problems from the DB.');
 
@@ -91,6 +108,10 @@ my @merged_problems_from_db = $user_problem_rs->getAllUserProblems(merged => 1);
 for my $merged_problem (@merged_problems_from_db) {
 	removeIDs($merged_problem);
 }
+# For comparision make sure the loaded status are printed to 5 digits.
+$_->{status} = sprintf('%.5f', $_->{status}) for (@merged_problems_from_csv);
+
+@merged_problems_from_db = sort user_prob_sort_fxn @merged_problems_from_db;
 
 is_deeply(\@merged_problems_from_csv, \@merged_problems_from_db, 'getAllUserProblems: fetch all merged problems');
 
@@ -103,6 +124,8 @@ for my $user_problem (@precalc_user_problems_from_db) {
 	removeIDs($user_problem);
 	delete $user_problem->{problem_version} unless defined $user_problem->{problem_version};
 }
+
+@precalc_user_problems_from_db = sort user_prob_sort_fxn @precalc_user_problems_from_db;
 
 is_deeply(
 	\@precalc_user_problems,
@@ -121,6 +144,9 @@ my @precalc_merged_problems_from_db = $user_problem_rs->getUserProblems(
 for my $merged_problem (@precalc_merged_problems_from_db) {
 	removeIDs($merged_problem);
 }
+
+@precalc_merged_problems = sort user_prob_sort_fxn @precalc_merged_problems;
+@precalc_merged_problems_from_db = sort user_prob_sort_fxn @precalc_merged_problems_from_db;
 
 is_deeply(
 	\@precalc_merged_problems,
@@ -441,8 +467,12 @@ my $updated_problem1 = $user_problem_rs->updateUserProblem(
 	}
 );
 removeIDs($updated_problem1);
+# need to set the default status to 0.00000 for comparison
+$user_problem1->{status} = '0.00000';
+
 delete $updated_problem1->{problem_version} unless defined $updated_problem1->{problem_version};
 $user_problem1->{seed} = 4567;
+
 is_deeply($user_problem1, $updated_problem1, 'updateUserProblem: sucessfully update a field');
 
 # Update a user problem and return as a merged problem.
@@ -456,6 +486,7 @@ my $updated_problem2 = $user_problem_rs->updateUserProblem(
 );
 removeIDs($updated_problem2);
 $problem2->{seed} = 4567;
+$problem2->{status} = '0.00000';
 
 is_deeply($problem2, $updated_problem2, 'updateUserProblem: sucessfully update a field and return as a merged problem');
 
@@ -470,6 +501,9 @@ my $updated_problem1a = $user_problem_rs->updateUserProblem(
 	}
 );
 removeIDs($updated_problem1a);
+# need to set the default status to 0.00000 for comparison
+$updated_problem1a->{status} = '0.00000';
+
 delete $updated_problem1a->{problem_version} unless defined $updated_problem1a->{problem_version};
 $user_problem1->{problem_params}->{library_id} = 1234;
 is_deeply($user_problem1, $updated_problem1a, 'updateUserProblem: sucessfully update the problem_params');
@@ -665,6 +699,9 @@ is_deeply(\@course_user_problems_from_csv,
 
 my $user_problem_to_delete = $user_problem_rs->deleteUserProblem(info => $problem_info1);
 removeIDs($user_problem_to_delete);
+# need to set the default status to 0.00000 for comparison
+$user_problem1->{status} = '0.00000';
+
 delete $user_problem_to_delete->{problem_version} unless defined $user_problem_to_delete->{problem_version};
 
 is_deeply($user_problem1, $user_problem_to_delete, 'deleteUserProblem: delete a single user problem');
@@ -673,6 +710,8 @@ is_deeply($user_problem1, $user_problem_to_delete, 'deleteUserProblem: delete a 
 
 my $user_problem_to_delete2 = $user_problem_rs->deleteUserProblem(info => $problem_info2, merged => 1);
 removeIDs($user_problem_to_delete2);
+# need to set the default status to 0.00000 for comparison
+$problem2->{status} = '0.00000';
 
 is_deeply($problem2, $user_problem_to_delete2,
 	'updateUserProblem: sucessfully update a field and return as a merged problem');
@@ -743,6 +782,8 @@ for my $user_problem (@all_user_problems_from_db) {
 	removeIDs($user_problem);
 	delete $user_problem->{problem_version} unless defined $user_problem->{problem_version};
 }
+
+@all_user_problems_from_db = sort user_prob_sort_fxn @all_user_problems_from_db;
 
 is_deeply(\@user_problems_from_csv, \@all_user_problems_from_db,
 	'check: Ensure that the set_problems table is restored.');

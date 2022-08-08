@@ -44,6 +44,8 @@ my $schema = DB::Schema->connect(
 	{ quote_names => 1 }
 );
 
+# $schema->storage->debug(1);  # print out the SQL commands.
+
 say "restoring the database with dbi: $config->{database_dsn}" if $verbose;
 
 # Create the database based on the schema.
@@ -333,7 +335,7 @@ sub addUserProblems {
 			set_problem_id  => $problem->set_problem_id,
 			seed            => $user_problem->{seed},
 			problem_version => 1,
-			status          => $user_problem->{status}
+			status          => 0 + $user_problem->{status}
 		});
 	}
 	return;

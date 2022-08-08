@@ -31,7 +31,12 @@ use TestUtils qw/loadCSV removeIDs loadSchema/;
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
 $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
-my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
 my $strp   = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
 
 my $course_rs = $schema->resultset('Course');
