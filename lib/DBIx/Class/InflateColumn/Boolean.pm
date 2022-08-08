@@ -1,8 +1,8 @@
-package DBIx::Class::InflateColumn::JSONBool;
+package DBIx::Class::InflateColumn::Boolean;
 
 =pod
 
-This creates a DBIx::Class column of data type 'json_bool' that returns a JSON boolean.
+DBIx::Class::InflateColumn::Boolean - Auto-create JSON boolean objects from boolean columns.
 
 =cut
 
@@ -18,7 +18,7 @@ sub register_column {
 
 	$self->next::method($column, $info, @rest);
 
-	if ($info->{data_type} && $info->{data_type} eq 'json_bool') {
+	if ($info->{data_type} && $info->{data_type} eq 'boolean') {
 		$self->inflate_column(
 			$column => {
 				inflate => sub { return shift ? true : false; },

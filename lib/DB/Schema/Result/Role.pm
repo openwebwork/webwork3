@@ -36,7 +36,7 @@ __PACKAGE__->add_columns(
 		is_auto_increment => 1
 	},
 	role_name => {
-		data_type   => 'text',
+		data_type   => 'varchar',
 		size        => 64,
 		is_nullable => 0,
 	}

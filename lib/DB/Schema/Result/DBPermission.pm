@@ -31,7 +31,7 @@ C<action>: the name of the database task
 
 =cut
 
-__PACKAGE__->load_components(qw/InflateColumn::JSONBool Core/);
+__PACKAGE__->load_components(qw/InflateColumn::Boolean/);
 
 __PACKAGE__->table('db_perm');
 
@@ -51,18 +51,15 @@ __PACKAGE__->add_columns(
 		is_nullable => 0,
 	},
 	admin_required => {
-		data_type   => 'json_bool',
-		size        => 8,
+		data_type   => 'boolean',
 		is_nullable => 1
 	},
 	authenticated => {
-		data_type   => 'json_bool',
-		size        => 8,
+		data_type   => 'boolean',
 		is_nullable => 1
 	},
 	allow_self_access => {
-		data_type   => 'json_bool',
-		size        => 8,
+		data_type   => 'boolean',
 		is_nullable => 1
 	}
 );

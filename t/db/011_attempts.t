@@ -17,9 +17,6 @@ use lib "$main::ww3_dir/t/lib";
 use Test::More;
 use Test::Exception;
 use Try::Tiny;
-# use Carp;
-# use Clone qw/clone/;
-# use List::MoreUtils qw/firstval/;
 use YAML::XS qw/LoadFile/;
 
 use DB::Schema;
