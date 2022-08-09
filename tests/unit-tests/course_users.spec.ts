@@ -140,7 +140,7 @@ describe('Testing Database and client-side Course Users', () => {
 			email: '',
 			first_name: '',
 			last_name: '',
-			role: 'UNKNOWN',
+			role: 'unknown',
 			student_id: ''
 		};
 
