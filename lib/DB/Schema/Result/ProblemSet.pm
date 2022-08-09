@@ -6,7 +6,7 @@ no warnings qw/experimental::signatures/;
 
 use Mojo::JSON qw/true false/;
 use DB::Utils qw/updateAllFields/;
-use base qw(DBIx::Class::Core);
+use base qw/DBIx::Class::Core/;
 
 =head1 DESCRIPTION
 
@@ -173,7 +173,7 @@ sub validateOverrides ($set, $updates) {
 		$set->_stripUnchanged($updates, $field_name);
 		$set->set_inflated_column(
 			"$field_name" => updateAllFields($set->get_inflated_column($field_name), $updates->{$field_name}));
-		$set->validate(field_name => $field_name);
+		$set->validate($field_name);
 	}
 	$set->discard_changes;
 	return;
@@ -189,7 +189,7 @@ unchanged from the problem_set
 =cut
 
 sub _stripUnchanged ($set, $updates, $field_name) {
-	foreach (keys %{ $set->valid_fields(field_name => $field_name) }) {
+	foreach (keys %{ $set->valid_fields($field_name) }) {
 		next unless exists($updates->{$field_name}{$_});
 		my $defined   = defined($updates->{$field_name}{$_}) ? 1 : 0;
 		my $is_truthy = $updates->{$field_name}{$_}          ? 1 : 0;

@@ -6,7 +6,7 @@ use warnings;
 use feature 'signatures';
 no warnings qw/experimental::signatures/;
 
-use base qw(DBIx::Class::Core DB::Validation);
+use base qw/DBIx::Class::Core DB::Validation/;
 
 =head1 DESCRIPTION
 
@@ -61,8 +61,8 @@ Note: a problem should have only one of a library_id, problem_path or problem_po
 
 =cut
 
-sub valid_fields ($self, %args) {
-	if ($args{field_name} eq 'problem_params') {
+sub valid_fields ($self, $field_name) {
+	if ($field_name eq 'problem_params') {
 		return {
 			weight          => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},    # positive integers or decimals
 			library_id      => q{\d+},
@@ -75,18 +75,18 @@ sub valid_fields ($self, %args) {
 	}
 }
 
-sub required ($self, %args) {
+sub required ($self, $field_name) {
 	# Although the following is desirable eventually.
 	# return { '_ALL_' => [ 'weight', { '_ONE_OF_' => [ 'library_id', 'file_path', 'problem_pool_id' ] } ] };
 	# currently, don't have any restrictions on the params.
-	if ($args{field_name} eq 'problem_params') {
+	if ($field_name eq 'problem_params') {
 		return { '_ALL_' => [ 'weight', { '_AT_LEAST_ONE_OF_' => [ 'library_id', 'file_path', 'problem_pool_id' ] } ] };
 	} else {
 		return {};
 	}
 }
 
-sub additional_validation ($self, %args) {
+sub additional_validation ($self, $field_name) {
 	return 1;
 }
 

@@ -5,7 +5,7 @@ use warnings;
 use feature 'signatures';
 no warnings qw/experimental::signatures/;
 
-use base qw(DBIx::Class::Core DB::Validation);
+use base qw/DBIx::Class::Core DB::Validation/;
 
 =head1 DESCRIPTION
 
@@ -134,8 +134,8 @@ __PACKAGE__->add_columns(
 	}
 );
 
-sub valid_fields ($self, %args) {
-	if ($args{field_name} eq 'course_user_params') {
+sub valid_fields ($self, $field_name) {
+	if ($field_name eq 'course_user_params') {
 		return {
 			comment        => q{.*},
 			useMathQuill   => 'bool',
@@ -147,11 +147,11 @@ sub valid_fields ($self, %args) {
 	}
 }
 
-sub required ($self, %args) {
+sub required ($self, $field_name) {
 	return {};
 }
 
-sub additional_validation ($self, %args) {
+sub additional_validation ($self, $field_name) {
 	return 1;
 }
 

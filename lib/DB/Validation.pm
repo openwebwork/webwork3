@@ -24,20 +24,20 @@ required fields, validates the parameters and running any additional validation.
 
 =cut
 
-sub validate ($self, %args) {
-	$self->checkForValidFields(%args);
-	$self->checkRequiredFields(%args);
-	$self->validateParams(%args);
-	$self->additional_validation(%args);
+sub validate ($self, $field_name) {
+	$self->checkForValidFields($field_name);
+	$self->checkRequiredFields($field_name);
+	$self->validateParams($field_name);
+	$self->additional_validation($field_name);
 	return 1;
 }
 
 # Check if the hash has the correct fields.
-sub checkForValidFields ($self, %args) {
-	my $params = $self->get_inflated_column($args{field_name});
+sub checkForValidFields ($self, $field_name) {
+	my $params = $self->get_inflated_column($field_name);
 	return 1 unless defined($params);
 
-	my $valid_fields = $self->valid_fields(%args);
+	my $valid_fields = $self->valid_fields($field_name);
 	my @valid_fields = keys %$valid_fields;
 	my @fields       = keys %$params;
 	my @inter        = intersect(@fields, @valid_fields);
@@ -50,9 +50,9 @@ sub checkForValidFields ($self, %args) {
 	return 1;
 }
 
-sub validateParams ($self, %args) {
-	my $params       = $self->get_inflated_column($args{field_name});
-	my $valid_fields = ref($self)->valid_fields(%args);
+sub validateParams ($self, $field_name) {
+	my $params       = $self->get_inflated_column($field_name);
+	my $valid_fields = ref($self)->valid_fields($field_name);
 
 	# if it doesn't exist, it is valid
 	return 1 unless defined $params;
@@ -67,15 +67,15 @@ sub validateParams ($self, %args) {
 	return 1;
 }
 
-sub checkRequiredFields ($self, %args) {
-	my $required_fields = ref($self)->required(%args);
+sub checkRequiredFields ($self, $field_name) {
+	my $required_fields = ref($self)->required($field_name);
 	# Depending on the data type of the $required_params, check different things.
 	DB::Exception::ParamFormatIncorrect->throw(
 		message => 'The structure of the return type of ' . ref($self) . '::required must be a hashref.')
 		unless reftype($required_fields) eq 'HASH';
 
 	for my $key (keys %$required_fields) {
-		last unless $self->_check_params($args{field_name}, $key, $required_fields->{$key});
+		last unless $self->_check_params($field_name, $key, $required_fields->{$key});
 	}
 	return 1;
 }

@@ -549,7 +549,7 @@ sub checkParams ($self, $params) {
 
 	# Check that other fields/params are correct.
 	my $prob_to_check = $self->new($params);
-	return $prob_to_check->validate(field_name => 'problem_params');
+	return $prob_to_check->validate('problem_params');
 }
 
 sub _mergeUserProblem ($user_problem) {

@@ -357,8 +357,8 @@ sub addProblemSet {
 
 	# Check that fields/dates/parameters are valid
 	my $set_obj = $self->new($set_params);
-	$set_obj->validate(field_name => 'set_dates');
-	$set_obj->validate(field_name => 'set_params');
+	$set_obj->validate('set_dates');
+	$set_obj->validate('set_params');
 
 	my $new_set = $course->add_to_problem_sets($set_params);
 
@@ -470,8 +470,8 @@ sub updateProblemSet ($self, %args) {
 	my $set_obj = $self->new($params2);
 
 	# Check the parameters are valid.
-	$set_obj->validate(field_name => 'set_dates')  if $set_obj->set_dates;
-	$set_obj->validate(field_name => 'set_params') if $set_obj->set_params;
+	$set_obj->validate('set_dates')  if $set_obj->set_dates;
+	$set_obj->validate('set_params') if $set_obj->set_params;
 	my $updated_set = $problem_set->update({ $set_obj->get_inflated_columns });
 	return $updated_set if $args{as_result_set};
 	my $set = { $updated_set->get_inflated_columns, set_type => $updated_set->set_type };

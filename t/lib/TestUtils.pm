@@ -10,7 +10,7 @@ use DateTime::Format::Strptime;
 use Mojo::JSON qw/true false/;
 
 require Exporter;
-use base qw(Exporter);
+use base qw/Exporter/;
 our @EXPORT_OK = qw/buildHash loadCSV removeIDs cleanUndef filterBySetType loadSchema/;
 
 my $strp_datetime = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');

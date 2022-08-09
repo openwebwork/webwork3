@@ -255,7 +255,7 @@ sub checkProblemParams ($self, $params) {
 		unless defined $params->{problem_number} && $params->{problem_number} =~ /^\d+$/;
 
 	my $problem_to_add = $self->new($params);
-	$problem_to_add->validate(field_name => 'problem_params');
+	$problem_to_add->validate('problem_params');
 	return 1;
 }
 

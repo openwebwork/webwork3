@@ -1,5 +1,5 @@
 package DB::Schema::Result::UserSet;
-use base qw(DBIx::Class::Core DB::Validation);
+use base qw/DBIx::Class::Core DB::Validation/;
 
 use strict;
 use warnings;
@@ -115,18 +115,5 @@ __PACKAGE__->belongs_to(
 );
 __PACKAGE__->belongs_to(problem_set => 'DB::Schema::Result::ProblemSet', 'set_id');
 __PACKAGE__->has_many(user_problems => 'DB::Schema::Result::UserProblem', 'user_set_id');
-
-# See https://metacpan.org/dist/DBIx-Class/view/lib/DBIx/Class/Manual/Cookbook.pod
-# under: Dynamic-Sub-classing-DBIx::Class-proxy-classes
-sub inflate_result ($self, @args) {
-	my $ret = $self->next::method(@args);
-	# bless into subclass based on relation to problem_set
-	return bless $ret, (ref($ret->problem_set) =~ s/:ProblemSet:/:UserSet:/r);
-}
-
-sub set_type ($self) {
-	my %set_type_rev = reverse %{$DB::Schema::ResultSet::ProblemSet::SET_TYPES};
-	return $set_type_rev{ $self->problem_set->type };
-}
 
 1;
