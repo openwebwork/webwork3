@@ -11,7 +11,7 @@ import { ResponseError } from 'src/common/api-requests/errors';
 import { useUserStore } from 'src/stores/users';
 import { useSettingsStore } from 'src/stores/settings';
 import { useProblemSetStore } from 'src/stores/problem_sets';
-import { UserRole } from 'src/common/models/parsers';
+import { UserRole } from 'src/stores/permissions';
 
 interface CourseInfo {
 	course_name: string;
@@ -22,6 +22,7 @@ interface CourseInfo {
 // SessionState should contain a de facto User, already parsed
 export interface SessionState {
 	logged_in: boolean;
+	expiry: number;
 	user: User;
 	course: CourseInfo;
 	user_courses: UserCourse[];
@@ -32,39 +33,46 @@ export const useSessionStore = defineStore('session', {
 	persist: true,
 	state: (): SessionState => ({
 		logged_in: false,
+		expiry: 0,
 		user: new User({ username: 'logged_out' }),
 		course: {
 			course_id: 0,
-			role: UserRole.unknown,
+			role: '',
 			course_name: ''
 		},
 		user_courses: []
 	}),
 	getters: {
-		full_name: (state): string => `${state.user?.first_name ?? ''} ${state.user?.last_name ?? ''} `,
-		getUser: (state): User => new User(state.user)
+		full_name: (state): string => `${state.user?.first_name ?? ''} ${state.user?.last_name ?? ''}`,
+		getUser: (state): User => new User(state.user),
 	},
 	actions: {
+		updateExpiry(expiry: number): void {
+			this.expiry = expiry;
+		},
+		// because this result may change despite state being unchanged, it is an action and not a getter
+		authIsCurrent(): boolean {
+			if (this.logged_in && this.expiry > Date.now()) return true;
+			if (this.logged_in) this.logout();
+			return false;
+		},
 		updateSessionInfo(session_info: SessionInfo): void {
 			this.logged_in = session_info.logged_in;
 			if (this.logged_in) {
 				this.user = session_info.user;
-				// state.user.is_admin = _session_info.user.is_admin;
 			} else {
 				this.user = new User({ username: 'logged_out' });
 			}
 		},
 		setCourse(course: CourseInfo): void {
 			this.course = course;
-			this.course.role = this.user_courses.find((c) => c.course_id === course.course_id)?.role
-				|| UserRole.unknown;
+			this.course.role = this.user_courses.find((c) => c.course_id === course.course_id)?.role || '';
 		},
 		/**
 		 * fetch all User Courses for a given user.
 		 * @param {number} user_id
 		 */
 		async fetchUserCourses(user_id: number): Promise<void> {
-			logger.debug(`[UserStore/fetchUserCourses] fetching courses for user #${user_id}`);
 			const response = await api.get(`users/${user_id}/courses`);
 			if (response.status === 200) {
 				this.user_courses = (response.data as ParseableUserCourse[])
@@ -83,7 +91,7 @@ export const useSessionStore = defineStore('session', {
 		logout() {
 			this.logged_in = false;
 			this.user = new User({ username: 'logged_out' });
-			this.course =  { course_id: 0, role: UserRole.unknown, course_name: '' };
+			this.course =  { course_id: 0, role: '', course_name: '' };
 			useProblemSetStore().clearAll();
 			useSettingsStore().clearAll();
 			useUserStore().clearAll();

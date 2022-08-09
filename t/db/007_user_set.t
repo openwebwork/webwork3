@@ -30,7 +30,13 @@ use TestUtils qw/loadCSV removeIDs/;
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
 $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
-my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
+
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
 
 # $schema->storage->debug(1);  # print out the SQL commands.
 my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
@@ -143,6 +149,11 @@ for my $set (@all_user_sets_from_db) {
 	}
 }
 
+# sort both arrays
+@all_user_sets = sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @all_user_sets;
+@all_user_sets_from_db =
+	sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @all_user_sets_from_db;
+
 is_deeply(\@all_user_sets_from_db, \@all_user_sets, 'getAllUserSets: get all user sets for all courses');
 
 my @merged_sets_from_db = $user_set_rs->getAllUserSets(merged => 1);
@@ -150,6 +161,12 @@ my @merged_sets_from_db = $user_set_rs->getAllUserSets(merged => 1);
 for my $merged_set (@merged_sets_from_db) {
 	removeIDs($merged_set);
 }
+
+# sort both arrays
+@merged_sets_from_db =
+	sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @merged_sets_from_db;
+@merged_user_sets =
+	sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @merged_user_sets;
 
 is_deeply(\@merged_sets_from_db, \@merged_user_sets, 'getAllUserSets: get all merged sets for all courses');
 
@@ -168,6 +185,10 @@ for my $user_set (@user_sets_from_db) {
 	removeIDs($user_set);
 	delete $user_set->{set_visible} unless defined($user_set->{set_visible});
 }
+
+# sort both arrays
+@user_sets_from_db      = sort { $a->{set_name} cmp $b->{set_name} } @user_sets_from_db;
+@user_sets_for_one_user = sort { $a->{set_name} cmp $b->{set_name} } @user_sets_for_one_user;
 
 is_deeply(\@user_sets_from_db, \@user_sets_for_one_user, 'getUserSets: get all user sets for one user');
 
@@ -812,6 +833,11 @@ for my $set (@all_user_sets_from_db) {
 		delete $set->{$key} unless defined $set->{$key};
 	}
 }
+
+# Sort before comparing.
+@all_user_sets = sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @all_user_sets;
+@all_user_sets_from_db =
+	sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @all_user_sets_from_db;
 
 is_deeply(\@all_user_sets_from_db, \@all_user_sets, 'check: ensure that the user sets are restored.');
 

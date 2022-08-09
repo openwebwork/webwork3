@@ -3,6 +3,9 @@ use warnings;
 use strict;
 
 use Exception::Class (
+	'DB::Exception::RouteWithoutPermission' => {
+		fields => [ 'route', 'message' ]
+	},
 	'DB::Exception::UndefinedCourseField' => {
 		fields      => ['message'],
 		description => 'There is an undefined course setting field'
@@ -100,6 +103,10 @@ use Exception::Class (
 	'DB::Exception::UserProblemNotFound' => {
 		fields      => [ 'course_name', 'problem_number', 'problem_version', 'username', 'set_name' ],
 		description => 'The requested user problem is not found.'
+	},
+	'DB::Exception::UserRoleUndefined' => {
+		fields      => ['role_name'],
+		description => 'The role name is not defined.'
 	}
 );
 
@@ -108,7 +115,7 @@ DB::Exception::UndefinedCourseField->Trace(1);
 DB::Exception::InvalidCourseField->Trace(1);
 DB::Exception::UserSetNotInCourse->Trace(1);
 DB::Exception::SetNotInCourse->Trace(1);
-# DB::Exception::UserNotInCourse->Trace(1);
+DB::Exception::UserNotInCourse->Trace(1);
 DB::Exception::UserNotFound->Trace(1);
 DB::Exception::CourseAlreadyExists->Trace(1);
 DB::Exception::InvalidParameter->Trace(1);
@@ -120,4 +127,5 @@ DB::Exception::UserSetExists->Trace(1);
 DB::Exception::ImproperDateOrder->Trace(1);
 DB::Exception::SetAlreadyExists->Trace(1);
 DB::Exception::UserProblemNotFound->Trace(1);
+DB::Exception::UserRoleUndefined->Trace(1);
 1;

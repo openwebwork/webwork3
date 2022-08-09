@@ -172,7 +172,7 @@ export default defineComponent({
 
 			// add the user to the course as instructor
 			await users.addCourseUser(new CourseUser({
-				role: 'INSTRUCTOR',
+				role: 'instructor',
 				user_id: course_instructor.user_id,
 				course_id: new_course.course_id,
 

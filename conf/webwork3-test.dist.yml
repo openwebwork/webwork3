@@ -13,7 +13,7 @@ webwork3_home: .
 # For the sqlite database
 database_dsn: dbi:SQLite:./t/db/sample_db.sqlite
 # For mysql or mariadb
-#database_dsn: dbi:mysql:dbname=webwork3_test
+# database_dsn: dbi:mysql:dbname=webwork3_test
 # For postgres
 #database_dsn: dbi:Pg:dbname=webwork3_test;host=localhost
 
@@ -21,3 +21,10 @@ database_dsn: dbi:SQLite:./t/db/sample_db.sqlite
 # These are ignored if the 'sqlite' database is used.
 database_user: webworkWrite
 database_password: password
+
+# Cookie control settings
+# cookie_samesite: None
+# disable this for testing.
+cookie_secure: 0
+cookie_lifetime: 3600
+

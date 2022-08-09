@@ -116,8 +116,8 @@ import type { Dictionary } from 'src/common/models';
 import type { ResponseError } from 'src/common/api-requests/errors';
 import { CourseUser, User, ParseableCourseUser } from 'src/common/models/users';
 import { invert } from 'src/common/utils';
-import { getUser } from 'src/common/api-requests/user';
-import { useSettingsStore } from 'src/stores/settings';
+import { checkIfUserExists } from 'src/common/api-requests/user';
+import { usePermissionStore } from 'src/stores/permissions';
 
 interface ParseError {
 	type: string;
@@ -136,8 +136,9 @@ const emit = defineEmits(['closeDialog']);
 
 const users = useUserStore();
 const session = useSessionStore();
-const settings = useSettingsStore();
+const permission_store = usePermissionStore();
 const $q = useQuasar();
+
 const file = ref<File>(new File([], ''));
 // Stores all users from the file as well as parsing errors.
 const course_users = ref<Array<UserFromFile>>([]);
@@ -168,9 +169,7 @@ const user_fields = [
 ];
 
 // Return an array of the roles in the course.
-const roles = computed(() =>
-	(settings.getCourseSetting('roles').value as string[]).filter((v) => v !== 'admin')
-);
+const roles = computed(() => permission_store.roles);
 
 // use the first row to find the headers of the table (field names)
 // this is based on trying to match the needed field names to the know user
@@ -196,7 +195,7 @@ const getCourseUser = (row: UserFromFile) => {
 		{}
 	) as ParseableCourseUser;
 	// Set the role if a common role for all users is selected_users.
-	course_user.role = use_single_role.value ? common_role.value ?? 'UNKOWN' : 'UNKNOWN';
+	course_user.role = use_single_role.value ? common_role.value ?? 'unknown' : 'unknown';
 	return course_user;
 };
 
@@ -338,49 +337,43 @@ const loadFile = () => {
 const addMergedUsers = async () => {
 	for await (const user of course_users_to_add.value) {
 		user.course_id = session.course.course_id;
-		let global_user: User | undefined;
-		try {
-			// Skip if username is undefined?
-			global_user = await getUser(user.username ?? '');
-		} catch (err) {
-			const error = err as ResponseError;
-			// this will occur is the user is not a global user
-			if (error.exception !== 'DB::Exception::UserNotFound') {
-				logger.error(error.message);
-			}
-			try {
-				global_user = await users.addUser(new User(user));
-				$q.notify({
-					message:
-						`The global user with username '${global_user?.username ?? 'UNKNOWN'}'` +
-						' was successfully added to the course.',
-					color: 'green',
+
+		// First check if the user is a global user.  If not, add the global user.
+		await checkIfUserExists(session.course.course_id, user.username ?? '').then(async (global_user) => {
+			if (global_user.username == undefined) {
+				await users.addUser(new User(user)).then(u => {
+					const msg =  `The global user with username '${u?.username ?? 'unknown'}'` +
+							' was successfully added to the course.';
+					logger.debug(`[addUsersFromFile]: ${msg}`);
+					$q.notify({ message: msg, color: 'green' });
+					user.user_id = u?.user_id ?? 0;
+				}).catch(e => {
+					const error = e as ResponseError;
+					logger.error(`[addUsersFromFile]: ${error.message}`);
+					$q.notify({ message: error.message, color: 'red' });
 				});
-			} catch (e) {
-				const error = e as ResponseError;
-				$q.notify({ message: error.message, color: 'red' });
+
+			} else {
+				user.user_id = parseInt(`${global_user.user_id ?? 0}`);
 			}
-		}
-		if (global_user) {
-			user.user_id = global_user.user_id;
-		}
-		try {
-			await users.addCourseUser(new CourseUser(user));
-			const full_name = `${user.first_name} ${user.last_name}`;
-			$q.notify({
-				message: `The user ${full_name} was successfully added to the course.`,
-				color: 'green',
+
+			// Now add the user as a course user.
+			users.addCourseUser(new CourseUser(user)).then(user => {
+				const full_name = `${user.first_name} ${user.last_name}`;
+				const msg = `The user ${full_name} was successfully added to the course.`;
+				logger.debug(`[addUsersFromFile]: ${msg}`);
+				$q.notify({ message: msg, color: 'green' });
+				emit('closeDialog');
+			}).catch(err => {
+				const error = err as AxiosError;
+				logger.error(`[addUsersFromFile]: ${error.toString()}`);
+				const data = error?.response?.data as ResponseError || { exception: '' };
+				$q.notify({
+					message: data.exception,
+					color: 'red'
+				});
 			});
-			emit('closeDialog');
-		} catch (err) {
-			const error = err as AxiosError;
-			logger.error(error);
-			const data = (error?.response?.data as ResponseError) || { exception: '' };
-			$q.notify({
-				message: data.exception,
-				color: 'red',
-			});
-		}
+		});
 	}
 };
 

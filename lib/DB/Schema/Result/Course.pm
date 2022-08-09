@@ -40,7 +40,7 @@ our $REQUIRED_PARAMS = { _ALL_   => ['visible'] };
 
 __PACKAGE__->table('course');
 
-__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
+__PACKAGE__->load_components(qw/InflateColumn::Serializer InflateColumn::Boolean Core/);
 
 __PACKAGE__->add_columns(
 	course_id => {
@@ -65,14 +65,6 @@ __PACKAGE__->add_columns(
 		is_nullable        => 0,
 		default_value      => 1,
 		retrieve_on_insert => 1
-	}
-);
-
-__PACKAGE__->inflate_column(
-	'visible',
-	{
-		inflate => sub { return shift ? true : false; },
-		deflate => sub { return shift; }
 	}
 );
 

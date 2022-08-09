@@ -1,0 +1,185 @@
+---
+# This file defines the default roles and permissions for webwork 3. If you wish to add or
+# change any roles, copy this file to conf/permissions.yml and make changes.
+# Whether or not you have made changes, run /bin/update_role_db.pl to load all roles
+# in the database.
+
+roles:
+  - course_admin
+  - instructor
+  - ta
+  - student
+
+# This defines the permisions for each role for the backend/database.
+#
+# This hash has each of the Controllers (Logger, Permission, Course, ...) as a field
+# and each action as a subfield.  For each Controller/action, there are three possibilities
+#
+# - authenticated: true      this route can be accessed by any user who has been authenticated.
+# - admin_required: true     this route can only be accessed by a user with admin flag (no course role)
+# - allow_self_access: true  this route can be accessed by a user matching the user_id
+# - allowed_roles: Array     this route can be accessed by a user with a role in the given array.
+#                            and '*' can be used for all roles.
+
+db_permissions:
+  Logger:
+    clientLog:
+      authenticated: true
+  Permission:
+    getRoles:
+      authenticated: true
+    getUIRoutePermissions:
+      authenticated: true
+    checkPermission:
+      authenticated: true
+
+  Course:
+    getCourses:
+      allowed_roles: ['*']
+    getCourse:
+      allowed_roles: ['*']
+    updateCourse:
+      admin_required: true
+    addCourse:
+      admin_required: true
+    deleteCourse:
+      admin_required: true
+  User:
+    getGlobalUsers:
+      admin_required: true
+    getGlobalUser:
+      admin_required: true
+    checkGlobalUser:
+      allowed_roles: ['course_admin', 'instructor']
+    updateGlobalUser:
+      admin_required: true
+    addGlobalUser:
+      admin_required: true
+    deleteGlobalUser:
+      admin_required: true
+    # The following actions are needed for instructors to handle global users
+    getGlobalUsersFromCourse:
+      allowed_roles: ['course_admin', 'instructor']
+    getGlobalUserFromCourse:
+      allowed_roles: ['course_admin', 'instructor']
+    getUserCoursesFromCourse:
+      allowed_roles: ['course_admin', 'instructor']
+    updateGlobalUserFromCourse:
+      allowed_roles: ['course_admin', 'instructor']
+    addGlobalUserFromCourse:
+      allowed_roles: ['course_admin', 'instructor']
+    deleteGlobalUserFromCourse:
+      allowed_roles: ['course_admin', 'instructor']
+    getCourseUsers:
+      allowed_roles: ['course_admin', 'instructor']
+    getUserCourses:
+      allow_self_access: true
+      allowed_roles: ['course_admin', 'instructor']
+    getGlobalCourseUsers:
+      allowed_roles: ['course_admin', 'instructor']
+    getCourseUser:
+      allowed_roles: ['course_admin', 'instructor']
+    addCourseUser:
+      allowed_roles: ['course_admin', 'instructor']
+    updateCourseUser:
+      allowed_roles: ['course_admin', 'instructor']
+    deleteCourseUser:
+      allowed_roles: ['course_admin', 'instructor']
+  ProblemSet:
+    getProblemSets:
+      allowed_roles: ['course_admin', 'instructor', 'student']
+    getProblemSet:
+      allowed_roles: ['course_admin', 'instructor']
+    addProblemSet:
+      allowed_roles: ['course_admin', 'instructor']
+    updateProblemSet:
+      allowed_roles: ['course_admin', 'instructor']
+    deleteProblemSet:
+      allowed_roles: ['course_admin', 'instructor']
+    getAllUserSets:
+      allowed_roles: ['course_admin', 'instructor']
+    getUserSets:
+      allowed_roles: ['course_admin', 'instructor']
+    addUserSet:
+      allowed_roles: ['course_admin', 'instructor']
+    updateUserSet:
+      allowed_roles: ['course_admin', 'instructor']
+    deleteUserSet:
+      allowed_roles: ['course_admin', 'instructor']
+  Problem:
+    getAllProblems:
+      allowed_roles: ['course_admin', 'instructor', 'student']
+    getProblem:
+      allowed_roles: ['course_admin', 'instructor', 'student']
+    addProblem:
+      allowed_roles: ['course_admin', 'instructor']
+    updateProblem:
+      allowed_roles: ['course_admin', 'instructor']
+    deleteProblem:
+      allowed_roles: ['course_admin', 'instructor']
+
+    # UserProblem Routes
+
+    getUserProblemsForSet:
+      allowed_roles: ['course_admin', 'instructor']
+    getUserProblemsForUser:
+      allowed_roles: ['course_admin', 'instructor']
+      allow_self_access: true
+    getUserProblem:
+      allowed_roles: ['course_admin', 'instructor']
+      allow_self_access: true
+    addUserProblem:
+      allowed_roles: ['course_admin', 'instructor']
+    updateUserProblem:
+      allowed_roles: ['course_admin', 'instructor']
+      allow_self_access: true
+    deleteUserProblem:
+      allowed_roles: ['course_admin', 'instructor']
+
+    # ProblemPool routes
+    getProblemPools:
+      allowed_roles: ['course_admin', 'instructor']
+    getProblemPool:
+      allowed_roles: ['course_admin', 'instructor']
+    addProblemPool:
+      allowed_roles: ['course_admin', 'instructor']
+    updateProblemPool:
+      allowed_roles: ['course_admin', 'instructor']
+    deleteProblemPool:
+      allowed_roles: ['course_admin', 'instructor']
+
+    # PoolProblem routes
+    getPoolProblems:
+      allowed_roles: ['course_admin', 'instructor']
+    getPoolProblem:
+      allowed_roles: ['course_admin', 'instructor']
+    addProblemToPool:
+      allowed_roles: ['course_admin', 'instructor']
+    updatePoolProblem:
+      allowed_roles: ['course_admin', 'instructor']
+    removePoolProblem:
+      allowed_roles: ['course_admin', 'instructor']
+  Settings:
+    getDefaultCourseSettings:
+      allowed_roles: ['*']
+    getCourseSettings:
+      allowed_roles: ['*']
+    updateCourseSettings:
+      allowed_roles: ['course_admin', 'instructor']
+
+# This defines the permisions for each role for the frontend/UI layer.
+
+# This object is a list of routes, followed by an array of roles allowed.
+
+ui_permissions:
+  /login:
+    allowed_roles: ['*']
+  /users/*/courses:
+    allowed_roles: ['instructor', 'course_admin']
+    allow_self_access: true
+  /courses/*/instructor:
+    allowed_roles: ['instructor', 'course_admin']
+  /courses/*/student:
+    allowed_roles: ['student', 'instructor', 'course_admin']
+  /admin:
+    admin_required: true

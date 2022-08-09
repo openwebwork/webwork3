@@ -6,18 +6,23 @@
 
 // tests parsing and handling of merged users
 
-import { UserRole } from 'src/common/models/parsers';
-import { CourseUser, DBCourseUser } from 'src/common/models/users';
+// Note: the role is not tested here because the defined roles are now in the database
+// therefore, they are tested in tests/store/course_users.spec.ts.
+
+import { CourseUser, DBCourseUser, ParseableDBCourseUser } from 'src/common/models/users';
 
 describe('Testing Database and client-side Course Users', () => {
-	describe('Creating a DBCourseUser', () => {
-		const default_db_course_user = {
-			course_user_id: 0,
-			course_id: 0,
-			user_id: 0,
-			role: UserRole.unknown
-		};
-		test('Checking the creation of a dBCourseUser', () => {
+
+	const default_db_course_user: ParseableDBCourseUser = {
+		course_user_id: 0,
+		user_id: 0,
+		course_id: 0,
+		role: ''
+	};
+
+	describe('Testing Database course users', () => {
+
+		test('Create a new database course user', () => {
 			const db_course_user = new DBCourseUser();
 			expect(db_course_user).toBeInstanceOf(DBCourseUser);
 			expect(db_course_user.toObject()).toStrictEqual(default_db_course_user);
@@ -55,11 +60,11 @@ describe('Testing Database and client-side Course Users', () => {
 			db_course_user.course_id = 5;
 			expect(db_course_user.course_id).toBe(5);
 
-			db_course_user.role = UserRole.admin;
-			expect(db_course_user.role).toBe(UserRole.admin);
+			db_course_user.role = 'admin';
+			expect(db_course_user.role).toBe('admin');
 
 			db_course_user.role = 'student';
-			expect(db_course_user.role).toBe(UserRole.student);
+			expect(db_course_user.role).toBe('student');
 		});
 
 		test('Update DBCourseUser using the set method', () => {
@@ -75,11 +80,11 @@ describe('Testing Database and client-side Course Users', () => {
 			db_course_user.set({ course_id: 5 });
 			expect(db_course_user.course_id).toBe(5);
 
-			db_course_user.set({ role: UserRole.admin });
-			expect(db_course_user.role).toBe(UserRole.admin);
+			db_course_user.set({ role: 'admin' });
+			expect(db_course_user.role).toBe('admin');
 
 			db_course_user.set({ role: 'student' });
-			expect(db_course_user.role).toBe(UserRole.student);
+			expect(db_course_user.role).toBe('student');
 		});
 	});
 
@@ -135,7 +140,7 @@ describe('Testing Database and client-side Course Users', () => {
 			email: '',
 			first_name: '',
 			last_name: '',
-			role: 'UNKNOWN',
+			role: 'unknown',
 			student_id: ''
 		};
 
@@ -197,15 +202,15 @@ describe('Testing Database and client-side Course Users', () => {
 			course_user.course_id = 5;
 			expect(course_user.course_id).toBe(5);
 
-			course_user.role = UserRole.admin;
-			expect(course_user.role).toBe(UserRole.admin);
+			course_user.role = 'admin';
+			expect(course_user.role).toBe('admin');
 
 			course_user.role = 'student';
-			expect(course_user.role).toBe(UserRole.student);
+			expect(course_user.role).toBe('student');
 		});
 
 		test('Update CourseUser using the set method', () => {
-			const course_user = new CourseUser({ username: 'homer', role: UserRole.student });
+			const course_user = new CourseUser({ username: 'homer', role: 'student' });
 			expect(course_user.isValid()).toBe(true);
 
 			course_user.set({ course_user_id: 10 });
@@ -217,11 +222,11 @@ describe('Testing Database and client-side Course Users', () => {
 			course_user.set({ course_id: 5 });
 			expect(course_user.course_id).toBe(5);
 
-			course_user.set({ role: UserRole.admin });
-			expect(course_user.role).toBe(UserRole.admin);
+			course_user.set({ role: 'admin' });
+			expect(course_user.role).toBe('admin');
 
 			course_user.set({ role: 'student' });
-			expect(course_user.role).toBe(UserRole.student);
+			expect(course_user.role).toBe('student');
 
 			course_user.set({ username: 'test2' });
 			expect(course_user.username).toBe('test2');
@@ -245,52 +250,52 @@ describe('Testing Database and client-side Course Users', () => {
 
 	describe('Testing for valid and invalid users.', () => {
 		test('setting invalid user_id', () => {
-			let user = new CourseUser({ username: 'homer', role: UserRole.student });
+			let user = new CourseUser({ username: 'homer', role: 'student' });
 			expect(user.isValid()).toBe(true);
 
-			user = new CourseUser({ username: 'homer', role: UserRole.student, user_id: -15 });
+			user = new CourseUser({ username: 'homer', role: 'student', user_id: -15 });
 			expect(user.isValid()).toBe(false);
 
-			user = new CourseUser({ username: 'homer', role: UserRole.student, user_id: 1.23 });
+			user = new CourseUser({ username: 'homer', role: 'student', user_id: 1.23 });
 			expect(user.isValid()).toBe(false);
 		});
 
 		test('setting invalid course_user_id', () => {
-			let course_user = new CourseUser({ username: 'homer', role: UserRole.student });
+			let course_user = new CourseUser({ username: 'homer', role: 'student' });
 			expect(course_user.isValid()).toBe(true);
 
-			course_user = new CourseUser({ username: 'homer', role: UserRole.student });
+			course_user = new CourseUser({ username: 'homer', role: 'student' });
 			course_user.course_user_id = -3;
 			expect(course_user.isValid()).toBe(false);
 
-			course_user = new CourseUser({ username: 'homer', role: UserRole.student });
+			course_user = new CourseUser({ username: 'homer', role: 'student' });
 			course_user.course_user_id = 3.14;
 			expect(course_user.isValid()).toBe(false);
 
-			course_user = new CourseUser({ username: 'homer', role: UserRole.student });
+			course_user = new CourseUser({ username: 'homer', role: 'student' });
 			course_user.course_user_id = 7;
 			expect(course_user.isValid()).toBe(true);
 		});
 
 		test('setting invalid course_id', () => {
-			let course_user = new CourseUser({ username: 'homer', role: UserRole.student });
+			let course_user = new CourseUser({ username: 'homer', role: 'student' });
 			course_user.course_id = -9;
 			expect(course_user.isValid()).toBe(false);
 
-			course_user = new CourseUser({ username: 'homer', role: UserRole.student });
+			course_user = new CourseUser({ username: 'homer', role: 'student' });
 			course_user.course_id = 1.39;
 			expect(course_user.isValid()).toBe(false);
 
-			course_user = new CourseUser({ username: 'homer', role: UserRole.student });
+			course_user = new CourseUser({ username: 'homer', role: 'student' });
 			course_user.course_id = 9;
 			expect(course_user.isValid()).toBe(true);
 		});
 
 		test('setting invalid email', () => {
-			let course_user = new CourseUser({ username: 'homer', role: UserRole.student });
+			let course_user = new CourseUser({ username: 'homer', role: 'student' });
 			expect(course_user.isValid()).toBe(true);
 
-			course_user = new CourseUser({ username: 'homer', role: UserRole.student });
+			course_user = new CourseUser({ username: 'homer', role: 'student' });
 			course_user.email = 'bad@email@address.com';
 			expect(course_user.isValid()).toBe(false);
 		});
@@ -325,12 +330,5 @@ describe('Testing Database and client-side Course Users', () => {
 			const validate = user.validate();
 			expect(validate.course_user_id).toBe('The course_user_id must be a non negative integer.');
 		});
-
-		test('Test the validation of the user role', () => {
-			const user = new CourseUser({ username: 'homer', role: 'programmer' });
-			const validate = user.validate();
-			expect(validate.role).toBe('The role is not valid.');
-		});
-
 	});
 });

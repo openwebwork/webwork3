@@ -28,8 +28,8 @@ export const useSettingsStore = defineStore('settings', {
 		course_settings: []
 	}),
 	actions: {
-		async fetchDefaultSettings(): Promise<void> {
-			const response = await api.get('default_settings');
+		async fetchDefaultSettings(course_id: number): Promise<void> {
+			const response = await api.get(`courses/${course_id}/default_settings`);
 			this.default_settings = response.data as Array<CourseSettingInfo>;
 		},
 		async fetchCourseSettings(course_id: number): Promise<void> {

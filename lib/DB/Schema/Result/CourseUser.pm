@@ -28,7 +28,7 @@ C<user_id>: the database id of the user (foreign key)
 
 =item *
 
-C<role>: the role of the user (generally a string, but limited to a set of strings)
+C<role_id>: the role_id of the user (generally a string, but limited to a set of strings)
 
 =item *
 
@@ -105,10 +105,11 @@ __PACKAGE__->add_columns(
 		size        => 16,
 		is_nullable => 0,
 	},
-	role => {
-		data_type   => 'text',
-		size        => 256,
-		is_nullable => 1
+	role_id => {
+		data_type     => 'integer',
+		size          => 16,
+		is_nullable   => 0,
+		default_value => 0
 	},
 	section => {
 		data_type   => 'text',
@@ -153,5 +154,12 @@ __PACKAGE__->belongs_to(users   => 'DB::Schema::Result::User',   'user_id');
 __PACKAGE__->belongs_to(courses => 'DB::Schema::Result::Course', 'course_id');
 
 __PACKAGE__->has_many(user_sets => 'DB::Schema::Result::UserSet', 'course_user_id');
+
+# The cascade_delete => 0 prevents the role from being deleted if the course_user is deleted.
+__PACKAGE__->has_one(
+	role => 'DB::Schema::Result::Role',
+	{ 'foreign.role_id' => 'self.role_id' },
+	{ cascade_delete    => 0 }
+);
 
 1;

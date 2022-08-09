@@ -17,7 +17,7 @@ use lib "$main::ww3_dir/t/lib";
 use Test::More;
 use Test::Exception;
 use Clone qw/clone/;
-use List::MoreUtils qw/firstval/;
+
 use YAML qw/LoadFile/;
 use DateTime::Format::Strptime;
 use Mojo::JSON qw/true false/;
@@ -29,8 +29,13 @@ use TestUtils qw/loadCSV removeIDs/;
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
 $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
-my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
-my $strp   = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
+my $strp = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
 
 my $users_rs  = $schema->resultset('User');
 my $course_rs = $schema->resultset('Course');
@@ -245,7 +250,7 @@ my @courses = loadCSV(
 my @user_courses_from_csv = grep { $_->{username} eq 'lisa' } @students;
 
 for my $user_course (@user_courses_from_csv) {
-	my $course = firstval { $_->{course_name} eq $user_course->{course_name} } @courses;
+	my $course = (grep { $_->{course_name} eq $user_course->{course_name} } @courses)[0];
 	for my $key (qw/email first_name last_name username student_id/) {
 		delete $user_course->{$key};
 	}
@@ -254,6 +259,10 @@ for my $user_course (@user_courses_from_csv) {
 	$user_course->{visible}      = $course->{visible};
 	$user_course->{course_dates} = $course->{course_dates};
 }
+
+# Make sure that the order of the courses is the same
+@user_courses          = sort { $a->{course_name} cmp $b->{course_name} } @user_courses;
+@user_courses_from_csv = sort { $a->{course_name} cmp $b->{course_name} } @user_courses_from_csv;
 
 is_deeply(\@user_courses, \@user_courses_from_csv, 'getUserCourses: get all courses for a given user');
 

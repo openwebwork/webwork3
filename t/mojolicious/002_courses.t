@@ -61,6 +61,23 @@ $t->put_ok("/webwork3/api/courses/$new_course_id" => json => $new_course)->statu
 
 is_deeply($new_course, $t->tx->res->json, 'updateCourse: courses match');
 
+# Testing that booleans returned from the server are JSON booleans.
+# getting the first course
+
+# to check this, relogin as admin
+$t->post_ok('/webwork3/api/logout')->status_is(200);
+$t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200);
+
+$t->get_ok('/webwork3/api/courses/1')->json_is('/course_name', 'Precalculus');
+my $precalc = $t->tx->res->json;
+
+ok($precalc->{visible}, 'Testing that visible field is truthy.');
+is($precalc->{visible}, true, 'Testing that the visible field compares to JSON::true');
+ok(JSON::PP::is_bool($precalc->{visible}),                        'Testing that the visible field is a JSON boolean');
+ok(JSON::PP::is_bool($precalc->{visible}) && $precalc->{visible}, 'testing that the visible field is a JSON::true');
+
+ok(not(JSON::PP::is_bool($precalc->{course_id})), 'testing that $precalc->{visible} is not a JSON boolean');
+
 # Test for exceptions
 
 # A set that is not in a course.
@@ -86,44 +103,29 @@ $t->delete_ok('/webwork3/api/courses/9999999')->status_is(500, 'error status')
 $t->delete_ok("/webwork3/api/courses/$new_course_id")->status_is(200)
 	->json_is('/course_name' => $new_course->{course_name});
 
-# Logout of the admin user account.
-$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
+# Logout of the admin user account and relogin as a non-admin:
 
-# Login as a non admin user
-$t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })
-	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
-	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => 0);
+$t->post_ok('/webwork3/api/logout')->status_is(200);
+$t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
+	->status_is(200)->json_is('/logged_in' => true)->json_is('/user/username' => 'lisa')
+	->json_is('/user/is_admin' => false);
 
-$t->get_ok('/webwork3/api/courses')->content_type_is('application/json;charset=UTF-8')
-	->json_is('/0/course_name' => 'Precalculus');
+# an instructor can get information about the given course.
+$t->get_ok('/webwork3/api/courses/4')->status_is(200)->json_is('/course_name' => 'Arithmetic');
 
-$t->get_ok('/webwork3/api/courses/2')->content_type_is('application/json;charset=UTF-8')
-	->json_is('/course_name' => 'Abstract Algebra');
+# and also the settings for the course.
 
-# The user should not have permissions for the following routes.
+$t->get_ok('/webwork3/api/courses/4/default_settings')->status_is(200)
+	->content_type_is('application/json;charset=UTF-8');
+$t->get_ok('/webwork3/api/courses/4/settings')->status_is(200)->content_type_is('application/json;charset=UTF-8');
+
+# The user with role instructor should not have permissions for the following routes.
 
 $t->post_ok('/webwork3/api/courses' => json => $new_course)->status_is(403)->json_is('/has_permission' => 0);
 
-$t->put_ok('/webwork3/api/courses/1' => json => { course_name => 'XXX' })->status_is(406)
-	->json_is('/has_permission' => 0);
+$t->put_ok('/webwork3/api/courses/4' => json => { course_name => 'XXX' })->status_is(403)
+	->json_is('/has_permission' => false);
 
-$t->delete_ok('/webwork3/api/courses/1')->status_is(406)->json_is('/has_permission' => 0);
-
-# Testing that booleans returned from the server are JSON booleans.
-# getting the first course
-
-# to check this, relogin as admin
-$t->post_ok('/webwork3/api/logout')->status_is(200);
-$t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200);
-
-$t->get_ok('/webwork3/api/courses/1')->json_is('/course_name', 'Precalculus');
-my $precalc = $t->tx->res->json;
-
-ok($precalc->{visible}, 'Testing that visible field is truthy.');
-is($precalc->{visible}, true, 'Testing that the visible field compares to JSON::true');
-ok(JSON::PP::is_bool($precalc->{visible}),                        'Testing that the visible field is a JSON boolean');
-ok(JSON::PP::is_bool($precalc->{visible}) && $precalc->{visible}, 'testing that the visible field is a JSON::true');
-
-ok(not(JSON::PP::is_bool($precalc->{course_id})), 'testing that $precalc->{visible} is not a JSON boolean');
+$t->delete_ok('/webwork3/api/courses/4')->status_is(403)->json_is('/has_permission' => false);
 
 done_testing;

@@ -67,6 +67,7 @@ import type { ResponseError } from 'src/common/api-requests/errors';
 import AddUsersManually from 'src/components/instructor/ClasslistManagerComponents/AddUsersManually.vue';
 import AddUsersFromFile from 'src/components/instructor/ClasslistManagerComponents/AddUsersFromFile.vue';
 import EditUsers from 'src/components/instructor/ClasslistManagerComponents/EditUsers.vue';
+import { useSessionStore } from 'src/stores/session';
 
 const $q = useQuasar();
 const users = useUserStore();
@@ -147,36 +148,42 @@ const deleteCourseUsers = () => {
 	}).onOk(() => {
 		for (const user of selected.value) {
 			users.deleteCourseUser(new CourseUser(user)).then(() => {
+				const msg = `The user '${user.username}' has been succesfully deleted from the course.`;
 				$q.notify({
-					message: `The user '${
-						user.username ?? ''}' has been succesfully deleted from the course.`,
+					message: msg,
 					color: 'green'
 				});
+				logger.debug(`[ClasslistManager/deleteUser]: ${msg}`);
 			}).catch((err) => {
 				const error = err as ResponseError;
 				$q.notify({ message: error.message, color: 'red' });
 			});
 
 			// Delete the user if they have no other courses
-			api.get(`users/${user.user_id ?? ''}/courses`).then((response) => {
-				const user_courses = response.data as  Array<UserCourse>;
+			const session_store = useSessionStore();
+			const course_id = session_store.course.course_id;
+			api.get(`courses/${course_id}/global-users/${user.user_id}/courses`)
+				.then((response) => {
+					const user_courses = response.data as  Array<UserCourse>;
 
-				if (user_courses.length === 0) {
-					users.deleteUser(new User(user)).then(() => {
-						$q.notify({
-							message: `The global user '${user.username ?? ''}'` +
-											' has been succesfully deleted.',
-							color: 'green'
+					if (user_courses.length === 0) {
+						users.deleteUser(new User(user)).then(() => {
+							const msg = `The global user '${user.username}' has been succesfully deleted.`;
+							$q.notify({
+								message: msg,
+								color: 'green'
+							});
+							logger.debug(`[ClasslistManager/deleteUser]: ${msg}`);
+						}).catch((err) => {
+							const error = err as ResponseError;
+							$q.notify({ message: error.message, color: 'red' });
+							logger.error(err);
 						});
-					}).catch((err) => {
-						const error = err as ResponseError;
-						$q.notify({ message: error.message, color: 'red' });
-					});
-				}
-				selected.value = [];
-			}).catch((err) => {
-				logger.error(err);
-			});
+					}
+					selected.value = [];
+				}).catch((err) => {
+					logger.error(err);
+				});
 		}
 	});
 };

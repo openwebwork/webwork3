@@ -64,7 +64,6 @@ __PACKAGE__->add_columns(
 	},
 	params => {
 		data_type          => 'text',
-		size               => 256,
 		is_nullable        => 0,
 		default_value      => '{}',
 		serializer_class   => 'JSON',

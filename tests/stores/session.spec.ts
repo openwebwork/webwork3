@@ -16,12 +16,12 @@ import { api } from 'boot/axios';
 import { getUser } from 'src/common/api-requests/user';
 import { useSessionStore } from 'src/stores/session';
 import { checkPassword } from 'src/common/api-requests/session';
-import { UserRole } from 'src/common/models/parsers';
-import { loadCSV, cleanIDs } from '../utils';
 
 import { Course, UserCourse } from 'src/common/models/courses';
 import { SessionInfo } from 'src/common/models/session';
 import { User } from 'src/common/models/users';
+
+import { cleanIDs, loadCSV } from '../utils';
 
 const app = createApp({});
 
@@ -101,7 +101,7 @@ describe('Session Store', () => {
 			expect(session.course).toStrictEqual({
 				course_id: 0,
 				course_name: '',
-				role: UserRole.unknown
+				role: ''
 			});
 		});
 
@@ -115,10 +115,17 @@ describe('Session Store', () => {
 
 		});
 
+		// sort by course name and clean up the _id tags.
+		const sortAndClean = (user_courses: UserCourse[]) => {
+			return cleanIDs(user_courses.sort((a, b) =>
+				a.course_name < b.course_name ? -1 : a.course_name > b.course_name ? 1 : 0));
+		};
+
 		test('check user courses', async () => {
 			const session_store = useSessionStore();
 			await session_store.fetchUserCourses(lisa.user_id);
-			expect(cleanIDs(session_store.user_courses)).toStrictEqual(cleanIDs(lisa_courses));
+			expect(sortAndClean(session_store.user_courses as UserCourse[]))
+				.toStrictEqual(sortAndClean(lisa_courses));
 		});
 
 		test('update the session', () => {

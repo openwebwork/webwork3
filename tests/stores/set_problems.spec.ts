@@ -216,6 +216,19 @@ describe('Problem Set store tests', () => {
 		});
 	});
 
+	// sort, clean up the status and clean up the _id tags.
+	const sortAndClean = (user_problems: UserProblem[]) => {
+		const probs = user_problems.sort((a, b) =>
+			a.username < b.username ? -1 : a.username > b.username ? 1 : 0 ||
+			a.set_name < b.set_name ? -1 : a.set_name > b.set_name ? 1 : 0 ||
+			a.problem_number - b.problem_number
+		);
+		probs.forEach(user_problem => {
+			user_problem.status = parseFloat(`${user_problem.status}`);
+		});
+		return cleanIDs(probs);
+	};
+
 	describe('Fetch user problems', () => {
 		test('Fetch all User Problems for a set in a course', async () => {
 			const user_store = useUserStore();
@@ -230,7 +243,7 @@ describe('Problem Set store tests', () => {
 			await set_problems_store.fetchUserProblems(hw1.set_id);
 
 			const hw1_user_problems = set_problems_store.findUserProblems({ set_name: 'HW #1' });
-			expect(cleanIDs(precalc_hw1_user_problems)).toStrictEqual(cleanIDs(hw1_user_problems));
+			expect(sortAndClean(precalc_hw1_user_problems)).toStrictEqual(sortAndClean(hw1_user_problems));
 		});
 	});
 
@@ -322,8 +335,8 @@ describe('Problem Set store tests', () => {
 			const users_store = useUserStore();
 			await users_store.fetchGlobalCourseUsers(precalc_course.course_id);
 			await users_store.fetchCourseUsers(precalc_course.course_id);
-			expect(cleanIDs(precalc_hw1_user_problems))
-				.toStrictEqual(cleanIDs(set_problem_store.user_problems));
+			expect(sortAndClean(precalc_hw1_user_problems))
+				.toStrictEqual(sortAndClean(set_problem_store.user_problems));
 		});
 	});
 
@@ -333,11 +346,12 @@ describe('Problem Set store tests', () => {
 			const single_user_problems = precalc_merged_problems
 				.filter(prob => prob.username === 'homer');
 			const user_store = useUserStore();
-			// user_store.fetchGlobalCourseUsers(precalc_course.course_id);
+
 			const homer = user_store.findCourseUser({ username: 'homer' });
 			await set_problem_store.fetchUserProblemsForUser(homer.user_id);
-			expect(cleanIDs(single_user_problems))
-				.toStrictEqual(cleanIDs(set_problem_store.user_problems));
+
+			expect(sortAndClean(single_user_problems))
+				.toStrictEqual(sortAndClean(set_problem_store.user_problems));
 		});
 	});
 });

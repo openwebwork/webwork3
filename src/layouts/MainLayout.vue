@@ -35,10 +35,11 @@ import MenuBar from './MenuBar.vue';
 
 import { instructor_views, admin_views, ViewInfo, student_views } from 'src/common/views';
 import { useRoute } from 'vue-router';
+import { logger } from 'boot/logger';
+
 import ProblemSetList from 'components/sidebars/ProblemSetList.vue';
 import UserList from 'components/sidebars/UserList.vue';
 import LibrarySidebar from 'components/sidebars/LibrarySidebar.vue';
-import { logger } from 'boot/logger';
 
 export default defineComponent({
 	components: {
@@ -90,6 +91,6 @@ export default defineComponent({
 			right_sidebar_open,
 			sidebars
 		};
-	},
+	}
 });
 </script>

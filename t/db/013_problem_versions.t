@@ -27,7 +27,12 @@ use TestUtils qw/loadCSV removeIDs/;
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
 $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
-my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
 
 my $problem_rs      = $schema->resultset('SetProblem');
 my $user_problem_rs = $schema->resultset('UserProblem');
@@ -89,6 +94,9 @@ my $user_problem1_from_csv = clone firstval {
 }
 @user_problems_from_csv;
 
+# the status needs be returned to a numerical value.
+$user_problem1->{status} += 0;
+
 is_deeply($user_problem1_from_csv, $user_problem1, 'getUserProblem: get a single user problem from a course.');
 
 # Make a new user problem that has a problem_version of 2
@@ -115,6 +123,7 @@ my @all_user_problem_versions = $user_problem_rs->getUserProblemVersions(info =>
 
 for my $user_problem (@all_user_problem_versions) {
 	removeIDs($user_problem);
+	$user_problem->{status} += 0;
 }
 
 is_deeply(
@@ -135,6 +144,7 @@ my $user_problem_v2_to_delete = $user_problem_rs->deleteUserProblem(
 	}
 );
 removeIDs($user_problem_v2_to_delete);
+$user_problem_v2_to_delete->{status} += 0;
 
 is_deeply($user_problem_v2_to_delete, $user_problem1_v2, 'deleteUserProblem: delete a versioned user problem');
 
@@ -148,15 +158,19 @@ my $user_problem_v3_to_delete = $user_problem_rs->deleteUserProblem(
 	}
 );
 removeIDs($user_problem_v3_to_delete);
+$user_problem_v3_to_delete->{status} += 0;
 
 is_deeply($user_problem_v3_to_delete, $user_problem1_v3, 'deleteUserProblem: delete another versioned user problem');
 
 # Ensure that the user_problems table is restored.
 my @all_user_problems_from_db = $user_problem_rs->getAllUserProblems();
+
 for my $user_problem (@all_user_problems_from_db) {
 	removeIDs($user_problem);
 	delete $user_problem->{problem_version} unless defined $user_problem->{problem_version};
 }
+# For comparision make sure the loaded status are printed to 5 digits.
+$_->{status} += 0 for (@all_user_problems_from_db);
 
 is_deeply(\@user_problems_from_csv, \@all_user_problems_from_db, 'check: ensure that user_problems table is restored.');
 

@@ -26,6 +26,7 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { checkPassword } from 'src/common/api-requests/session';
 import { useSessionStore } from 'src/stores/session';
+import { usePermissionStore } from 'src/stores/permissions';
 
 const router = useRouter();
 const username = ref('');
@@ -34,11 +35,16 @@ const message = ref('');
 const i18n = useI18n({ useScope: 'global' });
 
 const session = useSessionStore();
+const permission_store = usePermissionStore();
 
 if (session && session.logged_in && session.user) {
 	if (session.user.is_admin) {
 		void router.push('/admin');
 	} else if (session.user.user_id) {
+		// load the permissions if needed
+		if (permission_store.roles.length === 0) await permission_store.fetchRoles();
+		if (permission_store.ui_permissions.length === 0) await permission_store.fetchRoutePermissions();
+
 		void router.push(`/users/${session.user.user_id}/courses`);
 	}
 }
@@ -49,16 +55,24 @@ const login = async () => {
 		password: password.value
 	};
 	const session_info = await checkPassword(username_info);
+
 	if (!session_info.logged_in) {
 		message.value = i18n.t('authentication.failure');
 	} else {
 		// success
-		void session.updateSessionInfo(session_info);
-		if (session_info?.user?.is_admin) {
-			void router.push('/admin');
-		} else if (session && session.user && session.user.user_id) {
-			void router.push(`/users/${session.user.user_id}/courses`);
-		}
+		session.updateSessionInfo(session_info);
+
+		// permissions require access to user courses and respective roles
+		await session.fetchUserCourses(session_info.user.user_id);
+		await permission_store.fetchRoles();
+		await permission_store.fetchRoutePermissions();
+
+		let forward = localStorage.getItem('afterLogin');
+		forward ||= (session_info.user.is_admin) ?
+			'/admin' :
+			`/users/${session.user.user_id}/courses`;
+		localStorage.removeItem('afterLogin');
+		void router.push(forward);
 	}
 };
 </script>

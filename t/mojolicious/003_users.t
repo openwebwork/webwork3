@@ -26,9 +26,16 @@ $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_f
 my $config = clone(LoadFile($config_file));
 
 # Connect to the database.
-my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
 
 my $t = Test::Mojo->new(WeBWorK3 => $config);
+
+# Test all of the user routes with an admin user.
 
 $t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/user_id' => 1)
@@ -74,12 +81,35 @@ my $added_user_to_course = {
 $t->post_ok('/webwork3/api/courses/4/users' => json => $added_user_to_course)->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/role' => 'student');
 
+my $lisa = (grep { $_->{username} eq 'lisa' } @all_users)[0];
+
+# Check if the user is a global user
+$t->get_ok('/webwork3/api/courses/1/users/lisa/exists')->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/first_name' => $lisa->{first_name});
+
+# Check if a non-existent user is a global user
+$t->get_ok('/webwork3/api/courses/1/users/non_existent_user/exists')->status_is(200)
+	->content_type_is('application/json;charset=UTF-8');
+
+is_deeply($t->tx->res->json, {}, 'checkUserExists: check that a non-existent user returns {}');
+
+# Testing that booleans returned from the server are JSON booleans.
+# the first user is the admin
+
+my $admin_user = (grep { $_->{username} eq 'admin' } @all_users)[0];
+ok(not(JSON::PP::is_bool($admin_user->{user_id})), 'testing that $admin->{user_id} is not a JSON boolean');
+
+ok(!$new_user_from_db->{is_admin}, 'testing new_user->{is_admin} is not truthy.');
+is($new_user_from_db->{is_admin}, false, 'testing that new_user->{is_admin} compares to false');
+ok(JSON::PP::is_bool($new_user_from_db->{is_admin}), 'testing that new_user->{is_admin} is a true or false');
+ok(JSON::PP::is_bool($new_user_from_db->{is_admin}) && !$new_user_from_db->{is_admin},
+	'testing that new_user->{is_admin} is a false');
+
 # Test for exceptions
 
 # Try to get a non-existent user.
 $t->get_ok('/webwork3/api/users/99999')->content_type_is('application/json;charset=UTF-8')
-	->status_is(500, 'exception status')->status_is(500, 'internal exception')
-	->json_is('/exception' => 'DB::Exception::UserNotFound');
+	->status_is(500, 'exception status')->json_is('/exception' => 'DB::Exception::UserNotFound');
 
 # Try to update a user not in a course.
 $t->put_ok('/webwork3/api/users/99999' => json => { email => 'fred@happy.com' })->status_is(500, 'exception status')
@@ -117,17 +147,18 @@ $t->post_ok(
 
 my $another_new_user_id = $t->tx->res->json('/user_id');
 
-# Delete the added users.
+# For cleanup, delete the created users.  Need to relogin as an admin:
+
 $t->delete_ok("/webwork3/api/users/$new_user_from_db->{user_id}")->status_is(200)
 	->json_is('/username' => $new_user->{username});
 
 $t->delete_ok("/webwork3/api/users/$another_new_user_id")->status_is(200)
 	->json_is('/username' => $another_user->{username});
 
-# Logout of the admin user account.
-$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
-
 # Test that a non-admin user cannot access all of the routes
+# Logout the admin user and relogin as a non-admin.
+
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
 	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => 0);
@@ -147,27 +178,38 @@ $t->put_ok('/webwork3/api/users/1' => json => { email => 'lisa@aol.com' })->stat
 $t->delete_ok('/webwork3/api/users/1')->content_type_is('application/json;charset=UTF-8')->status_is(403)
 	->json_is('/has_permission' => 0);
 
-# Testing that booleans returned from the server are JSON booleans.
-# the first user is the admin
+# Test that a user can access their own courses.  Lisa has user_id 3.
+$t->get_ok('/webwork3/api/users/3/courses')->status_is(200)->content_type_is('application/json;charset=UTF-8');
 
-# to check this, relogin as admin
-$t->post_ok('/webwork3/api/logout')->status_is(200);
+# Relogin as the admin and delete the added users
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
 $t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200);
 
-$t->get_ok('/webwork3/api/users/1')->json_is('/username', 'admin');
-my $admin_user = $t->tx->res->json;
+# The following routes test that global users can be handled by an instructor in the course
+# Lisa is an instructor in the Arithmetic course (course_id => 4)
 
-ok($admin_user->{is_admin}, 'testing that is_admin compares to 1.');
-is($admin_user->{is_admin}, true, 'testing that is_admin compares to true');
-ok(JSON::PP::is_bool($admin_user->{is_admin}),                            'testing that is_admin is a true or false');
-ok(JSON::PP::is_bool($admin_user->{is_admin}) && $admin_user->{is_admin}, 'testing that is_admin is a true');
+my $new_global_user = {
+	username   => 'maggie',
+	first_name => 'Maggie',
+	last_name  => 'Simpson',
+	student_id => 1234,
+	email      => 'maggie@thesimpsons.tv'
+};
 
-ok(not(JSON::PP::is_bool($admin_user->{user_id})), 'testing that $admin->{user_id} is not a JSON boolean');
+$t->post_ok('/webwork3/api/courses/4/global-users' => json => $new_global_user)->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/username' => 'maggie');
 
-ok(!$new_user_from_db->{is_admin}, 'testing new_user->{is_admin} is not truthy.');
-is($new_user_from_db->{is_admin}, false, 'testing that new_user->{is_admin} compares to false');
-ok(JSON::PP::is_bool($new_user_from_db->{is_admin}), 'testing that new_user->{is_admin} is a true or false');
-ok(JSON::PP::is_bool($new_user_from_db->{is_admin}) && !$new_user_from_db->{is_admin},
-	'testing that new_user->{is_admin} is a false');
+my $new_global_user_id = $t->tx->res->json('/user_id');
+
+$t->get_ok("/webwork3/api/courses/4/global-users/$new_global_user_id")->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/username' => 'maggie')
+	->json_is('/student_id' => 1234);
+
+$t->put_ok("/webwork3/api/courses/4/global-users/$new_global_user_id" => json => { student_id => 4321 })
+	->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/username' => 'maggie')
+	->json_is('/student_id' => 4321);
+
+$t->delete_ok("/webwork3/api/courses/4/global-users/$new_global_user_id")->status_is(200)
+	->content_type_is('application/json;charset=UTF-8');
 
 done_testing;

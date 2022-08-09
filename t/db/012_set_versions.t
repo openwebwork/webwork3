@@ -27,7 +27,12 @@ use TestUtils qw/loadCSV removeIDs/;
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
 $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
-my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
 
 my $problem_set_rs = $schema->resultset('ProblemSet');
 my $course_rs      = $schema->resultset('Course');
@@ -213,6 +218,12 @@ my @all_user_sets_from_db = $user_set_rs->getAllUserSets(merged => 1);
 for my $set (@all_user_sets_from_db) {
 	removeIDs($set);
 }
+
+# Sort before comparing.
+@merged_user_sets =
+	sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @merged_user_sets;
+@all_user_sets_from_db =
+	sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @all_user_sets_from_db;
 
 is_deeply(\@all_user_sets_from_db, \@merged_user_sets, 'check: Ensure that the user_sets table is restored.');
 

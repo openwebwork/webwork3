@@ -4,6 +4,7 @@
 
 use warnings;
 use strict;
+use feature 'say';
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -15,14 +16,13 @@ use lib "$main::ww3_dir/lib";
 use lib "$main::ww3_dir/t/lib";
 
 use Carp;
-use feature 'say';
-
 use Clone qw/clone/;
 use DateTime::Format::Strptime;
 use YAML::XS qw/LoadFile/;
 use Mojo::JSON qw/true false/;
 
 use DB::Schema;
+use DB::Utils qw/updatePermissions/;
 use TestUtils qw/loadCSV/;
 
 my $verbose = 1;
@@ -32,6 +32,10 @@ my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
 $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
 
+# Load the Permissions file
+my $role_perm_file = "$main::ww3_dir/conf/permissions.yml";
+$role_perm_file = "$main::ww3_dir/conf/permissions.dist.yml" unless -r $role_perm_file;
+
 # Connect to the database.
 my $schema = DB::Schema->connect(
 	$config->{database_dsn},
@@ -40,10 +44,15 @@ my $schema = DB::Schema->connect(
 	{ quote_names => 1 }
 );
 
+# $schema->storage->debug(1);  # print out the SQL commands.
+
 say "restoring the database with dbi: $config->{database_dsn}" if $verbose;
 
 # Create the database based on the schema.
 $schema->deploy({ add_drop_table => 1 });
+
+# The permissions need to be loaded into the DB before the rest of the script is run.
+updatePermissions($config_file, $role_perm_file);
 
 my $course_rs       = $schema->resultset('Course');
 my $user_rs         = $schema->resultset('User');
@@ -52,6 +61,7 @@ my $problem_set_rs  = $schema->resultset('ProblemSet');
 my $problem_pool_rs = $schema->resultset('ProblemPool');
 my $set_problem_rs  = $schema->resultset('SetProblem');
 my $user_set_rs     = $schema->resultset('UserSet');
+my $role_rs         = $schema->resultset('Role');
 
 my $strp_date = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
 
@@ -100,13 +110,14 @@ sub addUsers {
 	$user_rs->create($admin);
 
 	for my $student (@all_students) {
-		my $course    = $course_rs->find({ course_name => $student->{course_name} });
-		my $stud_info = {};
+		my $student_role = $role_rs->find({ role_name => 'student' });
+		my $course       = $course_rs->find({ course_name => $student->{course_name} });
+		my $stud_info    = {};
 		for my $key (qw/username first_name last_name email student_id/) {
 			$stud_info->{$key} = $student->{$key};
 		}
 		$stud_info->{login_params} = { password => $student->{username} };
-		$course->add_to_users($stud_info);
+		$course->add_to_users($stud_info, { role_id => $student_role->role_id });
 
 		my $user   = $user_rs->find({ username => $student->{username} });
 		my $params = {
@@ -114,10 +125,17 @@ sub addUsers {
 			course_id => $course->course_id,
 		};
 
+		# Look up the role of the user
+		my $role = $role_rs->find({ role_name => $student->{role} });
+		die "The user with username $student->{username} has role $student->{role} which does not exist\n"
+			. 'Either reassign the role or ensure that bin/update_perms.pl has been run.'
+			unless defined $role;
+
 		my $course_user = $course_user_rs->find($params);
-		for my $key (qw/section recitation params role/) {
+		for my $key (qw/section recitation params/) {
 			$params->{$key} = $student->{$key};
 		}
+		$params->{role_id}            = $role->role_id;
 		$params->{course_user_params} = $params->{params} // {};
 		delete $params->{params};
 		my $u = $course_user->update($params);
@@ -265,7 +283,8 @@ sub addUserSets {
 
 sub addProblemPools {
 	say 'adding problem pools' if $verbose;
-	my @problem_pools = loadCSV("$main::ww3_dir/t/db/sample_data/pool_problems.csv");
+	my @problem_pools = my @problem_pools_from_file =
+		loadCSV("$main::ww3_dir/t/db/sample_data/pool_problems.csv", { non_neg_int_fields => ['library_id'] });
 
 	for my $pool (@problem_pools) {
 		my $course = $course_rs->find({ course_name => $pool->{course_name} });
@@ -316,7 +335,7 @@ sub addUserProblems {
 			set_problem_id  => $problem->set_problem_id,
 			seed            => $user_problem->{seed},
 			problem_version => 1,
-			status          => $user_problem->{status}
+			status          => 0 + $user_problem->{status}
 		});
 	}
 	return;

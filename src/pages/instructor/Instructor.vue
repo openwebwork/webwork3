@@ -31,23 +31,20 @@ export default defineComponent({
 		const route = useRoute();
 
 		const course_id = parseRouteCourseID(route);
-		if (session.user.user_id) await session.fetchUserCourses(session.user.user_id)
-			.then(() => {
-				const course = session.user_courses.find(c => c.course_id === course_id);
-				if (course) {
-					session.setCourse({
-						course_id,
-						course_name: course.course_name
-					});
-				} else {
-					logger.warn(`Can't find ${course_id} in ${session.user_courses
-						.map((c) => c.course_id).join(', ')}`);
-				}
+		const course = session.user_courses.find(c => c.course_id === course_id);
+		if (course) {
+			session.setCourse({
+				course_id,
+				course_name: course.course_name
 			});
+		} else {
+			logger.warn(`Can't find ${course_id} in ${session.user_courses
+				.map((c) => c.course_id).join(', ')}`);
+		}
 		await users.fetchGlobalCourseUsers(course_id);
 		await users.fetchCourseUsers(course_id);
 		await problem_sets.fetchProblemSets(course_id);
-		await settings.fetchDefaultSettings()
+		await settings.fetchDefaultSettings(course_id)
 			.then(() => settings.fetchCourseSettings(course_id))
 			.then(() => void setI18nLanguage(settings.getCourseSetting('language').value as string))
 			.catch((err) => logger.error(`${JSON.stringify(err)}`));

@@ -1,4 +1,7 @@
 import { route } from 'quasar/wrappers';
+import { logger } from 'src/boot/logger';
+import { usePermissionStore } from 'src/stores/permissions';
+import { useSessionStore } from 'src/stores/session';
 import { createMemoryHistory, createRouter, createWebHashHistory, createWebHistory } from 'vue-router';
 import routes from './routes';
 
@@ -16,7 +19,7 @@ export default route(() => {
 		? createMemoryHistory
 		: (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory);
 
-	const Router = createRouter({
+	const router = createRouter({
 		scrollBehavior: () => ({ left: 0, top: 0 }),
 		routes,
 
@@ -28,5 +31,23 @@ export default route(() => {
 		),
 	});
 
-	return Router;
+	router.beforeResolve((to) => {
+		const session_store = useSessionStore();
+
+		// Redirect to the login page if user is not authenticated
+		if (!session_store.authIsCurrent() && to.name !== 'login') {
+			localStorage.setItem('afterLogin', to.path);
+			return { name: 'login' };
+		};
+
+		// user is logged in, so check permissions on the route
+		const permissions_store = usePermissionStore();
+		if (!permissions_store.hasRoutePermission(to)) {
+			const user = session_store.getUser;
+			logger.warn(`[routing] User #${user.user_id} does not have the permission to visit ${to.fullPath}`);
+			return { name: 'user_courses', params: { user_id: user.user_id } };
+		}
+	});
+
+	return router;
 });

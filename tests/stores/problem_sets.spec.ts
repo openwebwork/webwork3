@@ -71,12 +71,20 @@ describe('Problem Set store tests', () => {
 		});
 	});
 
+	// sort by set name and clean up the _id tags.
+	const sortAndClean = (user_courses: ProblemSet[]) => {
+		return cleanIDs(user_courses.sort((a, b) =>
+			a.set_name < b.set_name ? -1 : a.set_name > b.set_name ? 1 : 0));
+	};
+
 	describe('Fetch problem sets', () => {
 		test('Fetch the Problem Sets for a course', async () => {
 			const problem_set_store = useProblemSetStore();
 			await problem_set_store.fetchProblemSets(precalc_course?.course_id ?? 0);
 			expect(problem_set_store.problem_sets.length).toBeGreaterThan(0);
-			expect(cleanIDs(problem_set_store.problem_sets)).toStrictEqual(cleanIDs(problem_sets_from_csv));
+
+			expect(sortAndClean(problem_set_store.problem_sets as ProblemSet[]))
+				.toStrictEqual(sortAndClean(problem_sets_from_csv));
 		});
 
 	});

@@ -33,26 +33,36 @@ my $config = clone(LoadFile($config_file));
 my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 
 # Connect to the database.
-my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
 
 my $t = Test::Mojo->new(WeBWorK3 => $config);
 
-$t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/user_id' => 1)
-	->json_is('/user/is_admin' => 1);
+# Login as an user with instructor privileges in a course (Arithmetic; course_id: 4)
+$t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => true)
+	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => false);
 
 # Load the quizzes.
-my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
-for my $quiz (@quizzes) {
-	$quiz->{set_type} = 'QUIZ';
-	for my $date (keys %{ $quiz->{dates} }) {
-		my $dt = $strp->parse_datetime($quiz->{dates}->{$date});
-		$quiz->{dates}->{$date} = $dt->epoch;
+my @quizzes = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/quizzes.csv",
+	{
+		boolean_fields           => ['set_visible'],
+		param_boolean_fields     => ['timed'],
+		param_non_neg_int_fields => ['quiz_duration']
 	}
+);
+for my $quiz (@quizzes) {
+	$quiz->{set_type}   = "QUIZ";
+	$quiz->{set_params} = {} unless defined($quiz->{set_params});
 }
 
 # Get all problem_sets
-$t->get_ok('/webwork3/api/courses/2/sets')->content_type_is('application/json;charset=UTF-8');
+$t->get_ok('/webwork3/api/courses/4/sets')->content_type_is('application/json;charset=UTF-8');
 my $all_problem_sets = $t->tx->res->json;
 
 # find the first quiz in the course.
@@ -60,7 +70,7 @@ my $all_problem_sets = $t->tx->res->json;
 my $quiz1 = firstval { $_->{set_type} eq 'QUIZ' } @$all_problem_sets;
 
 # test some things about this quiz
-$t->get_ok("/webwork3/api/courses/2/sets/$quiz1->{set_id}")->content_type_is('application/json;charset=UTF-8')
+$t->get_ok("/webwork3/api/courses/4/sets/$quiz1->{set_id}")->content_type_is('application/json;charset=UTF-8')
 	->json_is('/set_name' => 'Quiz #1');
 
 # Test that booleans are returned correctly.
@@ -89,7 +99,7 @@ my $new_quiz_params = {
 	}
 };
 
-$t->post_ok('/webwork3/api/courses/2/sets' => json => $new_quiz_params)
+$t->post_ok('/webwork3/api/courses/4/sets' => json => $new_quiz_params)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/set_name' => 'Quiz #20')
 	->json_is('/set_type' => 'QUIZ');
 my $returned_quiz = $t->tx->res->json;
@@ -104,12 +114,12 @@ ok(JSON::PP::is_bool($problem_randorder) && $problem_randorder, 'testing that pr
 # Check that updating a boolean parameter is working:
 
 $t->put_ok(
-	"/webwork3/api/courses/2/sets/$returned_quiz->{set_id}" => json => {
+	"/webwork3/api/courses/4/sets/$returned_quiz->{set_id}" => json => {
 		set_params => {
 			problem_randorder => false
 		}
 	}
-)->content_type_is('application/json;charset=UTF-8');
+)->status_is(200);
 
 my $updated_quiz = $t->tx->res->json;
 
@@ -120,7 +130,7 @@ ok(JSON::PP::is_bool($problem_randorder),                        'testing that p
 ok(JSON::PP::is_bool($problem_randorder) && !$problem_randorder, 'testing that problem_randorder is a false');
 
 # delete the added quiz
-$t->delete_ok("/webwork3/api/courses/2/sets/$returned_quiz->{set_id}")
+$t->delete_ok("/webwork3/api/courses/4/sets/$returned_quiz->{set_id}")
 	->content_type_is('application/json;charset=UTF-8')->json_is('/set_name' => 'Quiz #20')
 	->json_is('/set_type' => 'QUIZ');
 

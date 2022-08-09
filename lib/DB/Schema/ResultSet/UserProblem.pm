@@ -262,25 +262,33 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 =cut
 
 sub getUserProblem ($self, %args) {
-	my $problem  = $self->rs('SetProblem')->getSetProblem(info => $args{info}, as_result_set => 1);
-	my $user_set = $self->rs('UserSet')->getUserSet(info => $args{info}, as_result_set => 1);
+	my $user_problem;
+	if (defined($args{info}->{user_problem_id})) {
+		$user_problem = $self->find({ user_problem_id => $args{info}->{user_problem_id} });
+		DB::Exception::UserProblemNotFound->throw(
+			message => "The user problem with id $args{info}->{user_problem_is} is not found.")
+			unless $user_problem || $args{skip_throw};
+	} else {
+		my $problem  = $self->rs('SetProblem')->getSetProblem(info => $args{info}, as_result_set => 1);
+		my $user_set = $self->rs('UserSet')->getUserSet(info => $args{info}, as_result_set => 1);
 
-	my $user_problem = $problem->user_problems->find({
-		user_set_id     => $user_set->user_set_id,
-		problem_version => $args{info}->{problem_version} // 1
-	});
+		$user_problem = $problem->user_problems->find({
+			user_set_id     => $user_set->user_set_id,
+			problem_version => $args{info}->{problem_version} // 1
+		});
 
-	# If the problem doesn't exist throw a exception unless skip_throw (used)
-	# for checking in addUserProblem.
+		# If the problem doesn't exist throw a exception unless skip_throw (used)
+		# for checking in addUserProblem.
 
-	DB::Exception::UserProblemNotFound->throw(message => 'The user problem for the course '
-			. "$user_set->problem_sets->courses->course_name, problem set $user_set->problem_sets->set_name"
-			. " for user $user_set->course_users->users->username and problem number "
-			. "$problem->problem_number is not found")
-		unless $user_problem || $args{skip_throw};
+		DB::Exception::UserProblemNotFound->throw(message => 'The user problem for the course '
+				. "$user_set->problem_sets->courses->course_name, problem set $user_set->problem_sets->set_name"
+				. " for user $user_set->course_users->users->username and problem number "
+				. "$problem->problem_number is not found")
+			unless $user_problem || $args{skip_throw};
+
+	}
 
 	return $user_problem if $args{as_result_set};
-
 	return $args{merged} ? _mergeUserProblem($user_problem) : _getUserProblem($user_problem);
 }
 

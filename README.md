@@ -46,7 +46,7 @@ are assuming terminal/shell commands.
 
 1. Clone the webwork3 code with `git clone https://github.com/openwebwork/webwork3.git`
 2. Change directory to the webwork3 directory: `cd webwork3`
-3. Copy conf/webwork3.yml.dist to conf/webwork3.yml and modify it appropriately if needed.
+3. Copy `conf/webwork3.dist.yml` to `conf/webwork3.yml` and modify it appropriately if needed.
 
 ### Download Quasar
 
@@ -163,7 +163,7 @@ sudo systemctl start webwork3
 10. Set up permissions for the renderer with the following commands executed from the renderer directory.
 
 ```sh
-sudo chown -R youruser:www-data logs 
+sudo chown -R youruser:www-data logs
 sudo chmod g+rw logs/standalone_results.log
 sudo chmod -R g+rw lib/WeBWorK/tmp/* lib/WeBWorK/htdocs/tmp/*
 ```

@@ -30,7 +30,7 @@
 							v-model="course_user.email"
 							label="Email"
 							lazy-rules
-							:rules="[val => validateEmail(val)]"
+							:rules="[(val) => validateEmail(val)]"
 							:disable="user_exists"
 						/>
 					</div>
@@ -73,14 +73,14 @@ import { ref, computed, defineEmits } from 'vue';
 import { useQuasar } from 'quasar';
 import { logger } from 'boot/logger';
 
-import { checkIfUserExists } from 'src/common/api-requests/user';
 import { useUserStore } from 'src/stores/users';
 import { useSessionStore } from 'src/stores/session';
-import { useSettingsStore } from 'src/stores/settings';
+import { usePermissionStore } from 'src/stores/permissions';
 
 import { CourseUser, User } from 'src/common/models/users';
 import type { ResponseError } from 'src/common/api-requests/errors';
 import { isValidEmail, isValidUsername, parseNonNegInt } from 'src/common/models/parsers';
+import { checkIfUserExists } from 'src/common/api-requests/user';
 
 interface QRef {
 	validate: () => boolean;
@@ -96,27 +96,21 @@ const username_ref = ref<QRef | null>(null);
 const role_ref = ref<QRef | null>(null);
 const user_store = useUserStore();
 const session = useSessionStore();
-const settings = useSettingsStore();
+const permission_store = usePermissionStore();
 
 // see if the user exists already and fill in the known fields
 const checkUser = async () => {
-	// check first if the username is valid.
-	if (validateUsername(course_user.value.username) === true) {
-		const existing_user = await checkIfUserExists(session.course.course_id, course_user.value.username);
-		if (existing_user.username) {
-			course_user.value.set(existing_user);
-			user_exists.value = true;
-		} else {
-			// make sure the other fields are emptied.  This can happen if they were prefilled.
-			course_user.value = new CourseUser({ username: course_user.value.username });
-			user_exists.value = false;
-		}
+	const user = await checkIfUserExists(session.course.course_id, course_user.value.username ?? '');
+	if (user.username == undefined) {
+		user_exists.value = false;
+	} else {
+		user_exists.value = true;
+		course_user.value = new CourseUser(user);
 	}
 };
 
 // Return an array of the roles in the course.
-const roles = computed(() =>
-	(settings.getCourseSetting('roles').value as string[]).filter(v => v !== 'admin'));
+const roles = computed(() => permission_store.roles);
 
 const addUser = async (close: boolean) => {
 
@@ -132,10 +126,10 @@ const addUser = async (close: boolean) => {
 	// if the user is not global, add them.
 	if (!user_exists.value) {
 		try {
-			logger.debug(`Trying to add the new global user ${course_user.value.username ?? 'UNKNOWN'}`);
+			logger.debug(`Trying to add the new global user ${course_user.value.username}`);
 			const global_user = await user_store.addUser(new User(course_user.value));
 			if (global_user == undefined) throw `There is an error adding the user ${course_user.value.username}`;
-			const msg = `The global user with username ${global_user?.username ?? 'UNKNOWN'} was created.`;
+			const msg = `The global user with username ${global_user.username} was created.`;
 			$q.notify({ message: msg, color: 'green' });
 			logger.debug(msg);
 			course_user.value.user_id = global_user.user_id;
@@ -147,16 +141,12 @@ const addUser = async (close: boolean) => {
 
 	course_user.value.course_id = session.course.course_id;
 	const user = await user_store.addCourseUser(new CourseUser(course_user.value));
-
-	// If the user exist globally, fetch the user to be added to the store
-	if (user_exists.value) {
-		await user_store.fetchUser(user.user_id);
-	}
 	const u = user_store.findCourseUser({ user_id: parseNonNegInt(user.user_id ?? 0) });
 	$q.notify({
 		message: `The user with username '${u.username ?? ''}' was added successfully.`,
 		color: 'green'
 	});
+
 	if (close) {
 		emit('closeDialog');
 	} else {
@@ -165,10 +155,7 @@ const addUser = async (close: boolean) => {
 };
 
 const validateRole = (val: string | null) => {
-	if (val == undefined || val == 'UNKNOWN') {
-		return 'You must select a role';
-	}
-	return true;
+	return (val == undefined) ? 'You must select a role' : true;
 };
 
 const validateUsername = (username: string) => {

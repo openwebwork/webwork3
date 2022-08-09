@@ -4,87 +4,110 @@ use strict;
 
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
-sub addProblem ($self) {
-	my $problem = $self->schema->resultset('SetProblem')->addSetProblem(
-		params => {
-			course_id => int($self->param('course_id')),
-			set_id    => int($self->param('set_id')),
-			%{ $self->req->json }
-		}
-	);
-	$self->render(json => $problem);
-	return;
-}
-
-sub getAllProblems ($self) {
-	my @problems = $self->schema->resultset('SetProblem')->getProblems(
+sub getAllProblems ($c) {
+	my @problems = $c->schema->resultset('SetProblem')->getProblems(
 		info => {
-			course_id => int($self->param('course_id'))
+			course_id => int($c->param('course_id'))
 		}
 	);
-	$self->render(json => \@problems);
+	$c->render(json => \@problems);
 	return;
 }
 
-sub updateProblem ($self) {
-	my $params = $self->req->json;
+sub getProblem ($c) {
+	my $problem = $c->schema->resultset('SetProblem')->getSetProblem(
+		info => {
+			course_id      => int($c->param('course_id')),
+			set_id         => int($c->param('set_id')),
+			set_problem_id => int($c->param('set_problem_id')),
+		}
+	);
+	$c->render(json => $problem);
+	return;
+}
+
+sub addProblem ($c) {
+	my $problem = $c->schema->resultset('SetProblem')->addSetProblem(
+		params => {
+			course_id => int($c->param('course_id')),
+			set_id    => int($c->param('set_id')),
+			%{ $c->req->json }
+		}
+	);
+	$c->render(json => $problem);
+	return;
+}
+
+sub updateProblem ($c) {
+	my $params = $c->req->json;
 	# The render_params shouldn't be passed to the database, so delete that field
 	delete $params->{render_params} if defined($params->{render_params});
-	my $updated_problem = $self->schema->resultset('SetProblem')->updateSetProblem(
+	my $updated_problem = $c->schema->resultset('SetProblem')->updateSetProblem(
 		info => {
-			course_id      => int($self->param('course_id')),
-			set_id         => int($self->param('set_id')),
-			set_problem_id => int($self->param('set_problem_id'))
+			course_id      => int($c->param('course_id')),
+			set_id         => int($c->param('set_id')),
+			set_problem_id => int($c->param('set_problem_id'))
 		},
 		params => $params
 	);
-	$self->render(json => $updated_problem);
+	$c->render(json => $updated_problem);
 	return;
 }
 
-sub deleteProblem ($self) {
-	my $deleted_problem = $self->schema->resultset('SetProblem')->deleteSetProblem(
+sub deleteProblem ($c) {
+	my $deleted_problem = $c->schema->resultset('SetProblem')->deleteSetProblem(
 		info => {
-			course_id      => int($self->param('course_id')),
-			set_id         => int($self->param('set_id')),
-			set_problem_id => int($self->param('set_problem_id'))
+			course_id      => int($c->param('course_id')),
+			set_id         => int($c->param('set_id')),
+			set_problem_id => int($c->param('set_problem_id'))
 		}
 	);
-	$self->render(json => $deleted_problem);
+	$c->render(json => $deleted_problem);
 	return;
 }
 
-sub getUserProblemsForSet ($self) {
-	my @user_problems = $self->schema->resultset('UserProblem')->getUserProblemsForSet(
+sub getUserProblemsForSet ($c) {
+	my @user_problems = $c->schema->resultset('UserProblem')->getUserProblemsForSet(
 		info => {
-			course_id => int($self->param('course_id')),
-			set_id    => int($self->param('set_id'))
+			course_id => int($c->param('course_id')),
+			set_id    => int($c->param('set_id'))
 		}
 	);
-	$self->render(json => \@user_problems);
+	$c->render(json => \@user_problems);
 	return;
 }
 
-sub getUserProblemsForUser ($self) {
-	my @user_problems = $self->schema->resultset('UserProblem')->getUserProblemsForUser(
+sub getUserProblemsForUser ($c) {
+	my @user_problems = $c->schema->resultset('UserProblem')->getUserProblemsForUser(
 		info => {
-			course_id => int($self->param('course_id')),
-			user_id   => int($self->param('user_id'))
+			course_id => int($c->param('course_id')),
+			user_id   => int($c->param('user_id'))
 		}
 	);
-	$self->render(json => \@user_problems);
+	$c->render(json => \@user_problems);
 	return;
 }
 
-sub addUserProblem ($self) {
-	my $problem_params = $self->req->json;
+sub getUserProblem ($c) {
+	my $user_problem = $c->schema->resultset('UserProblem')->getUserProblem(
+		info => {
+			course_id       => int($c->param('course_id')),
+			user_problem_id => int($c->param('user_problem_id'))
+		}
+	);
+	$c->render(json => $user_problem);
+	return;
+}
+
+sub addUserProblem ($c) {
+	my $problem_params = $c->req->json;
 
 	# add the route parameters to the UserProblem to be added.
-	$problem_params->{course_id} = int($self->param('course_id'))
+	$problem_params->{course_id} = int($c->param('course_id'))
 		unless defined($problem_params->{course_id}) || defined($problem_params->{course_name});
-	$problem_params->{set_id} = int($self->param('set_id'))
+	$problem_params->{set_id} = int($c->param('set_id'))
 		unless $problem_params->{set_id} || $problem_params->{set_name};
-	$problem_params->{user_id} = int($self->param('user_id'))
+	$problem_params->{user_id} = int($c->param('user_id'))
 		unless defined($problem_params->{user_id}) || defined($problem_params->{username});
 
 	# Only pass in set_id instead of set_name
@@ -94,38 +117,158 @@ sub addUserProblem ($self) {
 	delete $problem_params->{username} if defined($problem_params->{user_id});
 
 	# Only pass in problem_number or set_problem_id
-	delete $problem_params->{set_problem_id} if ($problem_params->{set_problem_id} == 0);
+	delete $problem_params->{set_problem_id}
+		if (defined($problem_params->{set_problem_id}) && $problem_params->{set_problem_id} == 0);
 
-	my $user_problem = $self->schema->resultset('UserProblem')->addUserProblem(params => $problem_params);
-	$self->render(json => $user_problem);
+	my $user_problem = $c->schema->resultset('UserProblem')->addUserProblem(params => $problem_params);
+	$c->render(json => $user_problem);
 	return;
 }
 
-sub updateUserProblem ($self) {
-	my $problem_params = $self->req->json;
-	my $user_problem   = $self->schema->resultset('UserProblem')->updateUserProblem(
+sub updateUserProblem ($c) {
+	my $problem_params = $c->req->json;
+
+	my $user_problem = $c->schema->resultset('UserProblem')->updateUserProblem(
 		info => {
-			course_id       => int($self->param('course_id')),
-			set_id          => int($self->param('set_id')),
-			user_id         => int($self->param('user_id')),
-			user_problem_id => int($self->param('user_problem_id'))
+			course_id       => int($c->param('course_id')),
+			set_id          => int($c->param('set_id')),
+			user_id         => int($c->param('user_id')),
+			user_problem_id => int($c->param('user_problem_id'))
 		},
 		params => $problem_params
 	);
-	$self->render(json => $user_problem);
+	$c->render(json => $user_problem);
 	return;
 }
 
-sub deleteUserProblem ($self) {
-	my $deleted_problem = $self->schema->resultset('UserProblem')->deleteUserProblem(
+sub deleteUserProblem ($c) {
+	my $deleted_problem = $c->schema->resultset('UserProblem')->deleteUserProblem(
 		info => {
-			course_id       => int($self->param('course_id')),
-			set_id          => int($self->param('set_id')),
-			user_id         => int($self->param('user_id')),
-			user_problem_id => int($self->param('user_problem_id'))
+			course_id       => int($c->param('course_id')),
+			set_id          => int($c->param('set_id')),
+			user_id         => int($c->param('user_id')),
+			user_problem_id => int($c->param('user_problem_id'))
 		}
 	);
-	$self->render(json => $deleted_problem);
+	$c->render(json => $deleted_problem);
+	return;
+}
+
+# ProblemPool routes
+
+sub getAllProblemPools ($c) {
+	my @problem_pools = $c->schema->resultset('ProblemPool')->getAllProblemPools;
+	$c->render(json => \@problem_pools);
+	return;
+}
+
+sub getProblemPools ($c) {
+	my @problem_pools = $c->schema->resultset('ProblemPool')->getProblemPools(
+		info => {
+			course_id => int($c->param('course_id'))
+		}
+	);
+	$c->render(json => \@problem_pools);
+	return;
+}
+
+sub getProblemPool ($c) {
+	my $problem_pool = $c->schema->resultset('ProblemPool')->getProblemPool(
+		info => {
+			course_id       => int($c->param('course_id')),
+			problem_pool_id => int($c->param('problem_pool_id'))
+		}
+	);
+	$c->render(json => $problem_pool);
+	return;
+}
+
+sub addProblemPool ($c) {
+	my $pool_params = $c->req->json;
+	$pool_params->{course_id} = int($c->param('course_id'));
+	my $problem_pool = $c->schema->resultset('ProblemPool')->addProblemPool(params => $pool_params);
+	$c->render(json => $problem_pool);
+	return;
+}
+
+sub updateProblemPool ($c) {
+	my $problem_pool = $c->schema->resultset('ProblemPool')->updateProblemPool(
+		info => {
+			course_id       => int($c->param('course_id')),
+			problem_pool_id => int($c->param('problem_pool_id')),
+		},
+		params => $c->req->json
+	);
+	$c->render(json => $problem_pool);
+	return;
+}
+
+sub deleteProblemPool ($c) {
+	my $problem_pool = $c->schema->resultset('ProblemPool')->deleteProblemPool(
+		info => {
+			course_id       => int($c->param('course_id')),
+			problem_pool_id => int($c->param('problem_pool_id')),
+		},
+		params => $c->req->json
+	);
+	$c->render(json => $problem_pool);
+	return;
+}
+
+# Pool Problem routes
+
+sub getPoolProblems ($c) {
+	my @pool_problems = $c->schema->resultset('ProblemPool')->getPoolProblems(
+		info => {
+			course_id       => int($c->param('course_id')),
+			problem_pool_id => int($c->param('problem_pool_id'))
+		}
+	);
+	$c->render(json => \@pool_problems);
+	return;
+}
+
+sub getPoolProblem ($c) {
+	my $problem_info = {
+		course_id       => int($c->param('course_id')),
+		problem_pool_id => int($c->param('problem_pool_id'))
+	};
+	$problem_info->{pool_problem_id} = int($c->param('pool_problem_id')) if defined($c->param('pool_problem_id'));
+
+	my $problem_pool = $c->schema->resultset('ProblemPool')->getPoolProblem(info => $problem_info);
+	$c->render(json => $problem_pool);
+	return;
+}
+
+sub addProblemToPool ($c) {
+	my $pool_params = $c->req->json;
+	$pool_params->{course_id} = int($c->param('course_id'));
+	my $problem_pool = $c->schema->resultset('ProblemPool')->addProblemToPool(params => $pool_params);
+	$c->render(json => $problem_pool);
+	return;
+}
+
+sub updatePoolProblem ($c) {
+	my $problem_pool = $c->schema->resultset('ProblemPool')->updatePoolProblem(
+		info => {
+			course_id       => int($c->param('course_id')),
+			problem_pool_id => int($c->param('problem_pool_id')),
+		},
+		params => $c->req->json
+	);
+	$c->render(json => $problem_pool);
+	return;
+}
+
+sub removePoolProblem ($c) {
+	my $problem_pool = $c->schema->resultset('ProblemPool')->removePoolProblem(
+		info => {
+			course_id       => int($c->param('course_id')),
+			problem_pool_id => int($c->param('problem_pool_id')),
+		},
+		params => $c->req->json
+	);
+	$c->render(json => $problem_pool);
 	return;
 }
 

@@ -28,7 +28,14 @@ use DB::Utils qw/removeLoginParams/;
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
 $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = LoadFile($config_file);
-my $schema = DB::Schema->connect($config->{database_dsn}, $config->{database_user}, $config->{database_password});
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
+
+# $schema->storage->debug(1);  # print out the SQL commands.
 
 my $user_rs = $schema->resultset('User');
 
@@ -51,9 +58,7 @@ for my $student (@precalc_students) {
 my @precalc_users_from_db = $user_rs->getCourseUsers(info => { course_name => 'Precalculus' }, merged => 1);
 
 @precalc_users_from_db = sort { $a->{username} cmp $b->{username} } @precalc_users_from_db;
-for my $u (@precalc_users_from_db) {
-	removeIDs($u);
-}
+removeIDs($_) for @precalc_users_from_db;
 
 is_deeply(\@precalc_students, \@precalc_users_from_db, 'getUsers: get users from a course');
 
@@ -121,16 +126,15 @@ my $user_params = {
 	student_id => '12345',
 	is_admin   => 0
 };
+
 my $course_user_params = {
 	username           => 'quimby',
 	role               => 'student',
-	course_user_params => {
-		comment      => 'The chief is the best.',
-		useMathQuill => true
-	},
-	recitation => undef,
-	section    => undef
+	course_user_params => {},
+	section            => undef,
+	recitation         => undef,
 };
+
 $user_rs->addGlobalUser(params => $user_params);
 $user = $user_rs->addCourseUser(
 	info   => { course_name => 'Arithmetic', username => 'quimby' },
@@ -187,13 +191,14 @@ throws_ok {
 			username    => 'quimby',
 		},
 		params => {
+			role            => 'student',
 			undefined_field => 1
 		}
 	);
 }
 'DBIx::Class::Exception', 'addCourseUser: an undefined field is passed in';
 
-# updateUser: Send in wrong information
+# Add a user with undefined course user parameters.
 throws_ok {
 	$user_rs->addCourseUser(
 		info => {
@@ -201,6 +206,7 @@ throws_ok {
 			username    => 'quimby'
 		},
 		params => {
+			role               => 'student',
 			course_user_params => {
 				this_is_not_valid => 1
 			}
@@ -209,7 +215,7 @@ throws_ok {
 }
 'DB::Exception::UndefinedParameter', 'addCourseUser: an undefined parameter is set';
 
-# updateUser: Update a user with nonvalid boolean fields
+# Add a user with nonvalid fields
 throws_ok {
 	$user_rs->addCourseUser(
 		info => {
@@ -217,6 +223,7 @@ throws_ok {
 			username    => 'quimby'
 		},
 		params => {
+			role               => 'student',
 			course_user_params => {
 				useMathQuill => 0
 			}
@@ -225,10 +232,24 @@ throws_ok {
 }
 'DB::Exception::InvalidParameter', 'addCourseUser: an parameter with invalid value';
 
+# Add a user with an invalid role
+throws_ok {
+	$user_rs->addCourseUser(
+		info => {
+			course_name => 'Topology',
+			username    => 'quimby'
+		},
+		params => {
+			role => 'cop'
+		}
+	);
+}
+'DB::Exception::UserRoleUndefined', 'addCourseUser: try to add a user with an undefined user role';
+
 # updateCourseUser: check that the user updates.
 $updated_user = {
 	course_user_params => {
-		comment => 'Mayor Joe is the best!!'
+		comment => 'Mayor Joe is the best!!',
 	},
 	recitation => '2'
 };
@@ -347,9 +368,7 @@ SKIP: {
 @precalc_users_from_db = $user_rs->getCourseUsers(info => { course_name => 'Precalculus' }, merged => 1);
 
 @precalc_users_from_db = sort { $a->{username} cmp $b->{username} } @precalc_users_from_db;
-for my $u (@precalc_users_from_db) {
-	removeIDs($u);
-}
+for (@precalc_users_from_db) { removeIDs($_); }
 
 is_deeply(\@precalc_students, \@precalc_users_from_db,
 	'check: ensure that the precalc users in the database is restored.');

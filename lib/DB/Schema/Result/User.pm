@@ -68,7 +68,7 @@ or authentication, like LTI or LDAP
 
 __PACKAGE__->table('user');
 
-__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
+__PACKAGE__->load_components(qw/InflateColumn::Serializer InflateColumn::Boolean Core/);
 
 __PACKAGE__->add_columns(
 	user_id => {
@@ -113,18 +113,10 @@ __PACKAGE__->add_columns(
 	}
 );
 
-__PACKAGE__->inflate_column(
-	'is_admin',
-	{
-		inflate => sub { return shift ? true : false; },
-		deflate => sub { return shift; }
-	}
-);
-
 __PACKAGE__->set_primary_key('user_id');
 __PACKAGE__->add_unique_constraint([qw/username/]);
 
-__PACKAGE__->has_many(course_users => 'DB::Schema::Result::CourseUser', { 'foreign.user_id' => 'self.user_id' });
+__PACKAGE__->has_many(course_users => 'DB::Schema::Result::CourseUser', 'user_id');
 __PACKAGE__->many_to_many(courses => 'course_users', 'courses');
 
 1;

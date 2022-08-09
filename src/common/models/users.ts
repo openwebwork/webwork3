@@ -1,9 +1,10 @@
 /* This file contains the definitions of a User, DBCourseUser and Course User
 	in terms of a model. */
 
-import { isNonNegInt, isValidUsername, isValidEmail, parseUserRole, UserRole }
+import { isNonNegInt, isValidUsername, isValidEmail }
 	from 'src/common/models/parsers';
 import { Dictionary, Model } from 'src/common/models';
+import { UserRole } from 'src/stores/permissions';
 
 export interface ParseableUser {
 	user_id?: number;
@@ -99,7 +100,7 @@ export class DBCourseUser extends Model {
 	private _course_user_id = 0;
 	private _course_id = 0;
 	private _user_id = 0;
-	private _role: UserRole = UserRole.unknown;
+	private _role: UserRole = '';
 	private _section?: string;
 	private _recitation?: string;
 
@@ -130,13 +131,9 @@ export class DBCourseUser extends Model {
 	get user_id(): number { return this._user_id; }
 	set user_id(value: number) { this._user_id = value; }
 
-	get role(): UserRole { return this._role; }
-	set role(value: UserRole | string) {
-		if (typeof value === 'string') {
-			this._role = parseUserRole(value);
-		} else {
-			this._role = value;
-		}
+	get role(): string | undefined { return this._role; }
+	set role(value: string | undefined) {
+		if (value != undefined) this._role = value;
 	}
 
 	get section(): string | undefined { return this._section; }
@@ -153,7 +150,6 @@ export class DBCourseUser extends Model {
 		return isNonNegInt(this.user_id) && isNonNegInt(this.course_user_id) &&
 			isNonNegInt(this.course_id);
 	}
-
 }
 
 export interface ParseableCourseUser {
@@ -187,7 +183,7 @@ export class CourseUser extends Model {
 	private _first_name = '';
 	private _last_name = '';
 	private _student_id = '';
-	private _role = UserRole.unknown;
+	private _role = 'unknown';
 	private _section?: string;
 	private _recitation?: string;
 
@@ -234,13 +230,9 @@ export class CourseUser extends Model {
 	get email(): string { return this._email; }
 	set email(value: string) { this._email = value; }
 
-	get role(): UserRole { return this._role; }
-	set role(value: UserRole | string) {
-		if (typeof value === 'string') {
-			this._role = parseUserRole(value);
-		} else {
-			this._role = value;
-		}
+	get role(): string | undefined { return this._role; }
+	set role(value: string | undefined) {
+		if (value != undefined) this._role = value;
 	}
 
 	get section(): string | undefined { return this._section; }
@@ -266,7 +258,7 @@ export class CourseUser extends Model {
 	isValid(): boolean {
 		return isNonNegInt(this.user_id) && isNonNegInt(this.course_user_id) &&
 			isNonNegInt(this.course_id) && isValidUsername(this.username) &&
-			this.role !== UserRole.unknown && (this.email === '' || isValidEmail(this.email));
+			this.role !== 'unknown' && (this.email === '' || isValidEmail(this.email));
 	}
 
 	validate(): Dictionary<string | boolean> {
@@ -276,7 +268,7 @@ export class CourseUser extends Model {
 			user_id: isNonNegInt(this.user_id) || 'The user_id must be a non negative integer.',
 			username: isValidUsername(this.username) || 'The username must be valid.',
 			email: (this.email === '' || isValidEmail(this.email)) || 'The email must be valid',
-			role: this.role !== UserRole.unknown || 'The role is not valid.',
+			role: this.role !== 'unknown' || 'The role is not valid.',
 		};
 	}
 }
