@@ -2,7 +2,7 @@
 
 import { parseNonNegInt, parseBoolean, parseEmail, parseUsername, EmailParseException,
 	NonNegIntException, BooleanParseException, UsernameParseException,
-	parseUserRole, parseNonNegDecimal, NonNegDecimalException, isTime, isTimeDuration
+	parseNonNegDecimal, NonNegDecimalException, isTime, isTimeDuration
 } from 'src/common/models/parsers';
 
 describe('Testing Parsers and Regular Expressions', () => {
@@ -66,13 +66,6 @@ describe('Testing Parsers and Regular Expressions', () => {
 		expect(parseUsername('first.last@sub.site.com')).toBe('first.last@sub.site.com');
 		expect(() => {parseUsername('first last@site.com');}).toThrow(UsernameParseException);
 
-	});
-
-	test('parsing user roles', () => {
-		expect(parseUserRole('instructor')).toBe('INSTRUCTOR');
-		expect(parseUserRole('TA')).toBe('TA');
-		expect(parseUserRole('student')).toBe('STUDENT');
-		expect(parseUserRole('not_existent')).toBe('UNKNOWN');
 	});
 
 	test('testing time regular expressions.', () => {

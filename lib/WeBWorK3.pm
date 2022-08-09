@@ -216,16 +216,13 @@ sub problemRoutes ($app, $course_routes) {
 	return;
 }
 
-sub settingsRoutes ($self) {
+sub settingsRoutes ($self, $course_routes) {
 	$self->routes->get('/webwork3/api/global-settings')->requires(authenticated => 1)->to('Settings#getGlobalSettings');
 	$self->routes->get('/webwork3/api/global-setting/:setting_id')->requires(authenticated => 1)
 		->to('Settings#getGlobalSetting');
-	$self->routes->get('/webwork3/api/courses/:course_id/settings')->requires(authenticated => 1)
-		->to('Settings#getCourseSettings');
-	$self->routes->put('/webwork3/api/courses/:course_id/settings/:setting_id')->requires(authenticated => 1)
-		->to('Settings#updateCourseSetting');
-	$self->routes->delete('/webwork3/api/courses/:course_id/settings/:setting_id')->requires(authenticated => 1)
-		->to('Settings#deleteCourseSetting');
+	$course_routes->get('/settings')->to('Settings#getCourseSettings');
+	$course_routes->put('/settings/:setting_id')->to('Settings#updateCourseSetting');
+	$course_routes->delete('/settings/:setting_id')->to('Settings#deleteCourseSetting');
 	return;
 }
 

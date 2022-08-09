@@ -57,14 +57,15 @@ $schema->deploy({ add_drop_table => 1 });
 # The permissions need to be loaded into the DB before the rest of the script is run.
 updatePermissions($config_file, $role_perm_file);
 
-my $course_rs       = $schema->resultset('Course');
-my $user_rs         = $schema->resultset('User');
-my $course_user_rs  = $schema->resultset('CourseUser');
-my $problem_set_rs  = $schema->resultset('ProblemSet');
-my $problem_pool_rs = $schema->resultset('ProblemPool');
-my $set_problem_rs  = $schema->resultset('SetProblem');
-my $user_set_rs     = $schema->resultset('UserSet');
-my $role_rs         = $schema->resultset('Role');
+my $course_rs         = $schema->resultset('Course');
+my $user_rs           = $schema->resultset('User');
+my $course_user_rs    = $schema->resultset('CourseUser');
+my $problem_set_rs    = $schema->resultset('ProblemSet');
+my $problem_pool_rs   = $schema->resultset('ProblemPool');
+my $set_problem_rs    = $schema->resultset('SetProblem');
+my $user_set_rs       = $schema->resultset('UserSet');
+my $role_rs           = $schema->resultset('Role');
+my $global_setting_rs = $schema->resultset('GlobalSetting');
 
 my $strp_date = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
 
