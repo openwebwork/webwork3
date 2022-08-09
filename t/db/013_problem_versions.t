@@ -94,8 +94,8 @@ my $user_problem1_from_csv = clone firstval {
 }
 @user_problems_from_csv;
 
-# need to set the default status to 0.00000 for comparison
-$user_problem1_from_csv->{status} = '0.00000';
+# the status needs be returned to a numerical value.
+$user_problem1->{status} += 0;
 
 is_deeply($user_problem1_from_csv, $user_problem1, 'getUserProblem: get a single user problem from a course.');
 
@@ -123,6 +123,7 @@ my @all_user_problem_versions = $user_problem_rs->getUserProblemVersions(info =>
 
 for my $user_problem (@all_user_problem_versions) {
 	removeIDs($user_problem);
+	$user_problem->{status} += 0;
 }
 
 is_deeply(
@@ -143,6 +144,7 @@ my $user_problem_v2_to_delete = $user_problem_rs->deleteUserProblem(
 	}
 );
 removeIDs($user_problem_v2_to_delete);
+$user_problem_v2_to_delete->{status} += 0;
 
 is_deeply($user_problem_v2_to_delete, $user_problem1_v2, 'deleteUserProblem: delete a versioned user problem');
 
@@ -156,6 +158,7 @@ my $user_problem_v3_to_delete = $user_problem_rs->deleteUserProblem(
 	}
 );
 removeIDs($user_problem_v3_to_delete);
+$user_problem_v3_to_delete->{status} += 0;
 
 is_deeply($user_problem_v3_to_delete, $user_problem1_v3, 'deleteUserProblem: delete another versioned user problem');
 
@@ -167,7 +170,7 @@ for my $user_problem (@all_user_problems_from_db) {
 	delete $user_problem->{problem_version} unless defined $user_problem->{problem_version};
 }
 # For comparision make sure the loaded status are printed to 5 digits.
-$_->{status} = sprintf('%.5f', $_->{status}) for (@user_problems_from_csv);
+$_->{status} += 0 for (@all_user_problems_from_db);
 
 is_deeply(\@user_problems_from_csv, \@all_user_problems_from_db, 'check: ensure that user_problems table is restored.');
 

@@ -105,8 +105,9 @@ $t->get_ok("/webwork3/api/courses/4/sets/$hw1->{set_id}/user-problems")->status_
 
 my $user_problems_from_db = $t->tx->res->json;
 for my $problem (@$user_problems_from_db) { removeIDs($problem); }
-# For comparision make sure the loaded status are printed to 5 digits.
-$_->{status} = sprintf('%.5f', $_->{status}) for (@arith_user_problems);
+
+# the status needs be returned to a numerical value.
+$_->{status} += 0 for (@$user_problems_from_db);
 
 is_deeply(\@arith_user_problems, $user_problems_from_db, 'getUserProblems: get all problems for a set in a course.');
 
@@ -123,7 +124,7 @@ for my $problem (@$ralph_user_problems) {
 
 my @ralph_user_problems_from_file = grep { $_->{username} eq 'ralph' } @arith_user_problems;
 # For comparision make sure the loaded status are printed to 5 digits.
-$_->{status} = sprintf('%.5f', $_->{status}) for (@ralph_user_problems_from_file);
+$_->{status} += 0 for (@$ralph_user_problems);
 
 is_deeply(\@ralph_user_problems_from_file,
 	$ralph_user_problems, 'getUserProblems: get all problems for a set in a course.');

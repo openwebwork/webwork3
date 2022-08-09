@@ -201,6 +201,12 @@ describe('User store tests', () => {
 		});
 	});
 
+	// sort by username and clean up the _id tags.
+	const sortAndClean = (user_courses: CourseUser[]) => {
+		return cleanIDs(user_courses.sort((a, b) =>
+			a.username < b.username ? -1 : a.username > b.username ? 1 : 0));
+	};
+
 	describe('Check global and course users', () => {
 
 		test('Fetch global users for a course', async () => {
@@ -212,7 +218,7 @@ describe('User store tests', () => {
 
 		test('Check course users users', () => {
 			const user_store = useUserStore();
-			expect(cleanIDs(user_store.course_users)).toStrictEqual(cleanIDs(precalc_users));
+			expect(sortAndClean(user_store.course_users)).toStrictEqual(sortAndClean(precalc_users));
 		});
 	});
 });

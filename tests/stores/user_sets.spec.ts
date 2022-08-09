@@ -319,6 +319,8 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 	});
 
 	let new_user_hw: UserHomeworkSet;
+	let new_user_set: UserSet;
+
 	describe('Test merged user sets', () => {
 		test('Test all merged user sets', () => {
 			const problem_set_store = useProblemSetStore();
@@ -358,7 +360,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 					enable_reduced_scoring: true
 				}
 			});
-			const new_user_set = await problem_set_store.addUserSet(new_user_hw) ?? new UserSet();
+			new_user_set = await problem_set_store.addUserSet(new_user_hw) ?? new UserSet();
 			const merged_hw = new UserHomeworkSet({
 				user_id: user_to_assign.user_id,
 				user_set_id: new_user_set.user_set_id,
@@ -387,7 +389,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 	// Cleanup some created sets to leave the database in the same state as before the test.
 	afterAll(async () => {
 		const problem_set_store = useProblemSetStore();
-		// delete the newly made problem set:
+		await problem_set_store.deleteUserSet(new_user_set);
 		await problem_set_store.deleteProblemSet(new_hw_set);
 	});
 });

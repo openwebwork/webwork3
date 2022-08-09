@@ -115,10 +115,17 @@ describe('Session Store', () => {
 
 		});
 
+		// sort by course name and clean up the _id tags.
+		const sortAndClean = (user_courses: UserCourse[]) => {
+			return cleanIDs(user_courses.sort((a, b) =>
+				a.course_name < b.course_name ? -1 : a.course_name > b.course_name ? 1 : 0));
+		};
+
 		test('check user courses', async () => {
 			const session_store = useSessionStore();
 			await session_store.fetchUserCourses(lisa.user_id);
-			expect(cleanIDs(session_store.user_courses)).toStrictEqual(cleanIDs(lisa_courses));
+			expect(sortAndClean(session_store.user_courses as UserCourse[]))
+				.toStrictEqual(sortAndClean(lisa_courses));
 		});
 
 		test('update the session', () => {
