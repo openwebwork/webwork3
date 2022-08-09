@@ -6,8 +6,8 @@ use feature 'signatures';
 no warnings qw/experimental::signatures/;
 
 require Exporter;
-use base qw/Exporter/;
-our @EXPORT_OK = qw/getCourseInfo getUserInfo getSetInfo updateAllFields
+use base qw(Exporter);
+our @EXPORT_OK = qw/getCourseInfo getUserInfo getSetInfo updateAllFields updatePermissions
 	getPoolInfo getProblemInfo getPoolProblemInfo getSettingInfo removeLoginParams/;
 
 use Clone qw/clone/;
