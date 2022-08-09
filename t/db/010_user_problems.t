@@ -117,6 +117,11 @@ $_->{status} = 0 + $_->{status} for (@merged_problems_from_db);
 
 @merged_problems_from_db = sort user_prob_sort_fxn @merged_problems_from_db;
 
+# For comparision, from the database needs to be a number.
+$_->{status} = 0 + $_->{status} for (@merged_problems_from_db);
+
+@merged_problems_from_db = sort user_prob_sort_fxn @merged_problems_from_db;
+
 is_deeply(\@merged_problems_from_csv, \@merged_problems_from_db, 'getAllUserProblems: fetch all merged problems');
 
 # Get user problems from one course.
