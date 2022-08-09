@@ -20,7 +20,6 @@ use lib "$main::ww3_dir/t/lib";
 use DB::Schema;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
-use List::MoreUtils qw/firstval/;
 
 use TestUtils qw/loadCSV removeIDs/;
 
@@ -87,7 +86,7 @@ my $all_users = $t->tx->res->json;
 
 $t->get_ok('/webwork3/api/courses/4/sets')->status_is(200)->content_type_is('application/json;charset=UTF-8');
 my $sets = $t->tx->res->json;
-my $hw1  = firstval { $_->{set_name} eq 'HW #1' } @$sets;
+my $hw1  = (grep { $_->{set_name} eq 'HW #1' } @$sets)[0];
 
 # Get all Arithmetic problems (course_id: 4)
 
@@ -118,7 +117,7 @@ is_deeply(\@user_problems_from_db, \@arith_user_problems, 'getUserProblems: get 
 
 # Get all user problems in a course for a single user. Find user 'ralph'
 
-my $ralph = firstval { $_->{username} eq 'ralph' } @$all_users;
+my $ralph = (grep { $_->{username} eq 'ralph' } @$all_users)[0];
 
 $t->get_ok("/webwork3/api/courses/4/users/$ralph->{user_id}/problems");
 my $ralph_user_problems = $t->tx->res->json;
@@ -213,12 +212,12 @@ $t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
 $t->post_ok('/webwork3/api/login' => json => { username => 'moe', password => 'moe' })->status_is(200);
 
 # Check that moe is in the course
-my $moe = firstval { $_->{username} eq 'moe' } @$all_users;
+my $moe = (grep { $_->{username} eq 'moe' } @$all_users)[0];
 
 $t->get_ok("/webwork3/api/users/$moe->{user_id}/courses")->status_is(200);
 my $moes_courses = $t->tx->res->json;
 
-ok(firstval { $_->{course_name} eq 'Arithmetic' } @$moes_courses, 'Check that moe is in the Arithmetic course.');
+ok((grep { $_->{course_name} eq 'Arithmetic' } @$moes_courses)[0], 'Check that moe is in the Arithmetic course.');
 
 # Try to get ralph's user problems
 $t->get_ok("/webwork3/api/courses/4/users/$ralph->{user_id}/problems")->status_is(403);

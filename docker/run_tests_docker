@@ -1,6 +1,5 @@
 FROM perl:latest
 RUN cpanm -fi --notest \
-	List::MoreUtils \
 	Text::CSV \
 	Test::Exception \
 	Try::Tiny \

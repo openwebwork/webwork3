@@ -21,7 +21,6 @@ use DB::Schema;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
 use TestUtils qw/loadCSV/;
-use List::MoreUtils qw/firstval/;
 
 # Test the api with common 'courses/sets' routes for quizzes.
 
@@ -67,7 +66,7 @@ my $all_problem_sets = $t->tx->res->json;
 
 # find the first quiz in the course.
 
-my $quiz1 = firstval { $_->{set_type} eq 'QUIZ' } @$all_problem_sets;
+my $quiz1 = (grep { $_->{set_type} eq 'QUIZ' } @$all_problem_sets)[0];
 
 # test some things about this quiz
 $t->get_ok("/webwork3/api/courses/4/sets/$quiz1->{set_id}")->content_type_is('application/json;charset=UTF-8')
