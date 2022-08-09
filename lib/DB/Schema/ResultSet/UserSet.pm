@@ -351,7 +351,7 @@ sub addUserSet ($self, %args) {
 	$problem_set->validateOverrides(\%params);
 
 	$params{course_user_id} = $course_user->course_user_id;
-	my $new_user_set = $problem_set->add_to_user_sets(\%params);
+	my $new_user_set = $problem_set->add_to_user_sets(\%params)->discard_changes;
 	foreach ($problem_set->problems->all()) {
 		$_->add_to_user_problems({
 			user_set_id => $new_user_set->user_set_id,

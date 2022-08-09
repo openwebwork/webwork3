@@ -12,7 +12,7 @@ describe('Test User Quizzes', () => {
 			user_set_id: 0,
 			set_id: 0,
 			course_user_id: 0,
-			set_version: 1,
+			set_version: 0,
 			set_type: 'QUIZ',
 			set_params: {},
 			set_dates: {}
@@ -85,7 +85,7 @@ describe('Test User Quizzes', () => {
 			user_id: 0,
 			set_id: 0,
 			course_user_id: 0,
-			set_version: 1,
+			set_version: 0,
 			set_name: '',
 			username: '',
 			set_type: 'QUIZ',

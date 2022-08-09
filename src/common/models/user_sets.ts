@@ -39,7 +39,7 @@ export class DBUserSet extends Model {
 	private _course_user_id = 0;
 	private _set_id = 0;
 	protected _set_type = ProblemSetType.UNKNOWN;
-	private _set_version = 1;
+	private _set_version = 0;
 	private _set_visible?: boolean;
 
 	get set_dates(): UserSetDates { throw 'The subclass must override set_dates()'; }

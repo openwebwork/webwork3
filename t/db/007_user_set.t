@@ -24,7 +24,7 @@ use YAML::XS qw/LoadFile/;
 use Mojo::JSON qw/true false/;
 
 use DB::Schema;
-use TestUtils qw/loadCSV removeIDs/;
+use TestUtils qw/loadCSV removeIDs cleanUndef/;
 
 # Load the configuration files
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
@@ -346,6 +346,7 @@ my $new_info = {
 
 my $new_user_set = $user_set_rs->addUserSet(params => $new_info);
 removeIDs($new_user_set);
+cleanUndef($new_user_set);
 
 # Set the other default parameters.
 $new_info->{set_dates}   = {};
@@ -388,6 +389,7 @@ my $new_user_params2 = {
 
 my $new_user_set2 = $user_set_rs->addUserSet(params => $new_user_params2);
 removeIDs($new_user_set2);
+cleanUndef($new_user_set2);
 
 # add some fields to the params that are added when writing to the DB.
 $new_user_params2->{set_type}    = 'HW';
@@ -408,6 +410,7 @@ my $user_set_params3 = {
 };
 my $user_set3 = $user_set_rs->addUserSet(params => $user_set_params3);
 removeIDs($user_set3);
+cleanUndef($user_set3);
 
 # The bad_field isn't returned
 delete $user_set_params3->{bad_field};
@@ -482,6 +485,7 @@ my $user_set2 = $user_set_rs->addUserSet(
 	}
 );
 removeIDs($user_set2);
+cleanUndef($user_set2);
 
 my $set_params2 = clone($otto_set_info2);
 # set the other default parameters:
@@ -535,6 +539,7 @@ my $otto_set_params4 = { %$otto_set_info4, set_dates => $set_dates4 };
 
 my $user_set4 = $user_set_rs->addUserSet(params => $otto_set_params4);
 removeIDs($user_set4);
+cleanUndef($user_set4);
 
 my $set_params4 = clone($otto_set_params4);
 $set_params4->{set_type}    = 'HW';
@@ -568,6 +573,7 @@ my $ralph_set_info = {
 
 my $ralph_user_set = $user_set_rs->addUserSet(params => $ralph_set_info);
 removeIDs($ralph_user_set);
+cleanUndef($ralph_user_set);
 
 # set some fields that are created from defaults when written to the DB.
 $ralph_set_info->{set_type}    = 'HW';
@@ -789,9 +795,9 @@ my $deleted_user_set = $user_set_rs->deleteUserSet(
 	}
 );
 removeIDs($deleted_user_set);
+cleanUndef($deleted_user_set);
 removeIDs($new_user_set2);
-# remove set_visible to handle comparison
-delete $deleted_user_set->{set_visible};
+cleanUndef($new_user_set2);
 is_deeply($deleted_user_set, $new_user_set2, "deleteUserSet: successfully delete a user set");
 
 my $deleted_user_set2 = $user_set_rs->deleteUserSet(
@@ -802,12 +808,12 @@ my $deleted_user_set2 = $user_set_rs->deleteUserSet(
 	}
 );
 removeIDs($deleted_user_set2);
-# remove set_visible to handle comparison
-delete $deleted_user_set2->{set_visible};
+cleanUndef($deleted_user_set2);
 is_deeply($deleted_user_set2, $ralph_user_set, "deleteUserSet: successfully delete another user set");
 
 my $deleted_user_set3 = $user_set_rs->deleteUserSet(info => $otto_quiz_info);
 removeIDs($deleted_user_set3);
+cleanUndef($deleted_user_set3);
 is_deeply($deleted_user_set3, $otto_quiz, "deleteUserSet: successfully delete yet another user set");
 
 my $deleted_user_set4 = $user_set_rs->deleteUserSet(info => $new_merged_set);
@@ -836,6 +842,7 @@ for my $u (@otto_user_sets) {
 
 for my $set (@all_user_sets_from_db) {
 	removeIDs($set);
+	cleanUndef($set);
 	for my $key (keys %{$set}) {
 		delete $set->{$key} unless defined $set->{$key};
 	}

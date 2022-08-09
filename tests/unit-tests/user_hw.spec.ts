@@ -15,7 +15,7 @@ describe('Test user Homework sets', () => {
 		user_set_id: 0,
 		set_id: 0,
 		course_user_id: 0,
-		set_version: 1,
+		set_version: 0,
 		set_type: 'HW',
 		set_params: {},
 		set_dates: {}
@@ -300,7 +300,7 @@ describe('Test user Homework sets', () => {
 			user_set_id: 0,
 			set_id: 0,
 			course_user_id: 0,
-			set_version: 1,
+			set_version: 0,
 			set_name: '',
 			username: '',
 			set_type: 'HW',

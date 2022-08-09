@@ -109,7 +109,12 @@ for my $problem (@$user_problems_from_db) { removeIDs($problem); }
 # the status needs be returned to a numerical value.
 $_->{status} += 0 for (@$user_problems_from_db);
 
-is_deeply(\@arith_user_problems, $user_problems_from_db, 'getUserProblems: get all problems for a set in a course.');
+@arith_user_problems =
+	sort { $a->{username} cmp $b->{username} || $a->{problem_number} <=> $b->{problem_number} } @arith_user_problems;
+my @user_problems_from_db =
+	sort { $a->{username} cmp $b->{username} || $a->{problem_number} <=> $b->{problem_number} } @$user_problems_from_db;
+
+is_deeply(\@user_problems_from_db, \@arith_user_problems, 'getUserProblems: get all problems for a set in a course.');
 
 # Get all user problems in a course for a single user. Find user 'ralph'
 

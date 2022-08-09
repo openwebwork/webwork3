@@ -21,7 +21,7 @@ use List::MoreUtils qw/firstval/;
 use Clone qw/clone/;
 
 use DB::Schema;
-use TestUtils qw/loadCSV removeIDs/;
+use TestUtils qw/loadCSV removeIDs cleanUndef/;
 
 # Load the database
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
@@ -139,7 +139,7 @@ my $user_set_info1 = {
 
 my $user_set1 = $user_set_rs->getUserSet(info => $user_set_info1);
 removeIDs($user_set1);
-delete $user_set1->{set_visible} unless defined $user_set1->{set_visible};
+cleanUndef($user_set1);
 
 # Check that it is the same as that from the CSV file
 
@@ -159,8 +159,9 @@ $user_set1_v1_params->{set_version} = 1;
 
 my $user_set1_v1 = $user_set_rs->addUserSet(params => { %$user_set_info1, %$user_set1_v1_params });
 removeIDs($user_set1_v1);
+cleanUndef($user_set1_v1);
 
-is_deeply($user_set1_v1_params, $user_set1_v1, "addUserSet: add a user set with version =1 ");
+is_deeply($user_set1_v1, $user_set1_v1_params, "addUserSet: add a user set with version =1 ");
 
 # Make a new user set that has a  set_version of 2
 
@@ -169,13 +170,14 @@ $user_set1_v2_params->{set_version} = 2;
 
 my $user_set1_v2 = $user_set_rs->addUserSet(params => { %$user_set_info1, %$user_set1_v2_params });
 removeIDs($user_set1_v2);
+cleanUndef($user_set1_v2);
 
-is_deeply($user_set1_v2_params, $user_set1_v2, "addUserSet: add a user set with  version = 2.");
+is_deeply($user_set1_v2, $user_set1_v2_params, "addUserSet: add a user set with  version = 2.");
 
 my @all_user_set_versions = $user_set_rs->getUserSetVersions(info => $user_set_info1);
 for my $user_set (@all_user_set_versions) {
 	removeIDs($user_set);
-	delete $user_set->{set_visible} unless defined $user_set->{set_visible};
+	cleanUndef($user_set);
 }
 
 is_deeply(
@@ -196,7 +198,7 @@ my $user_set_v1_to_delete = $user_set_rs->deleteUserSet(
 );
 
 removeIDs($user_set_v1_to_delete);
-delete $user_set_v1_to_delete->{set_visible} unless defined($user_set_v1_to_delete->{set_visible});
+cleanUndef($user_set_v1_to_delete);
 is_deeply($user_set_v1_to_delete, $user_set1_v1, 'deleteUserSet: delete user set with set_version = 1');
 
 my $user_set_v2_to_delete = $user_set_rs->deleteUserSet(
@@ -209,7 +211,7 @@ my $user_set_v2_to_delete = $user_set_rs->deleteUserSet(
 );
 
 removeIDs($user_set_v2_to_delete);
-delete $user_set_v2_to_delete->{set_visible} unless defined($user_set_v2_to_delete->{set_visible});
+cleanUndef($user_set_v2_to_delete);
 is_deeply($user_set_v2_to_delete, $user_set1_v2, 'deleteUserSet: delete a versioned user set');
 
 # Ensure that the user_sets table is restored.
@@ -217,6 +219,7 @@ my @all_user_sets_from_db = $user_set_rs->getAllUserSets(merged => 1);
 
 for my $set (@all_user_sets_from_db) {
 	removeIDs($set);
+	cleanUndef($set);
 }
 
 # Sort before comparing.
