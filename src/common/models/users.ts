@@ -183,7 +183,7 @@ export class CourseUser extends Model {
 	private _first_name = '';
 	private _last_name = '';
 	private _student_id = '';
-	private _role = 'UNKNOWN';
+	private _role = 'unknown';
 	private _section?: string;
 	private _recitation?: string;
 
@@ -258,7 +258,7 @@ export class CourseUser extends Model {
 	isValid(): boolean {
 		return isNonNegInt(this.user_id) && isNonNegInt(this.course_user_id) &&
 			isNonNegInt(this.course_id) && isValidUsername(this.username) &&
-			this.role !== 'UNKNOWN' && (this.email === '' || isValidEmail(this.email));
+			this.role !== 'unknown' && (this.email === '' || isValidEmail(this.email));
 	}
 
 	validate(): Dictionary<string | boolean> {
@@ -268,7 +268,7 @@ export class CourseUser extends Model {
 			user_id: isNonNegInt(this.user_id) || 'The user_id must be a non negative integer.',
 			username: isValidUsername(this.username) || 'The username must be valid.',
 			email: (this.email === '' || isValidEmail(this.email)) || 'The email must be valid',
-			role: this.role !== 'UNKNOWN' || 'The role is not valid.',
+			role: this.role !== 'unknown' || 'The role is not valid.',
 		};
 	}
 }

@@ -195,7 +195,7 @@ const getCourseUser = (row: UserFromFile) => {
 		{}
 	) as ParseableCourseUser;
 	// Set the role if a common role for all users is selected_users.
-	course_user.role = use_single_role.value ? common_role.value ?? 'UNKOWN' : 'UNKNOWN';
+	course_user.role = use_single_role.value ? common_role.value ?? 'unknown' : 'unknown';
 	return course_user;
 };
 
@@ -342,7 +342,7 @@ const addMergedUsers = async () => {
 		await checkIfUserExists(session.course.course_id, user.username ?? '').then(async (global_user) => {
 			if (global_user.username == undefined) {
 				await users.addUser(new User(user)).then(u => {
-					const msg =  `The global user with username '${u?.username ?? 'UNKNOWN'}'` +
+					const msg =  `The global user with username '${u?.username ?? 'unknown'}'` +
 							' was successfully added to the course.';
 					logger.debug(`[addUsersFromFile]: ${msg}`);
 					$q.notify({ message: msg, color: 'green' });
