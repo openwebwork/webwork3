@@ -107,12 +107,10 @@ $t->delete_ok("/webwork3/api/courses/4/settings/$reduced_scoring->{setting_id}")
 
 # Check for valid and invalid timezones
 
-$t->post_ok('/webwork3/api/global-settings/check-timezone' => json => {timezone => 'America/Chicago'})
-	->content_type_is('application/json;charset=UTF-8')->status_is(200)
-	->json_is('/valid_timezone' => true);
+$t->post_ok('/webwork3/api/global-settings/check-timezone' => json => { timezone => 'America/Chicago' })
+	->content_type_is('application/json;charset=UTF-8')->status_is(200)->json_is('/valid_timezone' => true);
 
-$t->post_ok('/webwork3/api/global-settings/check-timezone' => json => {timezone => 'Amrica/Chicago'})
-	->status_is(200)->json_is('/valid_timezone' => false);
-
+$t->post_ok('/webwork3/api/global-settings/check-timezone' => json => { timezone => 'Amrica/Chicago' })->status_is(200)
+	->json_is('/valid_timezone' => false);
 
 done_testing;

@@ -56,9 +56,8 @@ This checks if the setting given the type, value and list of options (if needed)
 =cut
 
 sub isValidSetting ($setting, $value = undef) {
-	DB::Exception::ParametersNeeded->throw(
-		message => 'The field \'type\' must be defined for the setting'
-	) unless defined $setting->{type};
+	DB::Exception::ParametersNeeded->throw(message => 'The field \'type\' must be defined for the setting')
+		unless defined $setting->{type};
 
 	# If $value is not passed in, use the default_value for the setting
 	my $val = $value // $setting->{default_value};

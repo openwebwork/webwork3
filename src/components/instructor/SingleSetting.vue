@@ -143,7 +143,7 @@ watch(() => multilist_value.value, async () => {
 .helptext {
 	border: 1px solid black;
 	border-radius: 5px;
-	padding: 5px 0px;
+	padding: 5px 0;
 	background-color: lightyellow;
 }
 </style>
