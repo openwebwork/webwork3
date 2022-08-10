@@ -446,7 +446,7 @@ sub removeUserProblems ($=) {
 		say 'Removing problem '
 			. $problem->problems->problem_number
 			. ' from '
-			. $problem->user_sets->problem_sets->set_name
+			. $problem->user_sets->problem_set->set_name
 			if $verbose;
 		$problem->delete;
 	}

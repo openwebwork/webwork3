@@ -2,8 +2,10 @@ package DB::Schema::Result::CourseUser;
 use base qw/DBIx::Class::Core/;
 use strict;
 use warnings;
+use feature 'signatures';
+no warnings qw/experimental::signatures/;
 
-use base qw(DBIx::Class::Core DB::WithParams);
+use base qw/DBIx::Class::Core DB::Validation/;
 
 =head1 DESCRIPTION
 
@@ -92,23 +94,19 @@ __PACKAGE__->add_columns(
 	course_user_id => {
 		data_type         => 'integer',
 		size              => 16,
-		is_nullable       => 0,
 		is_auto_increment => 1,
 	},
 	course_id => {
-		data_type   => 'integer',
-		size        => 16,
-		is_nullable => 0,
+		data_type => 'integer',
+		size      => 16,
 	},
 	user_id => {
-		data_type   => 'integer',
-		size        => 16,
-		is_nullable => 0,
+		data_type => 'integer',
+		size      => 16,
 	},
 	role_id => {
 		data_type     => 'integer',
 		size          => 16,
-		is_nullable   => 0,
 		default_value => 0
 	},
 	section => {
@@ -125,27 +123,12 @@ __PACKAGE__->add_columns(
 	course_user_params => {
 		data_type          => 'text',
 		size               => 256,
-		is_nullable        => 0,
 		default_value      => '{}',
+		retrieve_on_insert => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}
 );
-
-sub valid_params {
-	return {
-		comment        => q{.*},
-		useMathQuill   => 'bool',
-		displayMode    => q{.*},
-		status         => q{[A-Z]},
-		lis_source_did => q{.*},
-		showOldAnswers => 'bool'
-	};
-}
-
-sub required_params {
-	return {};
-}
 
 __PACKAGE__->set_primary_key('course_user_id');
 __PACKAGE__->add_unique_constraint([qw/course_id user_id/]);
@@ -161,5 +144,24 @@ __PACKAGE__->has_one(
 	{ 'foreign.role_id' => 'self.role_id' },
 	{ cascade_delete    => 0 }
 );
+
+=head2 C<valid_fields>
+
+subroutine that returns a hash of the valid fields for json columns
+
+=cut
+
+sub valid_fields ($, $column_name) {
+	if ($column_name eq 'course_user_params') {
+		return {
+			comment        => q{.*},
+			useMathQuill   => 'bool',
+			displayMode    => q{.*},
+			status         => q{[A-Z]},
+			lis_source_did => q{.*},
+			showOldAnswers => 'bool'
+		};
+	}
+}
 
 1;

@@ -35,18 +35,15 @@ __PACKAGE__->add_columns(
 	problem_pool_id => {
 		data_type         => 'integer',
 		size              => 16,
-		is_nullable       => 0,
 		is_auto_increment => 1,
 	},
 	course_id => {
-		data_type   => 'integer',
-		size        => 16,
-		is_nullable => 0,
+		data_type => 'integer',
+		size      => 16,
 	},
 	pool_name => {
-		data_type   => 'varchar',
-		size        => 256,
-		is_nullable => 0,
+		data_type => 'varchar',
+		size      => 256,
 	}
 );
 

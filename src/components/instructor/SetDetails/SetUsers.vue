@@ -176,10 +176,13 @@ const assignUser = async (course_user_id: number) => {
 	const user = course_users.value.find(u => u.course_user_id === course_user_id);
 	logger.debug(`assigning the set '${problem_set.value.set_name}' to the user '${user?.username ?? ''}'`);
 	const set_params = {
+		user_set_id: 0, // DB deletes this field, UI requires it for validation
+		set_name: problem_set.value.set_name,
 		set_id: problem_set.value.set_id,
+		user_id: user?.user_id,
+		username: user?.username,
 		course_user_id,
-		// TODO: handle set versioning.
-		set_version: 1,
+		set_version: 0,
 		set_type: problem_set.value.set_type
 	};
 	const user_set = parseUserSet(set_params);

@@ -3,14 +3,12 @@ package WeBWorK3::Utils::Settings;
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 use YAML::XS qw/LoadFile/;
-use Mojo::Home;
-use Carp;
 
 require Exporter;
-use base qw(Exporter);
+use base qw/Exporter/;
 our @EXPORT_OK = qw/checkSettings getDefaultCourseSettings getDefaultCourseValues
 	mergeCourseSettings validateSettingsConfFile validateCourseSettings
 	validateSingleCourseSetting validateSettingConfig
@@ -239,16 +237,22 @@ sub validateSetting ($setting) {
 }
 
 sub validateList ($setting) {
-	croak "The options field for the type list in $setting->{var} is missing "
+	DB::Exception::InvalidCourseFieldType->throw(
+		message => qq/The options field for the type list in $setting->{var} is missing/)
 		unless defined($setting->{options});
-	croak "The options field for $setting->{var} is not an ARRAYREF" unless ref($setting->{options}) eq 'ARRAY';
+
+	DB::Exception::InvalidCourseFieldType->throw(
+		message => qq/The options field for $setting->{var} is not an ARRAYREF/)
+		unless ref($setting->{options}) eq 'ARRAY';
 
 	# See if the $setting->{options} is an arrayref of strings or hashrefs.
 	my @opt =
 		(ref($setting->{options}->[0]) eq 'HASH')
 		? grep { $_ eq $setting->{default} } map { $_->{value} } @{ $setting->{options} }
 		: grep { $_ eq $setting->{default} } @{ $setting->{options} };
-	croak "The default for variable $setting->{var} needs to be one of the given options"
+
+	DB::Exception::InvalidCourseFieldType->throw(
+		message => qq/The default for variable $setting->{var} needs to be one of the given options/)
 		unless scalar(@opt) == 1;
 
 	return 1;

@@ -74,13 +74,11 @@ __PACKAGE__->add_columns(
 	user_id => {
 		data_type         => 'integer',
 		size              => 16,
-		is_nullable       => 0,
 		is_auto_increment => 1,
 	},
 	username => {
-		data_type   => 'varchar',
-		size        => 256,
-		is_nullable => 0,
+		data_type => 'varchar',
+		size      => 256,
 	},
 	first_name => {
 		data_type   => 'text',
@@ -99,15 +97,15 @@ __PACKAGE__->add_columns(
 		is_nullable => 1,
 	},
 	is_admin => {
-		data_type     => 'boolean',
-		is_nullable   => 0,
-		default_value => 0,
+		data_type          => 'boolean',
+		default_value      => 0,
+		retrieve_on_insert => 1,
 	},
 	login_params => {
 		data_type          => 'text',
 		size               => 256,
-		is_nullable        => 0,
 		default_value      => '{}',
+		retrieve_on_insert => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}

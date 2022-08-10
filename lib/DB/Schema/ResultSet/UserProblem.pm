@@ -2,7 +2,7 @@ package DB::Schema::ResultSet::UserProblem;
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 use Clone qw/clone/;
 use base 'DBIx::Class::ResultSet';
@@ -11,11 +11,11 @@ use DB::Utils qw/getCourseInfo getSetInfo getProblemInfo getUserInfo updateAllFi
 
 use Clone qw/clone/;
 
-use Exception::Class (
-	'DB::Exception::UserProblemExists',
-	'DB::Exception::UserProblemNotFound',
-	'DB::Exception::SetProblemNotFound'
-);
+use Exception::Class qw/
+	DB::Exception::UserProblemExists
+	DB::Exception::UserProblemNotFound
+	DB::Exception::SetProblemNotFound
+	/;
 
 =head1 DESCRIPTION
 
@@ -266,7 +266,7 @@ sub getUserProblem ($self, %args) {
 	if (defined($args{info}->{user_problem_id})) {
 		$user_problem = $self->find({ user_problem_id => $args{info}->{user_problem_id} });
 		DB::Exception::UserProblemNotFound->throw(
-			message => "The user problem with id $args{info}->{user_problem_is} is not found.")
+			message => "The user problem with id $args{info}{user_problem_id} is not found.")
 			unless $user_problem || $args{skip_throw};
 	} else {
 		my $problem  = $self->rs('SetProblem')->getSetProblem(info => $args{info}, as_result_set => 1);
@@ -281,9 +281,14 @@ sub getUserProblem ($self, %args) {
 		# for checking in addUserProblem.
 
 		DB::Exception::UserProblemNotFound->throw(message => 'The user problem for the course '
-				. "$user_set->problem_sets->courses->course_name, problem set $user_set->problem_sets->set_name"
-				. " for user $user_set->course_users->users->username and problem number "
-				. "$problem->problem_number is not found")
+				. $user_set->problem_set->courses->course_name
+				. ", problem set "
+				. $user_set->problem_set->set_name
+				. " for user "
+				. $user_set->course_users->users->username
+				. " and problem number "
+				. $problem->problem_number
+				. " was not found")
 			unless $user_problem || $args{skip_throw};
 
 	}
@@ -343,7 +348,7 @@ sub addUserProblem ($self, %args) {
 			. ' already has problem number '
 			. $user_problem->problems->problem_number
 			. ' in set with name '
-			. $user_problem->user_sets->problem_sets->set_name)
+			. $user_problem->user_sets->problem_set->set_name)
 		if $user_problem;
 
 	my $problem  = $self->rs('SetProblem')->getSetProblem(info => $args{params}, as_result_set => 1);
@@ -549,7 +554,7 @@ sub checkParams ($self, $params) {
 
 	# Check that other fields/params are correct.
 	my $prob_to_check = $self->new($params);
-	return $prob_to_check->validParams('problem_params');
+	return $prob_to_check->validate('problem_params');
 }
 
 sub _mergeUserProblem ($user_problem) {

@@ -239,7 +239,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::ParametersNeeded', "addSetProblem: try to add a problem without information about the file_path, etc.";
+'DB::Exception::FieldsNeeded', "addSetProblem: try to add a problem without information about the file_path, etc.";
 
 # Note: we may want to not have the following in the future, but currently its okay.
 # Try to add a problem with both information about the file_path, and library_id .

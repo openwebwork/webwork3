@@ -16,7 +16,7 @@ describe('Testing db user Review Sets and User Review Sets', () => {
 			user_set_id: 0,
 			set_id: 0,
 			course_user_id: 0,
-			set_version: 1,
+			set_version: 0,
 			set_type: 'REVIEW',
 			set_params: {},
 			set_dates: {}
@@ -84,7 +84,7 @@ describe('Testing db user Review Sets and User Review Sets', () => {
 					user_id: 0,
 					set_id: 0,
 					course_user_id: 0,
-					set_version: 1,
+					set_version: 0,
 					set_name: '',
 					username: '',
 					set_type: 'REVIEW',

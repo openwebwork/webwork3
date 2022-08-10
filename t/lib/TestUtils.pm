@@ -3,15 +3,15 @@ package TestUtils;
 use warnings;
 use strict;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 use Text::CSV qw/csv/;
 use DateTime::Format::Strptime;
 use Mojo::JSON qw/true false/;
 
 require Exporter;
-use base qw(Exporter);
-our @EXPORT_OK = qw/buildHash loadCSV removeIDs filterBySetType loadSchema/;
+use base qw/Exporter/;
+our @EXPORT_OK = qw/buildHash loadCSV removeIDs cleanUndef filterBySetType loadSchema/;
 
 my $strp_datetime = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 my $strp_date     = DateTime::Format::Strptime->new(pattern => '%F',    on_error => 'croak');
@@ -85,10 +85,17 @@ Used for testing against items from the database with all id tags removed.
 
 =cut
 
-# Remove any field that ends in _id except student_id.
+# Remove any field that ends in _id except student_id and any field that has the value 'undef'.
 sub removeIDs ($obj) {
 	for my $key (keys %$obj) {
 		delete $obj->{$key} if $key =~ /_id$/x && $key ne 'student_id';
+	}
+	return;
+}
+
+sub cleanUndef ($obj) {
+	for my $key (keys %$obj) {
+		delete $obj->{$key} unless defined $obj->{$key};
 	}
 	return;
 }

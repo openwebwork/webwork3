@@ -26,16 +26,13 @@ package DB::Schema::ResultSet::UserSet;
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
-use base 'DBIx::Class::ResultSet';
+use base qw/DBIx::Class::ResultSet DB::Validation/;
 
-use Clone qw/clone/;
 use DB::Utils qw/getCourseInfo getUserInfo getSetInfo updateAllFields/;
-use DB::WithDates;
-use DB::WithParams;
 
-use Exception::Class ('DB::Exception::UserSetExists');
+use Exception::Class qw/DB::Exception::UserSetExists/;
 
 =head2 getAllUserSets
 
@@ -67,20 +64,13 @@ sub getAllUserSets ($self, %args) {
 	my @user_sets = $self->search(
 		{},
 		{
-			join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
+			join => [ { 'problem_set' => 'courses' }, { 'course_users' => 'users' } ]
 		}
 	);
 
 	return @user_sets if $args{as_result_set};
 
-	my @all_user_sets = ();
-	for my $user_set (@user_sets) {
-		my $params = $args{merged} ? _mergeUserSet($user_set) : _getUserSet($user_set);
-		delete $params->{type};
-		push(@all_user_sets, $params);
-	}
-
-	return @all_user_sets;
+	return map { $args{merged} ? _mergeUserSet($_) : _getUserSet($_) } @user_sets;
 }
 
 =head2 getAllUserSetsForCourse
@@ -118,20 +108,13 @@ sub getAllUserSetsForCourse ($self, %args) {
 			'courses.course_id' => $course->course_id
 		},
 		{
-			join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
+			join => [ { 'problem_set' => 'courses' }, { 'course_users' => 'users' } ]
 		}
 	);
 
 	return @user_sets if $args{as_result_set};
 
-	my @all_user_sets = ();
-	for my $user_set (@user_sets) {
-		my $params = $args{merged} ? _mergeUserSet($user_set) : _getUserSet($user_set);
-		delete $params->{type};
-		push(@all_user_sets, $params);
-	}
-
-	return @all_user_sets;
+	return map { $args{merged} ? _mergeUserSet($_) : _getUserSet($_) } @user_sets;
 }
 
 =head3 getUserSetForSet
@@ -173,32 +156,15 @@ sub getUserSetsForSet ($self, %args) {
 	my $course      = $self->rs('Course')->getCourse(info => $args{info}, as_result_set => 1);
 	my $problem_set = $self->rs('ProblemSet')->getProblemSet(info => $args{info}, as_result_set => 1);
 	my @user_sets   = $self->search(
-		{ 'problem_sets.set_id' => $problem_set->set_id },
+		{ 'problem_set.set_id' => $problem_set->set_id },
 		{
-			join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
+			join => [ { 'problem_set' => 'courses' }, { 'course_users' => 'users' } ]
 		}
 	);
 
-	# } elsif ($args{info}->{user_id} || $args{info}->{username}) {
-	# 	my $course_user = $self->rs('User')->getCourseUser(info => $args{info}, as_result_set => 1);
-
-	# 	@user_sets = $self->search(
-	# 		{ 'course_users.user_id' => $course_user->user_id },
-	# 		{
-	# 			join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
-	# 		}
-	# 	);
-
 	return @user_sets if $args{as_result_set};
 
-	my @sets = ();
-	for my $user_set (@user_sets) {
-		my $params = $args{merged} ? _mergeUserSet($user_set) : _getUserSet($user_set);
-		delete $params->{type};
-		push(@sets, $params);
-	}
-
-	return @sets;
+	return map { $args{merged} ? _mergeUserSet($_) : _getUserSet($_) } @user_sets;
 }
 
 =head3 getUserSetForUser
@@ -245,20 +211,13 @@ sub getUserSetsForUser ($self, %args) {
 			'courses.course_id'    => $course->course_id
 		},
 		{
-			join => [ { 'problem_sets' => 'courses' }, { 'course_users' => 'users' } ]
+			join => [ { 'problem_set' => 'courses' }, { 'course_users' => 'users' } ]
 		}
 	);
 
 	return @user_sets if $args{as_result_set};
 
-	my @sets = ();
-	for my $user_set (@user_sets) {
-		my $params = $args{merged} ? _mergeUserSet($user_set) : _getUserSet($user_set);
-		delete $params->{type};
-		push(@sets, $params);
-	}
-
-	return @sets;
+	return map { $args{merged} ? _mergeUserSet($_) : _getUserSet($_) } @user_sets;
 }
 
 =head2 getUserSet
@@ -307,11 +266,13 @@ sub getUserSet ($self, %args) {
 
 	my $user_set = $problem_set->user_sets->find({
 		course_user_id => $course_user->course_user_id,
-		set_version    => $args{info}->{set_version} // 1
+		set_version    => $args{info}{set_version} // 0
 	});
 
 	DB::Exception::UserSetNotInCourse->throw(message => 'The set '
 			. $problem_set->set_name
+			. ' with set_version '
+			. ($args{info}{set_version} // 0)
 			. ' is not assigned to '
 			. $course_user->users->username
 			. ' in the course.')
@@ -319,9 +280,7 @@ sub getUserSet ($self, %args) {
 
 	return $user_set if $args{as_result_set};
 
-	my $params = $args{merged} ? _mergeUserSet($user_set) : _getUserSet($user_set);
-	delete $params->{type};
-	return $params;
+	return $args{merged} ? _mergeUserSet($user_set) : _getUserSet($user_set);
 }
 
 =head2 addUserSet
@@ -368,74 +327,41 @@ sub addUserSet ($self, %args) {
 	my $problem_set = $self->rs('ProblemSet')->getProblemSet(info => $args{params}, as_result_set => 1);
 	my $course_user = $self->rs('User')->getCourseUser(info => $args{params}, as_result_set => 1);
 
-	my $user_set = $self->getUserSet(info => $args{params}, skip_throw => 1, as_result_set => 1);
+	# Filter down to only the relevant keys.
+	my %params =
+		map { exists $args{params}{$_} ? ($_ => $args{params}{$_}) : () }
+		qw/set_dates set_params set_visible set_version/;
 
-	DB::Exception::UserSetExists->throw(
-		message => "The user $course_user->users->username is already assigned to the set $problem_set->set_name")
+	my $user_set = $problem_set->find_related(
+		'user_sets',
+		{
+			course_user_id => $course_user->course_user_id,
+			set_version    => $params{set_version} // 0
+		}
+	);
+	DB::Exception::UserSetExists->throw(message => 'The user '
+			. $course_user->users->username
+			. ' is already assigned to the set '
+			. $problem_set->set_name
+			. ' with set version'
+			. ($params{set_version} // 0))
 		if $user_set;
 
-	# Remove user_set_id if it is zero.  On the client side, this means that
-	# the set is a new one.
-	delete $args{params}->{user_set_id}
-		if defined($args{params}->{user_set_id}) && $args{params}->{user_set_id} == 0;
+	# Check that fields/dates/parameters are valid & clean %params
+	$problem_set->validateOverrides(\%params);
 
-	# The hashref of parameters is a mixture of passed in parameters and defaults.
-
-	my $params = $args{params} ? clone($args{params}) : {};
-	for my $key (qw/course_name course_id username user_id set_name set_id set_type/) {
-		delete $params->{$key} if defined $params->{$key};
+	$params{course_user_id} = $course_user->course_user_id;
+	my $new_user_set = $problem_set->add_to_user_sets(\%params);
+	foreach ($problem_set->problems->all()) {
+		$_->add_to_user_problems({
+			user_set_id => $new_user_set->user_set_id,
+			seed        => int(rand(10000)),
+		});
 	}
-	$params->{course_user_id} = $course_user->course_user_id;
-	$params->{set_id}         = $problem_set->set_id;
-	$params->{type}           = $problem_set->type;
-	$params->{set_params}     = {} unless defined($params->{set_params});
-	$params->{set_version}    = 1  unless defined($params->{set_version});
-	my $original_dates = $params->{set_dates} // {};
-
-	# If any of the dates are 0, then remove them.
-	# Only check if the date_fields are 0.  There is the option to store non-dates in the
-	# set_dates field.
-	my $date_fields;
-
-	# Note: although this works okay, if another subtype of a UserSet is created, this needs to be updated.
-	if ($params->{type} == 1) {
-		$date_fields = \&DB::Schema::Result::UserSet::HWSet::valid_dates;
-	} elsif ($params->{type} == 2) {
-		$date_fields = \&DB::Schema::Result::UserSet::Quiz::valid_dates;
-	} elsif ($params->{type} == 4) {
-		$date_fields = \&DB::Schema::Result::UserSet::ReviewSet::valid_dates;
-	} else {
-		die "The type $params->{type} is not valid.";
-	}
-
-	if ($args{params}->{set_dates}) {
-		for my $key (@{ $date_fields->() }) {
-			delete $args{params}->{set_dates}->{$key}
-				if defined($args{params}->{set_dates}->{$key}) && $args{params}->{set_dates}->{$key} == 0;
-		}
-	}
-
-	# Make sure the parameters and dates are valid.
-	# To ensure the dates are valid, make a merged date hash to check.
-
-	$params->{set_dates} = updateAllFields($problem_set->set_dates, $params->{set_dates} // {});
-
-	# Make sure the parameters and dates are valid.
-	my $new_user_set = $self->new($params);
-	$new_user_set->validParams('set_params');
-	$new_user_set->validDates('set_dates');
-
-	# If the dates and params are valid reset the set_dates to only those passed in.
-	$params->{set_dates} = $original_dates;
-
-	# Add_to_user_set not getting default values, so get the just added user_set.
-	$new_user_set = $problem_set->add_to_user_sets($params);
 
 	return $new_user_set if $args{as_result_set};
 
-	my $new_params = $args{merged} ? _mergeUserSet($new_user_set) : _getUserSet($new_user_set);
-	delete $new_params->{type};
-	return $new_params;
+	return $args{merged} ? _mergeUserSet($new_user_set) : _getUserSet($new_user_set);
 }
 
 =head2 updateUserSet
@@ -445,60 +371,34 @@ update a single UserSet for a given course, user, and ProblemSet
 =cut
 
 sub updateUserSet ($self, %args) {
-	my $user_set = $self->getUserSet(info => $args{info}, as_result_set => 1);
+	my $user_set = $self->getUserSet(info => $args{info}, as_result_set => 1, skip_throw => 1);
 
-	DB::Exception::UserSetNotInCourse->throw(
-		set_name    => $args{info}->{set_name},
-		course_name => $args{info}->{course_name},
-		username    => $args{info}->{username}
-	) unless defined($user_set);
+	DB::Exception::UserSetNotInCourse->throw(message => 'The user '
+			. $args{info}{username}
+			. ' is not assigned to the set '
+			. $args{info}{set_name}
+			. ' with set version '
+			. ($args{info}{set_version} // 0))
+		unless defined($user_set);
 
-	my $params = clone $args{params};
-	# Remove some parameters that are not in the UserSet database, but may
-	# be passed in.
-	for my $key (qw/username course_name set_name set_type user_id/) {
-		delete $params->{$key} if defined $params->{$key};
-	}
+	# Filter down to only the relevant keys.
+	my %filtered =
+		map { exists $args{params}{$_} ? ($_ => $args{params}{$_}) : () }
+		qw/set_dates set_params set_visible set_version/;
 
-	# If any of the date are 0, then remove them.
-	if ($args{params}->{set_dates}) {
-		for my $key (keys %{ $args{params}->{set_dates} }) {
-			delete $args{params}->{set_dates}->{$key} if $args{params}->{set_dates}->{$key} == 0;
-		}
-	}
-	# Remove the set type as a string.
-	delete $params->{set_type} if defined $params->{set_type};
+	# merge this update over any existing overrides (e.g. don't lose date overrides when overriding params)
+	my %existing_overrides = $user_set->get_inflated_columns;
+	my $merged             = updateAllFields(\%existing_overrides, \%filtered);
 
-	$params->{course_user_id} = $user_set->course_users->course_user_id;
-	$params->{set_id}         = $user_set->problem_sets->set_id;
-	$params->{type}           = $user_set->problem_sets->type;
-	$params->{set_version}    = 1 unless defined($params->{set_version});
+	# Check that fields/dates/parameters are valid & clean %params
+	my $problem_set = $user_set->problem_set;
+	$problem_set->validateOverrides($merged);
 
-	# create a hash of the dates from the database overriden with any passed in.
-	my $dates = updateAllFields($user_set->set_dates, $params->{set_dates});
-
-	# then make sure the dates are valid by making a merged date hash to check
-	$params->{set_dates} = updateAllFields($user_set->problem_sets->set_dates, $params->{set_dates} // {});
-
-	# create a hash of the set_params from the database overriden with any passed in
-	$params->{set_params} = updateAllFields($user_set->set_params, $params->{set_params});
-
-	# validate all fields
-	my $new_user_set = $self->new($params);
-	$new_user_set->validParams('set_params') if $new_user_set->set_params;
-	$new_user_set->validDates('set_dates')
-		if $new_user_set->set_dates && scalar(keys %{ $new_user_set->set_dates }) > 0;
-
-	# if the dates are valid reset the set_dates to not include those from the problem set
-	$params->{set_dates} = $dates;
-
-	my $updated_user_set = $user_set->update($params);
+	my $updated_user_set = $user_set->update($merged);
 
 	return $updated_user_set if $args{as_result_set};
 
-	my $new_params = $args{merged} ? _mergeUserSet($updated_user_set) : _getUserSet($updated_user_set);
-	delete $new_params->{type};
-	return $new_params;
+	return $args{merged} ? _mergeUserSet($updated_user_set) : _getUserSet($updated_user_set);
 }
 
 =head2 deleteUserSet
@@ -517,10 +417,9 @@ sub deleteUserSet ($self, %args) {
 	) unless defined($user_set);
 
 	$user_set->delete;
+	# why are we returning anything from this call? success/failure instead?
 	return $user_set if $args{as_result_set};
-	my $new_params = $args{merged} ? _mergeUserSet($user_set) : _getUserSet($user_set);
-	delete $new_params->{type};
-	return $new_params;
+	return $args{merged} ? _mergeUserSet($user_set) : _getUserSet($user_set);
 }
 
 =head2 getUserSetVersions
@@ -539,13 +438,8 @@ sub getUserSetVersions ($self, %args) {
 	});
 
 	return @user_sets if $args{as_result_set};
-	my @user_sets_to_return = ();
-	for my $user_set (@user_sets) {
-		my $user_set_to_return = $args{merged} ? _mergeUserSet($user_set) : _getUserSet($user_set);
-		push(@user_sets_to_return, $user_set_to_return);
-		delete $user_set_to_return->{type};
-	}
-	return @user_sets_to_return;
+
+	return map { $args{merged} ? _mergeUserSet($_) : _getUserSet($_) } @user_sets;
 }
 
 # The following are private methods used in this module
@@ -561,10 +455,10 @@ sub rs {
 sub _getUserSet ($user_set) {
 	return {
 		$user_set->get_inflated_columns,
-		course_name => $user_set->problem_sets->courses->course_name,
-		set_name    => $user_set->problem_sets->set_name,
+		course_name => $user_set->problem_set->courses->course_name,
+		set_name    => $user_set->problem_set->set_name,
 		username    => $user_set->course_users->users->username,
-		set_type    => $user_set->set_type
+		set_type    => $user_set->problem_set->set_type
 	};
 }
 
@@ -572,17 +466,17 @@ sub _getUserSet ($user_set) {
 
 sub _mergeUserSet ($user_set) {
 	# override the user set params and dates
-	my $params = updateAllFields($user_set->problem_sets->set_params, $user_set->set_params);
-	my $dates  = updateAllFields($user_set->problem_sets->set_dates,  $user_set->set_dates);
+	my $params = updateAllFields($user_set->problem_set->set_params, $user_set->set_params);
+	my $dates  = updateAllFields($user_set->problem_set->set_dates,  $user_set->set_dates);
 
 	return {
 		$user_set->get_columns,
-		set_type    => $user_set->problem_sets->set_type,
-		set_name    => $user_set->problem_sets->set_name,
-		set_visible => $user_set->problem_sets->set_visible,
+		set_type    => $user_set->problem_set->set_type,
+		set_name    => $user_set->problem_set->set_name,
+		set_visible => $user_set->problem_set->set_visible,
 		set_dates   => $dates,
 		set_params  => $params,
-		course_name => $user_set->problem_sets->courses->course_name,
+		course_name => $user_set->problem_set->courses->course_name,
 		username    => $user_set->course_users->users->username
 	};
 }

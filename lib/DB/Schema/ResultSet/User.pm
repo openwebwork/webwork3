@@ -11,7 +11,7 @@ package DB::Schema::ResultSet::User;
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 use base 'DBIx::Class::ResultSet';
 
@@ -21,11 +21,11 @@ use Clone qw/clone/;
 use DB::Utils qw/getCourseInfo getUserInfo removeLoginParams/;
 
 use DB::Exception;
-use Exception::Class (
-	'DB::Exception::UserNotFound',
-	'DB::Exception::CourseAlreadyExists',
-	'DB::Exception::UserNotInCourse'
-);
+use Exception::Class qw/
+	DB::Exception::UserNotFound
+	DB::Exception::CourseAlreadyExists
+	DB::Exception::UserNotInCourse
+	/;
 
 =head1 getAllGlobalUsers
 
@@ -111,18 +111,17 @@ The user as  C<DBIx::Class::ResultSet::User> object or C<undef> if no user exist
 # TODO: Check that other params are legal.
 
 sub addGlobalUser ($self, %args) {
+	my %new_columns = map { exists $args{params}{$_} ? ($_ => $args{params}{$_}) : () } $self->result_source->columns;
+	delete $new_columns{user_id};
 
 	DB::Exception::ParametersNeeded->throw(message => 'The parameters must include username')
-		unless defined($args{params}->{username});
-	my $params = clone($args{params});
-	# remove the user_id if defined and equal to zero.
-	delete $params->{user_id} if (defined($params->{user_id}) && $params->{user_id} == 0);
+		unless defined($new_columns{username});
 
 	# Check that the username is valid
-	DB::Exception::InvalidParameter->throw(message => "The username '$params->{username}' is not valid.")
-		unless $params->{username} =~ /^[\w@\d.]+$/;
+	DB::Exception::InvalidParameter->throw(message => "The username '$new_columns{username}' is not valid.")
+		unless $new_columns{username} =~ /^[\w@\d.]+$/;
 
-	my $new_user = $self->create($params);
+	my $new_user = $self->create(\%new_columns);
 	return $new_user if $args{as_result_set};
 	return removeLoginParams({ $new_user->get_inflated_columns });
 }
@@ -418,7 +417,7 @@ sub addCourseUser ($self, %args) {
 
 	# check for valid fields and parameters
 	my $updated_user = $self->rs('CourseUser')->new($params);
-	$updated_user->validParams('course_user_params');
+	$updated_user->validate('course_user_params');
 
 	my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
 	my $course = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
@@ -497,7 +496,7 @@ sub updateCourseUser ($self, %args) {
 	}
 
 	my $params_to_check = $self->rs('CourseUser')->new($params);
-	$params_to_check->validParams('course_user_params');
+	$params_to_check->validate('course_user_params');
 
 	my $user_to_return = $course_user->update($params);
 

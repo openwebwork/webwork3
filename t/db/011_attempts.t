@@ -45,9 +45,9 @@ my $attempt_rs      = $schema->resultset('Attempt');
 
 my $attempts = $attempt_rs->search(
 	{
-		'courses.course_name'   => 'Precalculus',
-		'users.username'        => 'homer',
-		'problem_sets.set_name' => 'HW #2'
+		'courses.course_name'  => 'Precalculus',
+		'users.username'       => 'homer',
+		'problem_set.set_name' => 'HW #2'
 	},
 	{
 		join => {
@@ -57,7 +57,7 @@ my $attempts = $attempt_rs->search(
 						'course_users' => 'users'
 					},
 					{
-						'problem_sets' => 'courses'
+						'problem_set' => 'courses'
 					}
 				]
 			}
@@ -77,8 +77,9 @@ my $user_problem_info = {
 };
 
 my $attempt_params1 = {
-	scores  => [ 0,   1,     1 ],
-	answers => [ 'x', 'x^2', 'x^3' ]
+	scores   => [ 0,   1,     1 ],
+	answers  => [ 'x', 'x^2', 'x^3' ],
+	comments => {}
 };
 
 my $attempt1 = $attempt_rs->addAttempt(params => { %$user_problem_info, %$attempt_params1 });
@@ -87,8 +88,9 @@ removeIDs($attempt1);
 is_deeply($attempt_params1, $attempt1, 'addAttempt: add an attempt');
 
 my $attempt_params2 = {
-	scores  => [ 0,    1,      1 ],
-	answers => [ '2x', '3x^2', '4x^3' ]
+	scores   => [ 0,    1,      1 ],
+	answers  => [ '2x', '3x^2', '4x^3' ],
+	comments => {}
 };
 
 my $attempt2 = $attempt_rs->addAttempt(params => { %$user_problem_info, %$attempt_params2 });
@@ -96,8 +98,9 @@ removeIDs($attempt2);
 is_deeply($attempt_params2, $attempt2, 'addAttempt: add another attempt');
 
 my $attempt_params3 = {
-	scores  => [ 0,     0,      0 ],
-	answers => [ '-2x', '2x^2', '4x^3' ]
+	scores   => [ 0,     0,      0 ],
+	answers  => [ '-2x', '2x^2', '4x^3' ],
+	comments => {}
 };
 
 my $attempt3 = $attempt_rs->addAttempt(params => { %$user_problem_info, %$attempt_params3 });
@@ -107,7 +110,6 @@ is_deeply($attempt_params3, $attempt3, 'addAttempt: add yet another attempt');
 my @all_attempts = $attempt_rs->getAttempts(info => $user_problem_info);
 for my $attempt (@all_attempts) {
 	removeIDs($attempt);
-	delete $attempt->{comments};
 }
 
 is_deeply([ $attempt_params1, $attempt_params2, $attempt_params3 ],

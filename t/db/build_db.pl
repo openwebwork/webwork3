@@ -312,12 +312,12 @@ sub addUserProblems {
 	for my $user_problem (@user_problems) {
 		my $user_set = $user_set_rs->find(
 			{
-				'users.username'        => $user_problem->{username},
-				'courses.course_name'   => $user_problem->{course_name},
-				'problem_sets.set_name' => $user_problem->{set_name}
+				'users.username'       => $user_problem->{username},
+				'courses.course_name'  => $user_problem->{course_name},
+				'problem_set.set_name' => $user_problem->{set_name}
 			},
 			{
-				join => [ { problem_sets => 'courses' }, { course_users => 'users' } ]
+				join => [ { problem_set => 'courses' }, { course_users => 'users' } ]
 			}
 		);
 		my $problem = $set_problem_rs->find(

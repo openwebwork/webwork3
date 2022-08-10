@@ -21,8 +21,6 @@ use Test::Exception;
 use YAML::XS qw/LoadFile/;
 use DateTime::Format::Strptime;
 
-use DB::WithParams;
-use DB::WithDates;
 use DB::Schema;
 
 use TestUtils qw/loadCSV removeIDs loadSchema/;

@@ -3,14 +3,14 @@ package DB::Schema::ResultSet::Course;
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 use base 'DBIx::Class::ResultSet';
 
 use Clone qw/clone/;
 use DB::Utils qw/getCourseInfo getUserInfo/;
 use DB::Exception;
-use Exception::Class ('DB::Exception::CourseNotFound', 'DB::Exception::CourseExists');
+use Exception::Class qw/DB::Exception::CourseNotFound DB::Exception::CourseExists/;
 
 #use TestUtils qw/removeIDs/;
 use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings mergeCourseSettings

@@ -3,7 +3,7 @@ package DB::Schema::ResultSet::SetProblem;
 use strict;
 use warnings;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 use Clone qw/clone/;
 use base 'DBIx::Class::ResultSet';
@@ -255,7 +255,7 @@ sub checkProblemParams ($self, $params) {
 		unless defined $params->{problem_number} && $params->{problem_number} =~ /^\d+$/;
 
 	my $problem_to_add = $self->new($params);
-	$problem_to_add->validParams('problem_params');
+	$problem_to_add->validate('problem_params');
 	return 1;
 }
 

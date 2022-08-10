@@ -213,7 +213,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::UndefinedParameter', 'addCourseUser: an undefined parameter is set';
+'DB::Exception::InvalidField', 'addCourseUser: an undefined parameter is set';
 
 # Add a user with nonvalid fields
 throws_ok {
@@ -313,7 +313,7 @@ throws_ok {
 		}
 	);
 }
-'DB::Exception::UndefinedParameter', 'updateCourseUser: an undefined parameter is set';
+'DB::Exception::InvalidField', 'updateCourseUser: an undefined parameter is set';
 
 # Check that updating a user with nonvalid fields throws an error.
 throws_ok {

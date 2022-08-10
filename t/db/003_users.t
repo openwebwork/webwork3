@@ -23,7 +23,7 @@ use DateTime::Format::Strptime;
 use Mojo::JSON qw/true false/;
 
 use DB::Schema;
-use TestUtils qw/loadCSV removeIDs/;
+use TestUtils qw/loadCSV removeIDs cleanUndef/;
 
 # Load the database
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
@@ -50,6 +50,7 @@ for my $student (@students) {
 	for my $key (qw/course_name recitation section params role/) {
 		delete $student->{$key};
 	}
+	cleanUndef($student);
 	$student->{is_admin} = false;
 }
 
@@ -62,7 +63,6 @@ push(
 		is_admin   => true,
 		first_name => 'Andrea',
 		last_name  => 'Administrator',
-		student_id => undef
 	}
 );
 my @all_students = sort { $a->{username} cmp $b->{username} } @students;
@@ -71,6 +71,7 @@ my @all_students = sort { $a->{username} cmp $b->{username} } @students;
 my @users_from_db = $users_rs->getAllGlobalUsers;
 for my $user (@users_from_db) {
 	removeIDs($user);
+	cleanUndef($user);
 }
 @users_from_db = sort { $a->{username} cmp $b->{username} } @users_from_db;
 is_deeply(\@all_students, \@users_from_db, 'getUsers: all users');
@@ -78,7 +79,7 @@ is_deeply(\@all_students, \@users_from_db, 'getUsers: all users');
 # Get a single user by username
 my $user = $users_rs->getGlobalUser(info => { username => $all_students[0]->{username} });
 removeIDs($user);
-delete $user->{role};
+cleanUndef($user);
 is_deeply($all_students[0], $user, 'getUser: by username');
 
 # Get a single user by user_id
@@ -118,6 +119,15 @@ my $new_user = $users_rs->addGlobalUser(params => $user);
 removeIDs($new_user);
 is_deeply($user, $new_user, 'addUser: adding a user');
 
+# Ensure that the default values are set
+my $patty_params = { username => 'patty' };
+my $patty        = $users_rs->addGlobalUser(params => $patty_params);
+removeIDs($patty);
+cleanUndef($patty);
+# the only default for users is { is_admin: false }
+$patty_params->{is_admin} = false;
+is_deeply($patty, $patty_params, 'addUser: check the default values from db.');
+
 # Try to add a user without passing username info
 throws_ok {
 	$users_rs->addGlobalUser(
@@ -129,16 +139,21 @@ throws_ok {
 }
 'DB::Exception::ParametersNeeded', 'addUser: wrong user_info sent';
 
-# Check that adding a user with an invalid field throws an error
-throws_ok {
-	$users_rs->addGlobalUser(
-		params => {
-			username      => 'selma',
-			invalid_field => 1
-		}
-	);
-}
-qr/No such column 'invalid_field'/, 'addUser: pass in an invalid field';
+# Check that adding an invalid field ignores that field.
+
+my $selma_params = {
+	username      => 'selma',
+	invalid_field => 1
+};
+
+my $selma = $users_rs->addGlobalUser(params => $selma_params);
+removeIDs($selma);
+cleanUndef($selma);
+
+# cleanup params for comparison: invalid_field dropped, is_admin matches default
+delete $selma_params->{invalid_field};
+$selma_params->{is_admin} = false;
+is_deeply($selma_params, $selma, 'addUser: pass in an invalid field');
 
 # Add a user with an invalid username
 throws_ok {
@@ -206,20 +221,27 @@ throws_ok {
 }
 qr/No such column 'invalid_field'/, 'updateUser: pass in an invalid field';
 
-# Delete a user
+# Delete users that were created
 my $user_to_delete = $users_rs->deleteGlobalUser(info => { username => $user->{username} });
 
-delete $user_to_delete->{user_id};
+removeIDs($user_to_delete);
+cleanUndef($user_to_delete);
 is_deeply($updated_user, $user_to_delete, 'deleteUser: delete a user');
 
-# Delete another user
-my $user_to_delete2 = $users_rs->deleteGlobalUser(
-	info => {
-		username => $added_user2->{username}
-	}
-);
-delete $user_to_delete2->{user_id};
-is_deeply($added_user2, $user_to_delete2, 'deleteUser: delete another user.');
+my $deleted_selma = $users_rs->deleteGlobalUser(info => { username => 'selma' });
+removeIDs($deleted_selma);
+cleanUndef($deleted_selma);
+is_deeply($deleted_selma, $selma_params, 'deleteUser: deleter another user');
+
+my $deleted_patty = $users_rs->deleteGlobalUser(info => { username => 'patty' });
+removeIDs($deleted_patty);
+cleanUndef($deleted_patty);
+is_deeply($deleted_patty, $patty_params, 'deleteUser: deleter a third user');
+
+my $user_to_delete2 = $users_rs->deleteGlobalUser(info => { username => $added_user2->{username} });
+removeIDs($user_to_delete2);
+cleanUndef($user_to_delete2);
+is_deeply($added_user2, $user_to_delete2, 'deleteUser: delete yet another user.');
 
 # Delete a user that doesn't exist.
 throws_ok {
@@ -237,6 +259,7 @@ throws_ok {
 my @user_courses = $course_rs->getUserCourses(info => { username => 'lisa' });
 for my $user_course (@user_courses) {
 	removeIDs($user_course);
+	cleanUndef($user_course);
 }
 
 my @courses = loadCSV(
@@ -254,6 +277,7 @@ for my $user_course (@user_courses_from_csv) {
 	for my $key (qw/email first_name last_name username student_id/) {
 		delete $user_course->{$key};
 	}
+	cleanUndef($user_course);
 	$user_course->{course_user_params} = $user_course->{params};
 	delete $user_course->{params};
 	$user_course->{visible}      = $course->{visible};
@@ -261,8 +285,8 @@ for my $user_course (@user_courses_from_csv) {
 }
 
 # Make sure that the order of the courses is the same
-@user_courses          = sort { $a->{course_name} cmp $b->{course_name} } @user_courses;
 @user_courses_from_csv = sort { $a->{course_name} cmp $b->{course_name} } @user_courses_from_csv;
+@user_courses          = sort { $a->{course_name} cmp $b->{course_name} } @user_courses;
 
 is_deeply(\@user_courses, \@user_courses_from_csv, 'getUserCourses: get all courses for a given user');
 
@@ -277,6 +301,7 @@ throws_ok {
 @users_from_db = $users_rs->getAllGlobalUsers;
 for my $user (@users_from_db) {
 	removeIDs($user);
+	cleanUndef($user);
 }
 @users_from_db = sort { $a->{username} cmp $b->{username} } @users_from_db;
 is_deeply(\@all_students, \@users_from_db,

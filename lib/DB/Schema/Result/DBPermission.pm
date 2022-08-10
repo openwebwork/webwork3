@@ -39,16 +39,13 @@ __PACKAGE__->add_columns(
 	db_perm_id => {
 		data_type         => 'integer',
 		size              => 16,
-		is_nullable       => 0,
 		is_auto_increment => 1
 	},
 	category => {
-		data_type   => 'text',
-		is_nullable => 0,
+		data_type => 'text',
 	},
 	action => {
-		data_type   => 'text',
-		is_nullable => 0,
+		data_type => 'text',
 	},
 	admin_required => {
 		data_type   => 'boolean',

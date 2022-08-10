@@ -39,13 +39,11 @@ __PACKAGE__->add_columns(
 	ui_perm_id => {
 		data_type         => 'integer',
 		size              => 16,
-		is_nullable       => 0,
 		is_auto_increment => 1
 	},
 	route => {
-		data_type   => 'text',
-		size        => 256,
-		is_nullable => 0,
+		data_type => 'text',
+		size      => 256,
 	},
 	admin_required => {
 		data_type   => 'boolean',

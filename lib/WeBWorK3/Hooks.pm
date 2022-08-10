@@ -3,7 +3,7 @@ package WeBWorK3::Hooks;
 use warnings;
 use strict;
 use feature 'signatures';
-no warnings qw(experimental::signatures);
+no warnings qw/experimental::signatures/;
 
 use Try::Tiny;
 

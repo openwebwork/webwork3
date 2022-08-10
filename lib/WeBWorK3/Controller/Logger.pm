@@ -5,7 +5,7 @@ use strict;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 use Mojo::Home;
 use Mojo::Log;
-use JSON qw(decode_json);
+use JSON qw/decode_json/;
 
 my $clientLogFile = Mojo::Log->new(path => Mojo::Home->new->detect->child('logs', 'clientLog.log'));
 

@@ -1,7 +1,7 @@
 package WeBWorK3;
 use Mojo::Base 'Mojolicious', -signatures;
 
-use Mojo::File qw(curfile path);
+use Mojo::File qw/curfile path/;
 use YAML::XS qw/LoadFile/;
 
 use DB::Schema;
