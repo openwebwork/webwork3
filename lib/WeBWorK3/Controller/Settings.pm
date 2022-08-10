@@ -3,6 +3,10 @@ package WeBWorK3::Controller::Settings;
 use warnings;
 use strict;
 
+use Mojo::JSON qw/true false/;
+use DateTime::TimeZone;
+use Try::Tiny;
+
 =head1 Description
 
 These are the methods that call the database for course settings
@@ -59,6 +63,15 @@ sub deleteCourseSetting ($c) {
 	);
 	$c->render(json => $course_setting);
 	return;
+}
+
+sub checkTimeZone ($c) {
+	try {
+		DateTime::TimeZone->new(name => $c->req->json->{timezone});
+		$c->render(json => {valid_timezone => true });
+	} catch {
+		$c->render(json => {valid_timezone => false });
+	};
 }
 
 1;

@@ -217,9 +217,10 @@ sub problemRoutes ($app, $course_routes) {
 }
 
 sub settingsRoutes ($self, $course_routes) {
-	$self->routes->get('/webwork3/api/global-settings')->requires(authenticated => 1)->to('Settings#getGlobalSettings');
-	$self->routes->get('/webwork3/api/global-setting/:setting_id')->requires(authenticated => 1)
-		->to('Settings#getGlobalSetting');
+	my $global_settings = $self->routes->any('/webwork3/api/global-settings')->requires(authenticated => 1);
+	$global_settings->get('/')->to('Settings#getGlobalSettings');
+	$global_settings->get('/:setting_id')->to('Settings#getGlobalSetting');
+	$global_settings->post('/check-timezone')->to('Settings#checkTimeZone');
 	$course_routes->get('/settings')->to('Settings#getCourseSettings');
 	$course_routes->put('/settings/:setting_id')->to('Settings#updateCourseSetting');
 	$course_routes->delete('/settings/:setting_id')->to('Settings#deleteCourseSetting');

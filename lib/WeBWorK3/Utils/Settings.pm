@@ -56,7 +56,9 @@ This checks if the setting given the type, value and list of options (if needed)
 =cut
 
 sub isValidSetting ($setting, $value = undef) {
-	return 0 if !defined $setting->{type};
+	DB::Exception::ParametersNeeded->throw(
+		message => 'The field \'type\' must be defined for the setting'
+	) unless defined $setting->{type};
 
 	# If $value is not passed in, use the default_value for the setting
 	my $val = $value // $setting->{default_value};
@@ -161,11 +163,12 @@ sub validateMultilist ($setting, $value) {
 	DB::Exception::InvalidCourseFieldType->throw(
 		message => "The options field for the type multilist in $setting->{setting_name} is missing ")
 		unless defined($setting->{options});
+
 	DB::Exception::InvalidCourseFieldType->throw(
 		message => "The options field for $setting->{setting_name} is not an ARRAYREF")
 		unless ref($setting->{options}) eq 'ARRAY';
 
-	my @diff = array_minus(@{ $setting->{options} }, @$value);
+	my @diff = array_minus(@$value, @{ $setting->{options} });
 	throw DB::Exception::InvalidCourseFieldType->throw(
 		message => "The values for $setting->{setting_name} must be a subset of the options field")
 		unless scalar(@diff) == 0;
