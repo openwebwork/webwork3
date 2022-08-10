@@ -272,10 +272,6 @@ my $user_set_from_csv = clone(
 removeIDs($user_set);
 delete $user_set->{set_visible} unless defined($user_set->{set_visible});
 
-use Data::Dumper;
-print Dumper $user_set_from_csv;
-print Dumper $user_set;
-
 is_deeply($user_set_from_csv, $user_set, 'getUserSet: get a user set from a course');
 
 # Get a merged UserSet
@@ -621,17 +617,13 @@ my $otto_quiz_info = {
 	username    => 'otto'
 };
 
-for my $u (@otto_user_sets) {
-	$u->delete;
-}
-
 # Then add a new user set and test that it is merged correctly.
 
 my $merged_set1 = clone(
 	(
 		grep {
-			$_->{course_name} eq $otto_set_info2->{course_name}
-				&& $_->{set_name} eq $otto_set_info2->{set_name}
+			$_->{course_name} eq $otto_quiz_info->{course_name}
+				&& $_->{set_name} eq $otto_quiz_info->{set_name}
 		} @all_problem_sets
 	)[0]
 );
