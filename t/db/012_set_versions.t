@@ -91,10 +91,8 @@ my @all_user_sets = loadCSV(
 for my $set (@all_user_sets) {
 	$set->{set_version} = 0 unless defined($set->{set_version});
 	# find the problem set type
-	my $s = (grep {
-		$_->{course_name} eq $set->{course_name} && $_->{set_name} eq $set->{set_name}
-	}
-	@all_problem_sets)[0];
+	my $s =
+		(grep { $_->{course_name} eq $set->{course_name} && $_->{set_name} eq $set->{set_name} } @all_problem_sets)[0];
 	$set->{set_type}   = $s->{set_type};
 	$set->{set_params} = {} unless defined $set->{set_params};
 }
@@ -104,10 +102,8 @@ my @merged_user_sets = @{ clone(\@all_user_sets) };
 # Merge the sets
 
 for my $user_set (@merged_user_sets) {
-	my $set = (grep {
-		$_->{course_name} eq $user_set->{course_name} && $_->{set_name} eq $user_set->{set_name}
-	}
-	@all_problem_sets)[0];
+	my $set = (grep { $_->{course_name} eq $user_set->{course_name} && $_->{set_name} eq $user_set->{set_name} }
+			@all_problem_sets)[0];
 
 	# override problem set dates with userset dates if exist
 	my $dates = clone($set->{set_dates});
@@ -142,12 +138,13 @@ cleanUndef($user_set1);
 
 # Check that it is the same as that from the CSV file
 
-my $user_set1_from_csv = (grep {
-	$_->{course_name} eq $user_set_info1->{course_name}
-		&& $_->{set_name} eq $user_set_info1->{set_name}
-		&& $_->{username} eq $user_set_info1->{username}
-}
-@all_user_sets)[0];
+my $user_set1_from_csv = (
+	grep {
+		$_->{course_name} eq $user_set_info1->{course_name}
+			&& $_->{set_name} eq $user_set_info1->{set_name}
+			&& $_->{username} eq $user_set_info1->{username}
+	} @all_user_sets
+)[0];
 
 # Make a new user set that has a  set_version of 1
 
