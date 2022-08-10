@@ -266,7 +266,7 @@ sub getUserProblem ($self, %args) {
 	if (defined($args{info}->{user_problem_id})) {
 		$user_problem = $self->find({ user_problem_id => $args{info}->{user_problem_id} });
 		DB::Exception::UserProblemNotFound->throw(
-			message => "The user problem with id $args{info}->{user_problem_is} is not found.")
+			message => "The user problem with id $args{info}{user_problem_id} is not found.")
 			unless $user_problem || $args{skip_throw};
 	} else {
 		my $problem  = $self->rs('SetProblem')->getSetProblem(info => $args{info}, as_result_set => 1);
@@ -281,9 +281,14 @@ sub getUserProblem ($self, %args) {
 		# for checking in addUserProblem.
 
 		DB::Exception::UserProblemNotFound->throw(message => 'The user problem for the course '
-				. "$user_set->problem_set->courses->course_name, problem set $user_set->problem_set->set_name"
-				. " for user $user_set->course_users->users->username and problem number "
-				. "$problem->problem_number is not found")
+				. $user_set->problem_set->courses->course_name
+				. ", problem set "
+				. $user_set->problem_set->set_name
+				. " for user "
+				. $user_set->course_users->users->username
+				. " and problem number "
+				. $problem->problem_number
+				. " was not found")
 			unless $user_problem || $args{skip_throw};
 
 	}

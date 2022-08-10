@@ -154,14 +154,9 @@ throws_ok {
 }
 'DB::Exception::SetNotInCourse', 'getProblemSet: non-existent set name';
 
-throws_ok {
-	$problem_set_rs->getProblemSet(info => { course_name => 'Precalculus', set_id => 99999 });
-}
-'DB::Exception::SetNotInCourse', 'getProblemSet: non-existent set_id';
-
 # Try to get a problem set that is not in a given course
 throws_ok {
-	$problem_set_rs->getProblemSet(info => { course_name => 'Precalculus', set_id => 999 });
+	$problem_set_rs->getProblemSet(info => { course_name => 'Precalculus', set_id => 7 });
 }
 'DB::Exception::SetNotInCourse', 'getProblemSet: find a set that is not in a course';
 
@@ -175,7 +170,8 @@ my $new_set_params = {
 		answer                 => 200,
 		enable_reduced_scoring => true
 	},
-	set_type => "HW"
+	set_params => {},
+	set_type   => "HW"
 };
 
 my $new_set = $problem_set_rs->addProblemSet(

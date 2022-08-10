@@ -54,7 +54,6 @@ __PACKAGE__->add_columns(
 	pool_problem_id => {
 		data_type         => 'integer',
 		size              => 16,
-		is_nullable       => 0,
 		is_auto_increment => 1,
 	},
 	problem_pool_id => {
@@ -64,8 +63,8 @@ __PACKAGE__->add_columns(
 	},
 	params => {
 		data_type          => 'text',
-		is_nullable        => 0,
 		default_value      => '{}',
+		retrieve_on_insert => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}

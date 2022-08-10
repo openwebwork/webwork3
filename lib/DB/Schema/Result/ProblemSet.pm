@@ -81,43 +81,40 @@ __PACKAGE__->add_columns(
 	set_id => {
 		data_type         => 'integer',
 		size              => 16,
-		is_nullable       => 0,
 		is_auto_increment => 1,
 	},
 	set_name => {
-		data_type   => 'varchar',
-		size        => 256,
-		is_nullable => 0,
+		data_type => 'varchar',
+		size      => 256,
 	},
 	course_id => {
-		data_type   => 'integer',
-		size        => 16,
-		is_nullable => 0,
+		data_type => 'integer',
+		size      => 16,
 	},
 	type => {
-		data_type     => 'int',
-		default_value => 1,
-		size          => 8
+		data_type          => 'int',
+		size               => 8,
+		default_value      => 1,
+		retrieve_on_insert => 1,
 	},
 	set_visible => {
 		data_type          => 'boolean',
 		default_value      => 0,
-		is_nullable        => 0,
 		retrieve_on_insert => 1
 	},
 	# Store dates as a JSON object.
 	set_dates => {
 		data_type          => 'text',
-		is_nullable        => 0,
 		default_value      => '{}',
+		retrieve_on_insert => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
 	# Store params as a JSON object.
 	set_params => {
 		data_type          => 'text',
-		is_nullable        => 0,
 		default_value      => '{}',
+		retrieve_on_insert => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}
@@ -169,11 +166,11 @@ the set works with the proposed overrides.
 =cut
 
 sub validateOverrides ($set, $updates) {
-	foreach my $field_name (qw/set_dates set_params/) {
-		$set->_stripUnchanged($updates, $field_name);
+	foreach my $column_name (qw/set_dates set_params/) {
+		$set->_stripUnchanged($updates, $column_name);
 		$set->set_inflated_column(
-			"$field_name" => updateAllFields($set->get_inflated_column($field_name), $updates->{$field_name}));
-		$set->validate($field_name);
+			$column_name => updateAllFields($set->get_inflated_column($column_name), $updates->{$column_name}));
+		$set->validate($column_name);
 	}
 	$set->discard_changes;
 	return;
@@ -181,26 +178,26 @@ sub validateOverrides ($set, $updates) {
 
 =head2 _stripUnchanged
 
-when called on a problem_set with proposed update hash containing $field_name as a key
+when called on a problem_set with proposed update hash containing $column_name as a key
 will iteratively compare key-values in the update hash to existing values on the
 field_name column of the problem_set, deleting (in-place!) any key-value pairs that are
 unchanged from the problem_set
 
 =cut
 
-sub _stripUnchanged ($set, $updates, $field_name) {
-	foreach (keys %{ $set->valid_fields($field_name) }) {
-		next unless exists($updates->{$field_name}{$_});
-		my $defined   = defined($updates->{$field_name}{$_}) ? 1 : 0;
-		my $is_truthy = $updates->{$field_name}{$_}          ? 1 : 0;
-		my $was_undef = defined($set->$field_name->{$_})     ? 0 : 1;
+sub _stripUnchanged ($set, $updates, $column_name) {
+	foreach (keys %{ $set->valid_fields($column_name) }) {
+		next unless exists($updates->{$column_name}{$_});
+		my $defined   = defined($updates->{$column_name}{$_}) ? 1 : 0;
+		my $is_truthy = $updates->{$column_name}{$_}          ? 1 : 0;
+		my $was_undef = defined($set->$column_name->{$_})     ? 0 : 1;
 
 		# use eq since numbers stringify and strings don't numerify ;P
-		my $different = ($defined && ($was_undef || $updates->{$field_name}{$_} ne $set->$field_name->{$_})) ? 1 : 0;
-		if (ref($set->$field_name->{$_}) =~ m/boolean/i) {
-			delete $updates->{$field_name}{$_} unless $different;
+		my $different = ($defined && ($was_undef || $updates->{$column_name}{$_} ne $set->$column_name->{$_})) ? 1 : 0;
+		if (ref($set->$column_name->{$_}) =~ m/boolean/i) {
+			delete $updates->{$column_name}{$_} unless $different;
 		} else {
-			delete $updates->{$field_name}{$_} unless $is_truthy && $different;
+			delete $updates->{$column_name}{$_} unless $is_truthy && $different;
 		}
 	}
 	return;

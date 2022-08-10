@@ -89,9 +89,10 @@ throws_ok {
 
 # Add a new quiz
 my $new_quiz_params = {
-	set_name  => 'Quiz #9',
-	set_dates => { open => 100, due => 140, answer => 200 },
-	set_type  => 'QUIZ'
+	set_name   => 'Quiz #9',
+	set_dates  => { open => 100, due => 140, answer => 200 },
+	set_params => {},
+	set_type   => 'QUIZ'
 };
 
 my $new_quiz = $problem_set_rs->addProblemSet(

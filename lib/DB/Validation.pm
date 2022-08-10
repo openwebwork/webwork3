@@ -19,8 +19,8 @@ use Exception::Class qw/
 
 =head2 validate
 
-Validate the parameter or date field based on $field name. This checks for valid fields,
-required fields, validates the parameters and running any additional validation.
+Validate the parameter or date field based on the field name. This checks for valid fields and required
+fields, validates the parameters, and runs any additional validation.
 
 =cut
 
@@ -69,7 +69,6 @@ sub validateParams ($self, $field_name) {
 
 sub checkRequiredFields ($self, $field_name) {
 	my $required_fields = ref($self)->required($field_name);
-	# Depending on the data type of the $required_params, check different things.
 	DB::Exception::ParamFormatIncorrect->throw(
 		message => 'The structure of the return type of ' . ref($self) . '::required must be a hashref.')
 		unless reftype($required_fields) eq 'HASH';
@@ -79,8 +78,6 @@ sub checkRequiredFields ($self, $field_name) {
 	}
 	return 1;
 }
-
-# The following is an internal subroutine to check the struture of a hashref for $required_params.
 
 sub _check_for_all ($self, $field_name, $value = undef) {
 	my $valid = 0;
@@ -140,6 +137,48 @@ sub _check_params ($self, $field_name, $type, $value = undef) {
 	} elsif ($type eq '_AT_LEAST_ONE_OF_') {
 		return $self->_check_for_at_least_one_of($field_name, $value);
 	}
+}
+
+=head1 METHODS TO OVERLOAD
+
+=head2 C<valid_fields>
+
+subroutine that should return a hash of the valid fields for json columns
+
+arguments: result_class, json_column_name
+returns: { field_name => regex string describing contents of field_name }
+	'bool' should be used in place of the regex string for boolean fields
+
+=cut
+
+sub valid_fields ($result_class, $) {
+	return {};
+}
+
+=head2 C<additional_validation>
+
+subroutine that should check json columns for consistency, throwing an
+exception on any inconsistency rather than returning 0.
+
+=cut
+
+sub additional_validation ($result_class, $) {
+	return 1;
+}
+
+=head2 C<required>
+
+subroutine that should return a hashref describing the required fields in JSON columns
+
+arguments: result_class, json_column_name
+returns: { rule => \@field_names }
+valid rules: '_ALL_', '_ONE_OF_', '_AT_LEAST_ONE_OF_'
+	where the key describes the rule to be applied to the array of fields
+
+=cut
+
+sub required ($result_class, $) {
+	return {};
 }
 
 1;

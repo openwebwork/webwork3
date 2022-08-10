@@ -95,7 +95,7 @@ sub removeIDs ($obj) {
 
 sub cleanUndef ($obj) {
 	for my $key (keys %$obj) {
-		delete $obj->{$key} unless (defined $obj->{$key});
+		delete $obj->{$key} unless defined $obj->{$key};
 	}
 	return;
 }

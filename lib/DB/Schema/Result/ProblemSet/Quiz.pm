@@ -23,14 +23,14 @@ subroutine that returns a hash of the validation for both set_dates and set_para
 
 =cut
 
-sub valid_fields ($self, $field_name) {
-	if ($field_name eq 'set_dates') {
+sub valid_fields ($, $column_name) {
+	if ($column_name eq 'set_dates') {
 		return {
 			open   => q{\d+},
 			due    => q{\d+},
 			answer => q{\d+}
 		};
-	} elsif ($field_name eq 'set_params') {
+	} elsif ($column_name eq 'set_params') {
 		return {
 			timed                 => 'bool',
 			quiz_duration         => q{\d+},
@@ -58,8 +58,8 @@ subroutine that checks any additional validation
 
 =cut
 
-sub additional_validation ($self, $field_name) {
-	return 1 if ($field_name ne 'set_dates');
+sub additional_validation ($self, $column_name) {
+	return 1 if ($column_name ne 'set_dates');
 
 	my $dates = $self->get_inflated_column('set_dates');
 	DB::Exception::ImproperDateOrder->throw(message => 'The dates are not in order')
@@ -74,8 +74,8 @@ subroutine that returns the array for required set_dates or set_params (none)
 
 =cut
 
-sub required ($self, $field_name) {
-	if ($field_name eq 'set_dates') {
+sub required ($, $column_name) {
+	if ($column_name eq 'set_dates') {
 		return { '_ALL_' => [ 'open', 'due', 'answer' ] };
 	} else {
 		return {};

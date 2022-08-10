@@ -55,19 +55,6 @@ Note: a problem should have only one of a library_id, problem_path or problem_po
 
 =cut
 
-sub valid_params {
-	return {
-		timestamp => q{[1-9]d+},
-		scores    => q{.*},
-		answer    => q{.*},
-		comment   => q{.*}
-	};
-}
-
-sub required_params {
-	return {};
-}
-
 ### this is the table that stores problems for a given Problem Set
 
 __PACKAGE__->table('attempt');
@@ -78,20 +65,19 @@ __PACKAGE__->add_columns(
 	attempt_id => {
 		data_type         => 'integer',
 		size              => 16,
-		is_nullable       => 0,
 		is_auto_increment => 1,
 	},
 	user_problem_id => {
-		data_type   => 'integer',
-		size        => 16,
-		is_nullable => 0,
+		data_type => 'integer',
+		size      => 16,
+
 	},
 	# store scores as a JSON object
 	scores => {
 		data_type          => 'text',
 		size               => 256,
-		is_nullable        => 0,
 		default_value      => '{}',
+		retrieve_on_insert => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
@@ -99,8 +85,8 @@ __PACKAGE__->add_columns(
 	answers => {
 		data_type          => 'text',
 		size               => 256,
-		is_nullable        => 0,
 		default_value      => '{}',
+		retrieve_on_insert => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
@@ -108,8 +94,8 @@ __PACKAGE__->add_columns(
 	comments => {
 		data_type          => 'text',
 		size               => 256,
-		is_nullable        => 0,
 		default_value      => '{}',
+		retrieve_on_insert => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}
@@ -118,5 +104,14 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('attempt_id');
 
 __PACKAGE__->belongs_to(user_problem => 'DB::Schema::Result::UserProblem', 'user_problem_id');
+
+sub valid_params {
+	return {
+		timestamp => q{[1-9]d+},
+		scores    => q{.*},
+		answer    => q{.*},
+		comment   => q{.*}
+	};
+}
 
 1;

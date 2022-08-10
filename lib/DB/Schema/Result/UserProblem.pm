@@ -36,32 +36,46 @@ __PACKAGE__->add_columns(
 		size      => 16,
 	},
 	status => {
-		data_type     => 'decimal',
-		size          => '10,5',
-		is_nullable   => 0,
-		default_value => '0.00000'
+		data_type          => 'decimal',
+		size               => '10,5',
+		default_value      => '0.00000',
+		retrieve_on_insert => 1,
 	},
 	problem_version => {
-		data_type     => 'integer',
-		size          => 16,
-		is_nullable   => 1,
-		default_value => 1,
+		data_type          => 'integer',
+		size               => 16,
+		is_nullable        => 1,
+		default_value      => 1,
+		retrieve_on_insert => 1,
 	},
 	problem_params => {
 		data_type          => 'text',
 		size               => 1024,
 		default_value      => '{}',
+		retrieve_on_insert => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}
 );
 
-sub valid_fields ($self, $field_name) {
-	if ($field_name eq 'problem_params') {
+__PACKAGE__->set_primary_key('user_problem_id');
 
+__PACKAGE__->belongs_to(problems  => 'DB::Schema::Result::SetProblem', 'set_problem_id');
+__PACKAGE__->belongs_to(user_sets => 'DB::Schema::Result::UserSet',    'user_set_id');
+
+__PACKAGE__->has_many(attempts => 'DB::Schema::Result::Attempt', 'user_problem_id');
+
+=head2 C<valid_fields>
+
+subroutine that returns a hash of the valid fields for json columns
+
+=cut
+
+sub valid_fields ($self, $column_name) {
+	if ($column_name eq 'problem_params') {
 		return {
 			# positive integers or decimals
-			weight               => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},
+			weight               => q{^\d+\.?\d*$},
 			library_id           => q{\d+},
 			file_path            => q{.*},
 			problem_pool_id      => q{\d+},
@@ -80,20 +94,5 @@ sub valid_fields ($self, $field_name) {
 		return {};
 	}
 }
-
-sub required ($self, $field_name) {
-	return {};
-}
-
-sub additional_validation ($self, $field_name) {
-	return 1;
-}
-
-__PACKAGE__->set_primary_key('user_problem_id');
-
-__PACKAGE__->belongs_to(problems  => 'DB::Schema::Result::SetProblem', 'set_problem_id');
-__PACKAGE__->belongs_to(user_sets => 'DB::Schema::Result::UserSet',    'user_set_id');
-
-__PACKAGE__->has_many(attempts => 'DB::Schema::Result::Attempt', 'user_problem_id');
 
 1;

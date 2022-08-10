@@ -64,24 +64,21 @@ __PACKAGE__->add_columns(
 	user_set_id => {
 		data_type         => 'integer',
 		size              => 16,
-		is_nullable       => 0,
 		is_auto_increment => 1,
 	},
 	set_id => {
-		data_type   => 'integer',
-		size        => 16,
-		is_nullable => 0,
+		data_type => 'integer',
+		size      => 16,
 	},
 	course_user_id => {
-		data_type   => 'integer',
-		size        => 16,
-		is_nullable => 0,
+		data_type => 'integer',
+		size      => 16,
 	},
 	set_version => {
-		data_type     => 'integer',
-		size          => 16,
-		is_nullable   => 0,
-		default_value => 0,
+		data_type          => 'integer',
+		size               => 16,
+		default_value      => 0,
+		retrieve_on_insert => 1,
 	},
 	set_visible => {
 		data_type   => 'boolean',
@@ -91,8 +88,8 @@ __PACKAGE__->add_columns(
 	set_dates => {
 		data_type          => 'text',
 		size               => 256,
-		is_nullable        => 0,
 		default_value      => '{}',
+		retrieve_on_insert => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
@@ -100,8 +97,8 @@ __PACKAGE__->add_columns(
 	set_params => {
 		data_type          => 'text',
 		size               => 256,
-		is_nullable        => 0,
 		default_value      => '{}',
+		retrieve_on_insert => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}

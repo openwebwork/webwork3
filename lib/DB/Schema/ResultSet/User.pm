@@ -112,6 +112,7 @@ The user as  C<DBIx::Class::ResultSet::User> object or C<undef> if no user exist
 
 sub addGlobalUser ($self, %args) {
 	my %new_columns = map { exists $args{params}{$_} ? ($_ => $args{params}{$_}) : () } $self->result_source->columns;
+	delete $new_columns{user_id};
 
 	DB::Exception::ParametersNeeded->throw(message => 'The parameters must include username')
 		unless defined($new_columns{username});
@@ -120,7 +121,7 @@ sub addGlobalUser ($self, %args) {
 	DB::Exception::InvalidParameter->throw(message => "The username '$new_columns{username}' is not valid.")
 		unless $new_columns{username} =~ /^[\w@\d.]+$/;
 
-	my $new_user = $self->create(\%new_columns)->discard_changes;
+	my $new_user = $self->create(\%new_columns);
 	return $new_user if $args{as_result_set};
 	return removeLoginParams({ $new_user->get_inflated_columns });
 }

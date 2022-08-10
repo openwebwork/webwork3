@@ -61,35 +61,6 @@ Note: a problem should have only one of a library_id, problem_path or problem_po
 
 =cut
 
-sub valid_fields ($self, $field_name) {
-	if ($field_name eq 'problem_params') {
-		return {
-			weight          => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},    # positive integers or decimals
-			library_id      => q{\d+},
-			file_path       => q{.*},
-			problem_pool_id => q{\d+},
-			max_attempts    => q{-?\d+}
-		};
-	} else {
-		return {};
-	}
-}
-
-sub required ($self, $field_name) {
-	# Although the following is desirable eventually.
-	# return { '_ALL_' => [ 'weight', { '_ONE_OF_' => [ 'library_id', 'file_path', 'problem_pool_id' ] } ] };
-	# currently, don't have any restrictions on the params.
-	if ($field_name eq 'problem_params') {
-		return { '_ALL_' => [ 'weight', { '_AT_LEAST_ONE_OF_' => [ 'library_id', 'file_path', 'problem_pool_id' ] } ] };
-	} else {
-		return {};
-	}
-}
-
-sub additional_validation ($self, $field_name) {
-	return 1;
-}
-
 # This is the table that stores problems for a given Problem Set.
 
 __PACKAGE__->table('set_problem');
@@ -100,13 +71,11 @@ __PACKAGE__->add_columns(
 	set_problem_id => {
 		data_type         => 'integer',
 		size              => 16,
-		is_nullable       => 0,
 		is_auto_increment => 1,
 	},
 	set_id => {
-		data_type   => 'integer',
-		size        => 16,
-		is_nullable => 0,
+		data_type => 'integer',
+		size      => 16,
 	},
 	problem_number => {
 		data_type   => 'integer',
@@ -117,8 +86,8 @@ __PACKAGE__->add_columns(
 	problem_params => {
 		data_type          => 'text',
 		size               => 256,
-		is_nullable        => 0,
 		default_value      => '{}',
+		retrieve_on_insert => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	}
@@ -131,5 +100,40 @@ __PACKAGE__->add_unique_constraint([qw/set_problem_id set_id problem_number/]);
 
 __PACKAGE__->belongs_to(problem_set => 'DB::Schema::Result::ProblemSet', 'set_id');
 __PACKAGE__->has_many(user_problems => 'DB::Schema::Result::UserProblem', 'set_problem_id');
+
+=head2 C<valid_fields>
+
+subroutine that returns a hash of the valid fields for json columns
+
+=cut
+
+sub valid_fields ($, $column_name) {
+	if ($column_name eq 'problem_params') {
+		return {
+			weight          => q{^[+]?([0-9]+(?:[\.][0-9]*)?|\.[0-9]+)$},    # positive integers or decimals
+			library_id      => q{\d+},
+			file_path       => q{.*},
+			problem_pool_id => q{\d+},
+			max_attempts    => q{-?\d+}
+		};
+	} else {
+		return {};
+	}
+}
+
+=head2 C<required>
+
+subroutine that returns a hashref describing the required fields in JSON columns
+
+=cut
+
+sub required ($, $column_name) {
+	if ($column_name eq 'problem_params') {
+		# TODO: ultimately we only want '_ONE_OF_' the problem_sources
+		return { '_ALL_' => [ 'weight', { '_AT_LEAST_ONE_OF_' => [ 'library_id', 'file_path', 'problem_pool_id' ] } ] };
+	} else {
+		return {};
+	}
+}
 
 1;
