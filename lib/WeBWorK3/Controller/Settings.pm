@@ -68,9 +68,9 @@ sub deleteCourseSetting ($c) {
 sub checkTimeZone ($c) {
 	try {
 		DateTime::TimeZone->new(name => $c->req->json->{timezone});
-		$c->render(json => {valid_timezone => true });
+		$c->render(json => { valid_timezone => true });
 	} catch {
-		$c->render(json => {valid_timezone => false });
+		$c->render(json => { valid_timezone => false });
 	};
 }
 
