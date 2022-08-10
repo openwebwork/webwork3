@@ -60,7 +60,7 @@ for my $setting (@$global_settings_from_db) {
 is_deeply($global_settings_from_db, $global_settings_from_file, 'test that the global settings are correct.');
 
 # get a single global/default setting
-$t->get_ok('/webwork3/api/global-setting/1')->content_type_is('application/json;charset=UTF-8')->status_is(200)
+$t->get_ok('/webwork3/api/global-settings/1')->content_type_is('application/json;charset=UTF-8')->status_is(200)
 	->json_is('/setting_name'  => $global_settings_from_file->[0]->{setting_name})
 	->json_is('/default_value' => $global_settings_from_file->[0]->{default_value})
 	->json_is('/description'   => $global_settings_from_file->[0]->{description});
@@ -104,5 +104,15 @@ $t->put_ok(
 
 $t->delete_ok("/webwork3/api/courses/4/settings/$reduced_scoring->{setting_id}")
 	->content_type_is('application/json;charset=UTF-8')->status_is(200)->json_is('/value' => 0.5);
+
+# Check for valid and invalid timezones
+
+$t->post_ok('/webwork3/api/global-settings/check-timezone' => json => {timezone => 'America/Chicago'})
+	->content_type_is('application/json;charset=UTF-8')->status_is(200)
+	->json_is('/valid_timezone' => true);
+
+$t->post_ok('/webwork3/api/global-settings/check-timezone' => json => {timezone => 'Amrica/Chicago'})
+	->status_is(200)->json_is('/valid_timezone' => false);
+
 
 done_testing;

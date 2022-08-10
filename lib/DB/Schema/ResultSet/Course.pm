@@ -450,8 +450,6 @@ A single course setting as either a hashref or a C<DBIx::Class::ResultSet::Cours
 
 =cut
 
-use Data::Dumper;
-
 sub updateCourseSetting ($self, %args) {
 	my $course = $self->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 
@@ -466,13 +464,13 @@ sub updateCourseSetting ($self, %args) {
 	my $params = {
 		course_id  => $course->course_id,
 		setting_id => $global_setting->{setting_id},
-		value      => { value => $args{params}->{value} }
+		value      => { value => $args{params}{value} }
 	};
 
 	# remove the following fields before checking for valid settings:
-	for (qw/setting_id course_id/) { delete $global_setting->{$_}; }
+	delete $global_setting->{$_} for (qw/setting_id course_id/);
 
-	isValidSetting($global_setting, $params->{value}->{value});
+	isValidSetting($global_setting, $params->{value}{value});
 
 	# The course_id must be deleted to ensure it is written to the database correctly.
 	delete $params->{course_id} if defined($params->{course_id});

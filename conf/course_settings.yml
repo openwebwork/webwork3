@@ -401,8 +401,8 @@
     student answer, e.g. 1 if student input is sin(pi/2). If this is set to false, e.g.
     to save space in the response area, the student can still see their evaluated answer
     by hovering the mouse pointer over the typeset version of their answer.
-  type: text
-  default_value: ''
+  type: boolean
+  default_value: false
 -
   setting_name: use_base_10_log
   category: problem

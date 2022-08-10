@@ -1,40 +1,55 @@
 <template>
 	<tr>
 		<td width="60%">{{ setting.description }}
-			<q-icon v-if="setting.doc" name="help" class="q-ml-md">
-				<q-tooltip class="text-body2">
-					{{ setting.doc }}
-				</q-tooltip>
-			</q-icon>
+			<q-icon v-if="setting.doc" name="help" size="sm" color="primary"
+				class="q-ml-md" @click="show_help = !show_help"
+			/>
 		</td>
 		<td width="40%">
 			<input-with-blur
 				outlined dense
-				v-if="setting?.type === 'text' || setting?.type === 'timezone'"
-				v-model="course_setting.value"
+				v-if="setting?.type === 'text'"
+				v-model="setting_value"
 			/>
-			<q-select v-if="setting.type === 'list'" v-model="option" :options="options" />
+			<input-with-blur
+				outlined dense
+				v-if="setting?.type === 'decimal'"
+				v-model.number="setting_value"
+				type="number"
+			/>
+			<input-with-blur
+				outlined dense
+				v-if="setting?.type === 'timezone'"
+				v-model="setting_value"
+				:error="!valid_timezone"
+				error-message="This is not a valid timezone"
+			/>
+			<q-select v-if="setting.type === 'list'" v-model="option_value" :options="options" />
+			<q-select v-if="setting.type === 'multilist'" multiple v-model="multilist_value" :options="options" />
 			<input-with-blur
 				v-if="setting.type === 'time_duration'"
-				v-model="course_setting.value"
+				v-model="setting_value"
+				lazy-rules
 				:rules="[checkTimeDuration]"
 			/>
-			<q-toggle v-if="setting.type === 'boolean'" v-model="course_setting.value" />
-			<q-input v-if="setting.type === 'integer'" v-model="course_setting.value" :rules="[checkInt]" />
+			<q-toggle v-if="setting.type === 'boolean'" v-model="setting_value" />
+			<q-input v-if="setting.type === 'int'" v-model.number="setting_value" type="number" :rules="[checkInt]" />
 		</td>
 	</tr>
+	<tr v-if="setting.doc && show_help"><td class="helptext" colspan="2"><div v-html="setting.doc" /></td></tr>
 </template>
 
 <script setup lang="ts">
 import { defineProps, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
-import { CourseSetting, OptionType } from 'src/common/models/settings';
+import { CourseSetting, OptionType, SettingValueType } from 'src/common/models/settings';
 
 import InputWithBlur from 'src/components/common/InputWithBlur.vue';
 import { logger } from 'src/boot/logger';
 
 import { useSettingsStore } from 'src/stores/settings';
 import { isTimeDuration } from 'src/common/models/parsers';
+import { api } from 'src/boot/axios';
 
 const props = defineProps<{
 	setting: CourseSetting
@@ -44,22 +59,43 @@ const $q = useQuasar();
 const settings = useSettingsStore();
 
 const course_setting = ref(props.setting.clone());
+// used for text input/toggles
+const setting_value = ref<SettingValueType>();
+if (['int', 'decimal', 'text', 'boolean', 'time_duration', 'timezone'].includes(course_setting.value.type)) {
+	setting_value.value = course_setting.value.value;
+}
+// Used for type list and multilist
+const option_value = ref<OptionType>({ value: '', label: '' });
+const multilist_value = ref<OptionType[]>([]);
+const options = ref<OptionType[]>([]);
 
-const option = ref<OptionType>({ value: '', label: '' });
-const options = ref<Array<OptionType>>([]);
+// Determine if the help in settings.doc is shown.
+const show_help = ref(false);
 
-const checkInt = (val: string) => Number.isInteger(val) ? true : 'This must be an integer.';
-const checkTimeDuration = (val: string) => isTimeDuration(val) ? true : 'This must be a time duration.';
+const checkInt = (val: string) => Number.isInteger(val) || 'This must be an integer.';
+const checkTimeDuration = (val: string) => isTimeDuration(val) || 'This must be a time duration.';
 
+const valid_timezone = ref(true);
+
+// These are for type list/multilist
 if (course_setting.value.options) {
 	options.value = course_setting.value.options.map((opt: string | OptionType) =>
 		typeof opt === 'string' ? { label: opt, value: opt } : opt
 	);
-	const v = options.value.find((opt: OptionType) => opt.value === course_setting.value.value);
-	option.value = v || { value: '', label: '' };
+}
+// Extract the option_value for type list
+if (course_setting.value.type === 'list') {
+	option_value.value = options.value.find((opt: OptionType) => opt.value === course_setting.value.value) ||
+		{ value: '', label: '' };
 }
 
-watch(() => course_setting.value.value, async () => {
+// Extract the multilist_value for type list
+if (course_setting.value.type === 'multilist') {
+	multilist_value.value = options.value
+		.filter((opt: OptionType) => (course_setting.value.value as string[]).includes(opt.value));
+}
+
+const updateCourseSetting = async () => {
 	try {
 		await settings.updateCourseSetting(course_setting.value as CourseSetting);
 		const msg = `The setting '${course_setting.value.setting_name}' was updated successfully`;
@@ -72,5 +108,42 @@ watch(() => course_setting.value.value, async () => {
 		$q.notify({ message: err as string, color: 'red' });
 		logger.error(`[CourseSettings/updateCourseSetting]: ${err as string}`);
 	}
+};
+
+watch(() => setting_value.value, async () => {
+	if (setting_value.value) {
+		if (course_setting.value.type === 'timezone') {
+			// Check for valid timezone on the server.
+			const response = await api.post('/global-settings/check-timezone',
+				{ timezone: setting_value.value });
+			valid_timezone.value = (response.data as { valid_timezone: boolean }).valid_timezone;
+			if (!valid_timezone.value) return;
+		}
+		course_setting.value.value = setting_value.value;
+		await updateCourseSetting();
+	}
+});
+
+watch(() => option_value.value, async () => {
+	if (option_value.value) {
+		course_setting.value.value = option_value.value.value;
+		await updateCourseSetting();
+	}
+});
+
+watch(() => multilist_value.value, async () => {
+	if (multilist_value.value) {
+		course_setting.value.value = multilist_value.value.map(opt => opt.value);
+		await updateCourseSetting();
+	}
 });
 </script>
+
+<style lang="scss" scoped>
+.helptext {
+	border: 1px solid black;
+	border-radius: 5px;
+	padding: 5px 0px;
+	background-color: lightyellow;
+}
+</style>
