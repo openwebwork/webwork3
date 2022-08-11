@@ -2,7 +2,7 @@
 /* These are related to Course Settings */
 
 import { Model } from '.';
-import { isTime, isTimeDuration } from './parsers';
+import { isNonNegInt, isTime } from './parsers';
 
 export enum SettingType {
 	int = 'int',
@@ -132,7 +132,7 @@ const validSettingValue = (setting: GlobalSetting | CourseSetting, v: SettingVal
 	case SettingType.text: return typeof(v) === 'string';
 	case SettingType.boolean: return typeof(v) === 'boolean';
 	case SettingType.time: return typeof(v) === 'string' && isTime(v);
-	case SettingType.time_duration: return typeof(v) === 'string' && isTimeDuration(v);
+	case SettingType.time_duration: return typeof(v) === 'number' && isNonNegInt(v);
 	case SettingType.timezone: return typeof(v) === 'string';
 	default: return false;
 

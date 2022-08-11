@@ -24,6 +24,7 @@ use DB::Schema;
 use WeBWorK3::Utils::Settings qw/isInteger isTimeString isTimeDuration isDecimal mergeCourseSettings
 	isValidSetting/;
 
+use DB::Utils qw/convertTimeDuration/;
 use TestUtils qw/removeIDs loadCSV/;
 
 # Load the database
@@ -76,6 +77,26 @@ ok(isDecimal("-.33"), 'check type: decimal');
 ok(isDecimal('00.33'),  'check type: decimal');
 ok(!isDecimal("0-.33"), 'check type: not a decimal');
 ok(!isDecimal('abc'),   'check type: not a decimal');
+
+# Check that time duration conversion works as intended.
+is(convertTimeDuration('15 sec'), 15, 'convertTimeDuration: 15 sec');
+is(convertTimeDuration('15 secs'), 15, 'convertTimeDuration: 15 secs');
+
+is(convertTimeDuration('15 min'), 900, 'convertTimeDuration: 15 min');
+is(convertTimeDuration('15 mins'), 900, 'convertTimeDuration: 15 mins');
+is(convertTimeDuration('15 minute'), 900, 'convertTimeDuration: 15 minute');
+is(convertTimeDuration('15 minutes'), 900, 'convertTimeDuration: 15 minutes');
+
+is(convertTimeDuration('6 hour'), 21600, 'convertTimeDuration: 6 hour');
+is(convertTimeDuration('6 hours'), 21600, 'convertTimeDuration: 6 hours');
+is(convertTimeDuration('6 hr'), 21600, 'convertTimeDuration: 6 hr');
+is(convertTimeDuration('6 hrs'), 21600, 'convertTimeDuration: 6 hrs');
+
+is(convertTimeDuration('3 day'), 259200, 'convertTimeDuration: 3 day');
+is(convertTimeDuration('3 days'), 259200, 'convertTimeDuration: 3 days');
+
+is(convertTimeDuration('2 week'), 1209600, 'convertTimeDuration: 2 week');
+is(convertTimeDuration('2 weeks'), 1209600, 'convertTimeDuration: 2 weeks');
 
 # Check that each of the given course_setting types are both valid and invalid.
 my $valid_setting = {

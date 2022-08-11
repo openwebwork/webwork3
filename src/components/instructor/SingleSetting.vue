@@ -28,7 +28,7 @@
 			<q-select v-if="setting.type === 'multilist'" multiple v-model="multilist_value" :options="options" />
 			<input-with-blur
 				v-if="setting.type === 'time_duration'"
-				v-model="setting_value"
+				v-model="time_duration_value"
 				lazy-rules
 				:rules="[checkTimeDuration]"
 			/>
@@ -48,7 +48,7 @@ import InputWithBlur from 'src/components/common/InputWithBlur.vue';
 import { logger } from 'src/boot/logger';
 
 import { useSettingsStore } from 'src/stores/settings';
-import { isTimeDuration } from 'src/common/models/parsers';
+import { convertTimeDuration, humanReadableTimeDuration, isTimeDuration } from 'src/common/models/parsers';
 import { api } from 'src/boot/axios';
 
 const props = defineProps<{
@@ -69,6 +69,9 @@ const option_value = ref<OptionType>({ value: '', label: '' });
 const multilist_value = ref<OptionType[]>([]);
 const options = ref<OptionType[]>([]);
 
+// Needed for time_duration
+const time_duration_value = ref('');
+
 // Determine if the help in settings.doc is shown.
 const show_help = ref(false);
 
@@ -76,6 +79,11 @@ const checkInt = (val: string) => Number.isInteger(val) || 'This must be an inte
 const checkTimeDuration = (val: string) => isTimeDuration(val) || 'This must be a time duration.';
 
 const valid_timezone = ref(true);
+
+// Convert the time_duration to human readable format:
+if (course_setting.value.type === 'time_duration') {
+	time_duration_value.value = humanReadableTimeDuration(course_setting.value.value as number);
+}
 
 // These are for type list/multilist
 if (course_setting.value.options) {
@@ -134,6 +142,13 @@ watch(() => option_value.value, async () => {
 watch(() => multilist_value.value, async () => {
 	if (multilist_value.value) {
 		course_setting.value.value = multilist_value.value.map(opt => opt.value);
+		await updateCourseSetting();
+	}
+});
+
+watch(() => time_duration_value.value, async () => {
+	if (time_duration_value.value) {
+		course_setting.value.value = convertTimeDuration(time_duration_value.value);
 		await updateCourseSetting();
 	}
 });

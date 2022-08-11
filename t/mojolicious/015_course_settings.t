@@ -40,7 +40,9 @@ $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => '
 	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => false);
 
 # Load the global settings from the file
-my $global_settings_from_file = LoadFile("$main::ww3_dir/conf/course_settings.yml");
+my $settings_file = "$main::ww3_dir/conf/course_settings.yml";
+$settings_file = "$main::ww3_dir/conf/course_settings.dist.yml" unless -r $settings_file;
+my $global_settings_from_file = LoadFile($settings_file);
 
 # Get the global/default settings
 

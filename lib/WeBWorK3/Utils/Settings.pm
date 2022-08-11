@@ -103,7 +103,7 @@ sub isValidSetting ($setting, $value = undef) {
 	} elsif ($setting->{type} eq 'time_duration') {
 		DB::Exception::InvalidCourseFieldType->throw(
 			message => qq/The variable $setting->{setting_name} has value $val and must be a time duration/)
-			unless isTimeDuration($val);
+			unless $val =~ /^\d+$/;
 	} elsif ($setting->{type} eq 'timezone') {
 		# try to make a new timeZone.  If the name isn't valid an 'Invalid offset:' will be thrown.
 		DateTime::TimeZone->new(name => $val);
