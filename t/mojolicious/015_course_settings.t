@@ -20,6 +20,7 @@ use lib "$main::ww3_dir/t/lib";
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
 use List::MoreUtils qw/firstval/;
+use Mojo::JSON qw/true false/;
 
 use TestUtils qw/loadCSV removeIDs/;
 
@@ -33,10 +34,10 @@ my $config = clone(LoadFile($config_file));
 
 my $t = Test::Mojo->new(WeBWorK3 => $config);
 
-# Authenticate with the admin user.
-$t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/user_id' => 1)
-	->json_is('/user/is_admin' => 1);
+# Authenticate with an instructor.
+$t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
+	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => false);
 
 # Load the global settings from the file
 my $global_settings_from_file = LoadFile("$main::ww3_dir/conf/course_settings.yml");
@@ -112,5 +113,30 @@ $t->post_ok('/webwork3/api/global-settings/check-timezone' => json => { timezone
 
 $t->post_ok('/webwork3/api/global-settings/check-timezone' => json => { timezone => 'Amrica/Chicago' })->status_is(200)
 	->json_is('/valid_timezone' => false);
+
+# Check to make sure that a student has appropriate access (ralph is a student in Arithmetic-course_id: 4)
+
+$t->post_ok('/webwork3/api/logout')->status_is(200);
+$t->post_ok('/webwork3/api/login' => json => { username => 'ralph', password => 'ralph' })->status_is(200);
+
+# A student should have access to the global settings;
+$t->get_ok('/webwork3/api/global-settings')->content_type_is('application/json;charset=UTF-8')->status_is(200);
+$t->get_ok('/webwork3/api/global-settings/1')->content_type_is('application/json;charset=UTF-8')->status_is(200);
+
+# A student should also have access to the course setting overrides for a course they are enrolled in.
+$t->get_ok('/webwork3/api/courses/4/settings')->content_type_is('application/json;charset=UTF-8')->status_is(200);
+
+# But not from a course they are not enrolled in
+$t->get_ok('/webwork3/api/courses/5/settings')->content_type_is('application/json;charset=UTF-8')->status_is(403);
+
+# A student shouldn't be able to update a course setting
+$t->put_ok(
+	"/webwork3/api/courses/4/settings/$reduced_scoring->{setting_id}" => json => {
+		value => 0.5
+	}
+)->status_is(403);
+
+# Nor delete a course setting
+$t->delete_ok("/webwork3/api/courses/4/settings/$reduced_scoring->{setting_id}")->status_is(403);
 
 done_testing;

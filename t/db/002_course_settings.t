@@ -182,7 +182,12 @@ for my $setting (@$global_settings) {
 local $YAML::XS::Boolean = "JSON::PP";
 my $global_settings_from_file = LoadFile("$main::ww3_dir/conf/course_settings.yml");
 
-is_deeply($global_settings, $global_settings_from_file, 'default settings: db values are the same as the file values.');
+# sort each of these for comparison
+my @global_settings           = sort { $a->{setting_name} cmp $b->{setting_name} } @$global_settings;
+my @global_settings_from_file = sort { $a->{setting_name} cmp $b->{setting_name} } @$global_settings_from_file;
+
+is_deeply(\@global_settings, \@global_settings_from_file,
+	'default settings: db values are the same as the file values.');
 
 # Make sure all of the default settings are valid
 for my $setting (@$global_settings) {
