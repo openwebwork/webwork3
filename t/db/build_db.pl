@@ -85,7 +85,10 @@ sub addCourses {
 
 sub addSettings {
 	say 'adding default settings' if $verbose;
+
 	my $settings_file = "$main::ww3_dir/conf/course_settings.yml";
+	$settings_file = "$main::ww3_dir/conf/course_settings.dist.yml" unless -r $settings_file;
+	say $settings_file;
 	die "The default settings file: '$settings_file' does not exist or is not readable"
 		unless -r $settings_file;
 	my $course_settings = LoadFile($settings_file);

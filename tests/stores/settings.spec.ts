@@ -37,7 +37,9 @@ describe('Test the settings store', () => {
 		setActivePinia(pinia);
 
 		// Load the default settings
-		const file = fs.readFileSync('conf/course_settings.yml', 'utf8');
+		let settings_file = 'conf/course_settings.yml';
+		if (!fs.existsSync(settings_file)) settings_file = 'conf/course_settings.dist.yml';
+		const file = fs.readFileSync(settings_file, 'utf8');
 		default_settings = parse(file) as ParseableGlobalSetting[];
 
 		// Fetch the course settings from the CSV file

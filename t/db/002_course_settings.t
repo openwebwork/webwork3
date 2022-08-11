@@ -180,7 +180,9 @@ for my $setting (@$global_settings) {
 
 # Ensure that booleans in the YAML file are loaded correctly.
 local $YAML::XS::Boolean = "JSON::PP";
-my $global_settings_from_file = LoadFile("$main::ww3_dir/conf/course_settings.yml");
+my $settings_file = "$main::ww3_dir/conf/course_settings.yml";
+$settings_file = "$main::ww3_dir/conf/course_settings.dist.yml" unless -r $settings_file;
+my $global_settings_from_file = LoadFile($settings_file);
 
 # sort each of these for comparison
 my @global_settings           = sort { $a->{setting_name} cmp $b->{setting_name} } @$global_settings;
