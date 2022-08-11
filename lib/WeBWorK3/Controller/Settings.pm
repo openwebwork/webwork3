@@ -72,6 +72,7 @@ sub checkTimeZone ($c) {
 	} catch {
 		$c->render(json => { valid_timezone => false });
 	};
+	return;
 }
 
 1;
