@@ -2,6 +2,7 @@
 
 import { CourseSetting, DBCourseSetting, GlobalSetting, SettingType
 } from 'src/common/models/settings';
+import { convertTimeDuration, humanReadableTimeDuration } from 'src/common/models/parsers';
 
 describe('Testing Course Settings', () => {
 	const global_setting = {
@@ -804,7 +805,7 @@ describe('Testing Course Settings', () => {
 
 			course_setting.set({
 				setting_name: 'time_duration',
-				default_value: '10 days',
+				default_value: 1234,
 				description: 'I am an time interval',
 				doc: 'Extended help',
 				type: 'time_duration',
@@ -816,6 +817,9 @@ describe('Testing Course Settings', () => {
 			course_setting.set({ value: 3.14 });
 			expect(course_setting.isValid()).toBe(false);
 
+			course_setting.set({ value: '3 days' });
+			expect(course_setting.isValid()).toBe(false);
+
 			course_setting.set({ value: 'hi' });
 			expect(course_setting.isValid()).toBe(false);
 
@@ -823,5 +827,72 @@ describe('Testing Course Settings', () => {
 			expect(course_setting.isValid()).toBe(false);
 		});
 
+	});
+
+	describe('Test converting of human readable time duration to number of seconds', () => {
+		test('Test time duration of seconds', () => {
+			expect(convertTimeDuration('1 sec')).toBe(1);
+			expect(convertTimeDuration('15 secs')).toBe(15);
+		});
+
+		test('Test time duration of mins', () => {
+			expect(convertTimeDuration('1 min')).toBe(60);
+			expect(convertTimeDuration('5 mins')).toBe(5 * 60);
+			expect(convertTimeDuration('5 mins, 30 secs')).toBe(5*60+30);
+		});
+
+		test('Test time duration of hours', () => {
+			expect(convertTimeDuration('1 hour')).toBe(1 * 60 * 60);
+			expect(convertTimeDuration('1 hr')).toBe(1 * 60 * 60);
+			expect(convertTimeDuration('5 hours')).toBe(5 * 60 * 60);
+			expect(convertTimeDuration('3 hrs')).toBe(3 * 60 * 60);
+			expect(convertTimeDuration('3 hrs, 10 mins, 15 seconds')).toBe(3*60*60+10*60+15);
+		});
+
+		test('Test time duration of days', () => {
+			expect(convertTimeDuration('1 day')).toBe(1 * 24 * 60 * 60);
+			expect(convertTimeDuration('3 days')).toBe(3 * 24 * 60 * 60);
+			expect(convertTimeDuration('3 days, 12 hours')).toBe(3 * 24 * 60 * 60+ 12*60*60);
+		});
+
+		test('Test time duration of weeks', () => {
+			expect(convertTimeDuration('1 week')).toBe(1 * 7 * 24 * 60 * 60);
+			expect(convertTimeDuration('2 weeks')).toBe(2 * 7 * 24 * 60 * 60);
+			expect(convertTimeDuration('2 weeks, 5 days')).toBe(2 * 7 * 24 * 60 * 60 + 5 *24 *60 *60);
+		});
+
+	});
+
+	describe('Test conversion of num. seconds to human readable time durations', () => {
+		test('Test time duration of secs', () => {
+			expect(humanReadableTimeDuration(0)).toBe('');
+			expect(humanReadableTimeDuration(1)).toBe('1 sec');
+			expect(humanReadableTimeDuration(15)).toBe('15 secs');
+		});
+
+		test('Test time duration of mins', () => {
+			expect(humanReadableTimeDuration(60)).toBe('1 min');
+			expect(humanReadableTimeDuration(5 * 60)).toBe('5 mins');
+			expect(humanReadableTimeDuration(5 * 60 + 30)).toBe('5 mins, 30 secs');
+		});
+
+		test('Test time duration of hours', () => {
+			expect(humanReadableTimeDuration(3600)).toBe('1 hour');
+			expect(humanReadableTimeDuration(5 * 3600)).toBe('5 hours');
+			expect(humanReadableTimeDuration(5 * 3600 + 30 * 60)).toBe('5 hours, 30 mins');
+		});
+
+		test('Test time duration of days', () => {
+			expect(humanReadableTimeDuration(3600 * 24)).toBe('1 day');
+			expect(humanReadableTimeDuration(3 * 3600 * 24)).toBe('3 days');
+			expect(humanReadableTimeDuration(3 * 3600 * 24 + 6 * 3600)).toBe('3 days, 6 hours');
+			expect(humanReadableTimeDuration(3 * 3600 * 24 + 6 * 3600 + 30 * 60)).toBe('3 days, 6 hours, 30 mins');
+		});
+
+		test('Test time duration of weeks', () => {
+			expect(humanReadableTimeDuration(3600 * 24 * 7)).toBe('1 week');
+			expect(humanReadableTimeDuration(3600 * 24 * 7 * 2)).toBe('2 weeks');
+			expect(humanReadableTimeDuration(3600 * 24 * 7 * 2 + 3 * 3600 * 24)).toBe('2 weeks, 3 days');
+		});
 	});
 });

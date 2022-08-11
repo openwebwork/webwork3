@@ -22,7 +22,7 @@ use YAML::XS qw/LoadFile/;
 use Mojo::JSON qw/true false/;
 
 use DB::Schema;
-use DB::Utils qw/updatePermissions/;
+use DB::Utils qw/updatePermissions convertTimeDuration/;
 use TestUtils qw/loadCSV/;
 
 my $verbose = 1;
@@ -82,17 +82,24 @@ sub addCourses {
 	}
 	return;
 }
+use Data::Dumper;
+
 
 sub addSettings {
 	say 'adding default settings' if $verbose;
 
 	my $settings_file = "$main::ww3_dir/conf/course_settings.yml";
 	$settings_file = "$main::ww3_dir/conf/course_settings.dist.yml" unless -r $settings_file;
-	say $settings_file;
 	die "The default settings file: '$settings_file' does not exist or is not readable"
 		unless -r $settings_file;
 	my $course_settings = LoadFile($settings_file);
 	for my $setting (@$course_settings) {
+
+		# If the setting is a time_duration, store it as a number of seconds in the db.
+		if ($setting->{type} eq 'time_duration') {
+			$setting->{default_value} = convertTimeDuration($setting->{default_value});
+		}
+
 		# encode default_value as a JSON object.
 		$setting->{default_value} = { value => $setting->{default_value} };
 		$global_setting_rs->create($setting);
@@ -105,6 +112,12 @@ sub addSettings {
 		die "the course: '$setting->{course_name}' does not exist in the db" unless $course;
 		my $global_setting = $global_setting_rs->find({ setting_name => $setting->{setting_name} });
 		die "the setting: '$setting->{setting_name}' does not exist in the db" unless $global_setting;
+
+		# If the setting is a time_duration, store it as a number of seconds in the db.
+		if ($global_setting->type eq 'time_duration') {
+			$setting->{setting_value} = convertTimeDuration($setting->{setting_value});
+		}
+
 
 		$course->add_to_course_settings({
 			course_id  => $course->course_id,

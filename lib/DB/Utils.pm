@@ -8,10 +8,10 @@ no warnings qw/experimental::signatures/;
 require Exporter;
 use base qw(Exporter);
 our @EXPORT_OK = qw/getCourseInfo getUserInfo getSetInfo updateAllFields updatePermissions
-	getPoolInfo getProblemInfo getPoolProblemInfo getSettingInfo removeLoginParams/;
+	getPoolInfo getProblemInfo getPoolProblemInfo getSettingInfo removeLoginParams
+	convertTimeDuration/;
 
 use Clone qw/clone/;
-use List::Util qw/first/;
 use Scalar::Util qw/reftype/;
 use YAML::XS qw/LoadFile/;
 
@@ -192,5 +192,28 @@ sub updatePermissions ($ww3_conf, $role_perm_file) {
 	}
 	return;
 }
+
+=pod
+=head2 convertTimeDuration
+
+This subroutine converts time durations stored as a string in human-readable format
+to a number of seconds.
+
+=cut
+
+sub convertTimeDuration ($time_duration) {
+	if ($time_duration =~ /^(\d+)\s(sec)s?$/) {
+		return $1;
+	} elsif ($time_duration =~ /^(\d+)\s(min(ute)?)s?$/) {
+		return $1*60;
+	} elsif ($time_duration =~ /^(\d+)\s(h(ou)?r)s?$/) {
+		return $1*60*60;
+	} elsif ($time_duration =~ /^(\d+)\s(day)s?$/) {
+		return $1*60*60*24;
+	} elsif ($time_duration =~ /^(\d+)\s(week)s?$/) {
+		return $1*60*60*24*7;
+	}
+}
+
 
 1;
