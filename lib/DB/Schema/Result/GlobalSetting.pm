@@ -37,7 +37,7 @@ C<type>: a string representation of the type of setting (boolean, text, list, ..
 
 =item *
 
-C<options>: a JSON object that stores options if the setting is an list or multilist
+C<options>: a JSON array that stores options if the setting is an list or multilist
 
 =item *
 
@@ -59,24 +59,21 @@ __PACKAGE__->add_columns(
 	setting_id => {
 		data_type         => 'integer',
 		size              => 16,
-		is_nullable       => 0,
 		is_auto_increment => 1,
 	},
 	setting_name => {
-		data_type   => 'varchar',
-		size        => 256,
-		is_nullable => 0,
+		data_type => 'varchar',
+		size      => 256,
 	},
 	default_value => {
 		data_type          => 'text',
-		is_nullable        => 0,
-		default_value      => '\'\'',
+		default_value      => '{}',
+		retrieve_on_insert => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
 	description => {
 		data_type     => 'text',
-		is_nullable   => 0,
 		default_value => '',
 	},
 	doc => {
@@ -85,20 +82,19 @@ __PACKAGE__->add_columns(
 	},
 	type => {
 		data_type     => 'varchar',
-		size          => 16,
-		is_nullable   => 0,
+		size          => 64,
 		default_value => '',
 	},
 	options => {
 		data_type          => 'text',
 		is_nullable        => 1,
+		retrieve_on_insert => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
 	category => {
 		data_type     => 'varchar',
 		size          => 64,
-		is_nullable   => 0,
 		default_value => ''
 	},
 	subcategory => {
@@ -111,7 +107,5 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('setting_id');
 
 __PACKAGE__->has_many(course_settings => 'DB::Schema::Result::CourseSetting', 'setting_id');
-
-# __PACKAGE__->belongs_to(course => 'DB::Schema::Result::Course', 'course_id');
 
 1;

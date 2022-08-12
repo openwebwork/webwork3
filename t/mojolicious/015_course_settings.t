@@ -23,6 +23,7 @@ use List::MoreUtils qw/firstval/;
 use Mojo::JSON qw/true false/;
 
 use TestUtils qw/loadCSV removeIDs/;
+use DB::Utils qw/humanReadableTimeDuration/;
 
 # Load the config file.
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
@@ -58,6 +59,10 @@ for my $setting (@$global_settings_from_db) {
 	for my $key (qw/subcategory options doc/) {
 		delete $setting->{$key} unless $setting->{$key};
 	}
+}
+# convert the database settings of type time_duration to human readable
+for (@$global_settings_from_db) {
+	$_->{default_value} = humanReadableTimeDuration($_->{default_value}) if $_->{type} eq 'time_duration';
 }
 
 is_deeply($global_settings_from_db, $global_settings_from_file, 'test that the global settings are correct.');

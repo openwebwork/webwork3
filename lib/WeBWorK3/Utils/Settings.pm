@@ -8,14 +8,14 @@ no warnings qw/experimental::signatures/;
 use YAML::XS qw/LoadFile/;
 
 require Exporter;
-use base qw(Exporter);
+use base qw/Exporter/;
 our @EXPORT_OK = qw/isValidSetting mergeCourseSettings isInteger isTimeString isTimeDuration isDecimal/;
 
-use Exception::Class qw(
+use Exception::Class qw/
 	DB::Exception::UndefinedCourseField
 	DB::Exception::InvalidCourseField
 	DB::Exception::InvalidCourseFieldType
-);
+	/;
 
 use DateTime::TimeZone;
 use JSON::PP;
@@ -80,35 +80,34 @@ sub isValidSetting ($setting, $value = undef) {
 	if ($setting->{type} eq 'text') {
 		# any val is valid.
 	} elsif ($setting->{type} eq 'boolean') {
-		my $is_bool = JSON::PP::is_bool($val);
 		DB::Exception::InvalidCourseFieldType->throw(
-			message => qq/The variable $setting->{setting_name} has value $val and must be a boolean./)
-			unless $is_bool;
+			message => "The variable $setting->{setting_name} has value $val and must be a boolean.")
+			unless JSON::PP::is_bool($val);
 	} elsif ($setting->{type} eq 'list') {
 		validateList($setting, $val);
 	} elsif ($setting->{type} eq 'multilist') {
 		validateMultilist($setting, $val);
 	} elsif ($setting->{type} eq 'time') {
-		DB::Exception::InvalidCourseFieldType->throw(message =>
-				qq/The variable $setting->{setting_name} has value $val and must be a time in the form XX:XX/)
+		DB::Exception::InvalidCourseFieldType->throw(
+			message => "The variable $setting->{setting_name} has value $val and must be a time in the form XX:XX")
 			unless isTimeString($val);
 	} elsif ($setting->{type} eq 'int') {
 		DB::Exception::InvalidCourseFieldType->throw(
-			message => qq/The variable $setting->{setting_name} has value $val and must be an integer./)
+			message => "The variable $setting->{setting_name} has value $val and must be an integer.")
 			unless isInteger($val);
 	} elsif ($setting->{type} eq 'decimal') {
 		DB::Exception::InvalidCourseFieldType->throw(
-			message => qq/The variable $setting->{setting_name} has value $val and must be a decimal/)
+			message => "The variable $setting->{setting_name} has value $val and must be a decimal.")
 			unless isDecimal($val);
 	} elsif ($setting->{type} eq 'time_duration') {
 		DB::Exception::InvalidCourseFieldType->throw(
-			message => qq/The variable $setting->{setting_name} has value $val and must be a time duration/)
+			message => "The variable $setting->{setting_name} has value $val and must be a time duration.")
 			unless $val =~ /^\d+$/;
 	} elsif ($setting->{type} eq 'timezone') {
 		# try to make a new timeZone.  If the name isn't valid an 'Invalid offset:' will be thrown.
 		DateTime::TimeZone->new(name => $val);
 	} else {
-		DB::Exception::InvalidCourseFieldType->throw(message => qq/The setting type $setting->{type} is not valid/);
+		DB::Exception::InvalidCourseFieldType->throw(message => "The setting type $setting->{type} is not valid.");
 	}
 	return 1;
 }

@@ -19,10 +19,11 @@ import { api } from 'boot/axios';
 
 import { useSessionStore } from 'src/stores/session';
 import { useSettingsStore } from 'src/stores/settings';
-import { CourseSetting, DBCourseSetting, ParseableDBCourseSetting, ParseableGlobalSetting, SettingValueType
-} from 'src/common/models/settings';
+import { CourseSetting, DBCourseSetting, GlobalSetting, ParseableDBCourseSetting, ParseableGlobalSetting,
+	SettingValueType } from 'src/common/models/settings';
 
 import { cleanIDs, loadCSV } from '../utils';
+import { humanReadableTimeDuration } from 'src/common/models/parsers';
 
 describe('Test the settings store', () => {
 
@@ -57,17 +58,24 @@ describe('Test the settings store', () => {
 	});
 
 	describe('Check the global settings', () => {
-
-		test('Check the default settings', () => {
-			const settings_store = useSettingsStore();
-			expect(cleanIDs(settings_store.global_settings)).toStrictEqual(default_settings);
-		});
+		let global_settings: GlobalSetting[];
 
 		test('Make sure the settings are valid.', () => {
 			const settings_store = useSettingsStore();
-			settings_store.global_settings.forEach(setting => {
+			global_settings = settings_store.global_settings.map(s => s.clone());
+			global_settings.forEach(setting => {
 				expect(setting.isValid()).toBe(true);
 			});
+		});
+
+		test('Check the default settings', () => {
+			global_settings.forEach(setting => {
+				// convert the time_duration to human readable
+				if (setting.type === 'time_duration') {
+					setting.default_value = humanReadableTimeDuration(setting.default_value as number);
+				}
+			});
+			expect(cleanIDs(global_settings)).toStrictEqual(default_settings);
 		});
 
 	});
@@ -107,13 +115,20 @@ describe('Test the settings store', () => {
 		test('Get all course settings for a given category', () => {
 			const settings_store = useSettingsStore();
 			const settings_from_db = settings_store.getSettingsByCategory('general');
+			settings_from_db.forEach(setting => {
+				// convert the time_duration to human readable
+				if (setting.type === 'time_duration') {
+					setting.default_value = humanReadableTimeDuration(setting.default_value as number);
+				}
+			});
 			const settings_from_file = default_settings
 				.filter(setting => setting.category === 'general')
 				.map(setting => new CourseSetting(setting));
-				// merge in the course setting overrides.
+
+			// merge in the course setting overrides.
 			settings_from_file.forEach(setting => {
-				const db_setting = arith_settings.find(a_setting => setting.setting_name === a_setting.setting_name);
-				if (db_setting) setting.value = db_setting.value;
+				const a_setting = arith_settings.find(a_setting => setting.setting_name === a_setting.setting_name);
+				setting.value = a_setting?.value ? a_setting.value : setting.value ?? setting.default_value;
 			});
 
 			expect(cleanIDs(settings_from_db)).toStrictEqual(cleanIDs(settings_from_file));

@@ -24,7 +24,7 @@ use DB::Schema;
 use WeBWorK3::Utils::Settings qw/isInteger isTimeString isTimeDuration isDecimal mergeCourseSettings
 	isValidSetting/;
 
-use DB::Utils qw/convertTimeDuration/;
+use DB::Utils qw/convertTimeDuration humanReadableTimeDuration/;
 use TestUtils qw/removeIDs loadCSV/;
 
 # Load the database
@@ -79,24 +79,52 @@ ok(!isDecimal("0-.33"), 'check type: not a decimal');
 ok(!isDecimal('abc'),   'check type: not a decimal');
 
 # Check that time duration conversion works as intended.
-is(convertTimeDuration('15 sec'), 15, 'convertTimeDuration: 15 sec');
+is(convertTimeDuration('15 sec'),  15, 'convertTimeDuration: 15 sec');
 is(convertTimeDuration('15 secs'), 15, 'convertTimeDuration: 15 secs');
 
-is(convertTimeDuration('15 min'), 900, 'convertTimeDuration: 15 min');
-is(convertTimeDuration('15 mins'), 900, 'convertTimeDuration: 15 mins');
-is(convertTimeDuration('15 minute'), 900, 'convertTimeDuration: 15 minute');
+is(convertTimeDuration('15 min'),     900, 'convertTimeDuration: 15 min');
+is(convertTimeDuration('15 mins'),    900, 'convertTimeDuration: 15 mins');
+is(convertTimeDuration('15 minute'),  900, 'convertTimeDuration: 15 minute');
 is(convertTimeDuration('15 minutes'), 900, 'convertTimeDuration: 15 minutes');
 
-is(convertTimeDuration('6 hour'), 21600, 'convertTimeDuration: 6 hour');
+is(convertTimeDuration('6 hour'),  21600, 'convertTimeDuration: 6 hour');
 is(convertTimeDuration('6 hours'), 21600, 'convertTimeDuration: 6 hours');
-is(convertTimeDuration('6 hr'), 21600, 'convertTimeDuration: 6 hr');
-is(convertTimeDuration('6 hrs'), 21600, 'convertTimeDuration: 6 hrs');
+is(convertTimeDuration('6 hr'),    21600, 'convertTimeDuration: 6 hr');
+is(convertTimeDuration('6 hrs'),   21600, 'convertTimeDuration: 6 hrs');
 
-is(convertTimeDuration('3 day'), 259200, 'convertTimeDuration: 3 day');
+is(convertTimeDuration('3 day'),  259200, 'convertTimeDuration: 3 day');
 is(convertTimeDuration('3 days'), 259200, 'convertTimeDuration: 3 days');
 
-is(convertTimeDuration('2 week'), 1209600, 'convertTimeDuration: 2 week');
+is(convertTimeDuration('2 week'),  1209600, 'convertTimeDuration: 2 week');
 is(convertTimeDuration('2 weeks'), 1209600, 'convertTimeDuration: 2 weeks');
+
+# Check that the integer to time_duration string is working
+is(humanReadableTimeDuration(15), '15 secs', 'humanReadableTimeDuration(15)');
+is(humanReadableTimeDuration(45), '45 secs', 'humanReadableTimeDuration(45)');
+
+is(humanReadableTimeDuration(1 * 60),       '1 min',            'humanReadableTimeDuration(1*60)');
+is(humanReadableTimeDuration(10 * 60),      '10 mins',          'humanReadableTimeDuration(10*60)');
+is(humanReadableTimeDuration(10 * 60 + 45), '10 mins, 45 secs', 'humanReadableTimeDuration(10*60)');
+
+is(humanReadableTimeDuration(1 * 60 * 60),           '1 hour',           'humanReadableTimeDuration(1*60*60)');
+is(humanReadableTimeDuration(5 * 60 * 60),           '5 hours',          'humanReadableTimeDuration(5*60*60)');
+is(humanReadableTimeDuration(5 * 60 * 60 + 30 * 60), '5 hours, 30 mins', 'humanReadableTimeDuration(5*60*60+3*60)');
+
+is(humanReadableTimeDuration(1 * 24 * 60 * 60), '1 day',  'humanReadableTimeDuration(1*24*60*60)');
+is(humanReadableTimeDuration(4 * 24 * 60 * 60), '4 days', 'humanReadableTimeDuration(4*24*60*60)');
+is(
+	humanReadableTimeDuration(4 * 24 * 60 * 60 + 13 * 60 * 60),
+	'4 days, 13 hours',
+	'humanReadableTimeDuration(4*24*60*60+13*60*60)'
+);
+
+is(humanReadableTimeDuration(1 * 7 * 24 * 60 * 60), '1 week',  'humanReadableTimeDuration(1*7*24*60*60)');
+is(humanReadableTimeDuration(3 * 7 * 24 * 60 * 60), '3 weeks', 'humanReadableTimeDuration(3*7*24*60*60)');
+is(
+	humanReadableTimeDuration(9 * 7 * 24 * 60 * 60 + 1 * 24 * 60 * 60),
+	'9 weeks, 1 day',
+	'humanReadableTimeDuration(9*7*24*60*60 + 1*24*60*60)'
+);
 
 # Check that each of the given course_setting types are both valid and invalid.
 my $valid_setting = {
@@ -209,13 +237,18 @@ my $global_settings_from_file = LoadFile($settings_file);
 my @global_settings           = sort { $a->{setting_name} cmp $b->{setting_name} } @$global_settings;
 my @global_settings_from_file = sort { $a->{setting_name} cmp $b->{setting_name} } @$global_settings_from_file;
 
-is_deeply(\@global_settings, \@global_settings_from_file,
-	'default settings: db values are the same as the file values.');
-
 # Make sure all of the default settings are valid
 for my $setting (@$global_settings) {
 	ok(isValidSetting($setting), "check default setting: $setting->{setting_name} is valid");
 }
+
+# convert the database settings of type time_duration to human readable
+for (@global_settings) {
+	$_->{default_value} = humanReadableTimeDuration($_->{default_value}) if $_->{type} eq 'time_duration';
+}
+
+is_deeply(\@global_settings, \@global_settings_from_file,
+	'default settings: db values are the same as the file values.');
 
 # Make a new course with no settings and compare to the default settings
 my $new_course = $course_rs->addCourse(params => { course_name => 'New Course' });
@@ -237,10 +270,16 @@ for my $setting (@$arith_settings_from_db) {
 	removeIDs($setting);
 }
 
-# Only compare the name/value of the settings
+# Only compare the name/value of the settings and convert and time_durations
 for my $setting (@$arith_settings_from_db) {
-	$setting = { setting_name => $setting->{setting_name}, value => $setting->{value} };
+	$setting = {
+		setting_name => $setting->{setting_name},
+		value        => $setting->{type} eq 'time_duration'
+		? humanReadableTimeDuration($setting->{value})
+		: $setting->{value}
+	};
 }
+
 is_deeply($arith_settings_from_db, \@arith_settings, 'getCourseSettings: compare settings for given course');
 
 my $updated_setting = $course_rs->updateCourseSetting(

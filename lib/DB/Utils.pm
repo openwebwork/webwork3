@@ -6,10 +6,10 @@ use feature 'signatures';
 no warnings qw/experimental::signatures/;
 
 require Exporter;
-use base qw(Exporter);
+use base qw/Exporter/;
 our @EXPORT_OK = qw/getCourseInfo getUserInfo getSetInfo updateAllFields updatePermissions
 	getPoolInfo getProblemInfo getPoolProblemInfo getSettingInfo removeLoginParams
-	convertTimeDuration/;
+	convertTimeDuration humanReadableTimeDuration/;
 
 use Clone qw/clone/;
 use Scalar::Util qw/reftype/;
@@ -205,15 +205,43 @@ sub convertTimeDuration ($time_duration) {
 	if ($time_duration =~ /^(\d+)\s(sec)s?$/) {
 		return $1;
 	} elsif ($time_duration =~ /^(\d+)\s(min(ute)?)s?$/) {
-		return $1*60;
+		return $1 * 60;
 	} elsif ($time_duration =~ /^(\d+)\s(h(ou)?r)s?$/) {
-		return $1*60*60;
+		return $1 * 60 * 60;
 	} elsif ($time_duration =~ /^(\d+)\s(day)s?$/) {
-		return $1*60*60*24;
+		return $1 * 60 * 60 * 24;
 	} elsif ($time_duration =~ /^(\d+)\s(week)s?$/) {
-		return $1*60*60*24*7;
+		return $1 * 60 * 60 * 24 * 7;
+	} else {
+		return 0;
 	}
 }
 
+=pod
+=head2
+
+This coverts a number of seconds to a human-readable format
+
+=cut
+
+sub humanReadableTimeDuration ($td) {
+	my $times = {
+		week => int($td / 604800),
+		day  => int($td % 604800 / 86400),
+		hour => int($td % 86400 / 3600),
+		min  => int($td % 3600 / 60),
+		sec  => $td % 60
+	};
+
+	my $time_duration = '';
+	# Order is important so the keys are defined.
+	for (qw/week day hour min sec/) {
+		my $val = $times->{$_};
+		$time_duration .= ($time_duration ne '' && $val ? ', ' : '')
+			# pluralize for more than 1.
+			. ($val > 0 ? "$val $_" . ($val == 1 ? '' : 's') : '');
+	}
+	return $time_duration;
+}
 
 1;
