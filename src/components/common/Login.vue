@@ -67,6 +67,8 @@ const login = async () => {
 		await permission_store.fetchRoles();
 		await permission_store.fetchRoutePermissions();
 
+		if (session.user.user_id == undefined || session.user.user_id == 0) return;
+
 		let forward = localStorage.getItem('afterLogin');
 		forward ||= (session_info.user.is_admin) ?
 			'/admin' :

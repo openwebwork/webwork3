@@ -54,7 +54,7 @@ export const usePermissionStore = defineStore('permission', {
 			// admin-only routes
 			const session_store = useSessionStore();
 			const user = session_store.user;
-			if (permission.admin_required) return user.is_admin;
+			if (permission.admin_required) return user.is_admin ?? false;
 
 			// routes that 'belong' to a user
 			const route_user_id = parseRouteUserID(route);

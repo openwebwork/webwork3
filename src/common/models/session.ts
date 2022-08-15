@@ -1,8 +1,8 @@
-import type { User } from 'src/common/models/users';
+import type { ParseableUser, User } from 'src/common/models/users';
 import { parseBoolean } from './parsers';
 
 export interface SessionInfo {
-	user: User;
+	user: ParseableUser;
 	logged_in: boolean;
 	message: string;
 }

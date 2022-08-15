@@ -191,14 +191,14 @@ export const useUserStore = defineStore('user', {
 		 */
 		async setSessionUser() {
 			const session_store = useSessionStore();
+			const user_id = session_store.user.user_id ?? 0;
 			// if there is no user in the session don't fetch the user.
-			if (session_store.user.user_id === 0) return;
+			if (user_id === 0) return;
 			// Get the global user.
-			const user_response = await api.get(`users/${session_store.user.user_id}`);
+			const user_response = await api.get(`users/${user_id}`);
 			this.users = [ new User(user_response.data as ParseableUser)];
 			// fetch the course user information for this use
-			const response = await api.get(`courses/${session_store.course.course_id}/users/${
-				session_store.user.user_id}`);
+			const response = await api.get(`courses/${session_store.course.course_id}/users/${user_id}`);
 			this.db_course_users = [ new DBCourseUser(response.data as ParseableDBCourseUser)];
 		},
 		// CourseUser actions

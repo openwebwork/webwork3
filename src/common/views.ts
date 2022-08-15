@@ -51,7 +51,7 @@ export const student_views: Array<ViewInfo> = [
 export const instructor_views: Array<ViewInfo> = [
 	{
 		name: 'Dashboard',
-		component_name: 'Dashboard',
+		component_name: 'InstructorDashboard',
 		icon: 'speed',
 		route: 'dashboard',
 		sidebars: []
