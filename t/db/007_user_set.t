@@ -790,23 +790,19 @@ throws_ok {
 
 # Delete some user sets that were created.
 
-$user_set_rs->deleteUserSet(
-	info => {
+$user_set_rs->deleteUserSet(info => {
 		username    => $new_user_set2->{username},
 		course_name => $new_user_set2->{course_name},
 		set_name    => $new_user_set2->{set_name}
-	}
-);
+	});
 
 # And then check that it is no longer in the database.
 throws_ok {
-	$user_set_rs->getUserSet(
-		info => {
-			username    => $new_user_set2->{username},
-			course_name => $new_user_set2->{course_name},
-			set_name    => $new_user_set2->{set_name}
-		}
-	);
+	$user_set_rs->getUserSet(info => {
+		username    => $new_user_set2->{username},
+		course_name => $new_user_set2->{course_name},
+		set_name    => $new_user_set2->{set_name}
+	});
 }
 'DB::Exception::UserSetNotInCourse', 'deleteUserSet: successfully delete a  user set';
 
@@ -820,13 +816,11 @@ $user_set_rs->deleteUserSet(
 
 # And then check that it is no longer in the database.
 throws_ok {
-	$user_set_rs->getUserSet(
-		info => {
-			username    => $ralph_user_set->{username},
-			course_name => $ralph_user_set->{course_name},
-			set_name    => $ralph_user_set->{set_name}
-		}
-	);
+	$user_set_rs->getUserSet(info => {
+		username    => $ralph_user_set->{username},
+		course_name => $ralph_user_set->{course_name},
+		set_name    => $ralph_user_set->{set_name}
+	});
 }
 'DB::Exception::UserSetNotInCourse', 'deleteUserSet: successfully delete another user set';
 

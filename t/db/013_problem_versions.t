@@ -152,11 +152,11 @@ my $user_problem_v2_to_delete = $user_problem_rs->deleteUserProblem(
 throws_ok {
 	$user_problem_rs->getUserProblem(
 		info => {
-			course_name     => $user_problem1_v2_params->{course_name},
-			set_name        => $user_problem1_v2_params->{set_name},
-			username        => $user_problem1_v2_params->{username},
-			problem_number  => $user_problem1_v2_params->{problem_number},
-			problem_version => $user_problem1_v2_params->{problem_version}
+		course_name     => $user_problem1_v2_params->{course_name},
+		set_name        => $user_problem1_v2_params->{set_name},
+		username        => $user_problem1_v2_params->{username},
+		problem_number  => $user_problem1_v2_params->{problem_number},
+		problem_version => $user_problem1_v2_params->{problem_version}
 		}
 	)
 }
@@ -176,11 +176,11 @@ $user_problem_rs->deleteUserProblem(
 throws_ok {
 	$user_problem_rs->getUserProblem(
 		info => {
-			course_name     => $user_problem1_v3_params->{course_name},
-			set_name        => $user_problem1_v3_params->{set_name},
-			username        => $user_problem1_v3_params->{username},
-			problem_number  => $user_problem1_v3_params->{problem_number},
-			problem_version => $user_problem1_v3_params->{problem_version}
+		course_name     => $user_problem1_v3_params->{course_name},
+		set_name        => $user_problem1_v3_params->{set_name},
+		username        => $user_problem1_v3_params->{username},
+		problem_number  => $user_problem1_v3_params->{problem_number},
+		problem_version => $user_problem1_v3_params->{problem_version}
 		}
 	)
 }
