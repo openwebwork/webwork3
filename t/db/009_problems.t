@@ -362,35 +362,63 @@ throws_ok {
 'DB::Exception::ParametersNeeded', 'updateSetProblem: try to add a problem with too much library info';
 
 # Delete a problem from a set
-my $deleted_problem = $problem_rs->deleteSetProblem(
+$problem_rs->deleteSetProblem(
 	info => {
 		course_name    => 'Precalculus',
 		set_name       => 'HW #1',
 		problem_number => 99,
 	}
 );
-removeIDs($deleted_problem);
 
-is_deeply($updated_problem, $deleted_problem, 'deleteSetProblem: delete one problem in an existing set.');
+# And check that it is sucessfully removed from the db.
+throws_ok {
+	$problem_rs->getSetProblem(
+	info => {
+		course_name    => 'Precalculus',
+		set_name       => 'HW #1',
+		problem_number => 99
+	}
+);
+}
+'DB::Exception::SetProblemNotFound', 'deleteSetProblem: delete one problem in an existing set.';
 
-my $deleted_problem2 = $problem_rs->deleteSetProblem(
+$problem_rs->deleteSetProblem(
+	info => {
+		course_name    => 'Precalculus',
+		set_name       => 'HW #1',
+		problem_number => $prob2_from_db->{problem_number},
+	}
+);
+# And check that it is sucessfully removed from the db.
+throws_ok {
+	$problem_rs->getSetProblem(
+	info => {
+		course_name    => 'Precalculus',
+		set_name       => 'HW #1',
+		problem_number => $prob2_from_db->{problem_number},
+	}
+);
+}
+'DB::Exception::SetProblemNotFound', 'deleteSetProblem: delete another problem.';
+
+my $deleted_problem3 = $problem_rs->deleteSetProblem(
+	info => {
+		course_name    => 'Precalculus',
+		set_name       => 'HW #1',
+		problem_number => $set_problem_to_delete->{problem_number}
+	}
+);
+# And check that it is sucessfully removed from the db.
+throws_ok {
+	$problem_rs->getSetProblem(
 	info => {
 		course_name    => 'Precalculus',
 		set_name       => 'HW #1',
 		problem_number => $set_problem_to_delete->{problem_number},
 	}
 );
-is_deeply($deleted_problem2, $set_problem_to_delete, 'deleteSetProblem: delete another problem.');
-
-my $deleted_problem3 = $problem_rs->deleteSetProblem(
-	info => {
-		course_name    => 'Precalculus',
-		set_name       => 'HW #1',
-		problem_number => $prob2->{problem_number}
-	}
-);
-removeIDs($deleted_problem3);
-is_deeply($deleted_problem3, $prob2, 'deleteSetProblem: delete another problem.');
+}
+'DB::Exception::SetProblemNotFound', 'deleteSetProblem: delete another problem.';
 
 # Make sure the set_problem table is returned to its orginal state.
 @problems_from_db = $problem_rs->getGlobalProblems;

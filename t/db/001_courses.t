@@ -129,10 +129,13 @@ throws_ok {
 'DB::Exception::CourseNotFound', 'updateCourse: update a non-existent course_id';
 
 # Delete a course
-my $deleted_course = $course_rs->deleteCourse(info => { course_name => 'Geometry II' });
-removeIDs($deleted_course);
+$course_rs->deleteCourse(info => { course_name => 'Geometry II' });
 
-is_deeply($new_course_params, $deleted_course, 'deleteCourse: delete a course');
+# and check that it is no longer in the database.
+throws_ok {
+	$course_rs->getCourse(info => { course_name => 'Geometry II' });
+}
+'DB::Exception::CourseNotFound', 'deleteCourse: delete a course';
 
 # Try to delete a non-existent course by name
 throws_ok {

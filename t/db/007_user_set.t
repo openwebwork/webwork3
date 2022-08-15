@@ -790,36 +790,47 @@ throws_ok {
 
 # Delete some user sets that were created.
 
-my $deleted_user_set = $user_set_rs->deleteUserSet(
-	info => {
+$user_set_rs->deleteUserSet(info => {
 		username    => $new_user_set2->{username},
 		course_name => $new_user_set2->{course_name},
 		set_name    => $new_user_set2->{set_name}
-	}
-);
-removeIDs($deleted_user_set);
-cleanUndef($deleted_user_set);
-removeIDs($new_user_set2);
-cleanUndef($new_user_set2);
-is_deeply($deleted_user_set, $new_user_set2, "deleteUserSet: successfully delete a user set");
+	});
 
-my $deleted_user_set2 = $user_set_rs->deleteUserSet(
+# And then check that it is no longer in the database.
+throws_ok {
+	$user_set_rs->getUserSet(info => {
+		username    => $new_user_set2->{username},
+		course_name => $new_user_set2->{course_name},
+		set_name    => $new_user_set2->{set_name}
+	});
+}
+'DB::Exception::UserSetNotInCourse', 'deleteUserSet: successfully delete a  user set';
+
+$user_set_rs->deleteUserSet(
 	info => {
 		username    => $ralph_user_set->{username},
 		course_name => $ralph_user_set->{course_name},
 		set_name    => $ralph_user_set->{set_name}
 	}
 );
-removeIDs($deleted_user_set2);
-cleanUndef($deleted_user_set2);
-is_deeply($deleted_user_set2, $ralph_user_set, "deleteUserSet: successfully delete another user set");
 
-my $deleted_user_set3 = $user_set_rs->deleteUserSet(info => $otto_quiz_info);
-removeIDs($deleted_user_set3);
-cleanUndef($deleted_user_set3);
-is_deeply($deleted_user_set3, $otto_quiz, "deleteUserSet: successfully delete yet another user set");
+# And then check that it is no longer in the database.
+throws_ok {
+	$user_set_rs->getUserSet(info => {
+		username    => $ralph_user_set->{username},
+		course_name => $ralph_user_set->{course_name},
+		set_name    => $ralph_user_set->{set_name}
+	});
+}
+'DB::Exception::UserSetNotInCourse', 'deleteUserSet: successfully delete another user set';
 
-my $deleted_user_set4 = $user_set_rs->deleteUserSet(info => $new_merged_set);
+$user_set_rs->deleteUserSet(info => $otto_quiz_info);
+throws_ok {
+	$user_set_rs->getUserSet(info => $otto_quiz_info);
+}
+'DB::Exception::UserSetNotInCourse', 'deleteUserSet: successfully delete yet another user set';
+
+$user_set_rs->deleteUserSet(info => $new_merged_set);
 
 # remove the rest of the user sets added for user 'otto'
 

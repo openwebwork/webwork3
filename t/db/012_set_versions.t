@@ -182,9 +182,8 @@ is_deeply(
 	'getUserSetVersions: get all versions of a user set.'
 );
 
-# clean up the created versioned user sets.
-
-my $user_set_v1_to_delete = $user_set_rs->deleteUserSet(
+# Clean up the created versioned user sets.
+$user_set_rs->deleteUserSet(
 	info => {
 		course_name => $user_set1_v1_params->{course_name},
 		set_name    => $user_set1_v1_params->{set_name},
@@ -193,11 +192,20 @@ my $user_set_v1_to_delete = $user_set_rs->deleteUserSet(
 	}
 );
 
-removeIDs($user_set_v1_to_delete);
-cleanUndef($user_set_v1_to_delete);
-is_deeply($user_set_v1_to_delete, $user_set1_v1, 'deleteUserSet: delete user set with set_version = 1');
+# Make sure that the user set successfully was deleted.
+throws_ok {
+	$user_set_rs->getUserSet(
+		info => {
+			course_name => $user_set1_v1_params->{course_name},
+			set_name    => $user_set1_v1_params->{set_name},
+			username    => $user_set1_v1_params->{username},
+			set_version => $user_set1_v1_params->{set_version}
+		}
+	)
+}
+'DB::Exception::UserSetNotInCourse', 'deleteUserSet: delete user set with set_version = 1';
 
-my $user_set_v2_to_delete = $user_set_rs->deleteUserSet(
+$user_set_rs->deleteUserSet(
 	info => {
 		course_name => $user_set1_v2_params->{course_name},
 		set_name    => $user_set1_v2_params->{set_name},
@@ -205,10 +213,6 @@ my $user_set_v2_to_delete = $user_set_rs->deleteUserSet(
 		set_version => $user_set1_v2_params->{set_version}
 	}
 );
-
-removeIDs($user_set_v2_to_delete);
-cleanUndef($user_set_v2_to_delete);
-is_deeply($user_set_v2_to_delete, $user_set1_v2, 'deleteUserSet: delete a versioned user set');
 
 # Ensure that the user_sets table is restored.
 my @all_user_sets_from_db = $user_set_rs->getAllUserSets(merged => 1);
