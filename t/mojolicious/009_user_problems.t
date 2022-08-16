@@ -247,10 +247,19 @@ $t->get_ok(
 	"/webwork3/api/courses/4/sets/$hw1->{set_id}/users/$ralph->{user_id}/problems/$new_user_problem->{user_problem_id}")
 	->status_is(500)->json_is('/exception' => 'DB::Exception::UserProblemNotFound');
 
+# And check that the user problem is no longer in the db.
+$t->get_ok(
+	"/webwork3/api/courses/4/sets/$hw1->{set_id}/users/$ralph->{user_id}/problems/$new_user_problem->{user_problem_id}")
+	->status_is(500)->json_is('/exception' => 'DB::Exception::UserProblemNotFound');
+
 # Delete the added problem
 
 $t->delete_ok("/webwork3/api/courses/4/sets/$hw1->{set_id}/problems/$new_problem->{set_problem_id}")->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is('/message' => 'The problem was successfully deleted.');
+
+# And check that the problem is no longer in the db.
+$t->get_ok("/webwork3/api/courses/4/sets/$hw1->{set_id}/problems/$new_problem->{set_problem_id}")->status_is(500)
+	->json_is('/exception' => 'DB::Exception::SetProblemNotFound');
 
 # And check that the problem is no longer in the db.
 $t->get_ok("/webwork3/api/courses/4/sets/$hw1->{set_id}/problems/$new_problem->{set_problem_id}")->status_is(500)

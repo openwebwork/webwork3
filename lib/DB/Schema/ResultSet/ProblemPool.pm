@@ -333,7 +333,6 @@ sub getPoolProblem ($self, %args) {
 				. ' is not in the pool named \''
 				. $problem_pool->pool_name
 				. "'");
-		return;
 	} else {
 		# Pick a random problem.
 		my $prob = $pool_problems[ rand @pool_problems ];
