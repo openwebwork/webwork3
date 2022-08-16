@@ -124,7 +124,11 @@ ok(JSON::PP::is_bool($can_retake), 'testing that can_retake is a Mojo::JSON::tru
 ok(JSON::PP::is_bool($can_retake) && !$can_retake, 'testing that can_retake is a Mojo::JSON::false');
 
 # delete the added review set
-$t->delete_ok("/webwork3/api/courses/4/sets/$review_set1->{set_id}")->content_type_is('application/json;charset=UTF-8')
-	->json_is('/set_type' => 'REVIEW')->json_is('/set_name' => 'Review #20');
+$t->delete_ok("/webwork3/api/courses/4/sets/$review_set1->{set_id}")->status_is(200)
+	->content_type_is('application/json;charset=UTF-8');
+
+# And check that the review set is no longer in the db.
+$t->get_ok("/webwork3/api/courses/4/sets/$review_set1->{set_id}")->status_is(500)
+	->json_is('/exception' => 'DB::Exception::SetNotInCourse');
 
 done_testing();

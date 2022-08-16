@@ -356,6 +356,7 @@ Nothing (undef) is returned.
 
 sub deleteSetProblem ($self, %args) {
 	$self->getSetProblem(info => $args{info}, as_result_set => 1)->delete;
+	return;
 }
 
 # just a small subroutine to shorten access to the db.

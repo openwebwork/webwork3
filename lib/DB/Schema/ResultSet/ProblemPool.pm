@@ -88,12 +88,12 @@ sub getProblemPool ($self, %args) {
 
 	my $pool = $self->find($search_info, { join => [qw/courses/] });
 
-	unless ($pool) {
-		my $course_name = $course->course_name;
+	DB::Exception::PoolNotInCourse->throw(message => 'The pool with '
+			. ($args{info}{pool_name} ? ' name ' . $args{info}{pool_name} : 'id ' . $args{info}{problem_pool_id})
+			. 'is not in the course '
+			. $course->course_name)
+		unless $pool;
 
-		DB::Exception::PoolNotInCourse->throw(
-			message => "The pool with name \{$args{info}->{pool_name}} is not in the course $course_name");
-	}
 	return $pool if $args{as_result_set};
 	return { $pool->get_columns };
 }
@@ -193,7 +193,7 @@ sub updateProblemPool ($self, %args) {
 
 	my $pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
 
-	DB::Excpetion::PoolNotInCourse->throw(
+	DB::Exception::PoolNotInCourse->throw(
 		message => 'The problem pool '
 			. (
 				$args{info}->{pool_name}
@@ -312,7 +312,6 @@ This gets a single problem out of a ProblemPool.
 =cut
 
 sub getPoolProblem ($self, %args) {
-
 	my $problem_pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
 
 	my $pool_problem_info = {};
@@ -328,6 +327,12 @@ sub getPoolProblem ($self, %args) {
 
 	if (scalar(@pool_problems) == 1) {
 		return $args{as_result_set} ? $pool_problems[0] : { $pool_problems[0]->get_inflated_columns };
+	} elsif (scalar(@pool_problems) == 0) {
+		DB::Exception::PoolProblemNotInPool->throw(message => 'The problem with id '
+				. $pool_problem_info->{pool_problem_id}
+				. ' is not in the pool named \''
+				. $problem_pool->pool_name
+				. "'");
 	} else {
 		# Pick a random problem.
 		my $prob = $pool_problems[ rand @pool_problems ];

@@ -129,8 +129,11 @@ ok(JSON::PP::is_bool($problem_randorder),                        'testing that p
 ok(JSON::PP::is_bool($problem_randorder) && !$problem_randorder, 'testing that problem_randorder is a false');
 
 # delete the added quiz
-$t->delete_ok("/webwork3/api/courses/4/sets/$returned_quiz->{set_id}")
-	->content_type_is('application/json;charset=UTF-8')->json_is('/set_name' => 'Quiz #20')
-	->json_is('/set_type' => 'QUIZ');
+$t->delete_ok("/webwork3/api/courses/4/sets/$returned_quiz->{set_id}")->status_is(200)
+	->content_type_is('application/json;charset=UTF-8');
+
+# And check that the quiz is no longer in the db.
+$t->get_ok("/webwork3/api/courses/4/sets/$returned_quiz->{set_id}")->status_is(500)
+	->json_is('/exception' => 'DB::Exception::SetNotInCourse');
 
 done_testing();

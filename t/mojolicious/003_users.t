@@ -147,13 +147,17 @@ $t->post_ok(
 
 my $another_new_user_id = $t->tx->res->json('/user_id');
 
-# For cleanup, delete the created users.  Need to relogin as an admin:
-
+# For cleanup, delete the created users.
 $t->delete_ok("/webwork3/api/users/$new_user_from_db->{user_id}")->status_is(200)
-	->json_is('/username' => $new_user->{username});
+	->content_type_is('application/json;charset=UTF-8');
 
-$t->delete_ok("/webwork3/api/users/$another_new_user_id")->status_is(200)
-	->json_is('/username' => $another_user->{username});
+# And check that the user is no longer in the db.
+$t->get_ok("/webwork3/api/users/$new_user_from_db->{user_id}")->status_is(500)
+	->json_is('/exception' => 'DB::Exception::UserNotFound');
+
+$t->delete_ok("/webwork3/api/users/$another_new_user_id")->status_is(200);
+$t->get_ok("/webwork3/api/users/$another_new_user_id")->status_is(500)
+	->json_is('/exception' => 'DB::Exception::UserNotFound');
 
 # Test that a non-admin user cannot access all of the routes
 # Logout the admin user and relogin as a non-admin.

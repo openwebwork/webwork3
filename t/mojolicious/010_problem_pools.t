@@ -193,14 +193,21 @@ $t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200);
 
 # Delete the pool problem.
-
 $t->delete_ok(
 	"/webwork3/api/courses/4/pools/$added_problem_pool->{problem_pool_id}/problems/$new_pool_problem->{pool_problem_id}"
 )->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/params/library_id' => 8932);
 
-# Delete the problem pool
+# And check that the pool problem is no longer in the db.
+$t->get_ok(
+	"/webwork3/api/courses/4/pools/$added_problem_pool->{problem_pool_id}/problems/$new_pool_problem->{pool_problem_id}"
+)->status_is(500)->json_is('/exception' => 'DB::Exception::PoolProblemNotInPool');
 
+# Delete the problem pool
 $t->delete_ok("/webwork3/api/courses/4/pools/$added_problem_pool->{problem_pool_id}")->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')->json_is('/pool_name' => 'adding decimals');
+	->content_type_is('application/json;charset=UTF-8');
+
+# And check that the problem pool is no longer in the db.
+$t->get_ok("/webwork3/api/courses/4/pools/$added_problem_pool->{problem_pool_id}")->status_is(500)
+	->json_is('/exception' => 'DB::Exception::PoolNotInCourse');
 
 done_testing();

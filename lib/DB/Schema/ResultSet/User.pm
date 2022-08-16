@@ -150,6 +150,7 @@ The deleted user as a C<DBIx::Class::ResultSet::User> object.
 
 sub deleteGlobalUser ($self, %args) {
 	$self->getGlobalUser(info => $args{info}, as_result_set => 1)->delete;
+	return;
 }
 
 =head1 updateGlobalUser

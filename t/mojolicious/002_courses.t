@@ -100,8 +100,11 @@ $t->delete_ok('/webwork3/api/courses/9999999')->status_is(500, 'error status')
 	->content_type_is('application/json;charset=UTF-8')->json_is('/exception' => 'DB::Exception::CourseNotFound');
 
 # Delete the added course.
-$t->delete_ok("/webwork3/api/courses/$new_course_id")->status_is(200)
-	->json_is('/course_name' => $new_course->{course_name});
+$t->delete_ok("/webwork3/api/courses/$new_course_id")->status_is(200);
+
+# Check that it is deleted.
+$t->get_ok("/webwork3/api/courses/$new_course_id")->status_is(500)
+	->json_is('/exception' => 'DB::Exception::CourseNotFound');
 
 # Logout of the admin user account and relogin as a non-admin:
 

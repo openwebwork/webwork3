@@ -236,13 +236,23 @@ $t->put_ok(
 $t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200);
 
+# Delete the user problem
 $t->delete_ok(
 	"/webwork3/api/courses/4/sets/$hw1->{set_id}/users/$ralph->{user_id}/problems/$new_user_problem->{user_problem_id}")
 	->status_is(200)->content_type_is('application/json;charset=UTF-8');
+
+# And check that the user problem is no longer in the db.
+$t->get_ok(
+	"/webwork3/api/courses/4/sets/$hw1->{set_id}/users/$ralph->{user_id}/problems/$new_user_problem->{user_problem_id}")
+	->status_is(500)->json_is('/exception' => 'DB::Exception::UserProblemNotFound');
 
 # Delete the added problem
 
 $t->delete_ok("/webwork3/api/courses/4/sets/$hw1->{set_id}/problems/$new_problem->{set_problem_id}")->status_is(200)
 	->content_type_is('application/json;charset=UTF-8');
+
+# And check that the problem is no longer in the db.
+$t->get_ok("/webwork3/api/courses/4/sets/$hw1->{set_id}/problems/$new_problem->{set_problem_id}")->status_is(500)
+	->json_is('/exception' => 'DB::Exception::SetProblemNotFound');
 
 done_testing;

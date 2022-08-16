@@ -226,7 +226,7 @@ $users_rs->deleteGlobalUser(info => { username => $user->{username} });
 
 # and check they are no longer in the database:
 throws_ok {
-	$users_rs->getGlobalUser(info => { username => $user->{username}});
+	$users_rs->getGlobalUser(info => { username => $user->{username} });
 }
 'DB::Exception::UserNotFound', 'deleteUser: delete a user';
 

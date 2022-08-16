@@ -373,12 +373,12 @@ $problem_rs->deleteSetProblem(
 # And check that it is sucessfully removed from the db.
 throws_ok {
 	$problem_rs->getSetProblem(
-	info => {
-		course_name    => 'Precalculus',
-		set_name       => 'HW #1',
-		problem_number => 99
-	}
-);
+		info => {
+			course_name    => 'Precalculus',
+			set_name       => 'HW #1',
+			problem_number => 99
+		}
+	);
 }
 'DB::Exception::SetProblemNotFound', 'deleteSetProblem: delete one problem in an existing set.';
 
@@ -392,12 +392,12 @@ $problem_rs->deleteSetProblem(
 # And check that it is sucessfully removed from the db.
 throws_ok {
 	$problem_rs->getSetProblem(
-	info => {
-		course_name    => 'Precalculus',
-		set_name       => 'HW #1',
-		problem_number => $prob2_from_db->{problem_number},
-	}
-);
+		info => {
+			course_name    => 'Precalculus',
+			set_name       => 'HW #1',
+			problem_number => $prob2_from_db->{problem_number},
+		}
+	);
 }
 'DB::Exception::SetProblemNotFound', 'deleteSetProblem: delete another problem.';
 
@@ -411,12 +411,12 @@ my $deleted_problem3 = $problem_rs->deleteSetProblem(
 # And check that it is sucessfully removed from the db.
 throws_ok {
 	$problem_rs->getSetProblem(
-	info => {
-		course_name    => 'Precalculus',
-		set_name       => 'HW #1',
-		problem_number => $set_problem_to_delete->{problem_number},
-	}
-);
+		info => {
+			course_name    => 'Precalculus',
+			set_name       => 'HW #1',
+			problem_number => $set_problem_to_delete->{problem_number},
+		}
+	);
 }
 'DB::Exception::SetProblemNotFound', 'deleteSetProblem: delete another problem.';
 
