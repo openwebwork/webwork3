@@ -11,6 +11,8 @@
 import { setActivePinia, createPinia } from 'pinia';
 import { createApp } from 'vue';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import type { AxiosError } from 'axios';
+import { api } from 'src/boot/axios';
 
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useCourseStore } from 'src/stores/courses';
@@ -129,11 +131,18 @@ describe('Problem Set store tests', () => {
 		test('Delete a Homework Set', async () => {
 			const problem_set_store = useProblemSetStore();
 			const set_to_delete = problem_set_store.findProblemSet({ set_name: 'HW #9' });
-			const deleted_set = await problem_set_store.deleteProblemSet(set_to_delete as ProblemSet);
-			// Check that the deleted_set is the same as the original
-			expect(deleted_set.toObject()).toStrictEqual(set_to_delete?.toObject());
-			const is_the_set_deleted = problem_set_store.findProblemSet({ set_name: 'HW #9' });
-			expect(is_the_set_deleted).toBeUndefined();
+			await problem_set_store.deleteProblemSet(set_to_delete as ProblemSet);
+
+			// Check that the homework set is no longer in the database by getting an exception.
+			await api.get(`/courses/${precalc_course.course_id}/sets/${set_to_delete?.set_id ?? 0}`)
+				.then(() => {
+					fail('Expected failure response');
+				})
+				.catch((e: AxiosError) => {
+					expect(e.response?.status).toBe(500);
+					expect((e.response?.data as {exception: string}).exception)
+						.toBe('DB::Exception::SetNotInCourse');
+				});
 		});
 	});
 
@@ -206,11 +215,18 @@ describe('Problem Set store tests', () => {
 		test('Delete a Quiz', async () => {
 			const problem_set_store = useProblemSetStore();
 			const set_to_delete = problem_set_store.findProblemSet({ set_name: 'Quiz #9' });
-			const deleted_set = await problem_set_store.deleteProblemSet(set_to_delete as ProblemSet);
-			// Check that the deleted_set is the same as the original
-			expect(deleted_set.toObject()).toStrictEqual(set_to_delete?.toObject());
-			const is_the_set_deleted = problem_set_store.findProblemSet({ set_name: 'Quiz #9' });
-			expect(is_the_set_deleted).toBeUndefined();
+			await problem_set_store.deleteProblemSet(set_to_delete as ProblemSet);
+
+			// Check that the quiz is no longer in the database by getting an exception.
+			await api.get(`/courses/${precalc_course.course_id}/sets/${set_to_delete?.set_id ?? 0}`)
+				.then(() => {
+					fail('Expected failure response');
+				})
+				.catch((e: AxiosError) => {
+					expect(e.response?.status).toBe(500);
+					expect((e.response?.data as {exception: string}).exception)
+						.toBe('DB::Exception::SetNotInCourse');
+				});
 		});
 	});
 
@@ -255,11 +271,18 @@ describe('Problem Set store tests', () => {
 		test('Delete a Review Set', async () => {
 			const problem_set_store = useProblemSetStore();
 			const set_to_delete = problem_set_store.findProblemSet({ set_name: 'Review Set #9' });
-			const deleted_set = await problem_set_store.deleteProblemSet(set_to_delete as ProblemSet);
-			// Check that the deleted_set is the same as the original
-			expect(deleted_set.toObject()).toStrictEqual(set_to_delete?.toObject());
-			const is_the_set_deleted = problem_set_store.findProblemSet({ set_name: 'Review Set #9' });
-			expect(is_the_set_deleted).toBeUndefined();
+			await problem_set_store.deleteProblemSet(set_to_delete as ProblemSet);
+
+			// Check that the review set is no longer in the database by getting an exception.
+			await api.get(`/courses/${precalc_course.course_id}/sets/${set_to_delete?.set_id ?? 0}`)
+				.then(() => {
+					fail('Expected failure response');
+				})
+				.catch((e: AxiosError) => {
+					expect(e.response?.status).toBe(500);
+					expect((e.response?.data as {exception: string}).exception)
+						.toBe('DB::Exception::SetNotInCourse');
+				});
 		});
 	});
 });

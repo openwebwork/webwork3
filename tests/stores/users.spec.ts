@@ -12,6 +12,7 @@ import { createApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { api } from 'boot/axios';
+import type { AxiosError } from 'axios';
 
 import { useCourseStore } from 'src/stores/courses';
 import { useUserStore } from 'src/stores/users';
@@ -91,9 +92,18 @@ describe('User store tests', () => {
 		});
 
 		test('Delete a global user', async () => {
-			const user_store = useUserStore();
-			const deleted_user = await user_store.deleteUser(added_user) ?? new User();
-			expect(cleanIDs(deleted_user)).toStrictEqual(cleanIDs(added_user));
+			await useUserStore().deleteUser(added_user);
+
+			// Check that the course is no longer in the database by getting an exception.
+			await api.get(`/users/${added_user.user_id}`)
+				.then(() => {
+					fail('Expected failure response');
+				})
+				.catch((e: AxiosError) => {
+					expect(e.response?.status).toBe(500);
+					expect((e.response?.data as {exception: string}).exception)
+						.toBe('DB::Exception::UserNotFound');
+				});
 		});
 	});
 
@@ -167,8 +177,18 @@ describe('User store tests', () => {
 		test('Delete Course User', async () => {
 			const user_store = useUserStore();
 			const user_to_delete = user_store.course_users.find(user => user.user_id === user_not_in_precalc.user_id);
-			const deleted_user = await user_store.deleteCourseUser(user_to_delete as CourseUser);
-			expect(user_to_delete).toStrictEqual(deleted_user);
+			await user_store.deleteCourseUser(user_to_delete as CourseUser);
+
+			// Check that the course user is no longer in the database by getting an exception.
+			await api.get(`/courses/${precalc_course.course_id}/users/${user_to_delete?.user_id ?? 0}`)
+				.then(() => {
+					fail('Expected failure response');
+				})
+				.catch((e: AxiosError) => {
+					expect(e.response?.status).toBe(500);
+					expect((e.response?.data as {exception: string}).exception)
+						.toBe('DB::Exception::UserNotInCourse');
+				});
 		});
 	});
 

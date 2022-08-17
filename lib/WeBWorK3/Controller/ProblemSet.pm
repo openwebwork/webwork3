@@ -106,6 +106,18 @@ sub getUserSets ($self) {
 	return;
 }
 
+sub getUserSet ($self) {
+	my $user_set = $self->schema->resultset('UserSet')->getUserSet(
+		info => {
+			course_id      => int($self->param('course_id')),
+			set_id         => int($self->param('set_id')),
+			course_user_id => int($self->param('course_user_id'))
+		}
+	);
+	$self->render(json => $user_set);
+	return;
+}
+
 sub addUserSet ($self) {
 	my $new_user_set = $self->schema->resultset('UserSet')->addUserSet(
 		params => {

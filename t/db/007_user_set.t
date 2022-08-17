@@ -132,7 +132,7 @@ for my $user_set (@merged_user_sets) {
 	$user_set->{set_visible} = $set->{set_visible} unless defined($user_set->{set_visible});
 }
 
-# Get all user sets for a given user in a course.
+# Get all user sets
 my @all_user_sets_from_db = $user_set_rs->getAllUserSets();
 
 for my $set (@all_user_sets_from_db) {

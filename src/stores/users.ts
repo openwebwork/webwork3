@@ -2,7 +2,7 @@ import { api } from 'boot/axios';
 import { defineStore } from 'pinia';
 
 import { logger } from 'boot/logger';
-import { DBCourseUser, ParseableCourseUser, ParseableDBCourseUser, ParseableUser } from 'src/common/models/users';
+import { DBCourseUser, ParseableDBCourseUser, ParseableUser } from 'src/common/models/users';
 import { User, CourseUser } from 'src/common/models/users';
 import { invalidError, ResponseError } from 'src/common/api-requests/errors';
 import { UserRole } from 'src/stores/permissions';
@@ -155,15 +155,20 @@ export const useUserStore = defineStore('user', {
 		/**
 		 * Deletes the given User in the database and in the store.
 		 */
-		async deleteUser(user: User): Promise<User | undefined> {
+		async deleteUser(user: User): Promise<void> {
 			const session_store = useSessionStore();
 			const course_id = session_store.course.course_id;
 			const response = await api.delete(`courses/${course_id}/global-users/${user.user_id ?? 0}`);
 			if (response.status === 200) {
 				const index = this.users.findIndex((u) => u.user_id === user.user_id);
-				// splice is used so vue3 reacts to changes.
-				this.users.splice(index, 1);
-				return new User(response.data as ParseableUser);
+				if (index < 0) {
+					logger.error('[user store/deleteUser]: the user was not found in the store');
+				} else {
+					// splice is used so vue3 reacts to changes.
+					this.users.splice(index, 1);
+				}
+			} else {
+				logger.error(JSON.stringify(response));
 			}
 		},
 
@@ -261,16 +266,16 @@ export const useUserStore = defineStore('user', {
 		/**
 		 * Deletes a Course User from the store and the database.
 		 */
-		async deleteCourseUser(course_user: CourseUser): Promise<CourseUser | undefined> {
+		async deleteCourseUser(course_user: CourseUser): Promise<void> {
 			const response = await api.delete(`courses/${course_user.course_id}/users/${course_user.user_id}`);
 			if (response.status === 200) {
 				const index = this.db_course_users.findIndex((u) => u.course_user_id === course_user.course_user_id);
-
-				// splice is used so vue3 reacts to changes.
-				this.db_course_users.splice(index, 1);
-				const deleted_course_user = new DBCourseUser(response.data as ParseableCourseUser);
-				const user = this.users.find(u => u.user_id === deleted_course_user.user_id);
-				return new CourseUser(Object.assign({}, user?.toObject(), deleted_course_user.toObject()));
+				if (index < 0) {
+					logger.error('[user store/deleteCourseUser]: the user was not found in the store');
+				} else {
+					// splice is used so vue3 reacts to changes.
+					this.db_course_users.splice(index, 1);
+				}
 			} else if (response.status === 250) {
 				logger.error(response.data);
 				throw response.data as ResponseError;
