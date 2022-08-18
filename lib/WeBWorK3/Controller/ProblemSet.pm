@@ -62,13 +62,13 @@ sub addProblemSet ($self) {
 }
 
 sub deleteProblemSet ($self) {
-	my $problem_set = $self->schema->resultset('ProblemSet')->deleteProblemSet(
+	$self->schema->resultset('ProblemSet')->deleteProblemSet(
 		info => {
 			course_id => int($self->param('course_id')),
 			set_id    => int($self->param('set_id'))
 		}
 	);
-	$self->render(json => $problem_set);
+	$self->render(json => { message => 'The problem set was successfully deleted.' });
 	return;
 }
 
@@ -144,15 +144,14 @@ sub updateUserSet ($self) {
 }
 
 sub deleteUserSet ($self) {
-	my $updated_user_set = $self->schema->resultset('UserSet')->deleteUserSet(
+	$self->schema->resultset('UserSet')->deleteUserSet(
 		info => {
 			course_id      => int($self->param('course_id')),
 			set_id         => int($self->param('set_id')),
 			course_user_id => int($self->param('course_user_id'))
-		},
-		params => $self->req->json
+		}
 	);
-	$self->render(json => $updated_user_set);
+	$self->render(json => { message => 'The user set was successfully deleted.' });
 	return;
 }
 

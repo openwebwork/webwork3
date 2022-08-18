@@ -149,7 +149,8 @@ my $another_new_user_id = $t->tx->res->json('/user_id');
 
 # For cleanup, delete the created users.
 $t->delete_ok("/webwork3/api/users/$new_user_from_db->{user_id}")->status_is(200)
-	->content_type_is('application/json;charset=UTF-8');
+	->content_type_is('application/json;charset=UTF-8')
+	->json_is('/message' => 'The global user was successfully deleted.');
 
 # And check that the user is no longer in the db.
 $t->get_ok("/webwork3/api/users/$new_user_from_db->{user_id}")->status_is(500)
@@ -214,6 +215,7 @@ $t->put_ok("/webwork3/api/courses/4/global-users/$new_global_user_id" => json =>
 	->json_is('/student_id' => 4321);
 
 $t->delete_ok("/webwork3/api/courses/4/global-users/$new_global_user_id")->status_is(200)
-	->content_type_is('application/json;charset=UTF-8');
+	->content_type_is('application/json;charset=UTF-8')
+	->json_is('/message' => 'The global user was successfully deleted.');
 
 done_testing;

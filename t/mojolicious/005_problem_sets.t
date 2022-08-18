@@ -150,7 +150,7 @@ $t->post_ok('/webwork3/api/courses/4/sets' => json => $another_new_set)
 # Some cleanup to restore the database
 # Delete an existing set.
 $t->delete_ok("/webwork3/api/courses/4/sets/$new_set_id")->content_type_is('application/json;charset=UTF-8')
-	->status_is(200);
+	->status_is(200)->json_is('/message' => 'The problem set was successfully deleted.');
 
 # And check that the problem set is no longer in the db.
 $t->get_ok("/webwork3/api/courses/4/sets/$new_set_id")->status_is(500)

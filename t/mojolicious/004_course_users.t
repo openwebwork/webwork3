@@ -131,7 +131,8 @@ $t->delete_ok("/webwork3/api/courses/4/users/5")->status_is(500, 'status for exc
 
 # Delete the added course user
 $t->delete_ok("/webwork3/api/courses/4/users/$new_user_id")->status_is(200)
-	->content_type_is('application/json;charset=UTF-8');
+	->content_type_is('application/json;charset=UTF-8')
+	->json_is('/message' => 'The course user was successfully deleted.');
 
 # And make sure that the course user is no longer in the database;
 $t->get_ok("/webwork3/api/courses/4/users/$new_user_id")->status_is(500)
@@ -164,7 +165,8 @@ $t->post_ok('/webwork3/api/logout')->status_is(200);
 $t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200);
 
 # Delete the added users.
-$t->delete_ok("/webwork3/api/users/$new_user_id")->status_is(200);
+$t->delete_ok("/webwork3/api/users/$new_user_id")->status_is(200)
+	->json_is('/message' => 'The global user was successfully deleted.');
 
 # And check that the user is no longer in the db.
 $t->get_ok("/webwork3/api/users/$new_user_id")->status_is(500)->json_is('/exception' => 'DB::Exception::UserNotFound');

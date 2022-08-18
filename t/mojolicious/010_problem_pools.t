@@ -192,10 +192,11 @@ $t->delete_ok(
 $t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200);
 
-# Delete the pool problem.
+# Remove the pool problem.
 $t->delete_ok(
 	"/webwork3/api/courses/4/pools/$added_problem_pool->{problem_pool_id}/problems/$new_pool_problem->{pool_problem_id}"
-)->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/params/library_id' => 8932);
+)->status_is(200)->content_type_is('application/json;charset=UTF-8')
+	->json_is('/message' => 'The pool problem was successfully removed.');
 
 # And check that the pool problem is no longer in the db.
 $t->get_ok(

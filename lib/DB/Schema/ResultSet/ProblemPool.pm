@@ -435,12 +435,8 @@ remove a Problem out of a ProblemPool in a course
 =cut
 
 sub removePoolProblem ($self, %args) {
-	my $prob = $self->getPoolProblem(info => $args{info}, as_result_set => 1);
-	DB::Exception::PoolProblemNotInPool->throw(info => $args{info}) unless defined($prob);
-
-	my $prob2 = $prob->delete;
-	return $prob2 if $args{as_result_set};
-	return { $prob2->get_inflated_columns };
+	$self->getPoolProblem(info => $args{info}, as_result_set => 1)->delete;
+	return;
 }
 
 # just a small subroutine to shorten access to the db.
