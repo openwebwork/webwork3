@@ -109,9 +109,10 @@ sub getUserSets ($self) {
 sub getUserSet ($self) {
 	my $user_set = $self->schema->resultset('UserSet')->getUserSet(
 		info => {
-			course_id      => int($self->param('course_id')),
-			set_id         => int($self->param('set_id')),
-			course_user_id => int($self->param('course_user_id'))
+			course_id   => int($self->param('course_id')),
+			set_id      => int($self->param('set_id')),
+			user_id     => int($self->param('user_id')),
+			set_version => int($self->param('set_version') // 0)
 		}
 	);
 	$self->render(json => $user_set);
@@ -133,9 +134,10 @@ sub addUserSet ($self) {
 sub updateUserSet ($self) {
 	my $updated_user_set = $self->schema->resultset('UserSet')->updateUserSet(
 		info => {
-			course_id      => int($self->param('course_id')),
-			set_id         => int($self->param('set_id')),
-			course_user_id => int($self->param('course_user_id'))
+			course_id   => int($self->param('course_id')),
+			set_id      => int($self->param('set_id')),
+			user_id     => int($self->param('user_id')),
+			set_version => int($self->param('set_version') // 0)
 		},
 		params => $self->req->json
 	);
@@ -146,10 +148,12 @@ sub updateUserSet ($self) {
 sub deleteUserSet ($self) {
 	$self->schema->resultset('UserSet')->deleteUserSet(
 		info => {
-			course_id      => int($self->param('course_id')),
-			set_id         => int($self->param('set_id')),
-			course_user_id => int($self->param('course_user_id'))
-		}
+			course_id   => int($self->param('course_id')),
+			set_id      => int($self->param('set_id')),
+			user_id     => int($self->param('user_id')),
+			set_version => int($self->param('set_version') // 0)
+		},
+		params => $self->req->json
 	);
 	$self->render(json => { message => 'The user set was successfully deleted.' });
 	return;

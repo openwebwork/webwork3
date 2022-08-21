@@ -374,10 +374,10 @@ sub updateUserSet ($self, %args) {
 	my $user_set = $self->getUserSet(info => $args{info}, as_result_set => 1, skip_throw => 1);
 
 	DB::Exception::UserSetNotInCourse->throw(message => 'The user '
-			. $args{info}{username}
+			. ($args{info}{username} ? "with username '$args{info}{username}'" : "with user_id '$args{info}{user_id}'")
 			. ' is not assigned to the set '
-			. $args{info}{set_name}
-			. ' with set version '
+			. ($args{info}{set_name} ? "with set name '$args{info}{set_name}'" : "with set_id '$args{info}{set_id}'")
+			. ' and set version '
 			. ($args{info}{set_version} // 0))
 		unless defined($user_set);
 

@@ -155,6 +155,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 				set_name: 'HW #9',
 				set_id: new_hw_set.set_id,
 				course_user_id: user.course_user_id,
+				user_id: user.user_id,
 				set_visible: true
 			});
 			expect(user_set.isValid()).toBe(true);
@@ -177,7 +178,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 			// Check that the homework set is no longer in the database by getting an exception.
 			await api.get(`/courses/${precalc_course.course_id}/sets/${added_user_set.set_id
-			}/users/${added_user_set.course_user_id}`)
+			}/users/${added_user_set.user_id}`)
 				.then(() => {
 					fail('Expected failure response');
 				})
@@ -229,13 +230,14 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 			// Fetch the users from the course
 			const user_store = useUserStore();
-			const user = user_store.course_users[0];
+			const user = user_store.findCourseUser({ username: 'homer' });
 
 			const user_set = new UserQuiz({
 				set_id: new_quiz.set_id,
 				course_user_id: user.course_user_id,
 				set_visible: true,
 				set_name: new_quiz.set_name,
+				user_id: user.user_id,
 				username: 'homer'
 			});
 			added_user_set = await problem_set_store.addUserSet(user_set) ?? new UserSet();
@@ -257,7 +259,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 			// Check that the quiz is no longer in the database by getting an exception.
 			await api.get(`/courses/${precalc_course.course_id}/sets/${added_user_set.set_id
-			}/users/${added_user_set.course_user_id}`)
+			}/users/${added_user_set.user_id}`)
 				.then(() => {
 					fail('Expected failure response');
 				})
@@ -282,13 +284,14 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 			// Fetch the users from the course
 			const user_store = useUserStore();
-			const user = user_store.course_users[0];
+			const user = user_store.findCourseUser({ username: 'homer' });
 
 			const user_set = new UserReviewSet({
 				set_id: new_review_set.set_id,
 				course_user_id: user.course_user_id,
 				set_visible: true,
 				set_name: new_review_set.set_name,
+				user_id: user.user_id,
 				username: 'homer'
 			});
 			added_user_review_set = await problem_set_store.addUserSet(user_set) ?? new UserSet();
@@ -311,7 +314,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 			// Check that the quiz is no longer in the database by getting an exception.
 			await api.get(`/courses/${precalc_course.course_id}/sets/${user_review_set_to_update.set_id
-			}/users/${user_review_set_to_update.course_user_id}`)
+			}/users/${user_review_set_to_update.user_id}`)
 				.then(() => {
 					fail('Expected failure response');
 				})
@@ -345,7 +348,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		test('Add a user set and test that the overrides work.', async () => {
 			const problem_set_store = useProblemSetStore();
 			const user_store = useUserStore();
-			const user_to_assign = user_store.course_users[0];
+			const user_to_assign = user_store.findCourseUser({ username: 'homer' });
 
 			// Make a new Problem Set
 			new_hw_set = await problem_set_store.addProblemSet(new HomeworkSet({
@@ -366,6 +369,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 				set_name: new_hw_set.set_name,
 				set_id: new_hw_set.set_id,
 				course_user_id: user_to_assign.course_user_id,
+				user_id: user_to_assign.user_id,
 				set_visible: false,
 				set_dates: {
 					open: 1200,

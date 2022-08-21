@@ -323,9 +323,17 @@ An hashref of the user or merged user or a C<DBIx::Class::ResultSet>
 sub getCourseUser ($self, %args) {
 	my $course_user;
 
-	if (defined($args{info}->{course_user_id})) {
+	if (defined($args{info}{course_user_id})) {
 		$course_user = $self->rs('CourseUser')
 			->find({ course_user_id => $args{info}->{course_user_id} }, { prefetch => [qw/role/] });
+		DB::Exception::UserNotInCourse->throw(
+			message => "The user with id '$args{info}->{course_user_id}' is not enrolled in the course "
+				. (
+					$args{info}->{course_name}
+					? " with name '$args{info}->{course_name}'"
+					: " with course_id '$args{info}->{course_id}'."
+				)
+		) unless defined $course_user || $args{skip_throw};
 	} else {
 		my $course = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 		my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);

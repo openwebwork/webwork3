@@ -259,7 +259,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 			const sessionStore = useSessionStore();
 			const course_id = sessionStore.course.course_id;
 			const response = await api.put(`courses/${course_id}/sets/${set.set_id ?? 0}/users/${
-				set.course_user_id ?? 0}`, set.toObject(UserSet.ALL_FIELDS));
+				set.user_id ?? 0}`, set.toObject(UserSet.ALL_FIELDS));
 			const updated_user_set = parseDBUserSet(response.data as ParseableDBUserSet);
 
 			// TODO: check for errors
@@ -275,7 +275,7 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		async deleteUserSet(user_set: UserSet): Promise<void> {
 			const course_id = useSessionStore().course.course_id;
 			const response = await
-			api.delete(`courses/${course_id}/sets/${user_set.set_id}/users/${user_set.course_user_id ?? 0}`);
+			api.delete(`courses/${course_id}/sets/${user_set.set_id}/users/${user_set.user_id ?? 0}`);
 			if (response.status === 200) {
 				const index = this.db_user_sets.findIndex((set) => set.user_set_id === user_set.user_set_id);
 				if (index < 0) {
