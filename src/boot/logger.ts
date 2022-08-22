@@ -1,36 +1,32 @@
 import { boot } from 'quasar/wrappers';
-import winston from 'winston';
+// import winston from 'winston';
+import type { LogLevelNumbers } from 'loglevel';
+import * as logger from 'loglevel';
 import 'setimmediate';
+import { api } from './axios';
 
-const logger = winston.createLogger({
-	level: 'debug',
-	format: winston.format.simple(),
-	defaultMeta: {
-		get location() { return window.location.href; },
-		userAgent: window.navigator.userAgent,
-		service: 'webwork3'
-	},
-	transports: [
-		new winston.transports.Http({
-			level: 'error',
-			host: 'localhost',
-			port: 8080,
-			path: `${process.env.VUE_ROUTER_BASE ?? ''}api/client-logs`,
-			handleExceptions: true,
-		})
-	]
-});
+logger.setLevel(process.env.NODE_ENV == 'production' ? 'error' : 'debug');
 
-// If we're not in production then log to the console
-if (process.env.NODE_ENV !== 'production') {
-	logger.add(new winston.transports.Console({
-		level: 'debug',
-		stderrLevels: ['error'],
-		consoleWarnLevels: ['warn', 'debug'],
-		format: winston.format.printf((info) => {return `[${info.level}] ${info.message}`;}),
-		handleExceptions: true
-	}));
+// This is needed as the methodFactory property of logger is readonly.
+interface FactoryOverride {
+	methodFactory: (methodName: string, logLevel: LogLevelNumbers, loggerName: string) => void;
 }
+
+// This mimics a plugin for the loglevel.  See https://github.com/pimterry/loglevel#writing-plugins
+// for a similar example. This will send any errors to the backend to be logged.
+
+const originalFactory = logger.methodFactory;
+(logger as FactoryOverride).methodFactory = (methodName: string, logLevel: LogLevelNumbers, loggerName: string) => {
+	const rawMethod = originalFactory(methodName, logLevel, loggerName);
+
+	return function (message: string) {
+		// If an error being logged, send the error to the backend.
+		if (methodName === 'error') void api.post('/client-logs', { level: methodName, message });
+
+		rawMethod(message);
+	};
+};
+logger.setLevel(logger.getLevel()); // Be sure to call setLevel method in order to apply plugin
 
 export default boot(({ app }) => {
 	// For use inside Vue files (Options API) through this.$logger
