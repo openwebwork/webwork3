@@ -55,7 +55,7 @@ sub getAllProblemSets ($self, %args) {
 	my @all_sets = ();
 	for my $set (@problem_sets) {
 		my $expanded_set =
-			{ $set->get_inflated_columns, $set->courses->get_inflated_columns, set_type => $set->set_type };
+			{ $set->get_inflated_columns, $set->course->get_inflated_columns, set_type => $set->set_type };
 		delete $expanded_set->{type};
 		push(@all_sets, $expanded_set);
 	}
@@ -134,11 +134,11 @@ sub getHWSets ($self, %args) {
 	my $p             = getCourseInfo($args{info});    # pull out the course_info that is passed
 	my $search_params = {};
 	for my $key (keys %$p) {
-		$search_params->{"courses.$key"} = $p->{$key};
+		$search_params->{"course.$key"} = $p->{$key};
 	}
 	$search_params->{'type'} = 1;
 
-	my @problem_sets = $self->search($search_params, { join => 'courses' });
+	my @problem_sets = $self->search($search_params, { join => 'course' });
 	my $sets         = _formatSets(\@problem_sets);
 	return $args{as_result_set} ? @problem_sets : @$sets;
 }
@@ -174,11 +174,11 @@ sub getQuizzes ($self, %args) {
 	my $p             = getCourseInfo($args{info});    # pull out the course_info that is passed
 	my $search_params = {};
 	for my $key (keys %$p) {
-		$search_params->{"courses.$key"} = $p->{$key};
+		$search_params->{"course.$key"} = $p->{$key};
 	}
 	$search_params->{'type'} = 2;
 
-	my @problem_sets = $self->search($search_params, { join => 'courses' });
+	my @problem_sets = $self->search($search_params, { join => 'course' });
 	my $sets         = _formatSets(\@problem_sets);
 	return $args{as_result_set} ? @problem_sets : @$sets;
 }

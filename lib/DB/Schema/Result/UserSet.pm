@@ -106,10 +106,8 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key('user_set_id');
 __PACKAGE__->add_unique_constraint([qw/set_id course_user_id set_version/]);
-__PACKAGE__->belongs_to(
-	course_users => 'DB::Schema::Result::CourseUser',
-	{ 'foreign.course_user_id' => 'self.course_user_id' }
-);
+__PACKAGE__->belongs_to(course_user => 'DB::Schema::Result::CourseUser', 'course_user_id');
+
 __PACKAGE__->belongs_to(problem_set => 'DB::Schema::Result::ProblemSet', 'set_id');
 __PACKAGE__->has_many(user_problems => 'DB::Schema::Result::UserProblem', 'user_set_id');
 

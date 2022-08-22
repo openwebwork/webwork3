@@ -264,11 +264,11 @@ sub addProblems {
 		# Check if the course_name/set_name exists
 		my $set = $problem_set_rs->find(
 			{
-				'me.set_name'         => $prob->{set_name},
-				'courses.course_name' => $prob->{course_name}
+				'me.set_name'        => $prob->{set_name},
+				'course.course_name' => $prob->{course_name}
 			},
 			{
-				join => 'courses'
+				join => 'course'
 			}
 		);
 		croak "The course |$set->{course_name}| with set name |$set->{name}| is not defined" unless defined($set);
@@ -351,22 +351,22 @@ sub addUserProblems {
 	for my $user_problem (@user_problems) {
 		my $user_set = $user_set_rs->find(
 			{
-				'users.username'       => $user_problem->{username},
-				'courses.course_name'  => $user_problem->{course_name},
+				'user.username'        => $user_problem->{username},
+				'course.course_name'   => $user_problem->{course_name},
 				'problem_set.set_name' => $user_problem->{set_name}
 			},
 			{
-				join => [ { problem_set => 'courses' }, { course_users => 'users' } ]
+				join => [ { problem_set => 'course' }, { course_user => 'user' } ]
 			}
 		);
 		my $problem = $set_problem_rs->find(
 			{
-				'courses.course_name'  => $user_problem->{course_name},
+				'course.course_name'   => $user_problem->{course_name},
 				'problem_set.set_name' => $user_problem->{set_name},
 				'problem_number'       => $user_problem->{problem_number}
 			},
 			{
-				join => { 'problem_set' => 'courses' }
+				join => { problem_set => 'course' }
 			}
 		);
 

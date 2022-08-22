@@ -115,6 +115,6 @@ __PACKAGE__->set_primary_key('user_id');
 __PACKAGE__->add_unique_constraint([qw/username/]);
 
 __PACKAGE__->has_many(course_users => 'DB::Schema::Result::CourseUser', 'user_id');
-__PACKAGE__->many_to_many(courses => 'course_users', 'courses');
+__PACKAGE__->many_to_many(course => 'course_users', 'course');
 
 1;

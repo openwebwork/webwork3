@@ -569,7 +569,7 @@ sub _getCourseUser {
 sub _getMergedUser {
 	my $course_user = shift;
 	return removeLoginParams({
-		$course_user->get_inflated_columns, $course_user->users->get_inflated_columns,
+		$course_user->get_inflated_columns, $course_user->user->get_inflated_columns,
 		role => $course_user->role->role_name
 	});
 }

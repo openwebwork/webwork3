@@ -828,11 +828,11 @@ my $deleted_user_set4 = $user_set_rs->deleteUserSet(info => $new_merged_set);
 
 my @otto_user_sets = $user_set_rs->search(
 	{
-		'courses.course_name' => 'Precalculus',
-		'users.username'      => 'otto',
+		'course.course_name' => 'Precalculus',
+		'user.username'      => 'otto',
 	},
 	{
-		join => [ { problem_set => 'courses' }, { course_users => 'users' } ]
+		join => [ { problem_set => 'course' }, { course_user => 'user' } ]
 	}
 );
 

@@ -43,7 +43,9 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('role_id');
 __PACKAGE__->add_unique_constraint([qw/role_name/]);
 
+__PACKAGE__->belongs_to(course_user => 'DB::Schema::Result::CourseUser', 'role_id');
+
 __PACKAGE__->has_many(db_perm_roles => 'DB::Schema::Result::DBPermRole', 'role_id');
-__PACKAGE__->many_to_many(db_perms => 'db_perm_roles', 'db_perms');
+__PACKAGE__->many_to_many(db_permissions => 'db_perm_roles', 'db_permission');
 
 1;

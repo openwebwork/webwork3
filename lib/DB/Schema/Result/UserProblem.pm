@@ -60,8 +60,8 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key('user_problem_id');
 
-__PACKAGE__->belongs_to(problems  => 'DB::Schema::Result::SetProblem', 'set_problem_id');
-__PACKAGE__->belongs_to(user_sets => 'DB::Schema::Result::UserSet',    'user_set_id');
+__PACKAGE__->belongs_to(problem  => 'DB::Schema::Result::SetProblem', 'set_problem_id');
+__PACKAGE__->belongs_to(user_set => 'DB::Schema::Result::UserSet',    'user_set_id');
 
 __PACKAGE__->has_many(attempts => 'DB::Schema::Result::Attempt', 'user_problem_id');
 

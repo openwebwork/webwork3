@@ -44,7 +44,7 @@ sub getAllProblemPools ($self, %args) {
 	my @problem_pools = $self->search({});
 	return @problem_pools if $args{as_result_set};
 	return map {
-		{ $_->get_inflated_columns, course_name => $_->courses->course_name };
+		{ $_->get_inflated_columns, course_name => $_->course->course_name };
 	} @problem_pools;
 }
 
@@ -59,10 +59,10 @@ sub getProblemPools ($self, %args) {
 
 	my @pools = $self->search(
 		{
-			'courses.course_id' => $course->course_id
+			'course.course_id' => $course->course_id
 		},
 		{
-			join => [qw/courses/]
+			join => 'course'
 		}
 	);
 
@@ -84,9 +84,9 @@ sub getProblemPool ($self, %args) {
 	my $course = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 
 	my $search_info = getPoolInfo($args{info});
-	$search_info->{'courses.course_id'} = $course->course_id;
+	$search_info->{'course.course_id'} = $course->course_id;
 
-	my $pool = $self->find($search_info, { join => [qw/courses/] });
+	my $pool = $self->find($search_info, { join => 'course' });
 
 	unless ($pool) {
 		my $course_name = $course->course_name;
@@ -112,10 +112,10 @@ sub addProblemPool ($self, %args) {
 
 	my $existing_pool = $self->find(
 		{
-			'courses.course_id' => $course->course_id,
-			pool_name           => $args{params}->{pool_name}
+			'course.course_id' => $course->course_id,
+			pool_name          => $args{params}->{pool_name}
 		},
-		{ prefetch => [qw/courses/] }
+		{ prefetch => 'course' }
 	);
 
 	DB::Exception::PoolAlreadyInCourse->throw(

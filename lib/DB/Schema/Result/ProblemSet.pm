@@ -142,7 +142,7 @@ __PACKAGE__->typecast_map(
 __PACKAGE__->set_primary_key('set_id');
 __PACKAGE__->add_unique_constraint([qw/course_id set_name/]);
 
-__PACKAGE__->belongs_to(courses => 'DB::Schema::Result::Course', 'course_id');
+__PACKAGE__->belongs_to(course => 'DB::Schema::Result::Course', 'course_id');
 __PACKAGE__->has_many(problems  => 'DB::Schema::Result::SetProblem', 'set_id');
 __PACKAGE__->has_many(user_sets => 'DB::Schema::Result::UserSet',    'set_id');
 

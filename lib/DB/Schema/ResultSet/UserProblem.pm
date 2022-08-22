@@ -95,10 +95,10 @@ sub getUserProblems ($self, %args) {
 	my $course        = $self->rs('Course')->getCourse(info => $args{info}, as_result_set => 1);
 	my @user_problems = $self->search(
 		{
-			'courses.course_id' => $course->course_id
+			'course.course_id' => $course->course_id
 		},
 		{
-			join => { problems => { problem_set => 'courses' } }
+			join => { problem => { problem_set => 'course' } }
 		}
 	);
 
@@ -147,11 +147,11 @@ sub getUserProblemsForSet ($self, %args) {
 	my $problem_set   = $self->rs('ProblemSet')->getProblemSet(info => $args{info}, as_result_set => 1);
 	my @user_problems = $self->search(
 		{
-			'courses.course_id'  => $course->course_id,
+			'course.course_id'   => $course->course_id,
 			'problem_set.set_id' => $problem_set->set_id
 		},
 		{
-			join => { problems => { problem_set => 'courses' } }
+			join => { problem => { problem_set => 'course' } }
 		}
 	);
 
@@ -200,16 +200,16 @@ sub getUserProblemsForUser ($self, %args) {
 	my $user          = $self->rs('User')->getGlobalUser(info => $args{info}, as_result_set => 1);
 	my @user_problems = $self->search(
 		{
-			'courses.course_id' => $course->course_id,
-			'users.user_id'     => $user->user_id
+			'course.course_id' => $course->course_id,
+			'user.user_id'     => $user->user_id
 		},
 		{
 			join => [
 				{
-					problems => { problem_set => 'courses' }
+					problem => { problem_set => 'course' }
 				},
 				{
-					user_sets => { course_users => 'users' }
+					user_set => { course_user => 'user' }
 				}
 			]
 		}
@@ -344,11 +344,11 @@ sub addUserProblem ($self, %args) {
 	);
 
 	DB::Exception::UserProblemExists->throw(message => 'The user '
-			. $user_problem->user_sets->course_users->users->username
+			. $user_problem->user_set->course_user->user->username
 			. ' already has problem number '
-			. $user_problem->problems->problem_number
+			. $user_problem->problem->problem_number
 			. ' in set with name '
-			. $user_problem->user_sets->problem_set->set_name)
+			. $user_problem->user_set->problem_set->set_name)
 		if $user_problem;
 
 	my $problem  = $self->rs('SetProblem')->getSetProblem(info => $args{params}, as_result_set => 1);
@@ -560,11 +560,11 @@ sub checkParams ($self, $params) {
 sub _mergeUserProblem ($user_problem) {
 	my $user_problem_fields = _getUserProblem($user_problem);
 	delete $user_problem_fields->{problem_params};
-	my $problem_fields = { $user_problem->problems->get_inflated_columns };
+	my $problem_fields = { $user_problem->problem->get_inflated_columns };
 	delete $problem_fields->{problem_params};
 
 	# Merge the params (problem_params and problem_params).
-	my $params = updateAllFields($user_problem->problems->problem_params, $user_problem->problem_params);
+	my $params = updateAllFields($user_problem->problem->problem_params, $user_problem->problem_params);
 
 	# Merge the main fields.
 	my $merged_params = updateAllFields($problem_fields, $user_problem_fields);
@@ -576,10 +576,10 @@ sub _mergeUserProblem ($user_problem) {
 sub _getUserProblem ($user_problem) {
 	return {
 		$user_problem->get_inflated_columns,
-		problem_number => $user_problem->problems->problem_number,
-		username       => $user_problem->user_sets->course_users->users->username,
-		set_name       => $user_problem->problems->problem_set->set_name,
-		course_name    => $user_problem->problems->problem_set->courses->course_name
+		problem_number => $user_problem->problem->problem_number,
+		username       => $user_problem->user_set->course_user->user->username,
+		set_name       => $user_problem->problem->problem_set->set_name,
+		course_name    => $user_problem->problem->problem_set->course->course_name
 	};
 }
 
