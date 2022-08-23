@@ -42,7 +42,7 @@ my $user_rs = $schema->resultset('User');
 # Get a list of users from the CSV file
 my @students = loadCSV("$main::ww3_dir/t/db/sample_data/students.csv");
 for my $student (@students) {
-	$student->{is_admin}           = 0;
+	$student->{is_admin}           = false;
 	$student->{course_user_params} = $student->{params};
 	delete $student->{params};
 }
@@ -124,7 +124,7 @@ my $user_params = {
 	last_name  => 'Quimby',
 	email      => 'mayor_joe@springfield.gov',
 	student_id => '12345',
-	is_admin   => 0
+	is_admin   => false
 };
 
 my $course_user_params = {

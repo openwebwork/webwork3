@@ -5,8 +5,7 @@ use Mojo::Base -strict;
 use Test::More;
 use Test::Mojo;
 use YAML::XS qw/LoadFile/;
-
-use YAML::XS qw/LoadFile/;
+use Mojo::JSON qw/true false/;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -36,11 +35,11 @@ $t->post_ok('/webwork3/api/login')->status_is(500, 'error status')->content_type
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is(
 		'' => {
-			logged_in => 1,
+			logged_in => true,
 			user      => {
 				email      => 'lisa@google.com',
 				first_name => 'Lisa',
-				is_admin   => 0,
+				is_admin   => false,
 				last_name  => 'Simpson',
 				student_id => '23',
 				user_id    => 3,
@@ -53,7 +52,7 @@ $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => '
 # Test logout
 $t->post_ok('/webwork3/api/logout')->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is(
 	'' => {
-		logged_in => 0,
+		logged_in => false,
 		message   => 'Successfully logged out.'
 	},
 	'logout'
@@ -63,7 +62,7 @@ $t->post_ok('/webwork3/api/logout')->status_is(200)->content_type_is('applicatio
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'wrong_password' })->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is(
 		'' => {
-			logged_in => 0,
+			logged_in => false,
 			message   => 'Incorrect username or password.'
 		},
 		'invalid credentials'

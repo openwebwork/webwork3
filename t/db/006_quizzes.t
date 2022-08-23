@@ -45,7 +45,13 @@ my $user_rs        = $schema->resultset('User');
 
 my @all_problem_sets;
 
-my @quizzes = loadCSV("$main::ww3_dir/t/db/sample_data/quizzes.csv");
+my @quizzes = loadCSV(
+	"$main::ww3_dir/t/db/sample_data/quizzes.csv",
+	{
+		boolean_fields       => ['set_visible'],
+		param_boolean_fields => ['timed']
+	}
+);
 for my $quiz (@quizzes) {
 	$quiz->{set_type} = 'QUIZ';
 }
@@ -248,7 +254,7 @@ my $updated_quiz   = $problem_set_rs->updateProblemSet(
 	params => $updated_params
 );
 
-$new_quiz->{set_visible} = 0;
+$new_quiz->{set_visible} = false;
 $new_quiz->{set_params}  = {};
 removeIDs($updated_quiz);
 is_deeply($new_quiz, $updated_quiz, 'updateQuiz: successfully update the quiz');

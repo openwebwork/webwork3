@@ -28,14 +28,14 @@ my $t = Test::Mojo->new(WeBWorK3 => $config);
 
 # Authenticate with the admin user.
 $t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/user_id' => 1)
-	->json_is('/user/is_admin' => 1);
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => true)->json_is('/user/user_id' => 1)
+	->json_is('/user/is_admin' => true);
 
 $t->get_ok('/webwork3/api/courses')->content_type_is('application/json;charset=UTF-8')
-	->json_is('/0/course_name' => 'Precalculus')->json_is('/0/visible' => 1);
+	->json_is('/0/course_name' => 'Precalculus')->json_is('/0/visible' => true);
 
 $t->get_ok('/webwork3/api/courses/1')->content_type_is('application/json;charset=UTF-8')
-	->json_is('/course_name' => 'Precalculus')->json_is('/visible' => 1);
+	->json_is('/course_name' => 'Precalculus')->json_is('/visible' => true);
 
 # Add a new course
 my $new_course = {
@@ -124,8 +124,8 @@ $t->get_ok('/webwork3/api/courses/4/settings')->status_is(200)->content_type_is(
 $t->post_ok('/webwork3/api/courses' => json => $new_course)->status_is(403)->json_is('/has_permission' => 0);
 
 $t->put_ok('/webwork3/api/courses/4' => json => { course_name => 'XXX' })->status_is(403)
-	->json_is('/has_permission' => false);
+	->json_is('/has_permission' => 0);
 
-$t->delete_ok('/webwork3/api/courses/4')->status_is(403)->json_is('/has_permission' => false);
+$t->delete_ok('/webwork3/api/courses/4')->status_is(403)->json_is('/has_permission' => 0);
 
 done_testing;

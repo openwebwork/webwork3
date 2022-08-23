@@ -18,6 +18,7 @@ use Test::More;
 use Test::Exception;
 use YAML::XS qw/LoadFile/;
 use DateTime::Format::Strptime;
+use Mojo::JSON qw/true false/;
 
 use DB::Schema;
 
@@ -90,7 +91,7 @@ throws_ok {
 # Add a course
 my $new_course_params = {
 	course_name  => 'Geometry',
-	visible      => 1,
+	visible      => true,
 	course_dates => {}
 };
 

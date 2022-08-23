@@ -41,8 +41,8 @@ my $t = Test::Mojo->new(WeBWorK3 => $config);
 
 # First run tests as logged in as an instructor
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
-	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => 0);
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => true)
+	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => false);
 
 # Load all problems from the CVS files.
 my @problems_from_csv = loadCSV(
@@ -174,7 +174,7 @@ $t->put_ok(
 	->json_is('/seed' => 789);
 
 # Check that a student has the correct access
-$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => false);
 $t->post_ok('/webwork3/api/login' => json => { username => 'ralph', password => 'ralph' })->status_is(200);
 
 # get all of ralph's problems
@@ -208,7 +208,7 @@ $t->delete_ok(
 	->status_is(403);
 
 # Make sure that a user that is in the course, cannot get or update a user problem that is not one's own.
-$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => false);
 $t->post_ok('/webwork3/api/login' => json => { username => 'moe', password => 'moe' })->status_is(200);
 
 # Check that moe is in the course
@@ -233,7 +233,7 @@ $t->put_ok(
 		=> json => { status => 0.5 })->status_is(403);
 
 # Switch back to the instructor and delete the user problem
-$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => false);
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200);
 
 $t->delete_ok(
