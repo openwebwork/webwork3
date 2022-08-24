@@ -105,6 +105,9 @@ db_permissions:
     getUserSet:
       allow_self_access: true
       allowed_roles: ['course_admin', 'instructor']
+    getUserSet:
+      allow_self_access: true
+      allowed_roles: ['course_admin', 'instructor']
     addUserSet:
       allowed_roles: ['course_admin', 'instructor']
     updateUserSet:
