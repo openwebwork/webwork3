@@ -19,7 +19,6 @@ use Clone qw/clone/;
 use Mojo::JSON qw/true false/;
 use YAML::XS qw/LoadFile/;
 use DateTime::Format::Strptime;
-use List::MoreUtils qw/firstval/;
 
 use TestUtils qw/loadCSV removeIDs/;
 

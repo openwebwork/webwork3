@@ -19,7 +19,6 @@ use Test::Exception;
 use Try::Tiny;
 use Carp;
 use Clone qw/clone/;
-use List::MoreUtils qw/firstval/;
 use YAML::XS qw/LoadFile/;
 
 use DB::Schema;
@@ -70,12 +69,15 @@ for my $problem (@problems_from_csv) {
 
 my @merged_problems_from_csv = ();
 for my $user_problem (@user_problems_from_csv) {
-	my $problem = clone firstval {
-		$_->{course_name} eq $user_problem->{course_name}
-			&& $_->{set_name} eq $user_problem->{set_name}
-			&& $_->{problem_number} == $user_problem->{problem_number}
-	}
-	@problems_from_csv;
+	my $problem = clone(
+		(
+			grep {
+				$_->{course_name} eq $user_problem->{course_name}
+					&& $_->{set_name} eq $user_problem->{set_name}
+					&& $_->{problem_number} == $user_problem->{problem_number}
+			} @problems_from_csv
+		)[0]
+	);
 
 	# Override the following fields from user problems.
 	for my $key (qw/seed status problem_version username/) {
@@ -179,13 +181,16 @@ removeIDs($user_problem);
 delete $user_problem->{problem_version} unless defined $user_problem->{problem_version};
 $user_problem->{status} += 0;
 
-my $user_problem_from_csv = clone firstval {
-	$_->{course_name} eq 'Precalculus'
-		&& $_->{username} eq 'homer'
-		&& $_->{set_name} eq 'HW #2'
-		&& $_->{problem_number} == 3
-}
-@precalc_user_problems;
+my $user_problem_from_csv = clone(
+	(
+		grep {
+			$_->{course_name} eq 'Precalculus'
+				&& $_->{username} eq 'homer'
+				&& $_->{set_name} eq 'HW #2'
+				&& $_->{problem_number} == 3
+		} @precalc_user_problems
+	)[0]
+);
 
 is_deeply($user_problem_from_csv, $user_problem, 'getUserProblem: get a single user problem');
 
@@ -289,12 +294,15 @@ my $user_problem2 = $user_problem_rs->addUserProblem(
 
 removeIDs($user_problem2);
 
-my $problem2 = clone firstval {
-	$_->{course_name} eq $problem_info2->{course_name}
-		&& $_->{set_name} eq $problem_info2->{set_name}
-		&& $_->{problem_number} eq $problem_info2->{problem_number}
-}
-@problems_from_csv;
+my $problem2 = clone(
+	(
+		grep {
+			$_->{course_name} eq $problem_info2->{course_name}
+				&& $_->{set_name} eq $problem_info2->{set_name}
+				&& $_->{problem_number} eq $problem_info2->{problem_number}
+		} @problems_from_csv
+	)[0]
+);
 
 # Merge the two problems.
 for my $key (qw/username seed status problem_version/) {

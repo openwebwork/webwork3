@@ -19,7 +19,7 @@ use DateTime::Format::Strptime;
 use Test::More;
 use Clone qw/clone/;
 use Test::Exception;
-use List::MoreUtils qw/firstval/;
+
 use YAML::XS qw/LoadFile/;
 use Mojo::JSON qw/true false/;
 
@@ -99,10 +99,8 @@ my @all_user_sets = loadCSV(
 for my $set (@all_user_sets) {
 	$set->{set_version} = 0 unless defined($set->{set_version});
 	# find the problem set type
-	my $s = firstval {
-		$_->{course_name} eq $set->{course_name} && $_->{set_name} eq $set->{set_name}
-	}
-	@all_problem_sets;
+	my $s =
+		(grep { $_->{course_name} eq $set->{course_name} && $_->{set_name} eq $set->{set_name} } @all_problem_sets)[0];
 	$set->{set_params} = {} unless defined $set->{set_params};
 	$set->{set_type}   = $s->{set_type};
 }
@@ -112,10 +110,8 @@ my @merged_user_sets = @{ clone(\@all_user_sets) };
 # Merge the sets
 
 for my $user_set (@merged_user_sets) {
-	my $set = firstval {
-		$_->{course_name} eq $user_set->{course_name} && $_->{set_name} eq $user_set->{set_name}
-	}
-	@all_problem_sets;
+	my $set = (grep { $_->{course_name} eq $user_set->{course_name} && $_->{set_name} eq $user_set->{set_name} }
+			@all_problem_sets)[0];
 
 	# override problem set dates with userset dates if exist
 	my $dates = clone($set->{set_dates});
@@ -263,12 +259,15 @@ my $info = {
 };
 my $user_set = $user_set_rs->getUserSet(info => $info);
 
-my $user_set_from_csv = clone firstval {
-	$_->{course_name} eq 'Precalculus'
-		&& $_->{username} eq $info->{username}
-		&& $_->{set_name} eq $info->{set_name}
-}
-@all_user_sets;
+my $user_set_from_csv = clone(
+	(
+		grep {
+			$_->{course_name} eq 'Precalculus'
+				&& $_->{username} eq $info->{username}
+				&& $_->{set_name} eq $info->{set_name}
+		} @all_user_sets
+	)[0]
+);
 
 removeIDs($user_set);
 delete $user_set->{set_visible} unless defined($user_set->{set_visible});
@@ -277,12 +276,15 @@ is_deeply($user_set_from_csv, $user_set, 'getUserSet: get a user set from a cour
 
 # Get a merged UserSet
 
-my $merged_set_from_csv = clone firstval {
-	$_->{course_name} eq 'Precalculus'
-		&& $_->{username} eq $info->{username}
-		&& $_->{set_name} eq $info->{set_name}
-}
-@merged_user_sets;
+my $merged_set_from_csv = clone(
+	(
+		grep {
+			$_->{course_name} eq 'Precalculus'
+				&& $_->{username} eq $info->{username}
+				&& $_->{set_name} eq $info->{set_name}
+		} @merged_user_sets
+	)[0]
+);
 
 my $merged_set = $user_set_rs->getUserSet(info => $info, merged => 1);
 removeIDs($merged_set);
@@ -356,11 +358,7 @@ $new_info->{set_type}    = 'HW';
 
 is_deeply($new_user_set, $new_info, 'addUserSet: add a new user set');
 
-my $hw_set1 = clone firstval {
-	$_->{course_name} eq 'Precalculus'
-		&& $_->{set_name} eq 'HW #1'
-}
-@hw_sets;
+my $hw_set1 = clone((grep { $_->{course_name} eq 'Precalculus' && $_->{set_name} eq 'HW #1' } @hw_sets)[0]);
 
 $hw_set1->{username} = 'frink';
 
@@ -619,11 +617,16 @@ my $otto_quiz_info = {
 	username    => 'otto'
 };
 
-my $merged_set1 = clone firstval {
-	$_->{course_name} eq $otto_quiz_info->{course_name}
-		&& $_->{set_name} eq $otto_quiz_info->{set_name}
-}
-@all_problem_sets;
+# Then add a new user set and test that it is merged correctly.
+
+my $merged_set1 = clone(
+	(
+		grep {
+			$_->{course_name} eq $otto_quiz_info->{course_name}
+				&& $_->{set_name} eq $otto_quiz_info->{set_name}
+		} @all_problem_sets
+	)[0]
+);
 
 $merged_set1->{username} = $otto_quiz_info->{username};
 

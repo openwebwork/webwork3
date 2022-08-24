@@ -19,7 +19,6 @@ use DB::Schema;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
 use DateTime::Format::Strptime;
-use List::MoreUtils qw/firstval/;
 use TestUtils qw/loadCSV/;
 
 my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
@@ -64,7 +63,7 @@ $t->get_ok('/webwork3/api/courses/4/sets')->content_type_is('application/json;ch
 my $all_problem_sets = $t->tx->res->json;
 
 # find the first review set in the course.
-my $review_set1 = firstval { $_->{set_type} eq 'REVIEW' } @$all_problem_sets;
+my $review_set1 = (grep { $_->{set_type} eq 'REVIEW' } @$all_problem_sets)[0];
 
 # test some things about this review set
 

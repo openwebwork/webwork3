@@ -24,7 +24,6 @@ RUN apt-get update && \
 		libdevel-cover-perl=1.33-1build1 \
 		libexception-class-perl=1.44-1 \
 		libjson-perl=4.02000-2 \
-		liblist-moreutils-perl=0.416-1build5 \
 		libnet-ssleay-perl=1.88-2ubuntu1 \
 		libsql-translator-perl=1.60-1 \
 		libssl-dev=1.1.1f-1ubuntu2.5 \

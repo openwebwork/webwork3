@@ -20,7 +20,6 @@ use lib "$main::ww3_dir/t/lib";
 use DB::Schema;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
-use List::MoreUtils qw/firstval/;
 
 use TestUtils qw/loadCSV removeIDs/;
 
@@ -72,7 +71,7 @@ $t->get_ok('/webwork3/api/courses/4/sets')->status_is(200)->content_type_is('app
 
 my $sets = $t->tx->res->json;
 
-my $hw1 = firstval { $_->{set_name} eq 'HW #1' } @$sets;
+my $hw1 = (grep { $_->{set_name} eq 'HW #1' } @$sets)[0];
 
 # Get all Arithmetic problems (course_id: 4)
 

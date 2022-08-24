@@ -14,8 +14,6 @@ BEGIN {
 use lib "$main::ww3_dir/lib";
 use lib "$main::ww3_dir/t/lib";
 
-use List::MoreUtils qw(uniq);
-
 use Test::More;
 use Test::Exception;
 use YAML::XS qw/LoadFile/;

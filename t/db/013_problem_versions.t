@@ -17,7 +17,6 @@ use lib "$main::ww3_dir/t/lib";
 use Test::More;
 use Test::Exception;
 use YAML::XS qw/LoadFile/;
-use List::MoreUtils qw/firstval/;
 use Clone qw/clone/;
 
 use DB::Schema;
@@ -53,12 +52,15 @@ for my $problem (@problems_from_csv) {
 
 my @merged_problems_from_csv = ();
 for my $user_problem (@user_problems_from_csv) {
-	my $problem = clone firstval {
-		$_->{course_name} eq $user_problem->{course_name}
-			&& $_->{set_name} eq $user_problem->{set_name}
-			&& $_->{problem_number} == $user_problem->{problem_number}
-	}
-	@problems_from_csv;
+	my $problem = clone(
+		(
+			grep {
+				$_->{course_name} eq $user_problem->{course_name}
+					&& $_->{set_name} eq $user_problem->{set_name}
+					&& $_->{problem_number} == $user_problem->{problem_number}
+			} @problems_from_csv
+		)[0]
+	);
 
 	# Override the following fields from user problems.
 	for my $key (qw/seed status problem_version username/) {
@@ -86,13 +88,16 @@ delete $user_problem1->{set_visible} unless defined $user_problem1->{set_visible
 
 # Check that it is the same as that from the CSV file
 
-my $user_problem1_from_csv = clone firstval {
-	$_->{course_name} eq $user_problem_info->{course_name}
-		&& $_->{set_name} eq $user_problem_info->{set_name}
-		&& $_->{username} eq $user_problem_info->{username}
-		&& $_->{problem_number} == $user_problem_info->{problem_number}
-}
-@user_problems_from_csv;
+my $user_problem1_from_csv = clone(
+	(
+		grep {
+			$_->{course_name} eq $user_problem_info->{course_name}
+				&& $_->{set_name} eq $user_problem_info->{set_name}
+				&& $_->{username} eq $user_problem_info->{username}
+				&& $_->{problem_number} == $user_problem_info->{problem_number}
+		} @user_problems_from_csv
+	)[0]
+);
 
 # the status needs be returned to a numerical value.
 $user_problem1->{status} += 0;
