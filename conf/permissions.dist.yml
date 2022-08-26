@@ -35,9 +35,9 @@ db_permissions:
 
   Course:
     getCourses:
-      allowed_roles: ['*']
+      authenticated: true
     getCourse:
-      allowed_roles: ['*']
+      authenticated: true
     updateCourse:
       admin_required: true
     addCourse:
@@ -48,7 +48,7 @@ db_permissions:
     getGlobalUsers:
       admin_required: true
     getGlobalUser:
-      admin_required: true
+      allow_self_access: true
     checkGlobalUser:
       allowed_roles: ['course_admin', 'instructor']
     updateGlobalUser:
@@ -78,6 +78,7 @@ db_permissions:
     getGlobalCourseUsers:
       allowed_roles: ['course_admin', 'instructor']
     getCourseUser:
+      allow_self_access: true
       allowed_roles: ['course_admin', 'instructor']
     addCourseUser:
       allowed_roles: ['course_admin', 'instructor']
@@ -99,6 +100,7 @@ db_permissions:
     getAllUserSets:
       allowed_roles: ['course_admin', 'instructor']
     getUserSets:
+      allow_self_access: true
       allowed_roles: ['course_admin', 'instructor']
     addUserSet:
       allowed_roles: ['course_admin', 'instructor']

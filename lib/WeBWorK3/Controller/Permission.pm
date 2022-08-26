@@ -62,9 +62,9 @@ sub checkPermission ($c) {
 	} elsif ($perm_db->admin_required && !$user->{is_admin}) {
 		$permitted = undef;
 		$msg       = 'This route requires admin privileges.';
-	} elsif (!$course_id && $perm_db->allow_self_access && defined($c->param('user_id'))) {
+	} elsif (!$course_id && $perm_db->allow_self_access && defined($user_id)) {
 		# Some routes allow self access, but the course_id is not defined.
-		$permitted = $user->{user_id} == $c->param('user_id');
+		$permitted = $user->{user_id} == $user_id;
 	} elsif ($course_id) {
 		my $course_user = $c->schema->resultset('User')->getCourseUser(
 			info => {

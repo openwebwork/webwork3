@@ -36,48 +36,35 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { useSessionStore } from 'src/stores/session';
+import { logger } from 'src/boot/logger';
 
-const session = useSessionStore();
+const session_store = useSessionStore();
 const router = useRouter();
+
+const user = computed(() => session_store.user);
 
 // This is used to simplify the UI.
 const course_types = computed(() => [
-	{ name: 'Student', courses: student_courses.value },
-	{ name: 'Instrutor', courses: instructor_courses.value }
+	{ name: 'Student', courses: session_store.user_courses.filter(c => c.role === 'student') },
+	{ name: 'Instructor', courses: session_store.user_courses.filter(c => c.role === 'instructor') }
 ]);
 
-const student_courses = computed(() =>
-	// for some reason on load the user_course.role is undefined.
-	session.user_courses.filter(user_course => user_course.role === 'student'));
+const switchCourse = (course_id?: number) => {
+	if (!course_id) {
+		logger.error('[UserCourses/switchCourse]: the course_id is 0 or undefined.');
+		return;
+	}
+	session_store.setCourse(course_id);
 
-const instructor_courses = computed(() =>
-	// For some reason on load the user_course.role is undefined.
-	session.user_courses.filter(user_course => user_course.role === 'instructor')
-);
-const user = computed(() => session.user);
-
-const switchCourse = async (course_id: number) => {
-	const student_course = student_courses.value.find(c => c.course_id === course_id);
-	const instructor_course = instructor_courses.value.find(c => c.course_id === course_id);
-	if (student_course) {
-		session.setCourse({
-			course_name: student_course.course_name,
-			course_id: student_course.course_id,
-			role: 'student'
-		});
-		await router.push({
+	if (session_store.course.role === 'student') {
+		void router.push({
 			name: 'StudentDashboard',
-			params: { course_id: student_course.course_id }
+			params: { course_id }
 		});
-	} else if (instructor_course) {
-		session.setCourse({
-			course_name: instructor_course.course_name,
-			course_id: instructor_course.course_id,
-			role: 'instructor'
-		});
-		await router.push({
-			name: 'instructor',
-			params: { course_id: instructor_course.course_id }
+	} else if (session_store.course.role === 'instructor') {
+		void router.push({
+			name: 'InstructorDashboard',
+			params: { course_id }
 		});
 	}
 };

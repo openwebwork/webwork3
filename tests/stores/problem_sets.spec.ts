@@ -15,12 +15,12 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useCourseStore } from 'src/stores/courses';
 import { useSessionStore } from 'src/stores/session';
-import { api } from 'src/boot/axios';
 
 import { HomeworkSet, ProblemSet, Quiz, ReviewSet } from 'src/common/models/problem_sets';
 import { Course } from 'src/common/models/courses';
 
 import { cleanIDs, loadCSV } from '../utils';
+import { checkPassword } from 'src/common/api-requests/session';
 
 const app = createApp({});
 
@@ -34,7 +34,10 @@ describe('Problem Set store tests', () => {
 		setActivePinia(pinia);
 
 		// Login to the course as the admin in order to be authenticated for the rest of the test.
-		await api.post('login', { username: 'admin', password: 'admin' });
+		const session_info = await checkPassword({ username: 'admin', password: 'admin' });
+		const session_store = useSessionStore();
+		session_store.updateSessionInfo(session_info);
+		await session_store.fetchUserCourses();
 
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
@@ -64,11 +67,7 @@ describe('Problem Set store tests', () => {
 		precalc_course = courses_store.courses.find(course => course.course_name === 'Precalculus') as Course;
 
 		// Add the precalc course to the session;
-		const session_store = useSessionStore();
-		session_store.setCourse({
-			course_id: precalc_course.course_id,
-			course_name: precalc_course.course_name
-		});
+		session_store.setCourse(precalc_course.course_id);
 	});
 
 	// sort by set name and clean up the _id tags.

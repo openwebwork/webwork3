@@ -13,21 +13,25 @@
 import { defineComponent, ref, computed } from 'vue';
 import { instructor_views, admin_views, student_views, ViewInfo } from 'src/common/views';
 import { useRouter, useRoute } from 'vue-router';
+import { useSessionStore } from 'src/stores/session';
 
 export default defineComponent({
 	name: 'MenuSidebar',
 	setup() {
 		const route = useRoute();
 		const router = useRouter();
+		const session = useSessionStore();
 		const sidebar_open = ref<boolean>(false);
 		return {
 			sidebar_open,
 			views: computed(() =>
 				/^\/admin/.exec(route.path)
 					? admin_views
-					: /^\/courses\/\d+\/instructor/.exec(route.path)
+					: session.course.role === 'instructor'
 						? instructor_views
-						: student_views
+						: session.course.role === 'student'
+							? student_views
+							: []
 			),
 			changeView: (view: ViewInfo) => {
 				void router.push({ name: view.component_name, params: route.params });

@@ -106,9 +106,13 @@ export const useSetProblemStore = defineStore('set_problems', {
 		 * Fetch all set problems with given course_id.
 		 */
 		async fetchSetProblems(course_id: number): Promise<void> {
-			const response = await api.get(`courses/${course_id}/problems`);
-			const all_problems = response.data as Array<ParseableProblem>;
-			this.set_problems = all_problems.map((prob) => parseProblem(prob, 'Set') as SetProblem);
+			const response = await api.get(`courses/${course_id}/problems`)
+				.then((response) => {
+					// TODO: throw exceptions via axios hook instead
+					if (response.status !== 200) throw (response.data as Error);
+					return response.data as Array<ParseableProblem>;
+				});
+			if (response) this.set_problems = response.map((prob) => parseProblem(prob, 'Set') as SetProblem);
 		},
 
 		/**
@@ -118,7 +122,11 @@ export const useSetProblemStore = defineStore('set_problems', {
 		async addSetProblem(problem: LibraryProblem, set_id: number): Promise<SetProblem> {
 			if (!problem.isValid()) await invalidError(problem, 'The added problem is invalid');
 
-			const course_id = useSessionStore().course.course_id;
+			const session_store = useSessionStore();
+
+			const course_id = session_store.course.course_id;
+			if (!course_id) logger.error('[addSetProblem] cannot add problem when session course is not set');
+
 			const prob = new SetProblem({
 				problem_params: problem.location_params,
 				set_id: set_id
@@ -127,7 +135,8 @@ export const useSetProblemStore = defineStore('set_problems', {
 			// delete the render params.  Not in the database.
 			delete prob.render_params;
 			const response = await api.post(`/courses/${course_id}/sets/${set_id}/problems`, prob).
-				catch((e: Error) => logger.error(`[addSetProblem] ${JSON.stringify(prob)} failed with ${e.message}`));
+				catch((e: Error) =>
+					logger.error(`[addSetProblem] ${JSON.stringify(prob)} failed with ${e.message}`));
 
 			const new_problem = new SetProblem(response.data as ParseableSetProblem);
 			this.set_problems.push(new_problem);
