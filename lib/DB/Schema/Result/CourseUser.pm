@@ -133,16 +133,15 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('course_user_id');
 __PACKAGE__->add_unique_constraint([qw/course_id user_id/]);
 
-__PACKAGE__->belongs_to(users   => 'DB::Schema::Result::User',   'user_id');
-__PACKAGE__->belongs_to(courses => 'DB::Schema::Result::Course', 'course_id');
+__PACKAGE__->belongs_to(user   => 'DB::Schema::Result::User',   'user_id');
+__PACKAGE__->belongs_to(course => 'DB::Schema::Result::Course', 'course_id');
 
 __PACKAGE__->has_many(user_sets => 'DB::Schema::Result::UserSet', 'course_user_id');
 
 # The cascade_delete => 0 prevents the role from being deleted if the course_user is deleted.
 __PACKAGE__->has_one(
 	role => 'DB::Schema::Result::Role',
-	{ 'foreign.role_id' => 'self.role_id' },
-	{ cascade_delete    => 0 }
+	{ 'foreign.role_id' => 'self.role_id' }, { cascade_delete => 0 }
 );
 
 =head2 C<valid_fields>

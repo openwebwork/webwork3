@@ -63,6 +63,6 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key('db_perm_id');
 __PACKAGE__->has_many(db_perm_roles => 'DB::Schema::Result::DBPermRole', 'db_perm_id');
-__PACKAGE__->many_to_many(roles => 'db_perm_roles', 'roles');
+__PACKAGE__->many_to_many(roles => 'db_perm_roles', 'role');
 
 1;

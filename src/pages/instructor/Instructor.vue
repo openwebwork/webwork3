@@ -39,7 +39,7 @@ if (course_id !== session.course.course_id) {
 await users.fetchGlobalCourseUsers(course_id);
 await users.fetchCourseUsers(course_id);
 await problem_sets.fetchProblemSets(course_id);
-await settings.fetchDefaultSettings(course_id)
+await settings.fetchGlobalSettings()
 	.then(() => settings.fetchCourseSettings(course_id))
 	.then(() => void setI18nLanguage(settings.getCourseSetting('language').value as string))
 	.catch((err) => logger.error(`${JSON.stringify(err)}`));

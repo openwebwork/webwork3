@@ -66,7 +66,7 @@ __PACKAGE__->set_primary_key('course_id');
 
 # set up the many-to-many relationship to users
 __PACKAGE__->has_many(course_users => 'DB::Schema::Result::CourseUser', 'course_id');
-__PACKAGE__->many_to_many(users => 'course_users', 'users');
+__PACKAGE__->many_to_many(users => 'course_users', 'user');
 
 # set up the one-to-many relationship to problem_sets
 __PACKAGE__->has_many(problem_sets => 'DB::Schema::Result::ProblemSet', 'course_id');
@@ -74,8 +74,8 @@ __PACKAGE__->has_many(problem_sets => 'DB::Schema::Result::ProblemSet', 'course_
 # set up the one-to-many relationship to problem_pools
 __PACKAGE__->has_many(problem_pools => 'DB::Schema::Result::ProblemPool', 'course_id');
 
-# set up the one-to-one relationship to course settings;
-__PACKAGE__->has_one(course_settings => 'DB::Schema::Result::CourseSettings', 'course_id');
+# set up the one-to-many relationship to course settings;
+__PACKAGE__->has_many(course_settings => 'DB::Schema::Result::CourseSetting', 'course_id');
 
 =head2 C<valid_fields>
 

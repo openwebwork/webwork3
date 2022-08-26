@@ -16,15 +16,16 @@ use lib "$main::ww3_dir/t/lib";
 
 use Test::More;
 use Test::Exception;
+use Mojo::JSON qw/true false/;
 use YAML::XS qw/LoadFile/;
 
 use DB::Schema;
 
-use WeBWorK3::Utils::Settings qw/getDefaultCourseSettings getDefaultCourseValues
-	validateSettingsConfFile validateSingleCourseSetting validateSettingConfig
-	isInteger isTimeString isTimeDuration isDecimal mergeCourseSettings/;
+use WeBWorK3::Utils::Settings qw/isInteger isTimeString isTimeDuration isDecimal mergeCourseSettings
+	isValidSetting/;
 
-use TestUtils qw/removeIDs loadSchema/;
+use DB::Utils qw/convertTimeDuration humanReadableTimeDuration/;
+use TestUtils qw/removeIDs loadCSV/;
 
 # Load the database
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
@@ -77,64 +78,93 @@ ok(isDecimal('00.33'),  'check type: decimal');
 ok(!isDecimal("0-.33"), 'check type: not a decimal');
 ok(!isDecimal('abc'),   'check type: not a decimal');
 
-# Check that the configuration file is valid.
-is(validateSettingsConfFile(), 1, 'configuration file valid');
+# Check that time duration conversion works as intended.
+is(convertTimeDuration('15 sec'),  15, 'convertTimeDuration: 15 sec');
+is(convertTimeDuration('15 secs'), 15, 'convertTimeDuration: 15 secs');
 
-# TODO: Test to make sure that all of the checks for the course configurations work.
+is(convertTimeDuration('15 min'),     900, 'convertTimeDuration: 15 min');
+is(convertTimeDuration('15 mins'),    900, 'convertTimeDuration: 15 mins');
+is(convertTimeDuration('15 minute'),  900, 'convertTimeDuration: 15 minute');
+is(convertTimeDuration('15 minutes'), 900, 'convertTimeDuration: 15 minutes');
 
-my $default_course_settings = getDefaultCourseSettings();
+is(convertTimeDuration('6 hour'),  21600, 'convertTimeDuration: 6 hour');
+is(convertTimeDuration('6 hours'), 21600, 'convertTimeDuration: 6 hours');
+is(convertTimeDuration('6 hr'),    21600, 'convertTimeDuration: 6 hr');
+is(convertTimeDuration('6 hrs'),   21600, 'convertTimeDuration: 6 hrs');
+
+is(convertTimeDuration('3 day'),  259200, 'convertTimeDuration: 3 day');
+is(convertTimeDuration('3 days'), 259200, 'convertTimeDuration: 3 days');
+
+is(convertTimeDuration('2 week'),  1209600, 'convertTimeDuration: 2 week');
+is(convertTimeDuration('2 weeks'), 1209600, 'convertTimeDuration: 2 weeks');
+
+# Check that the integer to time_duration string is working
+is(humanReadableTimeDuration(15), '15 secs', 'humanReadableTimeDuration(15)');
+is(humanReadableTimeDuration(45), '45 secs', 'humanReadableTimeDuration(45)');
+
+is(humanReadableTimeDuration(1 * 60),       '1 min',            'humanReadableTimeDuration(1*60)');
+is(humanReadableTimeDuration(10 * 60),      '10 mins',          'humanReadableTimeDuration(10*60)');
+is(humanReadableTimeDuration(10 * 60 + 45), '10 mins, 45 secs', 'humanReadableTimeDuration(10*60)');
+
+is(humanReadableTimeDuration(1 * 60 * 60),           '1 hour',           'humanReadableTimeDuration(1*60*60)');
+is(humanReadableTimeDuration(5 * 60 * 60),           '5 hours',          'humanReadableTimeDuration(5*60*60)');
+is(humanReadableTimeDuration(5 * 60 * 60 + 30 * 60), '5 hours, 30 mins', 'humanReadableTimeDuration(5*60*60+3*60)');
+
+is(humanReadableTimeDuration(1 * 24 * 60 * 60), '1 day',  'humanReadableTimeDuration(1*24*60*60)');
+is(humanReadableTimeDuration(4 * 24 * 60 * 60), '4 days', 'humanReadableTimeDuration(4*24*60*60)');
+is(
+	humanReadableTimeDuration(4 * 24 * 60 * 60 + 13 * 60 * 60),
+	'4 days, 13 hours',
+	'humanReadableTimeDuration(4*24*60*60+13*60*60)'
+);
+
+is(humanReadableTimeDuration(1 * 7 * 24 * 60 * 60), '1 week',  'humanReadableTimeDuration(1*7*24*60*60)');
+is(humanReadableTimeDuration(3 * 7 * 24 * 60 * 60), '3 weeks', 'humanReadableTimeDuration(3*7*24*60*60)');
+is(
+	humanReadableTimeDuration(9 * 7 * 24 * 60 * 60 + 1 * 24 * 60 * 60),
+	'9 weeks, 1 day',
+	'humanReadableTimeDuration(9*7*24*60*60 + 1*24*60*60)'
+);
 
 # Check that each of the given course_setting types are both valid and invalid.
 my $valid_setting = {
-	var      => 'my_setting',
-	doc      => 'this is a setting',
-	type     => 'integer',
-	category => 'general',
-	default  => 0
+	setting_name  => 'my_setting',
+	description   => 'this is a setting',
+	type          => 'int',
+	category      => 'general',
+	default_value => 0
 };
-is(validateSettingConfig($valid_setting), 1, 'course setting: valid setting');
+ok(isValidSetting($valid_setting), 'course setting: valid setting');
 
-# Check various parts of the setting.
-
+# Check that the setting hash has only valid fields
 throws_ok {
-	validateSettingConfig({
-		var      => 'mySetting',
-		doc      => 'this is a setting',
-		type     => 'integer',
-		category => 'general',
-		default  => 0
-	})
-}
-'DB::Exception::InvalidCourseField', 'course setting: variable not in kebob case';
-
-throws_ok {
-	validateSettingConfig({
-		var      => 'my_setting',
-		doc3     => 'this is a setting',
-		type     => 'integer',
-		category => 'general',
-		default  => 0
+	isValidSetting({
+		setting_name  => 'my_setting',
+		doc3          => 'this is a setting',
+		type          => 'int',
+		category      => 'general',
+		default_value => 0
 	})
 }
 'DB::Exception::InvalidCourseField', 'course setting: course setting with illegal field';
 
 throws_ok {
-	validateSettingConfig({
-		var      => 'my_setting',
-		type     => 'integer',
-		category => 'general',
-		default  => 0
+	isValidSetting({
+		setting_name  => 'my_setting',
+		type          => 'int',
+		category      => 'general',
+		default_value => 0
 	})
 }
 'DB::Exception::InvalidCourseField', 'course setting: missing required field';
 
 throws_ok {
-	validateSettingConfig({
-		var      => 'my_setting',
-		doc      => 'this is a setting',
-		type     => 'nonnegint',
-		category => 'general',
-		default  => 0
+	isValidSetting({
+		setting_name  => 'my_setting',
+		description   => 'this is a setting',
+		type          => 'nonnegint',
+		category      => 'general',
+		default_value => 0
 	})
 }
 'DB::Exception::InvalidCourseFieldType', 'course setting: non valid course parameter type';
@@ -142,119 +172,250 @@ throws_ok {
 # Validate settings
 
 throws_ok {
-	validateSettingConfig({
-		var      => 'my_setting',
-		doc      => 'this is a setting',
-		type     => 'time',
-		category => 'general',
-		default  => '12:343'
+	isValidSetting({
+		setting_name  => 'my_setting',
+		description   => 'this is a setting',
+		type          => 'time',
+		category      => 'general',
+		default_value => '12:343'
 	})
 }
 'DB::Exception::InvalidCourseFieldType', 'course setting: bad time string';
 
 throws_ok {
-	validateSettingConfig({
-		var      => 'my_setting',
-		doc      => 'this is a setting',
-		type     => 'integer',
-		category => 'general',
-		default  => '12.343'
+	isValidSetting({
+		setting_name  => 'my_setting',
+		description   => 'this is a setting',
+		type          => 'integer',
+		category      => 'general',
+		default_value => '12.343'
 	})
 }
 'DB::Exception::InvalidCourseFieldType', 'course setting: bad integer format';
 
 throws_ok {
-	validateSettingConfig({
-		var      => 'my_setting',
-		doc      => 'this is a setting',
-		type     => 'time_duration',
-		category => 'general',
-		default  => '-2 days'
+	isValidSetting({
+		setting_name  => 'my_setting',
+		description   => 'this is a setting',
+		type          => 'time_duration',
+		category      => 'general',
+		default_value => '-2 days'
 	})
 }
 'DB::Exception::InvalidCourseFieldType', 'course setting: bad time duration format';
 
 throws_ok {
-	validateSettingConfig({
-		var      => 'my_setting',
-		doc      => 'this is a setting',
-		type     => 'decimal',
-		category => 'general',
-		default  => '12:343'
+	isValidSetting({
+		setting_name  => 'my_setting',
+		description   => 'this is a setting',
+		type          => 'decimal',
+		category      => 'general',
+		default_value => '12:343'
 	})
 }
 'DB::Exception::InvalidCourseFieldType', 'course setting: bad decimal format';
 
 my $course_rs = $schema->resultset('Course');
 
-# Check that the default settings are working
+# Check that the default_value  settings are the same as the values in the file
+
+my $global_settings = $course_rs->getGlobalSettings();
+for my $setting (@$global_settings) {
+	removeIDs($setting);
+	for my $key (qw/doc subcategory options/) {
+		delete $setting->{$key} unless $setting->{$key};
+	}
+}
+
+# Ensure that booleans in the YAML file are loaded correctly.
+local $YAML::XS::Boolean = "JSON::PP";
+my $settings_file = "$main::ww3_dir/conf/course_settings.yml";
+$settings_file = "$main::ww3_dir/conf/course_settings.dist.yml" unless -r $settings_file;
+my $global_settings_from_file = LoadFile($settings_file);
+
+# sort each of these for comparison
+my @global_settings           = sort { $a->{setting_name} cmp $b->{setting_name} } @$global_settings;
+my @global_settings_from_file = sort { $a->{setting_name} cmp $b->{setting_name} } @$global_settings_from_file;
+
+# Make sure all of the default settings are valid
+for my $setting (@$global_settings) {
+	ok(isValidSetting($setting), "check default setting: $setting->{setting_name} is valid");
+}
+
+# convert the database settings of type time_duration to human readable
+for (@global_settings) {
+	$_->{default_value} = humanReadableTimeDuration($_->{default_value}) if $_->{type} eq 'time_duration';
+}
+
+is_deeply(\@global_settings, \@global_settings_from_file,
+	'default settings: db values are the same as the file values.');
 
 # Make a new course with no settings and compare to the default settings
 my $new_course = $course_rs->addCourse(params => { course_name => 'New Course' });
 
-my $default_course_values = getDefaultCourseValues();
-my $new_course_info       = { course_id => $new_course->{course_id} };
-my $course_settings       = $course_rs->getCourseSettings(info => $new_course_info);
+my $course_settings = $course_rs->getCourseSettings(info => { course_id => $new_course->{course_id} });
 
-is_deeply($course_settings, $default_course_values, 'course settings: default course_settings');
+# check that the course_settings is an array of length 0.
+is_deeply($course_settings, [], 'course settings from a new course is just the defaults.');
 
-# Set a single course setting in General
-my $updated_general_setting = { general => { course_description => 'This is my new course description' } };
-my $updated_course_settings = $course_rs->updateCourseSettings(
-	info     => $new_course_info,
-	settings => $updated_general_setting
-);
-my $current_course_values = mergeCourseSettings($default_course_values, $updated_general_setting);
+# Compare the course settings with the file.
 
-is_deeply($current_course_values, $updated_course_settings, 'course_settings: updated general setting');
+# Get a list of courses from the CSV file.
+my @course_settings_from_csv = loadCSV("$main::ww3_dir/t/db/sample_data/course_settings.csv");
+my @arith_settings           = grep { $_->{course_name} eq 'Arithmetic' } @course_settings_from_csv;
+@arith_settings = map { { setting_name => $_->{setting_name}, value => $_->{setting_value} }; } @arith_settings;
 
-# Update another general setting
-$updated_general_setting = { general => { hardcopy_theme => 'One Column' } };
-
-$updated_course_settings = $course_rs->updateCourseSettings(
-	info     => $new_course_info,
-	settings => $updated_general_setting
-);
-
-$current_course_values = mergeCourseSettings($current_course_values, $updated_general_setting);
-
-is_deeply($current_course_values, $updated_course_settings, 'course_settings: updated another general setting');
-
-# Set a single course setting in Optional Modules.
-my $updated_optional_setting = { optional => { enable_show_me_another => 1 } };
-$updated_course_settings =
-	$course_rs->updateCourseSettings(info => $new_course_info, settings => $updated_optional_setting);
-$current_course_values = mergeCourseSettings($current_course_values, $updated_optional_setting);
-is_deeply($current_course_values, $updated_course_settings, 'course_settings: updated optional setting');
-
-# Set a single course setting in problem_set.
-my $updated_problem_set_setting = { problem_set => { time_assign_due => '11:52' } };
-$updated_course_settings =
-	$course_rs->updateCourseSettings(info => $new_course_info, settings => $updated_problem_set_setting);
-$current_course_values = mergeCourseSettings($current_course_values, $updated_problem_set_setting);
-is_deeply($current_course_values, $updated_course_settings, 'course_settings: updated problem set setting');
-
-# Set a single course setting in problem.
-my $updated_problem_setting = { problem => { display_mode => 'images' } };
-$updated_course_settings =
-	$course_rs->updateCourseSettings(info => $new_course_info, settings => $updated_problem_setting);
-$current_course_values = mergeCourseSettings($current_course_values, $updated_problem_setting);
-is_deeply($current_course_values, $updated_course_settings, 'course_settings: updated problem setting');
-
-# Make sure that an nonexistant setting throws an exception.
-my $undefined_problem_setting = { general => { non_existent_setting => 1 } };
-throws_ok {
-	$course_rs->updateCourseSettings(info => $new_course_info, settings => $undefined_problem_setting);
+my $arith_settings_from_db = $course_rs->getCourseSettings(info => { course_name => 'Arithmetic' }, merged => 1);
+for my $setting (@$arith_settings_from_db) {
+	removeIDs($setting);
 }
-'DB::Exception::UndefinedCourseField', 'course settings: undefined course_setting field';
 
-# Make sure that an invalid list option setting throws an exception.
-my $invalid_list_option = { general => { hardcopy_theme => 'default' } };
-$course_rs->updateCourseSettings(info => $new_course_info, settings => $invalid_list_option);
+# Only compare the name/value of the settings and convert and time_durations
+for my $setting (@$arith_settings_from_db) {
+	$setting = {
+		setting_name => $setting->{setting_name},
+		value        => $setting->{type} eq 'time_duration'
+		? humanReadableTimeDuration($setting->{value})
+		: $setting->{value}
+	};
+}
 
-# TODO: Make sure that an invalid integer setting throws an exception
+is_deeply($arith_settings_from_db, \@arith_settings, 'getCourseSettings: compare settings for given course');
 
-# TODO: Make sure that an invalid email list setting throws an exception
+my $updated_setting = $course_rs->updateCourseSetting(
+	info => {
+		course_id    => $new_course->{course_id},
+		setting_name => 'course_description'
+	},
+	params => { value => 'This is my new course description' }
+);
+
+# Check that updating a boolean is a JSON boolean
+
+my $boolean_setting = $course_rs->updateCourseSetting(
+	info => {
+		course_id    => $new_course->{course_id},
+		setting_name => 'enable_conditional_release'
+	},
+	params => { value => true }
+);
+
+is($boolean_setting->{value}, true, 'updateCourseSetting: ensure that a value is truthy');
+ok(JSON::PP::is_bool($boolean_setting->{value}), 'updateCourseSetting: ensure that a value is a JSON boolean');
+
+is(
+	'This is my new course description',
+	$updated_setting->{value},
+	'updateCourseSetting: successfully update a course setting'
+);
+
+my $fetched_setting = $course_rs->getCourseSetting(
+	info => {
+		course_id    => $new_course->{course_id},
+		setting_name => 'course_description'
+	}
+);
+
+is($fetched_setting->{value}, $updated_setting->{value}, 'getCourseSetting: fetch a single course setting');
+
+# Make sure invalid course settings throw exceptions.
+
+throws_ok {
+	$course_rs->updateCourseSetting(
+		info => {
+			course_id    => $new_course->{course_id},
+			setting_name => 'non_existant_setting'
+		},
+		params => { value => 3 }
+	);
+}
+'DB::Exception::SettingNotFound', 'updateCourseSetting: try to update a non-existant course setting.';
+
+throws_ok {
+	$course_rs->updateCourseSetting(
+		info => {
+			course_id    => $new_course->{course_id},
+			setting_name => 'language'
+		},
+		params => { value => 'Klingon' }
+	);
+}
+'DB::Exception::InvalidCourseFieldType', 'updateCourseSetting: try to update the list setting.';
+
+throws_ok {
+	$course_rs->updateCourseSetting(
+		info => {
+			course_id    => $new_course->{course_id},
+			setting_name => 'session_key_timeout'
+		},
+		params => { value => '45 years' }
+	);
+}
+'DB::Exception::InvalidCourseFieldType', 'updateCourseSetting: try to update a time_duration setting.';
+
+throws_ok {
+	$course_rs->updateCourseSetting(
+		info => {
+			course_id    => $new_course->{course_id},
+			setting_name => 'enable_reduced_scoring'
+		},
+		params => { value => 'true' }
+	);
+}
+'DB::Exception::InvalidCourseFieldType', 'updateCourseSetting: try to update a boolean setting.';
+
+throws_ok {
+	$course_rs->updateCourseSetting(
+		info => {
+			course_id    => $new_course->{course_id},
+			setting_name => 'show_me_another_default'
+		},
+		params => { value => 'true' }
+	);
+}
+'DB::Exception::InvalidCourseFieldType', 'updateCourseSetting: try to update an integer setting.';
+
+throws_ok {
+	$course_rs->updateCourseSetting(
+		info => {
+			course_id    => $new_course->{course_id},
+			setting_name => 'display_mode_options'
+		},
+		params => { value => [ '1', '2' ] }
+	);
+}
+'DB::Exception::InvalidCourseFieldType', 'updateCourseSetting: try to update a multilist setting.';
+
+throws_ok {
+	$course_rs->updateCourseSetting(
+		info => {
+			course_id    => $new_course->{course_id},
+			setting_name => 'num_rel_percent_tol_default'
+		},
+		params => { value => 'true' }
+	);
+}
+'DB::Exception::InvalidCourseFieldType', 'updateCourseSetting: try to update a decimal setting.';
+
+# Delete a course setting
+
+my $deleted_setting = $course_rs->deleteCourseSetting(
+	info => {
+		course_name  => 'New Course',
+		setting_name => 'course_description'
+	}
+);
+
+is_deeply($deleted_setting, $updated_setting, 'deleteCourseSetting: delete a course setting.');
+
+my $deleted_setting2 = $course_rs->deleteCourseSetting(
+	info => {
+		course_name  => 'New Course',
+		setting_name => 'enable_conditional_release'
+	}
+);
+
+is_deeply($deleted_setting2, $boolean_setting, 'deleteCourseSetting: delete another course setting.');
 
 # Finally delete the course that was made
 $course_rs->deleteCourse(info => { course_id => $new_course->{course_id} });

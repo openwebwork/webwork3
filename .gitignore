@@ -31,6 +31,7 @@ conf/webwork3*.yml
 conf/apache2/webwork3-apache2.conf
 conf/apache2/webwork3.service
 conf/apache2/renderer.service
+conf/course_settings.yml
 
 # Devel::Cover
 cover_db/

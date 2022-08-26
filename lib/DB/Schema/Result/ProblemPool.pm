@@ -52,6 +52,6 @@ __PACKAGE__->add_unique_constraint([qw/course_id pool_name/]);
 
 __PACKAGE__->has_many(pool_problems => 'DB::Schema::Result::PoolProblem', 'problem_pool_id');
 
-__PACKAGE__->belongs_to(courses => 'DB::Schema::Result::Course', 'course_id');
+__PACKAGE__->belongs_to(course => 'DB::Schema::Result::Course', 'course_id');
 
 1;

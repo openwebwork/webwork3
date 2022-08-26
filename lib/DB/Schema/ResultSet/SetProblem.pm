@@ -176,7 +176,7 @@ sub getSetProblem ($self, %args) {
 			. ' is not found for set: '
 			. $problem_set->set_name
 			. ' is the course: '
-			. $problem_set->courses->course_name
+			. $problem_set->course->course_name
 	) unless $problem;
 
 	return $problem if $args{as_result_set};

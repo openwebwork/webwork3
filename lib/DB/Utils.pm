@@ -7,11 +7,11 @@ no warnings qw/experimental::signatures/;
 
 require Exporter;
 use base qw/Exporter/;
-our @EXPORT_OK = qw/getCourseInfo getUserInfo getSetInfo updateAllFields
-	getPoolInfo getProblemInfo getPoolProblemInfo removeLoginParams updatePermissions/;
+our @EXPORT_OK = qw/getCourseInfo getUserInfo getSetInfo updateAllFields updatePermissions
+	getPoolInfo getProblemInfo getPoolProblemInfo getSettingInfo removeLoginParams
+	convertTimeDuration humanReadableTimeDuration/;
 
 use Clone qw/clone/;
-use List::Util qw/first/;
 use Scalar::Util qw/reftype/;
 use YAML::XS qw/LoadFile/;
 
@@ -39,6 +39,10 @@ sub getProblemInfo ($in) {
 
 sub getPoolProblemInfo ($in) {
 	return _get_info($in, qw/library_id pool_problem_id/);
+}
+
+sub getSettingInfo ($in) {
+	return _get_info($in, qw/setting_name setting_id/);
 }
 
 # This is a generic internal subroutine to check that the info passed in contains certain fields.
@@ -187,6 +191,57 @@ sub updatePermissions ($ww3_conf, $role_perm_file) {
 		});
 	}
 	return;
+}
+
+=pod
+=head2 convertTimeDuration
+
+This subroutine converts time durations stored as a string in human-readable format
+to a number of seconds.
+
+=cut
+
+sub convertTimeDuration ($time_duration) {
+	if ($time_duration =~ /^(\d+)\s(sec)s?$/) {
+		return $1;
+	} elsif ($time_duration =~ /^(\d+)\s(min(ute)?)s?$/) {
+		return $1 * 60;
+	} elsif ($time_duration =~ /^(\d+)\s(h(ou)?r)s?$/) {
+		return $1 * 60 * 60;
+	} elsif ($time_duration =~ /^(\d+)\s(day)s?$/) {
+		return $1 * 60 * 60 * 24;
+	} elsif ($time_duration =~ /^(\d+)\s(week)s?$/) {
+		return $1 * 60 * 60 * 24 * 7;
+	} else {
+		return 0;
+	}
+}
+
+=pod
+=head2
+
+This coverts a number of seconds to a human-readable format
+
+=cut
+
+sub humanReadableTimeDuration ($td) {
+	my $times = {
+		week => int($td / 604800),
+		day  => int($td % 604800 / 86400),
+		hour => int($td % 86400 / 3600),
+		min  => int($td % 3600 / 60),
+		sec  => $td % 60
+	};
+
+	my $time_duration = '';
+	# Order is important so the keys are defined.
+	for (qw/week day hour min sec/) {
+		my $val = $times->{$_};
+		$time_duration .= ($time_duration ne '' && $val ? ', ' : '')
+			# pluralize for more than 1.
+			. ($val > 0 ? "$val $_" . ($val == 1 ? '' : 's') : '');
+	}
+	return $time_duration;
 }
 
 1;

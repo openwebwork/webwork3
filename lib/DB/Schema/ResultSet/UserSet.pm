@@ -64,7 +64,7 @@ sub getAllUserSets ($self, %args) {
 	my @user_sets = $self->search(
 		{},
 		{
-			join => [ { 'problem_set' => 'courses' }, { 'course_users' => 'users' } ]
+			join => [ { 'problem_set' => 'course' }, { 'course_user' => 'user' } ]
 		}
 	);
 
@@ -105,10 +105,10 @@ sub getAllUserSetsForCourse ($self, %args) {
 	my $course    = $self->rs('Course')->getCourse(info => $args{info}, as_result_set => 1);
 	my @user_sets = $self->search(
 		{
-			'courses.course_id' => $course->course_id
+			'course.course_id' => $course->course_id
 		},
 		{
-			join => [ { 'problem_set' => 'courses' }, { 'course_users' => 'users' } ]
+			join => [ { 'problem_set' => 'course' }, { 'course_user' => 'user' } ]
 		}
 	);
 
@@ -158,7 +158,7 @@ sub getUserSetsForSet ($self, %args) {
 	my @user_sets   = $self->search(
 		{ 'problem_set.set_id' => $problem_set->set_id },
 		{
-			join => [ { 'problem_set' => 'courses' }, { 'course_users' => 'users' } ]
+			join => [ { 'problem_set' => 'course' }, { 'course_user' => 'user' } ]
 		}
 	);
 
@@ -207,11 +207,11 @@ sub getUserSetsForUser ($self, %args) {
 	my $course_user = $self->rs('User')->getCourseUser(info => $args{info}, as_result_set => 1);
 	my @user_sets   = $self->search(
 		{
-			'course_users.user_id' => $course_user->user_id,
-			'courses.course_id'    => $course->course_id
+			'course_user.user_id' => $course_user->user_id,
+			'course.course_id'    => $course->course_id
 		},
 		{
-			join => [ { 'problem_set' => 'courses' }, { 'course_users' => 'users' } ]
+			join => [ { problem_set => 'course' }, { course_user => 'user' } ]
 		}
 	);
 
@@ -274,7 +274,7 @@ sub getUserSet ($self, %args) {
 			. ' with set_version '
 			. ($args{info}{set_version} // 0)
 			. ' is not assigned to '
-			. $course_user->users->username
+			. $course_user->user->username
 			. ' in the course.')
 		unless defined($user_set) || $args{skip_throw};
 
@@ -340,7 +340,7 @@ sub addUserSet ($self, %args) {
 		}
 	);
 	DB::Exception::UserSetExists->throw(message => 'The user '
-			. $course_user->users->username
+			. $course_user->user->username
 			. ' is already assigned to the set '
 			. $problem_set->set_name
 			. ' with set version'
@@ -455,9 +455,9 @@ sub rs {
 sub _getUserSet ($user_set) {
 	return {
 		$user_set->get_inflated_columns,
-		course_name => $user_set->problem_set->courses->course_name,
+		course_name => $user_set->problem_set->course->course_name,
 		set_name    => $user_set->problem_set->set_name,
-		username    => $user_set->course_users->users->username,
+		username    => $user_set->course_user->user->username,
 		set_type    => $user_set->problem_set->set_type
 	};
 }
@@ -476,8 +476,8 @@ sub _mergeUserSet ($user_set) {
 		set_visible => $user_set->problem_set->set_visible,
 		set_dates   => $dates,
 		set_params  => $params,
-		course_name => $user_set->problem_set->courses->course_name,
-		username    => $user_set->course_users->users->username
+		course_name => $user_set->problem_set->course->course_name,
+		username    => $user_set->course_user->user->username
 	};
 }
 

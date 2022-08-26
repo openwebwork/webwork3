@@ -83,6 +83,6 @@ sub required_params ($=) {
 
 __PACKAGE__->set_primary_key('pool_problem_id');
 
-__PACKAGE__->belongs_to(problem_pool_id => 'DB::Schema::Result::ProblemPool');
+__PACKAGE__->belongs_to(problem_pool => 'DB::Schema::Result::ProblemPool', 'problem_pool_id');
 
 1;

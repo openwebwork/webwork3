@@ -49,7 +49,7 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('db_perm_role_id');
 __PACKAGE__->add_unique_constraint([qw/db_perm_id role_id/]);
 
-__PACKAGE__->belongs_to(perms => 'DB::Schema::Result::DBPermission', 'db_perm_id');
-__PACKAGE__->belongs_to(roles => 'DB::Schema::Result::Role',         'role_id');
+__PACKAGE__->belongs_to(db_permission => 'DB::Schema::Result::DBPermission', 'db_perm_id');
+__PACKAGE__->belongs_to(role          => 'DB::Schema::Result::Role',         'role_id');
 
 1;

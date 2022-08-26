@@ -18,6 +18,10 @@ use Exception::Class (
 		fields      => ['message'],
 		description => 'There is an invalid field type'
 	},
+	'DB::Expection::SettingNotFound' => {
+		fields      => ['name'],
+		description => 'A global setting is not found'
+	},
 	'DB::Exception::UndefinedParameter' => {
 		fields      => ['field_names'],
 		description => 'There is an undefined parameter'

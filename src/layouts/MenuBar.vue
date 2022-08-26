@@ -73,8 +73,6 @@ import { endSession } from 'src/common/api-requests/session';
 import { useSessionStore } from 'src/stores/session';
 import { useSettingsStore } from 'src/stores/settings';
 
-import type { CourseSettingInfo } from 'src/common/models/settings';
-
 defineEmits(['toggle-menu', 'toggle-sidebar']);
 const session = useSessionStore();
 const settings = useSettingsStore();
@@ -101,9 +99,7 @@ const changeCourse = (course_id: number) => {
 	}
 };
 
-const availableLocales = computed(() =>
-	settings.default_settings.find((setting: CourseSettingInfo) => setting.var === 'language')?.options
-);
+const availableLocales = computed(() => settings.getCourseSetting('language')?.options);
 
 const logout = async () => {
 	await endSession();
