@@ -147,7 +147,7 @@ describe('Problem Set store tests', () => {
 		test('Add a set problem to a set', async () => {
 			const problem_set_store = useProblemSetStore();
 			const set_problem_store = useSetProblemStore();
-			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
+			hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' }) as HomeworkSet;
 			expect(hw1?.set_name).toStrictEqual('HW #1');
 
 			// grab the set problems for HW #1 so we know which is the next problem number.
