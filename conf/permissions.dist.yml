@@ -35,9 +35,9 @@ db_permissions:
 
   Course:
     getCourses:
-      allowed_roles: ['*']
+      authenticated: true
     getCourse:
-      allowed_roles: ['*']
+      authenticated: true
     updateCourse:
       admin_required: true
     addCourse:

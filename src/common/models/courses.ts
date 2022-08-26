@@ -106,12 +106,12 @@ export class Course extends Model {
  */
 
 export interface ParseableUserCourse {
-	course_id?: number;
-	user_id?: number;
-	course_name?: string;
+	course_id: number;
+	user_id: number;
+	course_name: string;
 	username?: string;
 	visible?: boolean;
-	role?: string;
+	role: string;
 	course_dates?: ParseableCourseDates;
 }
 export class UserCourse extends Model {
@@ -126,6 +126,13 @@ export class UserCourse extends Model {
 	static ALL_FIELDS = ['course_id', 'course_name', 'visible', 'course_dates',
 		'user_id', 'username', 'role'];
 
+	static DEFAULT_VALUES = {
+		course_id: 0,
+		user_id: 0,
+		course_name: 'DEFAULT_USER_COURSE',
+		role: 'unknown',
+	};
+
 	get all_field_names(): string[] {
 		return UserCourse.ALL_FIELDS;
 	}
@@ -134,7 +141,7 @@ export class UserCourse extends Model {
 		return ['course_dates'];
 	}
 
-	constructor(params: ParseableUserCourse = {}) {
+	constructor(params: ParseableUserCourse = UserCourse.DEFAULT_VALUES) {
 		super();
 		this.set(params);
 	}
@@ -171,7 +178,8 @@ export class UserCourse extends Model {
 	set role(value: string) { this._role = value; }
 
 	clone(): UserCourse {
-		return new UserCourse(this.toObject());
+		// typescript does not recognize the getters as keys when converting with .toObject()
+		return new UserCourse(this.toObject() as unknown as ParseableUserCourse);
 	}
 
 	isValid(): boolean {

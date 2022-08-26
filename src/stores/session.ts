@@ -47,8 +47,6 @@ export const useSessionStore = defineStore('session', {
 	getters: {
 		full_name: (state): string => `${state.user?.first_name ?? ''} ${state.user?.last_name ?? ''}`,
 		getUser: (state): User => new User(state.user),
-		student_user_courses: (state) => state.user_courses.filter(c => c.role === 'student'),
-		instructor_user_courses: (state) => state.user_courses.filter(c => c.role === 'instructor'),
 	},
 	actions: {
 		updateExpiry(expiry: number): void {
@@ -68,16 +66,35 @@ export const useSessionStore = defineStore('session', {
 				this.user = new User({ username: 'logged_out' }).toObject();
 			}
 		},
-		setCourse(course: CourseInfo): void {
-			this.course = course;
-			this.course.role = this.user_courses.find((c) => c.course_id === course.course_id)?.role || '';
+		setCourse(course_id: number): void {
+			if (course_id === this.course.course_id) return;
+			const new_course = this.user_courses.find((c) => c.course_id === course_id);
+			if (!new_course) {
+				logger.error(`[session_store] Attempted to select course #${course_id} -- not found!`);
+				this.course = {
+					course_id: 0,
+					course_name: '',
+					role: 'unknown'
+				};
+				return;
+			}
+			// in order to be reactive, replace the entire `this.course` object
+			this.course = {
+				course_id,
+				course_name: new_course.course_name,
+				role: new_course.role
+			};
 		},
 		/**
 		 * fetch all User Courses for a given user.
 		 * @param {number} user_id
 		 */
-		async fetchUserCourses(user_id: number): Promise<void> {
-			const response = await api.get(`users/${user_id}/courses`);
+		async fetchUserCourses(): Promise<void> {
+			if (!this.user.user_id) throw {
+				message: 'No user has been authenticated',
+			} as ResponseError;
+
+			const response = await api.get(`users/${this.user.user_id}/courses`);
 			if (response.status === 200) {
 				this.user_courses = response.data as ParseableUserCourse[];
 			} else {

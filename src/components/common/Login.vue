@@ -56,23 +56,21 @@ const login = async () => {
 	};
 	const session_info = await checkPassword(username_info);
 
-	if (!session_info.logged_in) {
+	if (!session_info.logged_in || !session_info.user.user_id) {
 		message.value = i18n.t('authentication.failure');
 	} else {
 		// success
 		session.updateSessionInfo(session_info);
 
 		// permissions require access to user courses and respective roles
-		await session.fetchUserCourses(session_info.user.user_id);
+		await session.fetchUserCourses();
 		await permission_store.fetchRoles();
 		await permission_store.fetchRoutePermissions();
-
-		if (session.user.user_id == undefined || session.user.user_id == 0) return;
 
 		let forward = localStorage.getItem('afterLogin');
 		forward ||= (session_info.user.is_admin) ?
 			'/admin' :
-			`/users/${session.user.user_id}/courses`;
+			`/users/${session_info.user.user_id}/courses`;
 		localStorage.removeItem('afterLogin');
 		void router.push(forward);
 	}

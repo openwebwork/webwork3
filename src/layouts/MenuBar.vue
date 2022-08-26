@@ -29,7 +29,7 @@
 						<q-list>
 							<template v-for="course in user_courses" :key="course.course_id">
 								<q-item clickable v-close-popup
-									@click="changeCourse(course.course_id, course.course_name)">
+									@click="changeCourse(course.course_id)">
 									<q-item-section>
 										<q-item-label>{{course.course_name}}</q-item-label>
 									</q-item-section>
@@ -87,30 +87,17 @@ const full_name = computed(() => session.full_name);
 const user_courses = computed(() =>
 	session.user_courses.filter(course => course.course_name !== current_course_name.value));
 
-const changeCourse = (course_id?: number, course_name?: string) => {
-	logger.debug(`[MenuBar/changeCourse]: changing the course to ${course_name ?? 'unknown'}`);
-	const new_course = session.user_courses.find(course => course.course_name === course_name);
-	const new_course_id = new_course?.course_id ?? 0;
-	if (!new_course || new_course_id == 0) return;
-	const role = new_course?.role ?? 'unknown';
-
-	if (role == 'unknown') {
-		logger.error(['MenuBar/changeCourse: the role is not defined']);
-	}
+const changeCourse = (course_id: number) => {
+	logger.debug(`[MenuBar/changeCourse]: changing the course to #${course_id}`);
+	session.setCourse(course_id);
 
 	// This sets the path to the instructor or student dashboard.
 	// This only works currently for roles of student/instructor.  We'll need to think about
 	// the UI for other roles.
-
-	if (new_course != undefined) {
-		router.push(`/courses/${new_course_id}/${role}`).then(() => {
-			session.setCourse({
-				course_name: new_course.course_name ?? 'unknown',
-				course_id: new_course_id
-			});
-		}).catch(() => {
-			logger.error('[MenuBar/changeCourse]: Error occurred.');
-		});
+	if (!session.course.role || session.course.role == 'unknown') {
+		logger.error(`[MenuBar/changeCourse]: the role is not defined for course #${course_id}`);
+	} else {
+		void router.push(`/courses/${course_id}/${session.course.role}`);
 	}
 };
 
@@ -121,6 +108,6 @@ const availableLocales = computed(() =>
 const logout = async () => {
 	await endSession();
 	void session.logout();
-	void router.push('/login');
+	void router.push({ name: 'login' });
 };
 </script>

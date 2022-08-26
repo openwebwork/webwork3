@@ -28,6 +28,7 @@ import {
 } from 'src/common/models/user_sets';
 
 import { loadCSV, cleanIDs } from '../utils';
+import { checkPassword } from 'src/common/api-requests/session';
 
 const app = createApp({});
 
@@ -42,8 +43,11 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		app.use(pinia);
 		setActivePinia(pinia);
 
-		// Login to the course as the admin in order to be authenticated for the rest of the test.
-		await api.post('login', { username: 'admin', password: 'admin' });
+		// Login to the course as Precalculus instructor in order to be authenticated for the rest of the test.
+		const session_info = await checkPassword({ username: 'frink', password: 'frink' });
+		const session_store = useSessionStore();
+		session_store.updateSessionInfo(session_info);
+		await session_store.fetchUserCourses();
 
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
@@ -73,11 +77,7 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		precalc_course = courses_store.courses.find(course => course.course_name === 'Precalculus') as Course;
 
 		// Add the precalc course to the session;
-		const session_store = useSessionStore();
-		session_store.setCourse({
-			course_id: precalc_course.course_id,
-			course_name: precalc_course.course_name
-		});
+		session_store.setCourse(precalc_course.course_id);
 
 		// Fetch course users and they are needed below.
 		const user_store = useUserStore();

@@ -41,41 +41,30 @@ import { logger } from 'src/boot/logger';
 const session_store = useSessionStore();
 const router = useRouter();
 
-const user_courses = computed(() => session_store.user_courses);
-
 const user = computed(() => session_store.user);
 
 // This is used to simplify the UI.
 const course_types = computed(() => [
-	{ name: 'Student', courses: user_courses.value.filter(c => c.role == 'student') },
-	{ name: 'Instructor', courses: session_store.instructor_user_courses }
+	{ name: 'Student', courses: session_store.user_courses.filter(c => c.role === 'student') },
+	{ name: 'Instructor', courses: session_store.user_courses.filter(c => c.role === 'instructor') }
 ]);
 
-const switchCourse = async (course_id?: number) => {
-	if (course_id == undefined || course_id === 0) {
+const switchCourse = (course_id?: number) => {
+	if (!course_id) {
 		logger.error('[UserCourses/switchCourse]: the course_id is 0 or undefined.');
+		return;
 	}
-	const student_course = session_store.student_user_courses.find(c => c.course_id === course_id);
-	const instructor_course = session_store.instructor_user_courses.find(c => c.course_id === course_id);
-	if (student_course) {
-		session_store.setCourse({
-			course_name: student_course.course_name ?? 'unknown',
-			course_id: student_course.course_id ?? 0,
-			role: 'student'
-		});
-		await router.push({
+	session_store.setCourse(course_id);
+
+	if (session_store.course.role === 'student') {
+		void router.push({
 			name: 'StudentDashboard',
-			params: { course_id: student_course.course_id }
+			params: { course_id }
 		});
-	} else if (instructor_course) {
-		session_store.setCourse({
-			course_name: instructor_course.course_name ?? 'unknown',
-			course_id: instructor_course.course_id ?? 0,
-			role: 'instructor'
-		});
-		await router.push({
+	} else if (session_store.course.role === 'instructor') {
+		void router.push({
 			name: 'InstructorDashboard',
-			params: { course_id: instructor_course.course_id }
+			params: { course_id }
 		});
 	}
 };

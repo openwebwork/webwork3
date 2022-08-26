@@ -89,6 +89,7 @@ describe('Session Store', () => {
 				const course = courses_from_csv.find(c => c.course_name == user_course.course_name)
 							?? new Course();
 				return new UserCourse({
+					course_id: 0, // will this be stripped before comparison later?
 					course_name: course.course_name,
 					user_id: lisa.user_id,
 					visible: course.visible,
@@ -120,6 +121,12 @@ describe('Session Store', () => {
 			expect(session_info.logged_in).toBe(true);
 			expect(session_info.user).toStrictEqual(lisa.toObject());
 
+			const session = useSessionStore();
+			session.updateSessionInfo(session_info);
+
+			expect(session.logged_in).toBe(true);
+			expect(session.user).toStrictEqual(lisa.toObject());
+
 		});
 
 		// sort by course name and clean up the _id tags.
@@ -130,24 +137,22 @@ describe('Session Store', () => {
 
 		test('check user courses', async () => {
 			const session_store = useSessionStore();
-			await session_store.fetchUserCourses(lisa.user_id);
+			await session_store.fetchUserCourses();
 			expect(sortAndClean(session_store.user_courses.map(c => new UserCourse(c))))
 				.toStrictEqual(sortAndClean(lisa_courses));
 		});
 
 		test('update the session', () => {
 			const session = useSessionStore();
-			session.updateSessionInfo(session_info);
-
-			expect(session.logged_in).toBe(true);
-			expect(session.user).toStrictEqual(user);
-
+			const user_course = session.user_courses.find((c) => c.course_name === 'Arithmetic');
+			expect(user_course?.course_id).toBeTruthy();
 			const course = {
-				course_name: 'Arithmetic',
-				course_id: 1
+				course_name: user_course?.course_name,
+				course_id: user_course?.course_id,
+				role: user_course?.role
 			};
 
-			session.setCourse(course);
+			session.setCourse(user_course?.course_id ?? 0);
 			expect(session.course).toStrictEqual(course);
 		});
 

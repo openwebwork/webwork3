@@ -11,7 +11,6 @@
 import { createApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
-import { api } from 'boot/axios';
 
 import { useCourseStore } from 'src/stores/courses';
 import { useUserStore } from 'src/stores/users';
@@ -27,6 +26,8 @@ import { DBUserHomeworkSet, mergeUserSet, UserSet } from 'src/common/models/user
 import { Dictionary, generic } from 'src/common/models';
 
 import { loadCSV, cleanIDs } from '../utils';
+import { checkPassword } from 'src/common/api-requests/session';
+import { logger } from 'src/boot/logger';
 
 const app = createApp({});
 
@@ -43,8 +44,10 @@ describe('Problem Set store tests', () => {
 		app.use(pinia);
 		setActivePinia(pinia);
 
-		// Login to the course as the admin in order to be authenticated for the rest of the test.
-		await api.post('login', { username: 'admin', password: 'admin' });
+		// Login to the course as Precalculus instructor in order to be authenticated for the rest of the test.
+		const session_info = await checkPassword({ username: 'frink', password: 'frink' });
+		const session_store = useSessionStore();
+		session_store.updateSessionInfo(session_info);
 
 		const problem_set_config = {
 			params: ['set_params', 'set_dates' ],
@@ -117,11 +120,8 @@ describe('Problem Set store tests', () => {
 		await problem_set_store.fetchAllUserSets(precalc_course.course_id);
 
 		// Add the precalc course to the session;
-		const session_store = useSessionStore();
-		session_store.setCourse({
-			course_id: precalc_course.course_id,
-			course_name: precalc_course.course_name
-		});
+		await session_store.fetchUserCourses();
+		session_store.setCourse(precalc_course.course_id);
 	});
 
 	describe('fetching set problems for a course', () => {
@@ -145,9 +145,11 @@ describe('Problem Set store tests', () => {
 			const problem_set_store = useProblemSetStore();
 			const set_problem_store = useSetProblemStore();
 			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
+			expect(hw1?.set_name).toStrictEqual('HW #1');
 
 			// grab the set problems for HW #1 so we know which is the next problem number.
 			const probs = set_problem_store.findSetProblems({ set_name: 'HW #1' });
+			expect(probs.length).toBeGreaterThan(0);
 
 			const problem_number = probs[probs.length - 1].problem_number + 1;
 

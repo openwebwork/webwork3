@@ -33,16 +33,7 @@ const loadStudentSets = async () => {
 };
 
 const course_id = parseRouteCourseID(route);
-const course = session_store.user_courses.find(c => c.course_id === course_id);
-if (course) {
-	session_store.setCourse({
-		course_id: course_id,
-		course_name: course.course_name ?? 'unknown'
-	});
-} else {
-	logger.warn(`Can't find ${course_id} in ${session_store.user_courses
-		.map((c) => c.course_id).join(', ')}`);
-}
+session_store.setCourse(course_id);
 await loadStudentSets();
 
 watch(() => session_store.course.course_id, async () => {

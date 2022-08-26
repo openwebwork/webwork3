@@ -108,7 +108,7 @@ describe('Test Course Models', () => {
 	const default_user_course = {
 		course_id: 0,
 		user_id: 0,
-		course_name: '',
+		course_name: 'DEFAULT_USER_COURSE',
 		username: '',
 		visible: true,
 		role: 'unknown',
@@ -145,7 +145,8 @@ describe('Test Course Models', () => {
 
 	describe('Updating a UserCourse', () => {
 		test('set fields of a user course', () => {
-			const user_course = new UserCourse({ course_name: 'Arithmetic' });
+			const user_course = new UserCourse();
+
 			user_course.course_id = 5;
 			expect(user_course.course_id).toBe(5);
 
@@ -166,32 +167,25 @@ describe('Test Course Models', () => {
 	});
 
 	describe('Checking valid and invalid creation parameters.', () => {
-		test('Parsing of undefined and null values', () => {
-			const course1 = new UserCourse({ course_name: 'Arithmetic' });
-			const course2 = new UserCourse({
-				course_name: 'Arithmetic',
-				user_id: undefined,
-				course_id: undefined
-			});
-			expect(course1).toStrictEqual(course2);
-
-			// the following allow to pass in non-valid parameters for testing
-			const params = { course_name: 'Arithmetic', course_id: null };
-			const course3 = new UserCourse(params as unknown as ParseableCourse);
-			expect(course1).toStrictEqual(course3);
-		});
-
 		test('Create a course with invalid fields', () => {
-			const c1 = new UserCourse({ course_name: 'Arithmetic', username: 'homer', role: 'student' });
+			const c1 = new UserCourse({
+				course_id: 1,
+				user_id: 1,
+				course_name: 'Arithmetic',
+				username: 'homer',
+				role: 'student'
+			});
 			expect(c1.isValid()).toBe(true);
 
 			c1.course_name = '';
 			expect(c1.isValid()).toBe(false);
 
-			c1.set({ course_name: 'Arithmetic', user_id: -1 });
+			c1.course_name = 'Arithmetic';
+			c1.user_id = -1;
 			expect(c1.isValid()).toBe(false);
 
-			c1.set({ user_id: 10, course_id: -1 });
+			c1.user_id = 10;
+			c1.course_id = -1;
 			expect(c1.isValid()).toBe(false);
 
 			c1.course_id = 10;
@@ -210,6 +204,8 @@ describe('Test Course Models', () => {
 
 		test('Create a user course with invalid dates', () => {
 			const c1 = new UserCourse({
+				course_id: 1,
+				user_id: 1,
 				course_name: 'Arithmetic',
 				username: 'homer',
 				role: 'student',

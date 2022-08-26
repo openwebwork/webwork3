@@ -30,17 +30,12 @@ const problem_sets = useProblemSetStore();
 const route = useRoute();
 
 const course_id = parseRouteCourseID(route);
-const course = session.user_courses.find(c => c.course_id === course_id);
 
-if (course) {
-	session.setCourse({
-		course_id,
-		course_name: course.course_name ?? 'unknown'
-	});
-} else {
-	logger.warn(`Can't find ${course_id} in ${session.user_courses
-		.map((c) => c.course_id).join(', ')}`);
+// allow the route to update the session's 'selected' course
+if (course_id !== session.course.course_id) {
+	session.setCourse(course_id);
 }
+
 await users.fetchGlobalCourseUsers(course_id);
 await users.fetchCourseUsers(course_id);
 await problem_sets.fetchProblemSets(course_id);
