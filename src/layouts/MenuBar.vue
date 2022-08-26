@@ -73,8 +73,6 @@ import { endSession } from 'src/common/api-requests/session';
 import { useSessionStore } from 'src/stores/session';
 import { useSettingsStore } from 'src/stores/settings';
 
-import type { CourseSettingInfo } from 'src/common/models/settings';
-
 defineEmits(['toggle-menu', 'toggle-sidebar']);
 const session = useSessionStore();
 const settings = useSettingsStore();

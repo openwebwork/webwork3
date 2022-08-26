@@ -105,10 +105,10 @@ sub getAllUserSetsForCourse ($self, %args) {
 	my $course    = $self->rs('Course')->getCourse(info => $args{info}, as_result_set => 1);
 	my @user_sets = $self->search(
 		{
-			'courses.course_id' => $course->course_id
+			'course.course_id' => $course->course_id
 		},
 		{
-			join => [ { 'problem_set' => 'courses' }, { 'course_users' => 'users' } ]
+			join => [ { 'problem_set' => 'course' }, { 'course_user' => 'user' } ]
 		}
 	);
 

@@ -24,6 +24,7 @@ import { CourseSetting, DBCourseSetting, GlobalSetting, ParseableDBCourseSetting
 
 import { cleanIDs, loadCSV } from '../utils';
 import { humanReadableTimeDuration } from 'src/common/models/parsers';
+import { SessionInfo } from 'src/common/models/session';
 
 describe('Test the settings store', () => {
 
@@ -49,8 +50,14 @@ describe('Test the settings store', () => {
 			.map(setting => ({
 				setting_name: setting.setting_name as string, value: setting.setting_value as SettingValueType
 			}));
-		// Login to the course as the admin in order to be authenticated for the rest of the test.
-		await api.post('login', { username: 'admin', password: 'admin' });
+		// Login to the course as an instructor of Arithmetic.  (course_id: 4)
+		const response = await api.post('login', { username: 'lisa', password: 'lisa' });
+
+		// set the session course to the Arithmetic course (course_id: 4)
+		const session_store = useSessionStore();
+		session_store.updateSessionInfo(response.data as SessionInfo);
+		await session_store.fetchUserCourses();
+		session_store.setCourse(4);
 
 		const settings_store = useSettingsStore();
 		await settings_store.fetchGlobalSettings();
@@ -92,10 +99,6 @@ describe('Test the settings store', () => {
 				.filter(setting => arith_setting_ids.includes(setting.setting_id))
 				.map(setting => ({ setting_name: setting.setting_name, value: setting.value }));
 			expect(arith_settings_from_db).toStrictEqual(arith_settings);
-
-			// set the session course to this course
-			const session_store = useSessionStore();
-			session_store.setCourse({ course_id: 4, course_name: 'Arithmetic' });
 		});
 
 		test('Get a single course setting based on name', () => {

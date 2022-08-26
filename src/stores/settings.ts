@@ -31,12 +31,13 @@ export const useSettingsStore = defineStore('settings', {
 		 * This returns the course setting by name.
 		 */
 		getCourseSetting: (state) => (setting_name: string): CourseSetting => {
+			const session_store = useSessionStore();
 			const global_setting = state.global_settings.find(setting => setting.setting_name === setting_name);
 			if (global_setting) {
 				const db_course_setting = state.db_course_settings
 					.find(setting => setting.setting_id === global_setting?.setting_id);
 				return new CourseSetting(Object.assign(
-					db_course_setting?.toObject() ?? {},
+					db_course_setting?.toObject() ?? { course_id: session_store.course.course_id },
 					global_setting?.toObject()));
 			} else {
 				throw `The setting with name: '${setting_name}' does not exist.`;
