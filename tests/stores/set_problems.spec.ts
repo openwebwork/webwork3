@@ -11,6 +11,8 @@
 import { createApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import type { AxiosError } from 'axios';
+import { api } from 'boot/axios';
 
 import { useCourseStore } from 'src/stores/courses';
 import { useUserStore } from 'src/stores/users';
@@ -141,10 +143,11 @@ describe('Problem Set store tests', () => {
 	describe('CRUD tests for set problems', () => {
 		let added_set_problem: SetProblem;
 		let updated_problem: SetProblem;
+		let hw1: HomeworkSet;
 		test('Add a set problem to a set', async () => {
 			const problem_set_store = useProblemSetStore();
 			const set_problem_store = useSetProblemStore();
-			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
+			hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' }) as HomeworkSet;
 			expect(hw1?.set_name).toStrictEqual('HW #1');
 
 			// grab the set problems for HW #1 so we know which is the next problem number.
@@ -179,11 +182,19 @@ describe('Problem Set store tests', () => {
 
 		test('Delete a set problem', async () => {
 			const set_problem_store = useSetProblemStore();
-			const problems = set_problem_store.findSetProblems({ set_name: 'HW #1' });
-			const deleted_problem = await set_problem_store.deleteSetProblem(added_set_problem);
-			expect(deleted_problem).toStrictEqual(updated_problem);
-			expect(set_problem_store.findSetProblems({ set_name: 'HW #1' }).length)
-				.toBe(problems.length - 1);
+			await set_problem_store.deleteSetProblem(added_set_problem);
+
+			// Check that the problem is no longer in the database by getting an exception.
+			await api.get(`/courses/${precalc_course.course_id}/sets/${hw1.set_id}/problems/${
+				added_set_problem.set_problem_id}`)
+				.then(() => {
+					fail('Expected failure response');
+				})
+				.catch((e: AxiosError) => {
+					expect(e.response?.status).toBe(500);
+					expect((e.response?.data as {exception: string}).exception)
+						.toBe('DB::Exception::SetProblemNotFound');
+				});
 		});
 	});
 
@@ -308,8 +319,19 @@ describe('Problem Set store tests', () => {
 
 		test('Delete a user problem', async () => {
 			const set_problem_store = useSetProblemStore();
-			const deleted_problem = await set_problem_store.deleteUserProblem(updated_user_problem);
-			expect(cleanIDs(deleted_problem)).toStrictEqual(cleanIDs(updated_user_problem));
+			await set_problem_store.deleteUserProblem(updated_user_problem);
+
+			// Check that the course is no longer in the database by getting an exception.
+			await api.get(`/courses/${precalc_course.course_id}/sets/${added_hw.set_id}/users/${added_user_set.user_id
+			}/problems/${updated_user_problem.user_problem_id}`)
+				.then(() => {
+					fail('Expected failure response');
+				})
+				.catch((e: AxiosError) => {
+					expect(e.response?.status).toBe(500);
+					expect((e.response?.data as {exception: string}).exception)
+						.toBe('DB::Exception::UserProblemNotFound');
+				});
 		});
 
 		// clean up some created sets.

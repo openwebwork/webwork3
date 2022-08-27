@@ -412,15 +412,14 @@ throws_ok {
 }
 'DB::Exception::SetNotInCourse', 'deleteQuiz: try to delete a non-existent quiz as set_id';
 
-# Try to delete from a non-existent set in a  course:
-my $deleted_quiz = $problem_set_rs->deleteProblemSet(
-	info => {
-		course_name => 'Precalculus',
-		set_name    => 'Quiz #9'
-	}
-);
-removeIDs($deleted_quiz);
-is_deeply($deleted_quiz, $new_quiz, 'delete Quiz: successfully delete a quiz');
+# Delete a quiz
+$problem_set_rs->deleteProblemSet(info => { course_name => 'Precalculus', set_name => 'Quiz #9' });
+
+# And then check that it is no longer in the database.
+throws_ok {
+	$problem_set_rs->getProblemSet(info => { course_name => 'Precalculus', set_name => 'Quiz #9' });
+}
+'DB::Exception::SetNotInCourse', 'deleteProblemSet: delete a set';
 
 # Ensure that the quizzes in the database are restored.
 @precalc_quizzes_from_db = $problem_set_rs->getQuizzes(info => { course_name => 'Precalculus' });

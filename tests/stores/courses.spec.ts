@@ -16,6 +16,7 @@ import { api } from 'boot/axios';
 import { useCourseStore } from 'src/stores/courses';
 import { Course } from 'src/common/models/courses';
 import { cleanIDs, loadCSV } from '../utils';
+import { AxiosError } from 'axios';
 
 describe('Test the course store', () => {
 
@@ -78,8 +79,17 @@ describe('Test the course store', () => {
 
 		test('Delete a course', async () => {
 			const course_store = useCourseStore();
-			const deleted_course = await course_store.deleteCourse(added_course) ?? new Course();
-			expect(cleanIDs(deleted_course)).toStrictEqual(cleanIDs(updated_course));
+			await course_store.deleteCourse(added_course);
+
+			// Check that the course is no longer in the database by getting an exception.
+			await api.get(`/courses/${added_course.course_id}`)
+				.then(() => {
+					fail('Expected failure response');
+				})
+				.catch((e: AxiosError) => {
+					expect(e.response?.status).toBe(500);
+					expect((e.response?.data as {exception: string}).exception);
+				});
 		});
 	});
 
@@ -92,8 +102,9 @@ describe('Test the course store', () => {
 				course_name: ''
 			});
 			expect(course.isValid()).toBe(false);
-			await expect(async () => { await course_store.addCourse(course); })
-				.rejects.toThrow('The added course is invalid');
+			await expect(async () => {
+				await course_store.addCourse(course);
+			}).rejects.toThrow('The added course is invalid');
 		});
 
 		test('Try to update an invalid course', async () => {

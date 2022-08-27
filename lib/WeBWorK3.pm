@@ -173,8 +173,16 @@ sub problemSetRoutes ($app, $course_routes) {
 	$course_routes->get('/user-sets')->to('ProblemSet#getAllUserSets');
 	$course_routes->get('/sets/:set_id/users')->to('ProblemSet#getUserSets');
 	$course_routes->post('/sets/:set_id/users')->to('ProblemSet#addUserSet');
-	$course_routes->put('/sets/:set_id/users/:course_user_id')->to('ProblemSet#updateUserSet');
-	$course_routes->delete('/sets/:set_id/users/:course_user_id')->to('ProblemSet#deleteUserSet');
+
+	# User sets that will default to set_version of 0
+	$course_routes->get('/sets/:set_id/users/:user_id')->to('ProblemSet#getUserSet');
+	$course_routes->put('/sets/:set_id/users/:user_id')->to('ProblemSet#updateUserSet');
+	$course_routes->delete('/sets/:set_id/users/:user_id')->to('ProblemSet#deleteUserSet');
+
+	# User sets for given set_version
+	$course_routes->get('/sets/:set_id/users/:user_id/v/:set_version')->to('ProblemSet#getUserSet');
+	$course_routes->put('/sets/:set_id/users/:user_id/v/:set_version')->to('ProblemSet#updateUserSet');
+	$course_routes->delete('/sets/:set_id/users/:user_id/v/:set_version')->to('ProblemSet#deleteUserSet');
 
 	$course_routes->get('/users/:user_id/sets')->to('ProblemSet#getUserSets');
 	return;

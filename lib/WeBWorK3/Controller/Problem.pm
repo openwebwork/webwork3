@@ -55,14 +55,14 @@ sub updateProblem ($c) {
 }
 
 sub deleteProblem ($c) {
-	my $deleted_problem = $c->schema->resultset('SetProblem')->deleteSetProblem(
+	$c->schema->resultset('SetProblem')->deleteSetProblem(
 		info => {
 			course_id      => int($c->param('course_id')),
 			set_id         => int($c->param('set_id')),
 			set_problem_id => int($c->param('set_problem_id'))
 		}
 	);
-	$c->render(json => $deleted_problem);
+	$c->render(json => { message => 'The problem was successfully deleted.' });
 	return;
 }
 
@@ -142,7 +142,7 @@ sub updateUserProblem ($c) {
 }
 
 sub deleteUserProblem ($c) {
-	my $deleted_problem = $c->schema->resultset('UserProblem')->deleteUserProblem(
+	$c->schema->resultset('UserProblem')->deleteUserProblem(
 		info => {
 			course_id       => int($c->param('course_id')),
 			set_id          => int($c->param('set_id')),
@@ -150,7 +150,7 @@ sub deleteUserProblem ($c) {
 			user_problem_id => int($c->param('user_problem_id'))
 		}
 	);
-	$c->render(json => $deleted_problem);
+	$c->render(json => { message => 'The user problem was successfully deleted.' });
 	return;
 }
 
@@ -204,14 +204,14 @@ sub updateProblemPool ($c) {
 }
 
 sub deleteProblemPool ($c) {
-	my $problem_pool = $c->schema->resultset('ProblemPool')->deleteProblemPool(
+	$c->schema->resultset('ProblemPool')->deleteProblemPool(
 		info => {
 			course_id       => int($c->param('course_id')),
 			problem_pool_id => int($c->param('problem_pool_id')),
 		},
 		params => $c->req->json
 	);
-	$c->render(json => $problem_pool);
+	$c->render(json => { message => 'The problem pool was successfully deleted.' });
 	return;
 }
 
@@ -261,14 +261,13 @@ sub updatePoolProblem ($c) {
 }
 
 sub removePoolProblem ($c) {
-	my $problem_pool = $c->schema->resultset('ProblemPool')->removePoolProblem(
+	$c->schema->resultset('ProblemPool')->removePoolProblem(
 		info => {
 			course_id       => int($c->param('course_id')),
 			problem_pool_id => int($c->param('problem_pool_id')),
-		},
-		params => $c->req->json
+		}
 	);
-	$c->render(json => $problem_pool);
+	$c->render(json => { message => 'The pool problem was successfully removed.' });
 	return;
 }
 

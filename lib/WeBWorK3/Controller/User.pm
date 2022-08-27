@@ -48,7 +48,7 @@ sub addGlobalUser ($c) {
 
 sub deleteGlobalUser ($c) {
 	my $user = $c->schema->resultset('User')->deleteGlobalUser(info => { user_id => int($c->param('user_id')) });
-	$c->render(json => $user);
+	$c->render(json => { message => 'The global user was successfully deleted.' });
 	return;
 }
 
@@ -132,7 +132,7 @@ sub deleteCourseUser ($c) {
 			user_id   => int($c->param('user_id'))
 		}
 	);
-	$c->render(json => $course_user);
+	$c->render(json => { message => 'The course user was successfully deleted.' });
 	return;
 }
 

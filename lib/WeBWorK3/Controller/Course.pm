@@ -32,9 +32,8 @@ sub addCourse ($c) {
 }
 
 sub deleteCourse ($c) {
-	my $course =
-		$c->schema->resultset('Course')->deleteCourse(info => { course_id => int($c->param('course_id')) });
-	$c->render(json => $course);
+	$c->schema->resultset('Course')->deleteCourse(info => { course_id => int($c->param('course_id')) });
+	$c->render(json => { message => 'The course was successfully deleted.' });
 	return;
 }
 

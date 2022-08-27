@@ -149,11 +149,8 @@ The deleted user as a C<DBIx::Class::ResultSet::User> object.
 # TODO: Delete everything related to the user from all tables.
 
 sub deleteGlobalUser ($self, %args) {
-	my $user_to_delete = $self->getGlobalUser(info => $args{info}, as_result_set => 1);
-
-	my $deleted_user = $user_to_delete->delete;
-	return $deleted_user if $args{as_result_set};
-	return removeLoginParams({ $deleted_user->get_inflated_columns });
+	$self->getGlobalUser(info => $args{info}, as_result_set => 1)->delete;
+	return;
 }
 
 =head1 updateGlobalUser
@@ -326,9 +323,17 @@ An hashref of the user or merged user or a C<DBIx::Class::ResultSet>
 sub getCourseUser ($self, %args) {
 	my $course_user;
 
-	if (defined($args{info}->{course_user_id})) {
+	if (defined($args{info}{course_user_id})) {
 		$course_user = $self->rs('CourseUser')
 			->find({ course_user_id => $args{info}->{course_user_id} }, { prefetch => [qw/role/] });
+		DB::Exception::UserNotInCourse->throw(
+			message => "The user with id '$args{info}->{course_user_id}' is not enrolled in the course "
+				. (
+					$args{info}->{course_name}
+					? " with name '$args{info}->{course_name}'"
+					: " with course_id '$args{info}->{course_id}'."
+				)
+		) unless defined $course_user || $args{skip_throw};
 	} else {
 		my $course = $self->rs('Course')->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 		my $user   = $self->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
@@ -533,21 +538,18 @@ from the global user table)
 
 =over
 =item - If either information about the user or the course is missing, an exception will be thrown
-=item - If the user is already in the course, an exception will be thrown.
+=item - If the user is not in the course, an exception will be thrown.
 =back
 
 =head3 output
 
-An hashref of the deleted user or merged user or a C<DB::Schema::ResultSet::CourseUser>
+Nothing (undef) is returned.
 
 =cut
 
 sub deleteCourseUser ($self, %args) {
-	my $course_user_to_delete = $self->getCourseUser(info => $args{info}, as_result_set => 1)->delete;
-
-	return $course_user_to_delete if $args{as_result_set};
-	return $args{merged} ? _getMergedUser($course_user_to_delete) : _getCourseUser($course_user_to_delete);
-
+	$self->getCourseUser(info => $args{info}, as_result_set => 1)->delete;
+	return;
 }
 
 # This is a small subroutine to shorten access to the db.

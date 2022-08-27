@@ -169,18 +169,13 @@ C<as_result_set>, a boolean if the return is to be a result_set
 
 =head3 output
 
-The deleted course either as a C< DBIx::Class::ResultSet::Course> object or a hashref
-of the fields. See above.
+Nothing (undef) is returned.
 
 =cut
 
 sub deleteCourse ($self, %args) {
-	my $course_to_delete = $self->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
-
-	my $deleted_course = $course_to_delete->delete;
-	return $deleted_course if $args{as_result_set};
-
-	return { $course_to_delete->get_inflated_columns };
+	$self->getCourse(info => getCourseInfo($args{info}), as_result_set => 1)->delete;
+	return;
 }
 
 =head1 updateCourse
