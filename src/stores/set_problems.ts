@@ -138,7 +138,7 @@ export const useSetProblemStore = defineStore('set_problems', {
 				catch((e: Error) =>
 					logger.error(`[addSetProblem] ${JSON.stringify(prob)} failed with ${e.message}`));
 
-			const new_problem = new SetProblem(response.data as ParseableSetProblem);
+			const new_problem = new SetProblem(response as ParseableSetProblem);
 			this.set_problems.push(new_problem);
 			return new_problem;
 		},
