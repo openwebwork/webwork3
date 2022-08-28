@@ -56,10 +56,9 @@ export const useSettingsStore = defineStore('settings', {
 		/**
 		 * This returns the course settings for the given category (as a string)
 		 */
-		getSettingsByCategory(state): { (category_name: string): CourseSetting[] } {
+		getSettingsByCategory(): { (category_name: string): CourseSetting[] } {
 			return (category_name: string): CourseSetting[] => {
-				const category = state.global_settings.filter(setting => setting.category === category_name);
-				return category.map(setting => this.getCourseSetting(setting.setting_name));
+				return this.course_settings.filter(setting => setting.category === category_name);
 			};
 		}
 	},

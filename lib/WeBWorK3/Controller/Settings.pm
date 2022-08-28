@@ -65,6 +65,9 @@ sub deleteCourseSetting ($c) {
 	return;
 }
 
+# This is useful for checking if the string passed in is a valid timezone, instead of
+# having the UI download all possible timezones (bloated).
+
 sub checkTimeZone ($c) {
 	try {
 		DateTime::TimeZone->new(name => $c->req->json->{timezone});

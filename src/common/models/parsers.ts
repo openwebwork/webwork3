@@ -166,10 +166,9 @@ export function parseString(_value: string | number | boolean) {
 
 /**
  * Converts a time_duration type setting to a human-readable one.
- * TODO: use localization for this.
  * @params td - time duration in seconds.
  */
-
+// TODO: use localization for this.
 export const humanReadableTimeDuration = (td: number): string => {
 	const times = {
 		week: Math.floor(td / 604800),

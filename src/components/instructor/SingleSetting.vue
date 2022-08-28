@@ -42,14 +42,14 @@
 <script setup lang="ts">
 import { defineProps, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
-import { CourseSetting, OptionType, SettingValueType } from 'src/common/models/settings';
 
-import InputWithBlur from 'src/components/common/InputWithBlur.vue';
 import { logger } from 'src/boot/logger';
-
-import { useSettingsStore } from 'src/stores/settings';
-import { convertTimeDuration, humanReadableTimeDuration, isTimeDuration } from 'src/common/models/parsers';
 import { api } from 'src/boot/axios';
+import InputWithBlur from 'src/components/common/InputWithBlur.vue';
+import { useSettingsStore } from 'src/stores/settings';
+
+import { convertTimeDuration, humanReadableTimeDuration, isTimeDuration } from 'src/common/models/parsers';
+import { CourseSetting, OptionType, SettingValueType } from 'src/common/models/settings';
 
 const props = defineProps<{
 	setting: CourseSetting

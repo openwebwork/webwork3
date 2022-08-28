@@ -10,11 +10,11 @@ use base 'DBIx::Class::ResultSet';
 use Clone qw/clone/;
 use DB::Utils qw/getCourseInfo getUserInfo getSettingInfo/;
 
-use Exception::Class qw(
+use Exception::Class qw/
 	DB::Exception::CourseNotFound
 	DB::Exception::CourseExists
 	DB::Exception::SettingNotFound
-);
+	/;
 
 use WeBWorK3::Utils::Settings qw/ mergeCourseSettings isValidSetting/;
 

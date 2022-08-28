@@ -82,8 +82,6 @@ sub addCourses {
 	}
 	return;
 }
-use Data::Dumper;
-
 
 sub addSettings {
 	say 'adding default settings' if $verbose;
@@ -117,7 +115,6 @@ sub addSettings {
 		if ($global_setting->type eq 'time_duration') {
 			$setting->{setting_value} = convertTimeDuration($setting->{setting_value});
 		}
-
 
 		$course->add_to_course_settings({
 			course_id  => $course->course_id,

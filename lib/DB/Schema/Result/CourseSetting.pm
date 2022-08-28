@@ -43,19 +43,16 @@ __PACKAGE__->add_columns(
 		is_auto_increment => 1,
 	},
 	course_id => {
-		data_type   => 'integer',
-		size        => 16,
-		is_nullable => 0,
+		data_type => 'integer',
+		size      => 16,
 	},
 	setting_id => {
-		data_type   => 'integer',
-		size        => 16,
-		is_nullable => 0,
+		data_type => 'integer',
+		size      => 16,
 	},
 	value => {
 		data_type          => 'text',
-		is_nullable        => 0,
-		default_value      => '\'\'',
+		default_value      => '{}',
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
