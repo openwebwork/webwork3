@@ -14,7 +14,7 @@ const routes: RouteRecordRaw[] = [
 				component: () =>
 					import(
 						/* webpackChunkName: "Welcome" */
-						'components/common/Welcome.vue'
+						'components/common/WelcomeVue.vue'
 					),
 				name: 'welcome'
 			},
@@ -24,7 +24,7 @@ const routes: RouteRecordRaw[] = [
 				component: () =>
 					import(
 						/* webpackChunkName: "Login" */
-						'components/common/Login.vue'
+						'components/common/LoginVue.vue'
 					)
 			},
 			{
@@ -41,7 +41,7 @@ const routes: RouteRecordRaw[] = [
 				component: () =>
 					import(
 						/* webpackChunkName: "Student" */
-						'components/student/Student.vue'
+						'components/student/StudentVue.vue'
 					),
 				name: 'student',
 				props: true,
@@ -53,7 +53,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "StudentDashboard" */
-								'pages/student/Dashboard.vue'
+								'pages/student/StudentDashboard.vue'
 							)
 					},
 					{
@@ -62,7 +62,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "StudentCalendar" */
-								'pages/student/Calendar.vue'
+								'pages/student/StudentCalendar.vue'
 							)
 					},
 					{
@@ -100,7 +100,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "Grades" */
-								'pages/student/Grades.vue'
+								'pages/student/StudentGrades.vue'
 							)
 					},
 				]
@@ -110,7 +110,7 @@ const routes: RouteRecordRaw[] = [
 				component: () =>
 					import(
 						/* webpackChunkName: "Instructor" */
-						'pages/instructor/Instructor.vue'
+						'pages/instructor/InstructorVue.vue'
 					),
 				name: 'instructor',
 				meta: { requiresAuth: true },
@@ -121,7 +121,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "Dashboard" */
-								'pages/instructor/Dashboard.vue'
+								'pages/instructor/InstructorDashboard.vue'
 							)
 					},
 					{
@@ -130,7 +130,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "Settings" */
-								'pages/instructor/Settings.vue'
+								'pages/instructor/SettingsVue.vue'
 							)
 					},
 					{
@@ -139,7 +139,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "Calendar" */
-								'pages/instructor/Calendar.vue'
+								'pages/instructor/InstructorCalendar.vue'
 							)
 					},
 					{
@@ -217,7 +217,7 @@ const routes: RouteRecordRaw[] = [
 						component: () =>
 							import(
 								/* webpackChunkName: "Statistics" */
-								'pages/instructor/Statistics.vue'
+								'pages/instructor/StatisticsVue.vue'
 							)
 					}
 				]
@@ -227,7 +227,7 @@ const routes: RouteRecordRaw[] = [
 				component: () =>
 					import(
 						/* webpackChunkName: "Admin" */
-						'components/admin/Admin.vue'
+						'components/admin/AdminVue.vue'
 					),
 				children: [
 					{
