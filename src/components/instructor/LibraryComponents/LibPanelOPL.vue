@@ -39,7 +39,7 @@
 	</header>
 	<div v-if="problems.length > 0" class="col">
 		<div v-for="problem in (problems as LibraryProblem[])" :key="problem.problem_number">
-			<problem
+			<problem-vue
 				:problem="problem"
 				class="q-mb-md"
 				@add-problem="addProblem(problem)"
@@ -57,7 +57,7 @@ import { useAppStateStore } from 'src/stores/app_state';
 
 import { LibraryProblem } from 'src/common/models/problems';
 import type { ResponseError } from 'src/common/api-requests/errors';
-import Problem from 'components/common/Problem.vue';
+import ProblemVue from 'components/common/ProblemVue.vue';
 import { fetchDisciplines, fetchChapters, fetchSubjects, fetchSections, fetchLibraryProblems,
 	LibraryCategory } from 'src/common/api-requests/library';
 import { logger } from 'boot/logger';

@@ -1,0 +1,9 @@
+course_name,setting_name,setting_value
+Precalculus,institution,"Springfield CC"
+Precalculus,session_key_timeout,"20 mins"
+"Abstract Algebra",institution,"Springfield University"
+Topology,institution,"Springfield University"
+Arithmetic,institution,"Springfield CC"
+Arithmetic,timezone,"America/New_York"
+Arithmetic,hardcopy_theme,"One Column"
+Calculus,institution,"Springfield University"

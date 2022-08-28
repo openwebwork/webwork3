@@ -3,6 +3,10 @@ package WeBWorK3::Controller::Settings;
 use warnings;
 use strict;
 
+use Mojo::JSON qw/true false/;
+use DateTime::TimeZone;
+use Try::Tiny;
+
 =head1 Description
 
 These are the methods that call the database for course settings
@@ -10,40 +14,67 @@ These are the methods that call the database for course settings
 =cut
 
 use Mojo::Base 'Mojolicious::Controller', -signatures;
-use Mojo::File qw/path/;
 
-use YAML::XS qw/LoadFile/;
-
-# This reads the default settings from a file.
-
-sub getDefaultCourseSettings ($self) {
-	my $settings = LoadFile(path($self->config->{webwork3_home}, 'conf', 'course_defaults.yml'));
-	# Check if the file exists.
-	$self->render(json => $settings);
+sub getGlobalSettings ($c) {
+	my $settings = $c->schema->resultset('Course')->getGlobalSettings();
+	$c->render(json => $settings);
 	return;
 }
 
-sub getCourseSettings ($self) {
-	my $course_settings = $self->schema->resultset('Course')->getCourseSettings(
+sub getGlobalSetting ($c) {
+	my $setting = $c->schema->resultset('Course')->getGlobalSetting(
 		info => {
-			course_id => int($self->param('course_id')),
+			setting_id => int($c->param('setting_id'))
 		}
 	);
-	# Flatten to a single array.
-	my @course_settings = ();
-	for my $category (keys %$course_settings) {
-		for my $key (keys %{ $course_settings->{$category} }) {
-			push(@course_settings, { var => $key, value => $course_settings->{$category}->{$key} });
-		}
-	}
-	$self->render(json => \@course_settings);
+	$c->render(json => $setting);
 	return;
 }
 
-sub updateCourseSetting ($self) {
-	my $course_setting = $self->schema->resultset('Course')
-		->updateCourseSettings({ course_id => $self->param('course_id') }, $self->req->json);
-	$self->render(json => $course_setting);
+sub getCourseSettings ($c) {
+	my $course_settings = $c->schema->resultset('Course')->getCourseSettings(
+		info => {
+			course_id => int($c->param('course_id')),
+		},
+		merged => 1
+	);
+	$c->render(json => $course_settings);
+	return;
+}
+
+sub updateCourseSetting ($c) {
+	my $course_setting = $c->schema->resultset('Course')->updateCourseSetting(
+		info => {
+			course_id  => $c->param('course_id'),
+			setting_id => $c->param('setting_id')
+		},
+		params => $c->req->json
+	);
+	$c->render(json => $course_setting);
+	return;
+}
+
+sub deleteCourseSetting ($c) {
+	my $course_setting = $c->schema->resultset('Course')->deleteCourseSetting(
+		info => {
+			course_id  => $c->param('course_id'),
+			setting_id => $c->param('setting_id')
+		}
+	);
+	$c->render(json => $course_setting);
+	return;
+}
+
+# This is useful for checking if the string passed in is a valid timezone, instead of
+# having the UI download all possible timezones (bloated).
+
+sub checkTimeZone ($c) {
+	try {
+		DateTime::TimeZone->new(name => $c->req->json->{timezone});
+		$c->render(json => { valid_timezone => true });
+	} catch {
+		$c->render(json => { valid_timezone => false });
+	};
 	return;
 }
 

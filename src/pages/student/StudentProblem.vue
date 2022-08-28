@@ -1,5 +1,5 @@
 <template>
-	<problem v-if="user_problem"
+	<problem-vue v-if="user_problem"
 		:problem="user_problem"
 	/>
 </template>
@@ -10,14 +10,14 @@ import { useRoute } from 'vue-router';
 
 import { parseNumericRouteParam } from 'src/common/views';
 
-import Problem from 'src/components/common/Problem.vue';
+import ProblemVue from 'src/components/common/ProblemVue.vue';
 import { useProblemSetStore } from 'src/stores/problem_sets';
 import { useSetProblemStore } from 'src/stores/set_problems';
 
 export default defineComponent({
 	name: 'StudentProblem',
 	components: {
-		Problem
+		ProblemVue
 	},
 	setup() {
 		const route = useRoute();

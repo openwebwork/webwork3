@@ -113,12 +113,6 @@ $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => '
 # an instructor can get information about the given course.
 $t->get_ok('/webwork3/api/courses/4')->status_is(200)->json_is('/course_name' => 'Arithmetic');
 
-# and also the settings for the course.
-
-$t->get_ok('/webwork3/api/courses/4/default_settings')->status_is(200)
-	->content_type_is('application/json;charset=UTF-8');
-$t->get_ok('/webwork3/api/courses/4/settings')->status_is(200)->content_type_is('application/json;charset=UTF-8');
-
 # The user with role instructor should not have permissions for the following routes.
 
 $t->post_ok('/webwork3/api/courses' => json => $new_course)->status_is(403)->json_is('/has_permission' => 0);

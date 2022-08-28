@@ -1,20 +1,20 @@
 <template>
 	<q-page class="q-ma-p-lg">
 		<!-- The key attribute needs to be unique on the component so prefix it. -->
-		<homework-set-view
+		<homework-set-vue
 			:set="(problem_set as HomeworkSet)"
 			:key="'HW' + set_id"
 			:reset_set_type="reset_set_type"
 			@update-set="updateSet"
 			@change-set-type="requestChangeSetType"
 			v-if="problem_set?.set_type==='HW'" />
-		<quiz-view
+		<quiz-vue
 			:set="(problem_set as Quiz)"
 			:key="'QUIZ' + set_id"
 			@update-set="updateSet"
 			@change-set-type="requestChangeSetType"
 			v-else-if="problem_set?.set_type==='QUIZ'" />
-		<review-set-view
+		<review-set-vue
 			:set="(problem_set as ReviewSet)"
 			:key="'REVIEW_SET' + set_id"
 			@update-set="updateSet"
@@ -49,17 +49,17 @@ import { useProblemSetStore } from 'src/stores/problem_sets';
 import { parseRouteSetID } from 'src/router/utils';
 import { ProblemSet, ProblemSetType, convertSet, HomeworkSet, ReviewSet, Quiz
 } from 'src/common/models/problem_sets';
-import HomeworkSetView from 'src/components/instructor/SetDetails/HomeworkSet.vue';
-import QuizView from 'src/components/instructor/SetDetails/Quiz.vue';
-import ReviewSetView from 'src/components/instructor/SetDetails/ReviewSet.vue';
+import HomeworkSetVue from 'src/components/instructor/SetDetails/HomeworkSetVue.vue';
+import QuizVue from 'src/components/instructor/SetDetails/QuizVue.vue';
+import ReviewSetVue from 'src/components/instructor/SetDetails/ReviewSetVue.vue';
 import { ResponseError } from 'src/common/api-requests/errors';
 
 export default defineComponent({
 	name: 'ProblemSetDetails',
 	components: {
-		HomeworkSetView,
-		QuizView,
-		ReviewSetView
+		HomeworkSetVue,
+		QuizVue,
+		ReviewSetVue
 	},
 	setup() {
 		const route = useRoute();

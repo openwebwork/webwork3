@@ -30,7 +30,7 @@ import { VueDraggableNext as draggable } from 'vue-draggable-next';
 
 import { useProblemSetStore } from 'src/stores/problem_sets';
 
-import ProblemVue from 'components/common/Problem.vue';
+import ProblemVue from 'components/common/ProblemVue.vue';
 import { ProblemSet } from 'src/common/models/problem_sets';
 import { Problem, SetProblem } from 'src/common/models/problems';
 import { ResponseError } from 'src/common/api-requests/errors';

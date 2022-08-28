@@ -22,7 +22,7 @@ use YAML::XS qw/LoadFile/;
 use Mojo::JSON qw/true false/;
 
 use DB::Schema;
-use DB::Utils qw/updatePermissions/;
+use DB::Utils qw/updatePermissions convertTimeDuration/;
 use TestUtils qw/loadCSV/;
 
 my $verbose = 1;
@@ -30,6 +30,9 @@ my $verbose = 1;
 # Load the configuration for the database settings.
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
 $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
+
+# the YAML true/false will be loaded a JSON booleans.
+local $YAML::XS::Boolean = "JSON::PP";
 my $config = LoadFile($config_file);
 
 # Load the Permissions file
@@ -54,14 +57,15 @@ $schema->deploy({ add_drop_table => 1 });
 # The permissions need to be loaded into the DB before the rest of the script is run.
 updatePermissions($config_file, $role_perm_file);
 
-my $course_rs       = $schema->resultset('Course');
-my $user_rs         = $schema->resultset('User');
-my $course_user_rs  = $schema->resultset('CourseUser');
-my $problem_set_rs  = $schema->resultset('ProblemSet');
-my $problem_pool_rs = $schema->resultset('ProblemPool');
-my $set_problem_rs  = $schema->resultset('SetProblem');
-my $user_set_rs     = $schema->resultset('UserSet');
-my $role_rs         = $schema->resultset('Role');
+my $course_rs         = $schema->resultset('Course');
+my $user_rs           = $schema->resultset('User');
+my $course_user_rs    = $schema->resultset('CourseUser');
+my $problem_set_rs    = $schema->resultset('ProblemSet');
+my $problem_pool_rs   = $schema->resultset('ProblemPool');
+my $set_problem_rs    = $schema->resultset('SetProblem');
+my $user_set_rs       = $schema->resultset('UserSet');
+my $role_rs           = $schema->resultset('Role');
+my $global_setting_rs = $schema->resultset('GlobalSetting');
 
 my $strp_date = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
 
@@ -73,16 +77,51 @@ sub addCourses {
 			boolean_fields => ['visible']
 		}
 	);
-	# currently course_params from the csv file are written to the course_settings database table.
 	for my $course (@courses) {
-		$course->{course_settings} = {};
-		for my $key (keys %{ $course->{course_params} }) {
-			my @fields = split(/:/, $key);
-			$course->{course_settings}->{ $fields[0] } = { $fields[1] => $course->{course_params}->{$key} };
+		$course_rs->create($course);
+	}
+	return;
+}
+
+sub addSettings {
+	say 'adding default settings' if $verbose;
+
+	my $settings_file = "$main::ww3_dir/conf/course_settings.yml";
+	$settings_file = "$main::ww3_dir/conf/course_settings.dist.yml" unless -r $settings_file;
+	die "The default settings file: '$settings_file' does not exist or is not readable"
+		unless -r $settings_file;
+	my $course_settings = LoadFile($settings_file);
+	for my $setting (@$course_settings) {
+
+		# If the setting is a time_duration, store it as a number of seconds in the db.
+		if ($setting->{type} eq 'time_duration') {
+			$setting->{default_value} = convertTimeDuration($setting->{default_value});
 		}
 
-		delete $course->{course_params};
-		$course_rs->create($course);
+		# encode default_value as a JSON object.
+		$setting->{default_value} = { value => $setting->{default_value} };
+		$global_setting_rs->create($setting);
+	}
+
+	say 'adding course settings' if $verbose;
+	my @course_settings = loadCSV("$main::ww3_dir/t/db/sample_data/course_settings.csv");
+	for my $setting (@course_settings) {
+		my $course = $course_rs->find({ course_name => $setting->{course_name} });
+		die "the course: '$setting->{course_name}' does not exist in the db" unless $course;
+		my $global_setting = $global_setting_rs->find({ setting_name => $setting->{setting_name} });
+		die "the setting: '$setting->{setting_name}' does not exist in the db" unless $global_setting;
+
+		# If the setting is a time_duration, store it as a number of seconds in the db.
+		if ($global_setting->type eq 'time_duration') {
+			$setting->{setting_value} = convertTimeDuration($setting->{setting_value});
+		}
+
+		$course->add_to_course_settings({
+			course_id  => $course->course_id,
+			setting_id => $global_setting->setting_id,
+			# encode value as a JSON object.
+			value => { value => $setting->{setting_value} }
+		});
 	}
 	return;
 }
@@ -342,6 +381,7 @@ sub addUserProblems {
 }
 
 addCourses;
+addSettings;
 addUsers;
 addSets;
 addProblems;
