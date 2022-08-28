@@ -11,6 +11,7 @@ RUN apt-get update && \
 		cpanminus=1.7045-1 \
 		git=1:2.34.1-1ubuntu1.4 \
 		libarray-utils-perl=0.5-2 \
+		libc6-dev=2.35-0ubuntu3.1 \
 		libcanary-stability-perl=2006-2 \
 		libcapture-tiny-perl=0.48-1 \
 		libclass-accessor-lite-perl=0.08-1.1 \
@@ -26,7 +27,6 @@ RUN apt-get update && \
 		libdbix-class-perl=0.082842-3 \
 		libdbix-dbschema-perl=0.45-1 \
 		libdevel-cover-perl=1.36-2build2 \
-		libc6-dev=2.35-0ubuntu3.1 \
 		libexception-class-perl=1.45-1 \
 		libextutils-config-perl=0.008-2 \
 		libextutils-helpers-perl=0.026-1 \
@@ -43,7 +43,11 @@ RUN apt-get update && \
 		libnet-ssleay-perl=1.92-1build2 \
 		libsql-translator-perl=1.62-1 \
 		libssl-dev=3.0.2-0ubuntu1.6 \
+		libsub-info-perl=0.015-2 \
+		libterm-table-perl=0.015-2 \
 		libtest-exception-perl=0.43-1 \
+		libtest-harness-perl=3.42-2 \
+		libtest2-suite-perl=0.000144-1 \
 		libtext-csv-perl=2.01-1 \
 		libtry-tiny-perl=0.31-1 \
 		libtypes-serialiser-perl=1.01-1 \
@@ -56,6 +60,7 @@ RUN apt-get update && \
 		DBIx::Class::DynamicSubclass \
 		Mojolicious::Plugin::DBIC \
 		Mojolicious::Plugin::NotYAMLConfig \
+		Test2::MojoX \
 		Devel::Cover::Report::Codecov
 
 ENTRYPOINT ["/bin/bash"]

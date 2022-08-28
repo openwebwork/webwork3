@@ -2,8 +2,8 @@
 
 use Mojo::Base -strict;
 
-use Test::More;
-use Test::Mojo;
+use Test2::V0;
+use Test2::MojoX;
 use Mojo::JSON qw/true false/;
 
 BEGIN {
@@ -24,7 +24,7 @@ my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
 $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = clone(LoadFile($config_file));
 
-my $t = Test::Mojo->new(WeBWorK3 => $config);
+my $t = Test2::MojoX->new(WeBWorK3 => $config);
 
 # Authenticate with the admin user.
 $t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200)
@@ -52,14 +52,14 @@ my $new_course_id = $t->tx->res->json('/course_id');
 $new_course->{course_id} = $new_course_id;
 # The default for visible is true:
 $new_course->{visible} = true;
-is_deeply($new_course, $t->tx->res->json, "addCourse: courses match");
+is($t->tx->res->json, $new_course, "addCourse: courses match");
 
 # Update the course
 $new_course->{visible} = true;
 $t->put_ok("/webwork3/api/courses/$new_course_id" => json => $new_course)->status_is(200)
 	->json_is('/course_name' => $new_course->{course_name});
 
-is_deeply($new_course, $t->tx->res->json, 'updateCourse: courses match');
+is($t->tx->res->json, $new_course, 'updateCourse: courses match');
 
 # Testing that booleans returned from the server are JSON booleans.
 # getting the first course

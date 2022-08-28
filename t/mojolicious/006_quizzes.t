@@ -2,11 +2,9 @@
 
 use Mojo::Base -strict;
 
-use Test::More;
-use Test::Mojo;
+use Test2::V0;
+use Test2::MojoX;
 use Mojo::JSON qw/true false/;
-
-use DateTime::Format::Strptime;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -29,8 +27,6 @@ my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
 $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 my $config = clone(LoadFile($config_file));
 
-my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
-
 # Connect to the database.
 my $schema = DB::Schema->connect(
 	$config->{database_dsn},
@@ -39,7 +35,7 @@ my $schema = DB::Schema->connect(
 	{ quote_names => 1 }
 );
 
-my $t = Test::Mojo->new(WeBWorK3 => $config);
+my $t = Test2::MojoX->new(WeBWorK3 => $config);
 
 # Login as an user with instructor privileges in a course (Arithmetic; course_id: 4)
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)

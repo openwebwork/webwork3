@@ -2,8 +2,8 @@
 
 use Mojo::Base -strict;
 
-use Test::More;
-use Test::Mojo;
+use Test2::V0;
+use Test2::MojoX;
 use YAML::XS qw/LoadFile/;
 use Mojo::JSON qw/true false/;
 
@@ -19,7 +19,7 @@ use lib "$main::ww3_dir/lib";
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
 $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 
-my $t = Test::Mojo->new('WeBWorK3' => LoadFile($config_file));
+my $t = Test2::MojoX->new('WeBWorK3' => LoadFile($config_file));
 
 # Test missing credentials
 $t->post_ok('/webwork3/api/login')->status_is(500, 'error status')->content_type_is('application/json;charset=UTF-8')

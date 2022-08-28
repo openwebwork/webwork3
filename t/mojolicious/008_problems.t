@@ -2,11 +2,9 @@
 
 use Mojo::Base -strict;
 
-use Test::More;
-use Test::Mojo;
+use Test2::V0;
+use Test2::MojoX;
 use Mojo::JSON qw/true false/;
-
-use DateTime::Format::Strptime;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -37,7 +35,7 @@ my $schema = DB::Schema->connect(
 	$config->{database_password},
 	{ quote_names => 1 }
 );
-my $t = Test::Mojo->new(WeBWorK3 => $config);
+my $t = Test2::MojoX->new(WeBWorK3 => $config);
 
 # First run tests as logged in as an instructor
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
@@ -80,7 +78,7 @@ $t->get_ok('/webwork3/api/courses/4/problems')->status_is(200)->content_type_is(
 my $problems_from_db = $t->tx->res->json;
 for my $problem (@$problems_from_db) { removeIDs($problem); }
 
-is_deeply(\@arith_problems, $problems_from_db, 'getGlobalProblems: get all problems');
+is($problems_from_db, \@arith_problems, 'getGlobalProblems: get all problems');
 
 # Add a new problem to a set.
 

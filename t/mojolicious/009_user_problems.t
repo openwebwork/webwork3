@@ -2,11 +2,9 @@
 
 use Mojo::Base -strict;
 
-use Test::More;
-use Test::Mojo;
+use Test2::V0;
+use Test2::MojoX;
 use Mojo::JSON qw/true false/;
-
-use DateTime::Format::Strptime;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -37,7 +35,7 @@ my $schema = DB::Schema->connect(
 	$config->{database_password},
 	{ quote_names => 1 }
 );
-my $t = Test::Mojo->new(WeBWorK3 => $config);
+my $t = Test2::MojoX->new(WeBWorK3 => $config);
 
 # First run tests as logged in as an instructor
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
@@ -95,7 +93,7 @@ $t->get_ok('/webwork3/api/courses/4/problems')->status_is(200)->content_type_is(
 my $problems_from_db = $t->tx->res->json;
 for my $problem (@$problems_from_db) { removeIDs($problem); }
 
-is_deeply(\@arith_problems, $problems_from_db, 'getGlobalProblems: get all problems');
+is($problems_from_db, \@arith_problems, 'getGlobalProblems: get all problems');
 
 # Get all user problems for a single set.
 
@@ -113,7 +111,7 @@ $_->{status} += 0 for (@$user_problems_from_db);
 my @user_problems_from_db =
 	sort { $a->{username} cmp $b->{username} || $a->{problem_number} <=> $b->{problem_number} } @$user_problems_from_db;
 
-is_deeply(\@user_problems_from_db, \@arith_user_problems, 'getUserProblems: get all problems for a set in a course.');
+is(\@user_problems_from_db, \@arith_user_problems, 'getUserProblems: get all problems for a set in a course.');
 
 # Get all user problems in a course for a single user. Find user 'ralph'
 
@@ -130,8 +128,7 @@ my @ralph_user_problems_from_file = grep { $_->{username} eq 'ralph' } @arith_us
 # For comparision make sure the loaded status are printed to 5 digits.
 $_->{status} += 0 for (@$ralph_user_problems);
 
-is_deeply(\@ralph_user_problems_from_file,
-	$ralph_user_problems, 'getUserProblems: get all problems for a set in a course.');
+is($ralph_user_problems, \@ralph_user_problems_from_file, 'getUserProblems: get all problems for a set in a course.');
 
 # New to make a new problem first
 

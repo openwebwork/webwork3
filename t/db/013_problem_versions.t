@@ -14,8 +14,7 @@ BEGIN {
 use lib "$main::ww3_dir/lib";
 use lib "$main::ww3_dir/t/lib";
 
-use Test::More;
-use Test::Exception;
+use Test2::V0;
 use YAML::XS qw/LoadFile/;
 use Clone qw/clone/;
 
@@ -102,7 +101,7 @@ my $user_problem1_from_csv = clone(
 # the status needs be returned to a numerical value.
 $user_problem1->{status} += 0;
 
-is_deeply($user_problem1_from_csv, $user_problem1, 'getUserProblem: get a single user problem from a course.');
+is($user_problem1, $user_problem1_from_csv, 'getUserProblem: get a single user problem from a course.');
 
 # Make a new user problem that has a problem_version of 2
 
@@ -112,7 +111,7 @@ $user_problem1_v2_params->{problem_version} = 2;
 my $user_problem1_v2 = $user_problem_rs->addUserProblem(params => { %$user_problem_info, %$user_problem1_v2_params });
 removeIDs($user_problem1_v2);
 
-is_deeply($user_problem1_v2_params, $user_problem1_v2, "addUserProblem: add a user problem with version =2 ");
+is($user_problem1_v2, $user_problem1_v2_params, "addUserProblem: add a user problem with version =2 ");
 
 # Make a new user set that has a  set_version of 3
 
@@ -122,7 +121,7 @@ $user_problem1_v3_params->{problem_version} = 3;
 my $user_problem1_v3 = $user_problem_rs->addUserProblem(params => { %$user_problem_info, %$user_problem1_v3_params });
 removeIDs($user_problem1_v3);
 
-is_deeply($user_problem1_v3_params, $user_problem1_v3, "addUserProblem: add a user problem with version =3 ");
+is($user_problem1_v3, $user_problem1_v3_params, "addUserProblem: add a user problem with version =3 ");
 
 my @all_user_problem_versions = $user_problem_rs->getUserProblemVersions(info => $user_problem_info);
 
@@ -131,7 +130,7 @@ for my $user_problem (@all_user_problem_versions) {
 	$user_problem->{status} += 0;
 }
 
-is_deeply(
+is(
 	\@all_user_problem_versions,
 	[ $user_problem1, $user_problem1_v2, $user_problem1_v3 ],
 	'getUserProblemVersions: get all versions of a user problem'
@@ -151,7 +150,7 @@ my $user_problem_v2_to_delete = $user_problem_rs->deleteUserProblem(
 removeIDs($user_problem_v2_to_delete);
 $user_problem_v2_to_delete->{status} += 0;
 
-is_deeply($user_problem_v2_to_delete, $user_problem1_v2, 'deleteUserProblem: delete a versioned user problem');
+is($user_problem_v2_to_delete, $user_problem1_v2, 'deleteUserProblem: delete a versioned user problem');
 
 my $user_problem_v3_to_delete = $user_problem_rs->deleteUserProblem(
 	info => {
@@ -165,7 +164,7 @@ my $user_problem_v3_to_delete = $user_problem_rs->deleteUserProblem(
 removeIDs($user_problem_v3_to_delete);
 $user_problem_v3_to_delete->{status} += 0;
 
-is_deeply($user_problem_v3_to_delete, $user_problem1_v3, 'deleteUserProblem: delete another versioned user problem');
+is($user_problem_v3_to_delete, $user_problem1_v3, 'deleteUserProblem: delete another versioned user problem');
 
 # Ensure that the user_problems table is restored.
 my @all_user_problems_from_db = $user_problem_rs->getAllUserProblems();
@@ -177,6 +176,6 @@ for my $user_problem (@all_user_problems_from_db) {
 # For comparision make sure the loaded status are printed to 5 digits.
 $_->{status} += 0 for (@all_user_problems_from_db);
 
-is_deeply(\@user_problems_from_csv, \@all_user_problems_from_db, 'check: ensure that user_problems table is restored.');
+is(\@all_user_problems_from_db, \@user_problems_from_csv, 'check: ensure that user_problems table is restored.');
 
 done_testing;

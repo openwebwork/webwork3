@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
-#
+
 # This tests the basic database CRUD functions of user problems.
-#
+
 use warnings;
 use strict;
 
@@ -14,16 +14,12 @@ BEGIN {
 use lib "$main::ww3_dir/lib";
 use lib "$main::ww3_dir/t/lib";
 
-use Test::More;
-use Test::Exception;
-use Try::Tiny;
-use Carp;
+use Test2::V0;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
 
 use DB::Schema;
-use TestUtils qw/loadCSV removeIDs loadSchema/;
-use DB::Utils qw/updateAllFields/;
+use TestUtils qw/loadCSV removeIDs/;
 
 # Set up the database.
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
@@ -104,8 +100,7 @@ for my $user_problem (@all_user_problems_from_db) {
 # For comparision, from the database needs to be a number.
 $_->{status} = 0 + $_->{status} for (@all_user_problems_from_db);
 
-is_deeply(\@user_problems_from_csv, \@all_user_problems_from_db,
-	'getAllUserProblems: fetch all user problems from the DB.');
+is(\@all_user_problems_from_db, \@user_problems_from_csv, 'getAllUserProblems: fetch all user problems from the DB.');
 
 # Get merged user problems.
 
@@ -124,7 +119,7 @@ $_->{status} = 0 + $_->{status} for (@merged_problems_from_db);
 
 @merged_problems_from_db = sort user_prob_sort_fxn @merged_problems_from_db;
 
-is_deeply(\@merged_problems_from_csv, \@merged_problems_from_db, 'getAllUserProblems: fetch all merged problems');
+is(\@merged_problems_from_db, \@merged_problems_from_csv, 'getAllUserProblems: fetch all merged problems');
 
 # Get user problems from one course.
 
@@ -139,11 +134,8 @@ for my $user_problem (@precalc_user_problems_from_db) {
 
 @precalc_user_problems_from_db = sort user_prob_sort_fxn @precalc_user_problems_from_db;
 
-is_deeply(
-	\@precalc_user_problems,
-	\@precalc_user_problems_from_db,
-	'getUserProblems: get user problems from a single course.'
-);
+is(\@precalc_user_problems_from_db, \@precalc_user_problems,
+	'getUserProblems: get user problems from a single course.');
 
 # Get merged problems from one course.
 
@@ -161,11 +153,8 @@ for my $merged_problem (@precalc_merged_problems_from_db) {
 @precalc_merged_problems         = sort user_prob_sort_fxn @precalc_merged_problems;
 @precalc_merged_problems_from_db = sort user_prob_sort_fxn @precalc_merged_problems_from_db;
 
-is_deeply(
-	\@precalc_merged_problems,
-	\@precalc_merged_problems_from_db,
-	'getUserProblems: get merged problems from a single course.'
-);
+is(\@precalc_merged_problems_from_db,
+	\@precalc_merged_problems, 'getUserProblems: get merged problems from a single course.');
 
 # Get a single user problem.
 
@@ -192,63 +181,71 @@ my $user_problem_from_csv = clone(
 	)[0]
 );
 
-is_deeply($user_problem_from_csv, $user_problem, 'getUserProblem: get a single user problem');
+is($user_problem, $user_problem_from_csv, 'getUserProblem: get a single user problem');
 
 # Get a user problem from a course that doesn't exist.
-
-throws_ok {
-	$user_problem_rs->getUserProblem(
-		info => {
-			course_name    => 'course doesn\'t exist',
-			username       => 'homer',
-			set_name       => 'HW #1',
-			problem_number => 1
-		}
-	);
-}
-'DB::Exception::CourseNotFound', 'getUserProblem: attempt to get a user problem from a nonexistent course';
+is(
+	dies {
+		$user_problem_rs->getUserProblem(
+			info => {
+				course_name    => 'course doesn\'t exist',
+				username       => 'homer',
+				set_name       => 'HW #1',
+				problem_number => 1
+			}
+		);
+	},
+	check_isa('DB::Exception::CourseNotFound'),
+	'getUserProblem: attempt to get a user problem from a nonexistent course'
+);
 
 # Get a user problem from a user that doesn't exist.
-
-throws_ok {
-	$user_problem_rs->getUserProblem(
-		info => {
-			course_name    => 'Precalculus',
-			username       => 'non_existent_user',
-			set_name       => 'HW #1',
-			problem_number => 1
-		}
-	);
-}
-'DB::Exception::UserNotFound', 'getUserProblem: attempt to get a user problem from a nonexistent user';
+is(
+	dies {
+		$user_problem_rs->getUserProblem(
+			info => {
+				course_name    => 'Precalculus',
+				username       => 'non_existent_user',
+				set_name       => 'HW #1',
+				problem_number => 1
+			}
+		);
+	},
+	check_isa('DB::Exception::UserNotFound'),
+	'getUserProblem: attempt to get a user problem from a nonexistent user'
+);
 
 # Get a user problem from a set that doesn't exist.
-
-throws_ok {
-	$user_problem_rs->getUserProblem(
-		info => {
-			course_name    => 'Precalculus',
-			username       => 'homer',
-			set_name       => 'HW #99',
-			problem_number => 1
-		}
-	);
-}
-'DB::Exception::SetNotInCourse', 'getUserProblem: attempt to get a user problem from a nonexistent set';
+is(
+	dies {
+		$user_problem_rs->getUserProblem(
+			info => {
+				course_name    => 'Precalculus',
+				username       => 'homer',
+				set_name       => 'HW #99',
+				problem_number => 1
+			}
+		);
+	},
+	check_isa('DB::Exception::SetNotInCourse'),
+	'getUserProblem: attempt to get a user problem from a nonexistent set'
+);
 
 # Get a user problem from a problem that doesn't exist.
-
-throws_ok {
-	$user_problem_rs->getUserProblem(
-		info => {
-			course_name    => 'Precalculus',
-			username       => 'homer',
-			set_name       => 'HW #1',
-			problem_number => 99
-		}
-	);
-}
-'DB::Exception::SetProblemNotFound', 'getUserProblem: attempt to get a user problem from a nonexistent problem';
+is(
+	dies {
+		$user_problem_rs->getUserProblem(
+			info => {
+				course_name    => 'Precalculus',
+				username       => 'homer',
+				set_name       => 'HW #1',
+				problem_number => 99
+			}
+		);
+	},
+	check_isa('DB::Exception::SetProblemNotFound'),
+	'getUserProblem: attempt to get a user problem from a nonexistent problem'
+);
 
 # Add a UserProblem to the database.
 
@@ -270,7 +267,7 @@ $problem_info1->{status}          = 0;
 $problem_info1->{problem_params}  = {};
 $problem_info1->{problem_version} = 1;
 
-is_deeply($problem_info1, $user_problem1, 'addUserProblem: add a single user problem');
+is($user_problem1, $problem_info1, 'addUserProblem: add a single user problem');
 
 # Add a user problem and get back a merged problem.
 
@@ -310,173 +307,195 @@ for my $key (qw/username seed status problem_version/) {
 }
 $problem2->{problem_params}->{weight} = 2;
 
-is_deeply($problem2, $user_problem2, 'addUserProblem: add a user problem and return a merged problem');
+is($user_problem2, $problem2, 'addUserProblem: add a user problem and return a merged problem');
 
 # Attempt to add a UserProblem to a non-existent course.
-
-throws_ok {
-	$user_problem_rs->addUserProblem(
-		params => {
-			course_name    => 'course doesn\'t exist',
-			username       => 'homer',
-			set_name       => 'HW #1',
-			problem_number => 1
-		}
-	);
-}
-'DB::Exception::CourseNotFound', 'addUserProblem: attempt to add a user problem to a nonexistent course';
+is(
+	dies {
+		$user_problem_rs->addUserProblem(
+			params => {
+				course_name    => 'course doesn\'t exist',
+				username       => 'homer',
+				set_name       => 'HW #1',
+				problem_number => 1
+			}
+		);
+	},
+	check_isa('DB::Exception::CourseNotFound'),
+	'addUserProblem: attempt to add a user problem to a nonexistent course'
+);
 
 # Attempt to add a UserProblem for a non-existent problem set.
-
-throws_ok {
-	$user_problem_rs->addUserProblem(
-		params => {
-			course_name    => 'Precalculus',
-			username       => 'homer',
-			set_name       => 'HW #999',
-			problem_number => 1
-		}
-	);
-}
-'DB::Exception::SetNotInCourse', 'addUserProblem: attempt to add a user problem for a non-existent problem set';
+is(
+	dies {
+		$user_problem_rs->addUserProblem(
+			params => {
+				course_name    => 'Precalculus',
+				username       => 'homer',
+				set_name       => 'HW #999',
+				problem_number => 1
+			}
+		);
+	},
+	check_isa('DB::Exception::SetNotInCourse'),
+	'addUserProblem: attempt to add a user problem for a non-existent problem set'
+);
 
 # Attempt to add a UserProblem for a non-existent user.
-
-throws_ok {
-	$user_problem_rs->addUserProblem(
-		params => {
-			course_name    => 'Precalculus',
-			username       => 'non_existent_user',
-			set_name       => 'HW #1',
-			problem_number => 1
-		}
-	);
-}
-'DB::Exception::UserNotFound', 'addUserProblem: attempt to add a user problem for a non-existent user';
+is(
+	dies {
+		$user_problem_rs->addUserProblem(
+			params => {
+				course_name    => 'Precalculus',
+				username       => 'non_existent_user',
+				set_name       => 'HW #1',
+				problem_number => 1
+			}
+		);
+	},
+	check_isa('DB::Exception::UserNotFound'),
+	'addUserProblem: attempt to add a user problem for a non-existent user'
+);
 
 # Attempt to add a UserProblem for a non-existent problem.
-
-throws_ok {
-	$user_problem_rs->addUserProblem(
-		params => {
-			course_name    => 'Precalculus',
-			username       => 'homer',
-			set_name       => 'HW #1',
-			problem_number => 999
-		}
-	);
-}
-'DB::Exception::SetProblemNotFound', 'addUserProblem: attempt to add a user problem for a non-existent problem';
+is(
+	dies {
+		$user_problem_rs->addUserProblem(
+			params => {
+				course_name    => 'Precalculus',
+				username       => 'homer',
+				set_name       => 'HW #1',
+				problem_number => 999
+			}
+		);
+	},
+	check_isa('DB::Exception::SetProblemNotFound'),
+	'addUserProblem: attempt to add a user problem for a non-existent problem'
+);
 
 # Attempt to add a UserProblem that already exists
-
-throws_ok {
-	$user_problem_rs->addUserProblem(
-		params => {
-			course_name    => 'Precalculus',
-			username       => 'homer',
-			set_name       => 'HW #1',
-			problem_number => 1
-		}
-	);
-}
-'DB::Exception::UserProblemExists', 'addUserProblem: attempt to add a user problem that already exists';
+is(
+	dies {
+		$user_problem_rs->addUserProblem(
+			params => {
+				course_name    => 'Precalculus',
+				username       => 'homer',
+				set_name       => 'HW #1',
+				problem_number => 1
+			}
+		);
+	},
+	check_isa('DB::Exception::UserProblemExists'),
+	'addUserProblem: attempt to add a user problem that already exists'
+);
 
 # Try to add a UserProblem with a bad seed :) .
-
-throws_ok {
-	$user_problem_rs->addUserProblem(
-		params => {
-			course_name    => 'Precalculus',
-			set_name       => 'HW #4',
-			username       => 'ned',
-			problem_number => 3,
-			seed           => -1234
-		}
-	);
-}
-'DB::Exception::InvalidParameter', 'addUserProblem: attempt to add a user problem with a bad seed';
-
-# Attempt to add a new User Problem with a non existent field
-
-throws_ok {
-	$user_problem_rs->addUserProblem(
-		params => {
-			course_name        => 'Precalculus',
-			set_name           => 'HW #4',
-			username           => 'ned',
-			problem_number     => 3,
-			non_existent_field => 1
-		}
-	);
-}
-'DBIx::Class::Exception', 'addUserProblem: attempt to add a user problem with a non existent field';
+is(
+	dies {
+		$user_problem_rs->addUserProblem(
+			params => {
+				course_name    => 'Precalculus',
+				set_name       => 'HW #4',
+				username       => 'ned',
+				problem_number => 3,
+				seed           => -1234
+			}
+		);
+	},
+	check_isa('DB::Exception::InvalidParameter'),
+	'addUserProblem: attempt to add a user problem with a bad seed'
+);
 
 # Attempt to add a new User Problem with a non existent field
+is(
+	dies {
+		$user_problem_rs->addUserProblem(
+			params => {
+				course_name        => 'Precalculus',
+				set_name           => 'HW #4',
+				username           => 'ned',
+				problem_number     => 3,
+				non_existent_field => 1
+			}
+		);
+	},
+	check_isa('DBIx::Class::Exception'),
+	'addUserProblem: attempt to add a user problem with a non existent field'
+);
 
-throws_ok {
-	$user_problem_rs->addUserProblem(
-		params => {
-			course_name        => 'Precalculus',
-			set_name           => 'HW #4',
-			username           => 'ned',
-			problem_number     => 3,
-			non_existent_field => 1
-		}
-	);
-}
-qr/No such column 'non_existent_field'/, 'addUserProblem: attempt to add a user problem with a non existent field';
+# Attempt to add a new User Problem with a non existent field
+like(
+	dies {
+		$user_problem_rs->addUserProblem(
+			params => {
+				course_name        => 'Precalculus',
+				set_name           => 'HW #4',
+				username           => 'ned',
+				problem_number     => 3,
+				non_existent_field => 1
+			}
+		);
+	},
+	qr/No such column 'non_existent_field'/,
+	'addUserProblem: attempt to add a user problem with a non existent field'
+);
 
 # Attempt to add a new User Problem with invalid library id
-
-throws_ok {
-	$user_problem_rs->addUserProblem(
-		params => {
-			course_name    => 'Precalculus',
-			set_name       => 'HW #4',
-			username       => 'ned',
-			problem_number => 3,
-			problem_params => {
-				library_id => -1234
+like(
+	dies {
+		$user_problem_rs->addUserProblem(
+			params => {
+				course_name    => 'Precalculus',
+				set_name       => 'HW #4',
+				username       => 'ned',
+				problem_number => 3,
+				problem_params => {
+					library_id => -1234
+				}
 			}
-		}
-	);
-}
-qr/library_id is not valid/, 'addUserProblem: attempt to add a user problem with with invalid library id';
+		);
+	},
+	qr/library_id is not valid/,
+	'addUserProblem: attempt to add a user problem with with invalid library id'
+);
 
 # Attempt to add a new User Problem with a bad problem weight
-
-throws_ok {
-	$user_problem_rs->addUserProblem(
-		params => {
-			course_name    => 'Precalculus',
-			set_name       => 'HW #4',
-			username       => 'ned',
-			problem_number => 3,
-			problem_params => {
-				weight => -1
+like(
+	dies {
+		$user_problem_rs->addUserProblem(
+			params => {
+				course_name    => 'Precalculus',
+				set_name       => 'HW #4',
+				username       => 'ned',
+				problem_number => 3,
+				problem_params => {
+					weight => -1
+				}
 			}
-		}
-	);
-}
-qr/weight is not valid/, 'addUserProblem: attempt to add a user problem with a bad problem weight';
+		);
+	},
+	qr/weight is not valid/,
+	'addUserProblem: attempt to add a user problem with a bad problem weight'
+);
 
 # Attempt to add a new User Problem with a invalid problem_pool_id
-
-throws_ok {
-	$user_problem_rs->addUserProblem(
-		params => {
-			course_name    => 'Precalculus',
-			set_name       => 'HW #4',
-			username       => 'ned',
-			problem_number => 3,
-			problem_params => {
-				problem_pool_id => 'fred'
+like(
+	dies {
+		$user_problem_rs->addUserProblem(
+			params => {
+				course_name    => 'Precalculus',
+				set_name       => 'HW #4',
+				username       => 'ned',
+				problem_number => 3,
+				problem_params => {
+					problem_pool_id => 'fred'
+				}
 			}
-		}
-	);
-}
-qr/problem_pool_id is not valid/, 'addUserProblem: attempt to add a user problem with a bad problem_pool_id';
+		);
+	},
+	qr/problem_pool_id is not valid/,
+	'addUserProblem: attempt to add a user problem with a bad problem_pool_id'
+);
 
 # update a user problem and return as a user problem
 
@@ -493,7 +512,7 @@ $updated_problem1->{status} += 0;
 delete $updated_problem1->{problem_version} unless defined $updated_problem1->{problem_version};
 $user_problem1->{seed} = 4567;
 
-is_deeply($user_problem1, $updated_problem1, 'updateUserProblem: sucessfully update a field');
+is($updated_problem1, $user_problem1, 'updateUserProblem: sucessfully update a field');
 
 # Update a user problem and return as a merged problem.
 
@@ -508,7 +527,7 @@ removeIDs($updated_problem2);
 $problem2->{seed} = 4567;
 $updated_problem2->{status} += 0;
 
-is_deeply($problem2, $updated_problem2, 'updateUserProblem: sucessfully update a field and return as a merged problem');
+is($updated_problem2, $problem2, 'updateUserProblem: sucessfully update a field and return as a merged problem');
 
 # Update a user problem in the problem_params
 
@@ -525,176 +544,205 @@ $updated_problem1a->{status} += 0;
 
 delete $updated_problem1a->{problem_version} unless defined $updated_problem1a->{problem_version};
 $user_problem1->{problem_params}->{library_id} = 1234;
-is_deeply($user_problem1, $updated_problem1a, 'updateUserProblem: sucessfully update the problem_params');
+is($updated_problem1a, $user_problem1, 'updateUserProblem: sucessfully update the problem_params');
 
 # Attempt to update a UserProblem to a non-existent course.
 
-throws_ok {
-	$user_problem_rs->updateUserProblem(
-		info => {
-			course_name    => 'course doesn\'t exist',
-			username       => 'homer',
-			set_name       => 'HW #1',
-			problem_number => 1
-		},
-		params => {}
-	);
-}
-'DB::Exception::CourseNotFound', 'updateUserProblem: attempt to update a user problem to a nonexistent course';
+is(
+	dies {
+		$user_problem_rs->updateUserProblem(
+			info => {
+				course_name    => 'course doesn\'t exist',
+				username       => 'homer',
+				set_name       => 'HW #1',
+				problem_number => 1
+			},
+			params => {}
+		);
+	},
+	check_isa('DB::Exception::CourseNotFound'),
+	'updateUserProblem: attempt to update a user problem to a nonexistent course'
+);
 
 # Attempt to update a UserProblem for a non-existent problem set.
 
-throws_ok {
-	$user_problem_rs->updateUserProblem(
-		info => {
-			course_name    => 'Precalculus',
-			username       => 'homer',
-			set_name       => 'HW #999',
-			problem_number => 1
-		},
-		params => {}
-	);
-}
-'DB::Exception::SetNotInCourse', 'updateUserProblem: attempt to update a user problem for a non-existent problem set';
+is(
+	dies {
+		$user_problem_rs->updateUserProblem(
+			info => {
+				course_name    => 'Precalculus',
+				username       => 'homer',
+				set_name       => 'HW #999',
+				problem_number => 1
+			},
+			params => {}
+		);
+	},
+	check_isa('DB::Exception::SetNotInCourse'),
+	'updateUserProblem: attempt to update a user problem for a non-existent problem set'
+);
 
 # Attempt to add a UserProblem for a non-existent user.
 
-throws_ok {
-	$user_problem_rs->updateUserProblem(
-		info => {
-			course_name    => 'Precalculus',
-			username       => 'non_existent_user',
-			set_name       => 'HW #1',
-			problem_number => 1
-		},
-		params => {}
-	);
-}
-'DB::Exception::UserNotFound', 'updateUserProblem: attempt to update a user problem for a non-existent user';
+is(
+	dies {
+		$user_problem_rs->updateUserProblem(
+			info => {
+				course_name    => 'Precalculus',
+				username       => 'non_existent_user',
+				set_name       => 'HW #1',
+				problem_number => 1
+			},
+			params => {}
+		);
+	},
+	check_isa('DB::Exception::UserNotFound'),
+	'updateUserProblem: attempt to update a user problem for a non-existent user'
+);
 
 # Attempt to update a UserProblem for a non-existent problem.
 
-throws_ok {
-	$user_problem_rs->updateUserProblem(
-		info => {
-			course_name    => 'Precalculus',
-			username       => 'homer',
-			set_name       => 'HW #1',
-			problem_number => 999
-		},
-		params => {}
-	);
-}
-'DB::Exception::SetProblemNotFound', 'updateUserProblem: attempt to update a user problem for a non-existent problem';
+is(
+	dies {
+		$user_problem_rs->updateUserProblem(
+			info => {
+				course_name    => 'Precalculus',
+				username       => 'homer',
+				set_name       => 'HW #1',
+				problem_number => 999
+			},
+			params => {}
+		);
+	},
+	check_isa('DB::Exception::SetProblemNotFound'),
+	'updateUserProblem: attempt to update a user problem for a non-existent problem'
+);
 
 # Try to update a UserProblem with a bad seed :) .
 
-throws_ok {
-	$user_problem_rs->updateUserProblem(
-		info => {
-			course_name    => 'Precalculus',
-			set_name       => 'HW #4',
-			username       => 'ned',
-			problem_number => 2
-		},
-		params => {
-			seed => -1234
-		}
-	);
-}
-'DB::Exception::InvalidParameter', 'updateUserProblem: attempt to update a user problem with a bad seed';
+is(
+	dies {
+		$user_problem_rs->updateUserProblem(
+			info => {
+				course_name    => 'Precalculus',
+				set_name       => 'HW #4',
+				username       => 'ned',
+				problem_number => 2
+			},
+			params => {
+				seed => -1234
+			}
+		);
+	},
+	check_isa('DB::Exception::InvalidParameter'),
+	'updateUserProblem: attempt to update a user problem with a bad seed'
+);
 
 # Attempt to update a new User Problem with a non existent field
 
-throws_ok {
-	$user_problem_rs->updateUserProblem(
-		info => {
-			course_name    => 'Precalculus',
-			set_name       => 'HW #4',
-			username       => 'ned',
-			problem_number => 2
-		},
-		params => {
-			non_existent_field => 1
-		}
-	);
-}
-'DBIx::Class::Exception', 'updateUserProblem: attempt to update a user problem with a non existent field';
+is(
+	dies {
+		$user_problem_rs->updateUserProblem(
+			info => {
+				course_name    => 'Precalculus',
+				set_name       => 'HW #4',
+				username       => 'ned',
+				problem_number => 2
+			},
+			params => {
+				non_existent_field => 1
+			}
+		);
+	},
+	check_isa('DBIx::Class::Exception'),
+	'updateUserProblem: attempt to update a user problem with a non existent field'
+);
 
 # Attempt to update a new User Problem with a non existent field
 
-throws_ok {
-	$user_problem_rs->updateUserProblem(
-		info => {
-			course_name    => 'Precalculus',
-			set_name       => 'HW #4',
-			username       => 'ned',
-			problem_number => 2
-		},
-		params => {
-			non_existent_field => 1
-		}
-	);
-}
-qr/No such column 'non_existent_field'/,
-	'updateUserProblem: attempt to update a user problem with a non existent field';
+like(
+	dies {
+		$user_problem_rs->updateUserProblem(
+			info => {
+				course_name    => 'Precalculus',
+				set_name       => 'HW #4',
+				username       => 'ned',
+				problem_number => 2
+			},
+			params => {
+				non_existent_field => 1
+			}
+		);
+	},
+	qr/No such column 'non_existent_field'/,
+	'updateUserProblem: attempt to update a user problem with a non existent field'
+);
 
 # Attempt to update a new User Problem with invalid library id
 
-throws_ok {
-	$user_problem_rs->updateUserProblem(
-		info => {
-			course_name    => 'Precalculus',
-			set_name       => 'HW #4',
-			username       => 'ned',
-			problem_number => 2
-		},
-		params => {
-			problem_params => {
-				library_id => -1234
+like(
+	dies {
+		$user_problem_rs->updateUserProblem(
+			info => {
+				course_name    => 'Precalculus',
+				set_name       => 'HW #4',
+				username       => 'ned',
+				problem_number => 2
+			},
+			params => {
+				problem_params => {
+					library_id => -1234
+				}
 			}
-		}
-	);
-}
-qr/library_id is not valid/, 'updateUserProblem: attempt to update a user problem with with invalid library id';
+		);
+	},
+	qr/library_id is not valid/,
+	'updateUserProblem: attempt to update a user problem with with invalid library id'
+);
 
 # Attempt to update a new User Problem with a bad problem weight
 
-throws_ok {
-	$user_problem_rs->updateUserProblem(
-		info => {
-			course_name    => 'Precalculus',
-			set_name       => 'HW #4',
-			username       => 'ned',
-			problem_number => 2
-		},
-		params => {
-			problem_params => {
-				weight => -1
+like(
+	dies {
+		$user_problem_rs->updateUserProblem(
+			info => {
+				course_name    => 'Precalculus',
+				set_name       => 'HW #4',
+				username       => 'ned',
+				problem_number => 2
+			},
+			params => {
+				problem_params => {
+					weight => -1
+				}
 			}
-		}
-	);
-}
-qr/weight is not valid/, 'updateUserProblem: attempt to update a user problem with a bad problem weight';
+		);
+	},
+	qr/weight is not valid/,
+	'updateUserProblem: attempt to update a user problem with a bad problem weight'
+);
 
 # Attempt to add a new User Problem with a invalid problem_pool_id
 
-throws_ok {
-	$user_problem_rs->updateUserProblem(
-		info => {
-			course_name    => 'Precalculus',
-			set_name       => 'HW #4',
-			username       => 'ned',
-			problem_number => 2
-		},
-		params => {
-			problem_params => {
-				problem_pool_id => 'fred'
+like(
+	dies {
+		$user_problem_rs->updateUserProblem(
+			info => {
+				course_name    => 'Precalculus',
+				set_name       => 'HW #4',
+				username       => 'ned',
+				problem_number => 2
+			},
+			params => {
+				problem_params => {
+					problem_pool_id => 'fred'
+				}
 			}
-		}
-	);
-}
-qr/problem_pool_id is not valid/, 'updateUserProblem: attempt to update a user problem with a bad problem_pool_id';
+		);
+	},
+	qr/problem_pool_id is not valid/,
+	'updateUserProblem: attempt to update a user problem with a bad problem_pool_id'
+);
 
 # Get an array of user problems for a single user in a course.
 
@@ -712,8 +760,11 @@ for my $user_problem (@user_problems) {
 my @course_user_problems_from_csv =
 	grep { $_->{course_name} eq 'Precalculus' && $_->{username} eq 'homer' } @user_problems_from_csv;
 
-is_deeply(\@course_user_problems_from_csv,
-	\@user_problems, 'getCourseUserProblems: get all user problems for a single user in a course');
+is(
+	\@user_problems,
+	\@course_user_problems_from_csv,
+	'getCourseUserProblems: get all user problems for a single user in a course'
+);
 
 # Delete a User Problem
 
@@ -724,7 +775,7 @@ $user_problem_to_delete->{status} += 0;
 
 delete $user_problem_to_delete->{problem_version} unless defined $user_problem_to_delete->{problem_version};
 
-is_deeply($user_problem1, $user_problem_to_delete, 'deleteUserProblem: delete a single user problem');
+is($user_problem_to_delete, $user_problem1, 'deleteUserProblem: delete a single user problem');
 
 # Delete a user problem and return as a merged problem.
 
@@ -733,68 +784,79 @@ removeIDs($user_problem_to_delete2);
 # the status needs be returned to a numerical value.
 $user_problem_to_delete2->{status} += 0;
 
-is_deeply($problem2, $user_problem_to_delete2,
-	'updateUserProblem: sucessfully update a field and return as a merged problem');
+is($user_problem_to_delete2, $problem2, 'updateUserProblem: sucessfully update a field and return as a merged problem');
 
 # Attempt to delete a UserProblem to a non-existent course.
 
-throws_ok {
-	$user_problem_rs->deleteUserProblem(
-		info => {
-			course_name    => 'course doesn\'t exist',
-			username       => 'homer',
-			set_name       => 'HW #1',
-			problem_number => 1
-		},
-		params => {}
-	);
-}
-'DB::Exception::CourseNotFound', 'deleteUserProblem: attempt to delete a user problem to a nonexistent course';
+is(
+	dies {
+		$user_problem_rs->deleteUserProblem(
+			info => {
+				course_name    => 'course doesn\'t exist',
+				username       => 'homer',
+				set_name       => 'HW #1',
+				problem_number => 1
+			},
+			params => {}
+		);
+	},
+	check_isa('DB::Exception::CourseNotFound'),
+	'deleteUserProblem: attempt to delete a user problem to a nonexistent course'
+);
 
 # Attempt to delete a UserProblem for a non-existent problem set.
 
-throws_ok {
-	$user_problem_rs->deleteUserProblem(
-		info => {
-			course_name    => 'Precalculus',
-			username       => 'homer',
-			set_name       => 'HW #999',
-			problem_number => 1
-		},
-		params => {}
-	);
-}
-'DB::Exception::SetNotInCourse', 'deleteUserProblem: attempt to delete a user problem for a non-existent problem set';
+is(
+	dies {
+		$user_problem_rs->deleteUserProblem(
+			info => {
+				course_name    => 'Precalculus',
+				username       => 'homer',
+				set_name       => 'HW #999',
+				problem_number => 1
+			},
+			params => {}
+		);
+	},
+	check_isa('DB::Exception::SetNotInCourse'),
+	'deleteUserProblem: attempt to delete a user problem for a non-existent problem set'
+);
 
 # Attempt to delete a UserProblem for a non-existent user.
 
-throws_ok {
-	$user_problem_rs->deleteUserProblem(
-		info => {
-			course_name    => 'Precalculus',
-			username       => 'non_existent_user',
-			set_name       => 'HW #1',
-			problem_number => 1
-		},
-		params => {}
-	);
-}
-'DB::Exception::UserNotFound', 'deleteUserProblem: attempt to delete a user problem for a non-existent user';
+is(
+	dies {
+		$user_problem_rs->deleteUserProblem(
+			info => {
+				course_name    => 'Precalculus',
+				username       => 'non_existent_user',
+				set_name       => 'HW #1',
+				problem_number => 1
+			},
+			params => {}
+		);
+	},
+	check_isa('DB::Exception::UserNotFound'),
+	'deleteUserProblem: attempt to delete a user problem for a non-existent user'
+);
 
 # Attempt to delete a UserProblem for a non-existent problem.
 
-throws_ok {
-	$user_problem_rs->deleteUserProblem(
-		info => {
-			course_name    => 'Precalculus',
-			username       => 'homer',
-			set_name       => 'HW #1',
-			problem_number => 99
-		},
-		params => {}
-	);
-}
-'DB::Exception::SetProblemNotFound', 'deleteUserProblem: attempt to delete a user problem for a non-existent problem';
+is(
+	dies {
+		$user_problem_rs->deleteUserProblem(
+			info => {
+				course_name    => 'Precalculus',
+				username       => 'homer',
+				set_name       => 'HW #1',
+				problem_number => 99
+			},
+			params => {}
+		);
+	},
+	check_isa('DB::Exception::SetProblemNotFound'),
+	'deleteUserProblem: attempt to delete a user problem for a non-existent problem'
+);
 
 # Ensure that the user_problems table is restored.
 @all_user_problems_from_db = $user_problem_rs->getAllUserProblems();
@@ -806,7 +868,6 @@ for my $user_problem (@all_user_problems_from_db) {
 
 @all_user_problems_from_db = sort user_prob_sort_fxn @all_user_problems_from_db;
 
-is_deeply(\@user_problems_from_csv, \@all_user_problems_from_db,
-	'check: Ensure that the set_problems table is restored.');
+is(\@all_user_problems_from_db, \@user_problems_from_csv, 'check: Ensure that the set_problems table is restored.');
 
 done_testing;

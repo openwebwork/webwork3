@@ -2,8 +2,8 @@
 
 use Mojo::Base -strict;
 
-use Test::More;
-use Test::Mojo;
+use Test2::V0;
+use Test2::MojoX;
 use Mojo::JSON qw/true false/;
 
 BEGIN {
@@ -33,7 +33,7 @@ my $schema = DB::Schema->connect(
 	{ quote_names => 1 }
 );
 
-my $t = Test::Mojo->new(WeBWorK3 => $config);
+my $t = Test2::MojoX->new(WeBWorK3 => $config);
 
 # Test all of the user routes with an admin user.
 
@@ -66,12 +66,12 @@ $t->post_ok('/webwork3/api/users' => json => $new_user)->status_is(200)
 my $new_user_from_db = $t->tx->res->json;
 
 $new_user->{user_id} = $new_user_from_db->{user_id};
-is_deeply($new_user, $new_user_from_db, 'addUser: global user added.');
+is($new_user_from_db, $new_user, 'addUser: global user added.');
 
 # Update the user.
 $new_user->{email} = 'maggie@juno.com';
 $t->put_ok("/webwork3/api/users/$new_user->{user_id}" => json => $new_user)->status_is(200);
-is_deeply($new_user, $t->tx->res->json, 'updateUser: global user updated');
+is($t->tx->res->json, $new_user, 'updateUser: global user updated');
 
 # Add the user to the course.
 my $added_user_to_course = {
@@ -91,7 +91,7 @@ $t->get_ok('/webwork3/api/courses/1/users/lisa/exists')->status_is(200)
 $t->get_ok('/webwork3/api/courses/1/users/non_existent_user/exists')->status_is(200)
 	->content_type_is('application/json;charset=UTF-8');
 
-is_deeply($t->tx->res->json, {}, 'checkUserExists: check that a non-existent user returns {}');
+is($t->tx->res->json, {}, 'checkUserExists: check that a non-existent user returns {}');
 
 # Testing that booleans returned from the server are JSON booleans.
 # the first user is the admin

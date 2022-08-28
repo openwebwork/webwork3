@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
-#
+
 # This tests the basic database CRUD functions of attempts.
-#
+
 use warnings;
 use strict;
 
@@ -14,14 +14,11 @@ BEGIN {
 use lib "$main::ww3_dir/lib";
 use lib "$main::ww3_dir/t/lib";
 
-use Test::More;
-use Test::Exception;
-use Try::Tiny;
+use Test2::V0;
 use YAML::XS qw/LoadFile/;
 
 use DB::Schema;
-use TestUtils qw/loadCSV removeIDs loadSchema/;
-use DB::Utils qw/updateAllFields/;
+use TestUtils qw/removeIDs/;
 
 # Set up the database.
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
@@ -85,7 +82,7 @@ my $attempt_params1 = {
 my $attempt1 = $attempt_rs->addAttempt(params => { %$user_problem_info, %$attempt_params1 });
 removeIDs($attempt1);
 
-is_deeply($attempt_params1, $attempt1, 'addAttempt: add an attempt');
+is($attempt1, $attempt_params1, 'addAttempt: add an attempt');
 
 my $attempt_params2 = {
 	scores   => [ 0,    1,      1 ],
@@ -95,7 +92,7 @@ my $attempt_params2 = {
 
 my $attempt2 = $attempt_rs->addAttempt(params => { %$user_problem_info, %$attempt_params2 });
 removeIDs($attempt2);
-is_deeply($attempt_params2, $attempt2, 'addAttempt: add another attempt');
+is($attempt2, $attempt_params2, 'addAttempt: add another attempt');
 
 my $attempt_params3 = {
 	scores   => [ 0,     0,      0 ],
@@ -105,14 +102,17 @@ my $attempt_params3 = {
 
 my $attempt3 = $attempt_rs->addAttempt(params => { %$user_problem_info, %$attempt_params3 });
 removeIDs($attempt3);
-is_deeply($attempt_params3, $attempt3, 'addAttempt: add yet another attempt');
+is($attempt3, $attempt_params3, 'addAttempt: add yet another attempt');
 
 my @all_attempts = $attempt_rs->getAttempts(info => $user_problem_info);
 for my $attempt (@all_attempts) {
 	removeIDs($attempt);
 }
 
-is_deeply([ $attempt_params1, $attempt_params2, $attempt_params3 ],
-	\@all_attempts, "getAttempts: get attempts for a user problem;");
+is(
+	\@all_attempts,
+	[ $attempt_params1, $attempt_params2, $attempt_params3 ],
+	"getAttempts: get attempts for a user problem;"
+);
 
 done_testing;

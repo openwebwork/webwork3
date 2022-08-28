@@ -14,12 +14,10 @@ BEGIN {
 use lib "$main::ww3_dir/lib";
 use lib "$main::ww3_dir/t/lib";
 
-use Test::More;
-use Test::Exception;
+use Test2::V0;
 use Clone qw/clone/;
 
 use YAML qw/LoadFile/;
-use DateTime::Format::Strptime;
 use Mojo::JSON qw/true false/;
 
 use DB::Schema;
@@ -35,7 +33,6 @@ my $schema = DB::Schema->connect(
 	$config->{database_password},
 	{ quote_names => 1 }
 );
-my $strp = DateTime::Format::Strptime->new(pattern => '%F', on_error => 'croak');
 
 my $users_rs  = $schema->resultset('User');
 my $course_rs = $schema->resultset('Course');
@@ -74,36 +71,39 @@ for my $user (@users_from_db) {
 	cleanUndef($user);
 }
 @users_from_db = sort { $a->{username} cmp $b->{username} } @users_from_db;
-is_deeply(\@all_students, \@users_from_db, 'getUsers: all users');
+is(\@users_from_db, \@all_students, 'getUsers: all users');
 
 # Get a single user by username
 my $user = $users_rs->getGlobalUser(info => { username => $all_students[0]->{username} });
 removeIDs($user);
 cleanUndef($user);
-is_deeply($all_students[0], $user, 'getUser: by username');
+is($user, $all_students[0], 'getUser: by username');
 
 # Get a single user by user_id
 $user = $users_rs->getGlobalUser(info => { user_id => 2 });
 removeIDs($user);
 my @stud2 = grep { $_->{username} eq $user->{username} } @all_students;
-is_deeply($stud2[0], $user, 'getUser: by user_id');
+is($user, $stud2[0], 'getUser: by user_id');
 
 # Get one user that does not exist
-throws_ok {
-	$user = $users_rs->getGlobalUser(info => { user_id => -9 });
-}
-'DB::Exception::UserNotFound', 'getUser: undefined user_id';
+is(
+	dies { $user = $users_rs->getGlobalUser(info => { user_id => -9 }); },
+	check_isa('DB::Exception::UserNotFound'),
+	'getUser: undefined user_id'
+);
 
-throws_ok {
-	$user = $users_rs->getGlobalUser(info => { username => 'non_existent_user' });
-}
-'DB::Exception::UserNotFound', 'getUser: undefined username';
+is(
+	dies { $user = $users_rs->getGlobalUser(info => { username => 'non_existent_user' }); },
+	check_isa('DB::Exception::UserNotFound'),
+	'getUser: undefined username'
+);
 
 # getUsers: Test that not passing either a course_id or course_name results in an error.
-throws_ok {
-	$users_rs->getCourseUsers(info => { my_course => 'Precalculus' });
-}
-'DB::Exception::ParametersNeeded', 'getUsers: course_name or course_id not passed in';
+is(
+	dies { $users_rs->getCourseUsers(info => { my_course => 'Precalculus' }); },
+	check_isa('DB::Exception::ParametersNeeded'),
+	'getUsers: course_name or course_id not passed in'
+);
 
 # Add one user
 $user = {
@@ -117,7 +117,7 @@ $user = {
 
 my $new_user = $users_rs->addGlobalUser(params => $user);
 removeIDs($new_user);
-is_deeply($user, $new_user, 'addUser: adding a user');
+is($new_user, $user, 'addUser: adding a user');
 
 # Ensure that the default values are set
 my $patty_params = { username => 'patty' };
@@ -126,18 +126,14 @@ removeIDs($patty);
 cleanUndef($patty);
 # the only default for users is { is_admin: false }
 $patty_params->{is_admin} = false;
-is_deeply($patty, $patty_params, 'addUser: check the default values from db.');
+is($patty, $patty_params, 'addUser: check the default values from db.');
 
 # Try to add a user without passing username info
-throws_ok {
-	$users_rs->addGlobalUser(
-		params => {
-			username_name => 'selma',
-			email         => 'selma@google.com'
-		}
-	);
-}
-'DB::Exception::ParametersNeeded', 'addUser: wrong user_info sent';
+is(
+	dies { $users_rs->addGlobalUser(params => { username_name => 'selma', email => 'selma@google.com' }); },
+	check_isa('DB::Exception::ParametersNeeded'),
+	'addUser: wrong user_info sent'
+);
 
 # Check that adding an invalid field ignores that field.
 
@@ -153,18 +149,14 @@ cleanUndef($selma);
 # cleanup params for comparison: invalid_field dropped, is_admin matches default
 delete $selma_params->{invalid_field};
 $selma_params->{is_admin} = false;
-is_deeply($selma_params, $selma, 'addUser: pass in an invalid field');
+is($selma, $selma_params, 'addUser: pass in an invalid field');
 
 # Add a user with an invalid username
-throws_ok {
-	$users_rs->addGlobalUser(
-		params => {
-			username => 'my name is selma',
-			email    => 'selma@google.com'
-		}
-	);
-}
-'DB::Exception::InvalidParameter', 'addUser: bad username sent';
+is(
+	dies { $users_rs->addGlobalUser(params => { username => 'my name is selma', email => 'selma@google.com' }); },
+	check_isa('DB::Exception::InvalidParameter'),
+	'addUser: bad username sent'
+);
 
 # Check that using an email address for a username is valid:
 # Add one user
@@ -179,82 +171,81 @@ my $user2 = {
 
 my $added_user2 = $users_rs->addGlobalUser(params => $user2);
 removeIDs($added_user2);
-is_deeply($user2, $added_user2, 'addUser: check that using an email for a username is valid.');
+is($added_user2, $user2, 'addUser: check that using an email for a username is valid.');
 
 # Update a user
 my $updated_user = clone $user;
 $updated_user->{email} = 'spring.cop@gmail.com';
-my $up_user_from_db = $users_rs->updateGlobalUser(
+my $updated_user_from_db = $users_rs->updateGlobalUser(
 	info   => { username => $updated_user->{username} },
 	params => $updated_user
 );
-removeIDs($up_user_from_db);
-is_deeply($updated_user, $up_user_from_db, 'updateUser: updating a user');
+removeIDs($updated_user_from_db);
+is($updated_user_from_db, $updated_user, 'updateUser: updating a user');
 
 # Try to update a user without passing username info
-throws_ok {
-	$users_rs->updateGlobalUser(info => { username_name => 'wiggam' }, params => $updated_user);
-}
-'DB::Exception::ParametersNeeded', 'updateUser: wrong user_info sent';
+is(
+	dies { $users_rs->updateGlobalUser(info => { username_name => 'wiggam' }, params => $updated_user); },
+	check_isa('DB::Exception::ParametersNeeded'),
+	'updateUser: wrong user_info sent'
+);
 
 # Try to update a user that doesn't exist
-throws_ok {
-	$users_rs->updateGlobalUser(info => { username => 'non_existent_user' }, params => $updated_user);
-}
-'DB::Exception::UserNotFound', 'updateUser: update user for a non-existing username';
+is(
+	dies { $users_rs->updateGlobalUser(info => { username => 'non_existent_user' }, params => $updated_user); },
+	check_isa('DB::Exception::UserNotFound'),
+	'updateUser: update user for a non-existing username'
+);
 
-throws_ok {
-	$users_rs->updateGlobalUser(info => { user_id => -5 }, params => $updated_user);
-}
-'DB::Exception::UserNotFound', 'updateUser: update user for a non-existing user_id';
+is(
+	dies { $users_rs->updateGlobalUser(info => { user_id => -5 }, params => $updated_user); },
+	check_isa('DB::Exception::UserNotFound'),
+	'updateUser: update user for a non-existing user_id'
+);
 
 # Check that updated an invalid field throws an error
-throws_ok {
-	$users_rs->updateGlobalUser(
-		info => {
-			username => 'wiggam'
-		},
-		params => {
-			invalid_field => 1
-		}
-	)
-}
-qr/No such column 'invalid_field'/, 'updateUser: pass in an invalid field';
+like(
+	dies { $users_rs->updateGlobalUser(info => { username => 'wiggam' }, params => { invalid_field => 1 }) },
+	qr/No such column 'invalid_field'/,
+	'updateUser: pass in an invalid field'
+);
 
 # Delete users that were created
 my $user_to_delete = $users_rs->deleteGlobalUser(info => { username => $user->{username} });
 
 removeIDs($user_to_delete);
 cleanUndef($user_to_delete);
-is_deeply($updated_user, $user_to_delete, 'deleteUser: delete a user');
+is($user_to_delete, $updated_user, 'deleteUser: delete a user');
 
 my $deleted_selma = $users_rs->deleteGlobalUser(info => { username => 'selma' });
 removeIDs($deleted_selma);
 cleanUndef($deleted_selma);
-is_deeply($deleted_selma, $selma_params, 'deleteUser: deleter another user');
+is($deleted_selma, $selma_params, 'deleteUser: deleter another user');
 
 my $deleted_patty = $users_rs->deleteGlobalUser(info => { username => 'patty' });
 removeIDs($deleted_patty);
 cleanUndef($deleted_patty);
-is_deeply($deleted_patty, $patty_params, 'deleteUser: deleter a third user');
+is($deleted_patty, $patty_params, 'deleteUser: deleter a third user');
 
 my $user_to_delete2 = $users_rs->deleteGlobalUser(info => { username => $added_user2->{username} });
 removeIDs($user_to_delete2);
 cleanUndef($user_to_delete2);
-is_deeply($added_user2, $user_to_delete2, 'deleteUser: delete yet another user.');
+is($user_to_delete2, $added_user2, 'deleteUser: delete yet another user.');
 
 # Delete a user that doesn't exist.
-throws_ok {
-	$user = $users_rs->deleteGlobalUser(info => { username => 'undefined_username' });
-}
-'DB::Exception::UserNotFound', 'deleteUser: trying to delete with undefined username';
+is(
+	dies { $user = $users_rs->deleteGlobalUser(info => { username => 'undefined_username' }); },
+	check_isa('DB::Exception::UserNotFound'),
+	'deleteUser: trying to delete with undefined username'
+);
 
-throws_ok {
-	$user = $users_rs->deleteGlobalUser(info => { user_id => -3 });
-}
-'DB::Exception::UserNotFound', 'deleteUser: trying to delete with undefined user_id';
+is(
+	dies { $user = $users_rs->deleteGlobalUser(info => { user_id => -3 }); },
+	check_isa('DB::Exception::UserNotFound'),
+	'deleteUser: trying to delete with undefined user_id'
+);
 
-## get a list of courses for a user
+# get a list of courses for a user
 
 my @user_courses = $course_rs->getUserCourses(info => { username => 'lisa' });
 for my $user_course (@user_courses) {
@@ -288,14 +279,15 @@ for my $user_course (@user_courses_from_csv) {
 @user_courses_from_csv = sort { $a->{course_name} cmp $b->{course_name} } @user_courses_from_csv;
 @user_courses          = sort { $a->{course_name} cmp $b->{course_name} } @user_courses;
 
-is_deeply(\@user_courses, \@user_courses_from_csv, 'getUserCourses: get all courses for a given user');
+is(\@user_courses, \@user_courses_from_csv, 'getUserCourses: get all courses for a given user');
 
-## try to get a list of course from a non-existent user
+# try to get a list of course from a non-existent user
 
-throws_ok {
-	$course_rs->getUserCourses(info => { username => 'non_existent_user' });
-}
-'DB::Exception::UserNotFound', 'getUserCourses: try to get a list of courses for a non-existent user';
+is(
+	dies { $course_rs->getUserCourses(info => { username => 'non_existent_user' }); },
+	check_isa('DB::Exception::UserNotFound'),
+	'getUserCourses: try to get a list of courses for a non-existent user'
+);
 
 # Check that the users db table is returned to its original state.
 @users_from_db = $users_rs->getAllGlobalUsers;
@@ -304,7 +296,6 @@ for my $user (@users_from_db) {
 	cleanUndef($user);
 }
 @users_from_db = sort { $a->{username} cmp $b->{username} } @users_from_db;
-is_deeply(\@all_students, \@users_from_db,
-	'check: make sure that the users db table is returned to its original state');
+is(\@users_from_db, \@all_students, 'check: make sure that the users db table is returned to its original state');
 
 done_testing;
