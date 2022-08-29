@@ -42,6 +42,17 @@ sub getCourseSettings ($c) {
 	return;
 }
 
+sub getCourseSetting ($c) {
+	my $course_setting = $c->schema->resultset('Course')->getCourseSetting(
+		info => {
+			course_id  => int($c->param('course_id')),
+			setting_id => int($c->param('setting_id'))
+		}
+	);
+	$c->render(json => $course_setting);
+	return;
+}
+
 sub updateCourseSetting ($c) {
 	my $course_setting = $c->schema->resultset('Course')->updateCourseSetting(
 		info => {

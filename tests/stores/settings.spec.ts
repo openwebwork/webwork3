@@ -25,6 +25,7 @@ import { CourseSetting, DBCourseSetting, GlobalSetting, ParseableDBCourseSetting
 import { cleanIDs, loadCSV } from '../utils';
 import { humanReadableTimeDuration } from 'src/common/models/parsers';
 import { SessionInfo } from 'src/common/models/session';
+import { AxiosError } from 'axios';
 
 describe('Test the settings store', () => {
 
@@ -61,6 +62,7 @@ describe('Test the settings store', () => {
 
 		const settings_store = useSettingsStore();
 		await settings_store.fetchGlobalSettings();
+		await settings_store.fetchCourseSettings(4);
 
 	});
 
@@ -163,12 +165,24 @@ describe('Test the settings store', () => {
 	});
 
 	describe('Deleting a Course Setting', () => {
-		test('Update a setting', async () => {
+		test('Delete a setting', async () => {
 			const settings_store = useSettingsStore();
 			const setting = settings_store.getCourseSetting('course_description');
-			const deleted_setting = await settings_store.deleteCourseSetting(setting);
-			expect(deleted_setting.value).toBe('this is a new description');
+			await settings_store.deleteCourseSetting(setting);
 
+			// Make sure it is not in store or the database.
+			const course_setting = settings_store.db_course_settings
+				.find(s => s.course_setting_id === setting.course_setting_id);
+			expect(course_setting).toBeUndefined();
+			await api.get(`/courses/${setting.course_id}/settings/${setting.setting_id}`)
+				.then(() => {
+					fail('Expected failure response');
+				})
+				.catch((e: AxiosError) => {
+					expect(e.response?.status).toBe(500);
+					expect((e.response?.data as {exception: string}).exception)
+						.toBe('DB::Exception::SettingNotFound');
+				});
 		});
 	});
 

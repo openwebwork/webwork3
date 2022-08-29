@@ -53,7 +53,7 @@ C<subcategory>: the subcategory of the setting (may be null)
 
 __PACKAGE__->table('global_setting');
 
-__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
+__PACKAGE__->load_components(qw/InflateColumn::Serializer InflateColumn::JSONValue Core/);
 
 __PACKAGE__->add_columns(
 	setting_id => {
@@ -69,8 +69,7 @@ __PACKAGE__->add_columns(
 		data_type          => 'text',
 		default_value      => '{}',
 		retrieve_on_insert => 1,
-		serializer_class   => 'JSON',
-		serializer_options => { utf8 => 1 }
+		inflate_value      => 1,
 	},
 	description => {
 		data_type     => 'text',

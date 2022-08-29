@@ -163,9 +163,11 @@ db_permissions:
       allowed_roles: ['course_admin', 'instructor']
   Settings:
     getDefaultCourseSettings:
-      allowed_roles: ['*']
+      allowed_roles: ['course_admin', 'instructor','student']
     getCourseSettings:
-      allowed_roles: ['*']
+      allowed_roles: ['course_admin', 'instructor','student']
+    getCourseSetting:
+      allowed_roles: ['course_admin', 'instructor','student']
     updateCourseSetting:
       allowed_roles: ['course_admin', 'instructor']
     deleteCourseSetting:

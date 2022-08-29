@@ -33,7 +33,7 @@ C<value>: the value of the setting as a JSON so different types of data can be s
 
 __PACKAGE__->table('course_setting');
 
-__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
+__PACKAGE__->load_components(qw/InflateColumn::Serializer InflateColumn::JSONValue Core/);
 
 __PACKAGE__->add_columns(
 	course_setting_id => {
@@ -53,8 +53,8 @@ __PACKAGE__->add_columns(
 	value => {
 		data_type          => 'text',
 		default_value      => '{}',
-		serializer_class   => 'JSON',
-		serializer_options => { utf8 => 1 }
+		retrieve_on_insert => 1,
+		inflate_value      => 1,
 	},
 );
 

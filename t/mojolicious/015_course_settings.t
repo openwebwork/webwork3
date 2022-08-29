@@ -111,7 +111,7 @@ $t->put_ok(
 )->content_type_is('application/json;charset=UTF-8')->status_is(200)->json_is('/value' => 0.5);
 
 $t->delete_ok("/webwork3/api/courses/4/settings/$reduced_scoring->{setting_id}")
-	->content_type_is('application/json;charset=UTF-8')->status_is(200)->json_is('/value' => 0.5);
+	->content_type_is('application/json;charset=UTF-8')->status_is(200);
 
 # Check for valid and invalid timezones
 

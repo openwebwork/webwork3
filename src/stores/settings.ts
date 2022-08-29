@@ -98,7 +98,7 @@ export const useSettingsStore = defineStore('settings', {
 		/**
 		 * Deletes the course setting from both the store and sends a delete request to the database.
 		 */
-		async deleteCourseSetting(course_setting: CourseSetting): Promise<CourseSetting> {
+		async deleteCourseSetting(course_setting: CourseSetting): Promise<void> {
 			const session = useSessionStore();
 			const course_id = session.course.course_id;
 
@@ -106,10 +106,8 @@ export const useSettingsStore = defineStore('settings', {
 			if (i < 0) {
 				throw `The setting with name: '${course_setting.setting_name}' has not been defined for this course.`;
 			}
-			const response = await api.delete(`/courses/${course_id}/settings/${course_setting.setting_id}`);
+			await api.delete(`/courses/${course_id}/settings/${course_setting.setting_id}`);
 			this.db_course_settings.splice(i, 1);
-			const deleted_setting = new DBCourseSetting(response.data as ParseableDBCourseSetting);
-			return new CourseSetting(Object.assign(deleted_setting.toObject(), course_setting.toObject()));
 		},
 		/**
 		 * Used to clear out all of the settings.  Useful when logging out.

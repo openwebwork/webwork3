@@ -283,10 +283,6 @@ sub getGlobalSettings ($self, %args) {
 	my @settings = map {
 		{ $_->get_inflated_columns };
 	} @global_settings;
-	for my $setting (@settings) {
-		# The default_value is stored as a JSON and needs to be parsed.
-		$setting->{default_value} = $setting->{default_value}->{value};
-	}
 	return \@settings;
 }
 
@@ -323,7 +319,6 @@ sub getGlobalSetting ($self, %args) {
 		unless $global_setting;
 	return $global_setting if $args{as_result_set};
 	my $setting_to_return = { $global_setting->get_inflated_columns };
-	$setting_to_return->{default_value} = $setting_to_return->{default_value}->{value};
 	return $setting_to_return;
 }
 
@@ -356,20 +351,11 @@ sub getCourseSettings ($self, %args) {
 	my @settings_from_db = $course->course_settings;
 
 	return \@settings_from_db if $args{as_result_set};
-	my @settings_to_return = ($args{merged})
-		? map {
-			{ $_->get_inflated_columns, $_->global_setting->get_inflated_columns };
-		} @settings_from_db
-		: map {
-			{ $_->get_inflated_columns };
-		} @settings_from_db;
-
-	for my $setting (@settings_to_return) {
-		# value and default_value are decoded from JSON as a hash.  Return to a value.
-		for my $key (qw/default_value value/) {
-			$setting->{$key} = $setting->{$key}->{value} if defined($setting->{$key});
-		}
-	}
+	my @settings_to_return = map {
+		$args{merged}
+			? { $_->get_inflated_columns, $_->global_setting->get_inflated_columns }
+			: { $_->get_inflated_columns };
+	} @settings_from_db;
 	return \@settings_to_return;
 }
 
@@ -400,25 +386,31 @@ A single course setting as either a hashref or a C<DBIx::Class::ResultSet::Cours
 =cut
 
 sub getCourseSetting ($self, %args) {
-
 	my $global_setting = $self->getGlobalSetting(info => $args{info}, as_result_set => 1);
 	DB::Exception::SettingNotFound->throw(
-		message => "The setting with name: '" . $args{info}->{setting_name} . "' is not a defined info.")
+		message => "The global setting with name: '" . $args{info}->{setting_name} . "' is not a defined info.")
 		unless defined($global_setting);
 
 	my $course  = $self->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 	my $setting = $course->course_settings->find({ setting_id => $global_setting->setting_id });
+
+	DB::Exception::SettingNotFound->throw(
+		message => 'The course setting with '
+			. (
+				$args{info}->{setting_name} ? " name: '$args{info}->{setting_name}'"
+				: "setting_id of $args{info}->{setting_id} is not a found in the course "
+			)
+			. (
+				$args{info}->{course_name} ? ("with name '" . $args{info}->{course_name} . "'")
+				: "with course_id of $args{info}->{course_id}"
+			)
+	) unless defined($setting);
 
 	return $setting if $args{as_result_set};
 	my $setting_to_return =
 		$args{merged}
 		? { $setting->get_inflated_columns, $setting->global_setting->get_inflated_columns }
 		: { $setting->get_inflated_columns };
-
-	# value and default_value are decoded from JSON as a hash.  Return to a value.
-	for my $key (qw/default_value value/) {
-		$setting_to_return->{$key} = $setting_to_return->{$key}->{value} if defined($setting_to_return->{$key});
-	}
 	return $setting_to_return;
 }
 
@@ -451,44 +443,30 @@ A single course setting as either a hashref or a C<DBIx::Class::ResultSet::Cours
 =cut
 
 sub updateCourseSetting ($self, %args) {
-	my $course = $self->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
-
+	my $course         = $self->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 	my $global_setting = $self->getGlobalSetting(info => getSettingInfo($args{info}));
 
 	my $course_setting = $course->course_settings->find({
 		setting_id => $global_setting->{setting_id}
 	});
 
-	# Check that the setting is valid.
-
 	my $params = {
 		course_id  => $course->course_id,
 		setting_id => $global_setting->{setting_id},
-		value      => { value => $args{params}{value} }
+		value      => $args{params}{value}
 	};
 
-	# remove the following fields before checking for valid settings:
-	delete $global_setting->{$_} for (qw/setting_id course_id/);
+	isValidSetting($global_setting, $params->{value});
 
-	isValidSetting($global_setting, $params->{value}{value});
-
-	# The course_id must be deleted to ensure it is written to the database correctly.
-	delete $params->{course_id} if defined($params->{course_id});
-
-	my $updated_course_setting =
+	my $up_setting =
 		defined($course_setting) ? $course_setting->update($params) : $course->add_to_course_settings($params);
 
-	return $updated_course_setting if $args{as_result_set};
+	return $up_setting if $args{as_result_set};
 	my $setting_to_return =
 		($args{merged})
-		? { $updated_course_setting->get_inflated_columns,
-			$updated_course_setting->global_setting->get_inflated_columns }
-		: { $updated_course_setting->get_inflated_columns };
+		? { $up_setting->get_inflated_columns, $up_setting->global_setting->get_inflated_columns }
+		: { $up_setting->get_inflated_columns };
 
-	# value and default_value are decoded from JSON as a hash.  Return to a value.
-	for my $key (qw/default_value value/) {
-		$setting_to_return->{$key} = $setting_to_return->{$key}->{value} if defined($setting_to_return->{$key});
-	}
 	return $setting_to_return;
 }
 
@@ -516,21 +494,8 @@ A single course setting as either a hashref or a C<DBIx::Class::ResultSet::Cours
 =cut
 
 sub deleteCourseSetting ($self, %args) {
-	my $setting         = $self->getCourseSetting(info => $args{info}, as_result_set => 1);
-	my $deleted_setting = $setting->delete;
-
-	return $deleted_setting if $args{as_result_set};
-
-	my $setting_to_return =
-		($args{merged})
-		? { $deleted_setting->get_inflated_columns, $deleted_setting->global_setting->get_inflated_columns }
-		: { $deleted_setting->get_inflated_columns };
-
-	# value and default_value are decoded from JSON as a hash.  Return to a value.
-	for my $key (qw/default_value value/) {
-		$setting_to_return->{$key} = $setting_to_return->{$key}->{value} if defined($setting_to_return->{$key});
-	}
-	return $setting_to_return;
+	$self->getCourseSetting(info => $args{info}, as_result_set => 1)->delete;
+	return;
 }
 
 1;

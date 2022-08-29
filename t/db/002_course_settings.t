@@ -136,17 +136,17 @@ my $valid_setting = {
 };
 ok(isValidSetting($valid_setting), 'course setting: valid setting');
 
-# Check that the setting hash has only valid fields
-throws_ok {
+ok(
 	isValidSetting({
 		setting_name  => 'my_setting',
+		description   => 'the description',
 		doc3          => 'this is a setting',
 		type          => 'int',
 		category      => 'general',
 		default_value => 0
-	})
-}
-'DB::Exception::InvalidCourseField', 'course setting: course setting with illegal field';
+	}),
+	'course setting: course setting with invalid field is ignored.'
+);
 
 throws_ok {
 	isValidSetting({
@@ -156,7 +156,7 @@ throws_ok {
 		default_value => 0
 	})
 }
-'DB::Exception::InvalidCourseField', 'course setting: missing required field';
+'DB::Exception::RequiredCourseField', 'course setting: missing required field';
 
 throws_ok {
 	isValidSetting({
@@ -290,6 +290,12 @@ my $updated_setting = $course_rs->updateCourseSetting(
 	params => { value => 'This is my new course description' }
 );
 
+is(
+	'This is my new course description',
+	$updated_setting->{value},
+	'updateCourseSetting: successfully update a course setting'
+);
+
 # Check that updating a boolean is a JSON boolean
 
 my $boolean_setting = $course_rs->updateCourseSetting(
@@ -303,11 +309,18 @@ my $boolean_setting = $course_rs->updateCourseSetting(
 is($boolean_setting->{value}, true, 'updateCourseSetting: ensure that a value is truthy');
 ok(JSON::PP::is_bool($boolean_setting->{value}), 'updateCourseSetting: ensure that a value is a JSON boolean');
 
-is(
-	'This is my new course description',
-	$updated_setting->{value},
-	'updateCourseSetting: successfully update a course setting'
+# check that updating with an invalid field is ignored.
+
+my $setting_with_invalid_field = $course_rs->updateCourseSetting(
+	info => {
+		course_id    => $new_course->{course_id},
+		setting_name => 'enable_conditional_release'
+	},
+	params => { non_existent_field => 11, value => true }
 );
+
+is_deeply($setting_with_invalid_field, $boolean_setting,
+	'updateCourseSetting: ensure that passing an invalid setting field is ignored.');
 
 my $fetched_setting = $course_rs->getCourseSetting(
 	info => {
@@ -399,14 +412,18 @@ throws_ok {
 
 # Delete a course setting
 
-my $deleted_setting = $course_rs->deleteCourseSetting(
+$course_rs->deleteCourseSetting(
 	info => {
 		course_name  => 'New Course',
 		setting_name => 'course_description'
 	}
 );
 
-is_deeply($deleted_setting, $updated_setting, 'deleteCourseSetting: delete a course setting.');
+# Then check that the setting was deleted.
+throws_ok {
+	$course_rs->getCourseSetting(info => { course_name => 'New Course', setting_name => 'course_description' });
+}
+'DB::Exception::SettingNotFound', 'deleteCourseSetting: the setting was successfully deleted.';
 
 my $deleted_setting2 = $course_rs->deleteCourseSetting(
 	info => {
@@ -415,7 +432,10 @@ my $deleted_setting2 = $course_rs->deleteCourseSetting(
 	}
 );
 
-is_deeply($deleted_setting2, $boolean_setting, 'deleteCourseSetting: delete another course setting.');
+throws_ok {
+	$course_rs->getCourseSetting(info => { course_name => 'New Course', setting_name => 'enable_conditional_release' });
+}
+'DB::Exception::SettingNotFound', 'deleteCourseSetting: delete another course setting.';
 
 # Finally delete the course that was made
 $course_rs->deleteCourse(info => { course_id => $new_course->{course_id} });

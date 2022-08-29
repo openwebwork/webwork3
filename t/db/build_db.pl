@@ -97,9 +97,6 @@ sub addSettings {
 		if ($setting->{type} eq 'time_duration') {
 			$setting->{default_value} = convertTimeDuration($setting->{default_value});
 		}
-
-		# encode default_value as a JSON object.
-		$setting->{default_value} = { value => $setting->{default_value} };
 		$global_setting_rs->create($setting);
 	}
 
@@ -119,8 +116,7 @@ sub addSettings {
 		$course->add_to_course_settings({
 			course_id  => $course->course_id,
 			setting_id => $global_setting->setting_id,
-			# encode value as a JSON object.
-			value => { value => $setting->{setting_value} }
+			value      => $setting->{setting_value}
 		});
 	}
 	return;

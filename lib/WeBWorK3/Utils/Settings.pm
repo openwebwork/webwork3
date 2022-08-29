@@ -13,7 +13,7 @@ our @EXPORT_OK = qw/isValidSetting mergeCourseSettings isInteger isTimeString is
 
 use Exception::Class qw/
 	DB::Exception::UndefinedCourseField
-	DB::Exception::InvalidCourseField
+	DB::Exception::RequiredCourseField
 	DB::Exception::InvalidCourseFieldType
 	/;
 
@@ -45,8 +45,6 @@ This checks if the setting given the type, value and list of options (if needed)
 
 =over
 
-=item Ensure that all fields passed in are valid
-
 =item Ensure that all require fields are present
 
 =item Checks that the default value is appropriate for the type
@@ -61,18 +59,11 @@ sub isValidSetting ($setting, $value = undef) {
 
 	# If $value is not passed in, use the default_value for the setting
 	my $val = $value // $setting->{default_value};
-	# Check that each of the setting fields is allowed.
-	for my $field (keys %$setting) {
-		my @fields = grep { $_ eq $field } @allowed_fields;
-		DB::Exception::InvalidCourseField->throw(
-			message => "The field: $field is not an allowed field of the setting $setting->{setting_name}")
-			if scalar(@fields) == 0;
-	}
 
 	# Check that each of the required fields is present in the setting.
 	for my $field (@required_fields) {
 		my @fields = grep { $_ eq $field } (keys %$setting);
-		DB::Exception::InvalidCourseField->throw(
+		DB::Exception::RequiredCourseField->throw(
 			message => "The field: $field is a required field for the setting $setting->{setting_name}")
 			if scalar(@fields) == 0;
 	}

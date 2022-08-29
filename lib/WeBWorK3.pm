@@ -222,6 +222,7 @@ sub settingsRoutes ($app, $course_routes) {
 	$global_settings->get('/:setting_id')->to('Settings#getGlobalSetting');
 	$global_settings->post('/check-timezone')->to('Settings#checkTimeZone');
 	$course_routes->get('/settings')->to('Settings#getCourseSettings');
+	$course_routes->get('/settings/:setting_id')->to('Settings#getCourseSetting');
 	$course_routes->put('/settings/:setting_id')->to('Settings#updateCourseSetting');
 	$course_routes->delete('/settings/:setting_id')->to('Settings#deleteCourseSetting');
 	return;
