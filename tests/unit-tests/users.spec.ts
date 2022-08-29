@@ -96,7 +96,7 @@ describe('Testing User and CourseUsers', () => {
 	describe('Testing for valid and invalid users.', () => {
 
 		test('setting invalid email', () => {
-			const user = new User({ username: 'test' });
+			const user = new User({ username: 'test', user_id: 10, is_admin: true });
 			expect(user.isValid()).toBe(true);
 
 			user.email = 'bad@email@address.com';
@@ -104,7 +104,7 @@ describe('Testing User and CourseUsers', () => {
 		});
 
 		test('setting invalid user_id', () => {
-			const user = new User({ username: 'test' });
+			const user = new User({ username: 'test', user_id: 10, is_admin: true });
 			expect(user.isValid()).toBe(true);
 
 			user.user_id = -15;
@@ -112,7 +112,7 @@ describe('Testing User and CourseUsers', () => {
 		});
 
 		test('setting invalid username', () => {
-			const user = new User({ username: 'my username' });
+			const user = new User({ username: 'my username', user_id: 10, is_admin: true });
 			expect(user.isValid()).toBe(false);
 		});
 	});
