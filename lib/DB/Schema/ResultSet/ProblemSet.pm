@@ -509,19 +509,13 @@ if false, a hashrefs of ProblemSet.
 
 =head3 output
 
-An hashref of the deleted problem set or an object of type C<DBIx::Class::ResultSet::ProblemSet>
+Nothing (undef) is returned.
 
 =cut
 
 sub deleteProblemSet ($self, %args) {
-
-	my $set_to_delete = $self->getProblemSet(info => $args{info}, as_result_set => 1);
-	$set_to_delete->delete;
-
-	return $set_to_delete if $args{as_result_set};
-	my $set = { $set_to_delete->get_inflated_columns, set_type => $set_to_delete->set_type };
-	delete $set->{type};
-	return $set;
+	$self->getProblemSet(info => $args{info}, as_result_set => 1)->delete;
+	return;
 }
 
 # The following are private methods used in this module.

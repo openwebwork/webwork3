@@ -409,9 +409,13 @@ throws_ok {
 'DB::Exception::ImproperDateOrder', 'updateSet: adding an illegal date order.';
 
 # Delete a set
-my $deleted_set = $problem_set_rs->deleteProblemSet(info => { course_name => 'Precalculus', set_name => 'HW #88' });
-removeIDs($deleted_set);
-is_deeply($set_with_new_type_params, $deleted_set, 'deleteProblemSet: delete a set');
+$problem_set_rs->deleteProblemSet(info => { course_name => 'Precalculus', set_name => 'HW #88' });
+
+# And then check that it is no longer in the database.
+throws_ok {
+	$problem_set_rs->getProblemSet(info => { course_name => 'Precalculus', set_name => 'HW #88' });
+}
+'DB::Exception::SetNotInCourse', 'deleteProblemSet: delete a set';
 
 # Try deleting a set with invalid course_name
 throws_ok {

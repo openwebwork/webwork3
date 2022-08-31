@@ -157,7 +157,7 @@ if either the course or set doesn't exist, an exception will be thrown.
 
 =head3 output
 
-An array of Problems (as hashrefs) or an array of C<DBIx::Class::ResultSet::Problem>
+A problem (as a hashref) or an array of C<DBIx::Class::ResultSet::Problem>
 
 =cut
 
@@ -350,26 +350,13 @@ if either the course or set doesn't exist, an exception will be thrown.
 
 =head3 output
 
-A problem (as hashrefs) or an object of class C<DBIx::Class::ResultSet::Problem>
+Nothing (undef) is returned.
 
 =cut
 
 sub deleteSetProblem ($self, %args) {
-	my $set_problem = $self->getSetProblem(info => $args{info}, as_result_set => 1);
-	my $problem_set = $self->rs('ProblemSet')->getProblemSet(
-		info => {
-			course_id => $set_problem->problem_set->course_id,
-			set_id    => $set_problem->set_id
-		},
-		as_result_set => 1
-	);
-
-	my $problem = $problem_set->search_related('problems', getProblemInfo($args{info}))->single;
-
-	my $deleted_problem = $problem->delete;
-
-	return $deleted_problem if $args{as_result_set};
-	return { $deleted_problem->get_inflated_columns };
+	$self->getSetProblem(info => $args{info}, as_result_set => 1)->delete;
+	return;
 }
 
 # just a small subroutine to shorten access to the db.

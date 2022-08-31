@@ -408,18 +408,8 @@ delete a single UserSet for a given course, user, and ProblemSet
 =cut
 
 sub deleteUserSet ($self, %args) {
-	my $user_set = $self->getUserSet(info => $args{info}, as_result_set => 1);
-
-	DB::Exception::UserSetNotInCourse->throw(
-		set_name    => $args{info}->{set_name},
-		course_name => $args{info}->{course_name},
-		username    => $args{info}->{username}
-	) unless defined($user_set);
-
-	$user_set->delete;
-	# why are we returning anything from this call? success/failure instead?
-	return $user_set if $args{as_result_set};
-	return $args{merged} ? _mergeUserSet($user_set) : _getUserSet($user_set);
+	my $user_set = $self->getUserSet(info => $args{info}, as_result_set => 1)->delete;
+	return;
 }
 
 =head2 getUserSetVersions

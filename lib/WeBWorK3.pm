@@ -172,6 +172,7 @@ sub problemSetRoutes ($app, $course_routes) {
 	# CRUD for User Sets
 	$course_routes->get('/user-sets')->to('ProblemSet#getAllUserSets');
 	$course_routes->get('/sets/:set_id/users')->to('ProblemSet#getUserSets');
+	$course_routes->get('/sets/:set_id/users/:course_user_id')->to('ProblemSet#getUserSet');
 	$course_routes->post('/sets/:set_id/users')->to('ProblemSet#addUserSet');
 	$course_routes->put('/sets/:set_id/users/:course_user_id')->to('ProblemSet#updateUserSet');
 	$course_routes->delete('/sets/:set_id/users/:course_user_id')->to('ProblemSet#deleteUserSet');

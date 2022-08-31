@@ -88,12 +88,12 @@ sub getProblemPool ($self, %args) {
 
 	my $pool = $self->find($search_info, { join => [qw/courses/] });
 
-	unless ($pool) {
-		my $course_name = $course->course_name;
+	DB::Exception::PoolNotInCourse->throw(message => 'The pool with '
+			. ($args{info}{pool_name} ? ' name ' . $args{info}{pool_name} : 'id ' . $args{info}{problem_pool_id})
+			. 'is not in the course '
+			. $course->course_name)
+		unless $pool;
 
-		DB::Exception::PoolNotInCourse->throw(
-			message => "The pool with name \{$args{info}->{pool_name}} is not in the course $course_name");
-	}
 	return $pool if $args{as_result_set};
 	return { $pool->get_columns };
 }
@@ -101,6 +101,27 @@ sub getProblemPool ($self, %args) {
 =head2 addProblemPool
 
 Add a problem pool for a given course
+
+=head3 arguments
+
+=over
+
+=item * C<params> a hashref specifying information on the added problem pool
+One must include either the C<course_id> or C<course_name> and the C<pool_name>.
+If there is not enough info to get the course and pool, a C<ParametersNeeded> exception is thrown.
+
+
+=item * C<as_result_set>: boolean
+
+If C<as_result_set> is true, then the user sets are returned as a C<ResultSet>.
+See C<DBIx::Class::ResultSet> for more information
+
+=back
+
+=head3 output
+
+Either a hashref of the added problem pool or a C<DBIx::Class::ResultSet::ProblemPool>
+if C<as_result_set> is true.
 
 =cut
 
@@ -147,13 +168,32 @@ sub addProblemPool ($self, %args) {
 
 updates the parameters of an existing problem pool
 
+=head3 arguments
+
+=over
+
+=item * C<info> a hashref specifying information on the problem pool
+One must include either the C<course_id> or C<course_name> and either the C<pool_name>
+or C<problem_pool_id>.  If there is not enough info to get the course and pool, a
+C<ParametersNeeded> exception is thrown.
+
+=item * C<params>: a hashref containing the information to be updated.
+
+=item * C<as_result_set>: boolean
+
+If C<as_result_set> is true, then the user sets are returned as a C<ResultSet>.
+See C<DBIx::Class::ResultSet> for more information
+
+=back
+
+
 =cut
 
 sub updateProblemPool ($self, %args) {
 
 	my $pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
 
-	DB::Excpetion::PoolNotInCourse->throw(
+	DB::Exception::PoolNotInCourse->throw(
 		message => 'The problem pool '
 			. (
 				$args{info}->{pool_name}
@@ -173,21 +213,36 @@ sub updateProblemPool ($self, %args) {
 	return { $updated_pool->get_columns };
 }
 
-=head2 updateProblemPool
+=head2 deleteProblemPool
 
-updates the parameters of an existing problem pool
+delete a Problem Pool
+
+=head3 arguments
+
+=over
+
+=item * C<info> a hashref specifying information on the problem pool
+One must include either the C<course_id> or C<course_name> and either the C<pool_name>
+or C<problem_pool_id>.  If there is not enough info to get the course and pool, a
+C<ParametersNeeded> exception is thrown.
+
+
+=item * C<as_result_set>: boolean
+
+If C<as_result_set> is true, then the user sets are returned as a C<ResultSet>.
+See C<DBIx::Class::ResultSet> for more information
+
+=back
+
+=head3 output
+
+Nothing (undef) is returned.
 
 =cut
 
 sub deleteProblemPool ($self, %args) {
-	my $pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
-
-	DB::Exception::PoolNotInCourse->throws(error => 'The problem pool does not exist')
-		unless defined($pool);
-
-	my $deleted_pool = $pool->delete();
-
-	return $args{as_result_set} ? $deleted_pool : { $deleted_pool->get_columns };
+	$self->getProblemPool(info => $args{info}, as_result_set => 1)->delete;
+	return;
 }
 
 #####
@@ -257,7 +312,6 @@ This gets a single problem out of a ProblemPool.
 =cut
 
 sub getPoolProblem ($self, %args) {
-
 	my $problem_pool = $self->getProblemPool(info => $args{info}, as_result_set => 1);
 
 	my $pool_problem_info = {};
@@ -273,6 +327,13 @@ sub getPoolProblem ($self, %args) {
 
 	if (scalar(@pool_problems) == 1) {
 		return $args{as_result_set} ? $pool_problems[0] : { $pool_problems[0]->get_inflated_columns };
+	} elsif (scalar(@pool_problems) == 0) {
+		DB::Exception::PoolProblemNotInPool->throw(message => 'The problem with id '
+				. $pool_problem_info->{pool_problem_id}
+				. ' is not in the pool named \''
+				. $problem_pool->pool_name
+				. "'");
+		return;
 	} else {
 		# Pick a random problem.
 		my $prob = $pool_problems[ rand @pool_problems ];
@@ -374,12 +435,8 @@ remove a Problem out of a ProblemPool in a course
 =cut
 
 sub removePoolProblem ($self, %args) {
-	my $prob = $self->getPoolProblem(info => $args{info}, as_result_set => 1);
-	DB::Exception::PoolProblemNotInPool->throw(info => $args{info}) unless defined($prob);
-
-	my $prob2 = $prob->delete;
-	return $prob2 if $args{as_result_set};
-	return { $prob2->get_inflated_columns };
+	$self->getPoolProblem(info => $args{info}, as_result_set => 1)->delete;
+	return;
 }
 
 # just a small subroutine to shorten access to the db.

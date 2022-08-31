@@ -222,26 +222,20 @@ throws_ok {
 qr/No such column 'invalid_field'/, 'updateUser: pass in an invalid field';
 
 # Delete users that were created
-my $user_to_delete = $users_rs->deleteGlobalUser(info => { username => $user->{username} });
+$users_rs->deleteGlobalUser(info => { username => $user->{username} });
 
-removeIDs($user_to_delete);
-cleanUndef($user_to_delete);
-is_deeply($updated_user, $user_to_delete, 'deleteUser: delete a user');
+# and check they are no longer in the database:
+throws_ok {
+	$users_rs->getGlobalUser(info => { username => $user->{username} });
+}
+'DB::Exception::UserNotFound', 'deleteUser: delete a user';
 
-my $deleted_selma = $users_rs->deleteGlobalUser(info => { username => 'selma' });
-removeIDs($deleted_selma);
-cleanUndef($deleted_selma);
-is_deeply($deleted_selma, $selma_params, 'deleteUser: deleter another user');
+# Delete others and no need to check because a full check to see that the database
+# is restored is done below.
 
-my $deleted_patty = $users_rs->deleteGlobalUser(info => { username => 'patty' });
-removeIDs($deleted_patty);
-cleanUndef($deleted_patty);
-is_deeply($deleted_patty, $patty_params, 'deleteUser: deleter a third user');
-
-my $user_to_delete2 = $users_rs->deleteGlobalUser(info => { username => $added_user2->{username} });
-removeIDs($user_to_delete2);
-cleanUndef($user_to_delete2);
-is_deeply($added_user2, $user_to_delete2, 'deleteUser: delete yet another user.');
+$users_rs->deleteGlobalUser(info => { username => 'selma' });
+$users_rs->deleteGlobalUser(info => { username => 'patty' });
+$users_rs->deleteGlobalUser(info => { username => $added_user2->{username} });
 
 # Delete a user that doesn't exist.
 throws_ok {

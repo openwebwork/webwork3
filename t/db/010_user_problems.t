@@ -716,25 +716,20 @@ is_deeply(\@course_user_problems_from_csv,
 	\@user_problems, 'getCourseUserProblems: get all user problems for a single user in a course');
 
 # Delete a User Problem
+$user_problem_rs->deleteUserProblem(info => $problem_info1);
 
-my $user_problem_to_delete = $user_problem_rs->deleteUserProblem(info => $problem_info1);
-removeIDs($user_problem_to_delete);
-# the status needs be returned to a numerical value.
-$user_problem_to_delete->{status} += 0;
+# And check that it was successfully removed from the db.
+throws_ok {
+	$user_problem_rs->getUserProblem(info => $problem_info1);
+}
+'DB::Exception::UserProblemNotFound', 'deleteUserProblem: delete a single user problem';
 
-delete $user_problem_to_delete->{problem_version} unless defined $user_problem_to_delete->{problem_version};
-
-is_deeply($user_problem1, $user_problem_to_delete, 'deleteUserProblem: delete a single user problem');
-
-# Delete a user problem and return as a merged problem.
-
-my $user_problem_to_delete2 = $user_problem_rs->deleteUserProblem(info => $problem_info2, merged => 1);
-removeIDs($user_problem_to_delete2);
-# the status needs be returned to a numerical value.
-$user_problem_to_delete2->{status} += 0;
-
-is_deeply($problem2, $user_problem_to_delete2,
-	'updateUserProblem: sucessfully update a field and return as a merged problem');
+# Delete another user problem.
+$user_problem_rs->deleteUserProblem(info => $problem_info2);
+throws_ok {
+	$user_problem_rs->getUserProblem(info => $problem_info2);
+}
+'DB::Exception::UserProblemNotFound', 'deleteUserProblem: delete another user problem';
 
 # Attempt to delete a UserProblem to a non-existent course.
 

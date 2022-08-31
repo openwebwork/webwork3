@@ -137,8 +137,7 @@ is_deeply(
 	'getUserProblemVersions: get all versions of a user problem'
 );
 
-# clean up the created versioned user sets.
-
+# Clean up the created versioned user problems.
 my $user_problem_v2_to_delete = $user_problem_rs->deleteUserProblem(
 	info => {
 		course_name     => $user_problem1_v2_params->{course_name},
@@ -148,12 +147,22 @@ my $user_problem_v2_to_delete = $user_problem_rs->deleteUserProblem(
 		problem_version => $user_problem1_v2_params->{problem_version}
 	}
 );
-removeIDs($user_problem_v2_to_delete);
-$user_problem_v2_to_delete->{status} += 0;
 
-is_deeply($user_problem_v2_to_delete, $user_problem1_v2, 'deleteUserProblem: delete a versioned user problem');
+# Make sure that the user problem successfully was deleted.
+throws_ok {
+	$user_problem_rs->getUserProblem(
+		info => {
+			course_name     => $user_problem1_v2_params->{course_name},
+			set_name        => $user_problem1_v2_params->{set_name},
+			username        => $user_problem1_v2_params->{username},
+			problem_number  => $user_problem1_v2_params->{problem_number},
+			problem_version => $user_problem1_v2_params->{problem_version}
+		}
+	)
+}
+'DB::Exception::UserProblemNotFound', 'deleteUserProblem: delete a versioned user problem';
 
-my $user_problem_v3_to_delete = $user_problem_rs->deleteUserProblem(
+$user_problem_rs->deleteUserProblem(
 	info => {
 		course_name     => $user_problem1_v3_params->{course_name},
 		set_name        => $user_problem1_v3_params->{set_name},
@@ -162,10 +171,20 @@ my $user_problem_v3_to_delete = $user_problem_rs->deleteUserProblem(
 		problem_version => $user_problem1_v3_params->{problem_version}
 	}
 );
-removeIDs($user_problem_v3_to_delete);
-$user_problem_v3_to_delete->{status} += 0;
 
-is_deeply($user_problem_v3_to_delete, $user_problem1_v3, 'deleteUserProblem: delete another versioned user problem');
+# Make sure that the user problem successfully was deleted.
+throws_ok {
+	$user_problem_rs->getUserProblem(
+		info => {
+			course_name     => $user_problem1_v3_params->{course_name},
+			set_name        => $user_problem1_v3_params->{set_name},
+			username        => $user_problem1_v3_params->{username},
+			problem_number  => $user_problem1_v3_params->{problem_number},
+			problem_version => $user_problem1_v3_params->{problem_version}
+		}
+	)
+}
+'DB::Exception::UserProblemNotFound', 'deleteUserProblem: delete another versioned user problem';
 
 # Ensure that the user_problems table is restored.
 my @all_user_problems_from_db = $user_problem_rs->getAllUserProblems();

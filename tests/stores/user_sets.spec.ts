@@ -11,6 +11,7 @@
 import { createApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import type { AxiosError } from 'axios';
 import { api } from 'boot/axios';
 
 import { useCourseStore } from 'src/stores/courses';
@@ -172,14 +173,19 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 		test('Delete a User HW Set', async () => {
 			const problem_set_store = useProblemSetStore();
-			const user_set_to_delete = await problem_set_store.deleteUserSet(added_user_set);
-			if (user_set_to_delete) {
-				expect(cleanIDs(user_set_to_delete)).toStrictEqual(cleanIDs(added_user_set));
-			} else {
-				test('Object was undefined', done => {
-					done.fail(new Error('Object was undefined'));
+			await problem_set_store.deleteUserSet(added_user_set);
+
+			// Check that the homework set is no longer in the database by getting an exception.
+			await api.get(`/courses/${precalc_course.course_id}/sets/${added_user_set.set_id
+			}/users/${added_user_set.course_user_id}`)
+				.then(() => {
+					fail('Expected failure response');
+				})
+				.catch((e: AxiosError) => {
+					expect(e.response?.status).toBe(500);
+					expect((e.response?.data as {exception: string}).exception)
+						.toBe('DB::Exception::UserSetNotInCourse');
 				});
-			}
 		});
 	});
 
@@ -247,14 +253,19 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 
 		test('Delete a User Quiz', async () => {
 			const problem_set_store = useProblemSetStore();
-			const user_set_to_delete = await problem_set_store.deleteUserSet(user_set_to_update);
-			if (user_set_to_delete) {
-				expect(cleanIDs(user_set_to_delete)).toStrictEqual(cleanIDs(user_set_to_update));
-			} else {
-				test('Object was undefined', done => {
-					done.fail(new Error('Object was undefined'));
+			await problem_set_store.deleteUserSet(user_set_to_update);
+
+			// Check that the quiz is no longer in the database by getting an exception.
+			await api.get(`/courses/${precalc_course.course_id}/sets/${added_user_set.set_id
+			}/users/${added_user_set.course_user_id}`)
+				.then(() => {
+					fail('Expected failure response');
+				})
+				.catch((e: AxiosError) => {
+					expect(e.response?.status).toBe(500);
+					expect((e.response?.data as {exception: string}).exception)
+						.toBe('DB::Exception::UserSetNotInCourse');
 				});
-			}
 		});
 	});
 
@@ -296,15 +307,19 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		test('Delete a User Review Set', async () => {
 			const problem_set_store = useProblemSetStore();
 			const num_user_sets = problem_set_store.user_sets.length;
-			const user_set_to_delete = await problem_set_store.deleteUserSet(user_review_set_to_update);
+			await problem_set_store.deleteUserSet(user_review_set_to_update);
 
-			if (user_set_to_delete) {
-				expect(cleanIDs(user_set_to_delete)).toStrictEqual(cleanIDs(user_review_set_to_update));
-			} else {
-				test('Object was undefined', done => {
-					done.fail(new Error('Object was undefined'));
+			// Check that the quiz is no longer in the database by getting an exception.
+			await api.get(`/courses/${precalc_course.course_id}/sets/${user_review_set_to_update.set_id
+			}/users/${user_review_set_to_update.course_user_id}`)
+				.then(() => {
+					fail('Expected failure response');
+				})
+				.catch((e: AxiosError) => {
+					expect(e.response?.status).toBe(500);
+					expect((e.response?.data as {exception: string}).exception)
+						.toBe('DB::Exception::UserSetNotInCourse');
 				});
-			}
 
 			expect(problem_set_store.user_sets).toHaveLength(num_user_sets - 1);
 		});

@@ -77,15 +77,15 @@ export const useCourseStore = defineStore('courses', {
 		/**
 		 * This deletes the course in the database and the store.
 		 */
-		async deleteCourse(course: Course): Promise<Course | undefined> {
-			const response = await api.delete(`courses/${course.course_id}`);
-			if (response.status === 200) {
-				const deleted_course = new Course(response.data as ParseableCourse);
-				const index = this.courses.findIndex(course => course.course_id === deleted_course.course_id);
-				this.courses.splice(index, 1);
-				return deleted_course;
-			} else {
-				throw response.data as ResponseError;
+		async deleteCourse(course: Course): Promise<void> {
+			const index = this.courses.findIndex(c => c.course_id === course.course_id);
+			if (index >= 0) {
+				const response = await api.delete(`courses/${course.course_id}`);
+				if (response.status === 200) {
+					this.courses.splice(index, 1);
+				} else {
+					throw response.data as ResponseError;
+				}
 			}
 		}
 	}

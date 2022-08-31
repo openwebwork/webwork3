@@ -295,10 +295,13 @@ throws_ok {
 'DB::Exception::PoolProblemNotInPool', 'updatePoolProblem: try to update a nonexisting problem';
 
 # Delete a problem pool
-my $pool_to_delete = $problem_pool_rs->deleteProblemPool(info => $updated_pool);
-removeIDs($pool_to_delete);
-$pool_to_delete->{course_name} = 'Arithmetic';
-is_deeply($updated_pool, $pool_to_delete, 'deleteProblemPool: delete an existing problem pool');
+$problem_pool_rs->deleteProblemPool(info => $updated_pool);
+
+# And check that it was successfully removed from the database
+throws_ok {
+	$problem_pool_rs->getProblemPool(info => $updated_pool);
+}
+'DB::Exception::PoolNotInCourse', 'deleteProblemPool: delete an existing problem pool';
 
 # Ensure that the problem_pool table is restored.
 @problem_pools_from_db = $problem_pool_rs->getAllProblemPools();

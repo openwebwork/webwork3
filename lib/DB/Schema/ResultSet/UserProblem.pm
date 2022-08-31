@@ -490,27 +490,8 @@ or a C<DBIx::Class::ResultSet::UserProblem>
 =cut
 
 sub deleteUserProblem ($self, %args) {
-	my $user_problem =
-		$args{info}->{user_problem_id}
-		? $self->find({ user_problem_id => $args{info}->{user_problem_id} })
-		: $self->getUserProblem(
-			info          => $args{info},
-			skip_throw    => 1,
-			as_result_set => 1
-		);
-
-	DB::Exception::UserProblemNotFound->throw(message => 'The user '
-			. getUserInfo($args{info})->{username} // getUserInfo($args{info})->{user_id}
-			. ' already has problem number '
-			. getProblemInfo($args{info})->{problem_number}
-			// ("(set_problem_id): " . getProblemInfo($args{info})->{set_problem_id})
-			. ' in set with name'
-			. getSetInfo($args{info})->{set_name} // ("(set_id): " . getSetInfo($args{info})->{set_id}))
-		unless $user_problem;
-
-	my $user_problem_to_delete = $user_problem->delete;
-	return $user_problem_to_delete if $args{as_result_set};
-	return $args{merged} ? _mergeUserProblem($user_problem_to_delete) : _getUserProblem($user_problem_to_delete);
+	$self->getUserProblem(info => $args{info}, as_result_set => 1)->delete;
+	return;
 }
 
 =head2 getUserProblemVersions

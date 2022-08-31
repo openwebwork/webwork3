@@ -328,41 +328,39 @@ throws_ok {
 }
 'DB::Exception::InvalidParameter', 'updateCourseUser: an parameter with invalid value';
 
-# Delete a single user from a course.
-my $deleted_user;
-my $dont_delete_users;    # Switch to not delete added users.
+# Delete a course user
+$user_rs->deleteCourseUser(info => { course_name => 'Arithmetic', username => 'quimby' });
 
-SKIP: {
-	skip 'delete added users', 5 if $dont_delete_users;
-
-	my $deleted_course_user = $user_rs->deleteCourseUser(info => { course_name => 'Arithmetic', username => 'quimby' });
-	removeIDs($deleted_course_user);
-
-	is_deeply($course_user_params, $deleted_course_user, 'deleteCourseUser: delete a user from a course');
-
-	$deleted_user = $user_rs->deleteGlobalUser(info => { username => 'quimby' });
-	removeIDs($deleted_user);
-
-	is_deeply($user_params, $deleted_user, 'deleteGlobalUser: delete a user');
-
-	# deleteUser: Check that if the course doesn't exist, an error is thrown:
-	throws_ok {
-		$user_rs->deleteCourseUser(info => { course_name => 'unknown_course', username => 'barney' });
-	}
-	'DB::Exception::CourseNotFound', "deleteUser: the course doesn't exist";
-
-	# deleteUser: Check that if the course exists, but the user not a member.
-	throws_ok {
-		$user_rs->deleteCourseUser(info => { course_name => 'Arithmetic', username => 'marge' });
-	}
-	'DB::Exception::UserNotInCourse', 'deleteUser: the user is not a member of the course';
-
-	# deleteUser: Send in username_name instead of username
-	throws_ok {
-		$user_rs->deleteCourseUser(info => { course_name => 'Arithmetic', username_name => 'bart' });
-	}
-	'DB::Exception::ParametersNeeded', 'deleteUser: the incorrect information is passed in.';
+# and check to ensure quimby was deleted.
+throws_ok {
+	$user_rs->getCourseUser(info => { course_name => 'Arithmetic', username => 'quimby' });
 }
+'DB::Exception::UserNotInCourse', 'deleteCourseUser: delete a user from a course';
+
+$user_rs->deleteGlobalUser(info => { username => 'quimby' });
+
+throws_ok {
+	$user_rs->getGlobalUser(info => { username => 'quimby' });
+}
+'DB::Exception::UserNotFound', 'deleteGlobalUser: delete a user';
+
+# deleteUser: Check that if the course doesn't exist, an error is thrown:
+throws_ok {
+	$user_rs->deleteCourseUser(info => { course_name => 'unknown_course', username => 'barney' });
+}
+'DB::Exception::CourseNotFound', "deleteUser: the course doesn't exist";
+
+# deleteUser: Check that if the course exists, but the user not a member.
+throws_ok {
+	$user_rs->deleteCourseUser(info => { course_name => 'Arithmetic', username => 'marge' });
+}
+'DB::Exception::UserNotInCourse', 'deleteUser: the user is not a member of the course';
+
+# deleteUser: Send in username_name instead of username
+throws_ok {
+	$user_rs->deleteCourseUser(info => { course_name => 'Arithmetic', username_name => 'bart' });
+}
+'DB::Exception::ParametersNeeded', 'deleteUser: the incorrect information is passed in.';
 
 # Check that the precalc users have not changed.
 @precalc_users_from_db = $user_rs->getCourseUsers(info => { course_name => 'Precalculus' }, merged => 1);
