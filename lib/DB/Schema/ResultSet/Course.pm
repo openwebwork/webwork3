@@ -296,7 +296,7 @@ This gets a single global/default setting.
 
 =over
 
-=item * C<info> which is a hash of either a C<setting_id> or C<setting_name> with information
+=item * C<info> which is a hash of either a C<global_setting_id> or C<setting_name> with information
 on the setting.
 
 =item * C<$as_result_set>, a boolean if the return is to be a result_set
@@ -315,11 +315,10 @@ sub getGlobalSetting ($self, %args) {
 
 	DB::Exception::SettingNotFound->throw(message => $setting_info->{setting_name}
 		? "The setting with name $setting_info->{setting_name} is not found"
-		: "The setting with setting_id $setting_info->{setting_id} is not found")
+		: "The setting with global_setting_id $setting_info->{global_setting_id} is not found")
 		unless $global_setting;
 	return $global_setting if $args{as_result_set};
-	my $setting_to_return = { $global_setting->get_inflated_columns };
-	return $setting_to_return;
+	return { $global_setting->get_inflated_columns };
 }
 
 =head2 getCourseSettings
@@ -351,12 +350,9 @@ sub getCourseSettings ($self, %args) {
 	my @settings_from_db = $course->course_settings;
 
 	return \@settings_from_db if $args{as_result_set};
-	my @settings_to_return = map {
-		$args{merged}
-			? { $_->get_inflated_columns, $_->global_setting->get_inflated_columns }
-			: { $_->get_inflated_columns };
-	} @settings_from_db;
-	return \@settings_to_return;
+	return $args{merged}
+		? [ map { { $_->get_inflated_columns, $_->global_setting->get_inflated_columns } } @settings_from_db ]
+		: [ map { { $_->get_inflated_columns } } @settings_from_db ];
 }
 
 =pod
@@ -369,7 +365,7 @@ This gets a single course setting.
 
 =over
 
-=item * C<info> which is a hash of either a C<setting_id> or C<setting_name> with information
+=item * C<info> which is a hash of either a C<global_setting_id> or C<setting_name> with information
 on the setting.
 
 =item * C<merged>, a boolean on whether the course setting is merged with its corresponding
@@ -388,30 +384,28 @@ A single course setting as either a hashref or a C<DBIx::Class::ResultSet::Cours
 sub getCourseSetting ($self, %args) {
 	my $global_setting = $self->getGlobalSetting(info => $args{info}, as_result_set => 1);
 	DB::Exception::SettingNotFound->throw(
-		message => "The global setting with name: '" . $args{info}->{setting_name} . "' is not a defined info.")
+		message => "The global setting with name: '" . $args{info}{setting_name} . "' is not defined.")
 		unless defined($global_setting);
 
 	my $course  = $self->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
-	my $setting = $course->course_settings->find({ setting_id => $global_setting->setting_id });
+	my $setting = $course->course_settings->find({ global_setting_id => $global_setting->global_setting_id });
 
 	DB::Exception::SettingNotFound->throw(
 		message => 'The course setting with '
 			. (
-				$args{info}->{setting_name} ? " name: '$args{info}->{setting_name}'"
-				: "setting_id of $args{info}->{setting_id} is not a found in the course "
+				$args{info}{setting_name} ? " name: '$args{info}{setting_name}'"
+				: "global_setting_id of $args{info}{global_setting_id} is not found in the course "
 			)
 			. (
-				$args{info}->{course_name} ? ("with name '" . $args{info}->{course_name} . "'")
-				: "with course_id of $args{info}->{course_id}"
+				$args{info}{course_name} ? ("with name '" . $args{info}{course_name} . "'")
+				: "with course_id of $args{info}{course_id}"
 			)
 	) unless defined($setting);
 
 	return $setting if $args{as_result_set};
-	my $setting_to_return =
-		$args{merged}
+	return $args{merged}
 		? { $setting->get_inflated_columns, $setting->global_setting->get_inflated_columns }
 		: { $setting->get_inflated_columns };
-	return $setting_to_return;
 }
 
 =pod
@@ -425,7 +419,7 @@ Update a single course setting.
 =over
 
 =item * C<info> which is a hash containing information about the course (either a
-C<course_id> or C<course_name>) and a setting (either a C<setting_id> or C<setting_name>).
+C<course_id> or C<course_name>) and a setting (either a C<global_setting_id> or C<setting_name>).
 
 =item * C<params> the updated value of the course setting.
 
@@ -446,14 +440,12 @@ sub updateCourseSetting ($self, %args) {
 	my $course         = $self->getCourse(info => getCourseInfo($args{info}), as_result_set => 1);
 	my $global_setting = $self->getGlobalSetting(info => getSettingInfo($args{info}));
 
-	my $course_setting = $course->course_settings->find({
-		setting_id => $global_setting->{setting_id}
-	});
+	my $course_setting = $course->course_settings->find({ global_setting_id => $global_setting->{global_setting_id} });
 
 	my $params = {
-		course_id  => $course->course_id,
-		setting_id => $global_setting->{setting_id},
-		value      => $args{params}{value}
+		course_id         => $course->course_id,
+		global_setting_id => $global_setting->{global_setting_id},
+		value             => $args{params}{value} =~ /^$/ ? undef : $args{params}{value}
 	};
 
 	isValidSetting($global_setting, $params->{value});
@@ -462,12 +454,9 @@ sub updateCourseSetting ($self, %args) {
 		defined($course_setting) ? $course_setting->update($params) : $course->add_to_course_settings($params);
 
 	return $up_setting if $args{as_result_set};
-	my $setting_to_return =
-		($args{merged})
+	return ($args{merged})
 		? { $up_setting->get_inflated_columns, $up_setting->global_setting->get_inflated_columns }
 		: { $up_setting->get_inflated_columns };
-
-	return $setting_to_return;
 }
 
 =pod
@@ -481,7 +470,7 @@ Delete a single course setting.
 =over
 
 =item * C<info> which is a hash containing information about the course (either a
-C<course_id> or C<course_name>) and a setting (either a C<setting_id> or C<setting_name>).
+C<course_id> or C<course_name>) and a setting (either a C<global_setting_id> or C<setting_name>).
 
 =item * C<$as_result_set>, a boolean if the return is to be a result_set
 

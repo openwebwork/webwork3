@@ -13,7 +13,7 @@ This is the database schema for the Global Course Settings.
 
 =item *
 
-C<setting_id>: database id (autoincrement integer)
+C<global_setting_id>: database id (autoincrement integer)
 
 =item *
 
@@ -53,10 +53,10 @@ C<subcategory>: the subcategory of the setting (may be null)
 
 __PACKAGE__->table('global_setting');
 
-__PACKAGE__->load_components(qw/InflateColumn::Serializer InflateColumn::JSONValue Core/);
+__PACKAGE__->load_components(qw/InflateColumn::Serializer FilterColumn Core/);
 
 __PACKAGE__->add_columns(
-	setting_id => {
+	global_setting_id => {
 		data_type         => 'integer',
 		size              => 16,
 		is_auto_increment => 1,
@@ -66,10 +66,8 @@ __PACKAGE__->add_columns(
 		size      => 256,
 	},
 	default_value => {
-		data_type          => 'text',
-		default_value      => '{}',
-		retrieve_on_insert => 1,
-		inflate_value      => 1,
+		data_type     => 'text',
+		default_value => '""'
 	},
 	description => {
 		data_type     => 'text',
@@ -87,7 +85,6 @@ __PACKAGE__->add_columns(
 	options => {
 		data_type          => 'text',
 		is_nullable        => 1,
-		retrieve_on_insert => 1,
 		serializer_class   => 'JSON',
 		serializer_options => { utf8 => 1 }
 	},
@@ -102,9 +99,20 @@ __PACKAGE__->add_columns(
 		is_nullable => 1
 	}
 );
+use Data::Dumper;
+__PACKAGE__->filter_column(
+	default_value => {
+		filter_to_storage => sub {
+			return JSON::MaybeXS->new({ utf8 => 1, allow_nonref => 1 })->encode($_[1] // '');
+		},
+		filter_from_storage => sub {
+			return JSON::MaybeXS->new({ utf8 => 1, allow_nonref => 1 })->decode($_[1] // '');
+		}
+	}
+);
 
-__PACKAGE__->set_primary_key('setting_id');
+__PACKAGE__->set_primary_key('global_setting_id');
 
-__PACKAGE__->has_many(course_settings => 'DB::Schema::Result::CourseSetting', 'setting_id');
+__PACKAGE__->has_many(course_settings => 'DB::Schema::Result::CourseSetting', 'global_setting_id');
 
 1;

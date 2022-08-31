@@ -6,7 +6,7 @@ import { convertTimeDuration, humanReadableTimeDuration } from 'src/common/model
 
 describe('Testing Course Settings', () => {
 	const global_setting = {
-		setting_id: 0,
+		global_setting_id: 0,
 		setting_name: '',
 		default_value: '',
 		category: '',
@@ -24,7 +24,7 @@ describe('Testing Course Settings', () => {
 
 		test('Create a new GlobalSetting', () => {
 			const global_setting = new GlobalSetting({
-				setting_id: 10,
+				global_setting_id: 10,
 				setting_name: 'description',
 				default_value: 'This is the description',
 				description: 'Describe this.',
@@ -33,7 +33,7 @@ describe('Testing Course Settings', () => {
 				category: 'general'
 			});
 
-			expect(global_setting.setting_id).toBe(10);
+			expect(global_setting.global_setting_id).toBe(10);
 			expect(global_setting.setting_name).toBe('description');
 			expect(global_setting.default_value).toBe('This is the description');
 			expect(global_setting.description).toBe('Describe this.');
@@ -43,7 +43,7 @@ describe('Testing Course Settings', () => {
 		});
 
 		test('Check that calling all_fields() and params() is correct', () => {
-			const settings_fields = ['setting_id', 'setting_name', 'default_value', 'category', 'subcategory',
+			const settings_fields = ['global_setting_id', 'setting_name', 'default_value', 'category', 'subcategory',
 				'description', 'doc', 'type', 'options'];
 			const setting = new GlobalSetting();
 
@@ -64,8 +64,8 @@ describe('Testing Course Settings', () => {
 		test('set fields of a global setting directly', () => {
 			const global_setting = new GlobalSetting();
 
-			global_setting.setting_id = 10;
-			expect(global_setting.setting_id).toBe(10);
+			global_setting.global_setting_id = 10;
+			expect(global_setting.global_setting_id).toBe(10);
 
 			global_setting.setting_name = 'description';
 			expect(global_setting.setting_name).toBe('description');
@@ -96,8 +96,8 @@ describe('Testing Course Settings', () => {
 		test('set fields of a course setting using the set method', () => {
 			const global_setting = new GlobalSetting();
 
-			global_setting.set({ setting_id:  25 });
-			expect(global_setting.setting_id).toBe(25);
+			global_setting.set({ global_setting_id:  25 });
+			expect(global_setting.global_setting_id).toBe(25);
 
 			global_setting.set({ setting_name: 'description' });
 			expect(global_setting.setting_name).toBe('description');
@@ -371,7 +371,7 @@ describe('Testing Course Settings', () => {
 	const default_db_setting = {
 		course_setting_id: 0,
 		course_id: 0,
-		setting_id: 0
+		global_setting_id: 0
 	};
 
 	describe('Create a new DBCourseSetting', () => {
@@ -386,18 +386,18 @@ describe('Testing Course Settings', () => {
 			const course_setting = new DBCourseSetting({
 				course_setting_id: 10,
 				course_id: 34,
-				setting_id: 199,
+				global_setting_id: 199,
 				value: 'xyz'
 			});
 
 			expect(course_setting.course_setting_id).toBe(10);
 			expect(course_setting.course_id).toBe(34);
-			expect(course_setting.setting_id).toBe(199);
+			expect(course_setting.global_setting_id).toBe(199);
 			expect(course_setting.value).toBe('xyz');
 		});
 
 		test('Check that calling all_fields() and params() is correct', () => {
-			const settings_fields = ['course_setting_id', 'setting_id', 'course_id', 'value'];
+			const settings_fields = ['course_setting_id', 'global_setting_id', 'course_id', 'value'];
 			const setting = new DBCourseSetting();
 
 			expect(setting.all_field_names.sort()).toStrictEqual(settings_fields.sort());
@@ -419,8 +419,8 @@ describe('Testing Course Settings', () => {
 			course_setting.course_setting_id = 10;
 			expect(course_setting.course_setting_id).toBe(10);
 
-			course_setting.setting_id = 25;
-			expect(course_setting.setting_id).toBe(25);
+			course_setting.global_setting_id = 25;
+			expect(course_setting.global_setting_id).toBe(25);
 
 			course_setting.course_id = 15;
 			expect(course_setting.course_id).toBe(15);
@@ -435,8 +435,8 @@ describe('Testing Course Settings', () => {
 			course_setting.set({ course_setting_id:  10 });
 			expect(course_setting.course_setting_id).toBe(10);
 
-			course_setting.set({ setting_id:  25 });
-			expect(course_setting.setting_id).toBe(25);
+			course_setting.set({ global_setting_id:  25 });
+			expect(course_setting.global_setting_id).toBe(25);
 
 			course_setting.set({ course_id:  15 });
 			expect(course_setting.course_id).toBe(15);
@@ -447,7 +447,7 @@ describe('Testing Course Settings', () => {
 	});
 
 	const default_course_setting = {
-		setting_id: 0,
+		global_setting_id: 0,
 		course_id: 0,
 		course_setting_id: 0,
 		setting_name: '',
@@ -468,7 +468,7 @@ describe('Testing Course Settings', () => {
 
 		test('Create a new CourseSetting', () => {
 			const course_setting = new CourseSetting({
-				setting_id: 10,
+				global_setting_id: 10,
 				course_id: 5,
 				course_setting_id: 17,
 				value: 'this is my value',
@@ -480,7 +480,7 @@ describe('Testing Course Settings', () => {
 				category: 'general'
 			});
 
-			expect(course_setting.setting_id).toBe(10);
+			expect(course_setting.global_setting_id).toBe(10);
 			expect(course_setting.course_id).toBe(5);
 			expect(course_setting.course_setting_id).toBe(17);
 			expect(course_setting.value).toBe('this is my value');
@@ -493,7 +493,7 @@ describe('Testing Course Settings', () => {
 		});
 
 		test('Check that calling all_fields() and params() is correct', () => {
-			const settings_fields = ['setting_id', 'course_setting_id', 'course_id', 'value', 'setting_name',
+			const settings_fields = ['global_setting_id', 'course_setting_id', 'course_id', 'value', 'setting_name',
 				'default_value', 'category', 'subcategory', 'description', 'doc', 'type', 'options'];
 			const setting = new CourseSetting();
 
@@ -514,17 +514,14 @@ describe('Testing Course Settings', () => {
 		test('set fields of a course setting directly', () => {
 			const course_setting = new CourseSetting();
 
-			course_setting.setting_id = 25;
-			expect(course_setting.setting_id).toBe(25);
+			course_setting.global_setting_id = 25;
+			expect(course_setting.global_setting_id).toBe(25);
 
 			course_setting.course_id = 15;
 			expect(course_setting.course_id).toBe(15);
 
 			course_setting.value = 6;
 			expect(course_setting.value).toBe(6);
-
-			course_setting.setting_id = 10;
-			expect(course_setting.setting_id).toBe(10);
 
 			course_setting.setting_name = 'description';
 			expect(course_setting.setting_name).toBe('description');
@@ -558,8 +555,8 @@ describe('Testing Course Settings', () => {
 			course_setting.set({ course_setting_id:  10 });
 			expect(course_setting.course_setting_id).toBe(10);
 
-			course_setting.set({ setting_id:  25 });
-			expect(course_setting.setting_id).toBe(25);
+			course_setting.set({ global_setting_id:  25 });
+			expect(course_setting.global_setting_id).toBe(25);
 
 			course_setting.set({ course_id:  15 });
 			expect(course_setting.course_id).toBe(15);
@@ -567,8 +564,8 @@ describe('Testing Course Settings', () => {
 			course_setting.set({ value: 6 });
 			expect(course_setting.value).toBe(6);
 
-			course_setting.set({ setting_id:  25 });
-			expect(course_setting.setting_id).toBe(25);
+			course_setting.set({ global_setting_id:  25 });
+			expect(course_setting.global_setting_id).toBe(25);
 
 			course_setting.set({ setting_name: 'description' });
 			expect(course_setting.setting_name).toBe('description');
@@ -604,7 +601,7 @@ describe('Testing Course Settings', () => {
 			// If instead the value is undefined, use the default_value.
 
 			const course_setting = new CourseSetting({
-				setting_id: 10,
+				global_setting_id: 10,
 				course_id: 5,
 				course_setting_id: 17,
 				setting_name: 'description',

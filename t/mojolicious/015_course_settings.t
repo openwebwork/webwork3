@@ -55,7 +55,7 @@ my $global_settings = clone($global_settings_from_db);
 
 # Do some cleanup.
 for my $setting (@$global_settings_from_db) {
-	delete $setting->{setting_id};
+	delete $setting->{global_setting_id};
 	for my $key (qw/subcategory options doc/) {
 		delete $setting->{$key} unless $setting->{$key};
 	}
@@ -105,12 +105,12 @@ is_deeply($course_settings_from_db, \@course_settings, 'Ensure that the course s
 my $reduced_scoring = firstval { $_->{setting_name} eq 'reduced_scoring_value' } @$global_settings;
 
 $t->put_ok(
-	"/webwork3/api/courses/4/settings/$reduced_scoring->{setting_id}" => json => {
+	"/webwork3/api/courses/4/settings/$reduced_scoring->{global_setting_id}" => json => {
 		value => 0.5
 	}
 )->content_type_is('application/json;charset=UTF-8')->status_is(200)->json_is('/value' => 0.5);
 
-$t->delete_ok("/webwork3/api/courses/4/settings/$reduced_scoring->{setting_id}")
+$t->delete_ok("/webwork3/api/courses/4/settings/$reduced_scoring->{global_setting_id}")
 	->content_type_is('application/json;charset=UTF-8')->status_is(200);
 
 # Check for valid and invalid timezones
@@ -138,12 +138,12 @@ $t->get_ok('/webwork3/api/courses/5/settings')->content_type_is('application/jso
 
 # A student shouldn't be able to update a course setting
 $t->put_ok(
-	"/webwork3/api/courses/4/settings/$reduced_scoring->{setting_id}" => json => {
+	"/webwork3/api/courses/4/settings/$reduced_scoring->{global_setting_id}" => json => {
 		value => 0.5
 	}
 )->status_is(403);
 
 # Nor delete a course setting
-$t->delete_ok("/webwork3/api/courses/4/settings/$reduced_scoring->{setting_id}")->status_is(403);
+$t->delete_ok("/webwork3/api/courses/4/settings/$reduced_scoring->{global_setting_id}")->status_is(403);
 
 done_testing;

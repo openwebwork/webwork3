@@ -16,63 +16,66 @@ These are the methods that call the database for course settings
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 sub getGlobalSettings ($c) {
-	my $settings = $c->schema->resultset('Course')->getGlobalSettings();
-	$c->render(json => $settings);
+	$c->render(json => $c->schema->resultset('Course')->getGlobalSettings());
 	return;
 }
 
 sub getGlobalSetting ($c) {
-	my $setting = $c->schema->resultset('Course')->getGlobalSetting(
-		info => {
-			setting_id => int($c->param('setting_id'))
-		}
+	$c->render(
+		json => $c->schema->resultset('Course')->getGlobalSetting(
+			info => {
+				global_setting_id => int($c->param('global_setting_id'))
+			}
+		)
 	);
-	$c->render(json => $setting);
 	return;
 }
 
 sub getCourseSettings ($c) {
-	my $course_settings = $c->schema->resultset('Course')->getCourseSettings(
-		info => {
-			course_id => int($c->param('course_id')),
-		},
-		merged => 1
+	$c->render(
+		json => $c->schema->resultset('Course')->getCourseSettings(
+			info => {
+				course_id => int($c->param('course_id')),
+			},
+			merged => 1
+		)
 	);
-	$c->render(json => $course_settings);
 	return;
 }
 
 sub getCourseSetting ($c) {
-	my $course_setting = $c->schema->resultset('Course')->getCourseSetting(
-		info => {
-			course_id  => int($c->param('course_id')),
-			setting_id => int($c->param('setting_id'))
-		}
+	$c->render(
+		json => $c->schema->resultset('Course')->getCourseSetting(
+			info => {
+				course_id         => int($c->param('course_id')),
+				global_setting_id => int($c->param('global_setting_id'))
+			}
+		)
 	);
-	$c->render(json => $course_setting);
 	return;
 }
 
 sub updateCourseSetting ($c) {
-	my $course_setting = $c->schema->resultset('Course')->updateCourseSetting(
-		info => {
-			course_id  => $c->param('course_id'),
-			setting_id => $c->param('setting_id')
-		},
-		params => $c->req->json
+	$c->render(
+		json => $c->schema->resultset('Course')->updateCourseSetting(
+			info => {
+				course_id         => $c->param('course_id'),
+				global_setting_id => $c->param('global_setting_id')
+			},
+			params => $c->req->json
+		)
 	);
-	$c->render(json => $course_setting);
 	return;
 }
 
 sub deleteCourseSetting ($c) {
-	my $course_setting = $c->schema->resultset('Course')->deleteCourseSetting(
+	$c->schema->resultset('Course')->deleteCourseSetting(
 		info => {
-			course_id  => $c->param('course_id'),
-			setting_id => $c->param('setting_id')
+			course_id         => $c->param('course_id'),
+			global_setting_id => $c->param('global_setting_id')
 		}
 	);
-	$c->render(json => $course_setting);
+	$c->render(json => { message => 'The course setting was successfully deleted.' });
 	return;
 }
 

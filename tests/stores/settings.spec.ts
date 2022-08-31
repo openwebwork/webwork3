@@ -95,10 +95,10 @@ describe('Test the settings store', () => {
 			const settings_store = useSettingsStore();
 			// The arithmetic course has course_id: 4
 			await settings_store.fetchCourseSettings(4);
-			const arith_setting_ids = settings_store.db_course_settings.map(setting => setting.setting_id);
+			const arith_setting_ids = settings_store.db_course_settings.map(setting => setting.global_setting_id);
 
 			const arith_settings_from_db = settings_store.course_settings
-				.filter(setting => arith_setting_ids.includes(setting.setting_id))
+				.filter(setting => arith_setting_ids.includes(setting.global_setting_id))
 				.map(setting => ({ setting_name: setting.setting_name, value: setting.value }));
 			expect(arith_settings_from_db).toStrictEqual(arith_settings);
 		});
@@ -154,7 +154,7 @@ describe('Test the settings store', () => {
 			const settings_in_store = settings_store.db_course_settings.map(setting => ({
 				value: setting.value,
 				course_setting_id: setting.course_setting_id,
-				setting_id: setting.setting_id,
+				global_setting_id: setting.global_setting_id,
 				course_id: setting.course_id
 			}));
 			const response = await api.get('/courses/4/settings');
@@ -174,7 +174,7 @@ describe('Test the settings store', () => {
 			const course_setting = settings_store.db_course_settings
 				.find(s => s.course_setting_id === setting.course_setting_id);
 			expect(course_setting).toBeUndefined();
-			await api.get(`/courses/${setting.course_id}/settings/${setting.setting_id}`)
+			await api.get(`/courses/${setting.course_id}/settings/${setting.global_setting_id}`)
 				.then(() => {
 					fail('Expected failure response');
 				})

@@ -24,7 +24,7 @@ export const useSettingsStore = defineStore('settings', {
 		 */
 		course_settings: (state): CourseSetting[] => state.global_settings.map(global_setting => {
 			const db_setting = state.db_course_settings
-				.find(setting => setting.setting_id === global_setting.setting_id);
+				.find(setting => setting.global_setting_id === global_setting.global_setting_id);
 			return new CourseSetting(Object.assign(db_setting?.toObject() ?? {}, global_setting.toObject()));
 		}),
 		/**
@@ -34,7 +34,7 @@ export const useSettingsStore = defineStore('settings', {
 			const global_setting = state.global_settings.find(setting => setting.setting_name === setting_name);
 			if (global_setting) {
 				const db_course_setting = state.db_course_settings
-					.find(setting => setting.setting_id === global_setting?.setting_id);
+					.find(setting => setting.global_setting_id === global_setting?.global_setting_id);
 				return new CourseSetting(Object.assign(
 					db_course_setting?.toObject() ?? {},
 					global_setting?.toObject()));
@@ -79,19 +79,20 @@ export const useSettingsStore = defineStore('settings', {
 			const course_id = session.course.course_id;
 
 			// Send only the database course setting fields.
-			const response = await api.put(`/courses/${course_id}/settings/${course_setting.setting_id}`,
+			const response = await api.put(`/courses/${course_id}/settings/${course_setting.global_setting_id}`,
 				course_setting.toObject(DBCourseSetting.ALL_FIELDS));
 			const updated_setting = new DBCourseSetting(response.data as ParseableDBCourseSetting);
 
 			// update the store
-			const i = this.db_course_settings.findIndex(setting => setting.setting_id === updated_setting.setting_id);
+			const i = this.db_course_settings
+				.findIndex(setting => setting.global_setting_id === updated_setting.global_setting_id);
 			if (i >= 0) {
 				this.db_course_settings.splice(i, 1, updated_setting);
 			} else {
 				this.db_course_settings.push(updated_setting);
 			}
 			const global_setting = this.global_settings
-				.find(setting => setting.setting_id === updated_setting.setting_id);
+				.find(setting => setting.global_setting_id === updated_setting.global_setting_id);
 
 			return new CourseSetting(Object.assign(updated_setting.toObject(), global_setting?.toObject()));
 		},
@@ -102,11 +103,12 @@ export const useSettingsStore = defineStore('settings', {
 			const session = useSessionStore();
 			const course_id = session.course.course_id;
 
-			const i = this.db_course_settings.findIndex(setting => setting.setting_id == course_setting.setting_id);
+			const i = this.db_course_settings
+				.findIndex(setting => setting.global_setting_id == course_setting.global_setting_id);
 			if (i < 0) {
 				throw `The setting with name: '${course_setting.setting_name}' has not been defined for this course.`;
 			}
-			await api.delete(`/courses/${course_id}/settings/${course_setting.setting_id}`);
+			await api.delete(`/courses/${course_id}/settings/${course_setting.global_setting_id}`);
 			this.db_course_settings.splice(i, 1);
 		},
 		/**

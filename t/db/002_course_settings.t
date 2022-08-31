@@ -40,11 +40,11 @@ my $schema = DB::Schema->connect(
 
 # Test for various types
 
-ok(isInteger(0),     'check type: integer');
-ok(isInteger(100),   'check type: integer');
-ok(isInteger(-30),   'check type: integer');
-ok(!isInteger(0.5),  'check type: not an integer');
-ok(!isInteger(-2.5), 'check type: not an integer');
+ok(isInteger(0),     'check type: 0 is an integer');
+ok(isInteger(100),   'check type: 100 is an integer');
+ok(isInteger(-30),   'check type: -30 is an integer');
+ok(!isInteger(0.5),  'check type: 0.5 is not an integer');
+ok(!isInteger(-2.5), 'check type: -2.5 not an integer');
 
 ok(isTimeString('1:59'),  'check type: 24-hour time string');
 ok(isTimeString('01:59'), 'check type: 24-hour time string');

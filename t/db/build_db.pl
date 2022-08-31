@@ -82,6 +82,7 @@ sub addCourses {
 	}
 	return;
 }
+use Data::Dumper;
 
 sub addSettings {
 	say 'adding default settings' if $verbose;
@@ -114,9 +115,9 @@ sub addSettings {
 		}
 
 		$course->add_to_course_settings({
-			course_id  => $course->course_id,
-			setting_id => $global_setting->setting_id,
-			value      => $setting->{setting_value}
+			course_id         => $course->course_id,
+			global_setting_id => $global_setting->global_setting_id,
+			value             => $setting->{setting_value}
 		});
 	}
 	return;

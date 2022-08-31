@@ -25,7 +25,7 @@ export interface OptionType {
 export type SettingValueType = number | boolean | string | string[] | OptionType[];
 
 export interface ParseableGlobalSetting {
-	setting_id?: number;
+	global_setting_id?: number;
 	setting_name?: string;
 	category?: string;
 	subcategory?: string;
@@ -37,7 +37,7 @@ export interface ParseableGlobalSetting {
 }
 
 export class GlobalSetting extends Model {
-	private _setting_id = 0;
+	private _global_setting_id = 0;
 	private _setting_name = '';
 	private _default_value: SettingValueType = '';
 	private _category = '';
@@ -52,13 +52,13 @@ export class GlobalSetting extends Model {
 		this.set(params);
 	}
 
-	static ALL_FIELDS = ['setting_id', 'setting_name', 'default_value', 'category',
+	static ALL_FIELDS = ['global_setting_id', 'setting_name', 'default_value', 'category',
 		'subcategory', 'description', 'doc', 'type', 'options'];
 	get all_field_names(): string[] { return GlobalSetting.ALL_FIELDS; }
 	get param_fields(): string[] { return []; }
 
 	set(params: ParseableGlobalSetting) {
-		if (params.setting_id != undefined) this.setting_id = params.setting_id;
+		if (params.global_setting_id != undefined) this.global_setting_id = params.global_setting_id;
 		if (params.setting_name != undefined) this.setting_name = params.setting_name;
 		if (params.default_value != undefined) this.default_value = params.default_value;
 		if (params.category != undefined) this.category = params.category;
@@ -69,8 +69,8 @@ export class GlobalSetting extends Model {
 		this.options = params.options;
 	}
 
-	get setting_id() { return this._setting_id; }
-	set setting_id(v: number) { this._setting_id = v; }
+	get global_setting_id() { return this._global_setting_id; }
+	set global_setting_id(v: number) { this._global_setting_id = v; }
 
 	get setting_name() { return this._setting_name; }
 	set setting_name(v: string) { this._setting_name = v; }
@@ -162,7 +162,7 @@ const parseSettingType = (v: string): SettingType => {
 export interface ParseableDBCourseSetting {
 	course_setting_id?: number;
 	course_id?: number;
-	setting_id?: number;
+	global_setting_id?: number;
 	value?: SettingValueType;
 }
 
@@ -173,7 +173,7 @@ export interface ParseableDBCourseSetting {
 export class DBCourseSetting extends Model {
 	private _course_setting_id = 0;
 	private _course_id = 0;
-	private _setting_id = 0;
+	private _global_setting_id = 0;
 	private _value?: SettingValueType;
 
 	constructor(params: ParseableDBCourseSetting = {}) {
@@ -181,22 +181,22 @@ export class DBCourseSetting extends Model {
 		this.set(params);
 	}
 
-	static ALL_FIELDS = ['course_setting_id', 'course_id', 'setting_id', 'value'];
+	static ALL_FIELDS = ['course_setting_id', 'course_id', 'global_setting_id', 'value'];
 	get all_field_names(): string[] { return DBCourseSetting.ALL_FIELDS; }
 	get param_fields(): string[] { return []; }
 
 	set(params: ParseableDBCourseSetting) {
 		if (params.course_setting_id != undefined) this.course_setting_id = params.course_setting_id;
 		if (params.course_id != undefined) this.course_id = params.course_id;
-		if (params.setting_id != undefined) this.setting_id = params.setting_id;
+		if (params.global_setting_id != undefined) this.global_setting_id = params.global_setting_id;
 		this.value = params.value;
 	}
 
 	get course_setting_id() { return this._course_setting_id; }
 	set course_setting_id(v: number) { this._course_setting_id = v; }
 
-	get setting_id() { return this._setting_id; }
-	set setting_id(v: number) { this._setting_id = v; }
+	get global_setting_id() { return this._global_setting_id; }
+	set global_setting_id(v: number) { this._global_setting_id = v; }
 
 	get course_id() { return this._course_id; }
 	set course_id(v: number) { this._course_id = v; }
@@ -214,7 +214,7 @@ export class DBCourseSetting extends Model {
 }
 
 export interface ParseableCourseSetting {
-	setting_id?: number;
+	global_setting_id?: number;
 	course_setting_id?: number;
 	course_id?: number;
 	value?: SettingValueType;
@@ -234,7 +234,7 @@ export interface ParseableCourseSetting {
  */
 
 export class CourseSetting extends Model {
-	private _setting_id = 0;
+	private _global_setting_id = 0;
 	private _course_setting_id = 0;
 	private _course_id = 0;
 	private _setting_name = '';
@@ -252,13 +252,13 @@ export class CourseSetting extends Model {
 		this.set(params);
 	}
 
-	static ALL_FIELDS = ['setting_id', 'course_setting_id', 'course_id', 'value', 'setting_name',
+	static ALL_FIELDS = ['global_setting_id', 'course_setting_id', 'course_id', 'value', 'setting_name',
 		'default_value', 'category', 'subcategory', 'description', 'doc', 'type', 'options'];
 	get all_field_names(): string[] { return CourseSetting.ALL_FIELDS; }
 	get param_fields(): string[] { return []; }
 
 	set(params: ParseableCourseSetting) {
-		if (params.setting_id != undefined) this.setting_id = params.setting_id;
+		if (params.global_setting_id != undefined) this.global_setting_id = params.global_setting_id;
 		if (params.course_setting_id != undefined) this.course_setting_id = params.course_setting_id;
 		if (params.course_id != undefined) this.course_id = params.course_id;
 		this.value = params.value;
@@ -272,8 +272,8 @@ export class CourseSetting extends Model {
 		this.options = params.options;
 	}
 
-	get setting_id() { return this._setting_id; }
-	set setting_id(v: number) { this._setting_id = v; }
+	get global_setting_id() { return this._global_setting_id; }
+	set global_setting_id(v: number) { this._global_setting_id = v; }
 
 	get course_setting_id() { return this._course_setting_id; }
 	set course_setting_id(v: number) { this._course_setting_id = v; }

@@ -42,7 +42,7 @@ sub getPoolProblemInfo ($in) {
 }
 
 sub getSettingInfo ($in) {
-	return _get_info($in, qw/setting_name setting_id/);
+	return _get_info($in, qw/setting_name global_setting_id/);
 }
 
 # This is a generic internal subroutine to check that the info passed in contains certain fields.

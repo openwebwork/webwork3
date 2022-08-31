@@ -166,22 +166,22 @@ sub validateMultilist ($setting, $value) {
 
 # Test for an integer.
 sub isInteger ($in) {
-	return $in =~ /^-?\d+$/;
+	return defined($in) && $in =~ /^-?\d+$/;
 }
 
 # Test for a 24-hour time string
 sub isTimeString ($in) {
-	return $in =~ /(^0?\d:[0-5]\d$)|(^1\d:[0-5]\d$)|(^2[0-3]:[0-5]\d$)/;
+	return defined($in) && $in =~ /(^0?\d:[0-5]\d$)|(^1\d:[0-5]\d$)|(^2[0-3]:[0-5]\d$)/;
 }
 
 # Test for a time duration which can have the unit: sec, min, day, week, hr, hour
 sub isTimeDuration ($in) {
-	return $in =~ /^(\d+)\s(sec|second|min|minute|day|week|hr|hour)s?$/i;
+	return defined($in) && $in =~ /^(\d+)\s(sec|second|min|minute|day|week|hr|hour)s?$/i;
 }
 
 # Test for a decimal.
 sub isDecimal ($in) {
-	return $in =~ /(^-?\d+(\.\d+)?$)|(^-?\.\d+$)/;
+	return defined($in) && $in =~ /(^-?\d+(\.\d+)?$)|(^-?\.\d+$)/;
 }
 
 1;
