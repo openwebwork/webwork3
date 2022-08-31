@@ -163,10 +163,14 @@ db_permissions:
       allowed_roles: ['course_admin', 'instructor']
   Settings:
     getDefaultCourseSettings:
-      allowed_roles: ['*']
+      allowed_roles: ['course_admin', 'instructor','student']
     getCourseSettings:
-      allowed_roles: ['*']
-    updateCourseSettings:
+      allowed_roles: ['course_admin', 'instructor','student']
+    getCourseSetting:
+      allowed_roles: ['course_admin', 'instructor','student']
+    updateCourseSetting:
+      allowed_roles: ['course_admin', 'instructor']
+    deleteCourseSetting:
       allowed_roles: ['course_admin', 'instructor']
 
 # This defines the permisions for each role for the frontend/UI layer.

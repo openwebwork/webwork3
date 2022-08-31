@@ -19,8 +19,8 @@
 				<q-tab-panels v-model="tab" animated>
 					<q-tab-panel v-for="category in categories" :name="category" :key="'panel:' + category">
 						<q-markup-table separator="horizontal" dense>
-							<template v-for="item in getSettings(category)" :key="item.var">
-								<single-setting :setting="item" :value="getSettingValue(item.var)" />
+							<template v-for="item in getSettings(category)" :key="item.setting_name">
+								<single-setting :setting="item" />
 							</template>
 						</q-markup-table>
 					</q-tab-panel>
@@ -30,35 +30,18 @@
 	</q-page>
 </template>
 
-<script lang="ts">
-import { defineComponent, computed, ref, watch } from 'vue';
+<script setup lang="ts">
+import { computed, ref } from 'vue';
 import { useSettingsStore } from 'src/stores/settings';
-import type { CourseSettingInfo } from 'src/common/models/settings';
 import SingleSetting from 'src/components/instructor/SingleSetting.vue';
 
-export default defineComponent({
-	name: 'Settings',
-	components: {
-		SingleSetting
-	},
-	setup() {
-		const settings = useSettingsStore();
-		const tab = ref('');
+const settings_store = useSettingsStore();
+const tab = ref('general');
 
-		// Needed if you start on this page.
-		watch(() => settings.course_settings, () => {
-			tab.value = 'general';
-		});
+const categories = computed(() => [
+	...new Set(settings_store.course_settings.map(setting => setting.category))
+]);
 
-		return {
-			tab,
-			categories: computed(() => [
-				...new Set(settings.default_settings.map((setting: CourseSettingInfo) => setting.category))
-			]),
-			getSettings: (cat: string) =>
-				settings.default_settings.filter((setting: CourseSettingInfo) => setting.category === cat),
-			getSettingValue: (var_name: string) => settings.getCourseSetting(var_name).value
-		};
-	}
-});
+const getSettings = (cat: string) => settings_store.getSettingsByCategory(cat);
+
 </script>

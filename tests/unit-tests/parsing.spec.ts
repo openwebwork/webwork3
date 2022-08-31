@@ -2,9 +2,11 @@
 
 import { parseNonNegInt, parseBoolean, parseEmail, parseUsername, EmailParseException,
 	NonNegIntException, BooleanParseException, UsernameParseException,
-	parseNonNegDecimal, NonNegDecimalException } from 'src/common/models/parsers';
+	parseNonNegDecimal, NonNegDecimalException, isTime, isTimeDuration
+} from 'src/common/models/parsers';
 
-describe('Testing parsing functions', () => {
+describe('Testing Parsers and Regular Expressions', () => {
+
 	test('parsing nonnegative integers', () => {
 		expect(parseNonNegInt(1)).toBe(1);
 		expect(parseNonNegInt('1')).toBe(1);
@@ -65,4 +67,39 @@ describe('Testing parsing functions', () => {
 		expect(() => {parseUsername('first last@site.com');}).toThrow(UsernameParseException);
 
 	});
+
+	test('testing time regular expressions.', () => {
+		expect(isTime('00:00')).toBe(true);
+		expect(isTime('01:00')).toBe(true);
+		expect(isTime('23:59')).toBe(true);
+		expect(isTime('24:00')).toBe(false);
+		expect(isTime('11:65')).toBe(false);
+	});
+
+	test('testing time interval regular expressions.', () => {
+		expect(isTimeDuration('10 sec')).toBe(true);
+		expect(isTimeDuration('10 secs')).toBe(true);
+
+		expect(isTimeDuration('10 second')).toBe(true);
+		expect(isTimeDuration('10 seconds')).toBe(true);
+
+		expect(isTimeDuration('10 mins')).toBe(true);
+		expect(isTimeDuration('10 min')).toBe(true);
+
+		expect(isTimeDuration('10 minute')).toBe(true);
+		expect(isTimeDuration('10 minutes')).toBe(true);
+
+		expect(isTimeDuration('10 hour')).toBe(true);
+		expect(isTimeDuration('10 hours')).toBe(true);
+
+		expect(isTimeDuration('10 hr')).toBe(true);
+		expect(isTimeDuration('10 hrs')).toBe(true);
+
+		expect(isTimeDuration('10 day')).toBe(true);
+		expect(isTimeDuration('10 days')).toBe(true);
+
+		expect(isTimeDuration('10 week')).toBe(true);
+		expect(isTimeDuration('10 weeks')).toBe(true);
+	});
+
 });
