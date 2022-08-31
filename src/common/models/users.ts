@@ -6,15 +6,25 @@ import { isNonNegInt, isValidUsername, isValidEmail }
 import { Dictionary, Model } from 'src/common/models';
 import { UserRole } from 'src/stores/permissions';
 
-export interface ParseableUser {
-	user_id?: number;
-	username?: string;
+// This defined the required fields of a user in the Session
+
+export interface SessionUser {
+	user_id: number;
+	username: string;
 	email?: string;
 	first_name?: string;
 	last_name?: string;
-	is_admin?: boolean;
+	is_admin: boolean;
 	student_id?: string;
 }
+
+export const default_session_user: SessionUser = {
+	user_id: 0,
+	username: 'logged_out',
+	is_admin: false
+};
+
+export type ParseableUser = Partial<SessionUser>;
 
 /**
  * @class User
@@ -34,15 +44,15 @@ export class User extends Model {
 	get all_field_names(): string[] { return User.ALL_FIELDS; }
 	get param_fields(): string[] { return []; }
 
-	constructor(params: ParseableUser = {}) {
+	constructor(params: ParseableUser = { user_id: 0, username: '', is_admin: false }) {
 		super();
 		this.set(params);
 	}
 
 	set(params: ParseableUser) {
 		if (params.username) this.username = params.username;
-		if (params.user_id != undefined) this.user_id = params.user_id;
-		if (params.is_admin != undefined) this.is_admin = params.is_admin;
+		if (params.user_id) this.user_id = params.user_id;
+		if (params.is_admin) this.is_admin = params.is_admin;
 		if (params.email) this.email = params.email;
 		if (params.first_name) this.first_name = params.first_name;
 		if (params.last_name) this.last_name = params.last_name;
@@ -72,7 +82,7 @@ export class User extends Model {
 	set student_id(value: string) { this._student_id = value; }
 
 	clone() {
-		return new User(this.toObject() as ParseableUser);
+		return new User(this.toObject() as unknown as ParseableUser);
 	}
 
 	// The email can be the empty string or valid email address.

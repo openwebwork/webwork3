@@ -11,7 +11,6 @@
 import { createApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
-import { api } from 'boot/axios';
 
 import { useCourseStore } from 'src/stores/courses';
 import { useProblemSetStore } from 'src/stores/problem_sets';

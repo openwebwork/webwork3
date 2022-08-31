@@ -15,11 +15,10 @@ import { api } from 'boot/axios';
 
 import { getUser } from 'src/common/api-requests/user';
 import { useSessionStore } from 'src/stores/session';
-import { checkPassword } from 'src/common/api-requests/session';
 
 import { Course, UserCourse } from 'src/common/models/courses';
 import { SessionInfo } from 'src/common/models/session';
-import { ParseableUser, User } from 'src/common/models/users';
+import { SessionUser, User, default_session_user } from 'src/common/models/users';
 
 import { cleanIDs, loadCSV } from '../utils';
 
@@ -30,23 +29,13 @@ describe('Session Store', () => {
 	let lisa: User;
 
 	// session now just stores objects not models:
-	const user: ParseableUser = {
+	const user: SessionUser = {
 		first_name: 'Homer',
 		last_name: 'Simpson',
 		user_id: 1234,
 		email: 'homer@msn.com',
 		username: 'homer',
 		is_admin: false,
-	};
-
-	const logged_out: ParseableUser = {
-		username: 'logged_out',
-		email: '',
-		last_name: '',
-		first_name: '',
-		user_id: 0,
-		is_admin: false,
-		student_id: ''
 	};
 
 	const session_info: SessionInfo = {
@@ -114,19 +103,12 @@ describe('Session Store', () => {
 		});
 
 		test('Login as a user', async () => {
-		// test logging in as lisa gives the proper courses.
-			const session_info = await checkPassword({
-				username: 'lisa', password: 'lisa'
-			});
-			expect(session_info.logged_in).toBe(true);
-			expect(session_info.user).toStrictEqual(lisa.toObject());
-
+			// test logging in as lisa gives the proper courses.
 			const session = useSessionStore();
-			session.updateSessionInfo(session_info);
-
+			const logged_in = await session.login({ username: 'lisa', password: 'lisa' });
+			expect(logged_in).toBe(true);
 			expect(session.logged_in).toBe(true);
 			expect(session.user).toStrictEqual(lisa.toObject());
-
 		});
 
 		// sort by course name and clean up the _id tags.
@@ -135,9 +117,8 @@ describe('Session Store', () => {
 				a.course_name < b.course_name ? -1 : a.course_name > b.course_name ? 1 : 0));
 		};
 
-		test('check user courses', async () => {
+		test('check user courses', () => {
 			const session_store = useSessionStore();
-			await session_store.fetchUserCourses();
 			expect(sortAndClean(session_store.user_courses.map(c => new UserCourse(c))))
 				.toStrictEqual(sortAndClean(lisa_courses));
 		});
@@ -164,7 +145,7 @@ describe('Session Store', () => {
 			session.logout();
 
 			expect(session.logged_in).toBe(false);
-			expect(session.user).toStrictEqual(logged_out);
+			expect(session.user).toStrictEqual(default_session_user);
 
 		});
 	});

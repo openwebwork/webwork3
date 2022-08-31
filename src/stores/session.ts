@@ -2,8 +2,8 @@
 
 import { defineStore } from 'pinia';
 import { api } from 'boot/axios';
-import { ParseableUser, User } from 'src/common/models/users';
-import type { SessionInfo } from 'src/common/models/session';
+import { SessionUser, User, default_session_user } from 'src/common/models/users';
+import { ParseableSessionInfo, parseSessionInfo, SessionInfo, UserPassword } from 'src/common/models/session';
 import { ParseableUserCourse } from 'src/common/models/courses';
 import { logger } from 'boot/logger';
 import { ResponseError } from 'src/common/api-requests/errors';
@@ -11,7 +11,7 @@ import { ResponseError } from 'src/common/api-requests/errors';
 import { useUserStore } from 'src/stores/users';
 import { useSettingsStore } from 'src/stores/settings';
 import { useProblemSetStore } from 'src/stores/problem_sets';
-import { UserRole } from 'src/stores/permissions';
+import { usePermissionStore, UserRole } from 'src/stores/permissions';
 
 interface CourseInfo {
 	course_name: string;
@@ -25,7 +25,7 @@ interface CourseInfo {
 export interface SessionState {
 	logged_in: boolean;
 	expiry: number;
-	user: ParseableUser;
+	user: SessionUser;
 	course: CourseInfo;
 	user_courses: ParseableUserCourse[];
 }
@@ -36,7 +36,7 @@ export const useSessionStore = defineStore('session', {
 	state: (): SessionState => ({
 		logged_in: false,
 		expiry: 0,
-		user: { username: 'logged_out' },
+		user: default_session_user,
 		course: {
 			course_id: 0,
 			role: '',
@@ -45,7 +45,7 @@ export const useSessionStore = defineStore('session', {
 		user_courses: []
 	}),
 	getters: {
-		full_name: (state): string => `${state.user?.first_name ?? ''} ${state.user?.last_name ?? ''}`,
+		full_name: (state): string => `${state.user.first_name ?? ''} ${state.user.last_name ?? ''}`,
 		getUser: (state): User => new User(state.user),
 	},
 	actions: {
@@ -63,7 +63,7 @@ export const useSessionStore = defineStore('session', {
 			if (this.logged_in) {
 				this.user = session_info.user;
 			} else {
-				this.user = new User({ username: 'logged_out' }).toObject();
+				this.user = default_session_user;
 			}
 		},
 		setCourse(course_id: number): void {
@@ -102,9 +102,29 @@ export const useSessionStore = defineStore('session', {
 				throw response.data as ResponseError;
 			}
 		},
+		/**
+		 * Attempt to login to webwork3 with username/password. If successful, fetch
+		 * needed data (usercourses, roles, permissions).
+		 */
+		async login(user_pass: UserPassword): Promise<boolean> {
+			const response = await api.post('login', user_pass);
+			const session_info = parseSessionInfo(response.data as ParseableSessionInfo);
+			if (!session_info.logged_in || !session_info.user.user_id) {
+				return false;
+			} else {
+				// success
+				this.updateSessionInfo(session_info);
+				const permission_store = usePermissionStore();
+				// permissions require access to user courses and respective roles
+				await this.fetchUserCourses();
+				await permission_store.fetchRoles();
+				await permission_store.fetchRoutePermissions();
+				return true;
+			}
+		},
 		logout() {
 			this.logged_in = false;
-			this.user = new User({ username: 'logged_out' }).toObject();
+			this.user = default_session_user;
 			this.course =  { course_id: 0, role: '', course_name: '' };
 			useProblemSetStore().clearAll();
 			useSettingsStore().clearAll();
