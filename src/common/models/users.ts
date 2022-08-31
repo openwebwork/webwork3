@@ -18,6 +18,12 @@ export interface SessionUser {
 	student_id?: string;
 }
 
+export const default_session_user: SessionUser = {
+	user_id: 0,
+	username: 'logged_out',
+	is_admin: false
+};
+
 export type ParseableUser = Partial<SessionUser>;
 
 /**

@@ -18,7 +18,7 @@ import { useSessionStore } from 'src/stores/session';
 
 import { Course, UserCourse } from 'src/common/models/courses';
 import { SessionInfo } from 'src/common/models/session';
-import { SessionUser, User } from 'src/common/models/users';
+import { SessionUser, User, default_session_user } from 'src/common/models/users';
 
 import { cleanIDs, loadCSV } from '../utils';
 
@@ -35,12 +35,6 @@ describe('Session Store', () => {
 		user_id: 1234,
 		email: 'homer@msn.com',
 		username: 'homer',
-		is_admin: false,
-	};
-
-	const logged_out: SessionUser = {
-		username: 'logged_out',
-		user_id: 0,
 		is_admin: false,
 	};
 
@@ -151,7 +145,7 @@ describe('Session Store', () => {
 			session.logout();
 
 			expect(session.logged_in).toBe(false);
-			expect(session.user).toStrictEqual(logged_out);
+			expect(session.user).toStrictEqual(default_session_user);
 
 		});
 	});

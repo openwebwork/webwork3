@@ -2,7 +2,7 @@
 
 import { defineStore } from 'pinia';
 import { api } from 'boot/axios';
-import { SessionUser, User } from 'src/common/models/users';
+import { SessionUser, User, default_session_user } from 'src/common/models/users';
 import { ParseableSessionInfo, parseSessionInfo, SessionInfo, UserPassword } from 'src/common/models/session';
 import { ParseableUserCourse } from 'src/common/models/courses';
 import { logger } from 'boot/logger';
@@ -30,15 +30,13 @@ export interface SessionState {
 	user_courses: ParseableUserCourse[];
 }
 
-const logged_out_user = { username: 'logged_out', user_id: 0, is_admin: false };
-
 export const useSessionStore = defineStore('session', {
 	// Stores this in localStorage.
 	persist: true,
 	state: (): SessionState => ({
 		logged_in: false,
 		expiry: 0,
-		user: logged_out_user,
+		user: default_session_user,
 		course: {
 			course_id: 0,
 			role: '',
@@ -65,7 +63,7 @@ export const useSessionStore = defineStore('session', {
 			if (this.logged_in) {
 				this.user = session_info.user;
 			} else {
-				this.user = logged_out_user;
+				this.user = default_session_user;
 			}
 		},
 		setCourse(course_id: number): void {
@@ -126,7 +124,7 @@ export const useSessionStore = defineStore('session', {
 		},
 		logout() {
 			this.logged_in = false;
-			this.user = logged_out_user;
+			this.user = default_session_user;
 			this.course =  { course_id: 0, role: '', course_name: '' };
 			useProblemSetStore().clearAll();
 			useSettingsStore().clearAll();
