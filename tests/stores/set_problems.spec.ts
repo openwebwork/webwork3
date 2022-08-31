@@ -29,7 +29,6 @@ import { Dictionary, generic } from 'src/common/models';
 
 import { loadCSV, cleanIDs } from '../utils';
 import { checkPassword } from 'src/common/api-requests/session';
-import { logger } from 'src/boot/logger';
 
 const app = createApp({});
 

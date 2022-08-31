@@ -181,17 +181,18 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		 * Delete the given ProblemSet from the database and the store.
 		 */
 		async deleteProblemSet(set: ProblemSet): Promise<void> {
-			const response = await api.delete(`courses/${set.course_id}/sets/${set.set_id}`);
-			if (response.status === 200) {
-				const index = this.problem_sets.findIndex((s) => s.set_id === set.set_id);
-				if (index < 0) {
-					logger.error('[problem_set store/deleteProblemSet]: the problem set was not found in the store');
+			const index = this.problem_sets.findIndex((s) => s.set_id === set.set_id);
+			if (index >= 0) {
+				const response = await api.delete(`courses/${set.course_id}/sets/${set.set_id}`);
+				if (response.status === 200) {
+					this.problem_sets.splice(index, 1);
+
 				} else {
 					// splice is used so vue3 reacts to changes.
-					this.problem_sets.splice(index, 1);
+					logger.error(JSON.stringify(response));
 				}
 			} else {
-				logger.error(JSON.stringify(response));
+				logger.error('[problem_set store/deleteProblemSet]: the problem set was not found in the store');
 			}
 		},
 		// UserSet actions
@@ -274,18 +275,18 @@ export const useProblemSetStore = defineStore('problem_sets', {
 		 */
 		async deleteUserSet(user_set: UserSet): Promise<void> {
 			const course_id = useSessionStore().course.course_id;
-			const response = await
-			api.delete(`courses/${course_id}/sets/${user_set.set_id}/users/${user_set.course_user_id ?? 0}`);
-			if (response.status === 200) {
-				const index = this.db_user_sets.findIndex((set) => set.user_set_id === user_set.user_set_id);
-				if (index < 0) {
-					logger.error('[user store/deleteUserSet]: the user set was not found in the store');
-				} else {
+			const index = this.db_user_sets.findIndex((set) => set.user_set_id === user_set.user_set_id);
+			if (index >= 0) {
+				const response = await
+				api.delete(`courses/${course_id}/sets/${user_set.set_id}/users/${user_set.course_user_id ?? 0}`);
+				if (response.status === 200) {
 					// splice is used so vue3 reacts to changes.
 					this.db_user_sets.splice(index, 1);
+				} else {
+					logger.error(JSON.stringify(response));
 				}
 			} else {
-				logger.error(JSON.stringify(response));
+				logger.error('[user store/deleteUserSet]: the user set was not found in the store');
 			}
 		},
 

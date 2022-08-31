@@ -168,15 +168,18 @@ export const useSetProblemStore = defineStore('set_problems', {
 		 */
 		async deleteSetProblem(problem: SetProblem): Promise<void> {
 			const course_id = useSessionStore().course.course_id;
-
-			await api.delete(`courses/${course_id}/sets/${
-				problem.set_id}/problems/${problem.set_problem_id}`);
 			const index = this.set_problems.findIndex(prob => prob.set_problem_id === problem.set_problem_id);
-			if (index < 0) {
-				logger.error('[stores/set_problems/deleteSetProblem]: the set problem was not found in the store');
-			} else {
+			if (index >= 0) {
+				const response = await api.delete(`courses/${course_id}/sets/${problem.set_id
+				}/problems/${problem.set_problem_id}`);
+				if (response.status === 200) {
 				// splice is used so vue3 reacts to changes.
-				this.set_problems.splice(index, 1);
+					this.set_problems.splice(index, 1);
+				} else {
+					logger.error(JSON.stringify(response));
+				}
+			} else {
+				logger.error('[stores/set_problems/deleteSetProblem]: the set problem was not found in the store');
 			}
 		},
 		// UserProblem actions
@@ -256,20 +259,22 @@ export const useSetProblemStore = defineStore('set_problems', {
 			const course_id = useSessionStore().course.course_id;
 			const set_problem = this.set_problems.find(prob => prob.set_problem_id === user_problem.set_problem_id);
 			const problem_set_store = useProblemSetStore();
-			const user_set = problem_set_store.findUserSet({ user_set_id: user_problem.user_set_id,  });
-			if (user_set == undefined) {
-				throw 'deleteUserProblem: returned undefined user set';
-			}
-			await api.delete(`courses/${course_id}/sets/${set_problem?.set_id ?? 0
-			}/users/${user_set.user_id}/problems/${user_problem.user_problem_id}`);
-
 			const index = this.db_user_problems
 				.findIndex(user_problem => user_problem.user_problem_id === user_problem.user_problem_id);
-			if (index < 0) {
-				logger.error('[stores/set_problems/deleteUserProblem]: the set problem was not found in the store');
-			} else {
+			if (index >= 0) {
+				const user_set = problem_set_store.findUserSet({ user_set_id: user_problem.user_set_id,  });
+				if (user_set == undefined) throw 'deleteUserProblem: returned undefined user set';
+
+				const response = await api.delete(`courses/${course_id}/sets/${set_problem?.set_id ?? 0
+				}/users/${user_set?.user_id}/problems/${user_problem.user_problem_id}`);
+				if (response.status === 200) {
 				// splice is used so vue3 reacts to changes.
-				this.set_problems.splice(index, 1);
+					this.set_problems.splice(index, 1);
+				} else {
+					logger.error(JSON.stringify(response));
+				}
+			} else {
+				logger.error('[stores/set_problems/deleteUserProblem]: the set problem was not found in the store');
 			}
 		}
 	}
