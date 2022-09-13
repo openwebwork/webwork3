@@ -32,7 +32,7 @@ load the default settings from the conf/course_settings.yaml file
 =cut
 
 sub getDefaultCourseSettings () {
-	return LoadFile(Mojo::Home->new->detect->child('conf', 'course_defaults.yml'));
+	return LoadFile(Mojo::Home->new->detect('WeBWorK3')->child('conf', 'course_defaults.yml'));
 }
 
 my @course_setting_categories = qw/email optional general permissions problem problem_set/;

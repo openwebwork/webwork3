@@ -7,7 +7,7 @@ use Mojo::Home;
 use Mojo::Log;
 use JSON qw/decode_json/;
 
-my $clientLogFile = Mojo::Log->new(path => Mojo::Home->new->detect->child('logs', 'clientLog.log'));
+my $clientLogFile = Mojo::Log->new(path => Mojo::Home->new->detect('WeBWorK3')->child('logs', 'clientLog.log'));
 
 sub clientLog ($c) {
 	my $rawJSON  = $c->req->body;
