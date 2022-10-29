@@ -2,163 +2,201 @@
 
 # This tests the basic database CRUD functions with courses.
 
-use warnings;
-use strict;
-
-BEGIN {
-	use File::Basename qw/dirname/;
-	use Cwd qw/abs_path/;
-	$main::ww3_dir = abs_path(dirname(__FILE__)) . '/../..';
-}
-
-use lib "$main::ww3_dir/lib";
-use lib "$main::ww3_dir/t/lib";
-
 use Test2::V0;
-use YAML::XS qw/LoadFile/;
+
+# This must occur after Test2::V0 is loaded as that package enables all warnings.
+use Mojo::Base -signatures;
+
+use Mojo::File qw/curfile/;
+use Test::PostgreSQL;
 use Mojo::JSON qw/true/;
 
-use DB::Schema;
+use lib curfile->dirname->dirname->sibling('lib')->to_string;
+use lib curfile->dirname->sibling('lib')->to_string;
 
-use TestUtils qw/loadCSV removeIDs/;
+use DBSubtest qw/dbSubtest/;
 
-# Load the database
-my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
-$config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
-my $config = LoadFile($config_file);
-my $schema = DB::Schema->connect(
-	$config->{database_dsn},
-	$config->{database_user},
-	$config->{database_password},
-	{ quote_names => 1 }
-);
+dbSubtest courses => sub ($schema) {
+	my $course_rs = $schema->resultset('Course');
 
-my $course_rs = $schema->resultset('Course');
+	# Add a course
+	my $calc_course_params =
+		{ course_name => 'Calculus', visible => true, course_dates => { start => '2020-09-01', end => '2020-12-16' } };
+	my $calc_course    = $course_rs->addCourse(params => $calc_course_params);
+	my $calc_course_id = $calc_course->{course_id};
 
-# Get a list of courses from the CSV file.
-my @courses = loadCSV(
-	"$main::ww3_dir/t/db/sample_data/courses.csv",
-	{
-		boolean_fields => ['visible']
-	}
-);
+	is(
+		$calc_course,
+		hash {
+			field course_id    => match qr/^\d*$/;
+			field course_name  => $calc_course_params->{course_name};
+			field visible      => $calc_course_params->{visible};
+			field course_dates => $calc_course_params->{course_dates};
+			end;
+		},
+		'addCourse: add a new course'
+	);
 
-@courses = sortByCourseName(\@courses);
-for my $course (@courses) {
-	delete $course->{course_params};
-}
+	# Add another course
+	my $geometry_course_params = { course_name => 'Geometry', visible => true, course_dates => {} };
+	my $geometry_course        = $course_rs->addCourse(params => $geometry_course_params);
 
-# Check the list of all courses
-my @courses_from_db = $course_rs->getCourses;
-for my $course (@courses_from_db) { removeIDs($course); }
-@courses_from_db = sortByCourseName(\@courses_from_db);
+	is(
+		$geometry_course,
+		hash {
+			field course_id    => match qr/^\d*$/;
+			field course_name  => $geometry_course_params->{course_name};
+			field visible      => $geometry_course_params->{visible};
+			field course_dates => $geometry_course_params->{course_dates};
+			end;
+		},
+		'addCourse: add another new course'
+	);
 
-is(\@courses_from_db, \@courses, 'getCourses: get all courses');
+	# Retrive the list of all courses now in the database and check it is correct.
+	my @courses_from_db = $course_rs->getCourses;
+	@courses_from_db = sort { $a->{course_name} cmp $b->{course_name} } @courses_from_db;
 
-# Get a single course by name
-my $course = $course_rs->getCourse(info => { course_name => 'Calculus' });
+	is(
+		\@courses_from_db,
+		array {
+			item 0 => hash {
+				field course_id    => match qr/^\d*$/;
+				field course_name  => $calc_course_params->{course_name};
+				field visible      => $calc_course_params->{visible};
+				field course_dates => $calc_course_params->{course_dates};
+				end;
+			};
+			item 1 => hash {
+				field course_id    => match qr/^\d*$/;
+				field course_name  => $geometry_course_params->{course_name};
+				field visible      => $geometry_course_params->{visible};
+				field course_dates => $geometry_course_params->{course_dates};
+				end;
+			};
+			end;
+		},
+		'getCourses: get all courses'
+	);
 
-my $calc_id = $course->{course_id};
-delete $course->{course_id};
-my @calc_courses = grep { $_->{course_name} eq 'Calculus' } @courses;
-is($course, $calc_courses[0], 'getCourse: get a single course by name');
+	# Get a single course by name
+	my $course = $course_rs->getCourse(info => { course_name => 'Calculus' });
 
-# Get a single course by course_id
-$course = $course_rs->getCourse(info => { course_id => $calc_id });
-delete $course->{course_id};
-is($course, $calc_courses[0], 'getCourse: get a single course by id');
+	is(
+		$course,
+		hash {
+			field course_id    => match qr/^\d*$/;
+			field course_name  => $calc_course_params->{course_name};
+			field visible      => $calc_course_params->{visible};
+			field course_dates => $calc_course_params->{course_dates};
+			end;
+		},
+		'getCourse: get a single course by name'
+	);
 
-# Try to get a single course by sending proper info:
-is(
-	dies { $course_rs->getCourse(info => { course_id => $calc_id, course_name => 'Calculus' }); },
-	check_isa('DB::Exception::ParametersNeeded'),
-	'getCourse: sends too much info'
-);
+	# Get a single course by course_id
+	$course = $course_rs->getCourse(info => { course_id => $calc_course_id });
+	is(
+		$course,
+		hash {
+			field course_id    => match qr/^\d*$/;
+			field course_name  => $calc_course_params->{course_name};
+			field visible      => $calc_course_params->{visible};
+			field course_dates => $calc_course_params->{course_dates};
+			end;
+		},
+		'getCourse: get a single course by id'
+	);
 
-is(
-	dies { $course_rs->getCourse(info => { name => 'Calculus' }); },
-	check_isa('DB::Exception::ParametersNeeded'),
-	'getCourse: sends wrong info'
-);
+	# Try to get a single course with invalid information.
+	is(
+		dies { $course_rs->getCourse(info => { course_id => $calc_course_id, course_name => 'Calculus' }); }
+		,
+		check_isa('DB::Exception::ParametersNeeded'),
+		'getCourse: sends too much info'
+	);
 
-# Try to get a single course that doesn't exist
-is(
-	dies { $course_rs->getCourse(info => { course_name => 'non_existent_course' }); },
-	check_isa('DB::Exception::CourseNotFound'),
-	'getCourse: get a non-existent course'
-);
+	is(
+		dies { $course_rs->getCourse(info => { name => 'Calculus' }); },
+		check_isa('DB::Exception::ParametersNeeded'),
+		'getCourse: sends wrong info'
+	);
 
-# Add a course
-my $new_course_params = { course_name => 'Geometry', visible => true, course_dates => {} };
+	# Try to get a single course that doesn't exist
+	is(
+		dies { $course_rs->getCourse(info => { course_name => 'non_existent_course' }); },
+		check_isa('DB::Exception::CourseNotFound'),
+		'getCourse: get a non-existent course'
+	);
 
-my $new_course      = $course_rs->addCourse(params => $new_course_params);
-my $added_course_id = $new_course->{course_id};
-removeIDs($new_course);
+	# Add a course that already exists
+	is(
+		dies { $course_rs->addCourse(params => { course_name => 'Geometry', visible => true }); },
+		check_isa('DB::Exception::CourseAlreadyExists'),
+		'addCourse: course already exists'
+	);
 
-is($new_course, $new_course_params, 'addCourse: add a new course');
+	# Update the course name
+	my $updated_course = $course_rs->updateCourse(
+		info   => { course_id   => $geometry_course->{course_id} },
+		params => { course_name => 'Geometry II' }
+	);
 
-# Add a course that already exists
-is(
-	dies { $course_rs->addCourse(params => { course_name => 'Geometry', visible => true }); },
-	check_isa('DB::Exception::CourseAlreadyExists'),
-	'addCourse: course already exists'
-);
+	$geometry_course_params->{course_name} = 'Geometry II';
 
-# Update the course name
-my $updated_course = $course_rs->updateCourse(
-	info   => { course_id   => $added_course_id },
-	params => { course_name => 'Geometry II' }
-);
+	is(
+		$updated_course,
+		hash {
+			field course_id    => match qr/^\d*$/;
+			field course_name  => $geometry_course_params->{course_name};
+			field visible      => $geometry_course_params->{visible};
+			field course_dates => $geometry_course_params->{course_dates};
+			end;
+		},
+		'updateCourse: update a course by name'
+	);
 
-$new_course_params->{course_name} = 'Geometry II';
-delete $updated_course->{course_id};
+	# Try to update an non-existent course
+	is(
+		dies { $course_rs->updateCourse(info => { course_name => 'non_existent_course' }); },
+		check_isa('DB::Exception::CourseNotFound'),
+		'updateCourse: update a non-existent course_name'
+	);
 
-is($updated_course, $new_course_params, 'updateCourse: update a course by name');
+	is(
+		dies { $course_rs->updateCourse(info => { course_id => -9 }, params => $geometry_course_params); },
+		check_isa('DB::Exception::CourseNotFound'),
+		'updateCourse: update a non-existent course_id'
+	);
 
-# Try to update an non-existent course
-is(
-	dies { $course_rs->updateCourse(info => { course_name => 'non_existent_course' }); },
-	check_isa('DB::Exception::CourseNotFound'),
-	'updateCourse: update a non-existent course_name'
-);
+	# Delete a course
+	my $deleted_course = $course_rs->deleteCourse(info => { course_name => 'Geometry II' });
 
-is(
-	dies { $course_rs->updateCourse(info => { course_id => -9 }, params => $new_course_params); },
-	check_isa('DB::Exception::CourseNotFound'),
-	'updateCourse: update a non-existent course_id'
-);
+	is(
+		$deleted_course,
+		hash {
+			field course_id    => match qr/^\d*$/;
+			field course_name  => $geometry_course_params->{course_name};
+			field visible      => $geometry_course_params->{visible};
+			field course_dates => $geometry_course_params->{course_dates};
+			end;
+		},
+		'deleteCourse: delete a course'
+	);
 
-# Delete a course
-my $deleted_course = $course_rs->deleteCourse(info => { course_name => 'Geometry II' });
-removeIDs($deleted_course);
+	# Try to delete a non-existent course by name
+	is(
+		dies { $course_rs->deleteCourse(info => { course_name => 'undefined_name' }) },
+		check_isa('DB::Exception::CourseNotFound'),
+		'deleteCourse: delete a non-existent course_name'
+	);
 
-is($deleted_course, $new_course_params, 'deleteCourse: delete a course');
-
-# Try to delete a non-existent course by name
-is(
-	dies { $course_rs->deleteCourse(info => { course_name => 'undefined_name' }) },
-	check_isa('DB::Exception::CourseNotFound'),
-	'deleteCourse: delete a non-existent course_name'
-);
-
-# Try to delete a non-existent course by id
-is(
-	dies { $course_rs->deleteCourse(info => { course_id => -9 }) },
-	check_isa('DB::Exception::CourseNotFound'),
-	'deleteCourse: delete a non-existent course_id'
-);
-
-sub sortByCourseName {
-	my $course_rs = shift;
-	my @new_array = sort { $a->{course_name} cmp $b->{course_name} } @$course_rs;
-	return @new_array;
-}
-
-# Check that the courses table is returned to its original state.
-@courses_from_db = $course_rs->getCourses;
-for my $course (@courses_from_db) { removeIDs($course); }
-@courses_from_db = sortByCourseName(\@courses_from_db);
-
-is(\@courses_from_db, \@courses, 'check: courses db table is returned to its original state.');
+	# Try to delete a non-existent course by id
+	is(
+		dies { $course_rs->deleteCourse(info => { course_id => -9 }) },
+		check_isa('DB::Exception::CourseNotFound'),
+		'deleteCourse: delete a non-existent course_id'
+	);
+};
 
 done_testing();

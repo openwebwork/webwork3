@@ -4,3 +4,4 @@
 package.json
 package-lock.json
 tsconfig.json
+t/db/sample_data/*.json

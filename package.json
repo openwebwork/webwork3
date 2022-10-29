@@ -8,7 +8,7 @@
 	"scripts": {
 		"lint": "eslint --ext .js,.ts,.vue . --fix && stylelint \"./src/**/*.vue\" \"./src/**/*.scss\" --fix",
 		"test": "jest --testPathPattern='tests/unit-tests'",
-		"test-stores": "./bin/dev_scripts/test_pinia_stores",
+		"test-stores": "./bin/dev_scripts/test_pinia_stores.pl",
 		"serve": "morbo bin/webwork3 & quasar dev",
 		"build": "quasar build",
 		"perltidy": "bash perltidy --pro=./.perltidyrc -b -bext='/' ./**/*.{t,pl,pm}"

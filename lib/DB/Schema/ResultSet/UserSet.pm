@@ -61,12 +61,7 @@ That is, a C<ProblemSet> (HWSet, Quiz, ...) with UserSet overrides.
 =cut
 
 sub getAllUserSets ($self, %args) {
-	my @user_sets = $self->search(
-		{},
-		{
-			join => [ { 'problem_set' => 'courses' }, { 'course_users' => 'users' } ]
-		}
-	);
+	my @user_sets = $self->search({}, { join => [ { 'problem_set' => 'courses' }, { 'course_users' => 'users' } ] });
 
 	return @user_sets if $args{as_result_set};
 

@@ -1,11 +1,8 @@
-/**
- * @jest-environment jsdom
- */
+/** @jest-environment jsdom */
 // The above is needed because  1) the logger uses the window object, which is only present
 // when using the jsdom environment and 2) because the pinia store is used is being
 // tested with persistance.
 
-// problem_sets.spec.ts
 // Test the problem sets Store
 
 import { setActivePinia, createPinia } from 'pinia';
@@ -19,14 +16,15 @@ import { useSessionStore } from 'src/stores/session';
 import { HomeworkSet, ProblemSet, Quiz, ReviewSet } from 'src/common/models/problem_sets';
 import { Course } from 'src/common/models/courses';
 
-import { cleanIDs, loadCSV } from '../utils';
+import { cleanIDs } from '../utils';
 import { checkPassword } from 'src/common/api-requests/session';
 
 const app = createApp({});
 
 describe('Problem Set store tests', () => {
-	let problem_sets_from_csv: ProblemSet[];
+	const problem_sets_from_json: ProblemSet[] = [];
 	let precalc_course: Course;
+
 	beforeAll(async () => {
 		// Since we have the piniaPluginPersistedState as a plugin, duplicate for the test.
 		const pinia = createPinia().use(piniaPluginPersistedstate);
@@ -39,27 +37,17 @@ describe('Problem Set store tests', () => {
 		session_store.updateSessionInfo(session_info);
 		await session_store.fetchUserCourses();
 
-		const problem_set_config = {
-			params: ['set_params', 'set_dates' ],
-			boolean_fields: ['set_visible'],
-			param_boolean_fields: ['timed', 'enable_reduced_scoring', 'can_retake'],
-			param_non_neg_int_fields: ['quiz_duration']
-		};
+		(await import('../../t/db/sample_data/hw_sets.json')).default
+			.find((course) => course.course_name === 'Precalculus')
+			?.sets.forEach((set) => problem_sets_from_json.push(new HomeworkSet(set)));
 
-		const hw_sets_to_parse = await loadCSV('t/db/sample_data/hw_sets.csv', problem_set_config);
-		const hw_sets_from_csv = hw_sets_to_parse.filter(set => set.course_name === 'Precalculus')
-			.map(set => new HomeworkSet(set));
+		(await import('../../t/db/sample_data/quizzes.json')).default
+			.find((course) => course.course_name === 'Precalculus')
+			?.sets.forEach((set) => problem_sets_from_json.push(new Quiz(set)));
 
-		const quizzes_to_parse = await loadCSV('t/db/sample_data/quizzes.csv', problem_set_config);
-		const quizzes_from_csv = quizzes_to_parse.filter(set => set.course_name === 'Precalculus')
-			.map(q => new Quiz(q));
-
-		const review_sets_to_parse = await loadCSV('t/db/sample_data/review_sets.csv', problem_set_config);
-		const review_sets_from_csv = review_sets_to_parse.filter(set => set.course_name === 'Precalculus')
-			.map(set => new ReviewSet(set));
-
-		// combine quizzes, review sets and homework sets
-		problem_sets_from_csv = [...hw_sets_from_csv, ...quizzes_from_csv, ...review_sets_from_csv];
+		(await import('../../t/db/sample_data/review_sets.json')).default
+			.find((course) => course.course_name === 'Precalculus')
+			?.sets.forEach((set) => problem_sets_from_json.push(new ReviewSet(set)));
 
 		// We'll need the courses as well.
 		const courses_store = useCourseStore();
@@ -83,7 +71,7 @@ describe('Problem Set store tests', () => {
 			expect(problem_set_store.problem_sets.length).toBeGreaterThan(0);
 
 			expect(sortAndClean(problem_set_store.problem_sets as ProblemSet[]))
-				.toStrictEqual(sortAndClean(problem_sets_from_csv));
+				.toStrictEqual(sortAndClean(problem_sets_from_json));
 		});
 
 	});

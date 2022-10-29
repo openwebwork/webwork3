@@ -1,11 +1,8 @@
-/**
- * @jest-environment jsdom
- */
+/** @jest-environment jsdom */
 // The above is needed because  1) the logger uses the window object, which is only present
 // when using the jsdom environment and 2) because the pinia store is used is being
 // tested with persistance.
 
-// session.spec.ts
 // Test the Session Store
 
 import { createApp } from 'vue';
@@ -21,12 +18,12 @@ import { Course, UserCourse } from 'src/common/models/courses';
 import { SessionInfo } from 'src/common/models/session';
 import { ParseableUser, User } from 'src/common/models/users';
 
-import { cleanIDs, loadCSV } from '../utils';
+import { cleanIDs } from '../utils';
 
 const app = createApp({});
 
 describe('Session Store', () => {
-	let lisa_courses: UserCourse[];
+	const lisa_courses: UserCourse[] = [];
 	let lisa: User;
 
 	// session now just stores objects not models:
@@ -65,39 +62,30 @@ describe('Session Store', () => {
 		await api.post('login', { username: 'admin', password: 'admin' });
 
 		// Load the user course information for testing later.
-		const parsed_courses = await loadCSV('t/db/sample_data/courses.csv', {
-			boolean_fields: ['visible'],
-			non_neg_int_fields: ['course_id'],
-			params: ['course_dates', 'course_params']
-		});
+		const courses_from_json = (await import('../../t/db/sample_data/courses.json')).default.map(
+			(course) => new Course(course)
+		);
 
-		const courses_from_csv = parsed_courses.map(course => {
-			delete course.course_params;
-			return new Course(course);
-		});
-
-		const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
-			boolean_fields: ['is_admin'],
-			non_neg_int_fields: ['user_id']
-		});
+		const users_to_parse = (await import('../../t/db/sample_data/users.json')).default;
 
 		// Fetch the user lisa.  This is used below.
 		lisa = new User(await getUser('lisa'));
 
-		lisa_courses = users_to_parse.filter(user => user.username === 'lisa')
-			.map(user_course => {
-				const course = courses_from_csv.find(c => c.course_name == user_course.course_name)
-							?? new Course();
-				return new UserCourse({
-					course_id: 0, // will this be stripped before comparison later?
-					course_name: course.course_name,
-					user_id: lisa.user_id,
-					visible: course.visible,
-					role: user_course.role as string,
-					course_dates: course.course_dates
-				});
+		users_to_parse
+			.find((user) => user.username === 'lisa')
+			?.courses?.forEach((course_info) => {
+				const course = courses_from_json.find((c) => c.course_name == course_info.course_name) ?? new Course();
+				lisa_courses.push(
+					new UserCourse({
+						course_id: 0,
+						course_name: course.course_name,
+						user_id: lisa.user_id,
+						visible: course.visible,
+						role: course_info.course_user.role,
+						course_dates: course.course_dates,
+					})
+				);
 			});
-
 	});
 
 	describe('Testing the Session Store.', () => {

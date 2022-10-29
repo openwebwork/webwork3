@@ -1,0 +1,86 @@
+[
+	{
+		"course_name": "Precalculus",
+		"sets": [
+			{
+				"set_name": "HW #1",
+				"users": [
+					{
+						"username": "homer",
+						"user_set": {
+							"set_dates": {
+								"open": 1610150340,
+								"due": 1613433540,
+								"answer": 1614038340,
+								"enable_reduced_scoring": true
+							}
+						}
+					},
+					{ "username": "bart", "user_set": {} },
+					{ "username": "ned", "user_set": {} }
+				]
+			},
+			{
+				"set_name": "HW #2",
+				"users": [
+					{
+						"username": "homer",
+						"user_set": {
+							"set_dates": {
+								"open": 1610755140,
+								"due": 1614038340,
+								"answer": 1614211140,
+								"enable_reduced_scoring": false
+							}
+						}
+					},
+					{ "username": "bart", "user_set": {} },
+					{ "username": "ned", "user_set": {} }
+				]
+			},
+			{
+				"set_name": "HW #3",
+				"users": [
+					{
+						"username": "homer",
+						"user_set": {
+							"set_dates": {
+								"open": 1610755140,
+								"reduced_scoring": 1613865540,
+								"answer": 1615679940,
+								"enable_reduced_scoring": false
+							}
+						}
+					},
+					{ "username": "bart", "user_set": {} },
+					{ "username": "ned", "user_set": {} }
+				]
+			},
+			{ "set_name": "HW #4", "users": [{ "username": "ned", "user_set": {} }] }
+		]
+	},
+	{
+		"course_name": "Arithmetic",
+		"sets": [
+			{
+				"set_name": "HW #1",
+				"users": [
+					{ "username": "moe", "user_set": {} },
+					{ "username": "ralph", "user_set": {} }
+				]
+			},
+			{
+				"set_name": "HW #2",
+				"users": [{ "username": "ralph", "user_set": {} }]
+			}
+		]
+	},
+	{
+		"course_name": "Abstract Algebra",
+		"sets": [
+			{ "set_name": "HW #1", "users": [{ "username": "lisa", "user_set": {} }] },
+			{ "set_name": "HW #2", "users": [{ "username": "lisa", "user_set": {} }] },
+			{ "set_name": "HW #3", "users": [{ "username": "lisa", "user_set": {} }] }
+		]
+	}
+]

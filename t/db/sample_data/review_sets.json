@@ -1,0 +1,42 @@
+[
+	{
+		"course_name": "Precalculus",
+		"sets": [
+			{
+				"set_name": "Review #1",
+				"set_visible": true,
+				"set_dates": { "open": 1609545540, "closed": 1610323140 },
+				"set_params": { "can_retake": true }
+			},
+			{
+				"set_name": "Review #2",
+				"set_visible": true,
+				"set_dates": { "open": 1609545540, "closed": 1610323140 },
+				"set_params": { "can_retake": true }
+			},
+			{
+				"set_name": "Review #3",
+				"set_visible": true,
+				"set_dates": { "open": 1609545540, "closed": 1610323140 },
+				"set_params": { "can_retake": false }
+			}
+		]
+	},
+	{
+		"course_name": "Arithmetic",
+		"sets": [
+			{
+				"set_name": "Review #1",
+				"set_visible": true,
+				"set_dates": { "open": 1609545540, "closed": 1610323140 },
+				"set_params": { "can_retake": false }
+			},
+			{
+				"set_name": "Review #2",
+				"set_visible": true,
+				"set_dates": { "open": 1609545540, "closed": 1610323140 },
+				"set_params": { "can_retake": false }
+			}
+		]
+	}
+]

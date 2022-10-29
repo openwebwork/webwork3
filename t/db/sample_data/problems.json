@@ -1,0 +1,80 @@
+[
+	{
+		"course_name": "Precalculus",
+		"sets": [
+			{
+				"set_name": "HW #1",
+				"problems": [
+					{ "problem_number": 1, "problem_params": { "library_id": 1, "weight": 1 } },
+					{ "problem_number": 2, "problem_params": { "library_id": 2, "weight": 1 } },
+					{ "problem_number": 3, "problem_params": { "library_id": 3, "weight": 1 } }
+				]
+			},
+			{
+				"set_name": "HW #2",
+				"problems": [
+					{ "problem_number": 1, "problem_params": { "library_id": 4, "weight": 1 } },
+					{ "problem_number": 2, "problem_params": { "library_id": 5, "weight": 1 } },
+					{ "problem_number": 3, "problem_params": { "library_id": 6, "weight": 1 } }
+				]
+			},
+			{
+				"set_name": "HW #4",
+				"problems": [
+					{ "problem_number": 1, "problem_params": { "library_id": 4, "weight": 1 } },
+					{ "problem_number": 2, "problem_params": { "library_id": 5, "weight": 1 } },
+					{ "problem_number": 3, "problem_params": { "library_id": 6, "weight": 1 } }
+				]
+			}
+		]
+	},
+	{
+		"course_name": "Abstract Algebra",
+		"sets": [
+			{
+				"set_name": "HW #1",
+				"problems": [
+					{ "problem_number": 1, "problem_params": { "library_id": 10, "weight": 1 } },
+					{ "problem_number": 2, "problem_params": { "library_id": 11, "weight": 1 } },
+					{ "problem_number": 3, "problem_params": { "library_id": 12, "weight": 1 } },
+					{ "problem_number": 4, "problem_params": { "library_id": 13, "weight": 1 } },
+					{ "problem_number": 5, "problem_params": { "library_id": 14, "weight": 1 } }
+				]
+			}
+		]
+	},
+	{
+		"course_name": "Arithmetic",
+		"sets": [
+			{
+				"set_name": "HW #1",
+				"problems": [
+					{
+						"problem_number": 1,
+						"problem_params": {
+							"file_path":
+								"Library/UVA-FinancialMath/setFinancialMath-Sect10-AlgebraPrereqs/math114-0-01.pg",
+							"weight": 1
+						}
+					},
+					{
+						"problem_number": 2,
+						"problem_params": {
+							"file_path":
+								"Library/PCC/BasicAlgebra/Trigonometry/RightTriangleTrigApplication90.pg",
+							"weight": 2
+						}
+					},
+					{
+						"problem_number": 3,
+						"problem_params": {
+							"file_path":
+								"Library/PCC/BasicAlgebra/SignedNumbersArithemtic/AdditionWithNegativeNumbers10.pg",
+							"weight": 3
+						}
+					}
+				]
+			}
+		]
+	}
+]

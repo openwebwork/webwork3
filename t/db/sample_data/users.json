@@ -1,0 +1,120 @@
+[
+	{
+		"first_name": "Andrea",
+		"last_name": "Administrator",
+		"username": "admin",
+		"email": "admin@google.com",
+		"is_admin": true
+	},
+	{
+		"first_name": "Lisa",
+		"last_name": "Simpson",
+		"username": "lisa",
+		"email": "lisa@google.com",
+		"student_id": "23",
+		"courses": [
+			{ "course_name": "Abstract Algebra", "course_user": { "role": "student" } },
+			{ "course_name": "Arithmetic", "course_user": { "role": "instructor" } },
+			{ "course_name": "Topology", "course_user": { "role": "student" } }
+		]
+	},
+	{
+		"first_name": "Apu",
+		"last_name": "Nahasapeemapetilon",
+		"username": "apu",
+		"email": "apu@google.com",
+		"student_id": "8939",
+		"courses": [{ "course_name": "Abstract Algebra", "course_user": { "role": "student" } }]
+	},
+	{
+		"first_name": "Moe",
+		"last_name": "Szyslak",
+		"username": "moe",
+		"email": "moe@msn.com",
+		"student_id": "023",
+		"courses": [{ "course_name": "Arithmetic", "course_user": { "role": "student" } }]
+	},
+	{
+		"first_name": "Ralph",
+		"last_name": "Wiggum",
+		"username": "ralph",
+		"email": "ralph@ralph.com",
+		"student_id": "038",
+		"courses": [
+			{ "course_name": "Arithmetic", "course_user": { "role": "student" } },
+			{ "course_name": "Precalculus", "course_user": { "role": "student" } }
+		]
+	},
+	{
+		"first_name": "Marge",
+		"last_name": "Simpson",
+		"username": "marge",
+		"email": "marge@juno.com",
+		"student_id": "234",
+		"courses": [{ "course_name": "Calculus", "course_user": { "role": "student" } }]
+	},
+	{
+		"first_name": "Waylon",
+		"last_name": "Smithers",
+		"username": "smithers",
+		"email": "smithers@google.com",
+		"student_id": "3298",
+		"courses": [{ "course_name": "Calculus", "course_user": { "role": "student" } }]
+	},
+	{
+		"first_name": "Homer",
+		"last_name": "Simpson",
+		"username": "homer",
+		"email": "homer@aol.com",
+		"student_id": "12",
+		"courses": [
+			{
+				"course_name": "Precalculus",
+				"course_user": {
+					"role": "student",
+					"recitation": "1",
+					"course_user_params": { "comment": "hi there", "usemathquill": true }
+				}
+			}
+		]
+	},
+	{
+		"first_name": "Bart",
+		"last_name": "Simpson",
+		"username": "bart",
+		"email": "bart@aol.com",
+		"student_id": "132",
+		"courses": [{ "course_name": "Precalculus", "course_user": { "role": "student" } }]
+	},
+	{
+		"first_name": "Barney",
+		"last_name": "Gumble",
+		"username": "barney",
+		"email": "barney@google.com",
+		"student_id": "492",
+		"courses": [{ "course_name": "Precalculus", "course_user": { "role": "student" } }]
+	},
+	{
+		"first_name": "Ned",
+		"last_name": "Flanders",
+		"username": "ned",
+		"email": "ned@msn.com",
+		"student_id": "0983",
+		"courses": [{ "course_name": "Precalculus", "course_user": { "role": "student" } }]
+	},
+	{
+		"first_name": "Otto",
+		"last_name": "Mann",
+		"username": "otto",
+		"email": "otto@msn.com",
+		"student_id": "284",
+		"courses": [{ "course_name": "Precalculus", "course_user": { "role": "student" } }]
+	},
+	{
+		"first_name": "John",
+		"last_name": "Frink",
+		"username": "frink",
+		"email": "frink@frink.com",
+		"courses": [{ "course_name": "Precalculus", "course_user": { "role": "instructor" } }]
+	}
+]

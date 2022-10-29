@@ -1,0 +1,55 @@
+[
+	{
+		"course_name": "Precalculus",
+		"pools": [
+			{
+				"pool_name": "factoring problems",
+				"pool_problems": [
+					{ "params": { "library_id": 123 } },
+					{ "params": { "library_id": 223 } },
+					{ "params": { "library_id": 133 } },
+					{ "params": { "library_id": 124 } }
+				]
+			},
+			{
+				"pool_name": "solve exponentials",
+				"pool_problems": [
+					{ "params": { "library_id": 1237 } },
+					{ "params": { "library_id": 2237 } },
+					{ "params": { "library_id": 1337 } },
+					{ "params": { "library_id": 1247 } }
+				]
+			}
+		]
+	},
+	{
+		"course_name": "Arithmetic",
+		"pools": [
+			{
+				"pool_name": "adding fractions",
+				"pool_problems": [
+					{ "params": { "library_id": 4321 } },
+					{ "params": { "library_id": 9321 } },
+					{ "params": { "library_id": 431 } }
+				]
+			},
+			{
+				"pool_name": "mixed numbers",
+				"pool_problems": [
+					{ "params": { "library_id": 4322 } },
+					{ "params": { "library_id": 920 } },
+					{ "params": { "library_id": 3219 } }
+				]
+			},
+			{
+				"pool_name": "multiplying fractions",
+				"pool_problems": [
+					{ "params": { "library_id": 3923 } },
+					{ "params": { "library_id": 3234 } },
+					{ "params": { "library_id": 8372 } },
+					{ "params": { "library_id": 932 } }
+				]
+			}
+		]
+	}
+]

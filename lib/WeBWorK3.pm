@@ -16,21 +16,14 @@ sub startup ($app) {
 
 		$config_file = $app->home->child('conf', 'webwork3.yml');
 		$config_file = $app->home->child('conf', 'webwork3.dist.yml') unless -e $config_file;
-	} elsif ($ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'test') {
-		$app->log->path($app->home->child('logs', 'webwork3_test.log'));
-		$app->log->level('trace');
-
-		$config_file = $app->home->child('conf', 'webwork3-test.yml');
-		$config_file = $app->home->child('conf', 'webwork3-test.dist.yml') unless -e $config_file;
-		$app->plugin(NotYAMLConfig => { file => $config_file });
 	} else {
 		$config_file = $app->home->child('conf', 'webwork3-dev.yml');
 		$config_file = $app->home->child('conf', 'webwork3.yml')      unless -e $config_file;
 		$config_file = $app->home->child('conf', 'webwork3.dist.yml') unless -e $config_file;
 	}
 
-	# Load configuration from config file
-	my $config = $app->plugin(NotYAMLConfig => { file => $config_file });
+	# Load the configuration from the config file, or for unit tests get the supplied config.
+	my $config = $config_file ? $app->plugin(NotYAMLConfig => { file => $config_file }) : $app->config;
 
 	# Configure the application
 	$app->secrets($config->{secrets});
@@ -39,8 +32,13 @@ sub startup ($app) {
 	$app->plugin(
 		DBIC => {
 			schema => DB::Schema->connect(
-				$config->{database_dsn}, $config->{database_user},
-				$config->{database_password}, { quote_names => 1 }
+				$config->{database_dsn},
+				$config->{database_user},
+				$config->{database_password},
+				{
+					quote_names => 1,
+					$config->{database_on_connect_do} ? (on_connect_do => $config->{database_on_connect_do}) : ()
+				}
 			)
 		}
 	);

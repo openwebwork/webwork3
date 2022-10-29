@@ -1,11 +1,8 @@
-/**
- * @jest-environment jsdom
- */
+/** @jest-environment jsdom */
 // The above is needed because  1) the logger uses the window object, which is only present
 // when using the jsdom environment and 2) because the pinia store is used is being
 // tested with persistance.
 
-// users.spec.ts
 // Test the user Store
 
 import { createApp } from 'vue';
@@ -15,7 +12,7 @@ import { api } from 'boot/axios';
 
 import { useCourseStore } from 'src/stores/courses';
 import { useUserStore } from 'src/stores/users';
-import { cleanIDs, loadCSV } from '../utils';
+import { cleanIDs } from '../utils';
 
 import { Course } from 'src/common/models/courses';
 import { CourseUser, User } from 'src/common/models/users';
@@ -23,9 +20,9 @@ import { CourseUser, User } from 'src/common/models/users';
 const app = createApp({});
 
 describe('User store tests', () => {
-	let global_users: User[];
-	let precalc_global_users: User[];
-	let precalc_users: CourseUser[];
+	const global_users: User[] = [];
+	const precalc_global_users: User[] = [];
+	const precalc_users: CourseUser[] = [];
 	let precalc_course: Course;
 	beforeAll(async () => {
 		// Since we have the piniaPluginPersistedState as a plugin, duplicate for the test.
@@ -36,22 +33,19 @@ describe('User store tests', () => {
 		// Login to the course as the admin in order to be authenticated for the rest of the test.
 		await api.post('login', { username: 'admin', password: 'admin' });
 
-		const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
-			boolean_fields: ['is_admin'],
-			non_neg_int_fields: ['user_id']
-		});
+		// Load the users from the JSON file.
+		const users = (await import('../../t/db/sample_data/users.json')).default;
 
-		// Do some parsing and cleanup.
-		const all_users_from_csv = users_to_parse.map(user => new User(user));
-		precalc_global_users = users_to_parse.filter(user => user.course_name === 'Precalculus')
-			.map(user => new User(user));
-		precalc_users = users_to_parse.filter(user => user.course_name === 'Precalculus')
-			.map(user => new CourseUser(user));
+		for (const user of users) {
+			if (user.username === 'admin') continue;
+			global_users.push(new User(user));
 
-		// remove duplicates (for users in multiple courses) for global users
-		const usernames = [... new Set(all_users_from_csv.map(user => user.username))];
-		global_users = usernames.map(username => all_users_from_csv
-			.find(user => user.username === username) ?? new User());
+			const precalcCourseUser = user.courses?.find((course) => course.course_name === 'Precalculus');
+			if (!precalcCourseUser) continue;
+
+			precalc_global_users.push(new User(user));
+			precalc_users.push(new CourseUser({ ...user, ...precalcCourseUser.course_user }));
+		}
 
 		// fetch the courses, so we can get the course_id of desired course.
 		const course_store = useCourseStore();
