@@ -88,7 +88,7 @@ C<showOldAnswers>: whether or not the user shows old answer (boolean)
 
 __PACKAGE__->table('course_user');
 
-__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
+__PACKAGE__->load_components(qw/InflateColumn::Serializer Core/);
 
 __PACKAGE__->add_columns(
 	course_user_id => {

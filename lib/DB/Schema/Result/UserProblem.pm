@@ -15,7 +15,7 @@ use base qw/DBIx::Class::Core DB::Validation/;
 
 __PACKAGE__->table('user_problem');
 
-__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
+__PACKAGE__->load_components(qw/InflateColumn::Serializer Core/);
 
 __PACKAGE__->add_columns(
 	user_problem_id => {

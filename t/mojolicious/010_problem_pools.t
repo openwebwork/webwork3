@@ -150,7 +150,7 @@ $t->put_ok(
 )->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/params/library_id' => 8932);
 
 # Make sure that students don't have access to Problem Pools
-$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => false);
 $t->post_ok('/webwork3/api/login' => json => { username => 'ralph', password => 'ralph' })->status_is(200);
 
 $t->get_ok('/webwork3/api/courses/4/pools')->status_is(403);
@@ -189,7 +189,7 @@ $t->delete_ok(
 )->status_is(403);
 
 # Cleanup.  Log back in as the instructor and delete added pool and problem
-$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => false);
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200);
 
 # Delete the pool problem.

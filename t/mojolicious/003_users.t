@@ -38,8 +38,8 @@ my $t = Test::Mojo->new(WeBWorK3 => $config);
 # Test all of the user routes with an admin user.
 
 $t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/user_id' => 1)
-	->json_is('/user/is_admin' => 1);
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => true)->json_is('/user/user_id' => 1)
+	->json_is('/user/is_admin' => true);
 
 my @all_users = $schema->resultset('User')->getAllGlobalUsers();
 
@@ -56,7 +56,7 @@ my $new_user = {
 	last_name  => 'Simpson',
 	username   => 'maggie',
 	student_id => '1234123423',
-	is_admin   => 0
+	is_admin   => false
 };
 
 $t->post_ok('/webwork3/api/users' => json => $new_user)->status_is(200)
@@ -158,10 +158,10 @@ $t->delete_ok("/webwork3/api/users/$another_new_user_id")->status_is(200)
 # Test that a non-admin user cannot access all of the routes
 # Logout the admin user and relogin as a non-admin.
 
-$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => false);
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
-	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => 0);
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => true)
+	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => false);
 
 $t->get_ok('/webwork3/api/users')->content_type_is('application/json;charset=UTF-8')->status_is(403)
 	->json_is('/has_permission' => 0);
@@ -182,7 +182,7 @@ $t->delete_ok('/webwork3/api/users/1')->content_type_is('application/json;charse
 $t->get_ok('/webwork3/api/users/3/courses')->status_is(200)->content_type_is('application/json;charset=UTF-8');
 
 # Relogin as the admin and delete the added users
-$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => false);
 $t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200);
 
 # The following routes test that global users can be handled by an instructor in the course

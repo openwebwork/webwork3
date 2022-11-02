@@ -41,8 +41,8 @@ my $t = Test::Mojo->new(WeBWorK3 => $config);
 
 # First run tests as logged in as an instructor
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
-	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => 0);
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => true)
+	->json_is('/user/username' => 'lisa')->json_is('/user/is_admin' => false);
 
 # Load all problems from the CVS files.
 my @problems_from_csv = loadCSV(
@@ -111,10 +111,10 @@ $t->put_ok(
 	->json_is('/problem_number' => $new_problem->{problem_number})->json_is('/problem_params/weight' => 3);
 
 # Make sure that a student cannot access the global problem routes
-$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => false);
 $t->post_ok('/webwork3/api/login' => json => { username => 'ralph', password => 'ralph' })->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)
-	->json_is('/user/username' => 'ralph')->json_is('/user/is_admin' => 0);
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => true)
+	->json_is('/user/username' => 'ralph')->json_is('/user/is_admin' => false);
 
 my $logged_in_user = $t->tx->res->json('/user');
 
@@ -157,10 +157,10 @@ $t->delete_ok("/webwork3/api/courses/4/sets/$hw1->{set_id}/problems/$new_problem
 
 # Make sure that a student not enrolled in the course has access to getting global problems
 # for that course.
-$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => false);
 $t->post_ok('/webwork3/api/login' => json => { username => 'ned', password => 'ned' })->status_is(200)
-	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => 1)->json_is('/user/username' => 'ned')
-	->json_is('/user/is_admin' => 0);
+	->content_type_is('application/json;charset=UTF-8')->json_is('/logged_in' => true)
+	->json_is('/user/username' => 'ned')->json_is('/user/is_admin' => false);
 
 $logged_in_user = $t->tx->res->json('/user');
 
@@ -174,7 +174,7 @@ is(scalar(grep { $_->{course_name} eq 'Arithmetic' } @$user_courses), 0, 'The us
 $t->get_ok('/webwork3/api/courses/4/problems')->status_is(403)->content_type_is('application/json;charset=UTF-8');
 
 # Finally, delete the new problem to restore the db to it's pretest state.
-$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => false);
 $t->post_ok('/webwork3/api/login' => json => { username => 'admin', password => 'admin' })->status_is(200);
 
 $t->delete_ok("/webwork3/api/courses/4/sets/$hw1->{set_id}/problems/$new_problem->{set_problem_id}")->status_is(200)

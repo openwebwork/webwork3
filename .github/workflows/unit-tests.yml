@@ -1,18 +1,73 @@
+---
 name: Unit Tests and Coverage
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   unit-tests:
-    runs-on: ubuntu-latest
-    # If we are going to use a prebuilt image like this we need a webwork repository on docker hub
-    container: drgrice1/webwork3
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout webwork3 source code
+        uses: actions/checkout@v3
+
+      # Disabling these things speeds up the setup considerably, and they are not needed for the throw away machine.
+      - name: Disable man-db and initramfs updates
+        run: |
+          sudo sed -i 's/yes/no/g' /etc/initramfs-tools/update-initramfs.conf
+          sudo rm -f /var/lib/man-db/auto-update
+
+      - name: Install dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+          DEBCONF_NONINTERACTIVE_SEEN: true
+          DEBCONF_NOWARNINGS: yes
+        run: |
+          sudo apt-get update
+          sudo apt-get install -qy --no-install-recommends --no-install-suggests \
+            cpanminus \
+            libarray-utils-perl \
+            libcanary-stability-perl \
+            libcapture-tiny-perl \
+            libclass-accessor-lite-perl \
+            libclone-perl \
+            libcpanel-json-xs-perl \
+            libcrypt-ssleay-perl \
+            libdata-dump-perl \
+            libdatetime-format-strptime-perl \
+            libdbd-sqlite3-perl \
+            libdbix-class-inflatecolumn-serializer-perl \
+            libdbix-class-perl \
+            libdbix-dbschema-perl \
+            libdevel-cover-perl \
+            libexception-class-perl \
+            libextutils-config-perl \
+            libextutils-helpers-perl \
+            libextutils-installpaths-perl \
+            libfurl-perl \
+            libhttp-parser-xs-perl \
+            libimporter-perl \
+            libio-socket-ssl-perl \
+            liblist-moreutils-perl \
+            libmodule-build-tiny-perl \
+            libmojolicious-perl \
+            libmojolicious-plugin-authentication-perl \
+            libnet-ssleay-perl \
+            libsql-translator-perl \
+            libtest-exception-perl \
+            libtest-harness-perl \
+            libtext-csv-perl \
+            libtry-tiny-perl \
+            libyaml-libyaml-perl
+          cpanm --sudo --notest \
+            DBIx::Class::DynamicSubclass \
+            Mojolicious::Plugin::DBIC \
+            Mojolicious::Plugin::NotYAMLConfig \
+            Devel::Cover::Report::Codecov
+
       - name: Run perl unit tests
         env:
           HARNESS_PERL_SWITCHES: -MDevel::Cover
@@ -20,24 +75,20 @@ jobs:
           perl t/db/build_db.pl
           prove -r t
 
-      # we probably don'te need to upload the codecov data
-      # - uses: actions/upload-artifact@v2
-      #   with:
-      #     name: coverage-report
-      #     path: cover_db/
-
       - name: Push coverage analysis
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: cover -report codecov
 
-      # Install node (for npm) and use it to install eslint and stylelint dependencies.
-      - name: Use Node.js
-        uses: actions/setup-node@v2
+      # Install node (for npm).
+      - name: Set up node
+        uses: actions/setup-node@v3
         with:
           node-version: '16'
+
       - name: Install Dependencies
         run: npm ci
+
       - name: Run typescript (client-side) tests
         run: npm run test
