@@ -2,8 +2,8 @@
 
 use Mojo::Base -strict;
 
-use Test::More;
-use Test::Mojo;
+use Test2::V0;
+use Test2::MojoX;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -18,11 +18,9 @@ use DB::Schema;
 use Clone qw/clone/;
 use Mojo::JSON qw/true false/;
 use YAML::XS qw/LoadFile/;
-use DateTime::Format::Strptime;
 
 use TestUtils qw/loadCSV removeIDs/;
 
-my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 # Test the api with common "users" routes.
 
 # Load the config file.
@@ -38,7 +36,7 @@ my $schema = DB::Schema->connect(
 	{ quote_names => 1 }
 );
 
-my $t = Test::Mojo->new(WeBWorK3 => $config);
+my $t = Test2::MojoX->new(WeBWorK3 => $config);
 
 # Login as an user with instructor privileges in a course (Arithmetic; course_id: 4)
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
@@ -79,7 +77,7 @@ for my $pool (@$arith_pools) {
 }
 # my @sorted_arith_pools = sort { $a->{pool_name} cmp $b->{pool_name} } @$arith_pools;
 
-is_deeply($arith_pools, \@arith_problem_pools, 'getProblemPools: get problem pools from one course');
+is($arith_pools, \@arith_problem_pools, 'getProblemPools: get problem pools from one course');
 
 $t->get_ok("/webwork3/api/courses/4/pools/$arith_pools_from_db[0]->{problem_pool_id}")->status_is(200)
 	->json_is('/pool_name' => $arith_problem_pools[0]->{pool_name});
@@ -150,7 +148,7 @@ $t->put_ok(
 )->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is('/params/library_id' => 8932);
 
 # Make sure that students don't have access to Problem Pools
-$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => false);
 $t->post_ok('/webwork3/api/login' => json => { username => 'ralph', password => 'ralph' })->status_is(200);
 
 $t->get_ok('/webwork3/api/courses/4/pools')->status_is(403);
@@ -189,7 +187,7 @@ $t->delete_ok(
 )->status_is(403);
 
 # Cleanup.  Log back in as the instructor and delete added pool and problem
-$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => 0);
+$t->post_ok('/webwork3/api/logout')->status_is(200)->json_is('/logged_in' => false);
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200);
 
 # Delete the pool problem.

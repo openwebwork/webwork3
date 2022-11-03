@@ -65,7 +65,7 @@ Note: a problem should have only one of a library_id, problem_path or problem_po
 
 __PACKAGE__->table('set_problem');
 
-__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
+__PACKAGE__->load_components(qw/InflateColumn::Serializer Core/);
 
 __PACKAGE__->add_columns(
 	set_problem_id => {

@@ -2,8 +2,8 @@
 
 use Mojo::Base -strict;
 
-use Test::More;
-use Test::Mojo;
+use Test2::V0;
+use Test2::MojoX;
 use Mojo::JSON qw/true false/;
 
 BEGIN {
@@ -33,7 +33,7 @@ my $schema = DB::Schema->connect(
 	{ quote_names => 1 }
 );
 
-my $t = Test::Mojo->new(WeBWorK3 => $config);
+my $t = Test2::MojoX->new(WeBWorK3 => $config);
 
 # Login as an instructor in the Arithmetic course (course_id: 4)
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)

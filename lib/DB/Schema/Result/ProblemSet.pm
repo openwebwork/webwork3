@@ -71,11 +71,9 @@ L<DB::Schema::Result::ProblemSet::ReviewSet> which gives properties common to re
 
 =cut
 
-__PACKAGE__->load_components(qw/DynamicSubclass Core/);
-
 __PACKAGE__->table('problem_set');
 
-__PACKAGE__->load_components(qw/DynamicSubclass Core/, qw/InflateColumn::Serializer Core/);
+__PACKAGE__->load_components(qw/DynamicSubclass Core InflateColumn::Serializer InflateColumn::Boolean Core/);
 
 __PACKAGE__->add_columns(
 	set_id => {

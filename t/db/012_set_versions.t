@@ -14,8 +14,7 @@ BEGIN {
 use lib "$main::ww3_dir/lib";
 use lib "$main::ww3_dir/t/lib";
 
-use Test::More;
-use Test::Exception;
+use Test2::V0;
 use YAML::XS qw/LoadFile/;
 use Clone qw/clone/;
 
@@ -148,7 +147,7 @@ my $user_set1_from_csv = (
 
 # Make a new user set that has a  set_version of 1
 
-is_deeply($user_set1_from_csv, $user_set1, 'getUserSet: get a single user set from a course.');
+is($user_set1, $user_set1_from_csv, 'getUserSet: get a single user set from a course.');
 
 my $user_set1_v1_params = clone $user_set1;
 $user_set1_v1_params->{set_version} = 1;
@@ -157,7 +156,7 @@ my $user_set1_v1 = $user_set_rs->addUserSet(params => { %$user_set_info1, %$user
 removeIDs($user_set1_v1);
 cleanUndef($user_set1_v1);
 
-is_deeply($user_set1_v1, $user_set1_v1_params, "addUserSet: add a user set with version =1 ");
+is($user_set1_v1, $user_set1_v1_params, "addUserSet: add a user set with version =1 ");
 
 # Make a new user set that has a  set_version of 2
 
@@ -168,7 +167,7 @@ my $user_set1_v2 = $user_set_rs->addUserSet(params => { %$user_set_info1, %$user
 removeIDs($user_set1_v2);
 cleanUndef($user_set1_v2);
 
-is_deeply($user_set1_v2, $user_set1_v2_params, "addUserSet: add a user set with  version = 2.");
+is($user_set1_v2, $user_set1_v2_params, "addUserSet: add a user set with  version = 2.");
 
 my @all_user_set_versions = $user_set_rs->getUserSetVersions(info => $user_set_info1);
 for my $user_set (@all_user_set_versions) {
@@ -176,7 +175,7 @@ for my $user_set (@all_user_set_versions) {
 	cleanUndef($user_set);
 }
 
-is_deeply(
+is(
 	\@all_user_set_versions,
 	[ $user_set1, $user_set1_v1, $user_set1_v2 ],
 	'getUserSetVersions: get all versions of a user set.'
@@ -195,7 +194,7 @@ my $user_set_v1_to_delete = $user_set_rs->deleteUserSet(
 
 removeIDs($user_set_v1_to_delete);
 cleanUndef($user_set_v1_to_delete);
-is_deeply($user_set_v1_to_delete, $user_set1_v1, 'deleteUserSet: delete user set with set_version = 1');
+is($user_set_v1_to_delete, $user_set1_v1, 'deleteUserSet: delete user set with set_version = 1');
 
 my $user_set_v2_to_delete = $user_set_rs->deleteUserSet(
 	info => {
@@ -208,7 +207,7 @@ my $user_set_v2_to_delete = $user_set_rs->deleteUserSet(
 
 removeIDs($user_set_v2_to_delete);
 cleanUndef($user_set_v2_to_delete);
-is_deeply($user_set_v2_to_delete, $user_set1_v2, 'deleteUserSet: delete a versioned user set');
+is($user_set_v2_to_delete, $user_set1_v2, 'deleteUserSet: delete a versioned user set');
 
 # Ensure that the user_sets table is restored.
 my @all_user_sets_from_db = $user_set_rs->getAllUserSets(merged => 1);
@@ -224,6 +223,6 @@ for my $set (@all_user_sets_from_db) {
 @all_user_sets_from_db =
 	sort { $a->{course_name} cmp $b->{course_name} || $a->{set_name} cmp $b->{set_name} } @all_user_sets_from_db;
 
-is_deeply(\@all_user_sets_from_db, \@merged_user_sets, 'check: Ensure that the user_sets table is restored.');
+is(\@all_user_sets_from_db, \@merged_user_sets, 'check: Ensure that the user_sets table is restored.');
 
 done_testing;

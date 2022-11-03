@@ -19,7 +19,7 @@ each test.
 
 ## Note
 
-If you get an error, try rerunning steps 2 and 3 above.  This rebuids the database
+If you get an error, try rerunning steps 2 and 3 above.  This rebuilds the database
 and reruns all of the tests.
 
 ## To do

@@ -2,11 +2,10 @@
 
 use Mojo::Base -strict;
 
-use Test::More;
-use Test::Mojo;
+use Test2::V0;
+use Test2::MojoX;
 use YAML::XS qw/LoadFile/;
-
-use YAML::XS qw/LoadFile/;
+use Mojo::JSON qw/true false/;
 
 BEGIN {
 	use File::Basename qw/dirname/;
@@ -20,7 +19,7 @@ use lib "$main::ww3_dir/lib";
 my $config_file = "$main::ww3_dir/conf/webwork3-test.yml";
 $config_file = "$main::ww3_dir/conf/webwork3-test.dist.yml" unless (-e $config_file);
 
-my $t = Test::Mojo->new('WeBWorK3' => LoadFile($config_file));
+my $t = Test2::MojoX->new('WeBWorK3' => LoadFile($config_file));
 
 # Test missing credentials
 $t->post_ok('/webwork3/api/login')->status_is(500, 'error status')->content_type_is('application/json;charset=UTF-8')
@@ -36,11 +35,11 @@ $t->post_ok('/webwork3/api/login')->status_is(500, 'error status')->content_type
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is(
 		'' => {
-			logged_in => 1,
+			logged_in => true,
 			user      => {
 				email      => 'lisa@google.com',
 				first_name => 'Lisa',
-				is_admin   => 0,
+				is_admin   => false,
 				last_name  => 'Simpson',
 				student_id => '23',
 				user_id    => 3,
@@ -53,7 +52,7 @@ $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => '
 # Test logout
 $t->post_ok('/webwork3/api/logout')->status_is(200)->content_type_is('application/json;charset=UTF-8')->json_is(
 	'' => {
-		logged_in => 0,
+		logged_in => false,
 		message   => 'Successfully logged out.'
 	},
 	'logout'
@@ -63,7 +62,7 @@ $t->post_ok('/webwork3/api/logout')->status_is(200)->content_type_is('applicatio
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'wrong_password' })->status_is(200)
 	->content_type_is('application/json;charset=UTF-8')->json_is(
 		'' => {
-			logged_in => 0,
+			logged_in => false,
 			message   => 'Incorrect username or password.'
 		},
 		'invalid credentials'

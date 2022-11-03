@@ -2,8 +2,8 @@
 
 use Mojo::Base -strict;
 
-use Test::More;
-use Test::Mojo;
+use Test2::V0;
+use Test2::MojoX;
 use Mojo::JSON qw/true false/;
 
 BEGIN {
@@ -18,10 +18,8 @@ use lib "$main::ww3_dir/t/lib";
 use DB::Schema;
 use Clone qw/clone/;
 use YAML::XS qw/LoadFile/;
-use DateTime::Format::Strptime;
 use TestUtils qw/loadCSV/;
 
-my $strp = DateTime::Format::Strptime->new(pattern => '%FT%T', on_error => 'croak');
 # Test the api with common "users" routes.
 
 # Load the config file.
@@ -37,7 +35,7 @@ my $schema = DB::Schema->connect(
 	{ quote_names => 1 }
 );
 
-my $t = Test::Mojo->new(WeBWorK3 => $config);
+my $t = Test2::MojoX->new(WeBWorK3 => $config);
 
 # Login as an user with instructor privileges in a course (Arithmetic; course_id: 4)
 $t->post_ok('/webwork3/api/login' => json => { username => 'lisa', password => 'lisa' })->status_is(200)
