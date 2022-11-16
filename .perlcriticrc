@@ -5,3 +5,10 @@ severity = 4
 # Allow no warnings usage with a category restriction (for signatures)
 [TestingAndDebugging::ProhibitNoWarnings]
 allow_with_category_restriction = 1
+
+# Allow $a and $b in sort functions.  If sort functions are added to the code not in a "sort" call, they must be added
+# to this list.  Annoyingly both of these policies that do the same thing have to each get the list.
+[Community::DollarAB]
+extra_pair_functions = user_prob_sort_fcn
+[Freenode::DollarAB]
+extra_pair_functions = user_prob_sort_fcn

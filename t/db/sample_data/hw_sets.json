@@ -1,0 +1,161 @@
+[
+	{
+		"course_name": "Precalculus",
+		"sets": [
+			{
+				"set_name": "HW #1",
+				"set_visible": true,
+				"set_dates": {
+					"open": 1609545540,
+					"reduced_scoring": 1610323140,
+					"due": 1612137540,
+					"answer": 1613951940,
+					"enable_reduced_scoring": true
+				},
+				"set_params": {}
+			},
+			{
+				"set_name": "HW #2",
+				"set_visible": true,
+				"set_dates": {
+					"open": 1609545540,
+					"reduced_scoring": 1610323140,
+					"due": 1612137540,
+					"answer": 1613951940,
+					"enable_reduced_scoring": true
+				},
+				"set_params": {}
+			},
+			{
+				"set_name": "HW #3",
+				"set_visible": true,
+				"set_dates": {
+					"open": 1609545540,
+					"reduced_scoring": 1610323140,
+					"due": 1612137540,
+					"answer": 1613951940,
+					"enable_reduced_scoring": true
+				},
+				"set_params": {}
+			},
+			{
+				"set_name": "HW #4",
+				"set_visible": true,
+				"set_dates": {
+					"open": 1609545540,
+					"reduced_scoring": 1610323140,
+					"due": 1612137540,
+					"answer": 1613951940,
+					"enable_reduced_scoring": true
+				},
+				"set_params": {}
+			},
+			{
+				"set_name": "HW #5",
+				"set_visible": true,
+				"set_dates": {
+					"open": 1609545540,
+					"reduced_scoring": 1610323140,
+					"due": 1612137540,
+					"answer": 1613951940,
+					"enable_reduced_scoring": true
+				},
+				"set_params": {}
+			},
+			{
+				"set_name": "HW #6",
+				"set_visible": true,
+				"set_dates": {
+					"open": 1609545540,
+					"reduced_scoring": 1610323140,
+					"due": 1612137540,
+					"answer": 1613951940,
+					"enable_reduced_scoring": true
+				},
+				"set_params": {}
+			}
+		]
+	},
+	{
+		"course_name": "Abstract Algebra",
+		"sets": [
+			{
+				"set_name": "HW #1",
+				"set_visible": true,
+				"set_dates": {
+					"open": 1609545540,
+					"reduced_scoring": 1610323140,
+					"due": 1612137540,
+					"answer": 1613951940,
+					"enable_reduced_scoring": true
+				},
+				"set_params": {}
+			},
+			{
+				"set_name": "HW #2",
+				"set_visible": true,
+				"set_dates": {
+					"open": 1609545540,
+					"reduced_scoring": 1610323140,
+					"due": 1612137540,
+					"answer": 1613951940,
+					"enable_reduced_scoring": true
+				},
+				"set_params": {}
+			},
+			{
+				"set_name": "HW #3",
+				"set_visible": true,
+				"set_dates": {
+					"open": 1609545540,
+					"reduced_scoring": 1610323140,
+					"due": 1612137540,
+					"answer": 1613951940,
+					"enable_reduced_scoring": true
+				},
+				"set_params": {}
+			}
+		]
+	},
+	{
+		"course_name": "Arithmetic",
+		"sets": [
+			{
+				"set_name": "HW #1",
+				"set_visible": true,
+				"set_dates": {
+					"open": 1609545540,
+					"reduced_scoring": 1610323140,
+					"due": 1612137540,
+					"answer": 1613951940,
+					"enable_reduced_scoring": true
+				},
+				"set_params": {}
+			},
+			{
+				"set_name": "HW #2",
+				"set_visible": true,
+				"set_dates": {
+					"open": 1609545540,
+					"reduced_scoring": 1610323140,
+					"due": 1612137540,
+					"answer": 1613951940,
+					"enable_reduced_scoring": true
+				},
+				"set_params": {}
+			},
+			{
+				"set_name": "HW #3",
+				"set_visible": true,
+				"set_dates": {
+					"open": 1609545540,
+					"reduced_scoring": 1610323140,
+					"due": 1612137540,
+					"answer": 1613951940,
+					"enable_reduced_scoring": true
+				},
+				"set_params": {}
+			}
+		]
+	}
+]

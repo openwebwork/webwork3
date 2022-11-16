@@ -1,17 +1,13 @@
-/**
- * @jest-environment jsdom
- */
+/** @jest-environment jsdom */
 // The above is needed because  1) the logger uses the window object, which is only present
 // when using the jsdom environment and 2) because the pinia store is used is being
 // tested with persistance.
 
-// problem_sets.spec.ts
 // Test the user sets Store
 
 import { createApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
-import { api } from 'boot/axios';
 
 import { useCourseStore } from 'src/stores/courses';
 import { useProblemSetStore } from 'src/stores/problem_sets';
@@ -19,22 +15,20 @@ import { useSessionStore } from 'src/stores/session';
 import { useUserStore } from 'src/stores/users';
 
 import { Course } from 'src/common/models/courses';
-import {
-	ProblemSet, HomeworkSet, Quiz, ReviewSet, ParseableProblemSetDates, ParseableProblemSetParams
-} from 'src/common/models/problem_sets';
+import { ProblemSet, HomeworkSet, Quiz, ReviewSet } from 'src/common/models/problem_sets';
 import { CourseUser } from 'src/common/models/users';
 import {
 	UserSet, UserHomeworkSet, UserQuiz, UserReviewSet, mergeUserSet, parseDBUserSet, DBUserHomeworkSet
 } from 'src/common/models/user_sets';
 
-import { loadCSV, cleanIDs } from '../utils';
+import { cleanIDs } from '../utils';
 import { checkPassword } from 'src/common/api-requests/session';
 
 const app = createApp({});
 
 describe('Tests user sets and merged user sets in the problem set store', () => {
-	let problem_sets_from_csv: ProblemSet[];
-	let precalc_user_sets: UserSet[];
+	const problem_sets_from_json: ProblemSet[] = [];
+	const precalc_user_sets: UserSet[] = [];
 
 	let precalc_course: Course;
 	beforeAll(async () => {
@@ -49,27 +43,17 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 		session_store.updateSessionInfo(session_info);
 		await session_store.fetchUserCourses();
 
-		const problem_set_config = {
-			params: ['set_params', 'set_dates' ],
-			boolean_fields: ['set_visible'],
-			param_boolean_fields: ['timed', 'enable_reduced_scoring', 'can_retake'],
-			param_non_neg_int_fields: ['quiz_duration']
-		};
+		(await import('../../t/db/sample_data/hw_sets.json')).default
+			.find((course) => course.course_name === 'Precalculus')
+			?.sets.map((set) => problem_sets_from_json.push(new HomeworkSet(set)));
 
-		const hw_sets_to_parse = await loadCSV('t/db/sample_data/hw_sets.csv', problem_set_config);
-		const hw_sets_from_csv = hw_sets_to_parse.filter(set => set.course_name === 'Precalculus')
-			.map(set => new HomeworkSet(set));
+		(await import('../../t/db/sample_data/quizzes.json')).default
+			.find((course) => course.course_name === 'Precalculus')
+			?.sets.map((set) => problem_sets_from_json.push(new Quiz(set)));
 
-		const quizzes_to_parse = await loadCSV('t/db/sample_data/quizzes.csv', problem_set_config);
-		const quizzes_from_csv = quizzes_to_parse.filter(set => set.course_name === 'Precalculus')
-			.map(q => new Quiz(q));
-
-		const review_sets_to_parse = await loadCSV('t/db/sample_data/review_sets.csv', problem_set_config);
-		const review_sets_from_csv = review_sets_to_parse.filter(set => set.course_name === 'Precalculus')
-			.map(set => new ReviewSet(set));
-
-		// combine quizzes, review sets and homework sets
-		problem_sets_from_csv = [...hw_sets_from_csv, ...quizzes_from_csv, ...review_sets_from_csv];
+		(await import('../../t/db/sample_data/review_sets.json')).default
+			.find((course) => course.course_name === 'Precalculus')
+			?.sets.map((set) => problem_sets_from_json.push(new ReviewSet(set)));
 
 		// We'll need the courses as well.
 		const courses_store = useCourseStore();
@@ -93,45 +77,45 @@ describe('Tests user sets and merged user sets in the problem set store', () => 
 			await problem_set_store.fetchAllUserSets(precalc_course.course_id);
 			expect(problem_set_store.user_sets.length).toBeGreaterThan(0);
 
-			// Setup and load the user sets data from a csv file.
-			const user_sets_to_parse = await loadCSV('t/db/sample_data/user_sets.csv', {
-				params: ['set_dates', 'set_params'],
-				boolean_fields: ['set_visible'],
-				param_boolean_fields: ['timed', 'enable_reduced_scoring', 'can_retake'],
-				param_non_neg_int_fields: ['quiz_duration']
-			});
+			// Load the user sets data from the JSON file and select the precalculus users.
+			const precalc_user_sets_to_parse = (await import('../../t/db/sample_data/user_sets.json')).default
+				.find((course) => course.course_name === 'Precalculus')?.sets;
 
-			// Load the users from the CSV file and filter only the Precalc students.
-			const users_to_parse = await loadCSV('t/db/sample_data/students.csv', {
-				boolean_fields: ['is_admin'],
-				non_neg_int_fields: ['user_id']
-			});
+			// Load the users from the JSON file.
+			const users_to_parse = (await import('../../t/db/sample_data/users.json')).default;
 
-			const precalc_merged_users = users_to_parse.filter(user => user.course_name === 'Precalculus')
-				.map(user => new CourseUser(user));
+			const precalc_merged_users: CourseUser[] = [];
+			for (const user of users_to_parse) {
+				const precalcCourseUser = user.courses?.find((course) => course.course_name === 'Precalculus');
+				if (!precalcCourseUser) continue;
+				precalc_merged_users.push(new CourseUser({ ...user, ...precalcCourseUser.course_user }));
+			}
 
-			// Filter only user sets from HW #1
-			const hw1_from_csv = user_sets_to_parse
-				.filter(set => set.course_name === 'Precalculus' && set.set_name === 'HW #1')
-				.map(set => new DBUserHomeworkSet(set));
+			// Filter only user sets from "HW #1".
+			const hw1_from_json: DBUserHomeworkSet[] = [];
+			precalc_user_sets_to_parse?.find((set) => set.set_name === 'HW #1')
+				?.users.map((user) => hw1_from_json.push(new DBUserHomeworkSet(user.user_set)));
 
 			const hw1 = problem_set_store.findProblemSet({ set_name: 'HW #1' });
 			const db_user_sets_from_store = problem_set_store.db_user_sets
 				.filter(set => set.set_id === hw1?.set_id);
-			expect(cleanIDs(db_user_sets_from_store)).toStrictEqual(cleanIDs(hw1_from_csv));
+			expect(cleanIDs(db_user_sets_from_store)).toStrictEqual(cleanIDs(hw1_from_json));
 
-			precalc_user_sets = user_sets_to_parse
-				.filter(set => set.course_name === 'Precalculus')
-				.map(obj => {
-					const problem_set = problem_sets_from_csv.find(set => set.set_name == obj.set_name);
-					const merged_user = precalc_merged_users.find(u => u.username === obj.username) ?? new CourseUser();
+			precalc_user_sets_to_parse?.map((set_info) => {
+				const problem_set = problem_sets_from_json.find(set => set.set_name == set_info.set_name);
+				set_info.users.map((user) => {
+					const merged_user =
+						precalc_merged_users.find(u => u.username === user.username) ?? new CourseUser();
 					const user_set = parseDBUserSet({
 						set_type: problem_set?.set_type,
-						set_dates: obj.set_dates as ParseableProblemSetDates,
-						set_params: obj.set_params as ParseableProblemSetParams
+						set_dates: user.user_set.set_dates,
+						set_params: {}
 					});
-					return mergeUserSet(problem_set as ProblemSet, user_set, merged_user) ?? new UserSet();
+					precalc_user_sets.push(
+						mergeUserSet(problem_set as ProblemSet, user_set, merged_user) ?? new UserSet()
+					);
 				});
+			});
 		});
 	});
 	let new_hw_set: ProblemSet;

@@ -75,20 +75,20 @@ if ($database_type eq 'mysql') {
 
 		# List all databases, and if the database does not already exist, then create it.
 		if (!grep { $_->[0] eq $database_name } @{ $dbh->selectall_arrayref('SHOW DATABASES') }) {
-			say "Creating database '$database_name'.";
+			say qq{Creating database "$database_name".};
 			$dbh->do("CREATE DATABASE `$database_name`");
 		} else {
-			say "Not Creating database '$database_name'.  Database already exists.";
+			say qq{Not Creating database "$database_name".  Database already exists.};
 		}
 
 		# List all users, and if the user does not already exist, then create it.
 		if (!grep { $_->[0] eq $config->{database_user} } @{ $dbh->selectall_arrayref('SELECT user FROM mysql.user') })
 		{
-			say "Creating user '$config->{database_user}'.";
+			say qq{Creating user "$config->{database_user}".};
 			$dbh->do("CREATE USER '$config->{database_user}'\@'localhost' "
 					. "IDENTIFIED BY '$config->{database_password}'");
 		} else {
-			say "Not creating user '$config->{database_user}'.  User already exists.";
+			say qq{Not creating user "$config->{database_user}".  User already exists.};
 		}
 
 		# Grant the necessary permissions to the user.
@@ -121,19 +121,19 @@ if ($database_type eq 'mysql') {
 
 		# List all databases, and if the database does not already exist, then create it.
 		if (!grep { $_->[0] eq $database_name } @{ $dbh->selectall_arrayref('SELECT datname FROM pg_database') }) {
-			say "Creating database '$database_name'.";
+			say qq{Creating database "$database_name".};
 			$dbh->do(qq{CREATE DATABASE "$database_name"});
 		} else {
-			say "Not Creating database '$database_name'.  Database already exists.";
+			say qq{Not Creating database "$database_name".  Database already exists.};
 		}
 
 		# List all users, and if the user does not already exist, then create it.
 		if (!grep { $_->[0] eq $config->{database_user} } @{ $dbh->selectall_arrayref('SELECT usename FROM pg_user') })
 		{
-			say "Creating user '$config->{database_user}'.";
+			say qq{Creating user "$config->{database_user}".};
 			$dbh->do(qq{CREATE USER "$config->{database_user}" WITH PASSWORD '$config->{database_password}'});
 		} else {
-			say "Not creating user '$config->{database_user}'.  User already exists.";
+			say qq{Not creating user "$config->{database_user}".  User already exists.};
 		}
 	} catch {
 		say 'ERROR: There was an error communicating with postgres.';
@@ -147,11 +147,17 @@ my $schema = DB::Schema->connect(
 	$config->{database_dsn},
 	$config->{database_user},
 	$config->{database_password},
-	{ quote_names => 1 }
+	{
+		quote_names => 1,
+		$database_type eq 'Pg' ? (on_connect_do => 'SET client_min_messages=WARNING;') : ()
+	}
 );
 
 # Deploy the database as specified by the webwork3 schema.
-say "Setting up the database with dsn '$config->{database_dsn}'";
+say qq{Setting up the database with dsn "$config->{database_dsn}".};
 $schema->deploy({ add_drop_table => 1 });
+
+# Add the initial admin user.
+$schema->resultset('User')->create({ username => 'admin', is_admin => 1, login_params => { password => 'admin' } });
 
 1;

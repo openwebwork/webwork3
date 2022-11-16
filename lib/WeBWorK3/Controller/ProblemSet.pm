@@ -7,12 +7,6 @@ use Mojo::Base 'Mojolicious::Controller', -signatures;
 use Try::Tiny;
 use Mojo::JSON qw/true false/;
 
-sub getAllProblemSets ($self) {
-	my @all_problem_sets = $self->schema->resultset('ProblemSet')->getAllProblemSets;
-	$self->render(json => \@all_problem_sets);
-	return;
-}
-
 sub getProblemSets ($self) {
 	my @problem_sets =
 		$self->schema->resultset('ProblemSet')->getProblemSets(info => { course_id => int($self->param('course_id')) });

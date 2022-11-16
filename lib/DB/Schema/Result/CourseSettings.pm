@@ -49,7 +49,7 @@ C<email>: a JSON object that stores email settings
 
 __PACKAGE__->table('course_settings');
 
-__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
+__PACKAGE__->load_components(qw/InflateColumn::Serializer Core/);
 
 __PACKAGE__->add_columns(
 	course_settings_id => {

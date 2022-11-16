@@ -16,17 +16,17 @@ use YAML::XS qw/LoadFile/;
 
 # This reads the default settings from a file.
 
-sub getDefaultCourseSettings ($self) {
-	my $settings = LoadFile(path($self->config->{webwork3_home}, 'conf', 'course_defaults.yml'));
+sub getDefaultCourseSettings ($c) {
+	my $settings = LoadFile($c->app->home->child('conf', 'course_defaults.yml'));
 	# Check if the file exists.
-	$self->render(json => $settings);
+	$c->render(json => $settings);
 	return;
 }
 
-sub getCourseSettings ($self) {
-	my $course_settings = $self->schema->resultset('Course')->getCourseSettings(
+sub getCourseSettings ($c) {
+	my $course_settings = $c->schema->resultset('Course')->getCourseSettings(
 		info => {
-			course_id => int($self->param('course_id')),
+			course_id => int($c->param('course_id')),
 		}
 	);
 	# Flatten to a single array.
@@ -36,14 +36,14 @@ sub getCourseSettings ($self) {
 			push(@course_settings, { var => $key, value => $course_settings->{$category}->{$key} });
 		}
 	}
-	$self->render(json => \@course_settings);
+	$c->render(json => \@course_settings);
 	return;
 }
 
-sub updateCourseSetting ($self) {
-	my $course_setting = $self->schema->resultset('Course')
-		->updateCourseSettings({ course_id => $self->param('course_id') }, $self->req->json);
-	$self->render(json => $course_setting);
+sub updateCourseSetting ($c) {
+	my $course_setting =
+		$c->schema->resultset('Course')->updateCourseSettings({ course_id => $c->param('course_id') }, $c->req->json);
+	$c->render(json => $course_setting);
 	return;
 }
 

@@ -1,0 +1,53 @@
+[
+	{
+		"course_name": "Precalculus",
+		"sets": [
+			{
+				"set_name": "Quiz #1",
+				"set_visible": false,
+				"set_dates": { "open": 1609545540, "due": 1610323140, "answer": 1612137540 },
+				"set_params": { "quiz_duration": 30, "timed": true }
+			},
+			{
+				"set_name": "Quiz #2",
+				"set_visible": true,
+				"set_dates": { "open": 1609545540, "due": 1610323140, "answer": 1612137540 },
+				"set_params": { "quiz_duration": 15, "timed": true }
+			},
+			{
+				"set_name": "Quiz #3",
+				"set_visible": true,
+				"set_dates": { "open": 1609545540, "due": 1610323140, "answer": 1612137540 },
+				"set_params": { "quiz_duration": 0, "timed": false }
+			}
+		]
+	},
+	{
+		"course_name": "Abstract Algebra",
+		"sets": [
+			{
+				"set_name": "Quiz #1",
+				"set_visible": false,
+				"set_dates": { "open": 1609545540, "due": 1610323140, "answer": 1612137540 },
+				"set_params": { "quiz_duration": 30, "timed": true }
+			}
+		]
+	},
+	{
+		"course_name": "Arithmetic",
+		"sets": [
+			{
+				"set_name": "Quiz #1",
+				"set_visible": true,
+				"set_dates": { "open": 1609545540, "due": 1610323140, "answer": 1612137540 },
+				"set_params": { "quiz_duration": 15, "timed": true }
+			},
+			{
+				"set_name": "Quiz #2",
+				"set_visible": false,
+				"set_dates": { "open": 1609545540, "due": 1610323140, "answer": 1612137540 },
+				"set_params": { "quiz_duration": 0, "timed": false }
+			}
+		]
+	}
+]

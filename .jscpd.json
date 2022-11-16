@@ -1,4 +1,4 @@
 {
 	"threshold": 5,
-	"ignore": ["node_modules", "dist", "**/*.pm", "**/*.ts"]
+	"ignore": ["node_modules", "dist", "**/*.pm", "**/*.ts", "**/t/db/sample_data/*.json"]
 }

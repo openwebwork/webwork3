@@ -98,23 +98,10 @@ The updatePermissions subroutine loads the roles and permissions from a YAML fil
 
 =cut
 
-sub updatePermissions ($ww3_conf, $role_perm_file) {
-
-	my $config = LoadFile($ww3_conf);
-
-	# Connect to the database.
-	my $schema = DB::Schema->connect(
-		$config->{database_dsn},
-		$config->{database_user},
-		$config->{database_password},
-		{ quote_names => 1 }
-	);
-
+sub updatePermissions ($schema, $role_perm_file) {
 	# load any YAML true/false as booleans, not string true/false.
 	local $YAML::XS::Boolean = "JSON::PP";
 	my $role_perm = LoadFile($role_perm_file);
-
-	print "Rebuilding all roles and permissions in database\n";
 
 	# clear out the tables role, db_perm, ui_perm
 	$schema->resultset('Role')->delete_all;

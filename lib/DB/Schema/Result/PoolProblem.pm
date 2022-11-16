@@ -48,7 +48,7 @@ Note: the C<params> can only have one of the two fields
 
 __PACKAGE__->table('pool_problem');
 
-__PACKAGE__->load_components('InflateColumn::Serializer', 'Core');
+__PACKAGE__->load_components(qw/InflateColumn::Serializer Core/);
 
 __PACKAGE__->add_columns(
 	pool_problem_id => {

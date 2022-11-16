@@ -1,62 +1,40 @@
 ---
-###########################
-## Linter GitHub Actions ##
-###########################
 name: Lint Code Base
 
 defaults:
   run:
     shell: bash
 
-# Documentation:
-# https://help.github.com/en/articles/workflow-syntax-for-github-actions
-
-#############################
-# Start the job on all push #
-#############################
 on:
   push:
     branches-ignore: [main]
-    # Remove the line above to run when pushing to main
   pull_request:
     branches: [main]
 
-###############
-# Set the Job #
-###############
 jobs:
   lint:
-    # Name the Job
     name: Lint Code Base
-    # Set the agent to run on
     runs-on: ubuntu-latest
 
-    ##################
-    # Load all steps #
-    ##################
     steps:
-      ##########################
-      # Checkout the code base #
-      ##########################
+      # Checkout the code base
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           # Full git history is needed to get a proper list of changed files within `super-linter`
           fetch-depth: 0
 
       # Install node (for npm) and use it to install eslint and stylelint dependencies.
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '16'
       - name: Install Dependencies
         run: npm ci
 
-      ################################
-      # Run Linter against code base #
-      ################################
+      # Run Linter against code base
       - name: Super-Linter
-        uses: github/super-linter@v4.8.1
+        uses: github/super-linter@v4.9.5
 
         env:
           VALIDATE_ALL_CODEBASE: false
@@ -77,7 +55,7 @@ jobs:
     container:
       image: perl:5.32
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: perl -V
         run: perl -V
       - name: Install dependencies

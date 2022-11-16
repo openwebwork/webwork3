@@ -37,6 +37,7 @@ use lib "$main::webwork3_dir/lib";
 use Getopt::Long qw(:config bundling);
 use Pod::Usage;
 use DB::Schema;
+use YAML::XS qw/LoadFile/;
 
 use DB::Utils qw/updatePermissions/;
 
@@ -47,11 +48,19 @@ pod2usage({ -verbose => 2, -exitval => 0 }) if $showHelp;
 # Load the configuration to obtain the database settings.
 my $ww3_conf = "$main::webwork3_dir/conf/webwork3.yml";
 $ww3_conf = "$main::webwork3_dir/conf/webwork3.dist.yml" unless -r $ww3_conf;
+my $config = LoadFile($ww3_conf);
+
+# Connect to the database.
+my $schema = DB::Schema->connect(
+	$config->{database_dsn},
+	$config->{database_user},
+	$config->{database_password},
+	{ quote_names => 1 }
+);
 
 my $role_perm_file = "$main::webwork3_dir/conf/permissions.yml";
-# if it doesn't exist, load the default one:
 $role_perm_file = "$main::webwork3_dir/conf/permissions.dist.yml" unless -r $role_perm_file;
 
-updatePermissions($ww3_conf, $role_perm_file);
+updatePermissions($schema, $role_perm_file);
 
 1;

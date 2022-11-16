@@ -1,0 +1,96 @@
+[
+	{
+		"course_name": "Precalculus",
+		"sets": [
+			{
+				"set_name": "HW #1",
+				"problems": [
+					{
+						"problem_number": 1,
+						"users": [
+							{ "username": "homer", "user_problem": { "seed": 1234, "status": 0 } },
+							{ "username": "bart", "user_problem": { "seed": 4324, "status": 0 } },
+							{ "username": "ned", "user_problem": { "seed": 324, "status": 0 } }
+						]
+					},
+					{
+						"problem_number": 2,
+						"users": [
+							{ "username": "homer", "user_problem": { "seed": 937, "status": 0 } },
+							{ "username": "bart", "user_problem": { "seed": 916, "status": 1 } },
+							{ "username": "ned", "user_problem": { "seed": 583, "status": 1 } }
+						]
+					},
+					{
+						"problem_number": 3,
+						"users": [
+							{ "username": "homer", "user_problem": { "seed": 123, "status": 0 } },
+							{ "username": "bart", "user_problem": { "seed": 949, "status": 0 } },
+							{ "username": "ned", "user_problem": { "seed": 562, "status": 0.5 } }
+						]
+					}
+				]
+			},
+			{
+				"set_name": "HW #2",
+				"problems": [
+					{
+						"problem_number": 1,
+						"users": [
+							{ "username": "homer", "user_problem": { "seed": 239, "status": 0 } },
+							{ "username": "bart", "user_problem": { "seed": 1394, "status": 0 } },
+							{ "username": "ned", "user_problem": { "seed": 321, "status": 0 } }
+						]
+					},
+					{
+						"problem_number": 2,
+						"users": [
+							{ "username": "homer", "user_problem": { "seed": 798, "status": 1 } },
+							{ "username": "bart", "user_problem": { "seed": 240, "status": 0 } },
+							{ "username": "ned", "user_problem": { "seed": 908, "status": 0 } }
+						]
+					},
+					{
+						"problem_number": 3,
+						"users": [
+							{ "username": "homer", "user_problem": { "seed": 765, "status": 1 } },
+							{ "username": "bart", "user_problem": { "seed": 324, "status": 0 } },
+							{ "username": "ned", "user_problem": { "seed": 821, "status": 1 } }
+						]
+					}
+				]
+			}
+		]
+	},
+	{
+		"course_name": "Arithmetic",
+		"sets": [
+			{
+				"set_name": "HW #1",
+				"problems": [
+					{
+						"problem_number": 1,
+						"users": [
+							{ "username": "moe", "user_problem": { "seed": 242, "status": 0 } },
+							{ "username": "ralph", "user_problem": { "seed": 294, "status": 1 } }
+						]
+					},
+					{
+						"problem_number": 2,
+						"users": [
+							{ "username": "moe", "user_problem": { "seed": 972, "status": 0 } },
+							{ "username": "ralph", "user_problem": { "seed": 843, "status": 0.5 } }
+						]
+					},
+					{
+						"problem_number": 3,
+						"users": [
+							{ "username": "moe", "user_problem": { "seed": 240, "status": 0.5 } },
+							{ "username": "ralph", "user_problem": { "seed": 666, "status": 0.75 } }
+						]
+					}
+				]
+			}
+		]
+	}
+]

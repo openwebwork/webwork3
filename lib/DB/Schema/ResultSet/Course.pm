@@ -237,8 +237,6 @@ sub getUserCourses ($self, %args) {
 	my $user = $self->result_source->schema->resultset('User')
 		->getGlobalUser(info => getUserInfo($args{info}), as_result_set => 1);
 
-	# my @user_courses = $user->courses->search({});
-
 	my @user_courses = $user->course_users->search({}, { prefetch => [qw/role/] });
 
 	return @user_courses if $args{as_result_set};

@@ -28,40 +28,7 @@ C<DBIx::Class::ResultSet>.  The basics are a CRUD for ProblemSets.
 Note: a ProblemSet is an abstract class for HWSet, Quiz, ReviewSet, which differ
 in parameter and dates types.
 
-=head2 getProblemSets
-
-This gets a list of all ProblemSet (and set-like objects) stored in the database
-in the C<problem_set> table.
-
-=head3 input
-
-=over
-=item - C<as_result_set>, a boolean.  If true this result an array of C<DBIx::Class::ResultSet::ProblemSet>
-if false, an array of hashrefs of ProblemSet.
-
-=back
-
-=head3 output
-
-An array of courses as a C<DBIx::Class::ResultSet::ProblemSet> object.
-
 =cut
-
-sub getAllProblemSets ($self, %args) {
-	my @problem_sets = $self->search();
-
-	return @problem_sets if $args{as_result_set};
-
-	my @all_sets = ();
-	for my $set (@problem_sets) {
-		my $expanded_set =
-			{ $set->get_inflated_columns, $set->courses->get_inflated_columns, set_type => $set->set_type };
-		delete $expanded_set->{type};
-		push(@all_sets, $expanded_set);
-	}
-
-	return @all_sets;
-}
 
 # The following is CRUD for problem sets in a given course
 
@@ -333,7 +300,7 @@ sub addProblemSet {
 	$set_params->{type} = $SET_TYPES->{ $set_params->{set_type} || 'HW' };
 	# Delete a few fields that may be passed in but are not in the database
 	# Note: on client-side set_id=0 means that the set is new, so delete this
-	#  and it will be determined.
+	# and it will be determined.
 	for my $key (qw/course_id course_name set_type set_id/) {
 		delete $set_params->{$key} if defined $set_params->{$key};
 	}
